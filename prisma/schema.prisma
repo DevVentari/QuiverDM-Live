@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String?    @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  campaigns     Campaign[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// QuiverDM Core Models
+model Campaign {
+  id               String             @id @default(cuid())
+  name             String
+  description      String?            @db.Text
+  bannerUrl        String?
+  status           String             @default("active") // active, paused, completed
+  userId           String
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gameSessions     GameSession[]
+  npcs             NPC[]
+  glossary         Json? // Campaign-specific glossary for transcription
+  homebrewContent  HomebrewContent[]
+  homebrewPDFs     HomebrewPDF[]
+  players          Player[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model GameSession {
+  id               String              @id @default(cuid())
+  campaignId       String
+  campaign         Campaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sessionNumber    Int
+  date             DateTime            @default(now())
+  title            String?
+  quickNotes       String?             @db.Text
+  recap            String?             @db.Text
+  status           String              @default("active") // active, completed, cancelled
+  recordings       SessionRecording[]
+  transcripts      Transcript[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@unique([campaignId, sessionNumber])
+  @@index([campaignId])
+  @@index([date])
+}
+
+model NPC {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name        String
+  description String?  @db.Text
+  faction     String?
+  role        String?
+  secrets     String?  @db.Text
+  imageUrl    String?
+  stats       Json? // Flexible stats object
+  tags        String[] // For filtering
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([campaignId])
+  @@index([name])
+}
+
+model Player {
+  id            String   @id @default(cuid())
+  campaignId    String
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name          String
+  characterName String
+  characterRace String?
+  characterClass String?
+  level         Int      @default(1)
+  imageUrl      String?
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([campaignId])
+}
+
+// Session Recording & Transcription Models
+model SessionRecording {
+  id               String      @id @default(cuid())
+  sessionId        String
+  session          GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type             String // 'audio', 'video', 'pdf'
+  originalUrl      String
+  fileSize         Int // in bytes
+  durationSeconds  Int? // null for PDFs
+  processingStatus String      @default("queued") // queued, processing, completed, failed
+  errorMessage     String?     @db.Text
+  transcripts      Transcript[]
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([sessionId])
+  @@index([processingStatus])
+}
+
+model Transcript {
+  id              String            @id @default(cuid())
+  sessionId       String
+  session         GameSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recordingId     String?
+  recording       SessionRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
+  rawText         String            @db.Text
+  correctedText   String?           @db.Text
+  speakers        Json? // Array of speaker objects
+  timestamps      Json? // Array of timestamp objects
+  glossaryMatches Json? // Matched glossary terms
+  formats         Json? // Generated formats (discord, table, web)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([sessionId])
+  @@index([recordingId])
+}
+
+// Homebrew Content Models
+model HomebrewPDF {
+  id               String            @id @default(cuid())
+  campaignId       String
+  campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  filename         String
+  url              String
+  fileSize         Int // in bytes
+  processingStatus String            @default("queued") // queued, processing, completed, failed
+  errorMessage     String?           @db.Text
+  extractedCount   Json? // { items: 0, creatures: 0, spells: 0, etc. }
+  content          HomebrewContent[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([campaignId])
+  @@index([processingStatus])
+}
+
+model HomebrewContent {
+  id           String       @id @default(cuid())
+  campaignId   String
+  campaign     Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sourcePdfId  String?
+  sourcePdf    HomebrewPDF? @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
+  type         String // 'item', 'creature', 'spell', 'location', 'subclass', 'feat', 'rule'
+  name         String
+  data         Json // Flexible data structure based on type
+  images       String[] // Array of image URLs
+  tags         String[] // For categorization
+  searchText   String       @db.Text // Denormalized for full-text search
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([campaignId])
+  @@index([type])
+  @@index([name])
+  @@index([sourcePdfId])
+}
