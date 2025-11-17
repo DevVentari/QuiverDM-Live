@@ -31,6 +31,7 @@ async function main() {
     campaign = await prisma.campaign.create({
       data: {
         name: 'Tales from The Bonfire Keep',
+        slug: 'tales-from-the-bonfire-keep',
         description: 'A D&D campaign set in Hameria Ire, featuring cosmic forces, divine anchors, and the corruption of entropy.',
         userId: user.id,
       }
