@@ -1,0 +1,17 @@
+[build]
+# Use the worker Dockerfile
+dockerfilePath = "Dockerfile.worker"
+
+[deploy]
+# Number of replicas (1 for worker)
+numReplicas = 1
+
+# Don't expose any ports (worker doesn't need HTTP)
+# Empty means no port exposure
+
+# Health check disabled for workers
+healthcheckPath = ""
+
+# Restart policy
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

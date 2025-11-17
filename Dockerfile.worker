@@ -1,0 +1,56 @@
+# QuiverDM PDF Worker Dockerfile
+# This builds an image with both Node.js and Python for PDF processing
+
+FROM node:20-slim
+
+# Install Python and system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create and activate virtual environment
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Install Python dependencies for PDF processing
+# Note: Full marker-pdf with PyTorch is very large (~3GB)
+# We'll use PyMuPDF as the primary converter (lighter weight)
+RUN pip install --no-cache-dir \
+    pymupdf \
+    PyPDF2
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files first for better caching
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install Node.js dependencies
+RUN npm ci --omit=dev
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Copy source code
+COPY . .
+
+# Build TypeScript (if needed)
+# RUN npm run build
+
+# Create temp directory for PDF processing
+RUN mkdir -p /app/temp /app/local-storage
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "console.log('Worker healthy')" || exit 1
+
+# Run the PDF worker
+CMD ["npx", "tsx", "src/lib/queue-worker.ts"]
