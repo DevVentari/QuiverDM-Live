@@ -586,7 +586,7 @@ export default function CreateRacePage() {
                   </Flex>
                 ))}
                 <Text size="1" color="gray" mt="2" style={{ display: 'block' }}>
-                  Note: You'll need to create separate race entries for each subrace with their specific features
+                  Note: You&apos;ll need to create separate race entries for each subrace with their specific features
                 </Text>
               </>
             )}

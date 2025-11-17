@@ -260,7 +260,7 @@ export function CobaltCookieHelper({ onCookieSet, initialCookie = '' }: CobaltCo
               Privacy & Security
             </Text>
             <Text size="2" color="gray">
-              Your cookie is encrypted and stored securely. It's only used to import character data
+              Your cookie is encrypted and stored securely. It&apos;s only used to import character data
               from D&D Beyond and is never shared with third parties.
             </Text>
           </Flex>

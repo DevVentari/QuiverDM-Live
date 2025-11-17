@@ -69,7 +69,7 @@ export function CreateCampaignStep({ onCampaignCreated }: CreateCampaignStepProp
         </Box>
         <Heading size="6">Campaign Created!</Heading>
         <Text size="3" color="gray" style={{ textAlign: 'center', maxWidth: '400px' }}>
-          Great! Your campaign is ready. Let's set up D&D Beyond integration so you can import your
+          Great! Your campaign is ready. Let&apos;s set up D&D Beyond integration so you can import your
           characters.
         </Text>
       </Flex>
@@ -82,7 +82,7 @@ export function CreateCampaignStep({ onCampaignCreated }: CreateCampaignStepProp
         <Sparkles size={32} className="text-violet-400" />
         <Heading size="6">Create Your First Campaign</Heading>
         <Text size="3" color="gray" style={{ textAlign: 'center', maxWidth: '450px' }}>
-          Let's start by setting up your campaign. You can always change these details later.
+          Let&apos;s start by setting up your campaign. You can always change these details later.
         </Text>
       </Flex>
 

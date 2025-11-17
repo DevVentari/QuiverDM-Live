@@ -414,7 +414,7 @@ export default function NPCDetailPage({ params }: NPCDetailPageProps) {
                     <Flex direction="column" gap="2">
                       {/* Example note - will be replaced with actual data later */}
                       <Text size="2" color="gray">
-                        Gave Oriyen <Text weight="bold" color="violet" style={{ cursor: 'pointer' }}>"Ambric's Sealed Letter"</Text>
+                        Gave Oriyen <Text weight="bold" color="violet" style={{ cursor: 'pointer' }}>&quot;Ambric&apos;s Sealed Letter&quot;</Text>
                       </Text>
                       <Text size="1" color="gray" style={{ fontStyle: 'italic' }}>
                         Session notes will appear here as events unfold

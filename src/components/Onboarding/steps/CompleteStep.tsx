@@ -21,7 +21,7 @@ export function CompleteStep() {
         >
           <PartyPopper size={50} className="text-violet-400" />
         </Box>
-        <Heading size="7">You're All Set!</Heading>
+        <Heading size="7">You&apos;re All Set!</Heading>
         <Text size="4" color="gray" style={{ textAlign: 'center', maxWidth: '450px' }}>
           Congratulations! Your QuiverDM campaign is ready. Here are some things you can do next:
         </Text>

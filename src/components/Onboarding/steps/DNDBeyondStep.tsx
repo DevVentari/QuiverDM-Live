@@ -78,7 +78,7 @@ export function DNDBeyondStep({ onConfigured, onSkip }: DNDBeyondStepProps) {
             QuiverDM to securely access your character data on your behalf.
           </Text>
           <Text size="2" color="gray">
-            Don't worry - we'll guide you through finding it step by step below.
+            Don&apos;t worry - we&apos;ll guide you through finding it step by step below.
           </Text>
         </Flex>
       </Box>
@@ -100,7 +100,7 @@ export function DNDBeyondStep({ onConfigured, onSkip }: DNDBeyondStepProps) {
             Not ready to set this up right now?
           </Text>
           <Button variant="ghost" size="2" onClick={handleSkip}>
-            Skip for now - I'll set this up later
+            Skip for now - I&apos;ll set this up later
           </Button>
           <Text size="1" color="gray">
             You can always configure this from Settings

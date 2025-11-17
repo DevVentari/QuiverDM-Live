@@ -224,13 +224,13 @@ export default function DndBeyondImport({ campaignId, onImportComplete }: DndBey
               <br />
               2. Open Developer Tools (F12 or Right-click → Inspect)
               <br />
-              3. Go to the "Application" (Chrome) or "Storage" (Firefox) tab
+              3. Go to the &quot;Application&quot; (Chrome) or &quot;Storage&quot; (Firefox) tab
               <br />
-              4. Under "Cookies" → "https://www.dndbeyond.com"
+              4. Under &quot;Cookies&quot; → &quot;https://www.dndbeyond.com&quot;
               <br />
-              5. Find the "CobaltSession" cookie and copy its Value
+              5. Find the &quot;CobaltSession&quot; cookie and copy its Value
               <br />
-              6. Paste it in the "Cobalt Token" field above
+              6. Paste it in the &quot;Cobalt Token&quot; field above
               <br />
               <br />
               <strong style={{ color: 'var(--violet-11)' }}>
