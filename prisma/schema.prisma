@@ -24,6 +24,7 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
+  password          String? @db.Text // For credentials provider
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -42,16 +43,36 @@ model Session {
 }
 
 model User {
-  id            String     @id @default(cuid())
-  name          String?
-  email         String?    @unique
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  campaigns     Campaign[]
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id              String            @id @default(cuid())
+  name            String?
+  email           String?           @unique
+  emailVerified   DateTime?
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
+  campaigns       Campaign[]
+  homebrewContent HomebrewContent[]
+  homebrewPDFs    HomebrewPDF[]
+  settings        UserSettings?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model UserSettings {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Encrypted API keys
+  openaiApiKey            String?  @db.Text // Encrypted
+  anthropicApiKey         String?  @db.Text // Encrypted
+  huggingfaceToken        String?  @db.Text // Encrypted
+  dndBeyondCobaltCookie   String?  @db.Text // Encrypted
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -64,24 +85,26 @@ model VerificationToken {
 
 // QuiverDM Core Models
 model Campaign {
-  id               String             @id @default(cuid())
+  id               String                      @id @default(cuid())
   name             String
-  description      String?            @db.Text
+  slug             String                      @unique // URL-friendly slug generated from name
+  description      String?                     @db.Text
   bannerUrl        String?
-  status           String             @default("active") // active, paused, completed
+  status           String                      @default("active") // active, paused, completed
   userId           String
-  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
   gameSessions     GameSession[]
   npcs             NPC[]
   glossary         Json? // Campaign-specific glossary for transcription
-  homebrewContent  HomebrewContent[]
-  homebrewPDFs     HomebrewPDF[]
+  homebrewContent  CampaignHomebrewContent[] // Many-to-many with homebrew
+  homebrewPDFs     HomebrewPDF[] // Campaign-specific PDFs
   players          Player[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([slug])
 }
 
 model GameSession {
@@ -127,17 +150,146 @@ model Player {
   id            String   @id @default(cuid())
   campaignId    String
   campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  name          String
+  name          String // Player's real name
   characterName String
   characterRace String?
   characterClass String?
   level         Int      @default(1)
   imageUrl      String?
   notes         String?  @db.Text
+  backstory     String?  @db.Text
+
+  // D&D Beyond integration
+  dndBeyondUrl  String?  // Public character URL for re-syncing
+  lastSyncedAt  DateTime?
+
+  // Full character data as JSON (for flexibility)
+  characterData Json? // Stores ability scores, skills, features, inventory, etc.
+
+  // Structured character content
+  spells        PlayerSpell[]
+  feats         PlayerFeat[]
+  items         PlayerItem[]
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@index([campaignId])
+}
+
+// D&D 5e Spell Model (from D&D Beyond or manual entry)
+model Spell {
+  id              String        @id @default(cuid())
+  name            String
+  level           Int           // 0 for cantrips, 1-9 for spell levels
+  school          String        // Abjuration, Conjuration, etc.
+  castingTime     String        // "1 action", "1 bonus action", etc.
+  range           String        // "30 feet", "Self", etc.
+  components      String[]      // ["V", "S", "M"]
+  materialComponents String?    @db.Text // Material component description
+  duration        String        // "Instantaneous", "Concentration, up to 1 minute", etc.
+  description     String        @db.Text
+  higherLevels    String?       @db.Text // Description of casting at higher levels
+  ritual          Boolean       @default(false)
+  concentration   Boolean       @default(false)
+  classes         String[]      // Classes that can cast this spell
+  source          String        @default("PHB") // PHB, XGE, TCE, etc.
+  dndBeyondId     String?       @unique // D&D Beyond spell ID
+
+  players         PlayerSpell[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([name])
+  @@index([level])
+  @@index([school])
+}
+
+// Join table: Player has many Spells
+model PlayerSpell {
+  id              String   @id @default(cuid())
+  playerId        String
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  spellId         String
+  spell           Spell    @relation(fields: [spellId], references: [id], onDelete: Cascade)
+  prepared        Boolean  @default(false) // Is this spell prepared?
+  alwaysPrepared  Boolean  @default(false) // Always prepared (racial/class feature)
+  addedAt         DateTime @default(now())
+
+  @@unique([playerId, spellId])
+  @@index([playerId])
+  @@index([spellId])
+}
+
+// D&D 5e Feat Model
+model Feat {
+  id              String       @id @default(cuid())
+  name            String
+  description     String       @db.Text
+  prerequisites   String?      @db.Text // Prerequisites for taking this feat
+  source          String       @default("PHB") // PHB, XGE, TCE, etc.
+  dndBeyondId     String?      @unique // D&D Beyond feat ID
+
+  players         PlayerFeat[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([name])
+}
+
+// Join table: Player has many Feats
+model PlayerFeat {
+  id              String   @id @default(cuid())
+  playerId        String
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  featId          String
+  feat            Feat     @relation(fields: [featId], references: [id], onDelete: Cascade)
+  addedAt         DateTime @default(now())
+
+  @@unique([playerId, featId])
+  @@index([playerId])
+  @@index([featId])
+}
+
+// D&D 5e Item Model
+model Item {
+  id              String       @id @default(cuid())
+  name            String
+  type            String       // "Weapon", "Armor", "Potion", "Wondrous Item", etc.
+  rarity          String       @default("Common") // Common, Uncommon, Rare, Very Rare, Legendary, Artifact
+  description     String       @db.Text
+  weight          Float?       // Weight in pounds
+  cost            String?      // "50 gp", "500 gp", etc.
+  requiresAttunement Boolean   @default(false)
+  properties      String[]     // Item properties (magical, consumable, etc.)
+  source          String       @default("PHB") // PHB, DMG, XGE, etc.
+  dndBeyondId     String?      @unique // D&D Beyond item ID
+
+  players         PlayerItem[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([name])
+  @@index([type])
+  @@index([rarity])
+}
+
+// Join table: Player has many Items (with quantity, equipped status)
+model PlayerItem {
+  id              String   @id @default(cuid())
+  playerId        String
+  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  itemId          String
+  item            Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  quantity        Int      @default(1)
+  equipped        Boolean  @default(false)
+  attuned         Boolean  @default(false)
+  notes           String?  @db.Text // Player-specific notes about the item
+  addedAt         DateTime @default(now())
+
+  @@unique([playerId, itemId])
+  @@index([playerId])
+  @@index([itemId])
 }
 
 // Session Recording & Transcription Models
@@ -147,10 +299,12 @@ model SessionRecording {
   session          GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   type             String // 'audio', 'video', 'pdf'
   originalUrl      String
+  extractedAudioUrl String?    // URL of extracted audio (for videos), null if original was audio
   fileSize         Int // in bytes
   durationSeconds  Int? // null for PDFs
   processingStatus String      @default("queued") // queued, processing, completed, failed
   errorMessage     String?     @db.Text
+  originalDeleted  Boolean     @default(false) // true if original video was deleted after transcription
   transcripts      Transcript[]
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
@@ -171,6 +325,10 @@ model Transcript {
   timestamps      Json? // Array of timestamp objects
   glossaryMatches Json? // Matched glossary terms
   formats         Json? // Generated formats (discord, table, web)
+  language        String?
+  languageProbability Float?
+  durationSeconds Float?
+  hasSpeakers     Boolean           @default(false)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -178,42 +336,115 @@ model Transcript {
   @@index([recordingId])
 }
 
-// Homebrew Content Models
-model HomebrewPDF {
-  id               String            @id @default(cuid())
-  campaignId       String
-  campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  filename         String
-  url              String
-  fileSize         Int // in bytes
-  processingStatus String            @default("queued") // queued, processing, completed, failed
-  errorMessage     String?           @db.Text
-  extractedCount   Json? // { items: 0, creatures: 0, spells: 0, etc. }
-  content          HomebrewContent[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+model TranscriptionJob {
+  id                      String   @id @default(cuid())
+  sessionId               String
+  recordingId             String?
+  filePath                String
+  modelSize               String   @default("medium")
+  language                String?
+  useGPU                  Boolean  @default(true)
+  useSpeakers             Boolean  @default(false)
+  speakerNames            String[] // Array of speaker names
+  numSpeakers             Int?
+  status                  String   @default("queued") // queued, processing, completed, failed
+  progress                Int      @default(0) // 0-100
+  currentChunk            Int      @default(0)
+  totalChunks             Int      @default(0)
+  currentStep             String?  // 'extracting_audio', 'splitting_chunks', 'transcribing', 'diarizing', 'saving'
+  currentSubStep          String?  // Detailed substep like 'loading_model', 'aligning_timestamps', 'detecting_speakers'
+  estimatedTimeRemaining  Int?     // Seconds remaining (estimated)
+  progressDetails         Json?    // Additional progress metadata (batch info, speaker count, etc.)
+  errorMessage            String?  @db.Text
+  transcriptId            String?  // Resulting transcript ID
+  startedAt               DateTime?
+  completedAt             DateTime?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
-  @@index([campaignId])
-  @@index([processingStatus])
+  @@index([sessionId])
+  @@index([status])
+  @@index([createdAt])
 }
 
+// Homebrew Content Models
+// Note: PDF parsing removed. Content can be created manually or via D&D Beyond import.
 model HomebrewContent {
-  id           String       @id @default(cuid())
-  campaignId   String
-  campaign     Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  sourcePdfId  String?
-  sourcePdf    HomebrewPDF? @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
-  type         String // 'item', 'creature', 'spell', 'location', 'subclass', 'feat', 'rule'
+  id           String                      @id @default(cuid())
+  userId       String // Homebrew is owned by user
+  user         User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type         String // 'item', 'creature', 'spell', 'location', 'subclass', 'feat', 'rule', 'race', 'class', 'background', 'character'
   name         String
   data         Json // Flexible data structure based on type
   images       String[] // Array of image URLs
   tags         String[] // For categorization
-  searchText   String       @db.Text // Denormalized for full-text search
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  searchText   String                      @db.Text // Denormalized for full-text search
 
-  @@index([campaignId])
+  // D&D Beyond integration
+  dndBeyondId  String? // D&D Beyond ID for syncing
+  dndBeyondUrl String? // D&D Beyond URL for reference
+
+  // Source tracking
+  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import'
+
+  campaigns    CampaignHomebrewContent[] // Many-to-many with campaigns
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+
+  @@index([userId])
   @@index([type])
   @@index([name])
-  @@index([sourcePdfId])
+  @@index([dndBeyondId])
+  @@index([sourceType])
+}
+
+// Join table for many-to-many relationship between campaigns and homebrew
+model CampaignHomebrewContent {
+  id              String          @id @default(cuid())
+  campaignId      String
+  campaign        Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  homebrewId      String
+  homebrew        HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
+  addedAt         DateTime        @default(now())
+
+  @@unique([campaignId, homebrewId])
+  @@index([campaignId])
+  @@index([homebrewId])
+}
+
+// Homebrew PDFs - Store and convert to markdown for AI processing
+model HomebrewPDF {
+  id                  String    @id @default(cuid())
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaignId          String?   // Optional - PDFs can be in personal library or campaign-specific
+  campaign            Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  // File metadata
+  filename            String
+  fileSize            Int       // in bytes
+  mimeType            String    @default("application/pdf")
+  r2Url               String    // Cloudflare R2 storage URL for the PDF
+
+  // Marker processing
+  markdownContent     String?   @db.Text // Converted markdown (for AI processing)
+  markdownR2Url       String?   // Optional: Store markdown in R2 if very large
+  markerProcessed     Boolean   @default(false)
+  markerMetadata      Json?     // { pages, processingTime, imagesExtracted, etc. }
+  useLLM              Boolean   @default(false) // Whether to use LLM enhancement for better extraction
+
+  // Processing status
+  processingStatus    String    @default("pending") // pending, processing, completed, failed
+  errorMessage        String?   @db.Text
+  processingStartedAt DateTime?
+  processingEndedAt   DateTime?
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([campaignId])
+  @@index([processingStatus])
+  @@index([createdAt])
 }

@@ -1,0 +1,146 @@
+import { PrismaClient } from '@prisma/client';
+import type {
+  TranscriptionSegment,
+  LocalTranscriptionResult,
+} from './whisper-local';
+import type { SpeakerTranscriptionResult } from './whisper-speakers';
+
+const prisma = new PrismaClient();
+
+export interface SaveTranscriptParams {
+  sessionId: string;
+  recordingId?: string;
+  result: LocalTranscriptionResult | SpeakerTranscriptionResult;
+}
+
+/**
+ * Check if result is from speaker diarization
+ */
+function isSpeakerResult(
+  result: LocalTranscriptionResult | SpeakerTranscriptionResult
+): result is SpeakerTranscriptionResult {
+  return 'hasSpeakers' in result;
+}
+
+/**
+ * Save transcription result to database
+ */
+export async function saveTranscript(
+  params: SaveTranscriptParams
+): Promise<string> {
+  const { sessionId, recordingId, result } = params;
+
+  if (!result.success) {
+    throw new Error('Cannot save failed transcription');
+  }
+
+  const hasSpeakers = isSpeakerResult(result) && result.hasSpeakers;
+  const textWithSpeakers = isSpeakerResult(result)
+    ? result.textWithSpeakers
+    : undefined;
+
+  // Extract speakers if available
+  const speakers = hasSpeakers
+    ? extractUniqueSpeakers(result.segments)
+    : null;
+
+  // Prepare timestamps data
+  const timestamps = result.segments.map((seg) => ({
+    start: seg.start,
+    end: seg.end,
+    text: seg.text,
+    speaker: 'speaker' in seg ? seg.speaker : undefined,
+  }));
+
+  // Create transcript record
+  const transcript = await prisma.transcript.create({
+    data: {
+      sessionId,
+      recordingId,
+      rawText: result.text,
+      correctedText: textWithSpeakers || result.text,
+      speakers,
+      timestamps,
+      language: result.language,
+      languageProbability: result.language_probability,
+      durationSeconds: result.duration,
+      hasSpeakers,
+    },
+  });
+
+  return transcript.id;
+}
+
+/**
+ * Extract unique speakers from segments
+ */
+function extractUniqueSpeakers(
+  segments: any[]
+): { id: string; name: string; segments: number }[] | null {
+  const speakerMap = new Map<string, number>();
+
+  for (const segment of segments) {
+    if ('speaker' in segment && segment.speaker) {
+      const count = speakerMap.get(segment.speaker) || 0;
+      speakerMap.set(segment.speaker, count + 1);
+    }
+  }
+
+  if (speakerMap.size === 0) {
+    return null;
+  }
+
+  return Array.from(speakerMap.entries()).map(([speaker, count]) => ({
+    id: speaker,
+    name: speaker,
+    segments: count,
+  }));
+}
+
+/**
+ * Update transcript with corrected text
+ */
+export async function updateTranscriptCorrection(
+  transcriptId: string,
+  correctedText: string
+): Promise<void> {
+  await prisma.transcript.update({
+    where: { id: transcriptId },
+    data: { correctedText },
+  });
+}
+
+/**
+ * Get transcript by ID
+ */
+export async function getTranscript(transcriptId: string) {
+  return await prisma.transcript.findUnique({
+    where: { id: transcriptId },
+    include: {
+      session: true,
+      recording: true,
+    },
+  });
+}
+
+/**
+ * Get transcripts for a session
+ */
+export async function getSessionTranscripts(sessionId: string) {
+  return await prisma.transcript.findMany({
+    where: { sessionId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      recording: true,
+    },
+  });
+}
+
+/**
+ * Delete transcript
+ */
+export async function deleteTranscript(transcriptId: string): Promise<void> {
+  await prisma.transcript.delete({
+    where: { id: transcriptId },
+  });
+}

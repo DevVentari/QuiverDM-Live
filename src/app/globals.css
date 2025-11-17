@@ -97,3 +97,81 @@ body::before {
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
+
+/* 3D dice styles used on the dice test page */
+.dice-3d-wrapper {
+  perspective: 800px;
+  width: 96px;
+  height: 96px;
+}
+
+.dice-3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.dice-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: radial-gradient(circle at 30% 30%, #f9fafb, #e5e7eb);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.5),
+    inset 0 0 12px rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-face-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-shadow:
+    0 0 12px rgba(129, 140, 248, 0.7),
+    0 0 2px rgba(15, 23, 42, 0.9);
+}
+
+.dice-face-front {
+  transform: translateZ(48px);
+}
+
+.dice-face-back {
+  transform: rotateY(180deg) translateZ(48px);
+}
+
+.dice-face-right {
+  transform: rotateY(90deg) translateZ(48px);
+}
+
+.dice-face-left {
+  transform: rotateY(-90deg) translateZ(48px);
+}
+
+.dice-face-top {
+  transform: rotateX(90deg) translateZ(48px);
+}
+
+.dice-face-bottom {
+  transform: rotateX(-90deg) translateZ(48px);
+}
+
+.dice-throw-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.dice-throw-path {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.9));
+}

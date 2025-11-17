@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
     container_name: quiverdm-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: quiverdm
       POSTGRES_PASSWORD: localdev
@@ -24,7 +22,7 @@ services:
     container_name: quiverdm-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -38,14 +36,38 @@ services:
     container_name: quiverdm-meilisearch
     restart: unless-stopped
     ports:
-      - "7700:7700"
+      - "7701:7700"
     environment:
       MEILI_ENV: development
       MEILI_MASTER_KEY: masterKey
     volumes:
       - meilisearch_data:/meili_data
 
+  ollama:
+    image: ollama/ollama:latest
+    container_name: quiverdm-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+
 volumes:
   postgres_data:
   redis_data:
   meilisearch_data:
+  ollama_data:

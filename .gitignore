@@ -30,6 +30,7 @@ yarn-error.log*
 .env*.local
 .env.development
 .env.production
+.env.test.credentials
 
 # vercel
 .vercel
@@ -50,3 +51,41 @@ prisma/migrations/
 
 # OS
 Thumbs.db
+
+# local storage (PDFs and images)
+/storage
+/local-storage
+/temp
+
+# Test artifacts
+playwright-report/
+test-results/
+*.png
+!public/**/*.png
+
+# Session summaries
+*_SUMMARY.md
+*_COMPLETE.md
+*_ISSUES_FOUND.md
+*_FIXES_*.md
+
+# Models and AI cache
+/models/
+__pycache__/
+*.pyc
+
+# Windows artifacts
+nul
+
+# Claude Code settings (local only)
+.claude/
+.mcp.json
+
+# Test documents (keep locally)
+/test-documents/
+
+# Build outputs
+/dist/
+
+# Misc temp files
+srclibqueue-worker.ts
