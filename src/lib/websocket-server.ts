@@ -109,11 +109,11 @@ export function initializeWebSocketServer(server: HTTPServer) {
  */
 function setupQueueEventListeners() {
   // Job progress updates
-  pdfProcessingQueueEvents.on('progress', ({ jobId, data }: { jobId: string; data: number }) => {
+  pdfProcessingQueueEvents.on('progress', ({ jobId, data }: { jobId: string; data: any }) => {
     broadcastToSubscribers(jobId, {
       type: 'progress',
       pdfId: jobId,
-      progress: data,
+      progress: typeof data === 'number' ? data : data?.progress || 0,
       timestamp: Date.now(),
     });
   });

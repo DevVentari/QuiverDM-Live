@@ -65,7 +65,7 @@ export default function HomebrewLibraryPage() {
   // Get all user's homebrew content - only enabled when authenticated
   const { data: homebrew, isLoading, isError, error, refetch } = trpc.homebrew.getContent.useQuery(
     {
-      type: selectedType === 'all' ? undefined : selectedType,
+      type: selectedType === 'all' ? undefined : selectedType as 'spell' | 'feat' | 'item' | 'creature' | 'location' | 'subclass' | 'rule' | 'race' | 'class' | 'background' | 'character',
     },
     {
       retry: 2,

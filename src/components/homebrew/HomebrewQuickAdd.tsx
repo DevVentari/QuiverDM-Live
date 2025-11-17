@@ -30,10 +30,10 @@ export function HomebrewQuickAdd({
   const [selectedType, setSelectedType] = useState<string>('all');
 
   const { data: searchResults, isLoading } =
-    trpc.homebrew.searchContent.useQuery(
+    trpc.homebrew.getContent.useQuery(
       {
         campaignId,
-        query: searchQuery,
+        search: searchQuery,
         type: selectedType !== 'all' ? (selectedType as any) : undefined,
         limit: 20,
       },
@@ -52,7 +52,7 @@ export function HomebrewQuickAdd({
     }
   );
 
-  const content = searchQuery.length > 0 ? searchResults : recentContent?.items;
+  const content = searchQuery.length > 0 ? searchResults?.items : recentContent?.items;
 
   const getTypeIcon = (type: string) => {
     const icons: Record<string, string> = {
@@ -168,11 +168,11 @@ export function HomebrewQuickAdd({
                         </Badge>
                       </div>
 
-                      {item.data?.description && (
+                      {(item.data as any)?.description && (
                         <Text size="1" className="text-gray-400 line-clamp-2">
-                          {typeof item.data.description === 'string'
-                            ? item.data.description
-                            : JSON.stringify(item.data.description).substring(
+                          {typeof (item.data as any).description === 'string'
+                            ? (item.data as any).description
+                            : JSON.stringify((item.data as any).description).substring(
                                 0,
                                 100
                               )}

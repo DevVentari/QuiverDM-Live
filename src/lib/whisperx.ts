@@ -1,6 +1,9 @@
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 // Enhanced segment interface with word-level timestamps and speaker info
 export interface TranscriptionSegment {

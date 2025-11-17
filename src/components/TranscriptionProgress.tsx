@@ -47,24 +47,13 @@ export function TranscriptionProgress({ jobId, wsUrl }: TranscriptionProgressPro
   // Get status color and icon
   const getStatusInfo = () => {
     switch (status) {
-      case 'completed':
-        return {
-          color: 'green' as const,
-          icon: <CheckCircle2 size={20} />,
-          label: 'Completed',
-        };
-      case 'failed':
-        return {
-          color: 'red' as const,
-          icon: <XCircle size={20} />,
-          label: 'Failed',
-        };
       case 'processing':
         return {
           color: 'blue' as const,
           icon: <Loader2 className="animate-spin" size={20} />,
           label: 'Processing',
         };
+      case 'queued':
       default:
         return {
           color: 'gray' as const,

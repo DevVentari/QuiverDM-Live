@@ -147,10 +147,7 @@ export default function CreateClassPage() {
         };
       }
 
-      const userId = 'temp-user-id';
-
       await createContentMutation.mutateAsync({
-        userId,
         type: 'class',
         name: formData.name,
         data: classData,

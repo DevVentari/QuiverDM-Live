@@ -251,10 +251,7 @@ export default function CreateCreaturePage() {
         };
       }
 
-      const userId = 'temp-user-id';
-
       await createContentMutation.mutateAsync({
-        userId,
         type: 'creature',
         name: formData.name,
         data: creatureData,

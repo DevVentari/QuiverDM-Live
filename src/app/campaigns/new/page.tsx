@@ -48,7 +48,6 @@ export default function NewCampaignPage() {
       const campaign = await createMutation.mutateAsync({
         name: formData.name,
         description: formData.description || undefined,
-        system: formData.system,
       });
 
       // Redirect to the new campaign

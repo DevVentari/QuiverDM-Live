@@ -209,10 +209,7 @@ export default function CreateRacePage() {
         raceData.hasSubraces = false;
       }
 
-      const userId = 'temp-user-id'; // Replace with actual user ID from session
-
       await createContentMutation.mutateAsync({
-        userId,
         type: 'race',
         name: formData.name,
         data: raceData,

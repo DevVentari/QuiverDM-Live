@@ -40,7 +40,6 @@ export function CreateCampaignStep({ onCampaignCreated }: CreateCampaignStepProp
       const campaign = await createMutation.mutateAsync({
         name: formData.name,
         description: formData.description || undefined,
-        system: formData.system,
       });
 
       setCreated(true);

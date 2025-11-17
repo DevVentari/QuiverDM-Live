@@ -168,11 +168,11 @@ export function HomebrewContentDetail({
       </div>
 
       {/* Source Info */}
-      {content.sourcePdf && (
+      {content.sourceType && content.sourceType !== 'manual' && (
         <Card className="p-4 bg-gray-800/30">
           <div className="flex items-center gap-2 text-sm">
             <span className="text-gray-500">Source:</span>
-            <span className="text-gray-300">{content.sourcePdf.filename}</span>
+            <span className="text-gray-300">{content.sourceType}</span>
           </div>
         </Card>
       )}

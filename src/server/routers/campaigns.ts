@@ -222,7 +222,7 @@ export const campaignsRouter = router({
             where: { campaignId: input.campaignId },
           }),
           prisma.homebrewContent.count({
-            where: { campaignId: input.campaignId },
+            where: { campaigns: { some: { campaignId: input.campaignId } } },
           }),
           prisma.gameSession.findFirst({
             where: { campaignId: input.campaignId },

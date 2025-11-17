@@ -1,9 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import type {
   TranscriptionSegment,
-  LocalTranscriptionResult,
-} from './whisper-local';
-import type { SpeakerTranscriptionResult } from './whisper-speakers';
+  WhisperXTranscriptionResult,
+} from './whisperx';
+
+// Alias for compatibility
+type LocalTranscriptionResult = WhisperXTranscriptionResult;
+type SpeakerTranscriptionResult = WhisperXTranscriptionResult;
 
 const prisma = new PrismaClient();
 
@@ -59,7 +62,7 @@ export async function saveTranscript(
       recordingId,
       rawText: result.text,
       correctedText: textWithSpeakers || result.text,
-      speakers,
+      speakers: speakers || undefined,
       timestamps,
       language: result.language,
       languageProbability: result.language_probability,

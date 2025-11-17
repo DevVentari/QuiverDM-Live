@@ -88,7 +88,7 @@ export default function CampaignOverviewPage({ params }: CampaignOverviewPagePro
 
   return (
     <Container size="4" className="py-8">
-      <CampaignNav campaignId={campaignId} />
+      <CampaignNav campaignId={campaignId!} />
 
       <Flex direction="column" gap="6">
         {/* Campaign Header */}
@@ -229,7 +229,7 @@ export default function CampaignOverviewPage({ params }: CampaignOverviewPagePro
             <Heading size="5">Quick Actions</Heading>
             <Flex gap="3" wrap="wrap">
               <DndBeyondImport
-                campaignId={campaignId}
+                campaignId={campaignId!}
                 onImportComplete={() => window.location.reload()}
               />
               <Button

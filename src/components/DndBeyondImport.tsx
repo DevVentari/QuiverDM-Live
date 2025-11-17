@@ -32,7 +32,7 @@ export default function DndBeyondImport({ campaignId, onImportComplete }: DndBey
 
   // Fetch saved Cobalt cookie from user settings
   const { data: savedCobaltCookie } = trpc.userSettings.getDecryptedKey.useQuery(
-    { userId: TEMP_USER_ID, keyName: 'dndBeyondCobaltCookie' },
+    { keyName: 'dndBeyondCobaltCookie' },
     { enabled: showDialog } // Only fetch when dialog is open
   );
 

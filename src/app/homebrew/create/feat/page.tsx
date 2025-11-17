@@ -118,10 +118,7 @@ export default function CreateFeatPage() {
         };
       }
 
-      const userId = 'temp-user-id'; // Replace with actual user ID from session
-
       await createContentMutation.mutateAsync({
-        userId,
         type: 'feat',
         name: formData.name,
         data: featData,

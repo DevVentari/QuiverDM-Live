@@ -6,7 +6,8 @@
  */
 
 import { extractStructuredData, isOllamaAvailable } from './ollama';
-import type { HomebrewContentType } from '@prisma/client';
+
+type HomebrewContentType = 'item' | 'creature' | 'spell' | 'location' | 'subclass' | 'feat' | 'rule' | 'race' | 'class' | 'background' | 'character';
 
 export interface ParsedHomebrewItem {
   name: string;
@@ -173,7 +174,7 @@ function detectTypeFromSection(section: string, title: string): HomebrewContentT
       lower.includes('components') ||
       /\d+(st|nd|rd|th)-level/.test(lower))
   ) {
-    return 'SPELL';
+    return 'spell';
   }
 
   // Monster indicators
@@ -181,7 +182,7 @@ function detectTypeFromSection(section: string, title: string): HomebrewContentT
     (lower.includes('armor class') || lower.includes('hit points')) &&
     (lower.includes('challenge') || lower.includes('cr '))
   ) {
-    return 'MONSTER';
+    return 'creature';
   }
 
   // Magic item indicators
@@ -192,12 +193,12 @@ function detectTypeFromSection(section: string, title: string): HomebrewContentT
       lower.includes('wondrous') ||
       titleLower.includes('of '))
   ) {
-    return 'MAGIC_ITEM';
+    return 'item';
   }
 
   // Feat indicators
   if (lower.includes('prerequisite') || titleLower.includes('feat')) {
-    return 'FEAT';
+    return 'feat';
   }
 
   return null;
@@ -217,7 +218,7 @@ function parseSection(
   const data: Record<string, any> = {};
 
   switch (type) {
-    case 'SPELL':
+    case 'spell':
       data.level = extractSpellLevel(section);
       data.school = extractField(section, /school[:\s]+(\w+)/i);
       data.castingTime = extractField(section, /casting time[:\s]+([^\n]+)/i);
@@ -226,7 +227,7 @@ function parseSection(
       data.duration = extractField(section, /duration[:\s]+([^\n]+)/i);
       break;
 
-    case 'MONSTER':
+    case 'creature':
       data.cr = extractField(section, /challenge[:\s]+([^\n]+)/i) || extractField(section, /cr[:\s]+([^\n]+)/i);
       data.type = extractField(section, /type[:\s]+([^\n]+)/i);
       data.size = extractField(section, /size[:\s]+([^\n]+)/i);
@@ -235,7 +236,7 @@ function parseSection(
       data.speed = extractField(section, /speed[:\s]+([^\n]+)/i);
       break;
 
-    case 'MAGIC_ITEM':
+    case 'item':
       data.rarity = extractField(section, /rarity[:\s]+([^\n]+)/i);
       data.requiresAttunement = section.toLowerCase().includes('requires attunement');
       data.itemType = extractField(section, /(weapon|armor|wondrous|potion|scroll|ring|rod|staff|wand)/i);
@@ -283,20 +284,23 @@ function extractNumber(text: string, pattern: RegExp): number | undefined {
  * Normalize type string to HomebrewContentType enum
  */
 function normalizeType(typeStr: string): HomebrewContentType {
-  const upper = typeStr.toUpperCase().replace(/\s+/g, '_');
+  const lower = typeStr.toLowerCase().replace(/\s+/g, '_');
 
-  const validTypes: HomebrewContentType[] = [
-    'SPELL',
-    'MONSTER',
-    'MAGIC_ITEM',
-    'FEAT',
-    'CLASS',
-    'RACE',
-    'BACKGROUND',
-    'OTHER',
-  ];
+  const typeMap: Record<string, HomebrewContentType> = {
+    'spell': 'spell',
+    'monster': 'creature',
+    'creature': 'creature',
+    'magic_item': 'item',
+    'item': 'item',
+    'feat': 'feat',
+    'class': 'class',
+    'race': 'race',
+    'background': 'background',
+    'subclass': 'subclass',
+    'rule': 'rule',
+    'location': 'location',
+    'character': 'character',
+  };
 
-  return validTypes.includes(upper as HomebrewContentType)
-    ? (upper as HomebrewContentType)
-    : 'OTHER';
+  return typeMap[lower] || 'item';
 }

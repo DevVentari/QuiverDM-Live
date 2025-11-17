@@ -6,6 +6,9 @@ import GlobalNav from "@/components/GlobalNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// Force dynamic rendering to avoid issues with client-side providers during static generation
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "QuiverDM - AI-Powered D&D Session Management",
   description: "Upload recordings, generate AI summaries, and manage your D&D campaigns with ease.",

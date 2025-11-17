@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Button, Flex, Text } from '@radix-ui/themes';
 import { Dice5 } from 'lucide-react';
-import DiceTray3D from './DiceTray3D';
 
 type DiceType = 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20';
 
@@ -74,7 +73,7 @@ export function DiceRoller() {
 
   return (
     <div className="relative bg-zinc-900/80 border border-zinc-700 rounded-2xl p-4 md:p-6 shadow-xl backdrop-blur-md max-w-xl w-full overflow-hidden">
-      <DiceTray3D dice={dice} rolls={activeRollDice} trigger={trayTrigger} />
+      {/* DiceTray3D temporarily disabled due to Next.js build issues with @react-three/drei */}
 
       <Flex align="center" justify="between" mb="4" gap="3">
         <Flex align="center" gap="2">

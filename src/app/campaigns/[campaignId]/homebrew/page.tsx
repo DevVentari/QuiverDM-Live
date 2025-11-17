@@ -14,7 +14,7 @@ import Link from 'next/link';
 
 export default function HomebrewPage() {
   const params = useParams();
-  const campaignId = params.campaignId as string;
+  const campaignId = params?.campaignId as string;
 
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
   const [showAddFromLibraryDialog, setShowAddFromLibraryDialog] = useState(false);
@@ -133,7 +133,7 @@ export default function HomebrewPage() {
                     <Button
                       size="2"
                       onClick={() => handleAddToCampaign(item.id)}
-                      disabled={addToCampaign.isLoading}
+                      disabled={addToCampaign.isPending}
                     >
                       <Plus size={16} />
                       Add

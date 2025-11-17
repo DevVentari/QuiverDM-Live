@@ -20,7 +20,7 @@ export const transcriptRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyTranscriptOwnership(input.id, userId);
+      await verifyTranscriptOwnership(input.transcriptId, userId);
       const transcript = await getTranscript(input.transcriptId);
       if (!transcript) {
         throw new Error('Transcript not found');
@@ -55,7 +55,7 @@ export const transcriptRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyTranscriptOwnership(input.id, userId);
+      await verifyTranscriptOwnership(input.transcriptId, userId);
       await updateTranscriptCorrection(input.transcriptId, input.correctedText);
       return { success: true };
     }),
@@ -71,7 +71,7 @@ export const transcriptRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyTranscriptOwnership(input.id, userId);
+      await verifyTranscriptOwnership(input.transcriptId, userId);
       await deleteTranscript(input.transcriptId);
       return { success: true };
     }),

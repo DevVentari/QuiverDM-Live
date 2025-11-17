@@ -93,17 +93,17 @@ export const whisperRouter = router({
     .mutation(async ({ input }) => {
       try {
         // Convert base64 to Buffer
-        let audioBuffer = Buffer.from(input.audioFile, 'base64');
+        let audioBuffer: Buffer = Buffer.from(input.audioFile, 'base64');
 
         // Check if it's a video file and convert if needed
         if (isVideoFile(audioBuffer)) {
           console.log('Video file detected, converting to audio...');
-          audioBuffer = await convertVideoToAudio(audioBuffer);
+          audioBuffer = await convertVideoToAudio(audioBuffer) as Buffer;
           console.log('Video converted to audio successfully');
         }
 
         // Create a File object from the buffer
-        const file = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' });
+        const file = new File([new Uint8Array(audioBuffer)], 'audio.mp3', { type: 'audio/mpeg' });
 
         // Call Whisper API
         const transcription = await openai.audio.transcriptions.create({
@@ -135,17 +135,17 @@ export const whisperRouter = router({
     .mutation(async ({ input }) => {
       try {
         // Convert base64 to Buffer
-        let audioBuffer = Buffer.from(input.audioFile, 'base64');
+        let audioBuffer: Buffer = Buffer.from(input.audioFile, 'base64');
 
         // Check if it's a video file and convert if needed
         if (isVideoFile(audioBuffer)) {
           console.log('Video file detected, converting to audio...');
-          audioBuffer = await convertVideoToAudio(audioBuffer);
+          audioBuffer = await convertVideoToAudio(audioBuffer) as Buffer;
           console.log('Video converted to audio successfully');
         }
 
         // Create a File object from the buffer
-        const file = new File([audioBuffer], 'audio.mp3', { type: 'audio/mpeg' });
+        const file = new File([new Uint8Array(audioBuffer)], 'audio.mp3', { type: 'audio/mpeg' });
 
         // Call Whisper API for translation (translates to English)
         const translation = await openai.audio.translations.create({

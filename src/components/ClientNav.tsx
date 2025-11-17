@@ -66,7 +66,7 @@ export function ClientNav({ session }: ClientNavProps) {
                 py="2"
                 style={{
                   cursor: 'pointer',
-                  color: pathname.startsWith('/campaigns') ? 'var(--violet-11)' : 'var(--gray-11)',
+                  color: pathname?.startsWith('/campaigns') ? 'var(--violet-11)' : 'var(--gray-11)',
                   transition: 'color 0.2s',
                   borderRadius: '6px',
                 }}

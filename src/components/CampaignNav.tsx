@@ -77,7 +77,7 @@ export default function CampaignNav({ campaignId }: CampaignNavProps) {
       >
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = item.match(pathname);
+          const isActive = pathname ? item.match(pathname) : false;
 
           return (
             <Link key={item.href} href={item.href} style={{ textDecoration: 'none' }}>

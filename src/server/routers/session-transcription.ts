@@ -63,7 +63,9 @@ export const sessionTranscriptionRouter = router({
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
       await verifySessionOwnership(input.sessionId, userId);
-      await verifyRecordingOwnership(input.recordingId, userId);
+      if (input.recordingId) {
+        await verifyRecordingOwnership(input.recordingId, userId);
+      }
       const {
         sessionId,
         recordingId,

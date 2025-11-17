@@ -160,10 +160,7 @@ export default function CreateSpellPage() {
         spellData.attackType = formData.attackType;
       }
 
-      const userId = 'temp-user-id'; // Replace with actual user ID from session
-
       await createContentMutation.mutateAsync({
-        userId,
         type: 'spell',
         name: formData.name,
         data: spellData,

@@ -13,7 +13,7 @@ const errorMessages: Record<string, string> = {
 
 export default function AuthErrorPage() {
   const searchParams = useSearchParams();
-  const error = searchParams.get('error') || 'Default';
+  const error = searchParams?.get('error') || 'Default';
   const message = errorMessages[error] || errorMessages.Default;
 
   return (

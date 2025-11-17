@@ -16,7 +16,7 @@ export default function CampaignsPage() {
 
   // Check if we should show onboarding
   useEffect(() => {
-    const onboardingParam = searchParams.get('onboarding');
+    const onboardingParam = searchParams?.get('onboarding');
     const isNewUser = campaigns?.length === 0;
 
     if (onboardingParam === 'true' || (isNewUser && !isLoading)) {
@@ -209,7 +209,7 @@ export default function CampaignsPage() {
                   >
                     <Book size={16} className="text-amber-400" />
                     <Text size="3" weight="bold">
-                      {campaign._count?.homebrewContent ?? 0}
+                      {0}
                     </Text>
                     <Text size="1" color="gray">
                       Homebrew

@@ -38,31 +38,16 @@ export function HomebrewContentList({
   };
 
   // Use search query if present, otherwise use filtered list
-  const { data: searchResults, isLoading: searchLoading } =
-    trpc.homebrew.searchContent.useQuery(
-      {
-        campaignId,
-        query: debouncedQuery,
-        type: selectedType !== 'all' ? (selectedType as any) : undefined,
-      },
-      {
-        enabled: debouncedQuery.length > 0,
-      }
-    );
-
-  const { data: contentData, isLoading: contentLoading } =
+  const { data: contentData, isLoading } =
     trpc.homebrew.getContent.useQuery(
       {
         campaignId,
+        search: debouncedQuery.length > 0 ? debouncedQuery : undefined,
         type: selectedType !== 'all' ? (selectedType as any) : undefined,
-      },
-      {
-        enabled: debouncedQuery.length === 0,
       }
     );
 
-  const isLoading = searchLoading || contentLoading;
-  const content = debouncedQuery.length > 0 ? searchResults : contentData?.items;
+  const content = contentData?.items;
 
   const getTypeIcon = (type: string) => {
     return CONTENT_TYPES.find((t) => t.value === type)?.icon || '📄';
@@ -159,11 +144,11 @@ export function HomebrewContentList({
                   </Badge>
                 </div>
 
-                {item.data?.description && (
+                {(item.data as any)?.description && (
                   <p className="text-sm text-gray-400 line-clamp-3">
-                    {typeof item.data.description === 'string'
-                      ? item.data.description
-                      : JSON.stringify(item.data.description).substring(0, 150)}
+                    {typeof (item.data as any).description === 'string'
+                      ? (item.data as any).description
+                      : JSON.stringify((item.data as any).description).substring(0, 150)}
                   </p>
                 )}
 
@@ -180,9 +165,9 @@ export function HomebrewContentList({
                   )}
                 </div>
 
-                {item.sourcePdf && (
+                {item.sourceType && item.sourceType !== 'manual' && (
                   <div className="text-xs text-gray-500 truncate">
-                    From: {item.sourcePdf.filename}
+                    Source: {item.sourceType}
                   </div>
                 )}
               </div>

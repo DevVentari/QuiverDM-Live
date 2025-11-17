@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../db';
 import { TRPCError } from '@trpc/server';
 import { HomebrewType } from './homebrew';
+import { verifyHomebrewOwnership } from '../lib/ownership';
 
 /**
  * D&D Beyond Homebrew Integration Router
@@ -59,7 +60,6 @@ export const homebrewDndBeyondRouter = router({
 
   /**
    * Attempt to import homebrew content from D&D Beyond
-import { verifyHomebrewOwnership } from '../lib/ownership';
    * NOTE: This endpoint is experimental and may not work if D&D Beyond doesn't expose homebrew via API
    */
   importHomebrewFromDDB: protectedProcedure

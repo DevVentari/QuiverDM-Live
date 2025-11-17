@@ -148,10 +148,7 @@ export default function CreateBackgroundPage() {
         };
       }
 
-      const userId = 'temp-user-id'; // Replace with actual user ID from session
-
       await createContentMutation.mutateAsync({
-        userId,
         type: 'background',
         name: formData.name,
         data: backgroundData,

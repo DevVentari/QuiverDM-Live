@@ -10,6 +10,7 @@ import { parseMarkdown, getSectionsByType, generateSummary } from '@/lib/markdow
 import { extractBatch, testOllama } from '@/lib/ollama-extraction';
 import { extractContent, type ExtractionProvider } from '@/lib/ai-extraction';
 import { TRPCError } from '@trpc/server';
+import { prisma } from '../db';
 
 export const homebrewExtractionRouter = router({
   /**
@@ -32,7 +33,7 @@ export const homebrewExtractionRouter = router({
       pdfId: z.string(),
     }))
     .query(async ({ ctx, input }) => {
-      const pdf = await ctx.prisma.homebrewPDF.findUnique({
+      const pdf = await prisma.homebrewPDF.findUnique({
         where: {
           id: input.pdfId,
           userId: ctx.session.user.id,
@@ -79,7 +80,7 @@ export const homebrewExtractionRouter = router({
       model: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const pdf = await ctx.prisma.homebrewPDF.findUnique({
+      const pdf = await prisma.homebrewPDF.findUnique({
         where: {
           id: input.pdfId,
           userId: ctx.session.user.id,
@@ -128,7 +129,7 @@ export const homebrewExtractionRouter = router({
       const savedItems = await Promise.all(
         result.items.map(async (item) => {
           const data = item.data as any;
-          return ctx.prisma.homebrewContent.create({
+          return prisma.homebrewContent.create({
             data: {
               userId: ctx.session.user.id,
               type: item.type,
@@ -163,7 +164,7 @@ export const homebrewExtractionRouter = router({
       pdfId: z.string(),
     }))
     .query(async ({ ctx, input }) => {
-      const pdf = await ctx.prisma.homebrewPDF.findUnique({
+      const pdf = await prisma.homebrewPDF.findUnique({
         where: {
           id: input.pdfId,
           userId: ctx.session.user.id,
@@ -206,7 +207,7 @@ export const homebrewExtractionRouter = router({
       skipUnknown: z.boolean().optional().default(true),
     }))
     .mutation(async ({ ctx, input }) => {
-      const pdf = await ctx.prisma.homebrewPDF.findUnique({
+      const pdf = await prisma.homebrewPDF.findUnique({
         where: {
           id: input.pdfId,
           userId: ctx.session.user.id,
@@ -248,7 +249,7 @@ export const homebrewExtractionRouter = router({
       const savedItems = await Promise.all(
         result.items.map(async (item) => {
           const data = item.data as any;
-          return ctx.prisma.homebrewContent.create({
+          return prisma.homebrewContent.create({
             data: {
               userId: ctx.session.user.id,
               type: item.type,
@@ -287,7 +288,7 @@ export const homebrewExtractionRouter = router({
       provider: z.enum(['gemini', 'anthropic', 'openai']).default('gemini'),
     }))
     .mutation(async ({ ctx, input }) => {
-      const pdf = await ctx.prisma.homebrewPDF.findUnique({
+      const pdf = await prisma.homebrewPDF.findUnique({
         where: {
           id: input.pdfId,
           userId: ctx.session.user.id,
@@ -335,7 +336,7 @@ export const homebrewExtractionRouter = router({
       const savedItems = await Promise.all(
         result.items.map(async (item) => {
           const mappedType = typeMapping[item.type] || item.type;
-          return ctx.prisma.homebrewContent.create({
+          return prisma.homebrewContent.create({
             data: {
               userId: ctx.session.user.id,
               type: mappedType,

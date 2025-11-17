@@ -8,7 +8,7 @@ import { useParams } from 'next/navigation';
 
 export default function PDFViewerPage() {
   const params = useParams();
-  const pdfId = params.pdfId as string;
+  const pdfId = params?.pdfId as string;
 
   return (
     <Container size="4" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>

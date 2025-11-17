@@ -96,7 +96,7 @@ export default function PlayerDetailPage({ params }: PlayerDetailPageProps) {
   const proficiencies = characterData?.proficiencies || [];
   const spells = characterData?.spells || [];
   const spellSlots = characterData?.spellSlots || {};
-  const background = characterData?.background || player.characterData?.background;
+  const background = characterData?.background || (player.characterData as Record<string, unknown>)?.background;
   const savingThrows = characterData?.savingThrows || {};
 
   // Calculate ability modifiers

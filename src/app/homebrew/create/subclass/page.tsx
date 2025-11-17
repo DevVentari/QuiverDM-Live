@@ -102,10 +102,7 @@ export default function CreateSubclassPage() {
         subclassData.spellsByLevel = spellsByLevel;
       }
 
-      const userId = 'temp-user-id';
-
       await createContentMutation.mutateAsync({
-        userId,
         type: 'subclass',
         name: formData.name,
         data: subclassData,

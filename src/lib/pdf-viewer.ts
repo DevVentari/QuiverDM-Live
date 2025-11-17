@@ -227,7 +227,8 @@ export class PDFViewer {
     await page.render({
       canvasContext: context,
       viewport,
-    }).promise;
+      canvas,
+    } as any).promise;
 
     this.currentPage = pageNum;
     this.scale = scale;
