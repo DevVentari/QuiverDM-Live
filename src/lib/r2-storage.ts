@@ -1,36 +1,42 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-if (!process.env.R2_ACCOUNT_ID) {
-  throw new Error('R2_ACCOUNT_ID environment variable is required');
-}
-
-if (!process.env.R2_ACCESS_KEY_ID) {
-  throw new Error('R2_ACCESS_KEY_ID environment variable is required');
-}
-
-if (!process.env.R2_SECRET_ACCESS_KEY) {
-  throw new Error('R2_SECRET_ACCESS_KEY environment variable is required');
-}
-
-if (!process.env.R2_BUCKET_NAME) {
-  throw new Error('R2_BUCKET_NAME environment variable is required');
-}
+// Check if R2 is configured (don't throw at module load time for build compatibility)
+const isR2Configured = !!(
+  process.env.R2_ACCOUNT_ID &&
+  process.env.R2_ACCESS_KEY_ID &&
+  process.env.R2_SECRET_ACCESS_KEY &&
+  process.env.R2_BUCKET_NAME
+);
 
 const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
 const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
 
 /**
- * Create R2 S3-compatible client
+ * Create R2 S3-compatible client (lazily initialized)
  */
-export const r2Client = new S3Client({
-  region: 'auto',
-  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-  },
-});
+let r2ClientInstance: S3Client | null = null;
+
+function getR2Client(): S3Client {
+  if (!isR2Configured) {
+    throw new Error('R2 is not configured. Please set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, and R2_BUCKET_NAME environment variables.');
+  }
+
+  if (!r2ClientInstance) {
+    r2ClientInstance = new S3Client({
+      region: 'auto',
+      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+      },
+    });
+  }
+
+  return r2ClientInstance;
+}
+
+export const r2Client = getR2Client;
 
 /**
  * Upload a file to R2
@@ -49,7 +55,7 @@ export async function uploadToR2(params: {
     Metadata: params.metadata,
   });
 
-  await r2Client.send(command);
+  await getR2Client().send(command);
 
   // Return the R2 URL
   return `https://${R2_BUCKET_NAME}.${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${params.key}`;
@@ -64,7 +70,7 @@ export async function deleteFromR2(key: string): Promise<void> {
     Key: key,
   });
 
-  await r2Client.send(command);
+  await getR2Client().send(command);
 }
 
 /**
@@ -81,7 +87,7 @@ export async function downloadFromR2(urlOrKey: string): Promise<Buffer> {
     Key: key,
   });
 
-  const response = await r2Client.send(command);
+  const response = await getR2Client().send(command);
 
   if (!response.Body) {
     throw new Error(`No data returned from R2 for key: ${key}`);
@@ -110,7 +116,7 @@ export async function getPresignedDownloadUrl(
     Key: key,
   });
 
-  const url = await getSignedUrl(r2Client, command, { expiresIn });
+  const url = await getSignedUrl(getR2Client(), command, { expiresIn });
   return url;
 }
 
@@ -131,7 +137,7 @@ export async function getPresignedUploadUrl(
     ContentType: contentType,
   });
 
-  const url = await getSignedUrl(r2Client, command, { expiresIn });
+  const url = await getSignedUrl(getR2Client(), command, { expiresIn });
   return url;
 }
 

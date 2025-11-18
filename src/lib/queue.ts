@@ -12,9 +12,11 @@ const redisConnection = {
   host: process.env.REDIS_HOST || 'localhost',
   port: parseInt(process.env.REDIS_PORT || '6380'),
   maxRetriesPerRequest: null, // Required for BullMQ
+  // Don't try to connect during build time
+  lazyConnect: true,
 };
 
-// Create Redis connection for testing
+// Create Redis connection for testing (will connect lazily)
 export const redis = new Redis(redisConnection);
 
 /**
