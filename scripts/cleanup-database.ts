@@ -16,11 +16,10 @@ async function main() {
     where: { campaignId },
   });
 
-  const contentCount = await prisma.homebrewContent.count({
+  // Count homebrew content linked to this campaign
+  const contentCount = await prisma.campaignHomebrewContent.count({
     where: {
-      sourcePdf: {
-        campaignId,
-      },
+      campaignId,
     },
   });
 
@@ -50,15 +49,9 @@ async function main() {
   });
   console.log(`✅ Deleted ${campaignLinksDeleted.count} campaign-homebrew links`);
 
-  // 2. Delete homebrew content
-  const contentDeleted = await prisma.homebrewContent.deleteMany({
-    where: {
-      sourcePdf: {
-        campaignId,
-      },
-    },
-  });
-  console.log(`✅ Deleted ${contentDeleted.count} homebrew content records`);
+  // 2. Delete homebrew content (via join table - actual content is owned by user)
+  // Note: CampaignHomebrewContent deletion above already handles this
+  console.log(`✅ Campaign-homebrew links deleted (content remains in user library)`);
 
   // 3. Delete PDFs
   const pdfsDeleted = await prisma.homebrewPDF.deleteMany({
@@ -71,11 +64,9 @@ async function main() {
     where: { campaignId },
   });
 
-  const remainingContent = await prisma.homebrewContent.count({
+  const remainingContent = await prisma.campaignHomebrewContent.count({
     where: {
-      sourcePdf: {
-        campaignId,
-      },
+      campaignId,
     },
   });
 
