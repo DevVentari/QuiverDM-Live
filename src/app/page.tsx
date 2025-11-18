@@ -1,7 +1,15 @@
 import Link from 'next/link';
 import { Button } from '@radix-ui/themes';
+import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 
-export default function MarketingPage() {
+export default async function MarketingPage() {
+  // Redirect authenticated users to campaigns
+  const session = await auth();
+  if (session) {
+    redirect('/campaigns');
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900">
       {/* Navigation */}

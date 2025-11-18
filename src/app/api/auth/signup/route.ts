@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
+// Force Node.js runtime for bcrypt and Prisma support
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 const signupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
@@ -107,7 +111,24 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error('Signup error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+
+    console.error('Signup error:', {
+      message: errorMessage,
+      stack: errorStack,
+      type: error?.constructor?.name,
+      timestamp: new Date().toISOString(),
+    });
+
+    // In development, include error details for debugging
+    if (process.env.NODE_ENV === 'development') {
+      return NextResponse.json(
+        { error: 'Internal server error', details: errorMessage },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
