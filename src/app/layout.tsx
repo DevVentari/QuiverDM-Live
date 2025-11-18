@@ -10,8 +10,8 @@ const inter = Inter({ subsets: ["latin"] });
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: "QuiverDM - AI-Powered D&D Session Management",
-  description: "Upload recordings, generate AI summaries, and manage your D&D campaigns with ease.",
+  title: "QuiverDM - TTRPG Campaign Management for Dungeon Masters",
+  description: "Organize sessions, track NPCs, manage homebrew content, and keep your campaigns running smoothly. Built for Dungeon Masters.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

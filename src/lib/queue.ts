@@ -8,16 +8,45 @@ import { Queue, Worker, QueueEvents, Job } from 'bullmq';
 import Redis from 'ioredis';
 
 // Redis connection configuration
-const redisConnection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6380'),
-  maxRetriesPerRequest: null, // Required for BullMQ
-  // Don't try to connect during build time
-  lazyConnect: true,
-};
+// Supports both Upstash (via REDIS_URL) and traditional Redis (via REDIS_HOST/PORT)
+function getRedisConnection() {
+  if (process.env.REDIS_URL) {
+    // Upstash or Redis connection string format
+    return process.env.REDIS_URL;
+  } else {
+    // Traditional host/port format (for local development)
+    return {
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT || '6380'),
+      password: process.env.REDIS_PASSWORD,
+      maxRetriesPerRequest: null, // Required for BullMQ
+      // Don't try to connect during build time
+      lazyConnect: true,
+    };
+  }
+}
+
+const redisConnection = getRedisConnection();
 
 // Create Redis connection for testing (will connect lazily)
-export const redis = new Redis(redisConnection);
+// Wrap in try/catch to handle connection errors gracefully
+let redisInstance: Redis | null = null;
+try {
+  // TypeScript needs explicit handling for string vs object
+  if (typeof redisConnection === 'string') {
+    redisInstance = new Redis(redisConnection);
+  } else {
+    redisInstance = new Redis(redisConnection);
+  }
+  redisInstance.on('error', (err) => {
+    console.warn('[Redis] Connection error (non-fatal):', err.message);
+  });
+} catch (error) {
+  console.warn('[Redis] Failed to initialize Redis connection:', error);
+}
+
+// Export redis for backward compatibility (may be null if connection failed)
+export const redis = redisInstance;
 
 /**
  * PDF Processing Job Data
@@ -54,7 +83,7 @@ export interface PDFProcessingJobResult {
 export const pdfProcessingQueue = new Queue<PDFProcessingJobData, PDFProcessingJobResult>(
   'pdf-processing',
   {
-    connection: redisConnection,
+    connection: redisConnection as any, // BullMQ accepts both string and object
     defaultJobOptions: {
       attempts: 3, // Retry up to 3 times on failure
       backoff: {
@@ -76,7 +105,7 @@ export const pdfProcessingQueue = new Queue<PDFProcessingJobData, PDFProcessingJ
  * Queue Events for monitoring
  */
 export const pdfProcessingQueueEvents = new QueueEvents('pdf-processing', {
-  connection: redisConnection,
+  connection: redisConnection as any, // BullMQ accepts both string and object
 });
 
 /**
@@ -162,10 +191,16 @@ export async function cleanQueue() {
 // Graceful shutdown
 async function gracefulShutdown() {
   console.log('Shutting down PDF processing queue...');
-  await pdfProcessingQueue.close();
-  await pdfProcessingQueueEvents.close();
-  await redis.quit();
-  console.log('Queue shutdown complete');
+  try {
+    await pdfProcessingQueue.close();
+    await pdfProcessingQueueEvents.close();
+    if (redis) {
+      await redis.quit();
+    }
+    console.log('Queue shutdown complete');
+  } catch (error) {
+    console.error('Error during queue shutdown:', error);
+  }
 }
 
 process.on('SIGTERM', gracefulShutdown);
