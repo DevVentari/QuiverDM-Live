@@ -20,7 +20,8 @@
     "test:ai-extract": "tsx scripts/test-ai-extraction.ts",
     "test:pdf-queue": "tsx scripts/test-pdf-queue.ts",
     "worker:pdf": "tsx src/lib/queue-worker.ts",
-    "worker:pdf:dev": "tsx watch src/lib/queue-worker.ts"
+    "worker:pdf:dev": "tsx watch src/lib/queue-worker.ts",
+    "generate-invites": "tsx scripts/generate-invite-codes.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",

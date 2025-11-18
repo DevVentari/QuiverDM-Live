@@ -13,6 +13,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +39,7 @@ export default function SignUpPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, inviteCode }),
       });
 
       const data = await response.json();
@@ -130,6 +131,23 @@ export default function SignUpPage() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="inviteCode">
+                  <Text as="div" size="2" mb="1" weight="bold">
+                    Invite Code
+                  </Text>
+                </label>
+                <TextField.Root
+                  id="inviteCode"
+                  type="text"
+                  placeholder="Your invite code"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value)}
                   required
                   disabled={isLoading}
                 />

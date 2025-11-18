@@ -7,12 +7,39 @@ const signupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  inviteCode: z.string().min(1, 'Invite code is required'),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password } = signupSchema.parse(body);
+    const { name, email, password, inviteCode } = signupSchema.parse(body);
+
+    // Validate invite code first
+    const invite = await prisma.inviteCode.findUnique({
+      where: { code: inviteCode },
+    });
+
+    if (!invite) {
+      return NextResponse.json(
+        { error: 'Invalid invite code' },
+        { status: 403 }
+      );
+    }
+
+    if (invite.usedBy) {
+      return NextResponse.json(
+        { error: 'This invite code has already been used' },
+        { status: 403 }
+      );
+    }
+
+    if (invite.expiresAt && invite.expiresAt < new Date()) {
+      return NextResponse.json(
+        { error: 'This invite code has expired' },
+        { status: 403 }
+      );
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -46,6 +73,15 @@ export async function POST(request: Request) {
           provider: 'credentials',
           providerAccountId: newUser.id,
           password: hashedPassword,
+        },
+      });
+
+      // Mark invite code as used
+      await tx.inviteCode.update({
+        where: { code: inviteCode },
+        data: {
+          usedBy: newUser.id,
+          usedAt: new Date(),
         },
       });
 

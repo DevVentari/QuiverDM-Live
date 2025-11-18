@@ -83,6 +83,19 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Invite-only registration system
+model InviteCode {
+  id        String    @id @default(cuid())
+  code      String    @unique // The actual invite code
+  usedBy    String?   // User ID who used this code
+  usedAt    DateTime? // When it was used
+  createdAt DateTime  @default(now())
+  expiresAt DateTime? // Optional expiration
+
+  @@index([code])
+  @@index([usedBy])
+}
+
 // QuiverDM Core Models
 model Campaign {
   id               String                      @id @default(cuid())
