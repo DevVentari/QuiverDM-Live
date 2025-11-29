@@ -53,7 +53,7 @@ class LocalStorageProvider implements StorageProvider {
     await fs.writeFile(filePath, data);
 
     // Return URL for accessing the file
-    return \`/api/files/\${key}\`;
+    return `/api/files/${key}`;
   }
 
   async download(key: string): Promise<Buffer> {
@@ -74,7 +74,7 @@ class LocalStorageProvider implements StorageProvider {
   }
 
   getUrl(key: string): string {
-    return \`/api/files/\${key}\`;
+    return `/api/files/${key}`;
   }
 
   async exists(key: string): Promise<boolean> {
@@ -130,7 +130,7 @@ class R2StorageProvider implements StorageProvider {
 
   getUrl(key: string): string {
     // For R2, we return a path that will trigger presigned URL generation
-    return \`/api/storage/\${key}\`;
+    return `/api/storage/${key}`;
   }
 
   async exists(_key: string): Promise<boolean> {
@@ -204,7 +204,7 @@ export function generateFileKey(
   const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
   const campaignPart = campaignId || 'general';
 
-  return \`\${prefix}/\${userId}/\${campaignPart}/\${timestamp}-\${randomString}-\${sanitizedFilename}\`;
+  return `${prefix}/${userId}/${campaignPart}/${timestamp}-${randomString}-${sanitizedFilename}`;
 }
 
 /**
@@ -230,3 +230,17 @@ export function getLocalStoragePath(): string {
 
 // Export the local storage class for direct access when needed
 export { LocalStorageProvider };
+
+/**
+ * Get a signed URL for file access
+ * For local storage, returns a direct path
+ * For R2, returns a presigned URL
+ */
+export async function getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
+  if (STORAGE_MODE === 'r2') {
+    const r2 = await import('./r2-storage');
+    return r2.getPresignedDownloadUrl(key, expiresIn);
+  }
+  // For local storage, just return the local URL path
+  return `/api/files/${key}`;
+}
