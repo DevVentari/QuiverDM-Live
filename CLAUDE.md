@@ -313,11 +313,30 @@ USE_GPU=false npm run test:transcribe
 
 ## Documentation
 
+See `docs/README.md` for the complete documentation index.
+
+**Key Documents:**
 - `README.md` - Getting started guide
-- `docs/quiverdm-development-roadmap.md` - Feature roadmap and development phases
-- `docs/WHISPER_SETUP.md` - Detailed transcription setup
-- `docs/SPEAKER_DIARIZATION_SETUP.md` - Speaker identification setup
-- `docs/API_KEYS_SETUP_GUIDE.md` - Comprehensive API key setup
-- `docs/PDF_QUEUE_QUICK_START.md` - Quick start guide for PDF job queue
-- `docs/PDF_JOB_QUEUE_GUIDE.md` - Complete PDF processing job queue documentation
 - `SETUP_CHECKLIST.md` - Step-by-step setup checklist
+- `QUICK_START.md` - Quick start guide
+- `QuiverDM-Master-Document.md` - Comprehensive reference
+
+**Setup & Configuration:**
+- `docs/LOCAL_DEVELOPMENT_SETUP.md` - Local development setup
+- `docs/API_KEYS_SETUP_GUIDE.md` - API key configuration
+- `docs/OAUTH_SETUP_GUIDE.md` - OAuth providers setup
+
+**Features:**
+- `docs/WHISPER_SETUP.md` - Transcription setup
+- `docs/SPEAKER_DIARIZATION_SETUP.md` - Speaker identification
+- `docs/PDF_PROCESSING.md` - PDF upload and Marker conversion
+- `docs/PDF_JOB_QUEUE_GUIDE.md` - PDF job queue system
+- `docs/HOMEBREW_LIBRARY.md` - Homebrew content system
+
+**Deployment:**
+- `docs/deployment/VERCEL_FRESH_DEPLOYMENT_GUIDE.md` - Vercel deployment
+- `docs/deployment/UPSTASH_REDIS_SETUP.md` - Upstash Redis setup
+
+**Archive:**
+- `docs/archive/` - Historical session summaries
+- `archive/` - Archived experimental code (D&D Beyond, old status reports)

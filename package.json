@@ -17,6 +17,7 @@
     "test:quick": "tsx scripts/test-quick.ts",
     "test:e2e": "tsx scripts/test-e2e-upload.ts",
     "transcribe:full": "tsx scripts/transcribe-session-full.ts",
+    "transcribe:workshop": "tsx scripts/transcribe-workshop.ts",
     "test:ai-extract": "tsx scripts/test-ai-extraction.ts",
     "test:pdf-queue": "tsx scripts/test-pdf-queue.ts",
     "worker:pdf": "tsx src/lib/queue-worker.ts",
