@@ -1,104 +1,232 @@
 /**
- * Unified Storage API
+ * Storage Abstraction Layer
  *
- * Automatically uses R2 when configured, falls back to local storage for development
+ * Provides a unified interface for file storage that can switch between
+ * local filesystem (for development) and Cloudflare R2 (for production).
+ *
+ * Set STORAGE_MODE=local in .env.local for local development.
+ * Set STORAGE_MODE=r2 for production with Cloudflare R2.
  */
 
-import {
-  uploadToLocalStorage,
-  downloadFromLocalStorage,
-  getLocalStorageSignedUrl,
-  deleteFromLocalStorage,
-  isUsingLocalStorage,
-  getStorageInfo as getLocalStorageInfo
-} from './local-file-storage';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
-// Check if R2 is available
-const isR2Available = !!(
-  process.env.R2_ACCOUNT_ID &&
-  process.env.R2_ACCESS_KEY_ID &&
-  process.env.R2_SECRET_ACCESS_KEY &&
-  process.env.R2_BUCKET_NAME
-);
-
-// Log storage mode on startup
-if (isR2Available) {
-  console.log('[Storage] R2 credentials detected but not loading R2 module (missing env vars)');
-  console.log('[Storage] Using local file storage (development mode)');
-  console.log('[Storage] Files will be stored in: ./local-storage/');
-} else {
-  console.log('[Storage] Using local file storage (development mode)');
-  console.log('[Storage] Files will be stored in: ./local-storage/');
-}
-
-// For now, always use local storage since R2 isn't configured
-const uploadToR2: any = null;
-const downloadFromR2: any = null;
-const getR2SignedUrl: any = null;
-const deleteFromR2: any = null;
+// Storage mode from environment
+const STORAGE_MODE = process.env.STORAGE_MODE || 'local';
+const LOCAL_STORAGE_PATH = process.env.LOCAL_STORAGE_PATH || './uploads';
 
 /**
- * Upload a file to storage (R2 or local)
+ * Storage provider interface
  */
-export async function uploadFile(params: {
-  key: string;
-  body: Buffer | Uint8Array | Blob;
-  contentType?: string;
-  metadata?: Record<string, string>;
-}): Promise<string> {
-  if (uploadToR2) {
-    return uploadToR2(params);
-  }
-  return uploadToLocalStorage(params);
+export interface StorageProvider {
+  upload(key: string, data: Buffer, contentType?: string): Promise<string>;
+  download(key: string): Promise<Buffer>;
+  delete(key: string): Promise<void>;
+  getUrl(key: string): string;
+  exists(key: string): Promise<boolean>;
 }
 
 /**
- * Download a file from storage
+ * Local filesystem storage provider
  */
-export async function downloadFile(keyOrUrl: string): Promise<Buffer> {
-  if (downloadFromR2 && !keyOrUrl.startsWith('local://')) {
-    return downloadFromR2(keyOrUrl);
+class LocalStorageProvider implements StorageProvider {
+  private basePath: string;
+
+  constructor(basePath: string = LOCAL_STORAGE_PATH) {
+    this.basePath = path.resolve(basePath);
   }
-  return downloadFromLocalStorage(keyOrUrl);
+
+  private getFilePath(key: string): string {
+    // Ensure key doesn't escape base directory
+    const normalizedKey = key.replace(/\.\./g, '').replace(/^\//, '');
+    return path.join(this.basePath, normalizedKey);
+  }
+
+  async upload(key: string, data: Buffer, _contentType?: string): Promise<string> {
+    const filePath = this.getFilePath(key);
+    const dir = path.dirname(filePath);
+
+    // Ensure directory exists
+    await fs.mkdir(dir, { recursive: true });
+
+    // Write file
+    await fs.writeFile(filePath, data);
+
+    // Return URL for accessing the file
+    return \`/api/files/\${key}\`;
+  }
+
+  async download(key: string): Promise<Buffer> {
+    const filePath = this.getFilePath(key);
+    return fs.readFile(filePath);
+  }
+
+  async delete(key: string): Promise<void> {
+    const filePath = this.getFilePath(key);
+    try {
+      await fs.unlink(filePath);
+    } catch (error: unknown) {
+      // Ignore if file doesn't exist
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
+  }
+
+  getUrl(key: string): string {
+    return \`/api/files/\${key}\`;
+  }
+
+  async exists(key: string): Promise<boolean> {
+    const filePath = this.getFilePath(key);
+    try {
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get the absolute file path for a key (for direct file access)
+   */
+  getAbsolutePath(key: string): string {
+    return this.getFilePath(key);
+  }
 }
 
 /**
- * Get a signed URL for a file
+ * Cloudflare R2 storage provider
+ * Wraps existing r2-storage.ts functions
  */
-export async function getSignedUrl(keyOrUrl: string, expiresIn: number = 3600): Promise<string> {
-  if (getR2SignedUrl && !keyOrUrl.startsWith('local://')) {
-    return getR2SignedUrl(keyOrUrl, expiresIn);
+class R2StorageProvider implements StorageProvider {
+  private r2Module: typeof import('./r2-storage') | null = null;
+
+  private async getR2Module() {
+    if (!this.r2Module) {
+      this.r2Module = await import('./r2-storage');
+    }
+    return this.r2Module;
   }
-  return getLocalStorageSignedUrl(keyOrUrl, expiresIn);
+
+  async upload(key: string, data: Buffer, contentType?: string): Promise<string> {
+    const r2 = await this.getR2Module();
+    return r2.uploadToR2({
+      key,
+      body: data,
+      contentType,
+    });
+  }
+
+  async download(key: string): Promise<Buffer> {
+    const r2 = await this.getR2Module();
+    return r2.downloadFromR2(key);
+  }
+
+  async delete(key: string): Promise<void> {
+    const r2 = await this.getR2Module();
+    return r2.deleteFromR2(key);
+  }
+
+  getUrl(key: string): string {
+    // For R2, we return a path that will trigger presigned URL generation
+    return \`/api/storage/\${key}\`;
+  }
+
+  async exists(_key: string): Promise<boolean> {
+    // R2 doesn't have a simple exists check, try download
+    try {
+      await this.download(_key);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// Create storage instance based on mode
+let storageInstance: StorageProvider | null = null;
+
+/**
+ * Get the configured storage provider
+ */
+export function getStorage(): StorageProvider {
+  if (!storageInstance) {
+    if (STORAGE_MODE === 'r2') {
+      storageInstance = new R2StorageProvider();
+    } else {
+      storageInstance = new LocalStorageProvider();
+    }
+  }
+  return storageInstance;
 }
 
 /**
- * Delete a file from storage
+ * Default storage export for convenience
  */
-export async function deleteFile(keyOrUrl: string): Promise<void> {
-  if (deleteFromR2 && !keyOrUrl.startsWith('local://')) {
-    return deleteFromR2(keyOrUrl);
-  }
-  return deleteFromLocalStorage(keyOrUrl);
+export const storage = {
+  get provider(): StorageProvider {
+    return getStorage();
+  },
+
+  async upload(key: string, data: Buffer, contentType?: string): Promise<string> {
+    return getStorage().upload(key, data, contentType);
+  },
+
+  async download(key: string): Promise<Buffer> {
+    return getStorage().download(key);
+  },
+
+  async delete(key: string): Promise<void> {
+    return getStorage().delete(key);
+  },
+
+  getUrl(key: string): string {
+    return getStorage().getUrl(key);
+  },
+
+  async exists(key: string): Promise<boolean> {
+    return getStorage().exists(key);
+  },
+};
+
+/**
+ * Generate a unique file key
+ */
+export function generateFileKey(
+  userId: string,
+  campaignId: string | null,
+  filename: string,
+  prefix: string = 'files'
+): string {
+  const timestamp = Date.now();
+  const randomString = Math.random().toString(36).substring(2, 8);
+  const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const campaignPart = campaignId || 'general';
+
+  return \`\${prefix}/\${userId}/\${campaignPart}/\${timestamp}-\${randomString}-\${sanitizedFilename}\`;
+}
+
+/**
+ * Get storage mode
+ */
+export function getStorageMode(): 'local' | 'r2' {
+  return STORAGE_MODE as 'local' | 'r2';
 }
 
 /**
  * Check if using local storage
  */
-export function isLocal(): boolean {
-  return isUsingLocalStorage();
+export function isLocalStorage(): boolean {
+  return STORAGE_MODE === 'local';
 }
 
 /**
- * Get storage configuration info
+ * Get local storage path (for direct file access in local mode)
  */
-export function getStorageInfo() {
-  if (uploadToR2) {
-    return {
-      type: 'r2' as const,
-      location: 'Cloudflare R2',
-      configured: true,
-    };
-  }
-  return getLocalStorageInfo();
+export function getLocalStoragePath(): string {
+  return path.resolve(LOCAL_STORAGE_PATH);
 }
+
+// Export the local storage class for direct access when needed
+export { LocalStorageProvider };

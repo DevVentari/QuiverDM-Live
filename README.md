@@ -4,96 +4,73 @@ AI-Powered D&D Session Management for Dungeon Masters
 
 ## Features
 
-- 📼 **Session Recording & Transcription**: Upload audio/video recordings and get AI-generated transcripts with campaign-specific corrections
-- 📚 **Homebrew Library**: Import PDFs of homebrew content and organize items, creatures, and spells with AI categorization
-- 🎭 **Campaign Management**: Track NPCs, sessions, and player notes in one centralized, offline-capable tool
+- **Session Recording & Transcription**: Upload audio/video recordings and get AI-generated transcripts with speaker diarization
+- **Homebrew Library**: Import PDFs of homebrew content and organize items, creatures, and spells with AI extraction
+- **Campaign Management**: Track NPCs, sessions, and player notes in one centralized tool
 
-## Tech Stack
-
-- **Frontend**: Next.js 14 (App Router), React, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, tRPC
-- **Database**: PostgreSQL with Prisma ORM
-- **AI**: OpenAI (Whisper), Anthropic Claude
-- **Storage**: Cloudflare R2
-- **Auth**: NextAuth.js v5
-- **Queue**: Upstash Redis + BullMQ
-- **Search**: MeiliSearch (optional)
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+
-- PostgreSQL database
-- pnpm (recommended) or npm
+- Docker Desktop (for PostgreSQL, Redis, MeiliSearch)
+- Python 3.8+ (for transcription)
 
 ### Installation
 
-1. Clone the repository:
 ```bash
+# Clone and install
 git clone https://github.com/DevVentari/QuiverDM.git
 cd QuiverDM
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env.local
-```
+# Configure environment
+cp .env.local.template .env.local
 
-Edit `.env.local` with your configuration.
+# Start services
+docker-compose up -d
 
-4. Set up the database:
-```bash
+# Initialize database
 npm run db:push
-```
 
-5. Run the development server:
-```bash
+# Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser.
+Open [http://localhost:3000](http://localhost:3000)
+
+For PDF processing, run in a separate terminal:
+```bash
+npm run worker:pdf
+```
+
+**Full setup guide:** [docs/LOCAL_SETUP.md](docs/LOCAL_SETUP.md)
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React, TypeScript
+- **Backend**: tRPC, Prisma ORM
+- **Database**: PostgreSQL (Docker)
+- **Queue**: Redis + BullMQ (Docker)
+- **Search**: MeiliSearch (Docker)
+- **AI**: WhisperX (local transcription), OpenAI, Anthropic
+- **Auth**: NextAuth.js v5
+
+## Documentation
+
+- [Local Setup Guide](docs/LOCAL_SETUP.md)
+- [Transcription System](docs/features/TRANSCRIPTION.md)
+- [PDF Processing](docs/features/PDF_PROCESSING.md)
+- [Homebrew Library](docs/features/HOMEBREW.md)
 
 ## Development
 
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run db:generate` - Generate Prisma Client
-- `npm run db:push` - Push schema to database
-- `npm run db:migrate` - Run migrations
-- `npm run db:studio` - Open Prisma Studio
-
-## Project Structure
-
+```bash
+npm run dev              # Start development server
+npm run db:studio        # Open Prisma Studio (database GUI)
+npm run worker:pdf       # Start PDF processing worker
+npm run test:quick       # Test transcription setup
 ```
-QuiverDM/
-├── docs/                    # Project documentation
-├── prisma/                  # Database schema
-├── public/                  # Static assets
-├── src/
-│   ├── app/                # Next.js app router pages
-│   ├── components/         # React components
-│   ├── lib/                # Utility functions
-│   ├── server/             # Server-side code (tRPC, etc.)
-│   └── styles/             # Global styles
-├── .env.example            # Environment variables template
-├── next.config.js          # Next.js configuration
-├── tailwind.config.ts      # Tailwind CSS configuration
-└── tsconfig.json           # TypeScript configuration
-```
-
-## Contributing
-
-This is a private project currently in development.
 
 ## License
 
@@ -102,4 +79,3 @@ Private - All Rights Reserved
 ## Contact
 
 DevVentari - [@DevVentari](https://github.com/DevVentari)
-
