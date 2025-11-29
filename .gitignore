@@ -90,3 +90,6 @@ nul
 
 # Misc temp files
 srclibqueue-worker.ts
+
+# Git worktrees
+.worktrees/
