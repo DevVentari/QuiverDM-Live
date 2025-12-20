@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Flex, Text, DropdownMenu, Avatar, Button } from '@radix-ui/themes';
-import { Home, Settings, LogOut, User } from 'lucide-react';
+import { Home, Settings, LogOut, User, Users, UserPlus } from 'lucide-react';
 import type { Session } from 'next-auth';
 
 interface ClientNavProps {
@@ -75,6 +75,48 @@ export function ClientNav({ session }: ClientNavProps) {
                 <Home size={18} />
                 <Text size="2" weight="medium">
                   Campaigns
+                </Text>
+              </Flex>
+            </Link>
+
+            <Link href="/characters" style={{ textDecoration: 'none' }}>
+              <Flex
+                align="center"
+                gap="2"
+                px="3"
+                py="2"
+                style={{
+                  cursor: 'pointer',
+                  color: pathname?.startsWith('/characters') ? 'var(--violet-11)' : 'var(--gray-11)',
+                  transition: 'color 0.2s',
+                  borderRadius: '6px',
+                }}
+                className="nav-link"
+              >
+                <Users size={18} />
+                <Text size="2" weight="medium">
+                  Characters
+                </Text>
+              </Flex>
+            </Link>
+
+            <Link href="/join" style={{ textDecoration: 'none' }}>
+              <Flex
+                align="center"
+                gap="2"
+                px="3"
+                py="2"
+                style={{
+                  cursor: 'pointer',
+                  color: pathname === '/join' ? 'var(--violet-11)' : 'var(--gray-11)',
+                  transition: 'color 0.2s',
+                  borderRadius: '6px',
+                }}
+                className="nav-link"
+              >
+                <UserPlus size={18} />
+                <Text size="2" weight="medium">
+                  Join
                 </Text>
               </Flex>
             </Link>
