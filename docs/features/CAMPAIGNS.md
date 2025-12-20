@@ -2,6 +2,10 @@
 
 Campaigns are the core organizational unit in QuiverDM. Each campaign contains sessions, NPCs, players, homebrew, and wiki pages.
 
+## Status: ✅ Phase 0 Complete
+
+The multi-user collaboration system is fully implemented in the backend.
+
 ## Features
 
 - **Multi-User Support**: DMs, Co-DMs, Players, and Spectators
@@ -13,72 +17,41 @@ Campaigns are the core organizational unit in QuiverDM. Each campaign contains s
 
 | Role | Description | Permissions |
 |------|-------------|-------------|
-| **Owner** | Campaign creator | Full control, can delete campaign |
-| **Co-DM** | Assistant DM | Edit everything except delete/transfer |
-| **Player** | Party member | Manage own character, view shared content |
-| **Spectator** | Observer | Read-only access to shared content |
+| **OWNER** | Campaign creator | Full control, can delete campaign |
+| **CO_DM** | Assistant DM | Edit everything except delete/transfer |
+| **PLAYER** | Party member | Manage own character, view shared content |
+| **SPECTATOR** | Observer | Read-only access to shared content |
 
 ## Granular Permissions
 
-Beyond roles, specific permissions can be granted:
+Beyond roles, specific permissions can be granted to PLAYER and SPECTATOR roles:
 
 | Permission | Default | Description |
 |------------|---------|-------------|
-| `canViewNPCSecrets` | Co-DM only | See NPC secrets and hidden info |
-| `canEditNPCs` | Co-DM only | Create/edit NPCs |
-| `canManageSessions` | Co-DM only | Create/edit sessions |
-| `canInviteMembers` | Owner/Co-DM | Invite new members |
+| `canViewNPCSecrets` | false | See NPC secrets and hidden info |
+| `canEditNPCs` | false | Create/edit NPCs |
+| `canManageSessions` | false | Create/edit sessions |
+| `canInviteMembers` | false | Invite new members |
 
-## Invite System
-
-### Invite Code (Quick Join)
-
-```typescript
-// Generate invite code
-const campaign = await trpc.campaigns.generateInviteCode.mutate({
-  campaignId,
-  expiresIn: '7d', // Optional expiration
-});
-// Returns: { inviteCode: 'ABC123XY' }
-
-// Player joins with code
-await trpc.campaigns.joinByCode.mutate({
-  code: 'ABC123XY',
-  characterId: optionalCharacterId,
-});
-```
-
-### Email Invite
-
-```typescript
-await trpc.campaigns.inviteByEmail.mutate({
-  campaignId,
-  email: 'player@example.com',
-  role: 'PLAYER',
-  message: 'Join our campaign!', // Optional
-});
-```
-
-## Campaign Settings
-
-```typescript
-interface CampaignSettings {
-  // Visibility
-  isPublic: boolean;           // Discoverable in search
-
-  // Player permissions
-  allowPlayerNotes: boolean;   // Players can add session notes
-  shareRecaps: boolean;        // Auto-share recaps with players
-  shareNPCGallery: boolean;    // Players see NPC list (no secrets)
-
-  // Content
-  defaultHomebrewVisibility: 'private' | 'campaign';
-}
-```
+Note: OWNER and CO_DM automatically have all permissions.
 
 ## Database Schema
 
 ```prisma
+enum CampaignRole {
+  OWNER     // Full control, can delete campaign
+  CO_DM     // Almost full control, cannot delete or transfer
+  PLAYER    // Manage own character, view shared content
+  SPECTATOR // Read-only access to shared content
+}
+
+enum ContentVisibility {
+  PRIVATE   // Only creator can see
+  CAMPAIGN  // Visible to campaign members
+  PUBLIC    // Visible to all users
+  UNLISTED  // Anyone with link can view
+}
+
 model Campaign {
   id           String   @id @default(cuid())
   name         String
@@ -87,21 +60,22 @@ model Campaign {
   bannerUrl    String?
   status       String   @default("active")
 
-  // Legacy owner (migration compatibility)
+  // Legacy owner (kept for backward compatibility)
   userId       String
+  user         User     @relation(...)
 
-  // Settings
-  settings     Json?
-  inviteCode   String?  @unique
-  isPublic     Boolean  @default(false)
-
-  // Relations
+  // Multi-user collaboration
   members      CampaignMember[]
+  invites      CampaignInvite[]
+  inviteCode   String?  @unique  // Quick join code
+  isPublic     Boolean  @default(false)
+  settings     Json?
+
+  // Content relations
   gameSessions GameSession[]
   npcs         NPC[]
   characters   CampaignCharacter[]
-  wikiPages    WikiPage[]
-  homebrew     CampaignHomebrewContent[]
+  // ... other relations
 }
 
 model CampaignMember {
@@ -123,184 +97,278 @@ model CampaignMember {
   @@unique([campaignId, userId])
 }
 
-enum CampaignRole {
-  OWNER
-  CO_DM
-  PLAYER
-  SPECTATOR
+model CampaignInvite {
+  id          String       @id @default(cuid())
+  campaignId  String
+  campaign    Campaign     @relation(...)
+
+  code        String?      @unique  // Random code for link sharing
+  email       String?               // Direct email invitation
+  role        CampaignRole @default(PLAYER)
+  createdBy   String
+  message     String?      @db.Text
+  expiresAt   DateTime?
+  usedAt      DateTime?
+  usedBy      String?
+
+  createdAt   DateTime     @default(now())
 }
 ```
 
 ## API Reference
 
-### Campaigns Router
+### Campaigns Router (`trpc.campaigns.*`)
 
 ```typescript
-// Get user's campaigns (as member)
-trpc.campaigns.getAll.useQuery();
+// Get all campaigns where user is a member
+const { data: campaigns } = trpc.campaigns.getAll.useQuery();
+// Returns: campaigns with myRole and myPermissions
 
-// Get single campaign
-trpc.campaigns.getById.useQuery({ id: campaignId });
+// Get single campaign by ID
+const { data: campaign } = trpc.campaigns.getById.useQuery({ id: campaignId });
+// Returns: campaign with members, characters, filtered NPC secrets
 
-// Create campaign
-trpc.campaigns.create.useMutation();
+// Get campaign by slug
+const { data: campaign } = trpc.campaigns.getBySlug.useQuery({ slug: 'my-campaign' });
+
+// Create campaign (automatically creates OWNER membership)
+const mutation = trpc.campaigns.create.useMutation();
+await mutation.mutateAsync({
+  name: 'My Campaign',
+  description: 'A new adventure',
+});
 
 // Update campaign
-trpc.campaigns.update.useMutation();
+await trpc.campaigns.update.mutateAsync({
+  id: campaignId,
+  name: 'Updated Name',
+  description: 'Updated description',
+});
 
 // Delete campaign (owner only)
-trpc.campaigns.delete.useMutation();
+await trpc.campaigns.delete.mutateAsync({ id: campaignId });
 ```
 
-### Members Sub-Router
+### Members Router (`trpc.members.*`)
 
 ```typescript
-// List members
-trpc.campaigns.members.list.useQuery({ campaignId });
+// Get all members of a campaign
+const { data: members } = trpc.members.getAll.useQuery({ campaignId });
 
-// Invite member
-trpc.campaigns.members.invite.useMutation();
+// Get current user's membership
+const { data: membership } = trpc.members.getMyMembership.useQuery({ campaignId });
 
-// Update role
-trpc.campaigns.members.updateRole.useMutation();
+// Get pending invites (DM only)
+const { data: invites } = trpc.members.getInvites.useQuery({ campaignId });
 
-// Update permissions
-trpc.campaigns.members.updatePermissions.useMutation();
+// Create an invite
+await trpc.members.createInvite.mutateAsync({
+  campaignId,
+  role: 'PLAYER',           // Default role for invitee
+  email: 'player@email.com', // Optional: email-specific invite
+  message: 'Join us!',       // Optional message
+  expiresInDays: 7,          // Optional expiration
+});
 
-// Remove member
-trpc.campaigns.members.remove.useMutation();
+// Regenerate permanent invite code (owner only)
+const { inviteCode } = await trpc.members.regenerateInviteCode.mutateAsync({ campaignId });
 
-// Leave campaign
-trpc.campaigns.members.leave.useMutation();
+// Revoke an invite
+await trpc.members.revokeInvite.mutateAsync({
+  campaignId,
+  inviteId,
+});
+
+// Accept an invite (join campaign)
+const result = await trpc.members.acceptInvite.mutateAsync({
+  code: 'ABC123XY',
+});
+// Returns: { campaignId, campaignName, campaignSlug, role }
+
+// Update member role (DM only, owner for CO_DM changes)
+await trpc.members.updateRole.mutateAsync({
+  campaignId,
+  memberId,
+  role: 'CO_DM',
+});
+
+// Update granular permissions (DM only)
+await trpc.members.updatePermissions.mutateAsync({
+  campaignId,
+  memberId,
+  canViewNPCSecrets: true,
+  canEditNPCs: false,
+});
+
+// Remove member (DM only, owner for CO_DM)
+await trpc.members.remove.mutateAsync({
+  campaignId,
+  memberId,
+});
+
+// Leave campaign (self-removal, owner cannot leave)
+await trpc.members.leave.mutateAsync({ campaignId });
+
+// Transfer ownership (owner only)
+await trpc.members.transferOwnership.mutateAsync({
+  campaignId,
+  newOwnerId: userId,
+});
 ```
 
-## Components
+## Authorization Middleware
 
-### CampaignCard
+### tRPC Procedures
 
-```tsx
-<CampaignCard
-  campaign={campaign}
-  role={membership.role}
-  onSelect={() => router.push(`/campaigns/${campaign.id}`)}
-/>
+```typescript
+import {
+  campaignMemberProcedure,
+  campaignDMProcedure,
+  campaignOwnerProcedure,
+} from '@/server/trpc';
+
+// Requires any campaign membership
+campaignMemberProcedure
+  .input(z.object({ campaignId: z.string(), ... }))
+  .query(async ({ ctx, input }) => {
+    // ctx.membership contains:
+    // - campaign: { id, name, userId }
+    // - member: { id, role, canViewNPCSecrets, ... } | null
+    // - isOwner: boolean
+    // - isCoOwner: boolean
+    // - isPlayer: boolean
+    // - isSpectator: boolean
+  });
+
+// Requires CO_DM or OWNER role
+campaignDMProcedure
+  .input(z.object({ campaignId: z.string(), ... }))
+  .mutation(async ({ ctx, input }) => {
+    // Only DMs can access this
+  });
+
+// Requires OWNER role only
+campaignOwnerProcedure
+  .input(z.object({ campaignId: z.string(), ... }))
+  .mutation(async ({ ctx, input }) => {
+    // Only owner can access this
+  });
 ```
 
-### MemberList
+### Ownership Verification Functions
 
-```tsx
-<MemberList
-  campaignId={campaignId}
-  canManage={isOwnerOrCoDM}
-  onRoleChange={handleRoleChange}
-/>
-```
+```typescript
+import {
+  verifyCampaignMembership,
+  verifyCampaignRole,
+  verifyCanEditNPCs,
+  verifyCanViewNPCSecrets,
+  verifyCanManageSessions,
+  verifyCanInviteMembers,
+  isDMLevel,
+} from '@/server/lib/ownership';
 
-### InviteDialog
+// Check any access
+const membership = await verifyCampaignMembership(campaignId, userId);
 
-```tsx
-<InviteDialog
-  campaignId={campaignId}
-  inviteCode={campaign.inviteCode}
-  onInviteSent={refetch}
-/>
+// Check specific role level
+const membership = await verifyCampaignRole(campaignId, userId, CampaignRole.CO_DM);
+
+// Check specific permission
+const membership = await verifyCanEditNPCs(campaignId, userId);
+
+// Helper for DM checks
+if (isDMLevel(membership)) {
+  // Show DM-only content
+}
 ```
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `src/server/routers/campaigns.ts` | Campaign CRUD + members |
-| `src/server/lib/ownership.ts` | Role-based verification |
-| `src/app/campaigns/page.tsx` | Campaign list |
-| `src/app/campaigns/[id]/page.tsx` | Campaign detail |
-| `src/app/campaigns/[id]/members/page.tsx` | Member management |
-| `src/app/campaigns/[id]/join/page.tsx` | Join flow |
+| `prisma/schema.prisma` | Database models and enums |
+| `src/server/lib/ownership.ts` | Membership verification functions |
+| `src/server/trpc.ts` | tRPC middleware (campaignMemberProcedure, etc.) |
+| `src/server/routers/campaigns.ts` | Campaign CRUD with membership checks |
+| `src/server/routers/members.ts` | Full member management API |
+| `scripts/migrate-campaign-members.ts` | Migration for existing campaigns |
 
-## Authorization Patterns
+## Usage Examples
 
-### Middleware
+### Creating a Campaign
 
 ```typescript
-// Verify user is campaign member
-export const campaignMemberProcedure = protectedProcedure.use(
-  async ({ ctx, next, rawInput }) => {
-    const { campaignId } = rawInput as { campaignId: string };
+// Create campaign - automatically creates OWNER membership
+const campaign = await trpc.campaigns.create.mutateAsync({
+  name: 'Dragon Heist',
+  description: 'A heist adventure in Waterdeep',
+});
 
-    const membership = await prisma.campaignMember.findUnique({
-      where: {
-        campaignId_userId: {
-          campaignId,
-          userId: ctx.session.user.id,
-        },
-      },
-    });
-
-    if (!membership) {
-      throw new TRPCError({ code: 'FORBIDDEN' });
-    }
-
-    return next({ ctx: { ...ctx, membership } });
-  }
-);
-
-// Verify specific roles
-export const dmOnlyProcedure = campaignMemberProcedure.use(
-  async ({ ctx, next }) => {
-    if (!['OWNER', 'CO_DM'].includes(ctx.membership.role)) {
-      throw new TRPCError({ code: 'FORBIDDEN' });
-    }
-    return next();
-  }
-);
+// campaign.id is ready to use
+// User is automatically OWNER
 ```
 
-### In Routers
+### Inviting Players
 
 ```typescript
-// Only DMs can create sessions
-createSession: dmOnlyProcedure
-  .input(createSessionSchema)
-  .mutation(async ({ input, ctx }) => {
-    // ctx.membership is available
-  }),
+// Generate a shareable invite link
+const invite = await trpc.members.createInvite.mutateAsync({
+  campaignId,
+  role: 'PLAYER',
+});
+const inviteUrl = `https://quiverdm.com/join/${invite.code}`;
 
-// Players can view (filtered by role)
-getNPCs: campaignMemberProcedure
-  .input(z.object({ campaignId: z.string() }))
-  .query(async ({ input, ctx }) => {
-    const npcs = await prisma.nPC.findMany({ ... });
-
-    // Hide secrets from players
-    if (ctx.membership.role === 'PLAYER' && !ctx.membership.canViewNPCSecrets) {
-      return npcs.map(npc => ({ ...npc, secrets: null }));
-    }
-
-    return npcs;
-  }),
+// Or use the permanent campaign invite code
+const { inviteCode } = await trpc.members.regenerateInviteCode.mutateAsync({
+  campaignId,
+});
+const quickJoinUrl = `https://quiverdm.com/join/${inviteCode}`;
 ```
 
-## Migration Guide
-
-### From Single-User to Multi-User
-
-When migrating existing campaigns:
-
-1. Create `CampaignMember` for existing owner with role `OWNER`
-2. All ownership checks now go through membership
-3. Legacy `userId` field kept for backward compatibility
+### Joining a Campaign
 
 ```typescript
-// Migration script
-const campaigns = await prisma.campaign.findMany();
+// Player enters invite code
+const result = await trpc.members.acceptInvite.mutateAsync({
+  code: 'ABC123XY',
+});
 
-for (const campaign of campaigns) {
-  await prisma.campaignMember.create({
-    data: {
-      campaignId: campaign.id,
-      userId: campaign.userId,
-      role: 'OWNER',
-    },
-  });
+// Redirect to campaign
+router.push(`/campaigns/${result.campaignSlug}`);
+```
+
+### Checking Permissions in Components
+
+```typescript
+function CampaignPage({ campaignId }) {
+  const { data: campaign } = trpc.campaigns.getById.useQuery({ id: campaignId });
+
+  const isDM = campaign?.myRole === 'OWNER' || campaign?.myRole === 'CO_DM';
+  const canEditNPCs = isDM || campaign?.myPermissions?.canEditNPCs;
+
+  return (
+    <div>
+      {isDM && <DMControls />}
+      {canEditNPCs && <NPCEditor />}
+    </div>
+  );
 }
 ```
+
+## Migration from Legacy Ownership
+
+When creating new campaigns, the system automatically creates an OWNER membership.
+
+For existing campaigns (created before multi-user support):
+
+```bash
+npx tsx scripts/migrate-campaign-members.ts
+```
+
+This script:
+1. Finds all campaigns without CampaignMember records
+2. Creates an OWNER membership for the campaign's userId
+3. Reports migration results
+
+The legacy `userId` field on Campaign is kept for backward compatibility but membership checks now use CampaignMember.

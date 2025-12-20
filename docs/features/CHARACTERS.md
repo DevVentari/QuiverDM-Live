@@ -1,184 +1,39 @@
 # Character Sheets
 
-Characters are player-owned entities that can be used across multiple campaigns. Full D&D 5e character sheet support with D&D Beyond sync.
+Characters are player-owned entities that can be used across multiple campaigns. Full D&D 5e character sheet support with D&D Beyond sync capability.
+
+## Status: ✅ Phase 1 Backend Complete
+
+The character management system is fully implemented in the backend. Frontend components are planned.
 
 ## Features
 
 - **Player Ownership**: Players manage their own characters
 - **Portable Characters**: Use the same character in multiple campaigns
-- **D&D Beyond Sync**: Import and sync from D&D Beyond
+- **D&D Beyond Sync**: Import and sync from D&D Beyond (structure ready)
 - **Full Character Sheet**: Stats, features, inventory, spells
-- **Mobile-First**: Optimized for phone use at the table
-
-## Character Ownership Model
-
-Characters can be:
-- **Player-Owned**: Linked to a user account, portable across campaigns
-- **DM-Controlled**: No user link, managed by DM (for NPCs or unclaimed characters)
-
-```typescript
-// Player owns character
-character.userId = 'user_123';
-character.isPortable = true; // Can join multiple campaigns
-
-// DM controls character (NPC or unassigned)
-character.userId = null;
-character.isPortable = false; // Locked to one campaign
-```
-
-## Character Data Structure
-
-### Core Identity
-
-```typescript
-interface Character {
-  id: string;
-  userId?: string;          // Owner (null = DM-controlled)
-  isPortable: boolean;      // Can be in multiple campaigns
-
-  // Identity
-  name: string;
-  race?: string;
-  class?: string;
-  subclass?: string;
-  level: number;
-  background?: string;
-
-  // Visuals
-  portraitUrl?: string;
-}
-```
-
-### Stats (JSON Field)
-
-```typescript
-interface CharacterStats {
-  // Ability Scores
-  strength: number;
-  dexterity: number;
-  constitution: number;
-  intelligence: number;
-  wisdom: number;
-  charisma: number;
-
-  // Derived Stats
-  proficiencyBonus: number;
-  armorClass: number;
-  initiative: number;
-  speed: number;
-
-  // Health
-  maxHitPoints: number;
-  currentHitPoints: number;
-  temporaryHitPoints: number;
-  hitDice: string;          // "8d10"
-  hitDiceRemaining: number;
-
-  // Combat
-  passivePerception: number;
-  passiveInvestigation: number;
-  passiveInsight: number;
-
-  // Proficiencies
-  savingThrows: string[];   // ["strength", "constitution"]
-  skills: string[];         // ["athletics", "perception"]
-  languages: string[];
-  tools: string[];
-  weapons: string[];
-  armor: string[];
-}
-```
-
-### Features (JSON Field)
-
-```typescript
-interface CharacterFeatures {
-  racialTraits: Feature[];
-  classFeatures: Feature[];
-  subclassFeatures: Feature[];
-  feats: Feature[];
-  backgroundFeature?: Feature;
-}
-
-interface Feature {
-  name: string;
-  source: string;           // "Fighter 2", "Human", "Sentinel"
-  description: string;
-  usesPerRest?: 'short' | 'long';
-  maxUses?: number;
-  currentUses?: number;
-}
-```
-
-### Inventory (JSON Field)
-
-```typescript
-interface CharacterInventory {
-  currency: {
-    cp: number;
-    sp: number;
-    ep: number;
-    gp: number;
-    pp: number;
-  };
-  items: InventoryItem[];
-  carryingCapacity: number;
-  currentWeight: number;
-}
-
-interface InventoryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  weight?: number;
-  equipped: boolean;
-  attuned: boolean;
-  description?: string;
-  homebrewId?: string;      // Link to homebrew item
-}
-```
-
-### Spellbook (JSON Field)
-
-```typescript
-interface CharacterSpellbook {
-  spellcastingAbility: string;  // "intelligence"
-  spellSaveDC: number;
-  spellAttackBonus: number;
-
-  spellSlots: {
-    [level: string]: {
-      max: number;
-      remaining: number;
-    };
-  };
-
-  cantrips: Spell[];
-  spells: {
-    [level: string]: Spell[];
-  };
-}
-
-interface Spell {
-  id: string;
-  name: string;
-  prepared: boolean;
-  alwaysPrepared: boolean;    // Domain spells, etc.
-  ritual: boolean;
-  concentration: boolean;
-  homebrewId?: string;        // Link to homebrew spell
-}
-```
+- **Campaign Integration**: Add characters to campaigns with DM approval
+- **DM Notes**: Private notes visible only to DMs
 
 ## Database Schema
 
 ```prisma
+enum CharacterStatus {
+  PENDING   // Awaiting DM approval
+  ACTIVE    // Currently playing
+  RETIRED   // Voluntarily retired
+  DECEASED  // Character died
+  REMOVED   // Removed by DM
+}
+
 model Character {
   id              String    @id @default(cuid())
 
-  // Ownership
-  userId          String?
-  user            User?     @relation(...)
+  // Ownership - Characters are owned by users (players)
+  userId          String
+  user            User      @relation(...)
+
+  // Portability - Can this character be used in multiple campaigns?
   isPortable      Boolean   @default(true)
 
   // Core identity
@@ -192,44 +47,64 @@ model Character {
   // Visuals
   portraitUrl     String?
 
-  // Character data (flexible JSON)
-  stats           Json?
-  features        Json?
-  inventory       Json?
-  spellbook       Json?
+  // Core stats (structured for easy access)
+  abilityScores   Json?     // { str: 10, dex: 14, con: 12, int: 8, wis: 15, cha: 13 }
+  hitPoints       Json?     // { current: 25, max: 30, temp: 0 }
+  armorClass      Int?
+  speed           Int?      @default(30)
+  proficiencyBonus Int?     @default(2)
+
+  // Character details
+  features        Json?     // Class/race features, abilities
+  proficiencies   Json?     // Skills, tools, weapons, armor, saves
+  inventory       Json?     // Equipment and items
+  spellcasting    Json?     // Spellcasting info, prepared spells, slots
+  currency        Json?     // { cp: 0, sp: 0, ep: 0, gp: 100, pp: 0 }
+
+  // Backstory and notes
   backstory       String?   @db.Text
-  notes           String?   @db.Text
+  personalityTraits String? @db.Text
+  ideals          String?   @db.Text
+  bonds           String?   @db.Text
+  flaws           String?   @db.Text
+  notes           String?   @db.Text  // Player's private notes
 
   // D&D Beyond sync
   dndBeyondId     String?   @unique
   dndBeyondUrl    String?
   lastSyncedAt    DateTime?
 
+  // Full raw data (for complete D&D Beyond import preservation)
+  rawData         Json?
+
   // Campaign associations
   campaignCharacters  CampaignCharacter[]
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-
-  @@index([userId])
-  @@index([dndBeyondId])
 }
 
 model CampaignCharacter {
-  id           String    @id @default(cuid())
+  id           String          @id @default(cuid())
+
   campaignId   String
-  campaign     Campaign  @relation(...)
+  campaign     Campaign        @relation(...)
+
   characterId  String
-  character    Character @relation(...)
+  character    Character       @relation(...)
 
-  // Campaign-specific state
-  isActive     Boolean   @default(true)
-  status       String    @default("active")  // active, retired, deceased
-  joinedSession Int?
-  leftSession  Int?
+  // Status in this campaign
+  status       CharacterStatus @default(PENDING)
+  isActive     Boolean         @default(true)
 
-  // DM notes (not visible to player)
-  dmNotes      String?   @db.Text
+  // DM-only notes (not visible to player)
+  dmNotes      String?         @db.Text
+
+  // Campaign-specific overrides (optional)
+  campaignData Json?
+
+  joinedAt     DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   @@unique([campaignId, characterId])
 }
@@ -237,252 +112,329 @@ model CampaignCharacter {
 
 ## API Reference
 
-### Characters Router
+### Characters Router (`trpc.characters.*`)
+
+#### Queries
 
 ```typescript
-// Get user's characters
-trpc.characters.getAll.useQuery();
+// Get all characters owned by current user
+const { data: characters } = trpc.characters.getMyCharacters.useQuery();
+// Returns: characters with their campaign associations
 
-// Get single character
-trpc.characters.getById.useQuery({ id: characterId });
+// Get single character by ID (owner only)
+const { data: character } = trpc.characters.getById.useQuery({ id: characterId });
 
-// Create character
-trpc.characters.create.useMutation();
-
-// Update character
-trpc.characters.update.useMutation();
-
-// Delete character
-trpc.characters.delete.useMutation();
-
-// Sync from D&D Beyond
-trpc.characters.syncDndBeyond.useMutation();
+// Get characters in a campaign (for party view)
+const { data: partyMembers } = trpc.characters.getCampaignCharacters.useQuery({
+  campaignId,
+});
+// Returns: active/pending characters with user info
+// DM notes hidden from non-DMs
+// Pending characters hidden from other players
 ```
 
-### Campaign Characters
+#### Mutations
 
 ```typescript
-// Add character to campaign
-trpc.characters.joinCampaign.useMutation({
+// Create a new character
+const character = await trpc.characters.create.mutateAsync({
+  name: 'Gandalf the Grey',
+  race: 'Human',
+  class: 'Wizard',
+  level: 5,
+  background: 'Sage',
+  isPortable: true,
+  abilityScores: { str: 10, dex: 14, con: 12, int: 18, wis: 16, cha: 14 },
+  hitPoints: { current: 28, max: 28, temp: 0 },
+  armorClass: 12,
+  speed: 30,
+  backstory: 'A wandering wizard...',
+  personalityTraits: 'Curious about everything',
+  ideals: 'Knowledge is power',
+  bonds: 'Protecting the free peoples',
+  flaws: 'Sometimes too cryptic',
+});
+
+// Update character (owner only)
+await trpc.characters.update.mutateAsync({
+  id: characterId,
+  level: 6,
+  hitPoints: { current: 35, max: 35, temp: 0 },
+  // ... any other fields
+});
+
+// Delete character (owner only)
+await trpc.characters.delete.mutateAsync({ id: characterId });
+```
+
+### Campaign Character Management
+
+```typescript
+// Add character to a campaign (submits for DM approval)
+await trpc.characters.addToCampaign.mutateAsync({
   characterId,
   campaignId,
 });
+// Creates CampaignCharacter with status: PENDING
 
-// Leave campaign
-trpc.characters.leaveCampaign.useMutation({
-  characterId,
+// Approve character (DM only)
+await trpc.characters.approveCharacter.mutateAsync({
   campaignId,
+  campaignCharacterId,
+});
+// Changes status: PENDING -> ACTIVE
+
+// Update character status in campaign (DM only)
+await trpc.characters.updateCampaignStatus.mutateAsync({
+  campaignId,
+  campaignCharacterId,
+  status: 'RETIRED', // or ACTIVE, DECEASED, REMOVED
+  dmNotes: 'Retired after the Tomb of Horrors',
 });
 
-// Get characters in campaign
-trpc.campaigns.characters.list.useQuery({ campaignId });
+// Remove character from campaign (DM or character owner)
+await trpc.characters.removeFromCampaign.mutateAsync({
+  campaignCharacterId,
+});
 
-// Update character status in campaign
-trpc.campaigns.characters.updateStatus.useMutation({
+// Update DM notes (DM only)
+await trpc.characters.updateDMNotes.mutateAsync({
   campaignId,
-  characterId,
-  status: 'retired',
+  campaignCharacterId,
+  dmNotes: 'Secret: This character has been replaced by a doppelganger',
 });
 ```
 
-## D&D Beyond Sync
+## Character Data Structures
 
-### Initial Import
+### Ability Scores
 
 ```typescript
-await trpc.characters.importFromDndBeyond.mutate({
-  dndBeyondUrl: 'https://www.dndbeyond.com/characters/12345678',
-});
+interface AbilityScores {
+  str: number;  // 1-30
+  dex: number;
+  con: number;
+  int: number;
+  wis: number;
+  cha: number;
+}
 ```
 
-### Sync Existing Character
+### Hit Points
 
 ```typescript
-await trpc.characters.syncDndBeyond.mutate({
-  characterId,
-});
-
-// Returns updated character data
+interface HitPoints {
+  current: number;
+  max: number;
+  temp: number;
+}
 ```
 
-### What Syncs
+### Currency
 
-| Data | Synced | Notes |
-|------|--------|-------|
-| Name, Race, Class | ✅ | Core identity |
-| Level, Background | ✅ | |
-| Ability Scores | ✅ | |
-| HP, AC, Speed | ✅ | |
-| Features | ✅ | Class, race, feats |
-| Spells | ✅ | Known/prepared |
-| Equipment | ✅ | With quantities |
-| Portrait | ✅ | Avatar image |
-| Notes | ❌ | D&D Beyond notes stay separate |
-
-## Components
-
-### CharacterSheet
-
-Full character sheet component:
-
-```tsx
-<CharacterSheet
-  character={character}
-  editable={isOwner}
-  onUpdate={handleUpdate}
-/>
+```typescript
+interface Currency {
+  cp: number;  // Copper pieces
+  sp: number;  // Silver pieces
+  ep: number;  // Electrum pieces
+  gp: number;  // Gold pieces
+  pp: number;  // Platinum pieces
+}
 ```
 
-### CharacterCard
+### Features (JSON structure)
 
-Compact character display:
+```typescript
+interface Features {
+  racial?: Feature[];
+  class?: Feature[];
+  subclass?: Feature[];
+  feats?: Feature[];
+  background?: Feature;
+}
 
-```tsx
-<CharacterCard
-  character={character}
-  campaign={campaign}
-  status={campaignCharacter.status}
-  onSelect={() => openSheet(character.id)}
-/>
+interface Feature {
+  name: string;
+  source: string;        // "Fighter 2", "Human", "Sentinel"
+  description: string;
+  usesPerRest?: 'short' | 'long';
+  maxUses?: number;
+  currentUses?: number;
+}
 ```
 
-### StatBlock
+### Proficiencies (JSON structure)
 
-Ability scores display:
-
-```tsx
-<StatBlock
-  stats={character.stats}
-  editable={isOwner}
-  onChange={handleStatsChange}
-/>
+```typescript
+interface Proficiencies {
+  savingThrows: string[];  // ["strength", "constitution"]
+  skills: string[];        // ["athletics", "perception"]
+  languages: string[];
+  tools: string[];
+  weapons: string[];
+  armor: string[];
+}
 ```
 
-### SpellList
+### Spellcasting (JSON structure)
 
-Spellbook management:
+```typescript
+interface Spellcasting {
+  ability: string;           // "intelligence"
+  spellSaveDC: number;
+  spellAttackBonus: number;
+  spellSlots: {
+    [level: string]: {
+      max: number;
+      remaining: number;
+    };
+  };
+  cantripsKnown: Spell[];
+  spellsKnown: Spell[];
+  preparedSpells: string[];  // IDs of prepared spells
+}
 
-```tsx
-<SpellList
-  spellbook={character.spellbook}
-  onPrepare={handlePrepare}
-  onCast={handleCast}
-/>
-```
-
-### InventoryManager
-
-Equipment management:
-
-```tsx
-<InventoryManager
-  inventory={character.inventory}
-  onEquip={handleEquip}
-  onAdd={handleAddItem}
-/>
+interface Spell {
+  id: string;
+  name: string;
+  level: number;
+  school: string;
+  ritual: boolean;
+  concentration: boolean;
+  alwaysPrepared: boolean;
+}
 ```
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `src/server/routers/characters.ts` | Character CRUD + D&D Beyond |
-| `src/lib/dndbeyond-sync.ts` | D&D Beyond API integration |
-| `src/app/characters/page.tsx` | Character list |
-| `src/app/characters/[id]/page.tsx` | Character sheet |
-| `src/app/characters/new/page.tsx` | Character creation |
-| `src/components/character/` | UI components |
+| `prisma/schema.prisma` | Character and CampaignCharacter models |
+| `src/server/routers/characters.ts` | Full character management API |
+| `src/server/routers/campaigns.ts` | Campaign integration (includes characters) |
 
-## Mobile Optimization
+## Usage Flow
 
-Character sheets are the primary mobile view. Key optimizations:
-
-- **Tabbed Interface**: Stats | Features | Spells | Inventory | Notes
-- **Quick Actions**: HP adjust, spell slot tracking, dice rolls
-- **Swipe Navigation**: Between tabs
-- **Offline Support**: Cache character data for table use
-- **Large Touch Targets**: Easy to use during combat
-
-```tsx
-// Mobile character sheet structure
-<MobileCharacterSheet>
-  <CharacterHeader name={name} class={class} level={level} />
-
-  <Tabs defaultValue="stats">
-    <TabsList>
-      <Tab value="stats">Stats</Tab>
-      <Tab value="features">Features</Tab>
-      <Tab value="spells">Spells</Tab>
-      <Tab value="inventory">Items</Tab>
-    </TabsList>
-
-    <TabContent value="stats">
-      <QuickHP current={hp} max={maxHp} onChange={updateHP} />
-      <StatBlock stats={stats} />
-      <SavingThrows stats={stats} proficiencies={saves} />
-      <Skills stats={stats} proficiencies={skills} />
-    </TabContent>
-
-    {/* Other tabs... */}
-  </Tabs>
-
-  <FloatingDiceButton onRoll={handleRoll} />
-</MobileCharacterSheet>
-```
-
-## Migration from Player Model
-
-Existing `Player` records (DM-managed character data) migrate to `Character`:
-
-1. Create `Character` with `userId: null` (DM-controlled)
-2. Copy all character data fields
-3. Create `CampaignCharacter` link
-4. Players can later "claim" their character via invite
+### Player Creates Character
 
 ```typescript
-// Migration script
-const players = await prisma.player.findMany({
-  include: { campaign: true },
+// 1. Create character
+const character = await trpc.characters.create.mutateAsync({
+  name: 'Thorin Ironforge',
+  race: 'Dwarf',
+  class: 'Fighter',
+  level: 1,
 });
 
-for (const player of players) {
-  const character = await prisma.character.create({
-    data: {
-      userId: null,  // Unclaimed
-      name: player.characterName || player.name,
-      race: player.characterRace,
-      class: player.characterClass,
-      level: player.level || 1,
-      stats: player.characterData,
-      dndBeyondUrl: player.dndBeyondUrl,
-    },
-  });
+// 2. Join a campaign (after receiving invite)
+await trpc.members.acceptInvite.mutateAsync({ code: 'ABC123' });
 
-  await prisma.campaignCharacter.create({
-    data: {
-      campaignId: player.campaignId,
-      characterId: character.id,
-      isActive: true,
-    },
-  });
-}
+// 3. Add character to campaign
+await trpc.characters.addToCampaign.mutateAsync({
+  characterId: character.id,
+  campaignId,
+});
+// Character is now PENDING approval
 ```
 
-## Character Claiming
-
-When a player joins a campaign, they can claim an existing unclaimed character:
+### DM Manages Characters
 
 ```typescript
-// DM assigns character to player
-await trpc.campaigns.characters.assignToPlayer.mutate({
+// View party including pending characters
+const { data: party } = trpc.characters.getCampaignCharacters.useQuery({
   campaignId,
-  characterId,
-  userId: playerUserId,
 });
 
-// Or player claims by matching D&D Beyond URL
-await trpc.characters.claimByDndBeyond.mutate({
+// Approve a pending character
+await trpc.characters.approveCharacter.mutateAsync({
   campaignId,
+  campaignCharacterId: pendingCharacter.id,
+});
+
+// Add private DM notes
+await trpc.characters.updateDMNotes.mutateAsync({
+  campaignId,
+  campaignCharacterId,
+  dmNotes: 'This player tends to be a murder hobo',
+});
+
+// Mark character as deceased
+await trpc.characters.updateCampaignStatus.mutateAsync({
+  campaignId,
+  campaignCharacterId,
+  status: 'DECEASED',
+  dmNotes: 'Died fighting the dragon in session 15',
+});
+```
+
+### Portable vs Locked Characters
+
+```typescript
+// Portable character (default) - can join multiple campaigns
+const portableChar = await trpc.characters.create.mutateAsync({
+  name: 'The Wanderer',
+  isPortable: true,  // Can be in Campaign A and Campaign B
+});
+
+// Campaign-locked character
+const lockedChar = await trpc.characters.create.mutateAsync({
+  name: 'Sir Lancelot',
+  isPortable: false,  // Can only be in one active campaign
+});
+```
+
+## Party View Filtering
+
+The `getCampaignCharacters` endpoint filters based on user role:
+
+| User | Sees Active | Sees Pending | Sees DM Notes |
+|------|-------------|--------------|---------------|
+| OWNER | ✅ | ✅ | ✅ |
+| CO_DM | ✅ | ✅ | ✅ |
+| PLAYER (own char) | ✅ | ✅ (own only) | ❌ |
+| PLAYER (other) | ✅ | ❌ | ❌ |
+| SPECTATOR | ✅ | ❌ | ❌ |
+
+## Character Statuses
+
+| Status | Description | Who Can Set |
+|--------|-------------|-------------|
+| PENDING | Awaiting DM approval | Auto on join |
+| ACTIVE | Currently playing | DM |
+| RETIRED | Voluntarily retired | DM |
+| DECEASED | Character died | DM |
+| REMOVED | Removed by DM | DM |
+
+## Future: D&D Beyond Integration
+
+The schema supports D&D Beyond sync:
+
+```typescript
+// Fields ready for sync
+character.dndBeyondId    // D&D Beyond character ID
+character.dndBeyondUrl   // Public URL for reference
+character.lastSyncedAt   // Last sync timestamp
+character.rawData        // Full imported data preservation
+
+// Future API (not yet implemented)
+await trpc.characters.importFromDndBeyond.mutateAsync({
   dndBeyondUrl: 'https://www.dndbeyond.com/characters/12345678',
 });
+
+await trpc.characters.syncDndBeyond.mutateAsync({
+  characterId,
+});
 ```
+
+## Frontend Components (Planned)
+
+| Component | Purpose | Status |
+|-----------|---------|--------|
+| CharacterList | My characters page | ❌ Planned |
+| CharacterSheet | Full character view/edit | ❌ Planned |
+| CharacterCard | Compact party member card | ❌ Planned |
+| CharacterCreationForm | New character wizard | ❌ Planned |
+| PartyView | Campaign party display | ❌ Planned |
+| StatBlock | Ability scores display | ❌ Planned |
+| SpellList | Spellbook management | ❌ Planned |
+| InventoryManager | Equipment management | ❌ Planned |

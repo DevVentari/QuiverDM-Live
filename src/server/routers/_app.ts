@@ -13,6 +13,8 @@ import { homebrewPdfRouter } from './homebrew-pdf'; // PDF to Markdown conversio
 import { homebrewExtractionRouter } from './homebrew-extraction'; // Ollama-based extraction
 // import { doclingRouter } from './docling'; // REMOVED - PDF parsing functionality removed
 import { userSettingsRouter } from './user-settings';
+import { membersRouter } from './members'; // Campaign membership management
+import { charactersRouter } from './characters'; // Player-owned characters
 
 export const appRouter = router({
   // whisper: whisperRouter, // Disabled - using WhisperX instead
@@ -20,6 +22,7 @@ export const appRouter = router({
   sessions: sessionsRouter,
   npcs: npcsRouter,
   players: playersRouter,
+  characters: charactersRouter, // Player-owned character management
   sessionTranscription: sessionTranscriptionRouter,
   sessionRecordings: sessionRecordingsRouter,
   transcript: transcriptRouter,
@@ -29,6 +32,7 @@ export const appRouter = router({
   homebrewExtraction: homebrewExtractionRouter, // Ollama-based extraction
   // docling: doclingRouter, // REMOVED - PDF parsing functionality removed
   userSettings: userSettingsRouter,
+  members: membersRouter, // Campaign membership management
 });
 
 export type AppRouter = typeof appRouter;

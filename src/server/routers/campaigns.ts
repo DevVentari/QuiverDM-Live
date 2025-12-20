@@ -1,45 +1,67 @@
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, campaignMemberProcedure, campaignDMProcedure, campaignOwnerProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { CampaignRole } from '@prisma/client';
 import { generateUniqueSlug } from '@/lib/slugify';
-import { verifyCampaignOwnership } from '../lib/ownership';
+import { verifyCampaignOwnership, verifyCampaignMembership } from '../lib/ownership';
 
 export const campaignsRouter = router({
   /**
-   * Get all campaigns for authenticated user
+   * Get all campaigns where user is a member (any role)
    */
   getAll: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
 
     const campaigns = await prisma.campaign.findMany({
-      where: { userId },
+      where: {
+        OR: [
+          { userId }, // Legacy owner check
+          { members: { some: { userId } } }, // Member check
+        ],
+      },
       orderBy: {
         updatedAt: 'desc',
       },
       include: {
+        members: {
+          where: { userId },
+          select: {
+            role: true,
+            canViewNPCSecrets: true,
+            canEditNPCs: true,
+            canManageSessions: true,
+            canInviteMembers: true,
+          },
+        },
         _count: {
           select: {
             gameSessions: true,
             npcs: true,
             players: true,
+            members: true,
           },
         },
       },
     });
 
-    return campaigns;
+    // Flatten membership info for easier access
+    return campaigns.map(campaign => ({
+      ...campaign,
+      myRole: campaign.members[0]?.role || (campaign.userId === userId ? CampaignRole.OWNER : null),
+      myPermissions: campaign.members[0] || null,
+    }));
   }),
 
   /**
-   * Get single campaign by ID (with ownership verification)
+   * Get single campaign by ID (with membership verification)
    */
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
 
-      // Verify ownership
-      await verifyCampaignOwnership(input.id, userId);
+      // Verify membership (replaces ownership check)
+      const membership = await verifyCampaignMembership(input.id, userId);
 
       const campaign = await prisma.campaign.findUnique({
         where: { id: input.id },
@@ -52,35 +74,92 @@ export const campaignsRouter = router({
           },
           npcs: {
             take: 10,
+            // Hide secrets from non-DMs
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              faction: true,
+              role: true,
+              imageUrl: true,
+              tags: true,
+              // Only include secrets if DM
+              secrets: membership.isOwner || membership.isCoOwner || membership.member?.canViewNPCSecrets,
+            },
           },
           players: true,
+          characters: {
+            where: {
+              status: 'ACTIVE',
+            },
+            include: {
+              character: {
+                select: {
+                  id: true,
+                  name: true,
+                  race: true,
+                  class: true,
+                  level: true,
+                  portraitUrl: true,
+                },
+              },
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  displayName: true,
+                  image: true,
+                },
+              },
+            },
+          },
           _count: {
             select: {
               gameSessions: true,
               npcs: true,
               players: true,
               homebrewContent: true,
+              members: true,
+              characters: true,
             },
           },
         },
       });
 
-      return campaign;
+      return {
+        ...campaign,
+        myRole: membership.member?.role || (membership.isOwner ? CampaignRole.OWNER : null),
+        myPermissions: membership.member,
+      };
     }),
 
   /**
-   * Get single campaign by slug (with ownership verification)
+   * Get single campaign by slug (with membership verification)
    */
   getBySlug: protectedProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
 
-      const campaign = await prisma.campaign.findFirst({
-        where: {
-          slug: input.slug,
-          userId, // Only return if owned by user
-        },
+      // First find the campaign by slug
+      const campaignBasic = await prisma.campaign.findFirst({
+        where: { slug: input.slug },
+        select: { id: true },
+      });
+
+      if (!campaignBasic) {
+        return null;
+      }
+
+      // Verify membership
+      const membership = await verifyCampaignMembership(campaignBasic.id, userId);
+
+      const campaign = await prisma.campaign.findUnique({
+        where: { id: campaignBasic.id },
         include: {
           gameSessions: {
             orderBy: {
@@ -90,24 +169,70 @@ export const campaignsRouter = router({
           },
           npcs: {
             take: 10,
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              faction: true,
+              role: true,
+              imageUrl: true,
+              tags: true,
+              secrets: membership.isOwner || membership.isCoOwner || membership.member?.canViewNPCSecrets,
+            },
           },
           players: true,
+          characters: {
+            where: {
+              status: 'ACTIVE',
+            },
+            include: {
+              character: {
+                select: {
+                  id: true,
+                  name: true,
+                  race: true,
+                  class: true,
+                  level: true,
+                  portraitUrl: true,
+                },
+              },
+            },
+          },
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  displayName: true,
+                  image: true,
+                },
+              },
+            },
+          },
           _count: {
             select: {
               gameSessions: true,
               npcs: true,
               players: true,
               homebrewContent: true,
+              members: true,
+              characters: true,
             },
           },
         },
       });
 
-      return campaign;
+      return {
+        ...campaign,
+        myRole: membership.member?.role || (membership.isOwner ? CampaignRole.OWNER : null),
+        myPermissions: membership.member,
+      };
     }),
 
   /**
    * Create new campaign for authenticated user
+   * Also creates the OWNER membership for the user
    */
   create: protectedProcedure
     .input(
@@ -126,15 +251,33 @@ export const campaignsRouter = router({
         return !!existing;
       });
 
-      const campaign = await prisma.campaign.create({
-        data: {
-          name: input.name,
-          slug,
-          description: input.description,
-          bannerUrl: input.bannerUrl,
-          userId,
-          status: 'active',
-        },
+      // Create campaign and owner membership in a transaction
+      const campaign = await prisma.$transaction(async (tx) => {
+        const newCampaign = await tx.campaign.create({
+          data: {
+            name: input.name,
+            slug,
+            description: input.description,
+            bannerUrl: input.bannerUrl,
+            userId,
+            status: 'active',
+          },
+        });
+
+        // Create OWNER membership for the creator
+        await tx.campaignMember.create({
+          data: {
+            campaignId: newCampaign.id,
+            userId,
+            role: CampaignRole.OWNER,
+            canViewNPCSecrets: true,
+            canEditNPCs: true,
+            canManageSessions: true,
+            canInviteMembers: true,
+          },
+        });
+
+        return newCampaign;
       });
 
       return campaign;

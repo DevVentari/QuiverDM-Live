@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { uploadFile, getStorageInfo } from '@/lib/storage';
+import { storage, getStorageMode } from '@/lib/storage';
 import { prisma } from '@/server/db';
 import { addPDFProcessingJob } from '@/lib/queue';
 import * as fs from 'fs/promises';
@@ -78,15 +78,11 @@ export async function POST(request: NextRequest) {
     const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const r2Key = `homebrew-pdfs/${userId}/${timestamp}-${sanitizedFilename}`;
 
-    const storageInfo = getStorageInfo();
-    console.log(`[Upload PDF] Uploading ${file.name} to ${storageInfo.type}...`);
+    const storageType = getStorageMode();
+    console.log(`[Upload PDF] Uploading ${file.name} to ${storageType}...`);
 
     // Upload to storage (R2 or local)
-    const storageUrl = await uploadFile({
-      key: r2Key,
-      body: buffer,
-      contentType: file.type,
-    });
+    const storageUrl = await storage.upload(r2Key, buffer, file.type);
 
     console.log(`[Upload PDF] Upload complete: ${storageUrl}`);
 

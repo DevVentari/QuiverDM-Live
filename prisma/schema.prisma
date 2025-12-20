@@ -48,12 +48,21 @@ model User {
   email           String?           @unique
   emailVerified   DateTime?
   image           String?
+
+  // Profile fields for collaboration
+  displayName     String?           // Public display name
+  bio             String?           @db.Text // Creator/player bio
+
+  // Relations
   accounts        Account[]
   sessions        Session[]
-  campaigns       Campaign[]
+  campaigns       Campaign[]        // Campaigns user owns (legacy, kept for migration)
+  campaignMemberships CampaignMember[] // Campaigns user is a member of
+  characters      Character[]       // Player-owned characters
   homebrewContent HomebrewContent[]
   homebrewPDFs    HomebrewPDF[]
   settings        UserSettings?
+
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 }
@@ -96,7 +105,28 @@ model InviteCode {
   @@index([usedBy])
 }
 
+// ============================================================================
+// Multi-User Collaboration Enums
+// ============================================================================
+
+enum CampaignRole {
+  OWNER     // Full control, can delete campaign
+  CO_DM     // Almost full control, cannot delete or transfer
+  PLAYER    // Manage own character, view shared content
+  SPECTATOR // Read-only access to shared content
+}
+
+enum ContentVisibility {
+  PRIVATE   // Only creator can see
+  CAMPAIGN  // Visible to campaign members
+  PUBLIC    // Visible to all users
+  UNLISTED  // Anyone with link can view
+}
+
+// ============================================================================
 // QuiverDM Core Models
+// ============================================================================
+
 model Campaign {
   id               String                      @id @default(cuid())
   name             String
@@ -104,20 +134,192 @@ model Campaign {
   description      String?                     @db.Text
   bannerUrl        String?
   status           String                      @default("active") // active, paused, completed
+
+  // Legacy owner field (kept for backward compatibility during migration)
   userId           String
   user             User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Multi-user collaboration
+  members          CampaignMember[]            // All campaign members with roles
+  invites          CampaignInvite[]            // Pending invites
+  inviteCode       String?                     @unique // Quick join code
+  isPublic         Boolean                     @default(false) // Discoverable in search
+
+  // Campaign settings (JSON for flexibility)
+  settings         Json?                       // { allowPlayerNotes, shareRecaps, etc. }
+
+  // Content relations
   gameSessions     GameSession[]
   npcs             NPC[]
-  glossary         Json? // Campaign-specific glossary for transcription
-  homebrewContent  CampaignHomebrewContent[] // Many-to-many with homebrew
-  homebrewPDFs     HomebrewPDF[] // Campaign-specific PDFs
-  players          Player[]
+  glossary         Json?                       // Campaign-specific glossary for transcription
+  homebrewContent  CampaignHomebrewContent[]   // Many-to-many with homebrew
+  homebrewPDFs     HomebrewPDF[]               // Campaign-specific PDFs
+  players          Player[]                    // Legacy player records (will migrate to Character)
+  characters       CampaignCharacter[]         // Characters in this campaign
+
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
 
   @@index([userId])
   @@index([status])
   @@index([slug])
+  @@index([inviteCode])
+  @@index([isPublic])
+}
+
+// Campaign membership - who belongs to a campaign and their role
+model CampaignMember {
+  id          String       @id @default(cuid())
+  campaignId  String
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        CampaignRole @default(PLAYER)
+  joinedAt    DateTime     @default(now())
+  invitedBy   String?      // userId who invited them
+
+  // Granular permission overrides (beyond role defaults)
+  canViewNPCSecrets    Boolean @default(false)
+  canEditNPCs          Boolean @default(false)
+  canManageSessions    Boolean @default(false)
+  canInviteMembers     Boolean @default(false)
+
+  @@unique([campaignId, userId])
+  @@index([campaignId])
+  @@index([userId])
+  @@index([role])
+}
+
+// Campaign invites - pending invitations
+model CampaignInvite {
+  id          String       @id @default(cuid())
+  campaignId  String
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  // Invite can be via code OR direct email
+  code        String?      @unique // Random code for link sharing
+  email       String?               // Direct email invitation
+
+  role        CampaignRole @default(PLAYER) // Role they'll receive on join
+  createdBy   String                // userId who created the invite
+  message     String?      @db.Text // Optional invite message
+
+  expiresAt   DateTime?            // Optional expiration
+  usedAt      DateTime?            // When invite was accepted
+  usedBy      String?              // userId who accepted
+
+  createdAt   DateTime     @default(now())
+
+  @@index([campaignId])
+  @@index([code])
+  @@index([email])
+}
+
+// ============================================================================
+// Character System (Player-owned characters)
+// ============================================================================
+
+// Character status in a campaign
+enum CharacterStatus {
+  PENDING   // Awaiting DM approval
+  ACTIVE    // Currently playing
+  RETIRED   // Voluntarily retired
+  DECEASED  // Character died
+  REMOVED   // Removed by DM
+}
+
+model Character {
+  id              String    @id @default(cuid())
+
+  // Ownership - Characters are owned by users (players)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Portability - Can this character be used in multiple campaigns?
+  isPortable      Boolean   @default(true)
+
+  // Core identity
+  name            String
+  race            String?
+  class           String?
+  subclass        String?
+  level           Int       @default(1)
+  background      String?
+
+  // Visuals
+  portraitUrl     String?
+
+  // Core stats (structured for easy access)
+  abilityScores   Json?     // { str: 10, dex: 14, con: 12, int: 8, wis: 15, cha: 13 }
+  hitPoints       Json?     // { current: 25, max: 30, temp: 0 }
+  armorClass      Int?
+  speed           Int?      @default(30)
+  proficiencyBonus Int?     @default(2)
+
+  // Character details
+  features        Json?     // Class/race features, abilities
+  proficiencies   Json?     // Skills, tools, weapons, armor, saves
+  inventory       Json?     // Equipment and items
+  spellcasting    Json?     // Spellcasting info, prepared spells, slots
+  currency        Json?     // { cp: 0, sp: 0, ep: 0, gp: 100, pp: 0 }
+
+  // Backstory and notes
+  backstory       String?   @db.Text
+  personalityTraits String? @db.Text
+  ideals          String?   @db.Text
+  bonds           String?   @db.Text
+  flaws           String?   @db.Text
+  notes           String?   @db.Text  // Player's private notes
+
+  // D&D Beyond sync
+  dndBeyondId     String?   @unique
+  dndBeyondUrl    String?
+  lastSyncedAt    DateTime?
+
+  // Full raw data (for complete D&D Beyond import preservation)
+  rawData         Json?     // Complete character data from import
+
+  // Campaign associations
+  campaignCharacters  CampaignCharacter[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([name])
+  @@index([dndBeyondId])
+}
+
+// Join table: Character in a Campaign
+// This allows the same character to be in multiple campaigns (if portable)
+// and tracks campaign-specific data like status and DM notes
+model CampaignCharacter {
+  id           String          @id @default(cuid())
+
+  campaignId   String
+  campaign     Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  characterId  String
+  character    Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  // Status in this campaign
+  status       CharacterStatus @default(PENDING)
+  isActive     Boolean         @default(true)  // Currently selected character for player
+
+  // DM-only notes (not visible to player)
+  dmNotes      String?         @db.Text
+
+  // Campaign-specific overrides (optional)
+  // E.g., if character has different level or items in this campaign
+  campaignData Json?
+
+  joinedAt     DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([campaignId, characterId])
+  @@index([campaignId])
+  @@index([characterId])
+  @@index([status])
 }
 
 model GameSession {

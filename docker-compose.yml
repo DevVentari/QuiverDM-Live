@@ -54,11 +54,11 @@ services:
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "ollama list || exit 0"]
+      interval: 60s
+      timeout: 30s
       retries: 3
-      start_period: 20s
+      start_period: 60s
     deploy:
       resources:
         limits:
@@ -90,8 +90,10 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - N8N_HOST=http://n8n:5678
+      - N8N_API_URL=http://n8n:5678
       - N8N_API_KEY=${N8N_API_KEY}
+      - MCP_MODE=http
+      - AUTH_TOKEN=n8n-mcp-secret-token
     depends_on:
       - n8n
 
