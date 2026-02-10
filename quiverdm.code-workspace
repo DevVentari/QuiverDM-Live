@@ -1,0 +1,31 @@
+{
+  "folders": [
+    {
+      "name": "QuiverDM (main)",
+      "path": "."
+    },
+    {
+      "name": "Marketing Site",
+      "path": ".worktrees/marketing-site"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      ".worktrees": false
+    },
+    "search.exclude": {
+      "**/.git": true,
+      "**/node_modules": true,
+      "**/.next": true,
+      "**/dist": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bradlc.vscode-tailwindcss",
+      "prisma.prisma"
+    ]
+  }
+}
