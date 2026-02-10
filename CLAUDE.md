@@ -162,6 +162,9 @@ Multi-provider system in `src/lib/ai/` — Ollama (default/local), Gemini, OpenA
 
 ### PDF Processing
 Upload triggers BullMQ job → Worker runs Marker → Markdown saved to database.
+- **Primary**: Marker (GPL-3.0, server-side safe for SaaS)
+- **Fallback**: pdfplumber (MIT) if Marker crashes
+- **Zero AGPLv3 dependencies** - commercial launch ready
 
 ### Transcription
 Upload audio/video → WhisperX with speaker diarization → Transcript saved.
