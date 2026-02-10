@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadToLocal, generateLocalFileKey } from '@/lib/local-storage';
+import { uploadToLocal, generateLocalFileKey } from '@/lib/storage/local-storage';
 
 // Check if R2 is configured
 const isR2Configured =

@@ -1,0 +1,199 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream-bg text-text-primary;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold;
+  }
+
+  /* Radix UI color overrides - black and white wireframe */
+  :root {
+    /* Violet (Radix accent color) -> white */
+    --violet-1:  #1a1a1a;
+    --violet-2:  #222222;
+    --violet-3:  #333333;
+    --violet-4:  #444444;
+    --violet-5:  #555555;
+    --violet-6:  #666666;
+    --violet-7:  #888888;
+    --violet-8:  #aaaaaa;
+    --violet-9:  #ffffff;
+    --violet-10: #cccccc;
+    --violet-11: #ffffff;
+    --violet-12: #000000;
+
+    /* Red -> white (no color) */
+    --red-1:  #1a1a1a;
+    --red-2:  #222222;
+    --red-3:  #333333;
+    --red-4:  #444444;
+    --red-5:  #555555;
+    --red-6:  #666666;
+    --red-7:  #888888;
+    --red-8:  #aaaaaa;
+    --red-9:  #ffffff;
+    --red-10: #cccccc;
+    --red-11: #ffffff;
+    --red-12: #000000;
+
+    /* Green -> white (no color) */
+    --green-1:  #1a1a1a;
+    --green-2:  #222222;
+    --green-3:  #333333;
+    --green-4:  #444444;
+    --green-5:  #555555;
+    --green-6:  #666666;
+    --green-7:  #888888;
+    --green-8:  #aaaaaa;
+    --green-9:  #ffffff;
+    --green-10: #cccccc;
+    --green-11: #ffffff;
+    --green-12: #000000;
+
+    /* Blue -> white (no color) */
+    --blue-1:  #1a1a1a;
+    --blue-2:  #222222;
+    --blue-3:  #333333;
+    --blue-4:  #444444;
+    --blue-5:  #555555;
+    --blue-6:  #666666;
+    --blue-7:  #888888;
+    --blue-8:  #aaaaaa;
+    --blue-9:  #ffffff;
+    --blue-10: #cccccc;
+    --blue-11: #ffffff;
+    --blue-12: #000000;
+
+    /* Gray scale */
+    --gray-1:  #000000;
+    --gray-2:  #111111;
+    --gray-3:  #1a1a1a;
+    --gray-4:  #222222;
+    --gray-5:  #333333;
+    --gray-6:  #444444;
+    --gray-7:  #666666;
+    --gray-8:  #888888;
+    --gray-9:  #aaaaaa;
+    --gray-10: #cccccc;
+    --gray-11: #eeeeee;
+    --gray-12: #ffffff;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-cream-bg;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-cream-border rounded-lg;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-secondary;
+  }
+}
+
+/* Loading animations */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(
+    to right,
+    #111111 0%,
+    #222222 20%,
+    #111111 40%,
+    #111111 100%
+  );
+  background-size: 1000px 100%;
+}
+
+/* 3D dice styles used on the dice test page */
+.dice-3d-wrapper {
+  perspective: 800px;
+  width: 96px;
+  height: 96px;
+}
+
+.dice-3d {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+}
+
+.dice-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #444444;
+  background: #1a1a1a;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-face-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.dice-face-front {
+  transform: translateZ(48px);
+}
+
+.dice-face-back {
+  transform: rotateY(180deg) translateZ(48px);
+}
+
+.dice-face-right {
+  transform: rotateY(90deg) translateZ(48px);
+}
+
+.dice-face-left {
+  transform: rotateY(-90deg) translateZ(48px);
+}
+
+.dice-face-top {
+  transform: rotateX(90deg) translateZ(48px);
+}
+
+.dice-face-bottom {
+  transform: rotateX(-90deg) translateZ(48px);
+}
+
+.dice-throw-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.dice-throw-path {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  filter: drop-shadow(0 25px 40px rgba(0, 0, 0, 0.9));
+}

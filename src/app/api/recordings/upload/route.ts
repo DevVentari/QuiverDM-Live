@@ -3,7 +3,7 @@ import {
   uploadToLocal,
   generateLocalFileKey,
   getLocalUrl,
-} from '@/lib/local-storage';
+} from '@/lib/storage/local-storage';
 import { auth } from '@/lib/auth';
 
 export const runtime = 'nodejs';

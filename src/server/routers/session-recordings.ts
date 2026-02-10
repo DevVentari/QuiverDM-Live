@@ -2,9 +2,9 @@ import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { TRPCError } from '@trpc/server';
-import { deleteFromLocal, extractKeyFromLocalUrl } from '@/lib/local-storage';
-import { deleteFromR2, extractKeyFromUrl } from '@/lib/r2-storage';
-import { verifyRecordingOwnership, verifySessionOwnership } from '../lib/ownership';
+import { deleteFromLocal, extractKeyFromLocalUrl } from '@/lib/storage/local-storage';
+import { deleteFromR2, extractKeyFromUrl } from '@/lib/storage/r2';
+import { authz } from '../services/authorization.service';
 
 export const sessionRecordingsRouter = router({
   /**
@@ -22,7 +22,7 @@ export const sessionRecordingsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifySessionOwnership(input.sessionId, userId);
+      await authz.session(input.sessionId, userId).verify();
       const recording = await prisma.sessionRecording.create({
         data: {
           sessionId: input.sessionId,
@@ -48,7 +48,7 @@ export const sessionRecordingsRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifySessionOwnership(input.sessionId, userId);
+      await authz.session(input.sessionId, userId).verify();
       return await prisma.sessionRecording.findMany({
         where: {
           sessionId: input.sessionId,
@@ -77,7 +77,7 @@ export const sessionRecordingsRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyRecordingOwnership(input.id, userId);
+      await authz.recording(input.id, userId);
       const recording = await prisma.sessionRecording.findUnique({
         where: {
           id: input.id,
@@ -113,7 +113,7 @@ export const sessionRecordingsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyRecordingOwnership(input.id, userId);
+      await authz.recording(input.id, userId);
       const { id, ...data } = input;
 
       return await prisma.sessionRecording.update({
@@ -134,7 +134,7 @@ export const sessionRecordingsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyRecordingOwnership(input.id, userId);
+      await authz.recording(input.id, userId);
       const recording = await prisma.sessionRecording.findUnique({
         where: { id: input.id },
       });
@@ -198,7 +198,7 @@ export const sessionRecordingsRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifySessionOwnership(input.sessionId, userId);
+      await authz.session(input.sessionId, userId).verify();
       const recordings = await prisma.sessionRecording.findMany({
         where: {
           sessionId: input.sessionId,

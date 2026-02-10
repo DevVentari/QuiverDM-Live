@@ -1,0 +1,214 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Set Up Multi-User Infrastructure",
+        "description": "Implement multi-user model with campaign membership and roles.",
+        "details": "1. Update `prisma/schema.prisma` to include `CampaignMember` and `CampaignInvite` models.\n2. Implement role-based verification in `src/server/lib/ownership.ts`.\n3. Add `campaignMemberProcedure` middleware in `src/server/trpc.ts`.\n4. Create members sub-router in `src/server/routers/campaigns.ts`.\n5. Extend session with role info in `src/lib/auth.ts`.",
+        "testStrategy": "Verify user roles and permissions through unit tests and integration tests for campaign membership.",
+        "priority": "medium",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2025-12-21T12:00:49.024Z"
+      },
+      {
+        "id": "2",
+        "title": "Implement Global Search",
+        "description": "Develop a global search feature across all content types.",
+        "details": "1. Extend MeiliSearch integration to index sessions, NPCs, homebrew, transcripts, etc.\n2. Create a unified search endpoint in `src/server/routers/search.ts`.\n3. Implement search command palette in `src/components/GlobalSearch.tsx`.",
+        "testStrategy": "Perform search queries and validate results across different content types. Ensure search is responsive and accurate.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "3",
+        "title": "Develop Player Dashboard",
+        "description": "Create a dashboard for players to manage characters and campaigns.",
+        "details": "1. Design `/dashboard` page in `src/app/dashboard/page.tsx`.\n2. Display list of characters and campaigns.\n3. Provide quick access to active sessions.",
+        "testStrategy": "Conduct user testing to ensure dashboard usability and accessibility on mobile devices.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "in-progress",
+        "subtasks": [],
+        "updatedAt": "2025-12-22T03:18:23.761Z"
+      },
+      {
+        "id": "4",
+        "title": "Build Character Sheet Management",
+        "description": "Enable players to manage their character sheets.",
+        "details": "1. Implement character model in `prisma/schema.prisma`.\n2. Develop character sheet UI in `src/app/characters/[id]/page.tsx`.\n3. Integrate D&D Beyond sync functionality.",
+        "testStrategy": "Test character creation, updates, and D&D Beyond sync. Validate data integrity and UI responsiveness.",
+        "priority": "medium",
+        "dependencies": [
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "5",
+        "title": "Create Campaign Join Flow",
+        "description": "Allow players to join campaigns via invite codes or email.",
+        "details": "1. Implement join flow in `src/app/campaigns/[id]/join/page.tsx`.\n2. Handle invite code and email invite logic.\n3. Allow character selection or creation for campaign.",
+        "testStrategy": "Simulate joining campaigns with valid and invalid invites. Verify character association with campaigns.",
+        "priority": "medium",
+        "dependencies": [
+          "1",
+          "3"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "6",
+        "title": "Implement Co-DM Features",
+        "description": "Enable collaboration between DMs within a campaign.",
+        "details": "1. Develop member management UI in `src/app/campaigns/[id]/members/page.tsx`.\n2. Implement shared NPC editing and session management.\n3. Restrict campaign deletion to owners only.",
+        "testStrategy": "Test role changes, member management, and co-DM functionalities. Ensure permissions are correctly enforced.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "7",
+        "title": "Develop Public Homebrew Sharing",
+        "description": "Allow homebrew content to be shared publicly.",
+        "details": "1. Update `prisma/schema.prisma` with `ContentVisibility` and `ContentFavorite` models.\n2. Implement public homebrew browser in `src/app/homebrew/browse/page.tsx`.\n3. Develop creator profiles in `src/app/creators/[username]/page.tsx`.",
+        "testStrategy": "Test visibility settings and public access to homebrew content. Validate creator profile displays and interactions.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "8",
+        "title": "Implement Live Session Features",
+        "description": "Support real-time session features like transcription and dice rolling.",
+        "details": "1. Expand WebSocket infrastructure with Redis PubSub.\n2. Develop live session dashboard in `src/app/campaigns/[id]/live/page.tsx`.\n3. Implement live transcription and dice rolling features.",
+        "testStrategy": "Conduct live session simulations to test real-time features. Validate WebSocket connections and data flow.",
+        "priority": "medium",
+        "dependencies": [
+          "1"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "9",
+        "title": "Build Content Marketplace",
+        "description": "Create a marketplace for content creators to publish and share homebrew.",
+        "details": "1. Develop publishing workflow with draft, review, and published states.\n2. Implement analytics dashboard for creators.\n3. Create collections/bundles feature for related content.",
+        "testStrategy": "Test content publishing, analytics tracking, and bundle creation. Ensure marketplace functionality and security.",
+        "priority": "medium",
+        "dependencies": [
+          "7"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "10",
+        "title": "Integrate Discord Bot",
+        "description": "Develop a Discord bot for session recaps and notifications.",
+        "details": "1. Implement Discord bot commands for scheduling, recaps, and dice rolls.\n2. Set up webhooks for session reminders and announcements.\n3. Link Discord server to campaigns via `/quiver link`.",
+        "testStrategy": "Test bot commands and webhook notifications in a Discord server. Validate integration and user interactions.",
+        "priority": "medium",
+        "dependencies": [
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "11",
+        "title": "Implement Calendar Sync",
+        "description": "Sync session schedules with external calendars.",
+        "details": "1. Develop calendar sync endpoints in `src/server/routers/calendar.ts`.\n2. Support Google Calendar and iCal feed URL.\n3. Auto-create and update calendar events for sessions.",
+        "testStrategy": "Test calendar sync with Google Calendar and iCal. Verify event creation, updates, and deletions.",
+        "priority": "medium",
+        "dependencies": [
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "12",
+        "title": "Develop VTT Integration",
+        "description": "Integrate with virtual tabletops like Foundry and Roll20.",
+        "details": "1. Implement export/import utilities for Foundry and Roll20.\n2. Develop character sheet sync and campaign linking features.\n3. Start with export/import before real-time sync.",
+        "testStrategy": "Test VTT export/import functionality. Validate character and campaign data integrity across platforms.",
+        "priority": "medium",
+        "dependencies": [
+          "9"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "13",
+        "title": "Enhance Mobile-First Design",
+        "description": "Ensure all features are optimized for mobile use.",
+        "details": "1. Apply Tailwind responsive utilities across all components.\n2. Test on actual devices for touch-friendly design.\n3. Implement PWA for offline character sheets.",
+        "testStrategy": "Conduct usability testing on various mobile devices. Validate offline capabilities and touch interactions.",
+        "priority": "medium",
+        "dependencies": [
+          "1",
+          "3",
+          "4"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "14",
+        "title": "Implement AI Session Summaries",
+        "description": "Auto-generate session recaps using AI.",
+        "details": "1. Use existing AI integration to analyze transcripts.\n2. Generate structured summaries for DM review.\n3. Publish summaries to players after review.",
+        "testStrategy": "Test AI-generated summaries for accuracy and coherence. Validate DM review and publishing workflow.",
+        "priority": "medium",
+        "dependencies": [
+          "8"
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": "15",
+        "title": "Develop Onboarding Wizard",
+        "description": "Guide new users through initial setup and campaign creation.",
+        "details": "1. Implement onboarding wizard in `src/app/onboarding/page.tsx`.\n2. Provide guided setup for DMs and players.\n3. Include campaign templates and import options.",
+        "testStrategy": "Test onboarding flow for both DMs and players. Validate template selection and content import functionality.",
+        "priority": "medium",
+        "dependencies": [
+          "3",
+          "5"
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "lastModified": "2025-12-22T03:18:23.762Z",
+      "taskCount": 15,
+      "completedCount": 1,
+      "tags": [
+        "master"
+      ]
+    }
+  }
+}

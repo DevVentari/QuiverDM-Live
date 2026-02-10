@@ -83,8 +83,10 @@ nul
 .claude/
 .mcp.json
 
-# Test documents (keep locally)
+# Test documents and recordings (keep locally, too large for git)
 /test-documents/
+.archive/test-documents/
+docs/D&D/Recordings/
 
 # Build outputs
 /dist/
@@ -94,3 +96,24 @@ srclibqueue-worker.ts
 
 # Git worktrees
 .worktrees/
+
+# Logs
+logs
+*.log
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/ 

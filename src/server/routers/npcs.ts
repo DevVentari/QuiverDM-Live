@@ -1,11 +1,11 @@
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
-import { verifyNPCOwnership, verifyCampaignOwnership } from '../lib/ownership';
+import { npcService } from '../services/npc.service';
 
 export const npcsRouter = router({
   /**
    * Get all NPCs for a campaign with optional search
+   * Supports multi-user: any campaign member can view NPCs
    */
   getAll: protectedProcedure
     .input(
@@ -14,38 +14,15 @@ export const npcsRouter = router({
         search: z.string().optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      if (input.campaignId) {
-        await verifyCampaignOwnership(input.campaignId, userId);
-      }
-      const { campaignId, search } = input;
-
-      const where: any = {
-        campaignId,
-      };
-
-      // Add search filter if provided
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-          { faction: { contains: search, mode: 'insensitive' } },
-        ];
-      }
-
-      const npcs = await prisma.nPC.findMany({
-        where,
-        orderBy: {
-          name: 'asc',
-        },
-      });
-
-      return npcs;
-    }),
+    .query(({ input, ctx }) =>
+      npcService.getByCampaignId(input.campaignId, ctx.session.user.id, {
+        search: input.search,
+      })
+    ),
 
   /**
    * Get single NPC by ID
+   * Supports multi-user: any campaign member can view
    */
   getById: protectedProcedure
     .input(
@@ -53,28 +30,13 @@ export const npcsRouter = router({
         id: z.string(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await verifyNPCOwnership(input.id, userId);
-      const npc = await prisma.nPC.findUnique({
-        where: {
-          id: input.id,
-        },
-        include: {
-          campaign: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      });
-
-      return npc;
-    }),
+    .query(({ input, ctx }) =>
+      npcService.getById(input.id, ctx.session.user.id)
+    ),
 
   /**
    * Create new NPC
+   * Requires DM access or canEditNPCs permission
    */
   create: protectedProcedure
     .input(
@@ -87,18 +49,14 @@ export const npcsRouter = router({
         imageUrl: z.string().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await verifyCampaignOwnership(input.campaignId, userId);
-      const npc = await prisma.nPC.create({
-        data: input,
-      });
-
-      return npc;
+    .mutation(({ input, ctx }) => {
+      const { campaignId, ...data } = input;
+      return npcService.create(campaignId, ctx.session.user.id, data);
     }),
 
   /**
    * Update NPC
+   * Requires DM access or canEditNPCs permission
    */
   update: protectedProcedure
     .input(
@@ -112,21 +70,14 @@ export const npcsRouter = router({
         stats: z.any().optional(), // JSON field for D&D stats
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await verifyNPCOwnership(input.id, userId);
+    .mutation(({ input, ctx }) => {
       const { id, ...data } = input;
-
-      const npc = await prisma.nPC.update({
-        where: { id },
-        data,
-      });
-
-      return npc;
+      return npcService.update(id, ctx.session.user.id, data);
     }),
 
   /**
    * Delete NPC
+   * Requires DM access or canEditNPCs permission
    */
   delete: protectedProcedure
     .input(
@@ -134,20 +85,13 @@ export const npcsRouter = router({
         id: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await verifyNPCOwnership(input.id, userId);
-      await prisma.nPC.delete({
-        where: {
-          id: input.id,
-        },
-      });
-
-      return { success: true };
-    }),
+    .mutation(({ input, ctx }) =>
+      npcService.delete(input.id, ctx.session.user.id)
+    ),
 
   /**
    * Get NPCs by faction
+   * Supports multi-user: any campaign member can view
    */
   getByFaction: protectedProcedure
     .input(
@@ -156,24 +100,15 @@ export const npcsRouter = router({
         faction: z.string(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await verifyCampaignOwnership(input.campaignId, userId);
-      const npcs = await prisma.nPC.findMany({
-        where: {
-          campaignId: input.campaignId,
-          faction: input.faction,
-        },
-        orderBy: {
-          name: 'asc',
-        },
-      });
-
-      return npcs;
-    }),
+    .query(({ input, ctx }) =>
+      npcService.getByCampaignId(input.campaignId, ctx.session.user.id, {
+        faction: input.faction,
+      })
+    ),
 
   /**
    * Get faction list for a campaign
+   * Supports multi-user: any campaign member can view
    */
   getFactions: protectedProcedure
     .input(
@@ -181,25 +116,7 @@ export const npcsRouter = router({
         campaignId: z.string(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await verifyCampaignOwnership(input.campaignId, userId);
-      const npcs = await prisma.nPC.findMany({
-        where: {
-          campaignId: input.campaignId,
-          faction: {
-            not: null,
-          },
-        },
-        select: {
-          faction: true,
-        },
-        distinct: ['faction'],
-      });
-
-      return npcs
-        .map((npc) => npc.faction)
-        .filter((faction): faction is string => faction !== null)
-        .sort();
-    }),
+    .query(({ input, ctx }) =>
+      npcService.getFactions(input.campaignId, ctx.session.user.id)
+    ),
 });

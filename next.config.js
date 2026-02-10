@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    optimizePackageImports: ['@radix-ui/themes', 'lucide-react']
+    optimizePackageImports: ['lucide-react']
   },
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -23,6 +23,8 @@ const nextConfig = {
     bodySizeLimit: '1gb',
   },
   webpack: (config, { isServer }) => {
+    config.externals = config.externals || [];
+    config.externals.push('bufferutil', 'utf-8-validate');
     return config;
   }
 };

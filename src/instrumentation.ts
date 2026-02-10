@@ -16,7 +16,7 @@ export async function register() {
 
     // Start PDF processing worker
     try {
-      const { startPDFWorker } = await import('./lib/queue-worker');
+      const { startPDFWorker } = await import('./lib/queue/worker');
       const concurrency = parseInt(process.env.PDF_WORKER_CONCURRENCY || '2', 10);
       startPDFWorker(concurrency);
       console.log(`[Instrumentation] PDF processing worker started with concurrency: ${concurrency}`);

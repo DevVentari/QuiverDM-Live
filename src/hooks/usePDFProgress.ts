@@ -1,256 +1,155 @@
-/**
- * React Hook for Real-time PDF Processing Progress
- *
- * Connects to WebSocket server and subscribes to PDF processing updates
- */
+'use client';
 
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
-export interface PDFProgressUpdate {
-  type: 'progress' | 'active' | 'waiting' | 'completed' | 'failed' | 'status' | 'pdf_progress' | 'pdf_status' | 'pdf_stage_detail';
-  pdfId?: string;
-  jobId?: string; // Some messages use jobId
-  progress?: number;
-  status?: string;
-  error?: string;
-  result?: any;
-  data?: {
-    progress?: number;
-    status?: string;
-    stageProgress?: number;
-    detail?: string;
-    currentPage?: number;
-    totalPages?: number;
+export interface PDFProgressDetails {
+  stageProgress?: number;
+  detail?: string;
+  currentPage?: number;
+  totalPages?: number;
+  itemsFound?: {
+    spells?: number;
+    items?: number;
+    creatures?: number;
+    races?: number;
+    classes?: number;
+    feats?: number;
   };
-  timestamp: number;
 }
 
-export interface UsePDFProgressOptions {
-  pdfId: string;
-  userId?: string;
-  enabled?: boolean;
-  onProgress?: (progress: number) => void;
-  onComplete?: (result: any) => void;
-  onError?: (error: string) => void;
-  onStatusChange?: (status: string) => void;
+export interface PDFProgressState {
+  progress: number;
+  status: string;
+  details: PDFProgressDetails;
+  isConnected: boolean;
+  error: string | null;
 }
 
-export function usePDFProgress({
-  pdfId,
-  userId,
-  enabled = true,
-  onProgress,
-  onComplete,
-  onError,
-  onStatusChange,
-}: UsePDFProgressOptions) {
+/**
+ * Custom hook to subscribe to real-time PDF processing progress via WebSocket
+ *
+ * @param pdfId - The ID of the PDF being processed
+ * @returns Current progress state with percentage, status, and details
+ */
+export function usePDFProgress(pdfId: string | null | undefined): PDFProgressState {
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
-  const [lastUpdate, setLastUpdate] = useState<PDFProgressUpdate | null>(null);
+  const [status, setStatus] = useState('initializing');
+  const [details, setDetails] = useState<PDFProgressDetails>({});
+  const [isConnected, setIsConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
+  const reconnectAttemptsRef = useRef(0);
 
-  // Store callbacks in refs to avoid causing reconnections on callback changes
-  const onProgressRef = useRef(onProgress);
-  const onCompleteRef = useRef(onComplete);
-  const onErrorRef = useRef(onError);
-  const onStatusChangeRef = useRef(onStatusChange);
-
-  // Update refs when callbacks change
   useEffect(() => {
-    onProgressRef.current = onProgress;
-    onCompleteRef.current = onComplete;
-    onErrorRef.current = onError;
-    onStatusChangeRef.current = onStatusChange;
-  }, [onProgress, onComplete, onError, onStatusChange]);
-
-  const connect = useCallback(() => {
-    if (!enabled || wsRef.current?.readyState === WebSocket.OPEN) {
+    if (!pdfId) {
       return;
     }
 
-    setStatus('connecting');
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3004';
+    console.log('[usePDFProgress] Attempting to connect to:', wsUrl);
+    console.log('[usePDFProgress] Environment NEXT_PUBLIC_WS_URL:', process.env.NEXT_PUBLIC_WS_URL);
 
-    // Determine WebSocket URL - connects to standalone WebSocket server on port 3004
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const hostname = window.location.hostname;
-    const wsPort = process.env.NEXT_PUBLIC_WS_PORT || '3004';
-    const wsUrl = `${protocol}//${hostname}:${wsPort}`;
+    function connect() {
+      try {
+        console.log('[usePDFProgress] Creating WebSocket connection...');
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
 
-    console.log(`[usePDFProgress] Connecting to ${wsUrl}...`);
+        ws.onopen = () => {
+          console.log('[usePDFProgress] ✅ WebSocket connected to', wsUrl);
+          setIsConnected(true);
+          setError(null);
+          reconnectAttemptsRef.current = 0;
 
-    try {
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+          // Subscribe to this PDF's progress updates
+          ws.send(JSON.stringify({
+            type: 'subscribe',
+            jobId: pdfId
+          }));
+          console.log('[usePDFProgress] 📡 Subscribed to PDF:', pdfId);
+        };
 
-      ws.onopen = () => {
-        console.log('[usePDFProgress] Connected');
-        setStatus('connected');
-        reconnectAttempts.current = 0;
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
 
-        // Authenticate if userId provided
-        if (userId) {
-          ws.send(JSON.stringify({ type: 'auth', userId }));
-        }
+            // Only process messages for this PDF
+            if (data.jobId !== pdfId) {
+              return;
+            }
 
-        // Subscribe to PDF updates
-        ws.send(JSON.stringify({ type: 'subscribe', pdfId }));
-      };
+            // Update progress percentage
+            if (data.type === 'pdf_progress' && typeof data.progress === 'number') {
+              setProgress(Math.min(100, Math.max(0, data.progress)));
+            }
 
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data) as PDFProgressUpdate;
-
-          // Check if this message is for our PDF (can be pdfId or jobId)
-          const messageId = data.pdfId || data.jobId;
-          if (messageId && messageId !== pdfId) {
-            // Ignore messages for other PDFs
-            return;
+            // Update status and details
+            if (data.type === 'pdf_status') {
+              if (data.status) {
+                setStatus(data.status);
+              }
+              if (data.data) {
+                setDetails(prev => ({ ...prev, ...data.data }));
+              }
+            }
+          } catch (err) {
+            console.error('[usePDFProgress] Error parsing WebSocket message:', err);
           }
+        };
 
-          setLastUpdate(data);
+        ws.onerror = (error) => {
+          console.error('[usePDFProgress] WebSocket connection error:', {
+            readyState: ws.readyState,
+            url: wsUrl,
+            error: error
+          });
+          setIsConnected(false);
+        };
 
-          switch (data.type) {
-            case 'progress':
-              if (data.progress !== undefined) {
-                setProgress(data.progress);
-                onProgressRef.current?.(data.progress);
-              }
-              break;
+        ws.onclose = () => {
+          console.log('[usePDFProgress] WebSocket disconnected');
+          setIsConnected(false);
+          wsRef.current = null;
 
-            case 'pdf_progress':
-              // Handle progress from WebSocket server (data.data.progress)
-              const progressValue = data.data?.progress ?? data.progress;
-              if (progressValue !== undefined) {
-                setProgress(progressValue);
-                onProgressRef.current?.(progressValue);
-              }
-              break;
+          // Auto-reconnect with exponential backoff (max 5 attempts)
+          if (reconnectAttemptsRef.current < 5) {
+            const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
+            reconnectAttemptsRef.current += 1;
 
-            case 'pdf_status':
-            case 'pdf_stage_detail':
-              // Handle status updates from WebSocket server
-              const statusValue = data.data?.status ?? data.status;
-              if (statusValue) {
-                onStatusChangeRef.current?.(statusValue);
-              }
-              // Also update progress if provided in data
-              if (data.data?.progress !== undefined) {
-                setProgress(data.data.progress);
-                onProgressRef.current?.(data.data.progress);
-              }
-              break;
-
-            case 'completed':
-              setProgress(100);
-              onCompleteRef.current?.(data.result);
-              break;
-
-            case 'failed':
-              onErrorRef.current?.(data.error || 'Processing failed');
-              break;
-
-            case 'status':
-              onStatusChangeRef.current?.(data.status || 'unknown');
-              break;
-
-            case 'active':
-              onStatusChangeRef.current?.('processing');
-              break;
-
-            case 'waiting':
-              onStatusChangeRef.current?.('waiting');
-              break;
+            console.log(`[usePDFProgress] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current}/5)`);
+            reconnectTimeoutRef.current = setTimeout(connect, delay);
+          } else {
+            setError('Failed to connect after 5 attempts');
           }
-        } catch (error) {
-          console.error('[usePDFProgress] Error parsing message:', error);
-        }
-      };
-
-      ws.onerror = () => {
-        // WebSocket errors are common during development (connection refused, etc.)
-        // Don't spam console with error objects - they're not informative
-        console.warn('[usePDFProgress] WebSocket connection error - will retry');
-        setStatus('error');
-      };
-
-      ws.onclose = () => {
-        console.log('[usePDFProgress] Disconnected');
-        setStatus('idle');
-        wsRef.current = null;
-
-        // Attempt to reconnect with exponential backoff
-        if (enabled && reconnectAttempts.current < maxReconnectAttempts) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
-          reconnectAttempts.current++;
-
-          console.log(
-            `[usePDFProgress] Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})...`
-          );
-
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
-          }, delay);
-        } else if (reconnectAttempts.current >= maxReconnectAttempts) {
-          console.error('[usePDFProgress] Max reconnection attempts reached');
-        }
-      };
-    } catch (error) {
-      console.error('[usePDFProgress] Error creating WebSocket:', error);
-      setStatus('error');
-    }
-  }, [enabled, pdfId, userId]); // Removed callback dependencies - they're in refs now
-
-  const disconnect = useCallback(() => {
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-
-    if (wsRef.current) {
-      // Unsubscribe before disconnecting
-      if (wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: 'unsubscribe', pdfId }));
+        };
+      } catch (err) {
+        console.error('[usePDFProgress] Failed to create WebSocket:', err);
+        setError('Failed to connect');
       }
-
-      wsRef.current.close();
-      wsRef.current = null;
     }
 
-    setStatus('idle');
-  }, [pdfId]);
+    // Initial connection
+    connect();
 
-  // Connect on mount, disconnect on unmount
-  useEffect(() => {
-    if (enabled) {
-      connect();
-    }
-
+    // Cleanup on unmount or pdfId change
     return () => {
-      disconnect();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
-  }, [enabled, connect, disconnect]);
-
-  // Reconnect if pdfId changes
-  useEffect(() => {
-    if (enabled && wsRef.current?.readyState === WebSocket.OPEN) {
-      // Unsubscribe from old pdfId
-      wsRef.current.send(JSON.stringify({ type: 'unsubscribe', pdfId }));
-      // Subscribe to new pdfId
-      wsRef.current.send(JSON.stringify({ type: 'subscribe', pdfId }));
-    }
-  }, [pdfId, enabled]);
+  }, [pdfId]);
 
   return {
     progress,
     status,
-    lastUpdate,
-    isConnected: status === 'connected',
-    isConnecting: status === 'connecting',
-    hasError: status === 'error',
-    connect,
-    disconnect,
+    details,
+    isConnected,
+    error,
   };
 }

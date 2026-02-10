@@ -1,8 +1,6 @@
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
-import { prisma } from '../db';
-import { TRPCError } from '@trpc/server';
-import { verifyHomebrewOwnership, verifyCampaignOwnership } from '../lib/ownership';
+import { homebrewService } from '../services/homebrew.service';
 
 // Homebrew content types
 export const HomebrewType = z.enum([
@@ -36,7 +34,7 @@ export const homebrewRouter = router({
       z.object({
         type: HomebrewType,
         name: z.string(),
-        data: z.any(),
+        data: z.any().default({}),
         images: z.array(z.string()).default([]),
         tags: z.array(z.string()).default([]),
         addToCampaignId: z.string().optional(), // Optionally add to campaign immediately
@@ -45,39 +43,9 @@ export const homebrewRouter = router({
         dndBeyondUrl: z.string().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-
-      // Generate search text from name + data
-      const searchText = `${input.name} ${JSON.stringify(input.data)}`;
-
-      const content = await prisma.homebrewContent.create({
-        data: {
-          userId,
-          type: input.type,
-          name: input.name,
-          data: input.data,
-          images: input.images,
-          tags: input.tags,
-          searchText,
-          sourceType: input.sourceType,
-          dndBeyondId: input.dndBeyondId,
-          dndBeyondUrl: input.dndBeyondUrl,
-        },
-      });
-
-      // If adding to campaign, create link
-      if (input.addToCampaignId) {
-        await prisma.campaignHomebrewContent.create({
-          data: {
-            campaignId: input.addToCampaignId,
-            homebrewId: content.id,
-          },
-        });
-      }
-
-      return content;
-    }),
+    .mutation(({ input, ctx }) =>
+      homebrewService.createContent(ctx.session.user.id, { ...input, data: input.data ?? {} })
+    ),
 
   /**
    * Get all homebrew content for the current user
@@ -93,64 +61,9 @@ export const homebrewRouter = router({
         cursor: z.string().optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-
-      const where: any = { userId };
-
-      if (input.type) {
-        where.type = input.type;
-      }
-
-      if (input.search) {
-        where.searchText = {
-          contains: input.search,
-          mode: 'insensitive',
-        };
-      }
-
-      if (input.tags && input.tags.length > 0) {
-        where.tags = {
-          hasSome: input.tags,
-        };
-      }
-
-      // If campaign filter, join with campaign content
-      if (input.campaignId) {
-        where.campaigns = {
-          some: {
-            campaignId: input.campaignId,
-          },
-        };
-      }
-
-      const content = await prisma.homebrewContent.findMany({
-        where,
-        take: input.limit + 1,
-        cursor: input.cursor ? { id: input.cursor } : undefined,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        include: {
-          campaigns: {
-            select: {
-              campaignId: true,
-            },
-          },
-        },
-      });
-
-      let nextCursor: string | undefined = undefined;
-      if (content.length > input.limit) {
-        const nextItem = content.pop();
-        nextCursor = nextItem!.id;
-      }
-
-      return {
-        items: content,
-        nextCursor,
-      };
-    }),
+    .query(({ input, ctx }) =>
+      homebrewService.getContent(ctx.session.user.id, input)
+    ),
 
   /**
    * Get a single homebrew content item by ID
@@ -161,32 +74,7 @@ export const homebrewRouter = router({
         id: z.string(),
       })
     )
-    .query(async ({ input }) => {
-      const content = await prisma.homebrewContent.findUnique({
-        where: { id: input.id },
-        include: {
-          campaigns: {
-            include: {
-              campaign: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (!content) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Homebrew content not found',
-        });
-      }
-
-      return content;
-    }),
+    .query(({ input }) => homebrewService.getContentById(input.id)),
 
   /**
    * Update homebrew content
@@ -201,53 +89,22 @@ export const homebrewRouter = router({
         tags: z.array(z.string()).optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-
-      // Verify ownership
-      await verifyHomebrewOwnership(input.id, userId);
-
-      const updateData: any = {};
-
-      if (input.name !== undefined) updateData.name = input.name;
-      if (input.data !== undefined) updateData.data = input.data;
-      if (input.images !== undefined) updateData.images = input.images;
-      if (input.tags !== undefined) updateData.tags = input.tags;
-
-      // Update search text if name or data changed
-      if (input.name !== undefined || input.data !== undefined) {
-        const existing = await prisma.homebrewContent.findUnique({
-          where: { id: input.id },
-        });
-        const name = input.name ?? existing!.name;
-        const data = input.data ?? existing!.data;
-        updateData.searchText = `${name} ${JSON.stringify(data)}`;
-      }
-
-      const content = await prisma.homebrewContent.update({
-        where: { id: input.id },
-        data: updateData,
-      });
-
-      return content;
-    }),
+    .mutation(({ input, ctx }) =>
+      homebrewService.updateContent(ctx.session.user.id, input)
+    ),
 
   /**
    * Delete homebrew content
    */
-  deleteContent: publicProcedure
+  deleteContent: protectedProcedure
     .input(
       z.object({
         id: z.string(),
       })
     )
-    .mutation(async ({ input }) => {
-      await prisma.homebrewContent.delete({
-        where: { id: input.id },
-      });
-
-      return { success: true };
-    }),
+    .mutation(({ input, ctx }) =>
+      homebrewService.deleteContent(ctx.session.user.id, input.id)
+    ),
 
   /**
    * Get homebrew content filtered by type
@@ -259,38 +116,9 @@ export const homebrewRouter = router({
         campaignId: z.string().optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-
-      const where: any = {
-        userId,
-        type: input.type,
-      };
-
-      if (input.campaignId) {
-        where.campaigns = {
-          some: {
-            campaignId: input.campaignId,
-          },
-        };
-      }
-
-      const content = await prisma.homebrewContent.findMany({
-        where,
-        orderBy: {
-          name: 'asc',
-        },
-        include: {
-          campaigns: {
-            select: {
-              campaignId: true,
-            },
-          },
-        },
-      });
-
-      return content;
-    }),
+    .query(({ input, ctx }) =>
+      homebrewService.getContentByType(ctx.session.user.id, input)
+    ),
 
   /**
    * Get homebrew statistics for the user
@@ -301,40 +129,9 @@ export const homebrewRouter = router({
         campaignId: z.string().optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-
-      const where: any = { userId };
-
-      if (input.campaignId) {
-        where.campaigns = {
-          some: {
-            campaignId: input.campaignId,
-          },
-        };
-      }
-
-      const stats = await prisma.homebrewContent.groupBy({
-        by: ['type'],
-        where,
-        _count: {
-          id: true,
-        },
-      });
-
-      const total = await prisma.homebrewContent.count({ where });
-
-      return {
-        total,
-        byType: stats.reduce(
-          (acc, stat) => {
-            acc[stat.type] = stat._count.id;
-            return acc;
-          },
-          {} as Record<string, number>
-        ),
-      };
-    }),
+    .query(({ input, ctx }) =>
+      homebrewService.getContentStats(ctx.session.user.id, input.campaignId)
+    ),
 
   /**
    * Add homebrew content to a campaign
@@ -346,32 +143,9 @@ export const homebrewRouter = router({
         campaignId: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-
-      // Verify campaign ownership
-      await verifyCampaignOwnership(input.campaignId, userId);
-
-      // Verify homebrew ownership
-      await verifyHomebrewOwnership(input.homebrewId, userId);
-
-      // Create link (upsert to handle duplicates)
-      const link = await prisma.campaignHomebrewContent.upsert({
-        where: {
-          campaignId_homebrewId: {
-            campaignId: input.campaignId,
-            homebrewId: input.homebrewId,
-          },
-        },
-        create: {
-          campaignId: input.campaignId,
-          homebrewId: input.homebrewId,
-        },
-        update: {},
-      });
-
-      return link;
-    }),
+    .mutation(({ input, ctx }) =>
+      homebrewService.addToCampaign(ctx.session.user.id, input)
+    ),
 
   /**
    * Remove homebrew content from a campaign
@@ -383,22 +157,7 @@ export const homebrewRouter = router({
         campaignId: z.string(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-
-      // Verify campaign ownership
-      await verifyCampaignOwnership(input.campaignId, userId);
-
-      // Delete link
-      await prisma.campaignHomebrewContent.delete({
-        where: {
-          campaignId_homebrewId: {
-            campaignId: input.campaignId,
-            homebrewId: input.homebrewId,
-          },
-        },
-      });
-
-      return { success: true };
-    }),
+    .mutation(({ input, ctx }) =>
+      homebrewService.removeFromCampaign(ctx.session.user.id, input)
+    ),
 });

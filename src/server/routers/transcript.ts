@@ -5,8 +5,8 @@ import {
   getSessionTranscripts,
   updateTranscriptCorrection,
   deleteTranscript,
-} from '@/lib/transcription-db';
-import { verifyTranscriptOwnership, verifySessionOwnership } from '../lib/ownership';
+} from '@/lib/transcription/db';
+import { authz } from '../services/authorization.service';
 
 export const transcriptRouter = router({
   /**
@@ -20,7 +20,7 @@ export const transcriptRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyTranscriptOwnership(input.transcriptId, userId);
+      await authz.transcript(input.transcriptId, userId);
       const transcript = await getTranscript(input.transcriptId);
       if (!transcript) {
         throw new Error('Transcript not found');
@@ -39,7 +39,7 @@ export const transcriptRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifySessionOwnership(input.sessionId, userId);
+      await authz.session(input.sessionId, userId).verify();
       return await getSessionTranscripts(input.sessionId);
     }),
 
@@ -55,7 +55,7 @@ export const transcriptRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyTranscriptOwnership(input.transcriptId, userId);
+      await authz.transcript(input.transcriptId, userId);
       await updateTranscriptCorrection(input.transcriptId, input.correctedText);
       return { success: true };
     }),
@@ -71,7 +71,7 @@ export const transcriptRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyTranscriptOwnership(input.transcriptId, userId);
+      await authz.transcript(input.transcriptId, userId);
       await deleteTranscript(input.transcriptId);
       return { success: true };
     }),
