@@ -20,10 +20,9 @@ RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install Python dependencies for PDF processing
-# Note: Full marker-pdf with PyTorch is very large (~3GB)
-# We'll use PyMuPDF as the primary converter (lighter weight)
+# pdfplumber is MIT-licensed and commercial-safe
 RUN pip install --no-cache-dir \
-    pymupdf \
+    pdfplumber==0.11.0 \
     PyPDF2
 
 # Set working directory
