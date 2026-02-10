@@ -1,0 +1,137 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { trpc } from '@/lib/trpc';
+import { useCampaign } from '@/components/campaign/campaign-context';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+
+export default function CampaignSettingsPage() {
+  const router = useRouter();
+  const { campaignId, isOwner } = useCampaign();
+  const campaign = trpc.campaigns.getById.useQuery({ id: campaignId });
+  const utils = trpc.useUtils();
+
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('active');
+
+  useEffect(() => {
+    if (campaign.data) {
+      const data = campaign.data as any;
+      setName(data.name || '');
+      setDescription(data.description || '');
+      setStatus(data.status || 'active');
+    }
+  }, [campaign.data]);
+
+  const update = trpc.campaigns.update.useMutation({
+    onSuccess: () => {
+      utils.campaigns.getBySlug.invalidate();
+      utils.campaigns.getById.invalidate({ id: campaignId });
+    },
+  });
+
+  const deleteCampaign = trpc.campaigns.delete.useMutation({
+    onSuccess: () => router.push('/campaigns'),
+  });
+
+  function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+    update.mutate({
+      id: campaignId,
+      name,
+      description: description || undefined,
+      status: status as any,
+    });
+  }
+
+  return (
+    <div className="space-y-6 max-w-2xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>Campaign Settings</CardTitle>
+          <CardDescription>Update your campaign details</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSave} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="planning">Planning</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" disabled={update.isPending}>
+              {update.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {isOwner && (
+        <>
+          <Separator />
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>
+                Permanently delete this campaign and all its data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (confirm('Are you sure? This cannot be undone.')) {
+                    deleteCampaign.mutate({ id: campaignId });
+                  }
+                }}
+                disabled={deleteCampaign.isPending}
+              >
+                {deleteCampaign.isPending ? 'Deleting...' : 'Delete Campaign'}
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  );
+}

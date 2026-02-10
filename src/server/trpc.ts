@@ -8,6 +8,8 @@ import {
   verifyCampaignRole,
   type CampaignMembershipResult,
 } from './lib/ownership';
+import { authz } from './services/authorization.service';
+import { AppError } from './errors';
 
 // Context with session
 export async function createContext() {
@@ -22,6 +24,19 @@ export type Context = Awaited<ReturnType<typeof createContext>>;
 // Create tRPC instance with context
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
+  errorFormatter({ shape, error }) {
+    if (error.cause instanceof AppError) {
+      return {
+        ...shape,
+        data: {
+          ...shape.data,
+          code: error.cause.code,
+          httpStatus: error.cause.statusCode,
+        },
+      };
+    }
+    return shape;
+  },
 });
 
 // Export reusable router and procedure helpers
@@ -122,3 +137,6 @@ export type CampaignMemberContext = {
   session: NonNullable<Context['session']> & { user: NonNullable<Context['session']>['user'] };
   membership: CampaignMembershipResult;
 };
+
+// Export authorization service for use in procedures
+export { authz };

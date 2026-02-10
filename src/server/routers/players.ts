@@ -1,12 +1,12 @@
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, authz } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { TRPCError } from '@trpc/server';
-import { verifyPlayerOwnership, verifyCampaignOwnership } from '../lib/ownership';
 
 export const playersRouter = router({
   /**
    * Get all players for a campaign
+   * Supports multi-user: any campaign member can view players
    */
   getAll: protectedProcedure
     .input(
@@ -16,9 +16,8 @@ export const playersRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      if (input.campaignId) {
-        await verifyCampaignOwnership(input.campaignId, userId);
-      }
+      await authz.campaign(input.campaignId, userId).verify();
+
       const players = await prisma.player.findMany({
         where: {
           campaignId: input.campaignId,
@@ -33,6 +32,7 @@ export const playersRouter = router({
 
   /**
    * Get single player by ID
+   * Supports multi-user: any campaign member can view
    */
   getById: protectedProcedure
     .input(
@@ -42,7 +42,8 @@ export const playersRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyPlayerOwnership(input.id, userId);
+      await authz.player(input.id, userId);
+
       const player = await prisma.player.findUnique({
         where: {
           id: input.id,
@@ -61,6 +62,7 @@ export const playersRouter = router({
 
   /**
    * Create a new player/character
+   * Requires DM access (OWNER or CO_DM) to add players
    */
   create: protectedProcedure
     .input(
@@ -79,7 +81,8 @@ export const playersRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyCampaignOwnership(input.campaignId, userId);
+      await authz.campaign(input.campaignId, userId).requireDM();
+
       const player = await prisma.player.create({
         data: {
           ...input,
@@ -92,6 +95,7 @@ export const playersRouter = router({
 
   /**
    * Update a player/character
+   * Requires DM access
    */
   update: protectedProcedure
     .input(
@@ -109,19 +113,26 @@ export const playersRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyPlayerOwnership(input.id, userId);
+
+      // Get player to find campaign
+      const player = await authz.player(input.id, userId);
+
+      // Verify DM access to the campaign
+      await authz.campaign(player.campaignId, userId).requireDM();
+
       const { id, ...data } = input;
 
-      const player = await prisma.player.update({
+      const updatedPlayer = await prisma.player.update({
         where: { id },
         data,
       });
 
-      return player;
+      return updatedPlayer;
     }),
 
   /**
    * Delete a player/character
+   * Requires DM access
    */
   delete: protectedProcedure
     .input(
@@ -131,7 +142,13 @@ export const playersRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifyPlayerOwnership(input.id, userId);
+
+      // Get player to find campaign
+      const player = await authz.player(input.id, userId);
+
+      // Verify DM access to the campaign
+      await authz.campaign(player.campaignId, userId).requireDM();
+
       await prisma.player.delete({
         where: { id: input.id },
       });

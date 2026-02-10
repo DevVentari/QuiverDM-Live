@@ -2,6 +2,14 @@ import ffmpeg from 'fluent-ffmpeg';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+// Set FFmpeg and FFprobe paths explicitly from environment variables
+if (process.env.FFMPEG_PATH) {
+  ffmpeg.setFfmpegPath(process.env.FFMPEG_PATH);
+}
+if (process.env.FFPROBE_PATH) {
+  ffmpeg.setFfprobePath(process.env.FFPROBE_PATH);
+}
+
 // Note: Requires ffmpeg to be installed on the system
 // Windows: Download from https://ffmpeg.org/download.html or use: winget install ffmpeg
 // macOS: brew install ffmpeg

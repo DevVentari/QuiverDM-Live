@@ -5,7 +5,7 @@
  * using Ollama for intelligent parsing
  */
 
-import { extractStructuredData, isOllamaAvailable } from './ollama';
+import { extractStructuredData, isOllamaAvailable } from './ai/ollama';
 
 type HomebrewContentType = 'item' | 'creature' | 'spell' | 'location' | 'subclass' | 'feat' | 'rule' | 'race' | 'class' | 'background' | 'character';
 

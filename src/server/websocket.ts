@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { IncomingMessage } from 'http';
 import { parse } from 'url';
-import type { TranscriptionProgress } from '@/lib/transcription-progress';
+import type { TranscriptionProgress } from '@/lib/transcription/progress';
 
 interface ClientSubscription {
   ws: WebSocket;

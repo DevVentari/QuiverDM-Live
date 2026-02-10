@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFromLocal, existsInLocal } from '@/lib/local-storage';
+import { getFromLocal, existsInLocal } from '@/lib/storage/local-storage';
 import path from 'path';
 
 export const runtime = 'nodejs';

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { storage, getStorageMode } from '@/lib/storage';
 import { prisma } from '@/server/db';
-import { addPDFProcessingJob } from '@/lib/queue';
+import { addPDFProcessingJob } from '@/lib/queue/queue';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -29,8 +29,9 @@ export async function POST(request: NextRequest) {
 
     // Support both old (useLLM) and new (useAIExtraction + useMarkerLLM) fields
     const useAIExtraction = formData.get('useAIExtraction') === 'true' || formData.get('useLLM') === 'true';
-    const useMarkerLLM = formData.get('useMarkerLLM') === 'true';
-    const llmProvider = (formData.get('llmProvider') as 'gemini' | 'anthropic' | 'openai') || undefined;
+    // Enable Marker LLM by default for better formatting (can be disabled with useMarkerLLM=false)
+    const useMarkerLLM = formData.get('useMarkerLLM') !== 'false'; // Default TRUE
+    const llmProvider = (formData.get('llmProvider') as 'gemini' | 'anthropic' | 'openai') || 'gemini';
 
     if (!file) {
       return NextResponse.json(

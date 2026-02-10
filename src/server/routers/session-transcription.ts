@@ -12,19 +12,19 @@ import {
   checkWhisperXAvailability,
   type WhisperXOptions,
   type ProgressEvent,
-} from '@/lib/whisperx';
+} from '@/lib/transcription/whisperx';
 import {
   createTranscriptionJob,
   updateTranscriptionProgress,
   getTranscriptionProgress,
   getTranscriptionProgressBySessionId,
   TranscriptionProgressTracker,
-} from '@/lib/transcription-progress';
-import { saveTranscript } from '@/lib/transcription-db';
-import { deleteFromLocal, extractKeyFromLocalUrl, getAbsolutePathFromKey } from '@/lib/local-storage';
-import { deleteFromR2, extractKeyFromUrl } from '@/lib/r2-storage';
+} from '@/lib/transcription/progress';
+import { saveTranscript } from '@/lib/transcription/db';
+import { deleteFromLocal, extractKeyFromLocalUrl, getAbsolutePathFromKey } from '@/lib/storage/local-storage';
+import { deleteFromR2, extractKeyFromUrl } from '@/lib/storage/r2';
 import { prisma } from '@/lib/prisma';
-import { verifySessionOwnership, verifyRecordingOwnership } from '../lib/ownership';
+import { authz } from '../services/authorization.service';
 
 export const sessionTranscriptionRouter = router({
   /**
@@ -62,9 +62,9 @@ export const sessionTranscriptionRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifySessionOwnership(input.sessionId, userId);
+      await authz.session(input.sessionId, userId).verify();
       if (input.recordingId) {
-        await verifyRecordingOwnership(input.recordingId, userId);
+        await authz.recording(input.recordingId, userId);
       }
       const {
         sessionId,
@@ -281,7 +281,7 @@ export const sessionTranscriptionRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await verifySessionOwnership(input.sessionId, userId);
+      await authz.session(input.sessionId, userId).verify();
       return await getTranscriptionProgressBySessionId(input.sessionId);
     }),
 });
