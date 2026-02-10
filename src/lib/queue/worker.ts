@@ -19,7 +19,8 @@ console.log(`  OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? '✅ Set' : '❌ N
 
 import { Worker, Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
-import { startPdfToMarkdownConversion, convertPdfWithFallback, type MarkerConversionHandle } from '../pdf/marker';
+import { startPdfToMarkdownConversion, type MarkerConversionHandle } from '../pdf/marker';
+import { convertPdfWithPdfplumber } from '../pdf/pdfplumber-fallback';
 import type { MarkerProgressUpdate } from '../pdf/marker';
 
 console.log('[Worker] startPdfToMarkdownConversion function:', typeof startPdfToMarkdownConversion);
@@ -275,14 +276,14 @@ async function processPDFJob(
     } catch (markerError: any) {
       // Check if this is a crash/access violation error (code 3221225794 = 0xC0000005)
       const isCrash =
-        markerError.message?.includes('3221225794') || // Windows access violation
+        markerError.message?.includes('3221225794') ||
         markerError.message?.includes('segmentation fault') ||
         markerError.message?.includes('SIGKILL') ||
         markerError.message?.includes('SIGSEGV') ||
         markerError.code === 'MARKER_EXECUTION_FAILED';
 
       if (isCrash) {
-        console.warn('[Worker] Marker crashed, falling back to PyMuPDF...');
+        console.warn('[Worker] Marker crashed, falling back to pdfplumber (MIT)...');
         console.warn(`[Worker] Original error: ${markerError.message}`);
 
         // Broadcast fallback status
@@ -290,14 +291,18 @@ async function processPDFJob(
         await job.updateProgress(50);
         broadcastPDFProgress?.(pdfId, 50);
 
-        // Use PyMuPDF fallback
-        result = await convertPdfWithFallback(tempPdfPath, {
-          useLLM: false, // Fallback doesn't support LLM
-          llmProvider: options.llmProvider,
-        });
+        // Use pdfplumber fallback
+        const fallbackResult = await convertPdfWithPdfplumber(tempPdfPath);
+        result = {
+          markdown: fallbackResult.markdown,
+          metadata: {
+            ...fallbackResult.metadata,
+            usedFallback: true,
+          },
+        };
         usedFallback = true;
 
-        console.log('[Worker] PyMuPDF fallback conversion successful');
+        console.log('[Worker] pdfplumber fallback successful');
       } else {
         // Re-throw other errors
         throw markerError;
@@ -307,7 +312,7 @@ async function processPDFJob(
     // Add fallback info to metadata
     if (usedFallback && result.metadata) {
       (result.metadata as any).usedFallback = true;
-      (result.metadata as any).converter = 'pymupdf';
+      (result.metadata as any).converter = 'pdfplumber';
     }
 
     await job.updateProgress(85);
