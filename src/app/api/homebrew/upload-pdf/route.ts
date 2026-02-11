@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { storage, getStorageMode } from '@/lib/storage';
 import { prisma } from '@/server/db';
-import { addPDFProcessingJob } from '@/lib/queue/queue';
+import { addPDFProcessingJob, cancelPDFProcessingJob } from '@/lib/queue/queue';
+import { usageService } from '@/server/services/usage.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -21,6 +22,16 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
+
+    // Check usage limits before processing upload
+    try {
+      await usageService.incrementPdfUploads(userId);
+    } catch (error: any) {
+      return NextResponse.json(
+        { error: error.message || 'PDF upload limit reached' },
+        { status: 429 }
+      );
+    }
 
     // Parse multipart form data
     const formData = await request.formData();
@@ -86,6 +97,62 @@ export async function POST(request: NextRequest) {
     const storageUrl = await storage.upload(r2Key, buffer, file.type);
 
     console.log(`[Upload PDF] Upload complete: ${storageUrl}`);
+
+    // Check for existing PDF with same filename and cancel old jobs
+    const existingPDF = await prisma.homebrewPDF.findFirst({
+      where: {
+        userId,
+        filename: file.name,
+        campaignId: campaignId || null,
+      },
+    });
+
+    if (existingPDF) {
+      console.log(`[Upload PDF] Found existing PDF with same filename: ${existingPDF.id}`);
+
+      // Cancel old processing job
+      try {
+        const cancelled = await cancelPDFProcessingJob(existingPDF.id);
+        if (cancelled) {
+          console.log(`[Upload PDF] Cancelled old processing job for ${existingPDF.id}`);
+        }
+      } catch (error) {
+        console.warn(`[Upload PDF] Could not cancel old job:`, error);
+      }
+
+      // Delete old PDF storage
+      if (existingPDF.r2Url) {
+        try {
+          // Extract key from URL or use directly if it's a key
+          const oldKey = existingPDF.r2Url.includes('/')
+            ? existingPDF.r2Url.split('/').slice(-3).join('/') // Get last 3 path segments
+            : existingPDF.r2Url;
+          await storage.delete(oldKey);
+          console.log(`[Upload PDF] Deleted old storage: ${oldKey}`);
+        } catch (error) {
+          console.warn(`[Upload PDF] Could not delete old storage:`, error);
+        }
+      }
+
+      // Delete old markdown if exists
+      if (existingPDF.markdownR2Url) {
+        try {
+          const oldKey = existingPDF.markdownR2Url.includes('/')
+            ? existingPDF.markdownR2Url.split('/').slice(-3).join('/')
+            : existingPDF.markdownR2Url;
+          await storage.delete(oldKey);
+          console.log(`[Upload PDF] Deleted old markdown: ${oldKey}`);
+        } catch (error) {
+          console.warn(`[Upload PDF] Could not delete old markdown:`, error);
+        }
+      }
+
+      // Delete old PDF record
+      await prisma.homebrewPDF.delete({
+        where: { id: existingPDF.id },
+      });
+      console.log(`[Upload PDF] Deleted old PDF record: ${existingPDF.id}`);
+    }
 
     // Create PDF record in database
     const pdf = await prisma.homebrewPDF.create({
