@@ -7,6 +7,7 @@ import { ThemeProvider } from 'next-themes';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import superjson from 'superjson';
+import { Toaster } from '@/components/ui/sonner';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -32,6 +33,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             disableTransitionOnChange
           >
             {children}
+            <Toaster />
           </ThemeProvider>
         </QueryClientProvider>
       </trpc.Provider>
