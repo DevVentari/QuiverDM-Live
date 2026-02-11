@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { usePDFProgress } from '@/hooks/usePDFProgress';
 import { FileText, Download, Settings, FileSearch, CheckCircle, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface PDFProcessingProgressProps {
   pdfId: string;
@@ -17,6 +19,16 @@ interface PDFProcessingProgressProps {
  */
 export function PDFProcessingProgress({ pdfId, filename }: PDFProcessingProgressProps) {
   const { progress, status, details, isConnected, error } = usePDFProgress(pdfId);
+
+  // Show toast on connection error (after retries exhausted)
+  useEffect(() => {
+    if (error && !isConnected) {
+      toast.error('Connection lost', {
+        description: 'Real-time updates unavailable. Your PDF is still processing. Refresh the page to check status.',
+        duration: 10000, // Show for 10 seconds
+      });
+    }
+  }, [error, isConnected]);
 
   // Map status codes to user-friendly labels and icons
   const statusConfig: Record<string, { label: string; icon: React.ElementType }> = {
@@ -155,11 +167,25 @@ export function PDFProcessingProgress({ pdfId, filename }: PDFProcessingProgress
         )}
 
         {/* Connection Status Footer */}
-        {!isConnected && !error && (
+        {error && !isConnected ? (
+          <div className="flex items-center gap-2 text-sm text-amber-600 pt-2 border-t border-border">
+            <WifiOff className="h-4 w-4" />
+            <span>
+              Connection lost. Your PDF is still processing.{' '}
+              <button
+                onClick={() => window.location.reload()}
+                className="underline hover:text-amber-700 font-medium"
+              >
+                Refresh page
+              </button>{' '}
+              to check status.
+            </span>
+          </div>
+        ) : !isConnected ? (
           <p className="text-xs text-muted-foreground text-center">
             Reconnecting to live updates...
           </p>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

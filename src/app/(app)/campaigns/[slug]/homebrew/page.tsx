@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BookOpen, Upload, Search } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function CampaignHomebrewPage() {
   const { campaignId } = useCampaign();
@@ -27,20 +28,74 @@ export default function CampaignHomebrewPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Frontend validation
+    if (file.type !== 'application/pdf') {
+      toast.error('Invalid file type', {
+        description: 'Please upload a PDF file (.pdf)',
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      toast.error('File too large', {
+        description: `Maximum file size is 50MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB`,
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('campaignId', campaignId);
 
-      await fetch('/api/homebrew/upload-pdf', {
+      const res = await fetch('/api/homebrew/upload-pdf', {
         method: 'POST',
         body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        // Handle specific error codes
+        if (res.status === 401) {
+          toast.error('Not authenticated', {
+            description: 'Please sign in to upload PDFs',
+          });
+        } else if (res.status === 403) {
+          toast.error('Access denied', {
+            description: 'You do not have permission to upload PDFs to this campaign',
+          });
+        } else if (res.status === 429) {
+          toast.error('Upload limit reached', {
+            description: data.message || 'You have reached your monthly PDF upload limit. Upgrade to Pro for more uploads.',
+          });
+        } else if (res.status === 400) {
+          toast.error('Upload failed', {
+            description: data.message || 'Invalid file or request',
+          });
+        } else {
+          toast.error('Upload failed', {
+            description: data.message || `Server error (${res.status})`,
+          });
+        }
+        return;
+      }
+
+      // Success!
+      toast.success('PDF uploaded successfully', {
+        description: `${file.name} is being processed`,
       });
 
       pdfs.refetch();
     } catch (err) {
       console.error('PDF upload failed:', err);
+      toast.error('Upload failed', {
+        description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
+      });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
