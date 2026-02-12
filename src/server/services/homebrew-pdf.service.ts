@@ -14,7 +14,8 @@ import {
   cancelPDFProcessingJob,
   getQueueStats,
 } from '@/lib/queue/queue';
-import { extractContentWithGemini, saveExtractedContent } from '@/lib/ai/gemini';
+import { extractWithFallback } from '@/lib/ai/extraction';
+import { saveExtractedContent } from '../repositories/homebrew-extraction.repository';
 import { abortJob } from '@/lib/queue/worker';
 import { prisma } from '@/lib/prisma';
 
@@ -337,7 +338,7 @@ export class HomebrewPdfService {
       });
     }
 
-    const extractionResult = await extractContentWithGemini(pdf.markdownContent);
+    const extractionResult = await extractWithFallback(pdf.markdownContent);
 
     if (!extractionResult.success) {
       throw new TRPCError({

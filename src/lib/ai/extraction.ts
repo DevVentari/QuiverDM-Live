@@ -1,9 +1,17 @@
 /**
  * Multi-Provider AI Content Extraction System
  *
- * Supports: Gemini, Anthropic Claude, OpenAI GPT
- * Extracts structured D&D content from markdown
+ * Supports: Gemini, Anthropic Claude, OpenAI GPT, Ollama (local)
+ * Features:
+ * - Robust JSON parsing with fallback for malformed LLM responses
+ * - Provider fallback chain (tries multiple providers on failure)
+ * - Ollama integration for local extraction
+ * - Timeout support via AbortSignal
  */
+
+import { isOllamaAvailable } from './ollama';
+import { parseMarkdown } from '../markdown-parser';
+import { extractBatch } from './ollama-extraction';
 
 export type ExtractionProvider = 'gemini' | 'anthropic' | 'openai' | 'ollama';
 
@@ -20,6 +28,8 @@ export interface ExtractionResult {
   provider: ExtractionProvider;
   error?: string;
 }
+
+const DEFAULT_TIMEOUT_MS = 120_000; // 2 minutes per chunk
 
 const EXTRACTION_PROMPT = `You are a D&D 5e content parser. Extract all homebrew content from the following markdown and return ONLY a JSON array.
 
@@ -84,16 +94,124 @@ IMPORTANT:
 Markdown to parse:
 `;
 
+// =============================================================================
+// Robust JSON Parsing
+// =============================================================================
+
 /**
- * Extract content using Gemini
+ * Parse JSON response from any LLM provider.
+ * Handles common LLM output quirks: code fences, trailing commas,
+ * wrapped objects, and partial JSON recovery.
  */
-async function extractWithGemini(markdown: string): Promise<ExtractionResult> {
+function parseJsonResponse(text: string): ExtractedContent[] {
+  let cleaned = text.trim();
+
+  // Step 1: Strip code fences (```json, ```JSON, ```, etc.)
+  cleaned = stripCodeFences(cleaned);
+
+  // Step 2: Try direct parse
+  const direct = tryParseArray(cleaned);
+  if (direct) return direct;
+
+  // Step 3: Fix trailing commas and retry
+  const fixedCommas = fixTrailingCommas(cleaned);
+  const afterCommaFix = tryParseArray(fixedCommas);
+  if (afterCommaFix) return afterCommaFix;
+
+  // Step 4: Try to extract array from wrapped object (e.g. {"items": [...]})
+  const unwrapped = tryUnwrapObject(fixedCommas);
+  if (unwrapped) return unwrapped;
+
+  // Step 5: Partial recovery — extract individual JSON objects from the text
+  const recovered = recoverPartialItems(fixedCommas);
+  if (recovered.length > 0) {
+    console.warn(`[JSON Parser] Partial recovery: extracted ${recovered.length} items from malformed response`);
+    return recovered;
+  }
+
+  throw new Error('Failed to parse JSON response: no valid items found');
+}
+
+function stripCodeFences(text: string): string {
+  // Handle ```json ... ```, ```JSON ... ```, ``` ... ```
+  const fenceMatch = text.match(/^```(?:json|JSON)?\s*\n?([\s\S]*?)\n?\s*```$/);
+  if (fenceMatch) return fenceMatch[1].trim();
+
+  // Handle only opening fence (LLM forgot to close)
+  if (/^```(?:json|JSON)?\s*\n/.test(text)) {
+    return text.replace(/^```(?:json|JSON)?\s*\n/, '').replace(/\n?\s*```$/, '').trim();
+  }
+
+  return text;
+}
+
+function tryParseArray(text: string): ExtractedContent[] | null {
+  try {
+    const parsed = JSON.parse(text);
+    if (Array.isArray(parsed)) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function fixTrailingCommas(text: string): string {
+  // Remove trailing commas before ] or }
+  return text
+    .replace(/,\s*]/g, ']')
+    .replace(/,\s*}/g, '}');
+}
+
+function tryUnwrapObject(text: string): ExtractedContent[] | null {
+  try {
+    const parsed = JSON.parse(text);
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      // Look for any array value in the object
+      for (const value of Object.values(parsed)) {
+        if (Array.isArray(value) && value.length > 0) {
+          return value;
+        }
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function recoverPartialItems(text: string): ExtractedContent[] {
+  const items: ExtractedContent[] = [];
+  // Match JSON objects that look like extracted content items
+  const objectPattern = /\{[^{}]*"type"\s*:\s*"[^"]+?"[^{}]*"name"\s*:\s*"[^"]+?"[^{}]*\}/g;
+  const matches = text.match(objectPattern);
+
+  if (!matches) return items;
+
+  for (const match of matches) {
+    try {
+      const obj = JSON.parse(fixTrailingCommas(match));
+      if (obj.type && obj.name) {
+        items.push(obj);
+      }
+    } catch {
+      // Skip unparseable items
+    }
+  }
+
+  return items;
+}
+
+// =============================================================================
+// Provider Implementations
+// =============================================================================
+
+async function extractWithGemini(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return { success: false, items: [], provider: 'gemini', error: 'GEMINI_API_KEY not configured' };
   }
 
-  const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+  const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
   const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: 'POST',
@@ -107,6 +225,7 @@ async function extractWithGemini(markdown: string): Promise<ExtractionResult> {
         maxOutputTokens: 8192,
       },
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -123,15 +242,12 @@ async function extractWithGemini(markdown: string): Promise<ExtractionResult> {
   }
 
   const items = parseJsonResponse(textResponse);
-  console.log(`[Gemini] Tokens used: ${tokensUsed}`);
+  console.log(`[Gemini] Extracted ${items.length} items, tokens used: ${tokensUsed}`);
 
   return { success: true, items, tokensUsed, provider: 'gemini' };
 }
 
-/**
- * Extract content using Anthropic Claude
- */
-async function extractWithAnthropic(markdown: string): Promise<ExtractionResult> {
+async function extractWithAnthropic(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return { success: false, items: [], provider: 'anthropic', error: 'ANTHROPIC_API_KEY not configured' };
@@ -148,13 +264,9 @@ async function extractWithAnthropic(markdown: string): Promise<ExtractionResult>
       model: 'claude-sonnet-4-20250514',
       max_tokens: 8192,
       temperature: 0.1,
-      messages: [
-        {
-          role: 'user',
-          content: EXTRACTION_PROMPT + markdown,
-        },
-      ],
+      messages: [{ role: 'user', content: EXTRACTION_PROMPT + markdown }],
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -171,15 +283,12 @@ async function extractWithAnthropic(markdown: string): Promise<ExtractionResult>
   }
 
   const items = parseJsonResponse(textResponse);
-  console.log(`[Anthropic] Tokens used: ${tokensUsed}`);
+  console.log(`[Anthropic] Extracted ${items.length} items, tokens used: ${tokensUsed}`);
 
   return { success: true, items, tokensUsed, provider: 'anthropic' };
 }
 
-/**
- * Extract content using OpenAI GPT
- */
-async function extractWithOpenAI(markdown: string): Promise<ExtractionResult> {
+async function extractWithOpenAI(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return { success: false, items: [], provider: 'openai', error: 'OPENAI_API_KEY not configured' };
@@ -195,13 +304,9 @@ async function extractWithOpenAI(markdown: string): Promise<ExtractionResult> {
       model: 'gpt-4o-mini',
       temperature: 0.1,
       max_tokens: 8192,
-      messages: [
-        {
-          role: 'user',
-          content: EXTRACTION_PROMPT + markdown,
-        },
-      ],
+      messages: [{ role: 'user', content: EXTRACTION_PROMPT + markdown }],
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -218,31 +323,53 @@ async function extractWithOpenAI(markdown: string): Promise<ExtractionResult> {
   }
 
   const items = parseJsonResponse(textResponse);
-  console.log(`[OpenAI] Tokens used: ${tokensUsed}`);
+  console.log(`[OpenAI] Extracted ${items.length} items, tokens used: ${tokensUsed}`);
 
   return { success: true, items, tokensUsed, provider: 'openai' };
 }
 
 /**
- * Parse JSON response from any provider
+ * Extract content using local Ollama.
+ * Uses the section-based extraction from ollama-extraction.ts
+ * and converts results back to ExtractedContent format.
  */
-function parseJsonResponse(text: string): ExtractedContent[] {
-  // Clean up the response - remove markdown code blocks if present
-  let cleanedText = text.trim();
-  if (cleanedText.startsWith('```json')) {
-    cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-  } else if (cleanedText.startsWith('```')) {
-    cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+async function extractWithOllamaProvider(markdown: string): Promise<ExtractionResult> {
+  const available = await isOllamaAvailable();
+  if (!available) {
+    return { success: false, items: [], provider: 'ollama', error: 'Ollama is not running' };
   }
 
-  const parsed = JSON.parse(cleanedText);
+  const parsed = parseMarkdown(markdown);
+  const sections = parsed.sections.filter((s) => s.type !== 'unknown');
 
-  if (!Array.isArray(parsed)) {
-    throw new Error('Response is not an array');
+  if (sections.length === 0) {
+    return { success: true, items: [], provider: 'ollama' };
   }
 
-  return parsed as ExtractedContent[];
+  const batchResult = await extractBatch(sections, { batchSize: 3 });
+
+  // Convert HomebrewContent items to ExtractedContent format
+  const items: ExtractedContent[] = batchResult.items.map((item) => ({
+    type: item.type as ExtractedContent['type'],
+    name: (item.data as any).name || 'Unnamed',
+    data: item.data as Record<string, unknown>,
+  }));
+
+  console.log(`[Ollama] Extracted ${items.length} items from ${sections.length} sections`);
+
+  return {
+    success: items.length > 0 || batchResult.errors.length === 0,
+    items,
+    provider: 'ollama',
+    error: batchResult.errors.length > 0
+      ? batchResult.errors.map((e) => `${e.section}: ${e.error}`).join('; ')
+      : undefined,
+  };
 }
+
+// =============================================================================
+// Chunking
+// =============================================================================
 
 /**
  * Split markdown into chunks that won't exceed token limits
@@ -258,7 +385,6 @@ function chunkMarkdown(markdown: string, maxChunkSize: number = 20000): string[]
   let currentChunk = '';
 
   for (const line of lines) {
-    // If adding this line would exceed the limit, save current chunk and start new one
     if (currentChunk.length + line.length + 1 > maxChunkSize && currentChunk.length > 0) {
       chunks.push(currentChunk);
       currentChunk = line;
@@ -267,7 +393,6 @@ function chunkMarkdown(markdown: string, maxChunkSize: number = 20000): string[]
     }
   }
 
-  // Don't forget the last chunk
   if (currentChunk) {
     chunks.push(currentChunk);
   }
@@ -275,9 +400,13 @@ function chunkMarkdown(markdown: string, maxChunkSize: number = 20000): string[]
   return chunks;
 }
 
+// =============================================================================
+// Public API
+// =============================================================================
+
 /**
- * Main extraction function - supports multiple providers
- * Automatically chunks large documents to avoid token limit issues
+ * Extract content with a specific provider (no fallback).
+ * Automatically chunks large documents.
  */
 export async function extractContent(
   markdown: string,
@@ -286,8 +415,12 @@ export async function extractContent(
   console.log(`[AI Extraction] Starting extraction with ${provider}...`);
   console.log(`[AI Extraction] Markdown length: ${markdown.length} characters`);
 
-  // Chunk large documents to avoid token limit issues
-  const chunks = chunkMarkdown(markdown, 25000); // ~6K tokens per chunk
+  // Ollama uses section-based extraction, doesn't need chunking
+  if (provider === 'ollama') {
+    return extractWithOllamaProvider(markdown);
+  }
+
+  const chunks = chunkMarkdown(markdown, 25000);
   console.log(`[AI Extraction] Split into ${chunks.length} chunks`);
 
   const allItems: ExtractedContent[] = [];
@@ -298,18 +431,19 @@ export async function extractContent(
     for (let i = 0; i < chunks.length; i++) {
       console.log(`[AI Extraction] Processing chunk ${i + 1}/${chunks.length} (${chunks[i].length} chars)`);
 
+      const signal = AbortSignal.timeout(DEFAULT_TIMEOUT_MS);
       let result: ExtractionResult;
 
       switch (provider) {
         case 'anthropic':
-          result = await extractWithAnthropic(chunks[i]);
+          result = await extractWithAnthropic(chunks[i], signal);
           break;
         case 'openai':
-          result = await extractWithOpenAI(chunks[i]);
+          result = await extractWithOpenAI(chunks[i], signal);
           break;
         case 'gemini':
         default:
-          result = await extractWithGemini(chunks[i]);
+          result = await extractWithGemini(chunks[i], signal);
           break;
       }
 
@@ -323,10 +457,7 @@ export async function extractContent(
       }
     }
 
-    console.log(`[AI Extraction] Successfully extracted ${allItems.length} total items with ${provider}`);
-    allItems.forEach((item) => {
-      console.log(`  - ${item.type}: ${item.name}`);
-    });
+    console.log(`[AI Extraction] Extracted ${allItems.length} total items with ${provider}`);
 
     return {
       success: allItems.length > 0 || errors.length === 0,
@@ -348,6 +479,80 @@ export async function extractContent(
 }
 
 /**
+ * Extract content with automatic provider fallback.
+ *
+ * Strategy:
+ * - If Ollama is available AND markdown has <20 sections: try Ollama first → cloud fallback
+ * - Otherwise: try configured cloud provider → other cloud providers → Ollama last
+ */
+export async function extractWithFallback(
+  markdown: string,
+  preferredProvider?: ExtractionProvider
+): Promise<ExtractionResult> {
+  const available = getAvailableProviders();
+  console.log(`[AI Extraction] Available providers: ${available.join(', ')}`);
+
+  // Build fallback chain
+  let chain: ExtractionProvider[];
+
+  if (preferredProvider) {
+    // Put preferred first, then remaining available providers
+    chain = [preferredProvider, ...available.filter((p) => p !== preferredProvider)];
+  } else {
+    // Auto-select: check if Ollama is good for this document
+    const ollamaAvailable = available.includes('ollama') && await isOllamaAvailable();
+    const parsed = parseMarkdown(markdown);
+    const sectionCount = parsed.sections.filter((s) => s.type !== 'unknown').length;
+    const useOllamaFirst = ollamaAvailable && sectionCount > 0 && sectionCount < 20;
+
+    if (useOllamaFirst) {
+      chain = ['ollama', ...available.filter((p) => p !== 'ollama')];
+    } else {
+      // Cloud first, ollama last
+      chain = available.filter((p) => p !== 'ollama');
+      if (ollamaAvailable) chain.push('ollama');
+    }
+  }
+
+  if (chain.length === 0) {
+    return {
+      success: false,
+      items: [],
+      provider: 'gemini',
+      error: 'No AI providers available. Configure at least one API key or start Ollama.',
+    };
+  }
+
+  console.log(`[AI Extraction] Fallback chain: ${chain.join(' → ')}`);
+
+  for (const provider of chain) {
+    try {
+      console.log(`[AI Extraction] Trying provider: ${provider}`);
+      const result = await extractContent(markdown, provider);
+
+      if (result.success) {
+        return result;
+      }
+
+      // Provider returned unsuccessful but didn't throw — log and try next
+      console.warn(`[AI Extraction] ${provider} failed: ${result.error}`);
+    } catch (error) {
+      console.warn(
+        `[AI Extraction] ${provider} threw error:`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  return {
+    success: false,
+    items: [],
+    provider: chain[0],
+    error: `All providers failed: ${chain.join(', ')}`,
+  };
+}
+
+/**
  * Get available providers based on configured API keys
  */
 export function getAvailableProviders(): ExtractionProvider[] {
@@ -356,7 +561,7 @@ export function getAvailableProviders(): ExtractionProvider[] {
   if (process.env.GEMINI_API_KEY) providers.push('gemini');
   if (process.env.ANTHROPIC_API_KEY) providers.push('anthropic');
   if (process.env.OPENAI_API_KEY) providers.push('openai');
-  // Ollama is always available if running locally
+  // Ollama is always listed — availability is checked at runtime
   providers.push('ollama');
 
   return providers;
