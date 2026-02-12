@@ -343,7 +343,9 @@ async function extractWithOllamaProvider(markdown: string): Promise<ExtractionRe
   const sections = parsed.sections.filter((s) => s.type !== 'unknown');
 
   if (sections.length === 0) {
-    return { success: true, items: [], provider: 'ollama' };
+    // No recognized D&D sections — Ollama can't help here, signal failure
+    // so the fallback chain can try cloud providers with the raw prompt approach
+    return { success: false, items: [], provider: 'ollama', error: 'No recognized D&D sections found in markdown' };
   }
 
   const batchResult = await extractBatch(sections, { batchSize: 3 });
@@ -503,7 +505,7 @@ export async function extractWithFallback(
     const ollamaAvailable = available.includes('ollama') && await isOllamaAvailable();
     const parsed = parseMarkdown(markdown);
     const sectionCount = parsed.sections.filter((s) => s.type !== 'unknown').length;
-    const useOllamaFirst = ollamaAvailable && sectionCount > 0 && sectionCount < 20;
+    const useOllamaFirst = ollamaAvailable && sectionCount > 0 && sectionCount <= 20;
 
     if (useOllamaFirst) {
       chain = ['ollama', ...available.filter((p) => p !== 'ollama')];
