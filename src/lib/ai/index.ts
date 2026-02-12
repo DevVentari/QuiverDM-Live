@@ -10,14 +10,9 @@ export {
   type ExtractedContent,
   type ExtractionResult,
   extractContent,
+  extractWithFallback,
   getAvailableProviders,
 } from './extraction';
-
-// Gemini-specific exports
-export {
-  extractContentWithGemini,
-  saveExtractedContent,
-} from './gemini';
 
 // Ollama extraction exports
 export {
@@ -38,3 +33,6 @@ export {
   generateWithOllama,
   extractStructuredData,
 } from './ollama';
+
+// Save function re-exported from repository for convenience
+export { saveExtractedContent } from '../../server/repositories/homebrew-extraction.repository';

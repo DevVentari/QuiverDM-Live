@@ -26,8 +26,8 @@ import type { MarkerProgressUpdate } from '../pdf/marker';
 console.log('[Worker] startPdfToMarkdownConversion function:', typeof startPdfToMarkdownConversion);
 import { getSignedUrl } from '../storage';
 import type { PDFProcessingJobData, PDFProcessingJobResult } from './queue';
-import { saveExtractedContent } from '../ai/gemini';
-import { extractContent, type ExtractionProvider } from '../ai/extraction';
+import { extractWithFallback, type ExtractionProvider } from '../ai/extraction';
+import { saveExtractedContent } from '../../server/repositories/homebrew-extraction.repository';
 import path from 'path';
 import fs from 'fs/promises';
 
@@ -362,60 +362,112 @@ async function processPDFJob(
 
     // Only extract content if useAIExtraction is enabled (defaults to true for backwards compat)
     if (shouldExtract) {
-      // Automatically extract content from markdown using selected provider
-      const extractionProvider: ExtractionProvider = options.llmProvider || 'gemini';
-      console.log(`[Worker] Starting content extraction with ${extractionProvider}...`);
+      const extractionProvider: ExtractionProvider | undefined = options.llmProvider;
+      console.log(`[Worker] Starting content extraction${extractionProvider ? ` with ${extractionProvider}` : ' (auto-select)'}...`);
       broadcastPDFStatus?.(pdfId, 'extracting_content');
 
-      const extractionResult = await extractContent(markdownContent, extractionProvider);
+      try {
+        const extractionResult = await extractWithFallback(markdownContent, extractionProvider);
 
-      if (extractionResult.success && extractionResult.items.length > 0) {
-        console.log(`[Worker] Extracted ${extractionResult.items.length} items, saving to database...`);
+        if (extractionResult.success && extractionResult.items.length > 0) {
+          console.log(`[Worker] Extracted ${extractionResult.items.length} items via ${extractionResult.provider}, saving...`);
+          broadcastPDFStatus?.(pdfId, 'saving_extracted_content', {
+            itemCount: extractionResult.items.length,
+            provider: extractionResult.provider,
+          });
 
-        const saveResult = await saveExtractedContent(
-          extractionResult.items,
-          userId,
-          pdfId,
-          campaignId,
-          prisma
-        );
+          const saveResult = await saveExtractedContent(
+            extractionResult.items,
+            userId,
+            pdfId,
+            campaignId,
+            prisma
+          );
 
-        console.log(`[Worker] Saved ${saveResult.saved} items to homebrew library`);
-        if (saveResult.errors.length > 0) {
-          console.warn(`[Worker] Extraction save errors:`, saveResult.errors);
+          console.log(`[Worker] Saved ${saveResult.saved} items to homebrew library`);
+          if (saveResult.errors.length > 0) {
+            console.warn(`[Worker] Extraction save errors:`, saveResult.errors);
+          }
+
+          // Update metadata with extraction info
+          const updatedMetadata = {
+            ...result.metadata,
+            extractionStatus: 'completed',
+            extractionProvider: extractionResult.provider,
+            extractionTokensUsed: extractionResult.tokensUsed,
+            itemsExtracted: saveResult.saved,
+            extractionErrors: saveResult.errors.length,
+          };
+
+          try {
+            await prisma.homebrewPDF.update({
+              where: { id: pdfId },
+              data: { markerMetadata: updatedMetadata as any },
+            });
+          } catch (dbError: any) {
+            if (dbError.code === 'P2025') {
+              console.log(`[Worker] PDF ${pdfId} was deleted during extraction metadata update`);
+            } else {
+              console.warn(`[Worker] Failed to update extraction metadata:`, dbError);
+            }
+          }
+
+          broadcastPDFStatus?.(pdfId, 'extraction_complete', {
+            itemsExtracted: saveResult.saved,
+            provider: extractionResult.provider,
+          });
+        } else {
+          console.log(`[Worker] No content extracted: ${extractionResult.error || 'No items found'}`);
+
+          // Update metadata to reflect extraction completed but found nothing
+          const updatedMetadata = {
+            ...result.metadata,
+            extractionStatus: extractionResult.success ? 'completed' : 'failed',
+            extractionProvider: extractionResult.provider,
+            extractionError: extractionResult.error || 'No items found',
+            itemsExtracted: 0,
+          };
+
+          try {
+            await prisma.homebrewPDF.update({
+              where: { id: pdfId },
+              data: { markerMetadata: updatedMetadata as any },
+            });
+          } catch (dbError: any) {
+            if (dbError.code !== 'P2025') {
+              console.warn(`[Worker] Failed to update extraction metadata:`, dbError);
+            }
+          }
         }
+      } catch (extractionError) {
+        // Extraction failed but PDF markdown is fine — don't fail the whole job
+        const errorMsg = extractionError instanceof Error ? extractionError.message : String(extractionError);
+        console.error(`[Worker] Content extraction failed: ${errorMsg}`);
 
-        // Update metadata with extraction info
+        // Update metadata to record extraction failure
         const updatedMetadata = {
           ...result.metadata,
-          extractionTokensUsed: extractionResult.tokensUsed,
-          itemsExtracted: saveResult.saved,
-          extractionErrors: saveResult.errors.length,
+          extractionStatus: 'failed',
+          extractionError: errorMsg,
+          itemsExtracted: 0,
         };
 
         try {
           await prisma.homebrewPDF.update({
             where: { id: pdfId },
-            data: {
-              markerMetadata: updatedMetadata as any,
-            },
+            data: { markerMetadata: updatedMetadata as any },
           });
         } catch (dbError: any) {
-          // If record was deleted, just log and continue
-          if (dbError.code === 'P2025') {
-            console.log(`[Worker] PDF ${pdfId} was deleted during extraction metadata update`);
-          } else {
+          if (dbError.code !== 'P2025') {
             console.warn(`[Worker] Failed to update extraction metadata:`, dbError);
           }
         }
 
-        await job.updateProgress(95);
-        broadcastPDFProgress?.(pdfId, 95);
-      } else {
-        console.log(`[Worker] No content extracted or extraction failed: ${extractionResult.error || 'No items found'}`);
-        await job.updateProgress(95);
-        broadcastPDFProgress?.(pdfId, 95);
+        broadcastPDFStatus?.(pdfId, 'extraction_failed', { error: errorMsg });
       }
+
+      await job.updateProgress(95);
+      broadcastPDFProgress?.(pdfId, 95);
     } else {
       console.log(`[Worker] AI extraction disabled, skipping content extraction`);
       await job.updateProgress(95);
