@@ -42,8 +42,8 @@ export default function NewCharacterPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Create Character</h1>
+    <div className="max-w-2xl px-4 sm:px-6 lg:px-8">
+      <h1 className="text-xl sm:text-2xl font-bold mb-6">Create Character</h1>
       <Card>
         <CardHeader>
           <CardTitle>Character Details</CardTitle>
@@ -117,11 +117,11 @@ export default function NewCharacterPage() {
                 rows={6}
               />
             </div>
-            <div className="flex gap-3">
-              <Button type="submit" disabled={create.isPending}>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button type="submit" disabled={create.isPending} className="w-full sm:w-auto">
                 {create.isPending ? 'Creating...' : 'Create Character'}
               </Button>
-              <Button type="button" variant="outline" onClick={() => router.back()}>
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => router.back()}>
                 Cancel
               </Button>
             </div>

@@ -12,9 +12,9 @@ export default function CampaignsPage() {
   const campaigns = trpc.campaigns.getAll.useQuery();
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Campaigns</h1>
+    <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold">Campaigns</h1>
         <Button asChild>
           <Link href="/campaigns/new">
             <Plus className="mr-2 h-4 w-4" />

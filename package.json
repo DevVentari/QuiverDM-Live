@@ -27,7 +27,11 @@
     "generate-invites": "tsx scripts/generate-invite-codes.ts",
     "generate-beta-invites": "tsx scripts/generate-beta-invites.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:seed": "npx prisma db seed"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
