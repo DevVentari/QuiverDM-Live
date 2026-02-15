@@ -1,18 +1,472 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
-import { Upload, Trash2, CheckCircle } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  CheckCircle,
+  Search,
+  FileText,
+  RefreshCw,
+  Sparkles,
+  Play,
+  Clock,
+  Languages,
+  Users,
+  X,
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Format seconds to MM:SS */
+function formatTimestamp(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+/** Format duration in seconds to human-readable */
+function formatDuration(seconds: number): string {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+  return `${mins}m ${secs}s`;
+}
+
+/** Determine if a recording is video or audio based on its type field */
+function isVideoRecording(rec: { type: string; originalUrl: string }): boolean {
+  if (rec.type === 'video') return true;
+  const url = rec.originalUrl.toLowerCase();
+  return url.endsWith('.mp4') || url.endsWith('.mkv') || url.endsWith('.avi') || url.endsWith('.mov') || url.endsWith('.wmv');
+}
+
+// ---------------------------------------------------------------------------
+// Transcript segment type (from timestamps JSON)
+// ---------------------------------------------------------------------------
+interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+  speaker?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+/** Highlight matching text within a string */
+function HighlightedText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) {
+    return <span>{text}</span>;
+  }
+
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const splitRegex = new RegExp(`(${escaped})`, 'gi');
+  const testRegex = new RegExp(`^${escaped}$`, 'i');
+  const parts = text.split(splitRegex);
+
+  return (
+    <span>
+      {parts.map((part, i) =>
+        testRegex.test(part) ? (
+          <mark key={i} className="bg-yellow-500/30 text-foreground rounded-sm px-0.5">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
+}
+
+/** Single recording card with inline media player */
+function RecordingCard({ rec }: { rec: any }) {
+  const [showPlayer, setShowPlayer] = useState(false);
+  const isVideo = isVideoRecording(rec);
+  const canPlay = !rec.originalDeleted && rec.originalUrl;
+
+  return (
+    <Card>
+      <CardContent className="py-3 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium capitalize">{rec.type} recording</p>
+            <p className="text-xs text-muted-foreground">
+              {rec.durationSeconds
+                ? formatDuration(rec.durationSeconds)
+                : 'Duration unknown'}
+              {rec.processingStatus && ` · ${rec.processingStatus}`}
+              {rec.fileSize && ` · ${(rec.fileSize / (1024 * 1024)).toFixed(1)} MB`}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {canPlay && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowPlayer(!showPlayer)}
+              >
+                <Play className="mr-1 h-3 w-3" />
+                {showPlayer ? 'Hide' : 'Play'}
+              </Button>
+            )}
+            <Badge variant="secondary">{rec.processingStatus || 'pending'}</Badge>
+          </div>
+        </div>
+
+        {showPlayer && canPlay && (
+          <div className="rounded-md overflow-hidden border border-border bg-muted/30">
+            {isVideo ? (
+              <video
+                controls
+                preload="metadata"
+                className="w-full max-h-[400px]"
+                src={rec.originalUrl}
+              >
+                Your browser does not support video playback.
+              </video>
+            ) : (
+              <audio
+                controls
+                preload="metadata"
+                className="w-full"
+                src={rec.originalUrl}
+              >
+                Your browser does not support audio playback.
+              </audio>
+            )}
+          </div>
+        )}
+
+        {rec.originalDeleted && (
+          <p className="text-xs text-muted-foreground italic">
+            Original file deleted after transcription.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Transcript viewer section */
+function TranscriptViewer({ sessionId }: { sessionId: string }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const transcripts = trpc.transcript.getSessionTranscripts.useQuery(
+    { sessionId },
+    { refetchOnWindowFocus: false }
+  );
+
+  const transcriptList = (transcripts.data ?? []) as any[];
+
+  // Filter segments based on search query
+  const getFilteredSegments = useCallback(
+    (segments: TranscriptSegment[]): TranscriptSegment[] => {
+      if (!searchQuery.trim()) return segments;
+      return segments.filter((seg) =>
+        seg.text.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    },
+    [searchQuery]
+  );
+
+  if (transcripts.isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Transcripts
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Skeleton className="h-8 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (transcriptList.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Transcripts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            No transcripts yet. Upload a recording and it will be transcribed automatically.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Transcripts
+            <Badge variant="secondary" className="ml-1">
+              {transcriptList.length}
+            </Badge>
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search transcripts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-9"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Transcript entries */}
+        <div className="space-y-4">
+          {transcriptList.map((transcript) => {
+            const segments = (transcript.timestamps ?? []) as TranscriptSegment[];
+            const filteredSegments = getFilteredSegments(segments);
+            const isExpanded = expandedId === transcript.id;
+            const hasTimestamps = segments.length > 0;
+            const displayText = transcript.correctedText || transcript.rawText || '';
+
+            return (
+              <div
+                key={transcript.id}
+                className="border border-border rounded-lg overflow-hidden"
+              >
+                {/* Transcript header */}
+                <div className="bg-muted/30 px-4 py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    {transcript.language && (
+                      <span className="flex items-center gap-1">
+                        <Languages className="h-3 w-3" />
+                        {transcript.language.toUpperCase()}
+                      </span>
+                    )}
+                    {transcript.durationSeconds && (
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatDuration(transcript.durationSeconds)}
+                      </span>
+                    )}
+                    {transcript.hasSpeakers && (
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {(transcript.speakers as any[])?.length ?? 0} speakers
+                      </span>
+                    )}
+                    <span>
+                      {format(new Date(transcript.createdAt), 'MMM d, yyyy h:mm a')}
+                    </span>
+                  </div>
+                  {hasTimestamps && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs h-7"
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : transcript.id)
+                      }
+                    >
+                      {isExpanded ? 'Show full text' : 'Show segments'}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Transcript body */}
+                <div className="px-4 py-3 max-h-[500px] overflow-y-auto">
+                  {isExpanded && hasTimestamps ? (
+                    // Segmented view with timestamps
+                    <div className="space-y-1.5">
+                      {filteredSegments.length === 0 && searchQuery ? (
+                        <p className="text-sm text-muted-foreground italic">
+                          No segments match &quot;{searchQuery}&quot;
+                        </p>
+                      ) : (
+                        filteredSegments.map((seg, idx) => (
+                          <div
+                            key={idx}
+                            className="flex gap-3 text-sm group hover:bg-muted/20 rounded px-1 py-0.5 -mx-1"
+                          >
+                            <span className="text-xs text-muted-foreground font-mono shrink-0 pt-0.5 w-[48px]">
+                              {formatTimestamp(seg.start)}
+                            </span>
+                            {seg.speaker && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] h-5 shrink-0"
+                              >
+                                {seg.speaker}
+                              </Badge>
+                            )}
+                            <span className="text-foreground/90">
+                              <HighlightedText
+                                text={seg.text}
+                                query={searchQuery}
+                              />
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  ) : (
+                    // Full text view
+                    <div className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                      <HighlightedText text={displayText} query={searchQuery} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Search match count */}
+                {searchQuery && isExpanded && hasTimestamps && (
+                  <div className="px-4 py-1.5 border-t border-border bg-muted/20 text-xs text-muted-foreground">
+                    {filteredSegments.length} of {segments.length} segments match
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Session recap section with generate/regenerate */
+function RecapSection({
+  sessionId,
+  recap,
+  isDM,
+}: {
+  sessionId: string;
+  recap: string | null;
+  isDM: boolean;
+}) {
+  const utils = trpc.useUtils();
+
+  const updateSession = trpc.sessions.update.useMutation({
+    onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
+  });
+
+  // TODO: Replace with dedicated recap generation endpoint when available.
+  // Currently there is no AI recap generation endpoint in the tRPC routers,
+  // so the generate/regenerate buttons are disabled with a "Coming soon" label.
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Session Recap
+          </CardTitle>
+          {isDM && (
+            <div className="flex items-center gap-2">
+              {recap ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled
+                  title="AI recap regeneration coming soon"
+                >
+                  <RefreshCw className="mr-1 h-3 w-3" />
+                  Regenerate Recap
+                  <Badge variant="secondary" className="ml-2 text-[10px]">
+                    Coming soon
+                  </Badge>
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled
+                  title="AI recap generation coming soon"
+                >
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  Generate Recap
+                  <Badge variant="secondary" className="ml-2 text-[10px]">
+                    Coming soon
+                  </Badge>
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {recap ? (
+          <div className="prose prose-invert prose-sm max-w-none">
+            <ReactMarkdown>{recap}</ReactMarkdown>
+          </div>
+        ) : isDM ? (
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              No recap yet. Once AI recap generation is available, you can generate one
+              from your session transcripts and notes.
+            </p>
+            <Textarea
+              placeholder="Or write a recap manually..."
+              rows={4}
+              onBlur={(e) => {
+                const value = e.target.value.trim();
+                if (value) {
+                  updateSession.mutate({
+                    id: sessionId,
+                    recap: value,
+                  });
+                }
+              }}
+            />
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No recap available for this session yet.
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
 
 export default function SessionDetailPage() {
   const params = useParams();
@@ -64,7 +518,14 @@ export default function SessionDetailPage() {
   }
 
   if (session.isLoading) {
-    return <Skeleton className="h-64 rounded-lg" />;
+    return (
+      <div className="space-y-6 max-w-4xl">
+        <Skeleton className="h-12 w-2/3" />
+        <Skeleton className="h-32 rounded-lg" />
+        <Skeleton className="h-48 rounded-lg" />
+        <Skeleton className="h-48 rounded-lg" />
+      </div>
+    );
   }
 
   if (!session.data) {
@@ -75,6 +536,7 @@ export default function SessionDetailPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold">
@@ -138,21 +600,16 @@ export default function SessionDetailPage() {
         </Card>
       )}
 
-      {/* Recap */}
-      {data.recap && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Recap</CardTitle>
-          </CardHeader>
-          <CardContent className="prose prose-invert prose-sm max-w-none">
-            <ReactMarkdown>{data.recap}</ReactMarkdown>
-          </CardContent>
-        </Card>
-      )}
+      {/* Recap Section */}
+      <RecapSection
+        sessionId={sessionId}
+        recap={data.recap || null}
+        isDM={isDM}
+      />
 
       <Separator />
 
-      {/* Recordings */}
+      {/* Recordings with Playback */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">Recordings</h3>
@@ -181,26 +638,18 @@ export default function SessionDetailPage() {
         {recordings.data && (recordings.data as any[]).length > 0 ? (
           <div className="space-y-2">
             {(recordings.data as any[]).map((rec) => (
-              <Card key={rec.id}>
-                <CardContent className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="text-sm font-medium">{rec.type} recording</p>
-                    <p className="text-xs text-muted-foreground">
-                      {rec.durationSeconds
-                        ? `${Math.floor(rec.durationSeconds / 60)}m ${rec.durationSeconds % 60}s`
-                        : 'Duration unknown'}
-                      {rec.processingStatus && ` · ${rec.processingStatus}`}
-                    </p>
-                  </div>
-                  <Badge variant="secondary">{rec.processingStatus || 'pending'}</Badge>
-                </CardContent>
-              </Card>
+              <RecordingCard key={rec.id} rec={rec} />
             ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No recordings yet.</p>
         )}
       </div>
+
+      <Separator />
+
+      {/* Transcript Viewer */}
+      <TranscriptViewer sessionId={sessionId} />
     </div>
   );
 }

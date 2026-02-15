@@ -4,8 +4,35 @@ import path from 'path';
 
 export const runtime = 'nodejs';
 
+const CONTENT_TYPE_MAP: Record<string, string> = {
+  '.pdf': 'application/pdf',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.json': 'application/json',
+  '.txt': 'text/plain',
+  // Audio formats
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.ogg': 'audio/ogg',
+  '.flac': 'audio/flac',
+  '.m4a': 'audio/mp4',
+  '.aac': 'audio/aac',
+  '.wma': 'audio/x-ms-wma',
+  '.webm': 'audio/webm',
+  // Video formats
+  '.mp4': 'video/mp4',
+  '.mkv': 'video/x-matroska',
+  '.avi': 'video/x-msvideo',
+  '.mov': 'video/quicktime',
+  '.wmv': 'video/x-ms-wmv',
+};
+
 /**
  * Serve files from local storage
+ * Supports HTTP Range requests for audio/video seeking
  * GET /api/storage/[...path]
  */
 export async function GET(
@@ -32,29 +59,48 @@ export async function GET(
 
     // Get file
     const fileBuffer = await getFromLocal(filePath);
+    const totalSize = fileBuffer.length;
 
     // Determine content type from extension
     const ext = path.extname(filePath).toLowerCase();
-    const contentTypeMap: Record<string, string> = {
-      '.pdf': 'application/pdf',
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.gif': 'image/gif',
-      '.webp': 'image/webp',
-      '.json': 'application/json',
-      '.txt': 'text/plain',
+    const contentType = CONTENT_TYPE_MAP[ext] || 'application/octet-stream';
+    const isMedia = contentType.startsWith('audio/') || contentType.startsWith('video/');
+
+    // Handle Range requests for media files (enables seeking in audio/video players)
+    const rangeHeader = request.headers.get('range');
+    if (isMedia && rangeHeader) {
+      const match = rangeHeader.match(/bytes=(\d+)-(\d*)/);
+      if (match) {
+        const start = parseInt(match[1], 10);
+        const end = match[2] ? parseInt(match[2], 10) : totalSize - 1;
+        const chunkSize = end - start + 1;
+
+        return new NextResponse(new Uint8Array(fileBuffer.subarray(start, end + 1)), {
+          status: 206,
+          headers: {
+            'Content-Type': contentType,
+            'Content-Range': `bytes ${start}-${end}/${totalSize}`,
+            'Content-Length': String(chunkSize),
+            'Accept-Ranges': 'bytes',
+            'Cache-Control': 'public, max-age=31536000',
+          },
+        });
+      }
+    }
+
+    // Return full file
+    const headers: Record<string, string> = {
+      'Content-Type': contentType,
+      'Content-Length': String(totalSize),
+      'Cache-Control': 'public, max-age=31536000',
     };
 
-    const contentType = contentTypeMap[ext] || 'application/octet-stream';
+    // Advertise range support for media files
+    if (isMedia) {
+      headers['Accept-Ranges'] = 'bytes';
+    }
 
-    // Return file
-    return new NextResponse(new Uint8Array(fileBuffer), {
-      headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
-      },
-    });
+    return new NextResponse(new Uint8Array(fileBuffer), { headers });
   } catch (error) {
     console.error('Error serving file:', error);
     return NextResponse.json(
