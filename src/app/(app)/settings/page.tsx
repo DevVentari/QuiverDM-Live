@@ -232,8 +232,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+    <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
 
       {/* Usage & Limits Section */}
       {usage.isLoading ? (

@@ -88,14 +88,14 @@ export default function CharacterDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+    <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button variant="ghost" size="icon" asChild className="self-start">
           <Link href="/characters">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold flex-1">{data.name}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold flex-1">{data.name}</h1>
         <Button
           size="sm"
           variant="destructive"
@@ -116,7 +116,7 @@ export default function CharacterDetailPage() {
             <CardTitle className="text-sm">Ability Scores</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-6 gap-4 text-center text-sm">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm">
               {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => {
                 const key = ability.toLowerCase();
                 const score = (data.abilityScores as any)?.[key] ?? '—';
@@ -232,7 +232,7 @@ export default function CharacterDetailPage() {
                 />
               </div>
             </div>
-            <Button type="submit" disabled={update.isPending}>
+            <Button type="submit" disabled={update.isPending} className="w-full sm:w-auto">
               <Save className="mr-2 h-4 w-4" />
               {update.isPending ? 'Saving...' : 'Save Changes'}
             </Button>

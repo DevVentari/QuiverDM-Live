@@ -36,15 +36,15 @@ export default function PDFDetailPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+    <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button variant="ghost" size="icon" asChild className="self-start">
           <Link href="/homebrew/pdfs">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold">{data.filename}</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold truncate">{data.filename}</h1>
           <p className="text-sm text-muted-foreground">
             {data.fileSize
               ? `${(data.fileSize / 1024 / 1024).toFixed(1)} MB`
