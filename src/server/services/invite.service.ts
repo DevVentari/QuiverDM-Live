@@ -26,7 +26,7 @@ export const inviteService = {
     expiresInDays?: number
   ): Promise<{ codes: string[]; created: number }> {
     if (count < 1 || count > 1000) {
-      throw new ValidationError.forField('count', 'Must be between 1 and 1000');
+      throw ValidationError.forField('count', 'Must be between 1 and 1000');
     }
 
     const codes: string[] = [];
@@ -54,7 +54,7 @@ export const inviteService = {
    */
   async validateCode(code: string): Promise<void> {
     if (!code || code.length < 8) {
-      throw new ValidationError.forField('code', 'Invalid invite code format');
+      throw ValidationError.forField('code', 'Invalid invite code format');
     }
 
     const invite = await inviteRepository.findByCode(code.trim().toUpperCase());
@@ -70,7 +70,7 @@ export const inviteService = {
     }
 
     if (invite.expiresAt && invite.expiresAt < new Date()) {
-      throw new ValidationError.forField(
+      throw ValidationError.forField(
         'code',
         `Invite code expired on ${invite.expiresAt.toISOString().split('T')[0]}`
       );
