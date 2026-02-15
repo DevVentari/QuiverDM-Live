@@ -29,6 +29,7 @@
     "tests",
     "dist",
     "docs/Test",
-    "src/lib/queue/worker.ts"
+    "src/lib/queue/worker.ts",
+    "vitest.config.ts"
   ]
 }
