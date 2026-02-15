@@ -43,6 +43,14 @@ services:
     volumes:
       - meilisearch_data:/meili_data
 
+  docling:
+    image: quay.io/docling-project/docling-serve
+    ports:
+      - "5001:5001"
+    environment:
+      - DOCLING_SERVE_CONCURRENCY=2
+    restart: unless-stopped
+
   ollama:
     image: ollama/ollama:latest
     container_name: quiverdm-ollama

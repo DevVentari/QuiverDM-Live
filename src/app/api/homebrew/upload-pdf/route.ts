@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     // Support both old (useLLM) and new (useAIExtraction + useMarkerLLM) fields
     const useAIExtraction = formData.get('useAIExtraction') === 'true' || formData.get('useLLM') === 'true';
-    // Enable Marker LLM by default for better formatting (can be disabled with useMarkerLLM=false)
+    // Legacy conversion flag retained for backward compatibility (currently ignored by Docling path)
     const useMarkerLLM = formData.get('useMarkerLLM') !== 'false'; // Default TRUE
     const llmProvider = (formData.get('llmProvider') as 'gemini' | 'anthropic' | 'openai') || 'gemini';
 
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
     });
 
     console.log(`[Upload PDF] Database record created: ${pdf.id}`);
-    console.log(`[Upload PDF] Options: useAIExtraction=${useAIExtraction}, useMarkerLLM=${useMarkerLLM}, provider=${llmProvider}`);
+    console.log(`[Upload PDF] Options: useAIExtraction=${useAIExtraction}, legacyUseLLM=${useMarkerLLM}, provider=${llmProvider}`);
 
     // Queue the PDF for processing with BullMQ
     try {
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
         r2Key,
         filename: file.name,
         options: {
-          useLLM: useMarkerLLM, // Only use Marker LLM if explicitly requested (expensive vision)
+          useLLM: useMarkerLLM, // Legacy flag only (kept for payload compatibility)
           useAIExtraction, // Whether to extract D&D content (cheap text model)
           llmProvider,
         },

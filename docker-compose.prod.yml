@@ -23,6 +23,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-quiverdm}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-quiverdm}
       - REDIS_URL=redis://redis:6379
+      - DOCLING_URL=http://docling:5001
       - MEILI_URL=http://meilisearch:7700
     depends_on:
       postgres:
@@ -51,8 +52,22 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      docling:
+        condition: service_started
     volumes:
       - app_storage:/app/local-storage
+
+  # ---------------------------------------------------------------------------
+  # Docling service (PDF -> markdown conversion)
+  # ---------------------------------------------------------------------------
+  docling:
+    image: quay.io/docling-project/docling-serve
+    container_name: quiverdm-docling-prod
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - DOCLING_SERVE_CONCURRENCY=2
 
   # ---------------------------------------------------------------------------
   # PostgreSQL database

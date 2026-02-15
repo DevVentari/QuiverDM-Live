@@ -36,6 +36,15 @@ npm run dev:ws
 npm run worker:pdf
 ```
 
+## Local Services
+
+| Service | Port | Purpose |
+| --- | --- | --- |
+| PostgreSQL | 5433 | Primary application database |
+| Redis | 6380 | BullMQ queue + caching |
+| MeiliSearch | 7701 | Full-text search |
+| Docling | 5001 | PDF-to-markdown conversion |
+
 ## Dev Commands
 
 ```bash
@@ -159,6 +168,7 @@ EMAIL_FROM=
 ADMIN_EMAILS=
 MEILI_URL=
 MEILI_MASTER_KEY=
+DOCLING_URL=
 OLLAMA_BASE_URL=
 ```
 

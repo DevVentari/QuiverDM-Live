@@ -19,11 +19,9 @@ console.log(`  OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? '✅ Set' : '❌ N
 
 import { Worker, Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
-import { startPdfToMarkdownConversion, type MarkerConversionHandle } from '../pdf/marker';
 import { convertPdfWithPdfplumber } from '../pdf/pdfplumber-fallback';
-import type { MarkerProgressUpdate } from '../pdf/marker';
+import { convertWithDocling, isDoclingAvailable } from '../pdf/docling';
 
-console.log('[Worker] startPdfToMarkdownConversion function:', typeof startPdfToMarkdownConversion);
 import { getSignedUrl } from '../storage';
 import type { PDFProcessingJobData, PDFProcessingJobResult } from './queue';
 import { extractWithFallback, type ExtractionProvider } from '../ai/extraction';
@@ -150,27 +148,12 @@ async function processPDFJob(
       anthropic: 'ANTHROPIC_API_KEY',
       openai: 'OPENAI_API_KEY',
     };
-
-    // Check if Marker LLM (expensive vision) is enabled
+    // Legacy flag retained for backward compatibility in request payloads.
+    // Docling conversion does not require or use LLM keys.
     if (options.useLLM) {
-      const provider = options.llmProvider || 'gemini';
-      const requiredKey = providerKeyMap[provider];
-
-      if (!requiredKey) {
-        throw new Error(`Unknown LLM provider: ${provider}`);
-      }
-
-      if (!process.env[requiredKey]) {
-        throw new Error(
-          `Marker LLM enhancement requested but ${requiredKey} is not set. ` +
-          `Please add ${requiredKey} to your .env.local file or disable AI enhancement.`
-        );
-      }
-
-      console.log(`[Worker] Marker LLM (vision) enabled with provider: ${provider}`);
-      console.log(`[Worker] ${requiredKey} is configured ✅`);
+      console.log('[Worker] useLLM=true received (legacy option). Conversion continues via Docling.');
     } else {
-      console.log(`[Worker] Marker LLM disabled - using free OCR for PDF conversion`);
+      console.log('[Worker] Using Docling for PDF conversion');
     }
 
     // Check if AI extraction (cheap text model) is enabled
@@ -190,101 +173,52 @@ async function processPDFJob(
     } else {
       console.log(`[Worker] AI content extraction disabled`);
     }
+    // Convert PDF to Markdown using Docling REST API
+    console.log('[Worker] Converting PDF to Markdown with Docling...');
+    broadcastPDFStatus?.(pdfId, 'pdf_conversion');
 
-    // Convert PDF to Markdown using Marker with streaming progress
-    console.log(`[Worker] Converting PDF to Markdown with Marker (streaming)...`);
-    broadcastPDFStatus?.(pdfId, 'marker_processing');
+    let markdown = '';
+    let pdfMetadata: Record<string, unknown> = {};
 
-    // Track last marker stage for smooth progress updates
-    let lastMarkerProgress = 0;
+    const doclingAvailable = await isDoclingAvailable();
 
-    const conversionHandle = startPdfToMarkdownConversion(
-      tempPdfPath,
-      {
-        useLLM: options.useLLM,
-        llmProvider: options.llmProvider,
-      },
-      // Progress callback for real-time updates
-      (markerUpdate: MarkerProgressUpdate) => {
-        // Map marker stage progress (0-100) to overall job progress (40-85%)
-        // Marker processing takes up 45% of overall job (40% to 85%)
-        const markerContribution = (markerUpdate.stageProgress / 100) * 45;
-        const overallProgress = Math.round(40 + markerContribution);
-
-        // Only update if progress increased (avoid flickering)
-        if (overallProgress > lastMarkerProgress) {
-          lastMarkerProgress = overallProgress;
-          job.updateProgress(overallProgress);
-          broadcastPDFProgress?.(pdfId, overallProgress);
-        }
-
-        // Broadcast detailed stage info
-        broadcastPDFStatus?.(pdfId, markerUpdate.stage, {
-          stageProgress: markerUpdate.stageProgress,
-          detail: markerUpdate.detail,
-          currentPage: markerUpdate.currentPage,
-          totalPages: markerUpdate.totalPages,
+    if (doclingAvailable) {
+      try {
+        const doclingResult = await convertWithDocling(tempPdfPath, (percent) => {
+          // Map Docling progress (0-100) to overall job progress (40-85)
+          const jobPercent = 40 + Math.round(percent * 0.45);
+          job.updateProgress(jobPercent);
+          broadcastPDFProgress?.(pdfId, jobPercent);
         });
-
-        console.log(
-          `[Worker] Marker progress: ${markerUpdate.stage} - ${markerUpdate.stageProgress}% ` +
-          `(${markerUpdate.currentPage || 0}/${markerUpdate.totalPages || 0}) - ${markerUpdate.detail || ''}`
-        );
+        markdown = doclingResult.markdown;
+        pdfMetadata = doclingResult.metadata;
+      } catch (error) {
+        console.error('[Worker] Docling conversion failed, falling back to pdfplumber:', error);
       }
-    );
-
-    // Track conversion handle for abort
-    const currentTracking = activeJobs.get(pdfId);
-    if (currentTracking) {
-      currentTracking.handle = conversionHandle;
+    } else {
+      console.warn('[Worker] Docling not available, using pdfplumber fallback');
     }
 
-    let result;
-    let usedFallback = false;
+    // Fallback to pdfplumber if Docling failed or unavailable
+    if (!markdown) {
+      broadcastPDFStatus?.(pdfId, 'fallback_processing');
+      await job.updateProgress(50);
+      broadcastPDFProgress?.(pdfId, 50);
 
-    try {
-      result = await conversionHandle.promise;
-    } catch (markerError: any) {
-      // Check if this is a crash/access violation error (code 3221225794 = 0xC0000005)
-      const isCrash =
-        markerError.message?.includes('3221225794') ||
-        markerError.message?.includes('segmentation fault') ||
-        markerError.message?.includes('SIGKILL') ||
-        markerError.message?.includes('SIGSEGV') ||
-        markerError.code === 'MARKER_EXECUTION_FAILED';
-
-      if (isCrash) {
-        console.warn('[Worker] Marker crashed, falling back to pdfplumber (MIT)...');
-        console.warn(`[Worker] Original error: ${markerError.message}`);
-
-        // Broadcast fallback status
-        broadcastPDFStatus?.(pdfId, 'fallback_processing');
-        await job.updateProgress(50);
-        broadcastPDFProgress?.(pdfId, 50);
-
-        // Use pdfplumber fallback
-        const fallbackResult = await convertPdfWithPdfplumber(tempPdfPath);
-        result = {
-          markdown: fallbackResult.markdown,
-          metadata: {
-            ...fallbackResult.metadata,
-            usedFallback: true,
-          },
-        };
-        usedFallback = true;
-
-        console.log('[Worker] pdfplumber fallback successful');
-      } else {
-        // Re-throw other errors
-        throw markerError;
-      }
+      const fallbackResult = await convertPdfWithPdfplumber(tempPdfPath);
+      markdown = fallbackResult.markdown;
+      pdfMetadata = {
+        ...pdfMetadata,
+        ...fallbackResult.metadata,
+        usedFallback: true,
+        fallbackProvider: 'pdfplumber',
+      };
     }
 
-    // Add fallback info to metadata
-    if (usedFallback && result.metadata) {
-      (result.metadata as any).usedFallback = true;
-      (result.metadata as any).converter = 'pdfplumber';
-    }
+    const result = {
+      markdown,
+      metadata: pdfMetadata,
+    };
 
     await job.updateProgress(85);
     broadcastPDFProgress?.(pdfId, 85);
@@ -294,7 +228,7 @@ async function processPDFJob(
     await fs.unlink(tempPdfPath).catch(() => {});
 
     if (!result.markdown) {
-      throw new Error('Marker conversion failed - no markdown generated');
+      throw new Error('PDF conversion failed - no markdown generated');
     }
 
     // The markdown content is in result.markdown
@@ -468,31 +402,15 @@ async function processPDFJob(
     if (error instanceof Error) {
       errorMessage = error.message;
 
-      // Provide more helpful error messages for common issues
-      if (errorMessage.includes('MARKER_EXECUTION_FAILED')) {
-        const markerError = error as any;
-        if (markerError.stderr) {
-          // Check for LLM-related errors
-          if (markerError.stderr.includes('API key') || markerError.stderr.includes('authentication')) {
-            errorMessage = 'LLM API key not configured. Please add GEMINI_API_KEY to environment or disable LLM enhancement.';
-          } else if (markerError.stderr.includes('marker_single')) {
-            errorMessage = `Marker command failed: ${markerError.stderr.substring(0, 200)}`;
-          }
-        }
-      } else if (errorMessage.includes('FILE_NOT_FOUND')) {
+      if (errorMessage.includes('FILE_NOT_FOUND')) {
         errorMessage = 'PDF file not found or inaccessible';
       } else if (errorMessage.includes('MARKDOWN_NOT_FOUND')) {
-        errorMessage = 'Marker failed to generate markdown output';
-      } else if (errorMessage.includes('MARKER_ABORTED')) {
-        errorMessage = 'PDF processing was cancelled';
+        errorMessage = 'PDF converter failed to generate markdown output';
       }
     } else if (typeof error === 'object' && error !== null) {
-      // Handle MarkerError objects
-      const markerError = error as any;
-      if (markerError.code === 'MARKER_ABORTED') {
-        errorMessage = 'PDF processing was cancelled';
-      } else if (markerError.message) {
-        errorMessage = markerError.message;
+      const errObj = error as any;
+      if (errObj.message) {
+        errorMessage = errObj.message;
       }
     }
 
@@ -590,7 +508,7 @@ async function gracefulShutdown(worker: Worker) {
 // IMPORTANT: `require.main === module` is unreliable here — when webpack bundles this
 // file as a dependency (via homebrew-pdf.service.ts → abortJob import), HMR re-evaluates
 // it and the check can pass, creating duplicate BullMQ workers inside Next.js dev server.
-// These zombie workers run in webpack context where Marker/pdfplumber spawn() fails.
+// These zombie workers run in webpack context where pdfplumber spawn() fallback can fail.
 // Guard with __webpack_require__ check to ensure we're in real Node.js, not webpack.
 const isWebpack = typeof __webpack_require__ !== 'undefined';
 if (!isWebpack && require.main === module) {
@@ -602,3 +520,5 @@ if (!isWebpack && require.main === module) {
 }
 
 export default startPDFWorker;
+
+
