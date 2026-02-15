@@ -8,6 +8,7 @@ import {
   Swords,
   Users,
   BookOpen,
+  MessageSquare,
   Settings,
   PanelLeftClose,
   PanelLeft,
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/campaigns', label: 'Campaigns', icon: Swords },
   { href: '/characters', label: 'Characters', icon: Users },
   { href: '/homebrew', label: 'Homebrew', icon: BookOpen },
+  { href: '/feedback', label: 'Feedback', icon: MessageSquare },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

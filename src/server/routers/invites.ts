@@ -6,7 +6,8 @@
 import { z } from 'zod';
 import { router, protectedProcedure, publicProcedure } from '../trpc';
 import { inviteService } from '../services/invite.service';
-import { ForbiddenError } from '../errors';
+import { ForbiddenError, BadRequestError } from '../errors';
+import { emailService } from '@/lib/email';
 
 /**
  * Check if user is admin via ADMIN_EMAILS env var
@@ -66,17 +67,47 @@ export const invitesRouter = router({
       z.object({
         count: z.number().min(1).max(1000),
         expiresInDays: z.number().min(1).max(365).optional(),
+        emails: z.array(z.string().email()).max(1000).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       await requireAdmin(ctx.session.user.id);
+
+      if (input.emails && input.emails.length > input.count) {
+        throw new BadRequestError('Number of emails cannot exceed generated code count');
+      }
 
       const result = await inviteService.generateCodes(
         input.count,
         input.expiresInDays
       );
 
-      return result;
+      const recipients = input.emails ?? [];
+      if (recipients.length === 0) {
+        return result;
+      }
+
+      const emailResults = await Promise.allSettled(
+        recipients.map((to, index) =>
+          emailService.sendInviteCodeEmail({
+            to,
+            code: result.codes[index],
+            expiresAt: result.expiresAt,
+          })
+        )
+      );
+
+      const emailSent = emailResults.filter(
+        (entry) =>
+          entry.status === 'fulfilled' &&
+          entry.value.sent
+      ).length;
+
+      return {
+        ...result,
+        emailSent,
+        emailRequested: recipients.length,
+      };
     }),
 
   /**

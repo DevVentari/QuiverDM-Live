@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { emailService } from '@/lib/email';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
@@ -91,6 +92,16 @@ export async function POST(request: Request) {
 
       return newUser;
     });
+
+    // Send welcome email asynchronously; do not fail signup if email delivery fails.
+    if (user.email) {
+      emailService.sendWelcomeEmail({
+        to: user.email,
+        name: user.name,
+      }).catch((emailError) => {
+        console.error('Welcome email failed:', emailError);
+      });
+    }
 
     return NextResponse.json(
       {

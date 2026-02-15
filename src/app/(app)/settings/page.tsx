@@ -9,8 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Eye, EyeOff, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 const keyConfigs = [
   {
@@ -95,9 +96,42 @@ function getTierBadgeVariant(tier: string): 'default' | 'secondary' | 'outline' 
   }
 }
 
+function getSubscriptionBadgeVariant(
+  status: string | null | undefined
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  switch (status) {
+    case 'active':
+      return 'default';
+    case 'past_due':
+      return 'destructive';
+    case 'canceling':
+      return 'secondary';
+    default:
+      return 'outline';
+  }
+}
+
+function getSubscriptionLabel(status: string | null | undefined): string {
+  switch (status) {
+    case 'active':
+      return 'Active';
+    case 'past_due':
+      return 'Past Due';
+    case 'canceling':
+      return 'Canceling';
+    case 'canceled':
+      return 'Canceled';
+    default:
+      return 'None';
+  }
+}
+
 export default function SettingsPage() {
+  const { toast } = useToast();
   const settings = trpc.userSettings.getSettings.useQuery();
   const usage = trpc.usage.getStatus.useQuery();
+  const billingStatus = trpc.billing.getStatus.useQuery();
+  const billingPlans = trpc.billing.getPlans.useQuery();
   const utils = trpc.useUtils();
 
   const updateKeys = trpc.userSettings.updateApiKeys.useMutation({
@@ -108,7 +142,72 @@ export default function SettingsPage() {
     onSuccess: () => utils.userSettings.getSettings.invalidate(),
   });
 
+  const createCheckout = trpc.billing.createCheckout.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data.url;
+    },
+    onError: (error) => {
+      toast({
+        title: 'Checkout failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const createPortal = trpc.billing.createPortal.useMutation({
+    onSuccess: (data) => {
+      window.location.href = data.url;
+    },
+    onError: (error) => {
+      toast({
+        title: 'Portal failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const cancelSubscription = trpc.billing.cancel.useMutation({
+    onSuccess: async () => {
+      toast({
+        title: 'Subscription updated',
+        description: 'Your subscription will cancel at period end.',
+      });
+      await billingStatus.refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Cancellation failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
   const [editing, setEditing] = useState<Record<string, string>>({});
+
+  function handleStartCheckout(priceId: string | null | undefined) {
+    if (!priceId) {
+      toast({
+        title: 'Plan unavailable',
+        description: 'Stripe price ID is not configured.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    createCheckout.mutate({ priceId });
+  }
+
+  function handleCancelSubscription() {
+    const confirmed = window.confirm(
+      'Cancel your subscription at the end of the current billing period?'
+    );
+
+    if (!confirmed) return;
+    cancelSubscription.mutate();
+  }
 
   if (settings.isLoading) {
     return (
@@ -163,17 +262,106 @@ export default function SettingsPage() {
                     {formatTier(usage.data.tier)} Plan
                   </Badge>
                   {usage.data.tier === 'free' && (
-                    <Link href="#">
-                      <Button size="sm" variant="outline">
-                        Upgrade to Pro
-                        <ArrowUpRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </Link>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleStartCheckout(billingPlans.data?.pro.priceId)}
+                      disabled={createCheckout.isPending}
+                    >
+                      {createCheckout.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <ArrowUpRight className="h-4 w-4 mr-1" />
+                      )}
+                      Upgrade to Pro
+                    </Button>
                   )}
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Subscription Status */}
+              {billingStatus.data && (
+                <div className="rounded-lg border bg-muted/50 p-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className="text-muted-foreground">Subscription:</span>
+                    <Badge variant={getSubscriptionBadgeVariant(billingStatus.data.subscriptionStatus)}>
+                      {getSubscriptionLabel(billingStatus.data.subscriptionStatus)}
+                    </Badge>
+                    {billingStatus.data.currentPeriodEnd && (
+                      <span className="text-muted-foreground">
+                        Period ends {new Date(billingStatus.data.currentPeriodEnd).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+
+                  {billingStatus.data.subscriptionStatus === 'past_due' && (
+                    <p className="mt-2 text-destructive">
+                      Payment is past due. Open billing portal to update your payment method.
+                    </p>
+                  )}
+
+                  {billingStatus.data.subscriptionStatus === 'canceling' && (
+                    <p className="mt-2 text-muted-foreground">
+                      Your subscription will remain active until the period end date.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Billing Actions */}
+              <div className="flex flex-wrap gap-2">
+                {usage.data.tier === 'free' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStartCheckout(billingPlans.data?.team.priceId)}
+                    disabled={createCheckout.isPending}
+                  >
+                    Upgrade to Team ({billingPlans.data?.team.displayPrice ?? '$19/mo'})
+                  </Button>
+                )}
+
+                {usage.data.tier === 'pro' && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStartCheckout(billingPlans.data?.team.priceId)}
+                    disabled={createCheckout.isPending}
+                  >
+                    Upgrade to Team ({billingPlans.data?.team.displayPrice ?? '$19/mo'})
+                  </Button>
+                )}
+
+                {billingStatus.data?.hasSubscription && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => createPortal.mutate()}
+                    disabled={createPortal.isPending}
+                  >
+                    {createPortal.isPending && (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    )}
+                    Manage Subscription
+                  </Button>
+                )}
+
+                {billingStatus.data?.hasSubscription && billingStatus.data.subscriptionStatus !== 'canceling' && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={handleCancelSubscription}
+                    disabled={cancelSubscription.isPending}
+                  >
+                    {cancelSubscription.isPending && (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    )}
+                    Cancel Subscription
+                  </Button>
+                )}
+              </div>
+
               {/* Usage Meters Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Campaigns Meter */}

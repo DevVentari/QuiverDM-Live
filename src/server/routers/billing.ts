@@ -11,6 +11,22 @@ import { billingService } from '../services/billing.service';
 
 export const billingRouter = router({
   /**
+   * Get Stripe plan price IDs for client-side checkout initiation.
+   */
+  getPlans: protectedProcedure.query(() => {
+    return {
+      pro: {
+        priceId: process.env.STRIPE_PRO_PRICE_ID ?? null,
+        displayPrice: '$9/mo',
+      },
+      team: {
+        priceId: process.env.STRIPE_TEAM_PRICE_ID ?? null,
+        displayPrice: '$19/mo',
+      },
+    };
+  }),
+
+  /**
    * Get current billing status (tier, subscription state, period end)
    */
   getStatus: protectedProcedure.query(async ({ ctx }) => {

@@ -30,8 +30,10 @@ import { useToast } from '@/hooks/use-toast';
 export default function AdminInvitesPage() {
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [singleEmail, setSingleEmail] = useState('');
   const [bulkCount, setBulkCount] = useState(10);
   const [bulkExpireDays, setBulkExpireDays] = useState<number | undefined>();
+  const [bulkEmails, setBulkEmails] = useState('');
 
   // Queries
   const { data: stats, refetch: refetchStats } = trpc.invites.getStats.useQuery();
@@ -42,12 +44,17 @@ export default function AdminInvitesPage() {
   // Mutations
   const generateSingle = trpc.invites.generate.useMutation({
     onSuccess: (data) => {
+      const sentCount = 'emailSent' in data ? data.emailSent : 0;
+      const requestedCount = 'emailRequested' in data ? data.emailRequested : 0;
       toast({
         title: 'Code generated!',
-        description: `Generated ${data.codes[0]}`,
+        description: requestedCount > 0
+          ? `Generated ${data.codes[0]} and emailed ${sentCount}/${requestedCount}`
+          : `Generated ${data.codes[0]}`,
       });
       refetchStats();
       refetchUnused();
+      setSingleEmail('');
     },
     onError: (error) => {
       toast({
@@ -60,12 +67,17 @@ export default function AdminInvitesPage() {
 
   const generateBulk = trpc.invites.generate.useMutation({
     onSuccess: (data) => {
+      const sentCount = 'emailSent' in data ? data.emailSent : 0;
+      const requestedCount = 'emailRequested' in data ? data.emailRequested : 0;
       toast({
         title: 'Codes generated!',
-        description: `Generated ${data.created} invite codes`,
+        description: requestedCount > 0
+          ? `Generated ${data.created} codes and emailed ${sentCount}/${requestedCount}`
+          : `Generated ${data.created} invite codes`,
       });
       refetchStats();
       refetchUnused();
+      setBulkEmails('');
     },
     onError: (error) => {
       toast({
@@ -95,10 +107,18 @@ export default function AdminInvitesPage() {
   });
 
   const handleGenerateSingle = () => {
-    generateSingle.mutate({ count: 1 });
+    generateSingle.mutate({
+      count: 1,
+      emails: singleEmail.trim() ? [singleEmail.trim()] : undefined,
+    });
   };
 
   const handleGenerateBulk = () => {
+    const recipients = bulkEmails
+      .split(/[\n,]/)
+      .map((email) => email.trim())
+      .filter(Boolean);
+
     if (bulkCount < 1 || bulkCount > 1000) {
       toast({
         title: 'Invalid count',
@@ -107,9 +127,20 @@ export default function AdminInvitesPage() {
       });
       return;
     }
+
+    if (recipients.length > bulkCount) {
+      toast({
+        title: 'Too many emails',
+        description: 'Recipient count cannot exceed generated code count.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     generateBulk.mutate({
       count: bulkCount,
-      expiresInDays: bulkExpireDays
+      expiresInDays: bulkExpireDays,
+      emails: recipients.length > 0 ? recipients : undefined,
     });
   };
 
@@ -203,6 +234,16 @@ export default function AdminInvitesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                <div className="space-y-2 mb-4">
+                  <Label htmlFor="single-email">Email recipient (optional)</Label>
+                  <Input
+                    id="single-email"
+                    type="email"
+                    placeholder="user@example.com"
+                    value={singleEmail}
+                    onChange={(e) => setSingleEmail(e.target.value)}
+                  />
+                </div>
                 <Button
                   onClick={handleGenerateSingle}
                   disabled={generateSingle.isPending}
@@ -259,6 +300,18 @@ export default function AdminInvitesPage() {
                     onChange={(e) =>
                       setBulkExpireDays(e.target.value ? parseInt(e.target.value) : undefined)
                     }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bulk-emails">
+                    Email recipients (optional, comma/newline separated)
+                  </Label>
+                  <Input
+                    id="bulk-emails"
+                    placeholder="alice@example.com, bob@example.com"
+                    value={bulkEmails}
+                    onChange={(e) => setBulkEmails(e.target.value)}
                   />
                 </div>
 
