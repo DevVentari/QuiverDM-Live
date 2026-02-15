@@ -23,7 +23,7 @@ export default function CampaignSettingsPage() {
   const router = useRouter();
   const { campaignId, isOwner } = useCampaign();
   const { toast } = useToast();
-  const campaign = trpc.campaigns.getById.useQuery({ id: campaignId });
+  const campaign = trpc.campaigns.getById.useQuery({ id: campaignId }, { staleTime: 120_000 });
   const utils = trpc.useUtils();
 
   const [name, setName] = useState('');

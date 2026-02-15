@@ -14,8 +14,8 @@ import { Plus, Search, BookUser } from 'lucide-react';
 export default function NPCsPage() {
   const { campaignId, slug, isDM } = useCampaign();
   const [search, setSearch] = useState('');
-  const npcs = trpc.npcs.getAll.useQuery({ campaignId, search: search || undefined });
-  const factions = trpc.npcs.getFactions.useQuery({ campaignId });
+  const npcs = trpc.npcs.getAll.useQuery({ campaignId, search: search || undefined }, { staleTime: 120_000 });
+  const factions = trpc.npcs.getFactions.useQuery({ campaignId }, { staleTime: 120_000 });
 
   return (
     <div className="space-y-4 px-4 sm:px-6 lg:px-8">

@@ -536,7 +536,7 @@ function CompleteStep() {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { data: status, isLoading, error } = trpc.onboarding.getStatus.useQuery();
+  const { data: status, isLoading, error } = trpc.onboarding.getStatus.useQuery(undefined, { staleTime: 300_000 });
 
   const [localStep, setLocalStep] = useState<OnboardingStep | null>(null);
 

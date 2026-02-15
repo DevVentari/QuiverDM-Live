@@ -128,10 +128,10 @@ function getSubscriptionLabel(status: string | null | undefined): string {
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const settings = trpc.userSettings.getSettings.useQuery();
-  const usage = trpc.usage.getStatus.useQuery();
-  const billingStatus = trpc.billing.getStatus.useQuery();
-  const billingPlans = trpc.billing.getPlans.useQuery();
+  const settings = trpc.userSettings.getSettings.useQuery(undefined, { staleTime: 300_000 });
+  const usage = trpc.usage.getStatus.useQuery(undefined, { staleTime: 300_000 });
+  const billingStatus = trpc.billing.getStatus.useQuery(undefined, { staleTime: 300_000 });
+  const billingPlans = trpc.billing.getPlans.useQuery(undefined, { staleTime: 300_000 });
   const utils = trpc.useUtils();
 
   const updateKeys = trpc.userSettings.updateApiKeys.useMutation({

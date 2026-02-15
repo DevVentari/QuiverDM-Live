@@ -22,7 +22,7 @@ export default function EditNPCPage() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const npc = trpc.npcs.getById.useQuery({ id: npcId });
+  const npc = trpc.npcs.getById.useQuery({ id: npcId }, { staleTime: 120_000 });
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [faction, setFaction] = useState('');

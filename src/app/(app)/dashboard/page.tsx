@@ -11,9 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
   const { toast } = useToast();
-  const campaigns = trpc.campaigns.getMyMemberships.useQuery();
-  const characters = trpc.characters.getMyCharacters.useQuery();
-  const invites = trpc.campaigns.getPendingInvites.useQuery();
+  const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, { staleTime: 120_000 });
+  const characters = trpc.characters.getMyCharacters.useQuery(undefined, { staleTime: 120_000 });
+  const invites = trpc.campaigns.getPendingInvites.useQuery(undefined, { staleTime: 10_000 });
   const utils = trpc.useUtils();
 
   const acceptInvite = trpc.campaigns.acceptInvite.useMutation({
