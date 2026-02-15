@@ -24,7 +24,7 @@ export const inviteService = {
   async generateCodes(
     count: number,
     expiresInDays?: number
-  ): Promise<{ codes: string[]; created: number }> {
+  ): Promise<{ codes: string[]; created: number; expiresAt?: Date }> {
     if (count < 1 || count > 1000) {
       throw ValidationError.forField('count', 'Must be between 1 and 1000');
     }
@@ -45,7 +45,7 @@ export const inviteService = {
 
     const created = await inviteRepository.createMany(codes, expiresAt);
 
-    return { codes, created };
+    return { codes, created, expiresAt };
   },
 
   /**

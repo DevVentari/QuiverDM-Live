@@ -1,25 +1,180 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Users, Download, RefreshCw, Loader2, ExternalLink } from 'lucide-react';
 
 export default function CharactersPage() {
+  const { toast } = useToast();
+  const utils = trpc.useUtils();
   const characters = trpc.characters.getMyCharacters.useQuery();
+  const [importOpen, setImportOpen] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [importResult, setImportResult] = useState<{
+    id: string;
+    name: string;
+    race?: string | null;
+    class?: string | null;
+    level?: number | null;
+  } | null>(null);
+
+  const importCharacter = trpc.charactersDndBeyond.importCharacter.useMutation({
+    onSuccess: async (data) => {
+      const imported = data.character as any;
+      await utils.characters.getMyCharacters.invalidate();
+      setImportResult({
+        id: imported.id,
+        name: imported.name,
+        race: imported.race,
+        class: imported.class,
+        level: imported.level,
+      });
+      toast({
+        title: data.created ? 'Character imported' : 'Character updated',
+        description: data.created
+          ? `${imported.name} was imported from D&D Beyond.`
+          : `${imported.name} was synced with latest D&D Beyond data.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Import failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const syncCharacter = trpc.charactersDndBeyond.syncCharacter.useMutation({
+    onSuccess: async (data) => {
+      const synced = data.character as any;
+      await utils.characters.getMyCharacters.invalidate();
+      toast({
+        title: 'Character synced',
+        description: `${synced.name} was synced from D&D Beyond.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Sync failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  function handleImportSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setImportResult(null);
+    importCharacter.mutate({ url: importUrl.trim() });
+  }
 
   return (
     <div className="space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h1 className="text-2xl font-bold">My Characters</h1>
-        <Button asChild>
-          <Link href="/characters/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Character
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Dialog
+            open={importOpen}
+            onOpenChange={(open) => {
+              setImportOpen(open);
+              if (!open) {
+                setImportResult(null);
+                setImportUrl('');
+              }
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" />
+                Import from D&D Beyond
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Character</DialogTitle>
+                <DialogDescription>
+                  Paste your D&D Beyond character URL, for example:
+                  https://www.dndbeyond.com/characters/12345678
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleImportSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="dndbeyond-url">Character URL</Label>
+                  <Input
+                    id="dndbeyond-url"
+                    type="url"
+                    placeholder="https://www.dndbeyond.com/characters/12345678"
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {importResult && (
+                  <div className="rounded-lg border bg-muted/50 p-3 text-sm">
+                    <div className="font-medium">Imported: {importResult.name}</div>
+                    <div className="text-muted-foreground">
+                      {[
+                        importResult.race,
+                        importResult.class,
+                        importResult.level ? `Level ${importResult.level}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' | ') || 'No details'}
+                    </div>
+                  </div>
+                )}
+
+                <DialogFooter>
+                  {importResult ? (
+                    <Button asChild>
+                      <Link href={`/characters/${importResult.id}`}>
+                        View Character
+                        <ExternalLink className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button type="submit" disabled={importCharacter.isPending}>
+                      {importCharacter.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        'Import Character'
+                      )}
+                    </Button>
+                  )}
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
+          <Button asChild>
+            <Link href="/characters/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Character
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {characters.isLoading ? (
@@ -31,25 +186,49 @@ export default function CharactersPage() {
       ) : characters.data && characters.data.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(characters.data as any[]).map((char) => (
-            <Link key={char.id} href={`/characters/${char.id}`}>
-              <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer">
-                <CardHeader>
-                  <CardTitle className="text-base">{char.name}</CardTitle>
-                  <CardDescription>
-                    {[char.race, char.class, char.level && `Level ${char.level}`]
-                      .filter(Boolean)
-                      .join(' · ') || 'No details'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {char.backstory && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {char.backstory}
-                    </p>
+            <Card key={char.id} className="h-full">
+              <CardHeader className="space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-base leading-tight">
+                    <Link
+                      href={`/characters/${char.id}`}
+                      className="hover:underline underline-offset-2"
+                    >
+                      {char.name}
+                    </Link>
+                  </CardTitle>
+                  {char.dndBeyondId && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={syncCharacter.isPending}
+                      onClick={() => syncCharacter.mutate({ characterId: char.id })}
+                      title="Sync from D&D Beyond"
+                    >
+                      {syncCharacter.isPending && syncCharacter.variables?.characterId === char.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                    </Button>
                   )}
-                </CardContent>
-              </Card>
-            </Link>
+                </div>
+                <CardDescription>
+                  {[char.race, char.class, char.level && `Level ${char.level}`]
+                    .filter(Boolean)
+                    .join(' | ') || 'No details'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {char.backstory ? (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {char.backstory}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No backstory added yet.</p>
+                )}
+              </CardContent>
+            </Card>
           ))}
         </div>
       ) : (
