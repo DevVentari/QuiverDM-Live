@@ -19,10 +19,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Scroll } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
 export default function SessionsPage() {
   const { campaignId, slug, isDM } = useCampaign();
+  const { toast } = useToast();
   const sessions = trpc.sessions.getAll.useQuery({ campaignId });
   const utils = trpc.useUtils();
   const [open, setOpen] = useState(false);
@@ -35,6 +37,9 @@ export default function SessionsPage() {
       setOpen(false);
       setTitle('');
       setNotes('');
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 

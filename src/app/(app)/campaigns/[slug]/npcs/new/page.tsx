@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NewNPCPage() {
   const router = useRouter();
@@ -21,9 +22,14 @@ export default function NewNPCPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { toast } = useToast();
+
   const create = trpc.npcs.create.useMutation({
     onSuccess: (data: any) => {
       router.push(`/campaigns/${slug}/npcs/${data.id}`);
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 

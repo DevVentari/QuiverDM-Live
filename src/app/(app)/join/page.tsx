@@ -7,15 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 function JoinForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const [code, setCode] = useState(searchParams.get('code') || '');
 
   const acceptInvite = trpc.members.acceptInvite.useMutation({
     onSuccess: (data: any) => {
       router.push(`/campaigns/${data.campaign?.slug || data.campaignId || '/campaigns'}`);
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 

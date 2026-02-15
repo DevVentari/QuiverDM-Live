@@ -17,10 +17,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CampaignSettingsPage() {
   const router = useRouter();
   const { campaignId, isOwner } = useCampaign();
+  const { toast } = useToast();
   const campaign = trpc.campaigns.getById.useQuery({ id: campaignId });
   const utils = trpc.useUtils();
 
@@ -42,10 +44,16 @@ export default function CampaignSettingsPage() {
       utils.campaigns.getBySlug.invalidate();
       utils.campaigns.getById.invalidate({ id: campaignId });
     },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const deleteCampaign = trpc.campaigns.delete.useMutation({
     onSuccess: () => router.push('/campaigns'),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   function handleSave(e: React.FormEvent) {
@@ -56,6 +64,18 @@ export default function CampaignSettingsPage() {
       description: description || undefined,
       status: status as any,
     });
+  }
+
+  if (campaign.isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <p className="text-destructive font-medium">Failed to load data</p>
+          <p className="text-sm text-muted-foreground">{campaign.error?.message || 'An unexpected error occurred'}</p>
+          <Button variant="outline" onClick={() => campaign.refetch()}>Try Again</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
