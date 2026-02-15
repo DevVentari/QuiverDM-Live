@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function PlayersPage() {
   const { campaignId, isDM } = useCampaign();
   const { toast } = useToast();
-  const characters = trpc.characters.getCampaignCharacters.useQuery({ campaignId });
+  const characters = trpc.characters.getCampaignCharacters.useQuery({ campaignId }, { staleTime: 120_000 });
   const utils = trpc.useUtils();
 
   const approve = trpc.characters.approveCharacter.useMutation({

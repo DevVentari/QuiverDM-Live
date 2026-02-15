@@ -28,7 +28,7 @@ const roleLabels: Record<string, string> = {
 export default function MembersPage() {
   const { campaignId, isOwner, isDM } = useCampaign();
   const { toast } = useToast();
-  const members = trpc.members.getAll.useQuery({ campaignId });
+  const members = trpc.members.getAll.useQuery({ campaignId }, { staleTime: 120_000 });
   const utils = trpc.useUtils();
 
   const updateRole = trpc.members.updateRole.useMutation({

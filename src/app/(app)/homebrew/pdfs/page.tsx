@@ -18,6 +18,7 @@ export default function PDFsPage() {
 
   // Poll every 5s when any PDF is still processing
   const pdfs = trpc.homebrewPdf.getPDFs.useQuery({}, {
+    staleTime: 30_000,
     refetchInterval: (query) => {
       const items = (query.state.data as any)?.items;
       if (!items) return false;

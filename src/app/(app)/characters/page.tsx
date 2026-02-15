@@ -23,7 +23,7 @@ import { Plus, Users, Download, RefreshCw, Loader2, ExternalLink } from 'lucide-
 export default function CharactersPage() {
   const { toast } = useToast();
   const utils = trpc.useUtils();
-  const characters = trpc.characters.getMyCharacters.useQuery();
+  const characters = trpc.characters.getMyCharacters.useQuery(undefined, { staleTime: 120_000 });
   const [importOpen, setImportOpen] = useState(false);
   const [importUrl, setImportUrl] = useState('');
   const [importResult, setImportResult] = useState<{

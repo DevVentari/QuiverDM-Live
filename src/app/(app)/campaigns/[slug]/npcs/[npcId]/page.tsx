@@ -19,7 +19,7 @@ export default function NPCDetailPage() {
   const npcId = params.npcId as string;
 
   const { toast } = useToast();
-  const npc = trpc.npcs.getById.useQuery({ id: npcId });
+  const npc = trpc.npcs.getById.useQuery({ id: npcId }, { staleTime: 120_000 });
   const deleteNpc = trpc.npcs.delete.useMutation({
     onSuccess: () => router.push(`/campaigns/${slug}/npcs`),
     onError: (error) => {

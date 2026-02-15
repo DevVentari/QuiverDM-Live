@@ -20,9 +20,9 @@ export default function CampaignHomebrewPage() {
   const content = trpc.homebrew.getContent.useQuery({
     campaignId,
     search: search || undefined,
-  });
+  }, { staleTime: 30_000 });
 
-  const pdfs = trpc.homebrewPdf.getPDFs.useQuery({ campaignId });
+  const pdfs = trpc.homebrewPdf.getPDFs.useQuery({ campaignId }, { staleTime: 30_000 });
 
   async function handlePdfUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

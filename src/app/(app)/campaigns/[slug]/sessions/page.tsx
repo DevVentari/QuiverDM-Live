@@ -25,7 +25,7 @@ import { format } from 'date-fns';
 export default function SessionsPage() {
   const { campaignId, slug, isDM } = useCampaign();
   const { toast } = useToast();
-  const sessions = trpc.sessions.getAll.useQuery({ campaignId });
+  const sessions = trpc.sessions.getAll.useQuery({ campaignId }, { staleTime: 30_000 });
   const utils = trpc.useUtils();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');

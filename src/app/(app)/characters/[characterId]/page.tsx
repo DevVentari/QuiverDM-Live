@@ -20,7 +20,7 @@ export default function CharacterDetailPage() {
   const { toast } = useToast();
   const characterId = params.characterId as string;
 
-  const character = trpc.characters.getById.useQuery({ id: characterId });
+  const character = trpc.characters.getById.useQuery({ id: characterId }, { staleTime: 120_000 });
   const utils = trpc.useUtils();
 
   const update = trpc.characters.update.useMutation({

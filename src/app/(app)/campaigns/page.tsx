@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Swords } from 'lucide-react';
 
 export default function CampaignsPage() {
-  const campaigns = trpc.campaigns.getAll.useQuery();
+  const campaigns = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 120_000 });
 
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
