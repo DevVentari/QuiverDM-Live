@@ -40,6 +40,7 @@ npm run test:pdf-queue         # PDF queue test
 npm run transcribe:full        # Complete session with speakers
 npm run transcribe:workshop    # Workshop transcription
 npm run generate-invites       # Generate campaign invite codes
+npm run generate-beta-invites  # Generate closed beta invite codes
 ```
 
 ## Services (Docker)
