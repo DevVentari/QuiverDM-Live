@@ -1,0 +1,51 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.*
+!.env.production.example
+.archive
+.worktrees
+.claude
+.mcp.json
+.vscode
+.idea
+
+# Test files
+tests/
+test-documents/
+playwright-report/
+test-results/
+coverage/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Scripts not needed in production image
+scripts/
+
+# Local storage and temp
+local-storage/
+storage/
+uploads/
+temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+dist/
+out/
+build/
