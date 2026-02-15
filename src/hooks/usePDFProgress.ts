@@ -1,155 +1,60 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-
-export interface PDFProgressDetails {
-  stageProgress?: number;
-  detail?: string;
-  currentPage?: number;
-  totalPages?: number;
-  itemsFound?: {
-    spells?: number;
-    items?: number;
-    creatures?: number;
-    races?: number;
-    classes?: number;
-    feats?: number;
-  };
-}
+import { trpc } from '@/lib/trpc';
 
 export interface PDFProgressState {
+  /** 0-100 progress percentage from BullMQ job */
   progress: number;
-  status: string;
-  details: PDFProgressDetails;
-  isConnected: boolean;
+  /** BullMQ job state: waiting, active, completed, failed */
+  jobState: string | null;
+  /** DB processing status: pending, processing, completed, failed */
+  processingStatus: string;
+  /** Whether the PDF is still being processed */
+  isProcessing: boolean;
+  /** Error message if failed */
   error: string | null;
+  /** Refetch the PDF data (call after processing completes) */
+  refetchPdf: () => void;
 }
 
 /**
- * Custom hook to subscribe to real-time PDF processing progress via WebSocket
- *
- * @param pdfId - The ID of the PDF being processed
- * @returns Current progress state with percentage, status, and details
+ * Poll-based hook for PDF processing progress.
+ * Polls getJobStatus every 3s while processing, stops when terminal.
  */
-export function usePDFProgress(pdfId: string | null | undefined): PDFProgressState {
-  const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState('initializing');
-  const [details, setDetails] = useState<PDFProgressDetails>({});
-  const [isConnected, setIsConnected] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectAttemptsRef = useRef(0);
-
-  useEffect(() => {
-    if (!pdfId) {
-      return;
+export function usePDFProgress(pdfId: string): PDFProgressState {
+  const jobStatus = trpc.homebrewPdf.getJobStatus.useQuery(
+    { pdfId },
+    {
+      refetchInterval: (query) => {
+        const data = query.state.data as any;
+        if (!data) return 3000; // Poll while loading
+        const state = data.job?.state;
+        const dbStatus = data.pdf?.processingStatus;
+        // Stop polling when terminal
+        if (state === 'completed' || state === 'failed' || dbStatus === 'completed' || dbStatus === 'failed') {
+          return false;
+        }
+        return 3000; // Poll every 3s
+      },
     }
+  );
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3004';
-    console.log('[usePDFProgress] Attempting to connect to:', wsUrl);
-    console.log('[usePDFProgress] Environment NEXT_PUBLIC_WS_URL:', process.env.NEXT_PUBLIC_WS_URL);
+  const data = jobStatus.data as any;
+  const job = data?.job;
+  const pdf = data?.pdf;
 
-    function connect() {
-      try {
-        console.log('[usePDFProgress] Creating WebSocket connection...');
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-          console.log('[usePDFProgress] ✅ WebSocket connected to', wsUrl);
-          setIsConnected(true);
-          setError(null);
-          reconnectAttemptsRef.current = 0;
-
-          // Subscribe to this PDF's progress updates
-          ws.send(JSON.stringify({
-            type: 'subscribe',
-            jobId: pdfId
-          }));
-          console.log('[usePDFProgress] 📡 Subscribed to PDF:', pdfId);
-        };
-
-        ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-
-            // Only process messages for this PDF
-            if (data.jobId !== pdfId) {
-              return;
-            }
-
-            // Update progress percentage
-            if (data.type === 'pdf_progress' && typeof data.progress === 'number') {
-              setProgress(Math.min(100, Math.max(0, data.progress)));
-            }
-
-            // Update status and details
-            if (data.type === 'pdf_status') {
-              if (data.status) {
-                setStatus(data.status);
-              }
-              if (data.data) {
-                setDetails(prev => ({ ...prev, ...data.data }));
-              }
-            }
-          } catch (err) {
-            console.error('[usePDFProgress] Error parsing WebSocket message:', err);
-          }
-        };
-
-        ws.onerror = (error) => {
-          console.error('[usePDFProgress] WebSocket connection error:', {
-            readyState: ws.readyState,
-            url: wsUrl,
-            error: error
-          });
-          setIsConnected(false);
-        };
-
-        ws.onclose = () => {
-          console.log('[usePDFProgress] WebSocket disconnected');
-          setIsConnected(false);
-          wsRef.current = null;
-
-          // Auto-reconnect with exponential backoff (max 5 attempts)
-          if (reconnectAttemptsRef.current < 5) {
-            const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000);
-            reconnectAttemptsRef.current += 1;
-
-            console.log(`[usePDFProgress] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current}/5)`);
-            reconnectTimeoutRef.current = setTimeout(connect, delay);
-          } else {
-            setError('Failed to connect after 5 attempts');
-          }
-        };
-      } catch (err) {
-        console.error('[usePDFProgress] Failed to create WebSocket:', err);
-        setError('Failed to connect');
-      }
-    }
-
-    // Initial connection
-    connect();
-
-    // Cleanup on unmount or pdfId change
-    return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-      if (wsRef.current) {
-        wsRef.current.close();
-        wsRef.current = null;
-      }
-    };
-  }, [pdfId]);
+  const jobState = job?.state || null;
+  const processingStatus = pdf?.processingStatus || 'pending';
+  const progress = typeof job?.progress === 'number' ? job.progress : 0;
+  const isProcessing = processingStatus === 'pending' || processingStatus === 'processing';
+  const error = job?.failedReason || pdf?.errorMessage || null;
 
   return {
     progress,
-    status,
-    details,
-    isConnected,
+    jobState,
+    processingStatus,
+    isProcessing,
     error,
+    refetchPdf: jobStatus.refetch,
   };
 }

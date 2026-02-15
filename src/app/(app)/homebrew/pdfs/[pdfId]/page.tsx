@@ -1,6 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,17 +18,22 @@ export default function PDFDetailPage() {
   const pdfId = params.pdfId as string;
 
   const pdf = trpc.homebrewPdf.getPDF.useQuery({ pdfId });
-  const job = trpc.homebrewPdf.getJobStatus.useQuery({ pdfId });
+  const data = pdf.data as any;
+
+  const isProcessing = data?.processingStatus === 'pending' || data?.processingStatus === 'processing';
+
+  // Refetch PDF data when processing completes (to get markdown content)
+  const handleComplete = useCallback(() => {
+    pdf.refetch();
+  }, [pdf]);
 
   if (pdf.isLoading) {
     return <Skeleton className="h-96 rounded-lg max-w-4xl" />;
   }
 
-  if (!pdf.data) {
+  if (!data) {
     return <p className="text-destructive">PDF not found</p>;
   }
-
-  const data = pdf.data as any;
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -45,29 +51,16 @@ export default function PDFDetailPage() {
               : ''}
           </p>
         </div>
-        <Badge variant="secondary">{data.status || 'pending'}</Badge>
+        <Badge variant="secondary">{data.processingStatus || 'pending'}</Badge>
       </div>
 
-      {/* Real-time Processing Progress */}
-      {data.processingStatus === 'processing' && (
-        <PDFProcessingProgress pdfId={pdfId} filename={data.filename} />
-      )}
-
-      {/* Job Status (for completed/failed) */}
-      {job.data && data.processingStatus !== 'processing' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Processing Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">
-              Status: <Badge variant="outline">{(job.data as any).status || 'unknown'}</Badge>
-            </p>
-            {(job.data as any).error && (
-              <p className="text-sm text-destructive mt-2">{(job.data as any).error}</p>
-            )}
-          </CardContent>
-        </Card>
+      {/* Processing Progress (shown for pending + processing) */}
+      {isProcessing && (
+        <PDFProcessingProgress
+          pdfId={pdfId}
+          filename={data.filename}
+          onComplete={handleComplete}
+        />
       )}
 
       {/* Markdown Content */}
@@ -82,17 +75,19 @@ export default function PDFDetailPage() {
             </ReactMarkdown>
           </CardContent>
         </Card>
-      ) : (
+      ) : !isProcessing ? (
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">
-              {data.status === 'completed'
+              {data.processingStatus === 'completed'
                 ? 'No markdown content available.'
-                : 'PDF is still being processed...'}
+                : data.processingStatus === 'failed'
+                  ? 'Processing failed. Try re-uploading the PDF.'
+                  : 'No content yet.'}
             </p>
           </CardContent>
         </Card>
-      )}
+      ) : null}
     </div>
   );
 }
