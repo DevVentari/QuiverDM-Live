@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { uploadToLocal, generateLocalFileKey } from '@/lib/storage/local-storage';
-
-// Check if R2 is configured
-const isR2Configured =
-  process.env.R2_ACCOUNT_ID &&
-  process.env.R2_ACCESS_KEY_ID &&
-  process.env.R2_SECRET_ACCESS_KEY &&
-  process.env.R2_BUCKET_NAME;
+import { auth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const campaignId = formData.get('campaignId') as string;
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Generate unique key
     const fileKey = generateLocalFileKey(
-      'temp-user', // TODO: Replace with actual user ID from auth
+      userId,
       campaignId,
       file.name,
       'npc-images'
