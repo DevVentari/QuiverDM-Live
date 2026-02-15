@@ -4,6 +4,7 @@ import { Sidebar, MobileSidebar } from '@/components/sidebar';
 import { UserMenu } from '@/components/user-menu';
 import { OnboardingCheck } from '@/components/onboarding-check';
 import { ErrorBoundary } from '@/components/error-boundary';
+import { NavigationProgress } from '@/components/navigation-progress';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
@@ -11,6 +12,7 @@ import { Menu } from 'lucide-react';
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <OnboardingCheck>
+      <NavigationProgress />
       <div className="flex h-screen overflow-hidden">
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">

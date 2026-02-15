@@ -173,7 +173,7 @@ function TranscriptViewer({ sessionId }: { sessionId: string }) {
 
   const transcripts = trpc.transcript.getSessionTranscripts.useQuery(
     { sessionId },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, staleTime: 30_000 }
   );
 
   const transcriptList = (transcripts.data ?? []) as any[];
@@ -500,8 +500,8 @@ export default function SessionDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const session = trpc.sessions.getById.useQuery({ id: sessionId });
-  const recordings = trpc.sessionRecordings.getBySessionId.useQuery({ sessionId });
+  const session = trpc.sessions.getById.useQuery({ id: sessionId }, { staleTime: 30_000 });
+  const recordings = trpc.sessionRecordings.getBySessionId.useQuery({ sessionId }, { staleTime: 30_000 });
   const utils = trpc.useUtils();
 
   const updateSession = trpc.sessions.update.useMutation({

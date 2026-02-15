@@ -62,7 +62,7 @@ export default function FeedbackPage() {
   const [description, setDescription] = useState('');
   const [rating, setRating] = useState<number>(0);
 
-  const feedbackList = trpc.feedback.getMyFeedback.useQuery({ limit: 50 });
+  const feedbackList = trpc.feedback.getMyFeedback.useQuery({ limit: 50 }, { staleTime: 10_000 });
 
   const createFeedback = trpc.feedback.create.useMutation({
     onSuccess: async () => {
