@@ -1,50 +1,46 @@
 import { router } from '../trpc';
-// import { whisperRouter } from './whisper'; // Disabled - using WhisperX instead
 import { sessionTranscriptionRouter } from './session-transcription';
 import { sessionRecordingsRouter } from './session-recordings';
 import { transcriptRouter } from './transcript';
 import { campaignsRouter } from './campaigns';
 import { sessionsRouter } from './sessions';
-import { npcsRouter} from './npcs';
+import { npcsRouter } from './npcs';
 import { playersRouter } from './players';
-import { homebrewRouter } from './homebrew'; // Re-enabled for content queries
-import { homebrewDndBeyondRouter } from './homebrew-dndbeyond'; // D&D Beyond integration
-import { homebrewPdfRouter } from './homebrew-pdf'; // PDF to Markdown conversion
-import { homebrewExtractionRouter } from './homebrew-extraction'; // Ollama-based extraction
-// import { doclingRouter } from './docling'; // REMOVED - PDF parsing functionality removed
+import { homebrewRouter } from './homebrew';
+import { homebrewDndBeyondRouter } from './homebrew-dndbeyond';
+import { homebrewPdfRouter } from './homebrew-pdf';
+import { homebrewExtractionRouter } from './homebrew-extraction';
 import { userSettingsRouter } from './user-settings';
-import { membersRouter } from './members'; // Campaign membership management
-import { charactersRouter } from './characters'; // Player-owned characters
-import { charactersDndBeyondRouter } from './characters-dndbeyond'; // D&D Beyond character import
-import { invitesRouter } from './invites'; // Closed beta invite codes
-import { onboardingRouter } from './onboarding'; // User onboarding flow
-import { feedbackRouter } from './feedback'; // Beta feedback collection
-import { usageRouter } from './usage'; // Usage limits and quotas
-import { billingRouter } from './billing'; // Stripe billing and subscriptions
+import { membersRouter } from './members';
+import { charactersRouter } from './characters';
+import { charactersDndBeyondRouter } from './characters-dndbeyond';
+import { invitesRouter } from './invites';
+import { onboardingRouter } from './onboarding';
+import { feedbackRouter } from './feedback';
+import { usageRouter } from './usage';
+import { billingRouter } from './billing';
 
 export const appRouter = router({
-  // whisper: whisperRouter, // Disabled - using WhisperX instead
   campaigns: campaignsRouter,
   sessions: sessionsRouter,
   npcs: npcsRouter,
   players: playersRouter,
-  characters: charactersRouter, // Player-owned character management
-  charactersDndBeyond: charactersDndBeyondRouter, // D&D Beyond character import
+  characters: charactersRouter,
+  charactersDndBeyond: charactersDndBeyondRouter,
   sessionTranscription: sessionTranscriptionRouter,
   sessionRecordings: sessionRecordingsRouter,
   transcript: transcriptRouter,
-  homebrew: homebrewRouter, // Manual homebrew content management
-  homebrewDndBeyond: homebrewDndBeyondRouter, // D&D Beyond integration
-  homebrewPdf: homebrewPdfRouter, // PDF management and Marker conversion
-  homebrewExtraction: homebrewExtractionRouter, // Ollama-based extraction
-  // docling: doclingRouter, // REMOVED - PDF parsing functionality removed
+  homebrew: homebrewRouter,
+  homebrewDndBeyond: homebrewDndBeyondRouter,
+  homebrewPdf: homebrewPdfRouter,
+  homebrewExtraction: homebrewExtractionRouter,
   userSettings: userSettingsRouter,
-  members: membersRouter, // Campaign membership management
-  invites: invitesRouter, // Closed beta invite codes
-  onboarding: onboardingRouter, // User onboarding flow
-  feedback: feedbackRouter, // Beta feedback collection
-  usage: usageRouter, // Usage limits and quotas
-  billing: billingRouter, // Stripe billing and subscriptions
+  members: membersRouter,
+  invites: invitesRouter,
+  onboarding: onboardingRouter,
+  feedback: feedbackRouter,
+  usage: usageRouter,
+  billing: billingRouter,
 });
 
 export type AppRouter = typeof appRouter;

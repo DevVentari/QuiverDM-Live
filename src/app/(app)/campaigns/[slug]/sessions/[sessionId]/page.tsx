@@ -374,10 +374,12 @@ function TranscriptViewer({ sessionId }: { sessionId: string }) {
 /** Session recap section with generate/regenerate */
 function RecapSection({
   sessionId,
+  campaignId,
   recap,
   isDM,
 }: {
   sessionId: string;
+  campaignId: string;
   recap: string | null;
   isDM: boolean;
 }) {
@@ -387,9 +389,9 @@ function RecapSection({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
   });
 
-  // TODO: Replace with dedicated recap generation endpoint when available.
-  // Currently there is no AI recap generation endpoint in the tRPC routers,
-  // so the generate/regenerate buttons are disabled with a "Coming soon" label.
+  const generateRecap = trpc.sessions.generateRecap.useMutation({
+    onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
+  });
 
   return (
     <Card>
@@ -405,27 +407,37 @@ function RecapSection({
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled
-                  title="AI recap regeneration coming soon"
+                  disabled={generateRecap.isPending}
+                  onClick={() =>
+                    generateRecap.mutate({ campaignId, sessionId })
+                  }
                 >
-                  <RefreshCw className="mr-1 h-3 w-3" />
-                  Regenerate Recap
-                  <Badge variant="secondary" className="ml-2 text-[10px]">
-                    Coming soon
-                  </Badge>
+                  {generateRecap.isPending ? (
+                    <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-1 h-3 w-3" />
+                  )}
+                  {generateRecap.isPending
+                    ? 'Regenerating...'
+                    : 'Regenerate Recap'}
                 </Button>
               ) : (
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled
-                  title="AI recap generation coming soon"
+                  disabled={generateRecap.isPending}
+                  onClick={() =>
+                    generateRecap.mutate({ campaignId, sessionId })
+                  }
                 >
-                  <Sparkles className="mr-1 h-3 w-3" />
-                  Generate Recap
-                  <Badge variant="secondary" className="ml-2 text-[10px]">
-                    Coming soon
-                  </Badge>
+                  {generateRecap.isPending ? (
+                    <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-1 h-3 w-3" />
+                  )}
+                  {generateRecap.isPending
+                    ? 'Generating...'
+                    : 'Generate Recap'}
                 </Button>
               )}
             </div>
@@ -433,6 +445,11 @@ function RecapSection({
         </div>
       </CardHeader>
       <CardContent>
+        {generateRecap.isError && (
+          <p className="text-sm text-destructive mb-3">
+            {generateRecap.error.message}
+          </p>
+        )}
         {recap ? (
           <div className="prose prose-invert prose-sm max-w-none">
             <ReactMarkdown>{recap}</ReactMarkdown>
@@ -440,8 +457,7 @@ function RecapSection({
         ) : isDM ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              No recap yet. Once AI recap generation is available, you can generate one
-              from your session transcripts and notes.
+              No recap yet. Generate one from your session transcripts or write one manually.
             </p>
             <Textarea
               placeholder="Or write a recap manually..."
@@ -611,6 +627,7 @@ export default function SessionDetailPage() {
       {/* Recap Section */}
       <RecapSection
         sessionId={sessionId}
+        campaignId={campaignId}
         recap={data.recap || null}
         isDM={isDM}
       />
