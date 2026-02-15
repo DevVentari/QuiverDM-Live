@@ -12,10 +12,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, Save, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CharacterDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const characterId = params.characterId as string;
 
   const character = trpc.characters.getById.useQuery({ id: characterId });
@@ -23,10 +25,16 @@ export default function CharacterDetailPage() {
 
   const update = trpc.characters.update.useMutation({
     onSuccess: () => utils.characters.getById.invalidate({ id: characterId }),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const deleteChar = trpc.characters.delete.useMutation({
     onSuccess: () => router.push('/characters'),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const [form, setForm] = useState({
@@ -62,6 +70,18 @@ export default function CharacterDetailPage() {
 
   if (character.isLoading) {
     return <Skeleton className="h-96 rounded-lg max-w-2xl" />;
+  }
+
+  if (character.isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <p className="text-destructive font-medium">Failed to load data</p>
+          <p className="text-sm text-muted-foreground">{character.error?.message || 'An unexpected error occurred'}</p>
+          <Button variant="outline" onClick={() => character.refetch()}>Try Again</Button>
+        </div>
+      </div>
+    );
   }
 
   if (!character.data) {

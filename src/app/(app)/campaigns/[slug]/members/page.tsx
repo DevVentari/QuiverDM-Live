@@ -16,6 +16,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserMinus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const roleLabels: Record<string, string> = {
   OWNER: 'Owner',
@@ -26,15 +27,22 @@ const roleLabels: Record<string, string> = {
 
 export default function MembersPage() {
   const { campaignId, isOwner, isDM } = useCampaign();
+  const { toast } = useToast();
   const members = trpc.members.getAll.useQuery({ campaignId });
   const utils = trpc.useUtils();
 
   const updateRole = trpc.members.updateRole.useMutation({
     onSuccess: () => utils.members.getAll.invalidate({ campaignId }),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const removeMember = trpc.members.remove.useMutation({
     onSuccess: () => utils.members.getAll.invalidate({ campaignId }),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   if (members.isLoading) {
@@ -43,6 +51,18 @@ export default function MembersPage() {
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-16 rounded-lg" />
         ))}
+      </div>
+    );
+  }
+
+  if (members.isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <p className="text-destructive font-medium">Failed to load data</p>
+          <p className="text-sm text-muted-foreground">{members.error?.message || 'An unexpected error occurred'}</p>
+          <Button variant="outline" onClick={() => members.refetch()}>Try Again</Button>
+        </div>
       </div>
     );
   }
