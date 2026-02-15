@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, ArrowLeft } from 'lucide-react';
+import { Trash2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 
 export default function NPCDetailPage() {
@@ -48,17 +48,25 @@ export default function NPCDetailPage() {
           )}
         </div>
         {isDM && (
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={() => {
-              if (confirm('Delete this NPC?')) {
-                deleteNpc.mutate({ id: npcId });
-              }
-            }}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" asChild>
+              <Link href={`/campaigns/${slug}/npcs/${npcId}/edit`}>
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                if (confirm('Delete this NPC?')) {
+                  deleteNpc.mutate({ id: npcId });
+                }
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </div>
 

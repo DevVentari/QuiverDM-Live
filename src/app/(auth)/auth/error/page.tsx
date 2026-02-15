@@ -22,7 +22,7 @@ function AuthErrorContent() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <Link href="/" className="font-display text-2xl font-bold text-foreground mb-2 block">
+        <Link href="/auth/signin" className="font-display text-2xl font-bold text-foreground mb-2 block">
           QuiverDM
         </Link>
         <CardTitle className="text-xl">Authentication Error</CardTitle>
@@ -33,7 +33,7 @@ function AuthErrorContent() {
           <Link href="/auth/signin">Try Again</Link>
         </Button>
         <Button variant="outline" asChild>
-          <Link href="/">Back to Home</Link>
+          <Link href="/auth/signin">Back to Sign In</Link>
         </Button>
       </CardContent>
     </Card>

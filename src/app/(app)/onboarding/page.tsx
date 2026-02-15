@@ -460,7 +460,7 @@ function CompleteStep() {
         <div className="flex justify-center mb-4">
           <CheckCircle2 className="h-12 w-12 text-primary" />
         </div>
-        <CardTitle className="text-2xl">You're All Set</CardTitle>
+        <CardTitle className="text-2xl">You&apos;re All Set</CardTitle>
         <CardDescription className="text-base mt-2">
           Your account is ready. Here is what you can do next.
         </CardDescription>

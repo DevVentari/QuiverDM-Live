@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,8 +21,8 @@ export async function GET() {
   // Read version from package.json — use a fallback if not available
   let version = '0.0.0';
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pkg = require('../../../../package.json');
+    const pkgPath = join(process.cwd(), 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as { version?: string };
     version = pkg.version || version;
   } catch {
     // package.json may not be available in standalone builds
