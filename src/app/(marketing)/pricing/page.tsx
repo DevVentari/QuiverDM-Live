@@ -1,8 +1,14 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Minus } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Pricing',
+  description: 'Choose the right QuiverDM plan. Free for casual DMs, Pro for active campaigns, Team for D&D groups.',
+};
 
 const tiers = [
   {

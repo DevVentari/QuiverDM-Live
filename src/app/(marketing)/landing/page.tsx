@@ -1,7 +1,13 @@
+import { Metadata } from 'next';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Scroll, Users, BookOpen, Swords } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'QuiverDM — Stop Taking Notes, Start Telling Stories',
+  description: 'AI-powered D&D session management. Automatic transcription, NPC tracking, homebrew content extraction, and campaign organization for Dungeon Masters.',
+};
 
 export default async function HomePage() {
   const session = await auth();

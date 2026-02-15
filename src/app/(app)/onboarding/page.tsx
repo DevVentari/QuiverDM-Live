@@ -26,6 +26,7 @@ import {
   Sparkles,
   Mic,
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 type OnboardingStep = 'welcome' | 'profile' | 'first_campaign' | 'complete';
 
@@ -61,8 +62,12 @@ function StepIndicator({ currentStep }: { currentStep: OnboardingStep }) {
 }
 
 function WelcomeStep({ onNext }: { onNext: () => void }) {
+  const { toast } = useToast();
   const completeWelcome = trpc.onboarding.completeWelcome.useMutation({
     onSuccess: onNext,
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   return (
@@ -129,15 +134,22 @@ function ProfileStep({
   onNext: () => void;
   onSkip: () => void;
 }) {
+  const { toast } = useToast();
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
 
   const completeProfile = trpc.onboarding.completeProfile.useMutation({
     onSuccess: onNext,
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const skipOnboarding = trpc.onboarding.skip.useMutation({
     onSuccess: onSkip,
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   function handleSubmit(e: React.FormEvent) {
@@ -233,17 +245,24 @@ function FirstCampaignStep({
   onNext: () => void;
   onSkip: () => void;
 }) {
+  const { toast } = useToast();
   const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose');
   const [campaignName, setCampaignName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
 
   const completeFirstCampaign = trpc.onboarding.completeFirstCampaign.useMutation({
     onSuccess: onNext,
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const createCampaign = trpc.campaigns.create.useMutation({
     onSuccess: () => {
       completeFirstCampaign.mutate();
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -251,10 +270,16 @@ function FirstCampaignStep({
     onSuccess: () => {
       completeFirstCampaign.mutate();
     },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const skipOnboarding = trpc.onboarding.skip.useMutation({
     onSuccess: onSkip,
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const isPending =

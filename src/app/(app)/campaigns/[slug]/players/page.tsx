@@ -6,14 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PlayersPage() {
   const { campaignId, isDM } = useCampaign();
+  const { toast } = useToast();
   const characters = trpc.characters.getCampaignCharacters.useQuery({ campaignId });
   const utils = trpc.useUtils();
 
   const approve = trpc.characters.approveCharacter.useMutation({
     onSuccess: () => utils.characters.getCampaignCharacters.invalidate({ campaignId }),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   if (characters.isLoading) {
