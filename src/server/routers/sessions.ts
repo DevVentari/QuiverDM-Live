@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
 import { sessionService } from '../services/session.service';
 
@@ -114,4 +114,23 @@ export const sessionsRouter = router({
         recap: input.recap,
       })
     ),
+
+  /**
+   * Generate AI recap from session transcripts
+   * Requires DM access (OWNER or CO_DM)
+   */
+  generateRecap: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+        sessionId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const recap = await sessionService.generateRecap(
+        input.sessionId,
+        ctx.session.user.id
+      );
+      return { recap };
+    }),
 });
