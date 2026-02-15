@@ -45,8 +45,8 @@ export default function PlayersPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-lg font-semibold">Party</h2>
+    <div className="space-y-4 px-4 sm:px-6 lg:px-8">
+      <h2 className="text-lg sm:text-xl font-semibold">Party</h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {chars.map((cc) => {
           const char = cc.character || cc;

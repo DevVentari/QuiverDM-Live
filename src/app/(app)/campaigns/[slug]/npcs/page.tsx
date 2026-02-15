@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Search, Users } from 'lucide-react';
+import { Plus, Search, BookUser } from 'lucide-react';
 
 export default function NPCsPage() {
   const { campaignId, slug, isDM } = useCampaign();
@@ -18,9 +18,9 @@ export default function NPCsPage() {
   const factions = trpc.npcs.getFactions.useQuery({ campaignId });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">NPCs</h2>
+        <h2 className="text-lg sm:text-xl font-semibold">NPCs</h2>
         {isDM && (
           <Button asChild size="sm">
             <Link href={`/campaigns/${slug}/npcs/new`}>
@@ -88,9 +88,20 @@ export default function NPCsPage() {
         </div>
       ) : (
         <Card>
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <Users className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No NPCs yet.</p>
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <BookUser className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium">No NPCs yet</h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+              Create NPCs to track the characters your party encounters throughout the campaign.
+            </p>
+            {isDM && (
+              <Button asChild className="mt-4" size="sm">
+                <Link href={`/campaigns/${slug}/npcs/new`}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create First NPC
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}

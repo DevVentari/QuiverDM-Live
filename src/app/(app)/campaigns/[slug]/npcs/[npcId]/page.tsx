@@ -51,22 +51,22 @@ export default function NPCDetailPage() {
   const stats = data.stats as any;
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
+    <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <Button variant="ghost" size="icon" asChild className="self-start">
           <Link href={`/campaigns/${slug}/npcs`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <div className="flex-1">
-          <h2 className="text-xl font-bold">{data.name}</h2>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl sm:text-2xl font-bold">{data.name}</h2>
           {data.faction && (
             <Badge variant="outline" className="mt-1">{data.faction}</Badge>
           )}
         </div>
         {isDM && (
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" asChild>
+            <Button size="sm" variant="outline" className="w-full sm:w-auto" asChild>
               <Link href={`/campaigns/${slug}/npcs/${npcId}/edit`}>
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
@@ -75,6 +75,7 @@ export default function NPCDetailPage() {
             <Button
               size="sm"
               variant="destructive"
+              className="w-full sm:w-auto"
               onClick={() => {
                 if (confirm('Delete this NPC?')) {
                   deleteNpc.mutate({ id: npcId });
@@ -91,7 +92,7 @@ export default function NPCDetailPage() {
         <img
           src={data.imageUrl}
           alt={data.name}
-          className="w-32 h-32 rounded-lg object-cover"
+          className="w-full sm:w-32 h-48 sm:h-32 rounded-lg object-cover"
         />
       )}
 
@@ -125,7 +126,7 @@ export default function NPCDetailPage() {
               <CardTitle className="text-sm">Stat Block</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-6 gap-4 text-center text-sm">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm">
                 {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => {
                   const key = ability.toLowerCase();
                   const score = stats.abilityScores?.[key] ?? stats[key] ?? '—';
