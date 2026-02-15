@@ -27,7 +27,7 @@ function JoinForm() {
   }
 
   return (
-    <div className="max-w-md mx-auto">
+    <div className="max-w-md mx-auto px-4 sm:px-6">
       <Card>
         <CardHeader>
           <CardTitle>Join a Campaign</CardTitle>

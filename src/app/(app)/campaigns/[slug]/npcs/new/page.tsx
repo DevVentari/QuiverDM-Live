@@ -63,8 +63,8 @@ export default function NewNPCPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h2 className="text-xl font-bold mb-6">Create NPC</h2>
+    <div className="max-w-2xl px-4 sm:px-6 lg:px-8">
+      <h2 className="text-xl sm:text-2xl font-bold mb-6">Create NPC</h2>
       <Card>
         <CardHeader>
           <CardTitle>NPC Details</CardTitle>
@@ -117,7 +117,7 @@ export default function NewNPCPage() {
             </div>
             <div className="space-y-2">
               <Label>Image</Label>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -139,11 +139,11 @@ export default function NewNPCPage() {
                 )}
               </div>
             </div>
-            <div className="flex gap-3">
-              <Button type="submit" disabled={create.isPending}>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button type="submit" disabled={create.isPending} className="w-full sm:w-auto">
                 {create.isPending ? 'Creating...' : 'Create NPC'}
               </Button>
-              <Button type="button" variant="outline" onClick={() => router.back()}>
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => router.back()}>
                 Cancel
               </Button>
             </div>

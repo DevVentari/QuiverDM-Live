@@ -25,7 +25,11 @@
     "setup:stripe": "tsx scripts/setup-stripe.ts",
     "check:launch": "tsx scripts/pre-launch-check.ts",
     "generate-invites": "tsx scripts/generate-invite-codes.ts",
-    "generate-beta-invites": "tsx scripts/generate-beta-invites.ts"
+    "generate-beta-invites": "tsx scripts/generate-beta-invites.ts",
+    "db:seed": "npx prisma db seed"
+  },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",

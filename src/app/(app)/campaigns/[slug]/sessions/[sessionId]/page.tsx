@@ -104,7 +104,7 @@ function RecordingCard({ rec }: { rec: any }) {
   return (
     <Card>
       <CardContent className="py-3 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
             <p className="text-sm font-medium capitalize">{rec.type} recording</p>
             <p className="text-xs text-muted-foreground">
@@ -271,8 +271,8 @@ function TranscriptViewer({ sessionId }: { sessionId: string }) {
                 className="border border-border rounded-lg overflow-hidden"
               >
                 {/* Transcript header */}
-                <div className="bg-muted/30 px-4 py-2.5 flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="bg-muted/30 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     {transcript.language && (
                       <span className="flex items-center gap-1">
                         <Languages className="h-3 w-3" />
@@ -391,7 +391,7 @@ function RecapSection({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <CardTitle className="text-sm flex items-center gap-2">
             <Sparkles className="h-4 w-4" />
             Session Recap
@@ -519,7 +519,7 @@ export default function SessionDetailPage() {
 
   if (session.isLoading) {
     return (
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
         <Skeleton className="h-12 w-2/3" />
         <Skeleton className="h-32 rounded-lg" />
         <Skeleton className="h-48 rounded-lg" />
@@ -535,18 +535,18 @@ export default function SessionDetailPage() {
   const data = session.data as any;
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold">
+          <h2 className="text-xl sm:text-2xl font-bold">
             {data.title || `Session ${data.sessionNumber || ''}`}
           </h2>
           <p className="text-sm text-muted-foreground">
             {data.createdAt && format(new Date(data.createdAt), 'MMMM d, yyyy')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {data.status && (
             <Badge variant="secondary">{data.status.replace('_', ' ')}</Badge>
           )}
@@ -554,6 +554,7 @@ export default function SessionDetailPage() {
             <Button
               size="sm"
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => completeSession.mutate({ id: sessionId })}
             >
               <CheckCircle className="mr-2 h-4 w-4" />
@@ -564,6 +565,7 @@ export default function SessionDetailPage() {
             <Button
               size="sm"
               variant="destructive"
+              className="w-full sm:w-auto"
               onClick={() => {
                 if (confirm('Delete this session?')) {
                   deleteSession.mutate({ id: sessionId });
@@ -611,7 +613,7 @@ export default function SessionDetailPage() {
 
       {/* Recordings with Playback */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h3 className="font-semibold">Recordings</h3>
           {isDM && (
             <div>
@@ -635,7 +637,12 @@ export default function SessionDetailPage() {
           )}
         </div>
 
-        {recordings.data && (recordings.data as any[]).length > 0 ? (
+        {recordings.isLoading ? (
+          <div className="animate-pulse space-y-2">
+            <div className="h-20 bg-muted rounded-lg" />
+            <div className="h-20 bg-muted rounded-lg" />
+          </div>
+        ) : recordings.data && (recordings.data as any[]).length > 0 ? (
           <div className="space-y-2">
             {(recordings.data as any[]).map((rec) => (
               <RecordingCard key={rec.id} rec={rec} />

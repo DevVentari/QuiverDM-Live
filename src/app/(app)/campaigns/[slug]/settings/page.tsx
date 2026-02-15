@@ -59,7 +59,7 @@ export default function CampaignSettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl px-4 sm:px-6 lg:px-8">
       <Card>
         <CardHeader>
           <CardTitle>Campaign Settings</CardTitle>
@@ -99,7 +99,7 @@ export default function CampaignSettingsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button type="submit" disabled={update.isPending}>
+            <Button type="submit" disabled={update.isPending} className="w-full sm:w-auto">
               {update.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
@@ -119,6 +119,7 @@ export default function CampaignSettingsPage() {
             <CardContent>
               <Button
                 variant="destructive"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   if (confirm('Are you sure? This cannot be undone.')) {
                     deleteCampaign.mutate({ id: campaignId });
