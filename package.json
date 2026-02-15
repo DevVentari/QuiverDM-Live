@@ -22,6 +22,8 @@
     "test:pdf-queue": "tsx scripts/test-pdf-queue.ts",
     "worker:pdf": "tsx src/lib/queue/worker.ts",
     "worker:pdf:dev": "tsx watch src/lib/queue/worker.ts",
+    "setup:stripe": "tsx scripts/setup-stripe.ts",
+    "check:launch": "tsx scripts/pre-launch-check.ts",
     "generate-invites": "tsx scripts/generate-invite-codes.ts",
     "generate-beta-invites": "tsx scripts/generate-beta-invites.ts"
   },
