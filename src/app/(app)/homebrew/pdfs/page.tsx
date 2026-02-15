@@ -1,19 +1,32 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload, FileText } from 'lucide-react';
+import { Upload, FileText, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function PDFsPage() {
-  const pdfs = trpc.homebrewPdf.getPDFs.useQuery({});
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+
+  // Poll every 5s when any PDF is still processing
+  const pdfs = trpc.homebrewPdf.getPDFs.useQuery({}, {
+    refetchInterval: (query) => {
+      const items = (query.state.data as any)?.items;
+      if (!items) return false;
+      const hasProcessing = items.some(
+        (p: any) => p.processingStatus === 'pending' || p.processingStatus === 'processing'
+      );
+      return hasProcessing ? 5000 : false;
+    },
+  });
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -50,33 +63,32 @@ export default function PDFsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        // Handle specific error codes
         if (res.status === 401) {
           toast.error('Not authenticated', {
             description: 'Please sign in to upload PDFs',
           });
         } else if (res.status === 429) {
           toast.error('Upload limit reached', {
-            description: data.message || 'You have reached your monthly PDF upload limit. Upgrade to Pro for more uploads.',
-          });
-        } else if (res.status === 400) {
-          toast.error('Upload failed', {
-            description: data.message || 'Invalid file or request',
+            description: data.message || 'You have reached your monthly PDF upload limit.',
           });
         } else {
           toast.error('Upload failed', {
-            description: data.message || `Server error (${res.status})`,
+            description: data.message || data.error || `Server error (${res.status})`,
           });
         }
         return;
       }
 
-      // Success!
-      toast.success('PDF uploaded successfully', {
-        description: `${file.name} is being processed`,
+      toast.success('PDF uploaded', {
+        description: `Processing ${file.name}...`,
       });
 
-      pdfs.refetch();
+      // Navigate to the detail page to see progress
+      if (data.pdf?.id) {
+        router.push(`/homebrew/pdfs/${data.pdf.id}`);
+      } else {
+        pdfs.refetch();
+      }
     } catch (err) {
       console.error('Upload failed:', err);
       toast.error('Upload failed', {
@@ -86,6 +98,12 @@ export default function PDFsPage() {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  }
+
+  function statusVariant(status: string): 'default' | 'secondary' | 'destructive' {
+    if (status === 'completed') return 'default';
+    if (status === 'failed') return 'destructive';
+    return 'secondary';
   }
 
   return (
@@ -101,7 +119,11 @@ export default function PDFsPage() {
             onChange={handleUpload}
           />
           <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-            <Upload className="mr-2 h-4 w-4" />
+            {uploading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="mr-2 h-4 w-4" />
+            )}
             {uploading ? 'Uploading...' : 'Upload PDF'}
           </Button>
         </div>
@@ -128,7 +150,12 @@ export default function PDFsPage() {
                         : 'Size unknown'}
                     </p>
                   </div>
-                  <Badge variant="secondary">{pdf.status || 'pending'}</Badge>
+                  <Badge variant={statusVariant(pdf.processingStatus || 'pending')}>
+                    {pdf.processingStatus === 'processing' && (
+                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    )}
+                    {pdf.processingStatus || 'pending'}
+                  </Badge>
                 </CardContent>
               </Card>
             </Link>

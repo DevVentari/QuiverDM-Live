@@ -30,43 +30,12 @@ import { extractWithFallback, type ExtractionProvider } from '../ai/extraction';
 import { saveExtractedContent } from '../../server/repositories/homebrew-extraction.repository';
 import path from 'path';
 import fs from 'fs/promises';
+import { activeJobs } from './worker-control';
 
-// Import WebSocket broadcast functions
-let broadcastPDFProgress: ((pdfId: string, progress: number) => void) | null = null;
-let broadcastPDFStatus: ((pdfId: string, status: string, data?: any) => void) | null = null;
-
-// Track active jobs for cancellation
-const activeJobs = new Map<string, { handle?: MarkerConversionHandle; tempPath?: string }>();
-
-/**
- * Abort an active job (called when PDF is deleted)
- */
-export function abortJob(pdfId: string) {
-  const job = activeJobs.get(pdfId);
-  if (job) {
-    console.log(`[Worker] Aborting job for PDF: ${pdfId}`);
-    if (job.handle) {
-      job.handle.abort();
-    }
-    // Clean up temp file if it exists
-    if (job.tempPath) {
-      fs.unlink(job.tempPath).catch(() => {});
-    }
-    activeJobs.delete(pdfId);
-  }
-}
-
-// Dynamically import WebSocket functions if available
-(async () => {
-  try {
-    const ws = await import('../../server/websocket');
-    broadcastPDFProgress = ws.broadcastPDFProgress;
-    broadcastPDFStatus = ws.broadcastPDFStatus;
-    console.log('[Worker] WebSocket broadcasting enabled');
-  } catch (error) {
-    console.log('[Worker] WebSocket broadcasting not available (running without Next.js instrumentation)');
-  }
-})();
+// WebSocket broadcasting is not used — frontend polls via tRPC
+// Kept as no-ops so the worker code doesn't need restructuring
+const broadcastPDFProgress: ((pdfId: string, progress: number) => void) | null = null;
+const broadcastPDFStatus: ((pdfId: string, status: string, data?: any) => void) | null = null;
 
 const prisma = new PrismaClient();
 
@@ -615,8 +584,14 @@ async function gracefulShutdown(worker: Worker) {
   process.exit(0);
 }
 
-// If running as main script, start the worker
-if (require.main === module) {
+// Only start the worker when running as a standalone process via `npm run worker:pdf`.
+// IMPORTANT: `require.main === module` is unreliable here — when webpack bundles this
+// file as a dependency (via homebrew-pdf.service.ts → abortJob import), HMR re-evaluates
+// it and the check can pass, creating duplicate BullMQ workers inside Next.js dev server.
+// These zombie workers run in webpack context where Marker/pdfplumber spawn() fails.
+// Guard with __webpack_require__ check to ensure we're in real Node.js, not webpack.
+const isWebpack = typeof __webpack_require__ !== 'undefined';
+if (!isWebpack && require.main === module) {
   const concurrency = parseInt(process.env.PDF_WORKER_CONCURRENCY || '2');
   const worker = startPDFWorker(concurrency);
 

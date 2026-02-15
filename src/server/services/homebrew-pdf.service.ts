@@ -16,7 +16,7 @@ import {
 } from '@/lib/queue/queue';
 import { extractWithFallback } from '@/lib/ai/extraction';
 import { saveExtractedContent } from '../repositories/homebrew-extraction.repository';
-import { abortJob } from '@/lib/queue/worker';
+import { abortJob } from '@/lib/queue/worker-control';
 import { prisma } from '@/lib/prisma';
 
 export class HomebrewPdfService {
