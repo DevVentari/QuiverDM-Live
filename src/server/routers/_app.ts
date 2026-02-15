@@ -20,6 +20,7 @@ import { invitesRouter } from './invites'; // Closed beta invite codes
 import { onboardingRouter } from './onboarding'; // User onboarding flow
 import { feedbackRouter } from './feedback'; // Beta feedback collection
 import { usageRouter } from './usage'; // Usage limits and quotas
+import { billingRouter } from './billing'; // Stripe billing and subscriptions
 
 export const appRouter = router({
   // whisper: whisperRouter, // Disabled - using WhisperX instead
@@ -43,6 +44,7 @@ export const appRouter = router({
   onboarding: onboardingRouter, // User onboarding flow
   feedback: feedbackRouter, // Beta feedback collection
   usage: usageRouter, // Usage limits and quotas
+  billing: billingRouter, // Stripe billing and subscriptions
 });
 
 export type AppRouter = typeof appRouter;
