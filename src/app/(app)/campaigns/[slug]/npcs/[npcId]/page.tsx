@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NPCDetailPage() {
   const params = useParams();
@@ -17,13 +18,29 @@ export default function NPCDetailPage() {
   const { slug, isDM } = useCampaign();
   const npcId = params.npcId as string;
 
+  const { toast } = useToast();
   const npc = trpc.npcs.getById.useQuery({ id: npcId });
   const deleteNpc = trpc.npcs.delete.useMutation({
     onSuccess: () => router.push(`/campaigns/${slug}/npcs`),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   if (npc.isLoading) {
     return <Skeleton className="h-64 rounded-lg" />;
+  }
+
+  if (npc.isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <p className="text-destructive font-medium">Failed to load data</p>
+          <p className="text-sm text-muted-foreground">{npc.error?.message || 'An unexpected error occurred'}</p>
+          <Button variant="outline" onClick={() => npc.refetch()}>Try Again</Button>
+        </div>
+      </div>
+    );
   }
 
   if (!npc.data) {

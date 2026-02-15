@@ -7,8 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Swords, Check, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DashboardPage() {
+  const { toast } = useToast();
   const campaigns = trpc.campaigns.getMyMemberships.useQuery();
   const characters = trpc.characters.getMyCharacters.useQuery();
   const invites = trpc.campaigns.getPendingInvites.useQuery();
@@ -19,11 +21,17 @@ export default function DashboardPage() {
       utils.campaigns.getPendingInvites.invalidate();
       utils.campaigns.getMyMemberships.invalidate();
     },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const declineInvite = trpc.campaigns.declineInvite.useMutation({
     onSuccess: () => {
       utils.campaigns.getPendingInvites.invalidate();
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 

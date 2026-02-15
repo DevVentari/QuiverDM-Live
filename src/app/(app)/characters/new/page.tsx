@@ -8,9 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NewCharacterPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [race, setRace] = useState('');
   const [charClass, setCharClass] = useState('');
@@ -21,6 +23,9 @@ export default function NewCharacterPage() {
   const create = trpc.characters.create.useMutation({
     onSuccess: (data: any) => {
       router.push(`/characters/${data.id}`);
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 

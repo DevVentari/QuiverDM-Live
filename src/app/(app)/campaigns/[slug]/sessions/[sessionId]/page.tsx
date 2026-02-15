@@ -28,6 +28,7 @@ import {
   X,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useToast } from '@/hooks/use-toast';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -383,10 +384,14 @@ function RecapSection({
   recap: string | null;
   isDM: boolean;
 }) {
+  const { toast } = useToast();
   const utils = trpc.useUtils();
 
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const generateRecap = trpc.sessions.generateRecap.useMutation({
@@ -496,20 +501,30 @@ export default function SessionDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
+  const { toast } = useToast();
   const session = trpc.sessions.getById.useQuery({ id: sessionId });
   const recordings = trpc.sessionRecordings.getBySessionId.useQuery({ sessionId });
   const utils = trpc.useUtils();
 
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const deleteSession = trpc.sessions.delete.useMutation({
     onSuccess: () => router.push(`/campaigns/${slug}/sessions`),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   const completeSession = trpc.sessions.complete.useMutation({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
   });
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -548,6 +563,18 @@ export default function SessionDetailPage() {
         <Skeleton className="h-32 rounded-lg" />
         <Skeleton className="h-48 rounded-lg" />
         <Skeleton className="h-48 rounded-lg" />
+      </div>
+    );
+  }
+
+  if (session.isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center space-y-4">
+          <p className="text-destructive font-medium">Failed to load data</p>
+          <p className="text-sm text-muted-foreground">{session.error?.message || 'An unexpected error occurred'}</p>
+          <Button variant="outline" onClick={() => session.refetch()}>Try Again</Button>
+        </div>
       </div>
     );
   }
