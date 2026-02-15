@@ -93,6 +93,24 @@ async function runChecks(): Promise<CheckResult[]> {
     await redis.quit().catch(() => undefined);
   }
 
+  // Check Docling
+  try {
+    const response = await fetch(`${env('DOCLING_URL') || 'http://localhost:5001'}/health`, {
+      signal: AbortSignal.timeout(5_000),
+    });
+    results.push({
+      name: 'docling connectivity',
+      ok: response.ok,
+      detail: response.ok ? 'available' : `status ${response.status}`,
+    });
+  } catch (error) {
+    results.push({
+      name: 'docling connectivity',
+      ok: false,
+      detail: error instanceof Error ? error.message : String(error),
+    });
+  }
+
   const inviteCount = await prisma.inviteCode.count();
   results.push({
     name: 'invite codes exist',
