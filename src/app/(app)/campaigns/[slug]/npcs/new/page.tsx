@@ -135,7 +135,7 @@ export default function NewNPCPage() {
                   {uploading ? 'Uploading...' : 'Upload Image'}
                 </Button>
                 {imageUrl && (
-                  <img src={imageUrl} alt="Preview" className="h-12 w-12 rounded object-cover" />
+                  <img src={imageUrl} alt={name ? `${name} portrait preview` : "NPC portrait preview"} className="h-12 w-12 rounded object-cover" />
                 )}
               </div>
             </div>

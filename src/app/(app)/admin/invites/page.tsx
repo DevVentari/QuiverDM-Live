@@ -176,19 +176,19 @@ export default function AdminInvitesPage() {
       </div>
 
       <Tabs defaultValue="generate" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="generate">
+        <TabsList role="tablist">
+          <TabsTrigger value="generate" role="tab" aria-selected={undefined} aria-controls="panel-generate">
             <Plus className="h-4 w-4 mr-2" />
             Generate
           </TabsTrigger>
-          <TabsTrigger value="codes">
+          <TabsTrigger value="codes" role="tab" aria-selected={undefined} aria-controls="panel-codes">
             <Ticket className="h-4 w-4 mr-2" />
             All Codes ({stats?.unused || 0})
           </TabsTrigger>
         </TabsList>
 
         {/* Generate Tab (Combined Overview + Generate) */}
-        <TabsContent value="generate" className="space-y-6">
+        <TabsContent value="generate" className="space-y-6" role="tabpanel" id="panel-generate">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
@@ -374,7 +374,7 @@ export default function AdminInvitesPage() {
         </TabsContent>
 
         {/* All Codes Tab */}
-        <TabsContent value="codes">
+        <TabsContent value="codes" role="tabpanel" id="panel-codes">
           <Card>
             <CardHeader>
               <CardTitle>Unused Invite Codes</CardTitle>
@@ -424,6 +424,7 @@ export default function AdminInvitesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => copyToClipboard(code.code)}
+                            aria-label="Copy invite code"
                           >
                             {copiedCode === code.code ? (
                               <Check className="h-4 w-4 text-green-600" />

@@ -90,7 +90,6 @@ export default function PDFsPage() {
         pdfs.refetch();
       }
     } catch (err) {
-      console.error('Upload failed:', err);
       toast.error('Upload failed', {
         description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
       });

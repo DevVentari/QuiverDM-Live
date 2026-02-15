@@ -162,7 +162,11 @@ export default function FeedbackPage() {
                 minLength={3}
                 maxLength={200}
                 required
+                aria-describedby="feedback-title-hint"
               />
+              <p id="feedback-title-hint" className="text-xs text-muted-foreground">
+                3 to 200 characters required.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -175,7 +179,11 @@ export default function FeedbackPage() {
                 minLength={10}
                 rows={6}
                 required
+                aria-describedby="feedback-description-hint"
               />
+              <p id="feedback-description-hint" className="text-xs text-muted-foreground">
+                Minimum 10 characters. Include steps, expected behavior, and actual behavior.
+              </p>
             </div>
 
             <div className="space-y-2">

@@ -92,7 +92,6 @@ export default function CampaignHomebrewPage() {
 
       pdfs.refetch();
     } catch (err) {
-      console.error('PDF upload failed:', err);
       toast.error('Upload failed', {
         description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
       });

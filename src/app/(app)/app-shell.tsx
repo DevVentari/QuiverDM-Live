@@ -3,6 +3,7 @@
 import { Sidebar, MobileSidebar } from '@/components/sidebar';
 import { UserMenu } from '@/components/user-menu';
 import { OnboardingCheck } from '@/components/onboarding-check';
+import { ErrorBoundary } from '@/components/error-boundary';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
@@ -30,7 +31,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex-1" />
             <UserMenu />
           </header>
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto p-6">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
         </div>
       </div>
     </OnboardingCheck>

@@ -372,7 +372,7 @@ export default function SettingsPage() {
                   </div>
                   {usage.data.campaigns.limit === -1 ? (
                     <>
-                      <Progress value={0} className="h-2" />
+                      <Progress value={0} className="h-2" aria-label="Campaign usage" />
                       <p className="text-sm text-muted-foreground">
                         {usage.data.campaigns.used} used — Unlimited
                       </p>
@@ -383,6 +383,7 @@ export default function SettingsPage() {
                         value={Math.min(usage.data.campaigns.percentage, 100)}
                         className="h-2"
                         indicatorClassName={getProgressColor(usage.data.campaigns.percentage)}
+                        aria-label="Campaign usage"
                       />
                       <p className={`text-sm ${getTextColor(usage.data.campaigns.percentage)}`}>
                         {usage.data.campaigns.used} of {usage.data.campaigns.limit} used
@@ -399,7 +400,7 @@ export default function SettingsPage() {
                   </div>
                   {usage.data.transcription.limit === -1 ? (
                     <>
-                      <Progress value={0} className="h-2" />
+                      <Progress value={0} className="h-2" aria-label="Transcription usage" />
                       <p className="text-sm text-muted-foreground">
                         {formatDuration(usage.data.transcription.used)} used — Unlimited
                       </p>
@@ -410,6 +411,7 @@ export default function SettingsPage() {
                         value={Math.min(usage.data.transcription.percentage, 100)}
                         className="h-2"
                         indicatorClassName={getProgressColor(usage.data.transcription.percentage)}
+                        aria-label="Transcription usage"
                       />
                       <p className={`text-sm ${getTextColor(usage.data.transcription.percentage)}`}>
                         {formatDuration(usage.data.transcription.used)} of {formatDuration(usage.data.transcription.limit)} used
@@ -426,7 +428,7 @@ export default function SettingsPage() {
                   </div>
                   {usage.data.pdfUploads.limit === -1 ? (
                     <>
-                      <Progress value={0} className="h-2" />
+                      <Progress value={0} className="h-2" aria-label="PDF upload usage" />
                       <p className="text-sm text-muted-foreground">
                         {usage.data.pdfUploads.used} used — Unlimited
                       </p>
@@ -437,6 +439,7 @@ export default function SettingsPage() {
                         value={Math.min(usage.data.pdfUploads.percentage, 100)}
                         className="h-2"
                         indicatorClassName={getProgressColor(usage.data.pdfUploads.percentage)}
+                        aria-label="PDF upload usage"
                       />
                       <p className={`text-sm ${getTextColor(usage.data.pdfUploads.percentage)}`}>
                         {usage.data.pdfUploads.used} of {usage.data.pdfUploads.limit} used
@@ -535,6 +538,7 @@ export default function SettingsPage() {
                           onClick={() =>
                             setEditing((prev) => ({ ...prev, [config.name]: '' }))
                           }
+                          aria-label={`Show/hide ${config.label}`}
                         >
                           Change
                         </Button>
@@ -543,6 +547,7 @@ export default function SettingsPage() {
                           variant="ghost"
                           className="text-destructive"
                           onClick={() => deleteKey.mutate({ keyName: config.name })}
+                          aria-label={`Delete ${config.label}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

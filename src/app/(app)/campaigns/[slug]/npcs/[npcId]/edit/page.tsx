@@ -74,7 +74,6 @@ export default function EditNPCPage() {
       const data = await res.json();
       if (data.url) setImageUrl(data.url);
     } catch (err) {
-      console.error('Image upload failed:', err);
       toast({
         title: 'Upload failed',
         description: 'Could not upload image.',
@@ -181,7 +180,7 @@ export default function EditNPCPage() {
                   {uploading ? 'Uploading...' : 'Upload Image'}
                 </Button>
                 {imageUrl && (
-                  <img src={imageUrl} alt="NPC preview" className="h-12 w-12 rounded object-cover" />
+                  <img src={imageUrl} alt={name ? `${name} portrait preview` : "NPC portrait preview"} className="h-12 w-12 rounded object-cover" />
                 )}
               </div>
             </div>
