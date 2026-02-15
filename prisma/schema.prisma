@@ -53,7 +53,20 @@ model User {
   displayName     String?           // Public display name
   bio             String?           @db.Text // Creator/player bio
 
+  // Onboarding tracking
+  onboardingCompleted Boolean       @default(false)
+  onboardingStep      String?       // Current step: 'welcome', 'profile', 'first_campaign', 'complete'
+  inviteCodeUsed      String?       // Which beta invite code was used
+
+  // Subscription and usage limits
+  tier                String        @default("free") // free, pro, team
+  stripeCustomerId    String?       @unique // Stripe customer ID for billing
+  stripeSubscriptionId String?      @unique // Stripe subscription ID
+  subscriptionStatus  String?       // active, canceled, past_due, etc.
+  subscriptionEndsAt  DateTime?     // When current subscription ends
+
   // Relations
+  usage               UserUsage?
   accounts        Account[]
   sessions        Session[]
   campaigns       Campaign[]        // Campaigns user owns (legacy, kept for migration)
@@ -270,6 +283,15 @@ model Character {
   bonds           String?   @db.Text
   flaws           String?   @db.Text
   notes           String?   @db.Text  // Player's private notes
+
+  // Additional D&D 5e data (JSON for flexibility)
+  languages       Json?     // ["Common", "Elvish"]
+  senses          Json?     // { darkvision: 60, passivePerception: 14 }
+  resistances     Json?     // { damage: ["fire"], conditions: ["charmed"] }
+  hitDice         Json?     // [{ die: "d10", total: 5, used: 2 }]
+  savingThrows    Json?     // { strength: { proficient: true }, ... }
+  classes         Json?     // [{ name: "Fighter", subclass: "Champion", level: 5 }]
+  appearance      Json?     // { height, weight, eyes, skin, hair }
 
   // D&D Beyond sync
   dndBeyondId     String?   @unique
@@ -662,4 +684,58 @@ model HomebrewPDF {
   @@index([campaignId])
   @@index([processingStatus])
   @@index([createdAt])
+}
+
+// Feedback system for closed beta
+model Feedback {
+  id          String   @id @default(cuid())
+  userId      String   // User who submitted feedback
+  type        String   // 'bug', 'feature', 'improvement', 'other'
+  category    String?  // 'transcription', 'pdf', 'ui', 'performance', 'other'
+  title       String
+  description String   @db.Text
+  rating      Int?     // Optional 1-5 rating
+  metadata    Json?    // Browser info, URL, etc.
+  status      String   @default("new") // new, acknowledged, in_progress, resolved, wont_fix
+  adminNotes  String?  @db.Text // Internal notes from admin
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Usage tracking for tier limits
+model UserUsage {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Current billing period
+  periodStart             DateTime @default(now())
+  periodEnd               DateTime // 30 days from periodStart
+
+  // Transcription usage (in seconds)
+  transcriptionSeconds    Int      @default(0)
+  transcriptionLimit      Int      @default(1800) // 30 minutes for free tier
+
+  // PDF uploads
+  pdfUploads              Int      @default(0)
+  pdfUploadLimit          Int      @default(5) // 5 PDFs for free tier
+
+  // Campaigns owned
+  campaignsOwned          Int      @default(0)
+  campaignLimit           Int      @default(1) // 1 campaign for free tier
+
+  // Last reset date (for tracking monthly resets)
+  lastResetAt             DateTime @default(now())
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId])
+  @@index([periodEnd])
 }

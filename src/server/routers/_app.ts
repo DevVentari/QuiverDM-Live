@@ -15,6 +15,11 @@ import { homebrewExtractionRouter } from './homebrew-extraction'; // Ollama-base
 import { userSettingsRouter } from './user-settings';
 import { membersRouter } from './members'; // Campaign membership management
 import { charactersRouter } from './characters'; // Player-owned characters
+import { charactersDndBeyondRouter } from './characters-dndbeyond'; // D&D Beyond character import
+import { invitesRouter } from './invites'; // Closed beta invite codes
+import { onboardingRouter } from './onboarding'; // User onboarding flow
+import { feedbackRouter } from './feedback'; // Beta feedback collection
+import { usageRouter } from './usage'; // Usage limits and quotas
 
 export const appRouter = router({
   // whisper: whisperRouter, // Disabled - using WhisperX instead
@@ -23,6 +28,7 @@ export const appRouter = router({
   npcs: npcsRouter,
   players: playersRouter,
   characters: charactersRouter, // Player-owned character management
+  charactersDndBeyond: charactersDndBeyondRouter, // D&D Beyond character import
   sessionTranscription: sessionTranscriptionRouter,
   sessionRecordings: sessionRecordingsRouter,
   transcript: transcriptRouter,
@@ -33,6 +39,10 @@ export const appRouter = router({
   // docling: doclingRouter, // REMOVED - PDF parsing functionality removed
   userSettings: userSettingsRouter,
   members: membersRouter, // Campaign membership management
+  invites: invitesRouter, // Closed beta invite codes
+  onboarding: onboardingRouter, // User onboarding flow
+  feedback: feedbackRouter, // Beta feedback collection
+  usage: usageRouter, // Usage limits and quotas
 });
 
 export type AppRouter = typeof appRouter;
