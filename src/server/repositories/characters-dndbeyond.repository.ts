@@ -5,8 +5,14 @@
  * Contains no business logic - only database queries.
  */
 
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { MappedCharacterData } from '@/lib/dndbeyond-character-mapper';
+
+/** Convert null to Prisma.JsonNull for Json fields */
+function jsonField(value: unknown) {
+  return value === null || value === undefined ? Prisma.JsonNull : (value as Prisma.InputJsonValue);
+}
 
 // =============================================================================
 // Repository Functions
@@ -52,32 +58,32 @@ async function createFromImport(userId: string, data: MappedCharacterData) {
       background: data.background,
       portraitUrl: data.portraitUrl,
       isPortable: true,
-      abilityScores: data.abilityScores,
-      hitPoints: data.hitPoints,
+      abilityScores: jsonField(data.abilityScores),
+      hitPoints: jsonField(data.hitPoints),
       armorClass: data.armorClass,
       speed: data.speed,
       proficiencyBonus: data.proficiencyBonus,
-      features: data.features,
-      proficiencies: data.proficiencies,
-      inventory: data.inventory,
-      spellcasting: data.spellcasting,
-      currency: data.currency,
+      features: jsonField(data.features),
+      proficiencies: jsonField(data.proficiencies),
+      inventory: jsonField(data.inventory),
+      spellcasting: jsonField(data.spellcasting),
+      currency: jsonField(data.currency),
       backstory: data.backstory,
       personalityTraits: data.personalityTraits,
       ideals: data.ideals,
       bonds: data.bonds,
       flaws: data.flaws,
-      languages: data.languages,
-      senses: data.senses,
-      resistances: data.resistances,
-      hitDice: data.hitDice,
-      savingThrows: data.savingThrows,
-      classes: data.classes,
-      appearance: data.appearance,
+      languages: jsonField(data.languages),
+      senses: jsonField(data.senses),
+      resistances: jsonField(data.resistances),
+      hitDice: jsonField(data.hitDice),
+      savingThrows: jsonField(data.savingThrows),
+      classes: jsonField(data.classes),
+      appearance: jsonField(data.appearance),
       dndBeyondId: data.dndBeyondId,
       dndBeyondUrl: data.dndBeyondUrl,
       lastSyncedAt: new Date(),
-      rawData: data.rawData,
+      rawData: jsonField(data.rawData),
     },
     include: {
       campaignCharacters: {
@@ -103,30 +109,30 @@ async function updateFromSync(characterId: string, data: MappedCharacterData) {
       level: data.level,
       background: data.background,
       portraitUrl: data.portraitUrl,
-      abilityScores: data.abilityScores,
-      hitPoints: data.hitPoints,
+      abilityScores: jsonField(data.abilityScores),
+      hitPoints: jsonField(data.hitPoints),
       armorClass: data.armorClass,
       speed: data.speed,
       proficiencyBonus: data.proficiencyBonus,
-      features: data.features,
-      proficiencies: data.proficiencies,
-      inventory: data.inventory,
-      spellcasting: data.spellcasting,
-      currency: data.currency,
+      features: jsonField(data.features),
+      proficiencies: jsonField(data.proficiencies),
+      inventory: jsonField(data.inventory),
+      spellcasting: jsonField(data.spellcasting),
+      currency: jsonField(data.currency),
       backstory: data.backstory,
       personalityTraits: data.personalityTraits,
       ideals: data.ideals,
       bonds: data.bonds,
       flaws: data.flaws,
-      languages: data.languages,
-      senses: data.senses,
-      resistances: data.resistances,
-      hitDice: data.hitDice,
-      savingThrows: data.savingThrows,
-      classes: data.classes,
-      appearance: data.appearance,
+      languages: jsonField(data.languages),
+      senses: jsonField(data.senses),
+      resistances: jsonField(data.resistances),
+      hitDice: jsonField(data.hitDice),
+      savingThrows: jsonField(data.savingThrows),
+      classes: jsonField(data.classes),
+      appearance: jsonField(data.appearance),
       lastSyncedAt: new Date(),
-      rawData: data.rawData,
+      rawData: jsonField(data.rawData),
     },
     include: {
       campaignCharacters: {

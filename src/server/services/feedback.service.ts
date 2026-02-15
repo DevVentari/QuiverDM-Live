@@ -37,21 +37,21 @@ export const feedbackService = {
   ) {
     // Validate rating if provided
     if (data.rating !== undefined && (data.rating < 1 || data.rating > 5)) {
-      throw new ValidationError.forField('rating', 'Rating must be between 1 and 5');
+      throw ValidationError.forField('rating', 'Rating must be between 1 and 5');
     }
 
     // Validate title length
     if (data.title.length < 3) {
-      throw new ValidationError.forField('title', 'Title must be at least 3 characters');
+      throw ValidationError.forField('title', 'Title must be at least 3 characters');
     }
 
     if (data.title.length > 200) {
-      throw new ValidationError.forField('title', 'Title must be less than 200 characters');
+      throw ValidationError.forField('title', 'Title must be less than 200 characters');
     }
 
     // Validate description length
     if (data.description.length < 10) {
-      throw new ValidationError.forField(
+      throw ValidationError.forField(
         'description',
         'Description must be at least 10 characters'
       );
@@ -89,7 +89,7 @@ export const feedbackService = {
 
     // Users can only view their own feedback
     if (feedback.userId !== userId) {
-      throw new ForbiddenError.forPermission('view', 'this feedback');
+      throw ForbiddenError.forPermission('view', 'this feedback');
     }
 
     return feedback;
@@ -125,10 +125,7 @@ export const feedbackService = {
       where,
       orderBy: { createdAt: 'desc' },
       take: options?.limit || 100,
-      include: {
-        // Include user info for admin view
-        // Note: This requires adding user relation to Feedback model
-      },
+      // TODO: Include user relation when added to Feedback model
     });
   },
 

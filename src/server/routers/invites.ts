@@ -9,18 +9,23 @@ import { inviteService } from '../services/invite.service';
 import { ForbiddenError } from '../errors';
 
 /**
- * Check if user is admin (for now, all authenticated users are admins)
- * TODO: Add admin role to User model or use env variable for admin emails
+ * Check if user is admin via ADMIN_EMAILS env var
  */
-function requireAdmin(userId: string) {
-  // For closed beta, all authenticated users have admin access
-  // You can add proper admin checking here later:
-  // const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  // const isAdmin = adminEmails.includes(userEmail);
-  // if (!isAdmin) throw ForbiddenError.forPermission('manage', 'invite codes');
+async function requireAdmin(userId: string) {
+  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
 
-  // For now, just return (all authenticated users can access)
-  return;
+  if (adminEmails.length === 0) {
+    throw new ForbiddenError('No admin emails configured. Set ADMIN_EMAILS env var.');
+  }
+
+  const user = await import('@/lib/prisma').then(m => m.prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  }));
+
+  if (!user?.email || !adminEmails.includes(user.email.toLowerCase())) {
+    throw ForbiddenError.forPermission('manage', 'invite codes');
+  }
 }
 
 export const invitesRouter = router({
@@ -64,7 +69,7 @@ export const invitesRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      requireAdmin(ctx.session.user.id);
+      await requireAdmin(ctx.session.user.id);
 
       const result = await inviteService.generateCodes(
         input.count,
@@ -78,7 +83,7 @@ export const invitesRouter = router({
    * Get invite code statistics (admin only)
    */
   getStats: protectedProcedure.query(async ({ ctx }) => {
-    requireAdmin(ctx.session.user.id);
+    await requireAdmin(ctx.session.user.id);
 
     return inviteService.getStats();
   }),
@@ -93,7 +98,7 @@ export const invitesRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      requireAdmin(ctx.session.user.id);
+      await requireAdmin(ctx.session.user.id);
 
       return inviteService.getAllCodes(input.limit);
     }),
@@ -108,7 +113,7 @@ export const invitesRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      requireAdmin(ctx.session.user.id);
+      await requireAdmin(ctx.session.user.id);
 
       return inviteService.getUnusedCodes(input.limit);
     }),
@@ -117,7 +122,7 @@ export const invitesRouter = router({
    * Clean up expired invite codes (admin only)
    */
   cleanupExpired: protectedProcedure.mutation(async ({ ctx }) => {
-    requireAdmin(ctx.session.user.id);
+    await requireAdmin(ctx.session.user.id);
 
     const deletedCount = await inviteService.cleanupExpired();
     return { deletedCount };
