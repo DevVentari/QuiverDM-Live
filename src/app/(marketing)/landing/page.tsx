@@ -11,13 +11,18 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navigation */}
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="font-display text-xl font-bold text-foreground">
+          <Link href="/landing" className="font-display text-xl font-bold text-foreground">
             QuiverDM
           </Link>
           <div className="flex items-center gap-4">
+            <Link
+              href="/pricing"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Pricing
+            </Link>
             <Link
               href="/auth/signin"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -34,11 +39,9 @@ export default async function HomePage() {
         </div>
       </header>
 
-      {/* Hero */}
       <section className="flex-1 flex flex-col items-center justify-center px-4 py-24 text-center">
         <h1 className="font-display text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-          Your Campaign,{' '}
-          <span className="text-foreground">Organized</span>
+          Your Campaign, <span className="text-foreground">Organized</span>
         </h1>
         <p className="mt-6 max-w-2xl text-lg text-muted-foreground sm:text-xl">
           AI-powered session management for Dungeon Masters. Record sessions,
@@ -53,15 +56,14 @@ export default async function HomePage() {
             Start Your Campaign
           </Link>
           <Link
-            href="/auth/signin"
+            href="/pricing"
             className="inline-flex h-11 items-center justify-center rounded-md border border-border px-8 text-sm font-medium hover:bg-accent transition-colors"
           >
-            Sign In
+            View Pricing
           </Link>
         </div>
       </section>
 
-      {/* Features */}
       <section className="border-t border-border/50 py-24">
         <div className="container">
           <h2 className="text-center font-display text-3xl font-bold mb-12">
@@ -92,7 +94,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="border-t border-border/50 py-24">
         <div className="container text-center">
           <h2 className="font-display text-3xl font-bold">
@@ -101,19 +102,26 @@ export default async function HomePage() {
           <p className="mt-4 text-muted-foreground">
             Join QuiverDM and spend less time on bookkeeping, more time on storytelling.
           </p>
-          <Link
-            href="/auth/signup"
-            className="mt-8 inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Get Started Free
-          </Link>
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <Link
+              href="/auth/signup"
+              className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              Get Started Free
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex h-11 items-center justify-center rounded-md border border-border px-8 text-sm font-medium hover:bg-accent transition-colors"
+            >
+              Compare Plans
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-border/50 py-8">
         <div className="container text-center text-sm text-muted-foreground">
-          <p>QuiverDM — AI-Powered D&D Session Management</p>
+          <p>QuiverDM - AI-Powered D&D Session Management</p>
         </div>
       </footer>
     </div>

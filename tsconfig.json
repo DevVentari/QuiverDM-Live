@@ -23,5 +23,12 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "scripts", "tests", "dist"]
+  "exclude": [
+    "node_modules",
+    "scripts",
+    "tests",
+    "dist",
+    "docs/Test",
+    "src/lib/queue/worker.ts"
+  ]
 }

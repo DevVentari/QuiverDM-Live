@@ -32,6 +32,8 @@ import path from 'path';
 import fs from 'fs/promises';
 import { activeJobs } from './worker-control';
 
+declare const __webpack_require__: unknown;
+
 // WebSocket broadcasting is not used — frontend polls via tRPC
 // Kept as no-ops so the worker code doesn't need restructuring
 const broadcastPDFProgress: ((pdfId: string, progress: number) => void) | null = null;
