@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useRef, useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -121,6 +122,7 @@ function RecordingCard({ rec }: { rec: any }) {
                 size="sm"
                 variant="ghost"
                 onClick={() => setShowPlayer(!showPlayer)}
+                aria-expanded={showPlayer}
               >
                 <Play className="mr-1 h-3 w-3" />
                 {showPlayer ? 'Hide' : 'Play'}
@@ -245,6 +247,7 @@ function TranscriptViewer({ sessionId }: { sessionId: string }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 pr-9"
+            aria-label="Search transcripts"
           />
           {searchQuery && (
             <button
@@ -472,6 +475,7 @@ export default function SessionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { campaignId, slug, isDM } = useCampaign();
+  const { toast } = useToast();
   const sessionId = params.sessionId as string;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -510,7 +514,11 @@ export default function SessionDetailPage() {
 
       utils.sessionRecordings.getBySessionId.invalidate({ sessionId });
     } catch (err) {
-      console.error('Upload failed:', err);
+      toast({
+        title: 'Upload failed',
+        description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
+        variant: 'destructive',
+      });
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
