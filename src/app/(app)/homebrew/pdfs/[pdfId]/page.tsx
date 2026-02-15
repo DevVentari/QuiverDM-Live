@@ -17,7 +17,7 @@ export default function PDFDetailPage() {
   const params = useParams();
   const pdfId = params.pdfId as string;
 
-  const pdf = trpc.homebrewPdf.getPDF.useQuery({ pdfId });
+  const pdf = trpc.homebrewPdf.getPDF.useQuery({ pdfId }, { staleTime: 30_000 });
   const data = pdf.data as any;
 
   const isProcessing = data?.processingStatus === 'pending' || data?.processingStatus === 'processing';

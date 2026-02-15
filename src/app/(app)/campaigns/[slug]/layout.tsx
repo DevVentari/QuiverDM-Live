@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useParams } from 'next/navigation';
 import { CampaignProvider } from '@/components/campaign/campaign-context';
@@ -14,7 +15,17 @@ export default function CampaignLayout({
   const params = useParams();
   const slug = params.slug as string;
 
-  const campaign = trpc.campaigns.getBySlug.useQuery({ slug });
+  const campaign = trpc.campaigns.getBySlug.useQuery({ slug }, { staleTime: 120_000 });
+  const utils = trpc.useUtils();
+
+  useEffect(() => {
+    if (campaign.data?.id) {
+      const campaignId = (campaign.data as any).id;
+      utils.npcs.getAll.prefetch({ campaignId });
+      utils.sessions.getAll.prefetch({ campaignId });
+      utils.members.getAll.prefetch({ campaignId });
+    }
+  }, [campaign.data?.id, utils]);
 
   if (campaign.isLoading) {
     return (

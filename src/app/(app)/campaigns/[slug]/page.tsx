@@ -8,7 +8,7 @@ import { Users, Scroll, Swords, BookOpen } from 'lucide-react';
 
 export default function CampaignOverviewPage() {
   const { campaignId } = useCampaign();
-  const stats = trpc.campaigns.getStats.useQuery({ campaignId });
+  const stats = trpc.campaigns.getStats.useQuery({ campaignId }, { staleTime: 120_000 });
 
   if (stats.isLoading) {
     return (

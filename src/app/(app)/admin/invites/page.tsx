@@ -36,10 +36,10 @@ export default function AdminInvitesPage() {
   const [bulkEmails, setBulkEmails] = useState('');
 
   // Queries
-  const { data: stats, refetch: refetchStats } = trpc.invites.getStats.useQuery();
+  const { data: stats, refetch: refetchStats } = trpc.invites.getStats.useQuery(undefined, { staleTime: 10_000 });
   const { data: unusedCodes, refetch: refetchUnused } = trpc.invites.getUnused.useQuery({
     limit: 100
-  });
+  }, { staleTime: 10_000 });
 
   // Mutations
   const generateSingle = trpc.invites.generate.useMutation({
