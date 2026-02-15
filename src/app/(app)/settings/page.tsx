@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trash2, Save, Eye, EyeOff } from 'lucide-react';
+import { Trash2, Save, Eye, EyeOff, Ticket, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 const keyConfigs = [
   {
@@ -177,6 +178,34 @@ export default function SettingsPage() {
               </div>
             );
           })}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Admin</CardTitle>
+          <CardDescription>
+            Administrative tools and settings
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors">
+            <div className="flex items-center gap-3">
+              <Ticket className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <div className="font-medium">Beta Invite Codes</div>
+                <div className="text-sm text-muted-foreground">
+                  Generate and manage closed beta invite codes
+                </div>
+              </div>
+            </div>
+            <Link href="/admin/invites">
+              <Button variant="outline" size="sm">
+                Manage
+                <ExternalLink className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
