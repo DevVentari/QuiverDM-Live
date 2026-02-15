@@ -10,6 +10,7 @@ import { CampaignRole } from '@prisma/client';
 import { campaignRepository } from '../repositories/campaign.repository';
 import { authz, type CampaignAccess } from './authorization.service';
 import { generateUniqueSlug } from '@/lib/utils/slugify';
+import { usageService } from './usage.service';
 
 // =============================================================================
 // Types
@@ -151,18 +152,29 @@ export class CampaignService {
    * Create a new campaign
    */
   async create(userId: string, input: CreateCampaignInput) {
+    // Check usage limits before creating campaign
+    await usageService.incrementCampaigns(userId);
+
     // Generate unique slug
     const slug = await generateUniqueSlug(input.name, async (slug) => {
       return campaignRepository.slugExists(slug);
     });
 
-    return campaignRepository.create({
-      name: input.name,
-      slug,
-      description: input.description,
-      bannerUrl: input.bannerUrl,
-      userId,
-    });
+    try {
+      const campaign = await campaignRepository.create({
+        name: input.name,
+        slug,
+        description: input.description,
+        bannerUrl: input.bannerUrl,
+        userId,
+      });
+
+      return campaign;
+    } catch (error) {
+      // If campaign creation fails, decrement the usage count
+      await usageService.decrementCampaigns(userId);
+      throw error;
+    }
   }
 
   /**
@@ -189,6 +201,10 @@ export class CampaignService {
   async delete(campaignId: string, userId: string) {
     await authz.campaign(campaignId, userId).requireOwner();
     await campaignRepository.remove(campaignId);
+
+    // Decrement usage count when campaign is deleted
+    await usageService.decrementCampaigns(userId);
+
     return { success: true };
   }
 
