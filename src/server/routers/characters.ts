@@ -130,6 +130,7 @@ export const charactersRouter = router({
         proficiencies: z.any().optional(),
         inventory: z.any().optional(),
         spellcasting: z.any().optional(),
+        hitDice: z.any().optional(),
         currency: currencySchema,
         backstory: z.string().nullable().optional(),
         personalityTraits: z.string().nullable().optional(),

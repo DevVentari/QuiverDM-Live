@@ -73,6 +73,7 @@ export interface UpdateCharacterInput {
   proficiencies?: any;
   inventory?: any;
   spellcasting?: any;
+  hitDice?: any;
   currency?: {
     cp?: number;
     sp?: number;
