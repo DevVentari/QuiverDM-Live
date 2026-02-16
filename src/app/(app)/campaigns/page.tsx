@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 import { Plus, Swords } from 'lucide-react';
 
 export default function CampaignsPage() {
@@ -36,7 +37,19 @@ export default function CampaignsPage() {
               key={campaign.id}
               href={`/campaigns/${campaign.slug || campaign.id}`}
             >
-              <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer">
+              <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+                {campaign.bannerUrl ? (
+                  <div className="relative h-24 w-full">
+                    <Image
+                      src={campaign.bannerUrl}
+                      alt={campaign.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-24 w-full bg-gradient-to-r from-purple-950 to-blue-950" />
+                )}
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{campaign.name}</CardTitle>

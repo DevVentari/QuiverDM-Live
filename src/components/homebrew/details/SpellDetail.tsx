@@ -27,9 +27,9 @@ export function SpellDetail({ data }: SpellDetailProps) {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-violet-500" />
+            <Sparkles className="h-5 w-5 text-sky-500" />
             <CardTitle className="text-lg">Spell Details</CardTitle>
-            <Badge variant="outline" className="ml-auto text-violet-500 border-violet-500/20">
+            <Badge variant="outline" className="ml-auto text-sky-500 border-sky-500/20">
               {levelLabel}
             </Badge>
           </div>

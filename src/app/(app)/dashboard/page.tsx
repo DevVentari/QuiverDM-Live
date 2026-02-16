@@ -6,14 +6,29 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Swords, Check, X } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import Image from 'next/image';
+import { Plus, Swords, Users, Check, X, BookOpen, Shield, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+const typeColorMap: Record<string, string> = {
+  item: 'border-amber-500/50 text-amber-600 dark:text-amber-400',
+  spell: 'border-sky-500/50 text-sky-600 dark:text-sky-400',
+  creature: 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400',
+  class: 'border-indigo-500/50 text-indigo-600 dark:text-indigo-400',
+  subclass: 'border-indigo-500/50 text-indigo-600 dark:text-indigo-400',
+};
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+}
 
 export default function DashboardPage() {
   const { toast } = useToast();
   const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, { staleTime: 120_000 });
   const characters = trpc.characters.getMyCharacters.useQuery(undefined, { staleTime: 120_000 });
   const invites = trpc.campaigns.getPendingInvites.useQuery(undefined, { staleTime: 10_000 });
+  const homebrew = trpc.homebrew.getContent.useQuery({}, { staleTime: 30_000 });
   const utils = trpc.useUtils();
 
   const acceptInvite = trpc.campaigns.acceptInvite.useMutation({
@@ -35,8 +50,19 @@ export default function DashboardPage() {
     },
   });
 
+  // Quick stats
+  const campaignCount = campaigns.data?.length ?? 0;
+  const characterCount = characters.data?.length ?? 0;
+  const inviteCount = invites.data?.length ?? 0;
+  const totalSessions = (campaigns.data || []).reduce(
+    (sum: number, c: any) => sum + (c._count?.sessions || 0),
+    0
+  );
+  const homebrewItems = ((homebrew.data as any)?.items || []) as any[];
+
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-6 max-w-6xl overflow-hidden">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <Button asChild>
@@ -47,16 +73,75 @@ export default function DashboardPage() {
         </Button>
       </div>
 
+      {/* Quick Stats */}
+      {!campaigns.isLoading && !characters.isLoading && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card>
+            <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+              <Swords className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <div className="text-2xl font-bold tabular-nums leading-tight">{campaignCount}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Campaigns</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+              <Users className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <div className="text-2xl font-bold tabular-nums leading-tight">{characterCount}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Characters</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+              <BookOpen className="h-5 w-5 text-primary shrink-0" />
+              <div>
+                <div className="text-2xl font-bold tabular-nums leading-tight">{totalSessions}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sessions</div>
+              </div>
+            </CardContent>
+          </Card>
+          {inviteCount > 0 ? (
+            <Card className="border-primary/50">
+              <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+                <div className="relative">
+                  <Check className="h-5 w-5 text-primary shrink-0" />
+                  <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold tabular-nums leading-tight">{inviteCount}</div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Invites</div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+                <Shield className="h-5 w-5 text-primary shrink-0" />
+                <div>
+                  <div className="text-2xl font-bold tabular-nums leading-tight">
+                    {(campaigns.data || []).reduce((sum: number, c: any) => sum + (c._count?.npcs || 0), 0)}
+                  </div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">NPCs</div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* Pending Invites */}
       {invites.data && invites.data.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">Pending Invites</h2>
+        <div className="space-y-2">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Pending Invites</h2>
           {invites.data.map((invite: any) => (
-            <Card key={invite.id}>
-              <CardContent className="flex items-center justify-between py-4">
+            <Card key={invite.id} className="border-primary/30">
+              <CardContent className="flex items-center justify-between py-3 px-4">
                 <div>
-                  <p className="font-medium">{invite.campaign?.name || 'Campaign'}</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-medium text-sm">{invite.campaign?.name || 'Campaign'}</p>
+                  <p className="text-xs text-muted-foreground">
                     Invited as {invite.role || 'player'}
                   </p>
                 </div>
@@ -85,38 +170,56 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Campaigns */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">My Campaigns</h2>
+      {/* Campaigns — full-width with top banners */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">My Campaigns</h2>
+          <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
+            <Link href="/campaigns">View all</Link>
+          </Button>
+        </div>
         {campaigns.isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-40 rounded-lg" />
+              <Skeleton key={i} className="h-48 rounded-lg" />
             ))}
           </div>
         ) : campaigns.data && campaigns.data.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent -mx-1 px-1">
             {campaigns.data.map((campaign: any) => (
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.slug || campaign.id}`}
+                className="shrink-0 w-[280px] sm:w-[320px] snap-start"
               >
-                <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer">
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">{campaign.name}</CardTitle>
+                <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+                  {campaign.bannerUrl ? (
+                    <div className="relative h-28 w-full">
+                      <Image
+                        src={campaign.bannerUrl}
+                        alt={campaign.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-28 w-full bg-gradient-to-r from-purple-950 to-blue-950" />
+                  )}
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-sm truncate">{campaign.name}</CardTitle>
                       {campaign.role && (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-[10px] shrink-0">
                           {campaign.role}
                         </Badge>
                       )}
                     </div>
-                    <CardDescription className="line-clamp-2">
+                    <CardDescription className="line-clamp-1 text-xs">
                       {campaign.description || 'No description'}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <CardContent className="pt-0">
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                       <span>{campaign._count?.sessions || 0} sessions</span>
                       <span>{campaign._count?.npcs || 0} NPCs</span>
                       <span>{campaign._count?.members || campaign._count?.campaignMembers || 0} members</span>
@@ -128,14 +231,14 @@ export default function DashboardPage() {
           </div>
         ) : (
           <Card>
-            <CardContent className="flex flex-col items-center py-12 text-center">
-              <Swords className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="flex flex-col items-center py-8 text-center">
+              <Swords className="h-8 w-8 text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground mb-3">
                 No campaigns yet. Create one to get started!
               </p>
-              <Button asChild>
+              <Button size="sm" asChild>
                 <Link href="/campaigns/new">
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 h-3 w-3" />
                   Create Campaign
                 </Link>
               </Button>
@@ -144,40 +247,158 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Characters */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">My Characters</h2>
-        {characters.isLoading ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2].map((i) => (
-              <Skeleton key={i} className="h-32 rounded-lg" />
-            ))}
+      {/* Side-by-side: Characters (left) + Homebrew (right) */}
+      <div className="grid gap-6 lg:grid-cols-2 min-w-0">
+        {/* Characters */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">My Characters</h2>
+            <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
+              <Link href="/characters">View all</Link>
+            </Button>
           </div>
-        ) : characters.data && characters.data.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {characters.data.map((char: any) => (
-              <Link key={char.id} href={`/characters/${char.id}`}>
-                <Card className="hover:border-foreground/50 transition-colors cursor-pointer">
-                  <CardHeader>
-                    <CardTitle className="text-base">{char.name}</CardTitle>
-                    <CardDescription>
-                      {[char.race, char.class, char.level && `Level ${char.level}`]
-                        .filter(Boolean)
-                        .join(' · ') || 'No details'}
-                    </CardDescription>
-                  </CardHeader>
+          {characters.isLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <Skeleton key={i} className="h-20 rounded-lg" />
+              ))}
+            </div>
+          ) : characters.data && characters.data.length > 0 ? (
+            <div className="space-y-3">
+              {characters.data.map((char: any) => {
+                const hp = char.hitPoints as any;
+                const hpPct = hp?.max > 0 ? (hp.current / hp.max) * 100 : null;
+                return (
+                  <Link key={char.id} href={`/characters/${char.id}`}>
+                    <Card className="hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+                      <div className="flex">
+                        {char.portraitUrl ? (
+                          <div className="relative w-20 shrink-0">
+                            <Image
+                              src={char.portraitUrl}
+                              alt={char.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex w-20 shrink-0 items-center justify-center bg-gradient-to-b from-purple-950 to-blue-950">
+                            <Users className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0 py-3 px-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <CardTitle className="text-sm truncate">{char.name}</CardTitle>
+                            {char.level && (
+                              <Badge variant="outline" className="text-[10px] shrink-0 tabular-nums">
+                                Lvl {char.level}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            {[char.race, char.class].filter(Boolean).join(' · ') || 'No details'}
+                          </p>
+                          {hp && hpPct != null && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Heart className="h-3 w-3 text-red-500 shrink-0" />
+                              <Progress value={hpPct} className="h-1.5 flex-1" />
+                              <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
+                                {hp.current}/{hp.max}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center py-8 text-center">
+                <Users className="h-8 w-8 text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground mb-3">No characters yet</p>
+                <Button size="sm" asChild>
+                  <Link href="/characters/new">
+                    <Plus className="mr-2 h-3 w-3" />
+                    Create Character
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Homebrew */}
+        <div className="space-y-3 min-w-0">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Homebrew Library</h2>
+            <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
+              <Link href="/homebrew">View all</Link>
+            </Button>
+          </div>
+          {homebrew.isLoading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <Skeleton key={i} className="h-16 rounded-lg" />
+              ))}
+            </div>
+          ) : homebrewItems.length > 0 ? (
+            <div className="space-y-2">
+              {homebrewItems.slice(0, 8).map((item: any) => (
+                <Card key={item.id} className="overflow-hidden">
+                  <CardContent className="flex items-center gap-3 py-2.5 px-4 overflow-hidden">
+                    {item.images?.[0] ? (
+                      <Image
+                        src={item.images[0]}
+                        alt={item.name}
+                        width={32}
+                        height={32}
+                        className="h-8 w-8 rounded object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted">
+                        <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{item.name}</p>
+                      {item.data?.description && (
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          {stripHtml(item.data.description)}
+                        </p>
+                      )}
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] capitalize shrink-0 ${typeColorMap[item.type] || ''}`}
+                    >
+                      {item.type}
+                    </Badge>
+                  </CardContent>
                 </Card>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No characters yet.{' '}
-            <Link href="/characters/new" className="text-primary hover:underline">
-              Create one
-            </Link>
-          </p>
-        )}
+              ))}
+              {homebrewItems.length > 8 && (
+                <p className="text-xs text-muted-foreground text-center pt-1">
+                  +{homebrewItems.length - 8} more items
+                </p>
+              )}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center py-8 text-center">
+                <BookOpen className="h-8 w-8 text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground mb-3">No homebrew content yet</p>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href="/homebrew/pdfs">
+                    Upload PDFs
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );

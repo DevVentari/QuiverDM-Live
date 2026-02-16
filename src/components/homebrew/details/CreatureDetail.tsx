@@ -27,10 +27,10 @@ export function CreatureDetail({ data }: CreatureDetailProps) {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            <Skull className="h-5 w-5 text-red-500" />
+            <Skull className="h-5 w-5 text-emerald-500" />
             <CardTitle className="text-lg">Creature Stats</CardTitle>
             {data.challenge_rating != null && (
-              <Badge variant="outline" className="ml-auto text-red-500 border-red-500/20">
+              <Badge variant="outline" className="ml-auto text-emerald-500 border-emerald-500/20">
                 CR {data.challenge_rating}
               </Badge>
             )}
