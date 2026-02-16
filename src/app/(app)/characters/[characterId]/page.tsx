@@ -1,34 +1,50 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
-import { Trash2, Save, ArrowLeft } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Trash2,
+  ArrowLeft,
+  Edit,
+  RefreshCw,
+  Shield,
+  Wand2,
+  Backpack,
+  BookOpen,
+  GraduationCap,
+  ScrollText,
+  Users,
+} from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { CharacterOverview } from './_components/CharacterOverview';
+import { CharacterSpells } from './_components/CharacterSpells';
+import { CharacterInventory } from './_components/CharacterInventory';
+import { CharacterFeatures } from './_components/CharacterFeatures';
+import { CharacterProficiencies } from './_components/CharacterProficiencies';
+import { CharacterBackground } from './_components/CharacterBackground';
+import { AddToCampaignDialog } from '@/components/character/AddToCampaignDialog';
+import { ShortRestDialog } from '@/components/character/ShortRestDialog';
+import { LongRestDialog } from '@/components/character/LongRestDialog';
+import { useDiceRoller } from '@/hooks/use-dice-roller';
 
 export default function CharacterDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
   const characterId = params.characterId as string;
+  const { roll } = useDiceRoller();
 
-  const character = trpc.characters.getById.useQuery({ id: characterId }, { staleTime: 120_000 });
+  const character = trpc.characters.getById.useQuery(
+    { id: characterId },
+    { staleTime: 120_000 }
+  );
   const utils = trpc.useUtils();
-
-  const update = trpc.characters.update.useMutation({
-    onSuccess: () => utils.characters.getById.invalidate({ id: characterId }),
-    onError: (error) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    },
-  });
 
   const deleteChar = trpc.characters.delete.useMutation({
     onSuccess: () => router.push('/characters'),
@@ -37,39 +53,33 @@ export default function CharacterDetailPage() {
     },
   });
 
-  const [form, setForm] = useState({
-    name: '',
-    race: '',
-    class: '',
-    level: 1,
-    background: '',
-    backstory: '',
-    personalityTraits: '',
-    ideals: '',
-    bonds: '',
-    flaws: '',
+  const syncChar = trpc.charactersDndBeyond.syncCharacter.useMutation({
+    onSuccess: () => {
+      utils.characters.getById.invalidate({ id: characterId });
+      toast({ title: 'Synced', description: 'Character synced from D&D Beyond.' });
+    },
+    onError: (error) => {
+      toast({ title: 'Sync failed', description: error.message, variant: 'destructive' });
+    },
   });
 
-  useEffect(() => {
-    if (character.data) {
-      const d = character.data as any;
-      setForm({
-        name: d.name || '',
-        race: d.race || '',
-        class: d.class || '',
-        level: d.level || 1,
-        background: d.background || '',
-        backstory: d.backstory || '',
-        personalityTraits: d.personalityTraits || '',
-        ideals: d.ideals || '',
-        bonds: d.bonds || '',
-        flaws: d.flaws || '',
-      });
-    }
-  }, [character.data]);
+  const updateChar = trpc.characters.update.useMutation({
+    onSuccess: () => {
+      utils.characters.getById.invalidate({ id: characterId });
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
 
   if (character.isLoading) {
-    return <Skeleton className="h-96 rounded-lg max-w-2xl" />;
+    return (
+      <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <Skeleton className="h-24 rounded-lg" />
+        <Skeleton className="h-10 rounded-lg w-full max-w-lg" />
+        <Skeleton className="h-96 rounded-lg" />
+      </div>
+    );
   }
 
   if (character.isError) {
@@ -77,8 +87,12 @@ export default function CharacterDetailPage() {
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center space-y-4">
           <p className="text-destructive font-medium">Failed to load data</p>
-          <p className="text-sm text-muted-foreground">{character.error?.message || 'An unexpected error occurred'}</p>
-          <Button variant="outline" onClick={() => character.refetch()}>Try Again</Button>
+          <p className="text-sm text-muted-foreground">
+            {character.error?.message || 'An unexpected error occurred'}
+          </p>
+          <Button variant="outline" onClick={() => character.refetch()}>
+            Try Again
+          </Button>
         </div>
       </div>
     );
@@ -89,176 +103,185 @@ export default function CharacterDetailPage() {
   }
 
   const data = character.data as any;
+  const classes = data.classes as any[] | null;
+  const hasDndBeyond = !!data.dndBeyondId;
 
-  function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    update.mutate({
-      id: characterId,
-      name: form.name,
-      race: form.race || undefined,
-      class: form.class || undefined,
-      level: form.level,
-      background: form.background || undefined,
-      backstory: form.backstory || null,
-      personalityTraits: form.personalityTraits || null,
-      ideals: form.ideals || null,
-      bonds: form.bonds || null,
-      flaws: form.flaws || null,
-    });
+  // Build subtitle
+  const parts: string[] = [];
+  if (data.race) parts.push(data.race);
+  if (classes && classes.length > 0) {
+    const classStr = classes
+      .map((c: any) => (c.subclass ? `${c.name} (${c.subclass})` : c.name))
+      .join(' / ');
+    parts.push(classStr);
+  } else if (data.class) {
+    parts.push(data.subclass ? `${data.class} (${data.subclass})` : data.class);
   }
+  parts.push(`Level ${data.level}`);
+  const subtitle = parts.join(' | ');
+  const existingCampaignIds = (data.campaignCharacters ?? []).map((cc: any) => cc.campaignId);
 
   return (
-    <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="self-start">
+    <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+      {/* Hero Header */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <Button variant="ghost" size="icon" asChild className="self-start shrink-0">
           <Link href="/characters">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-xl sm:text-2xl font-bold flex-1">{data.name}</h1>
-        <Button
-          size="sm"
-          variant="destructive"
-          onClick={() => {
-            if (confirm('Delete this character?')) {
-              deleteChar.mutate({ id: characterId });
-            }
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+
+        {/* Portrait */}
+        {data.portraitUrl ? (
+          <Image
+            src={data.portraitUrl}
+            alt={data.name}
+            width={80}
+            height={80}
+            className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover shrink-0"
+          />
+        ) : (
+          <div className="flex w-16 h-16 sm:w-20 sm:h-20 shrink-0 items-center justify-center rounded-lg bg-gradient-to-b from-purple-950 to-blue-950">
+            <Users className="h-7 w-7 text-muted-foreground" />
+          </div>
+        )}
+
+        {/* Name & subtitle */}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold truncate">{data.name}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+          {data.background && (
+            <Badge variant="outline" className="mt-1.5">
+              {data.background}
+            </Badge>
+          )}
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex items-start gap-2 shrink-0">
+          <AddToCampaignDialog
+            characterId={characterId}
+            existingCampaignIds={existingCampaignIds}
+            onAdded={() => utils.characters.getById.invalidate({ id: characterId })}
+          />
+          <ShortRestDialog
+            data={data}
+            onRoll={roll}
+            disabled={updateChar.isPending}
+            onFinish={async (patch) => {
+              await updateChar.mutateAsync({ id: characterId, ...patch });
+              toast({ title: 'Short rest complete' });
+            }}
+          />
+          <LongRestDialog
+            data={data}
+            disabled={updateChar.isPending}
+            onFinish={async (patch) => {
+              await updateChar.mutateAsync({ id: characterId, ...patch });
+              toast({ title: 'Long rest complete' });
+            }}
+          />
+          <Button size="sm" variant="outline" asChild>
+            <Link href={`/characters/${characterId}/edit`}>
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Link>
+          </Button>
+          {hasDndBeyond && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => syncChar.mutate({ characterId })}
+              disabled={syncChar.isPending}
+            >
+              <RefreshCw
+                className={`h-4 w-4 mr-1 ${syncChar.isPending ? 'animate-spin' : ''}`}
+              />
+              Sync
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => {
+              if (confirm('Delete this character?')) {
+                deleteChar.mutate({ id: characterId });
+              }
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      {/* Ability Scores */}
-      {data.abilityScores && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Ability Scores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm">
-              {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => {
-                const key = ability.toLowerCase();
-                const score = (data.abilityScores as any)?.[key] ?? '—';
-                const mod = typeof score === 'number' ? Math.floor((score - 10) / 2) : 0;
-                return (
-                  <div key={ability}>
-                    <div className="font-semibold text-xs text-muted-foreground">{ability}</div>
-                    <div className="text-lg font-bold">{score}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {typeof score === 'number' ? `(${mod >= 0 ? '+' : ''}${mod})` : ''}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Tabbed Content */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview" className="gap-1.5">
+            <Shield className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="spells" className="gap-1.5">
+            <Wand2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Spells</span>
+          </TabsTrigger>
+          <TabsTrigger value="inventory" className="gap-1.5">
+            <Backpack className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Inventory</span>
+          </TabsTrigger>
+          <TabsTrigger value="features" className="gap-1.5">
+            <BookOpen className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Features</span>
+          </TabsTrigger>
+          <TabsTrigger value="proficiencies" className="gap-1.5">
+            <GraduationCap className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Skills</span>
+          </TabsTrigger>
+          <TabsTrigger value="background" className="gap-1.5">
+            <ScrollText className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Background</span>
+          </TabsTrigger>
+        </TabsList>
 
-      <Separator />
-
-      {/* Edit Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Edit Character</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Level</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={form.level}
-                  onChange={(e) => setForm({ ...form, level: Number(e.target.value) })}
-                />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Race</Label>
-                <Input
-                  value={form.race}
-                  onChange={(e) => setForm({ ...form, race: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Class</Label>
-                <Input
-                  value={form.class}
-                  onChange={(e) => setForm({ ...form, class: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Background</Label>
-              <Input
-                value={form.background}
-                onChange={(e) => setForm({ ...form, background: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Backstory</Label>
-              <Textarea
-                value={form.backstory}
-                onChange={(e) => setForm({ ...form, backstory: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Personality Traits</Label>
-                <Textarea
-                  value={form.personalityTraits}
-                  onChange={(e) => setForm({ ...form, personalityTraits: e.target.value })}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Ideals</Label>
-                <Textarea
-                  value={form.ideals}
-                  onChange={(e) => setForm({ ...form, ideals: e.target.value })}
-                  rows={2}
-                />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Bonds</Label>
-                <Textarea
-                  value={form.bonds}
-                  onChange={(e) => setForm({ ...form, bonds: e.target.value })}
-                  rows={2}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Flaws</Label>
-                <Textarea
-                  value={form.flaws}
-                  onChange={(e) => setForm({ ...form, flaws: e.target.value })}
-                  rows={2}
-                />
-              </div>
-            </div>
-            <Button type="submit" disabled={update.isPending} className="w-full sm:w-auto">
-              <Save className="mr-2 h-4 w-4" />
-              {update.isPending ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+        <TabsContent value="overview" className="mt-4">
+          <CharacterOverview
+            data={data}
+            onRoll={roll}
+            isUpdating={updateChar.isPending}
+            onUpdate={async (patch) => {
+              await updateChar.mutateAsync({ id: characterId, ...patch });
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="spells" className="mt-4">
+          <CharacterSpells
+            data={data}
+            onRoll={roll}
+            isUpdating={updateChar.isPending}
+            onUpdate={async (patch) => {
+              await updateChar.mutateAsync({ id: characterId, ...patch });
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="inventory" className="mt-4">
+          <CharacterInventory
+            data={data}
+            isUpdating={updateChar.isPending}
+            onUpdate={async (patch) => {
+              await updateChar.mutateAsync({ id: characterId, ...patch });
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="features" className="mt-4">
+          <CharacterFeatures data={data} />
+        </TabsContent>
+        <TabsContent value="proficiencies" className="mt-4">
+          <CharacterProficiencies data={data} onRoll={roll} />
+        </TabsContent>
+        <TabsContent value="background" className="mt-4">
+          <CharacterBackground data={data} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
