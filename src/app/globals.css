@@ -16,9 +16,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 4%;
 
-    /* Primary - Dark gray instead of gold */
-    --primary: 240 6% 10%;             /* Very dark gray (almost black) */
-    --primary-foreground: 0 0% 98%;    /* Off-white */
+    /* Primary - Warm amber */
+    --primary: 35 80% 48%;             /* Warm amber */
+    --primary-foreground: 0 0% 100%;   /* White text on amber */
 
     /* Secondary - Light gray backgrounds */
     --secondary: 240 5% 96%;           /* Very light gray */
@@ -28,9 +28,9 @@
     --muted: 240 5% 96%;
     --muted-foreground: 240 4% 46%;    /* Medium gray text */
 
-    /* Accent - Subtle interaction states */
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 6% 10%;
+    /* Accent - Subtle warm tint */
+    --accent: 35 30% 95%;
+    --accent-foreground: 35 80% 25%;
 
     /* Destructive - Keep red but desaturated */
     --destructive: 0 50% 50%;          /* Muted red */
@@ -39,7 +39,7 @@
     /* Borders - Visible but subtle */
     --border: 240 6% 90%;              /* Light gray borders */
     --input: 240 6% 90%;               /* Same as border */
-    --ring: 240 6% 10%;                /* Dark focus rings */
+    --ring: 35 80% 48%;                /* Amber focus rings */
 
     /* Border radius - slightly tighter for wireframe feel */
     --radius: 0.375rem;                /* 6px instead of 8px */
@@ -58,9 +58,9 @@
     --popover: 240 6% 8%;
     --popover-foreground: 240 5% 96%;
 
-    /* Primary - Light gray for dark mode */
-    --primary: 240 5% 96%;             /* Light gray */
-    --primary-foreground: 240 10% 4%;  /* Dark text */
+    /* Primary - Amber for dark mode */
+    --primary: 35 80% 55%;             /* Slightly brighter amber */
+    --primary-foreground: 240 10% 4%;  /* Dark text on amber */
 
     /* Secondary */
     --secondary: 240 4% 16%;           /* Medium-dark gray */
@@ -71,8 +71,8 @@
     --muted-foreground: 240 5% 64%;    /* Medium-light gray */
 
     /* Accent */
-    --accent: 240 4% 16%;
-    --accent-foreground: 240 5% 96%;
+    --accent: 35 15% 14%;
+    --accent-foreground: 35 60% 80%;
 
     /* Destructive */
     --destructive: 0 62% 50%;
@@ -81,7 +81,7 @@
     /* Borders - Subtle in dark mode */
     --border: 240 4% 16%;
     --input: 240 4% 16%;
-    --ring: 240 5% 96%;
+    --ring: 35 80% 55%;
   }
 }
 

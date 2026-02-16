@@ -18,6 +18,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 import { Plus, Users, Download, RefreshCw, Loader2, ExternalLink } from 'lucide-react';
 
 export default function CharactersPage() {
@@ -186,48 +187,66 @@ export default function CharactersPage() {
       ) : characters.data && characters.data.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(characters.data as any[]).map((char) => (
-            <Card key={char.id} className="h-full">
-              <CardHeader className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base leading-tight">
-                    <Link
-                      href={`/characters/${char.id}`}
-                      className="hover:underline underline-offset-2"
-                    >
-                      {char.name}
-                    </Link>
-                  </CardTitle>
-                  {char.dndBeyondId && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={syncCharacter.isPending}
-                      onClick={() => syncCharacter.mutate({ characterId: char.id })}
-                      title="Sync from D&D Beyond"
-                    >
-                      {syncCharacter.isPending && syncCharacter.variables?.characterId === char.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-                <CardDescription>
-                  {[char.race, char.class, char.level && `Level ${char.level}`]
-                    .filter(Boolean)
-                    .join(' | ') || 'No details'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {char.backstory ? (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {char.backstory}
-                  </p>
+            <Card key={char.id} className="h-full overflow-hidden">
+              <div className="flex">
+                {char.portraitUrl ? (
+                  <div className="relative w-24 shrink-0">
+                    <Image
+                      src={char.portraitUrl}
+                      alt={char.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No backstory added yet.</p>
+                  <div className="flex w-24 shrink-0 items-center justify-center bg-gradient-to-b from-purple-950 to-blue-950">
+                    <Users className="h-7 w-7 text-muted-foreground" />
+                  </div>
                 )}
-              </CardContent>
+                <div className="flex-1 min-w-0">
+                  <CardHeader className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-base leading-tight">
+                        <Link
+                          href={`/characters/${char.id}`}
+                          className="hover:underline underline-offset-2"
+                        >
+                          {char.name}
+                        </Link>
+                      </CardTitle>
+                      {char.dndBeyondId && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={syncCharacter.isPending}
+                          onClick={() => syncCharacter.mutate({ characterId: char.id })}
+                          title="Sync from D&D Beyond"
+                        >
+                          {syncCharacter.isPending && syncCharacter.variables?.characterId === char.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                    <CardDescription>
+                      {[char.race, char.class, char.level && `Level ${char.level}`]
+                        .filter(Boolean)
+                        .join(' | ') || 'No details'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {char.backstory ? (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {char.backstory}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No backstory added yet.</p>
+                    )}
+                  </CardContent>
+                </div>
+              </div>
             </Card>
           ))}
         </div>
