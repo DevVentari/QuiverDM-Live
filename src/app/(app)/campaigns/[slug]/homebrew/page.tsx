@@ -3,11 +3,12 @@
 import { useState, useRef } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { BookOpen, Upload, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,7 +29,6 @@ export default function CampaignHomebrewPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Frontend validation
     if (file.type !== 'application/pdf') {
       toast.error('Invalid file type', {
         description: 'Please upload a PDF file (.pdf)',
@@ -37,7 +37,7 @@ export default function CampaignHomebrewPage() {
       return;
     }
 
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error('File too large', {
         description: `Maximum file size is 50MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB`,
@@ -60,40 +60,25 @@ export default function CampaignHomebrewPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        // Handle specific error codes
         if (res.status === 401) {
-          toast.error('Not authenticated', {
-            description: 'Please sign in to upload PDFs',
-          });
+          toast.error('Not authenticated', { description: 'Please sign in to upload PDFs' });
         } else if (res.status === 403) {
-          toast.error('Access denied', {
-            description: 'You do not have permission to upload PDFs to this campaign',
-          });
+          toast.error('Access denied', { description: 'You do not have permission to upload PDFs to this campaign' });
         } else if (res.status === 429) {
-          toast.error('Upload limit reached', {
-            description: data.message || 'You have reached your monthly PDF upload limit. Upgrade to Pro for more uploads.',
-          });
-        } else if (res.status === 400) {
-          toast.error('Upload failed', {
-            description: data.message || 'Invalid file or request',
-          });
+          toast.error('Upload limit reached', { description: data.message || 'You have reached your monthly PDF upload limit.' });
         } else {
-          toast.error('Upload failed', {
-            description: data.message || `Server error (${res.status})`,
-          });
+          toast.error('Upload failed', { description: data.message || `Server error (${res.status})` });
         }
         return;
       }
 
-      // Success!
       toast.success('PDF uploaded successfully', {
         description: `${file.name} is being processed`,
       });
-
       pdfs.refetch();
     } catch (err) {
       toast.error('Upload failed', {
-        description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
+        description: err instanceof Error ? err.message : 'Network error.',
       });
     } finally {
       setUploading(false);
@@ -165,30 +150,11 @@ export default function CampaignHomebrewPage() {
       ) : content.data && (content.data as any).items?.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {((content.data as any).items || []).map((item: any) => (
-            <Card key={item.id}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{item.name}</CardTitle>
-                  <Badge variant="outline" className="text-xs capitalize">
-                    {item.type}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="line-clamp-2">
-                  {item.data?.description || 'No description'}
-                </CardDescription>
-                {item.tags && item.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {item.tags.slice(0, 3).map((tag: string) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <HomebrewContentCard
+              key={item.id}
+              item={item}
+              href={`/homebrew/${item.id}`}
+            />
           ))}
         </div>
       ) : (

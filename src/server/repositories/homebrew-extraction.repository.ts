@@ -124,6 +124,7 @@ export async function saveExtractedContent(
                 data: itemData,
                 tags: [item.type, 'extracted', 'ai-generated'],
                 searchText,
+                sourcePdfId: pdfId,
               },
             });
             console.log(`[Extraction] Updated existing: ${item.name} (${contentType})`);
@@ -136,6 +137,7 @@ export async function saveExtractedContent(
                 name: item.name,
                 data: itemData,
                 sourceType: 'pdf_extraction',
+                sourcePdfId: pdfId,
                 tags: [item.type, 'extracted', 'ai-generated'],
                 searchText,
               },

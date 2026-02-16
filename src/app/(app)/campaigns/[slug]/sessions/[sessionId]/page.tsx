@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useRef, useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -456,7 +457,7 @@ function RecapSection({
         )}
         {recap ? (
           <div className="prose prose-invert prose-sm max-w-none">
-            <ReactMarkdown>{recap}</ReactMarkdown>
+            <ReactMarkdown skipHtml>{recap}</ReactMarkdown>
           </div>
         ) : isDM ? (
           <div className="space-y-3">
@@ -499,6 +500,7 @@ export default function SessionDetailPage() {
   const sessionId = params.sessionId as string;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const session = trpc.sessions.getById.useQuery({ id: sessionId }, { staleTime: 30_000 });
   const recordings = trpc.sessionRecordings.getBySessionId.useQuery({ sessionId }, { staleTime: 30_000 });
@@ -615,11 +617,7 @@ export default function SessionDetailPage() {
               size="sm"
               variant="destructive"
               className="w-full sm:w-auto"
-              onClick={() => {
-                if (confirm('Delete this session?')) {
-                  deleteSession.mutate({ id: sessionId });
-                }
-              }}
+              onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -707,6 +705,17 @@ export default function SessionDetailPage() {
 
       {/* Transcript Viewer */}
       <TranscriptViewer sessionId={sessionId} />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Session"
+        description="Are you sure you want to delete this session? All recordings and transcripts will also be deleted."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={() => deleteSession.mutate({ id: sessionId })}
+        loading={deleteSession.isPending}
+      />
     </div>
   );
 }

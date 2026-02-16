@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +30,7 @@ export default function CampaignSettingsPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('active');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (campaign.data) {
@@ -140,11 +142,7 @@ export default function CampaignSettingsPage() {
               <Button
                 variant="destructive"
                 className="w-full sm:w-auto"
-                onClick={() => {
-                  if (confirm('Are you sure? This cannot be undone.')) {
-                    deleteCampaign.mutate({ id: campaignId });
-                  }
-                }}
+                onClick={() => setDeleteDialogOpen(true)}
                 disabled={deleteCampaign.isPending}
               >
                 {deleteCampaign.isPending ? 'Deleting...' : 'Delete Campaign'}
@@ -153,6 +151,17 @@ export default function CampaignSettingsPage() {
           </Card>
         </>
       )}
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Campaign"
+        description="Are you sure? This will permanently delete this campaign and all its data. This action cannot be undone."
+        confirmLabel="Delete Campaign"
+        variant="destructive"
+        onConfirm={() => deleteCampaign.mutate({ id: campaignId })}
+        loading={deleteCampaign.isPending}
+      />
     </div>
   );
 }

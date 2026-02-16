@@ -623,7 +623,9 @@ model HomebrewContent {
   dndBeyondUrl String? // D&D Beyond URL for reference
 
   // Source tracking
-  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import'
+  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction'
+  sourcePdfId  String?
+  sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
 
   campaigns    CampaignHomebrewContent[] // Many-to-many with campaigns
   createdAt    DateTime                    @default(now())
@@ -634,6 +636,7 @@ model HomebrewContent {
   @@index([name])
   @@index([dndBeyondId])
   @@index([sourceType])
+  @@index([sourcePdfId])
 }
 
 // Join table for many-to-many relationship between campaigns and homebrew
@@ -676,6 +679,8 @@ model HomebrewPDF {
   errorMessage        String?   @db.Text
   processingStartedAt DateTime?
   processingEndedAt   DateTime?
+
+  extractedContent    HomebrewContent[]
 
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
