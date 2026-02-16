@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -186,6 +187,7 @@ export default function SettingsPage() {
   });
 
   const [editing, setEditing] = useState<Record<string, string>>({});
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   function handleStartCheckout(priceId: string | null | undefined) {
     if (!priceId) {
@@ -201,12 +203,7 @@ export default function SettingsPage() {
   }
 
   function handleCancelSubscription() {
-    const confirmed = window.confirm(
-      'Cancel your subscription at the end of the current billing period?'
-    );
-
-    if (!confirmed) return;
-    cancelSubscription.mutate();
+    setCancelDialogOpen(true);
   }
 
   if (settings.isLoading) {
@@ -598,6 +595,20 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        title="Cancel Subscription"
+        description="Cancel your subscription at the end of the current billing period?"
+        confirmLabel="Cancel Subscription"
+        variant="destructive"
+        onConfirm={() => {
+          cancelSubscription.mutate();
+          setCancelDialogOpen(false);
+        }}
+        loading={cancelSubscription.isPending}
+      />
     </div>
   );
 }

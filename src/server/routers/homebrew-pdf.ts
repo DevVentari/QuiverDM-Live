@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { homebrewPdfService } from '../services/homebrew-pdf.service';
+import { prisma } from '@/lib/prisma';
 
 export const homebrewPdfRouter = router({
   /**
@@ -139,4 +140,21 @@ export const homebrewPdfRouter = router({
     .mutation(({ input, ctx }) =>
       homebrewPdfService.extractContent(input.pdfId, ctx.session.user.id)
     ),
+
+  /**
+   * Get extracted homebrew content linked to a specific PDF
+   */
+  getExtractedContent: protectedProcedure
+    .input(z.object({ pdfId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const pdf = await prisma.homebrewPDF.findFirst({
+        where: { id: input.pdfId, userId: ctx.session.user.id },
+        select: { id: true },
+      });
+      if (!pdf) return [];
+      return prisma.homebrewContent.findMany({
+        where: { sourcePdfId: input.pdfId, userId: ctx.session.user.id },
+        orderBy: { createdAt: 'desc' },
+      });
+    }),
 });

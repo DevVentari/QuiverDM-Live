@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +21,7 @@ export default function NPCDetailPage() {
   const npcId = params.npcId as string;
 
   const { toast } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const npc = trpc.npcs.getById.useQuery({ id: npcId }, { staleTime: 120_000 });
   const deleteNpc = trpc.npcs.delete.useMutation({
     onSuccess: () => router.push(`/campaigns/${slug}/npcs`),
@@ -76,11 +79,7 @@ export default function NPCDetailPage() {
               size="sm"
               variant="destructive"
               className="w-full sm:w-auto"
-              onClick={() => {
-                if (confirm('Delete this NPC?')) {
-                  deleteNpc.mutate({ id: npcId });
-                }
-              }}
+              onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -163,6 +162,17 @@ export default function NPCDetailPage() {
           </Card>
         </>
       )}
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete NPC"
+        description="Are you sure you want to delete this NPC? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={() => deleteNpc.mutate({ id: npcId })}
+        loading={deleteNpc.isPending}
+      />
     </div>
   );
 }

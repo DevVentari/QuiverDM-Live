@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,6 +41,7 @@ export default function CharacterDetailPage() {
   const { toast } = useToast();
   const characterId = params.characterId as string;
   const { roll } = useDiceRoller();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const character = trpc.characters.getById.useQuery(
     { id: characterId },
@@ -203,11 +206,7 @@ export default function CharacterDetailPage() {
           <Button
             size="sm"
             variant="destructive"
-            onClick={() => {
-              if (confirm('Delete this character?')) {
-                deleteChar.mutate({ id: characterId });
-              }
-            }}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -282,6 +281,17 @@ export default function CharacterDetailPage() {
           <CharacterBackground data={data} />
         </TabsContent>
       </Tabs>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Character"
+        description="Are you sure you want to delete this character? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={() => deleteChar.mutate({ id: characterId })}
+        loading={deleteChar.isPending}
+      />
     </div>
   );
 }
