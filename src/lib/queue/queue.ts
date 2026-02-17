@@ -130,12 +130,52 @@ export async function getPDFProcessingJobStatus(pdfId: string) {
   }
 
   const state = await job.getState();
-  const progress = job.progress;
+  const rawProgress = job.progress;
+  const progressPayload =
+    typeof rawProgress === 'number'
+      ? { progress: rawProgress }
+      : rawProgress && typeof rawProgress === 'object'
+        ? (rawProgress as Record<string, unknown>)
+        : {};
+  const progress =
+    typeof progressPayload.progress === 'number'
+      ? progressPayload.progress
+      : typeof rawProgress === 'number'
+        ? rawProgress
+        : 0;
+  const currentStep =
+    typeof progressPayload.currentStep === 'string'
+      ? progressPayload.currentStep
+      : null;
+  const currentSubStep =
+    typeof progressPayload.currentSubStep === 'string'
+      ? progressPayload.currentSubStep
+      : null;
+  const estimatedTimeRemaining =
+    typeof progressPayload.estimatedTimeRemaining === 'number'
+      ? progressPayload.estimatedTimeRemaining
+      : null;
+  const logs = Array.isArray(progressPayload.logs)
+    ? progressPayload.logs.filter(
+        (entry): entry is { timestamp: string; message: string; level: string } =>
+          !!entry &&
+          typeof entry === 'object' &&
+          typeof (entry as { timestamp?: unknown }).timestamp === 'string' &&
+          typeof (entry as { message?: unknown }).message === 'string' &&
+          typeof (entry as { level?: unknown }).level === 'string'
+      )
+    : [];
 
   return {
     id: job.id,
     state,
     progress,
+    rawProgress,
+    currentStep,
+    currentSubStep,
+    estimatedTimeRemaining,
+    logs,
+    progressDetails: progressPayload,
     attemptsMade: job.attemptsMade,
     failedReason: job.failedReason,
     finishedOn: job.finishedOn,
