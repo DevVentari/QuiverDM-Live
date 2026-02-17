@@ -39,6 +39,63 @@ const broadcastPDFStatus: ((pdfId: string, status: string, data?: any) => void) 
 
 const prisma = new PrismaClient();
 
+type ProgressLogLevel = 'info' | 'success' | 'error';
+
+interface ProgressLogEntry {
+  timestamp: string;
+  message: string;
+  level: ProgressLogLevel;
+}
+
+const MAX_PROGRESS_LOGS = 150;
+const jobLogs = new Map<string, ProgressLogEntry[]>();
+
+function estimateTimeRemainingSeconds(startTime: number, progress: number): number | null {
+  if (progress <= 0 || progress >= 100) return null;
+  const elapsedSeconds = Math.max(1, Math.floor((Date.now() - startTime) / 1000));
+  const estimatedTotalSeconds = Math.floor((elapsedSeconds / progress) * 100);
+  return Math.max(0, estimatedTotalSeconds - elapsedSeconds);
+}
+
+async function updateJobProgress(
+  job: Job<PDFProcessingJobData, PDFProcessingJobResult>,
+  pdfId: string,
+  startTime: number,
+  input: {
+    progress: number;
+    currentStep: string;
+    currentSubStep?: string;
+    log?: string;
+    level?: ProgressLogLevel;
+  }
+) {
+  const logs = jobLogs.get(pdfId) ?? [];
+  if (input.log) {
+    logs.push({
+      timestamp: new Date().toISOString(),
+      message: input.log,
+      level: input.level ?? 'info',
+    });
+    if (logs.length > MAX_PROGRESS_LOGS) {
+      logs.splice(0, logs.length - MAX_PROGRESS_LOGS);
+    }
+    jobLogs.set(pdfId, logs);
+  }
+
+  const estimatedTimeRemaining = estimateTimeRemainingSeconds(startTime, input.progress);
+  const payload = {
+    progress: input.progress,
+    currentStep: input.currentStep,
+    currentSubStep: input.currentSubStep,
+    estimatedTimeRemaining,
+    logs,
+  };
+
+  await job.updateProgress(payload as any);
+  broadcastPDFProgress?.(pdfId, input.progress);
+  broadcastPDFStatus?.(pdfId, input.currentStep, payload);
+}
+
 // Redis connection configuration
 const redisConnection = {
   host: process.env.REDIS_HOST || 'localhost',
@@ -70,6 +127,7 @@ async function processPDFJob(
     if (!pdfExists) {
       console.log(`[Worker] PDF ${pdfId} no longer exists - skipping processing`);
       activeJobs.delete(pdfId);
+      jobLogs.delete(pdfId);
       return {
         success: false,
         error: 'PDF was deleted before processing started',
@@ -86,16 +144,25 @@ async function processPDFJob(
       },
     });
 
-    await job.updateProgress(10);
-    broadcastPDFProgress?.(pdfId, 10);
-    broadcastPDFStatus?.(pdfId, 'downloading');
+    await updateJobProgress(job, pdfId, startTime, {
+      progress: 10,
+      currentStep: 'downloading',
+      currentSubStep: 'Preparing secure download URL',
+      log: 'Starting PDF processing job',
+      level: 'info',
+    });
 
     // Get signed URL from storage for download
     console.log(`[Worker] Generating signed URL for: ${r2Key}`);
     const signedUrl = await getSignedUrl(r2Key, 3600); // 1 hour expiry
 
-    await job.updateProgress(20);
-    broadcastPDFProgress?.(pdfId, 20);
+    await updateJobProgress(job, pdfId, startTime, {
+      progress: 20,
+      currentStep: 'downloading',
+      currentSubStep: 'Downloading PDF to worker',
+      log: 'PDF download initialized',
+      level: 'info',
+    });
 
     // Download PDF to temp location
     const tempDir = path.join(process.cwd(), 'temp');
@@ -138,9 +205,13 @@ async function processPDFJob(
       await fs.writeFile(tempPdfPath, Buffer.from(buffer));
     }
 
-    await job.updateProgress(40);
-    broadcastPDFProgress?.(pdfId, 40);
-    broadcastPDFStatus?.(pdfId, 'preprocessing');
+    await updateJobProgress(job, pdfId, startTime, {
+      progress: 40,
+      currentStep: 'converting',
+      currentSubStep: 'Validating document and preparing conversion',
+      log: 'PDF downloaded successfully',
+      level: 'success',
+    });
 
     // Pre-flight check: Validate API keys if LLM is requested
     const providerKeyMap: Record<string, string> = {
@@ -175,7 +246,13 @@ async function processPDFJob(
     }
     // Convert PDF to Markdown using Docling REST API
     console.log('[Worker] Converting PDF to Markdown with Docling...');
-    broadcastPDFStatus?.(pdfId, 'pdf_conversion');
+    await updateJobProgress(job, pdfId, startTime, {
+      progress: 45,
+      currentStep: 'converting',
+      currentSubStep: 'Converting PDF to markdown with Docling',
+      log: 'Starting markdown conversion',
+      level: 'info',
+    });
 
     let markdown = '';
     let pdfMetadata: Record<string, unknown> = {};
@@ -184,11 +261,18 @@ async function processPDFJob(
 
     if (doclingAvailable) {
       try {
+        let lastReportedDoclingProgress = 45;
         const doclingResult = await convertWithDocling(tempPdfPath, (percent) => {
           // Map Docling progress (0-100) to overall job progress (40-85)
           const jobPercent = 40 + Math.round(percent * 0.45);
-          job.updateProgress(jobPercent);
-          broadcastPDFProgress?.(pdfId, jobPercent);
+          if (jobPercent >= lastReportedDoclingProgress + 2) {
+            lastReportedDoclingProgress = jobPercent;
+            void updateJobProgress(job, pdfId, startTime, {
+              progress: jobPercent,
+              currentStep: 'converting',
+              currentSubStep: `Docling conversion ${percent}%`,
+            });
+          }
         });
         markdown = doclingResult.markdown;
         pdfMetadata = doclingResult.metadata;
@@ -201,9 +285,13 @@ async function processPDFJob(
 
     // Fallback to pdfplumber if Docling failed or unavailable
     if (!markdown) {
-      broadcastPDFStatus?.(pdfId, 'fallback_processing');
-      await job.updateProgress(50);
-      broadcastPDFProgress?.(pdfId, 50);
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: 50,
+        currentStep: 'converting',
+        currentSubStep: 'Falling back to pdfplumber conversion',
+        log: 'Docling unavailable, using fallback converter',
+        level: 'info',
+      });
 
       const fallbackResult = await convertPdfWithPdfplumber(tempPdfPath);
       markdown = fallbackResult.markdown;
@@ -220,9 +308,13 @@ async function processPDFJob(
       metadata: pdfMetadata,
     };
 
-    await job.updateProgress(85);
-    broadcastPDFProgress?.(pdfId, 85);
-    broadcastPDFStatus?.(pdfId, 'postprocessing');
+    await updateJobProgress(job, pdfId, startTime, {
+      progress: 85,
+      currentStep: 'analyzing',
+      currentSubStep: 'Analyzing markdown structure',
+      log: 'Markdown conversion complete',
+      level: 'success',
+    });
 
     // Clean up temp PDF
     await fs.unlink(tempPdfPath).catch(() => {});
@@ -253,6 +345,7 @@ async function processPDFJob(
       if (dbError.code === 'P2025') {
         console.log(`[Worker] PDF ${pdfId} was deleted during processing - cleaning up`);
         activeJobs.delete(pdfId);
+        jobLogs.delete(pdfId);
         return {
           success: false,
           error: 'PDF was deleted during processing',
@@ -262,23 +355,37 @@ async function processPDFJob(
       throw dbError;
     }
 
-    await job.updateProgress(90);
-    broadcastPDFProgress?.(pdfId, 90);
+    await updateJobProgress(job, pdfId, startTime, {
+      progress: 90,
+      currentStep: 'saving',
+      currentSubStep: 'Saving markdown output to database',
+      log: 'Markdown saved',
+      level: 'success',
+    });
 
     // Only extract content if useAIExtraction is enabled (defaults to true for backwards compat)
     if (shouldExtract) {
       const extractionProvider: ExtractionProvider | undefined = options.llmProvider;
       console.log(`[Worker] Starting content extraction${extractionProvider ? ` with ${extractionProvider}` : ' (auto-select)'}...`);
-      broadcastPDFStatus?.(pdfId, 'extracting_content');
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: 92,
+        currentStep: 'extracting',
+        currentSubStep: 'Extracting D&D entities with AI',
+        log: `Starting content extraction${extractionProvider ? ` (${extractionProvider})` : ''}`,
+        level: 'info',
+      });
 
       try {
         const extractionResult = await extractWithFallback(markdownContent, extractionProvider);
 
         if (extractionResult.success && extractionResult.items.length > 0) {
           console.log(`[Worker] Extracted ${extractionResult.items.length} items via ${extractionResult.provider}, saving...`);
-          broadcastPDFStatus?.(pdfId, 'saving_extracted_content', {
-            itemCount: extractionResult.items.length,
-            provider: extractionResult.provider,
+          await updateJobProgress(job, pdfId, startTime, {
+            progress: 94,
+            currentStep: 'saving',
+            currentSubStep: `Saving ${extractionResult.items.length} extracted items`,
+            log: `Saving ${extractionResult.items.length} extracted items`,
+            level: 'info',
           });
 
           const saveResult = await saveExtractedContent(
@@ -317,9 +424,12 @@ async function processPDFJob(
             }
           }
 
-          broadcastPDFStatus?.(pdfId, 'extraction_complete', {
-            itemsExtracted: saveResult.saved,
-            provider: extractionResult.provider,
+          await updateJobProgress(job, pdfId, startTime, {
+            progress: 95,
+            currentStep: 'saving',
+            currentSubStep: `Saved ${saveResult.saved} extracted items`,
+            log: `Extraction complete: ${saveResult.saved} item(s) saved`,
+            level: 'success',
           });
         } else {
           console.log(`[Worker] No content extracted: ${extractionResult.error || 'No items found'}`);
@@ -368,23 +478,36 @@ async function processPDFJob(
           }
         }
 
-        broadcastPDFStatus?.(pdfId, 'extraction_failed', { error: errorMsg });
+        await updateJobProgress(job, pdfId, startTime, {
+          progress: 95,
+          currentStep: 'extracting',
+          currentSubStep: 'Extraction failed, keeping converted markdown',
+          log: `Extraction failed: ${errorMsg}`,
+          level: 'error',
+        });
       }
-
-      await job.updateProgress(95);
-      broadcastPDFProgress?.(pdfId, 95);
     } else {
       console.log(`[Worker] AI extraction disabled, skipping content extraction`);
-      await job.updateProgress(95);
-      broadcastPDFProgress?.(pdfId, 95);
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: 95,
+        currentStep: 'saving',
+        currentSubStep: 'Skipping AI extraction by configuration',
+        log: 'AI extraction disabled for this PDF',
+        level: 'info',
+      });
     }
 
-    await job.updateProgress(100);
-    broadcastPDFProgress?.(pdfId, 100);
-    broadcastPDFStatus?.(pdfId, 'completed');
+    await updateJobProgress(job, pdfId, startTime, {
+      progress: 100,
+      currentStep: 'completed',
+      currentSubStep: 'PDF processing complete',
+      log: 'PDF is ready for review',
+      level: 'success',
+    });
 
     // Clean up job tracking
     activeJobs.delete(pdfId);
+    jobLogs.delete(pdfId);
 
     const processingTime = Date.now() - startTime;
     console.log(`[Worker] Successfully processed PDF: ${filename} in ${processingTime}ms`);
@@ -419,8 +542,21 @@ async function processPDFJob(
       console.error(`[Worker] Stack trace:`, error.stack);
     }
 
+    try {
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: Math.max(1, typeof (job.progress as any)?.progress === 'number' ? (job.progress as any).progress : 1),
+        currentStep: 'failed',
+        currentSubStep: errorMessage,
+        log: `Processing failed: ${errorMessage}`,
+        level: 'error',
+      });
+    } catch (progressError) {
+      console.warn('[Worker] Failed to update job progress with error state:', progressError);
+    }
+
     // Clean up job tracking
     activeJobs.delete(pdfId);
+    jobLogs.delete(pdfId);
 
     // Update database with failed status (if record still exists)
     try {

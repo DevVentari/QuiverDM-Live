@@ -1,31 +1,280 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Upload, FileText, Loader2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { CircularProgress } from '@/components/ui/circular-progress';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Eye,
+  FileText,
+  Loader2,
+  RefreshCw,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+type StatusFilter = 'all' | 'pending' | 'processing' | 'completed' | 'failed';
+type SortKey = 'newest' | 'oldest' | 'name' | 'size';
+
+type PdfItem = {
+  id: string;
+  filename: string;
+  fileSize: number;
+  createdAt: string;
+  processingStatus: string;
+  errorMessage?: string | null;
+};
+
+function formatFileSize(bytes?: number) {
+  if (!bytes) return 'Size unknown';
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function formatUploadDate(value?: string) {
+  if (!value) return 'Unknown date';
+  return new Date(value).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function getStatusStyles(status: string) {
+  if (status === 'completed') {
+    return {
+      className: 'border-green-500/40 bg-green-500/10 text-green-700',
+      icon: CheckCircle2,
+      label: 'completed',
+    };
+  }
+  if (status === 'failed') {
+    return {
+      className: 'border-red-500/40 bg-red-500/10 text-red-700',
+      icon: AlertTriangle,
+      label: 'failed',
+    };
+  }
+  if (status === 'processing') {
+    return {
+      className: 'border-blue-500/40 bg-blue-500/10 text-blue-700',
+      icon: Loader2,
+      label: 'processing',
+    };
+  }
+  return {
+    className: 'border-amber-500/40 bg-amber-500/10 text-amber-700',
+    icon: Clock,
+    label: 'pending',
+  };
+}
+
+function normalizeStage(step: string | null | undefined, progress: number) {
+  if (!step) {
+    if (progress >= 100) return 'Completed';
+    if (progress >= 90) return 'Saving';
+    if (progress >= 75) return 'Extracting';
+    if (progress >= 55) return 'Analyzing';
+    if (progress >= 30) return 'Converting';
+    if (progress >= 10) return 'Downloading';
+    return 'Queued';
+  }
+
+  const key = step.toLowerCase();
+  if (key.includes('completed')) return 'Completed';
+  if (key.includes('saving') || key.includes('uploading_audio')) return 'Saving';
+  if (key.includes('extract') || key.includes('assemblyai')) return 'Extracting';
+  if (key.includes('analy') || key.includes('transcribing')) return 'Analyzing';
+  if (key.includes('convert') || key.includes('fallback') || key.includes('pdf_conversion')) return 'Converting';
+  if (key.includes('download')) return 'Downloading';
+  return 'Queued';
+}
+
+function formatEta(seconds: number | null | undefined) {
+  if (!seconds || seconds <= 0) return null;
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return mins > 0 ? `${mins}m ${secs}s remaining` : `${secs}s remaining`;
+}
+
+function PDFListCard({
+  pdf,
+  onDelete,
+  onReprocess,
+}: {
+  pdf: PdfItem;
+  onDelete: (pdfId: string) => void;
+  onReprocess: (pdfId: string) => void;
+}) {
+  const router = useRouter();
+  const isActive = pdf.processingStatus === 'pending' || pdf.processingStatus === 'processing';
+  const statusInfo = getStatusStyles(pdf.processingStatus || 'pending');
+
+  const statusQuery = trpc.homebrewPdf.getJobStatus.useQuery(
+    { pdfId: pdf.id },
+    {
+      enabled: isActive,
+      refetchInterval: isActive ? 2000 : false,
+      refetchIntervalInBackground: false,
+    }
+  );
+
+  const job = (statusQuery.data as any)?.job;
+  const progress = typeof job?.progress === 'number' ? Math.max(0, Math.min(100, job.progress)) : pdf.processingStatus === 'completed' ? 100 : 0;
+  const currentStage = normalizeStage(job?.currentStep, progress);
+  const estimated = formatEta(typeof job?.estimatedTimeRemaining === 'number' ? job.estimatedTimeRemaining : null);
+
+  const StatusIcon = statusInfo.icon;
+
+  return (
+    <Card
+      className="group cursor-pointer overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+      onClick={() => router.push(`/homebrew/pdfs/${pdf.id}`)}
+    >
+      <CardHeader className="flex flex-row items-start gap-4 p-5">
+        <div className="shrink-0">
+          {isActive ? (
+            <CircularProgress value={progress} size={68} strokeWidth={6}>
+              <FileText className="h-5 w-5 text-primary" />
+            </CircularProgress>
+          ) : (
+            <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full border bg-muted/30">
+              <FileText className="h-7 w-7 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-base font-semibold">{pdf.filename}</h3>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>{formatFileSize(pdf.fileSize)}</span>
+            <span>•</span>
+            <span>{formatUploadDate(pdf.createdAt)}</span>
+          </div>
+        </div>
+
+        <Badge variant="outline" className={cn('gap-1.5 capitalize', statusInfo.className)}>
+          <StatusIcon className={cn('h-3.5 w-3.5', pdf.processingStatus === 'processing' && 'animate-spin')} />
+          {statusInfo.label}
+        </Badge>
+      </CardHeader>
+
+      {isActive ? (
+        <CardContent className="space-y-2 px-5 pb-4 pt-0">
+          <Progress value={progress} className="h-2" indicatorClassName="bg-blue-500" />
+          <p className="text-xs text-muted-foreground">
+            {currentStage}
+            {estimated ? ` • ${estimated}` : ''}
+          </p>
+        </CardContent>
+      ) : null}
+
+      <CardFooter className="flex gap-2 border-t bg-muted/20 px-5 py-3 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/homebrew/pdfs/${pdf.id}`);
+          }}
+        >
+          <Eye className="h-3.5 w-3.5" />
+          View
+        </Button>
+
+        {pdf.processingStatus === 'failed' ? (
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReprocess(pdf.id);
+            }}
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Re-process
+          </Button>
+        ) : null}
+
+        <Button
+          size="sm"
+          variant="outline"
+          className="ml-auto gap-1.5 text-destructive hover:text-destructive"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(pdf.id);
+          }}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Delete
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function PDFsPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sortBy, setSortBy] = useState<SortKey>('newest');
 
-  // Poll every 5s when any PDF is still processing
-  const pdfs = trpc.homebrewPdf.getPDFs.useQuery({}, {
-    staleTime: 30_000,
-    refetchInterval: (query) => {
-      const items = (query.state.data as any)?.items;
-      if (!items) return false;
-      const hasProcessing = items.some(
-        (p: any) => p.processingStatus === 'pending' || p.processingStatus === 'processing'
-      );
-      return hasProcessing ? 5000 : false;
+  const utils = trpc.useUtils();
+
+  const pdfs = trpc.homebrewPdf.getPDFs.useQuery(
+    {},
+    {
+      staleTime: 30_000,
+      refetchInterval: (query) => {
+        const items = (query.state.data as any)?.items;
+        if (!items) return false;
+        const hasProcessing = items.some(
+          (p: any) => p.processingStatus === 'pending' || p.processingStatus === 'processing'
+        );
+        return hasProcessing ? 2000 : false;
+      },
+    }
+  );
+
+  const deleteMutation = trpc.homebrewPdf.deletePDF.useMutation({
+    onSuccess: () => {
+      toast.success('PDF deleted');
+      void utils.homebrewPdf.getPDFs.invalidate();
+    },
+    onError: (error) => {
+      toast.error('Delete failed', { description: error.message });
+    },
+  });
+
+  const reprocessMutation = trpc.homebrewPdf.processPDF.useMutation({
+    onSuccess: () => {
+      toast.success('PDF re-queued for processing');
+      void utils.homebrewPdf.getPDFs.invalidate();
+    },
+    onError: (error) => {
+      toast.error('Re-process failed', { description: error.message });
     },
   });
 
@@ -33,7 +282,6 @@ export default function PDFsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Frontend validation
     if (file.type !== 'application/pdf') {
       toast.error('Invalid file type', {
         description: 'Please upload a PDF file (.pdf)',
@@ -42,7 +290,7 @@ export default function PDFsPage() {
       return;
     }
 
-    const maxSize = 50 * 1024 * 1024; // 50MB
+    const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
       toast.error('File too large', {
         description: `Maximum file size is 50MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB`,
@@ -84,11 +332,10 @@ export default function PDFsPage() {
         description: `Processing ${file.name}...`,
       });
 
-      // Navigate to the detail page to see progress
       if (data.pdf?.id) {
         router.push(`/homebrew/pdfs/${data.pdf.id}`);
       } else {
-        pdfs.refetch();
+        void pdfs.refetch();
       }
     } catch (err) {
       toast.error('Upload failed', {
@@ -100,75 +347,128 @@ export default function PDFsPage() {
     }
   }
 
-  function statusVariant(status: string): 'default' | 'secondary' | 'destructive' {
-    if (status === 'completed') return 'default';
-    if (status === 'failed') return 'destructive';
-    return 'secondary';
-  }
+  const filteredAndSorted = useMemo(() => {
+    const items = (((pdfs.data as any)?.items || []) as PdfItem[]).slice();
+    const filtered = statusFilter === 'all'
+      ? items
+      : items.filter((pdf) => (pdf.processingStatus || 'pending') === statusFilter);
+
+    filtered.sort((a, b) => {
+      if (sortBy === 'name') return a.filename.localeCompare(b.filename);
+      if (sortBy === 'size') return (b.fileSize || 0) - (a.fileSize || 0);
+      if (sortBy === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return filtered;
+  }, [pdfs.data, sortBy, statusFilter]);
 
   return (
-    <div className="space-y-6 max-w-6xl">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">PDFs</h1>
-        <div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf"
-            className="hidden"
-            onChange={handleUpload}
-          />
-          <Button onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-            {uploading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="mr-2 h-4 w-4" />
-            )}
-            {uploading ? 'Uploading...' : 'Upload PDF'}
-          </Button>
+    <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
+      <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-background to-muted/30 p-6">
+        <div className="pdf-grid-bg absolute inset-0 opacity-50" />
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">PDF Processing</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Track every stage in real time from upload to extraction.
+            </p>
+          </div>
+
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf"
+              className="hidden"
+              onChange={handleUpload}
+            />
+            <Button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="gap-2">
+              {uploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              {uploading ? 'Uploading...' : 'Upload PDF'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {(['all', 'pending', 'processing', 'completed', 'failed'] as StatusFilter[]).map((status) => (
+            <Button
+              key={status}
+              size="sm"
+              variant={statusFilter === status ? 'default' : 'outline'}
+              className="capitalize"
+              onClick={() => setStatusFilter(status)}
+            >
+              {status}
+            </Button>
+          ))}
+        </div>
+
+        <div className="w-full sm:w-52">
+          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortKey)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="oldest">Oldest</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="size">Size</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {pdfs.isLoading ? (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-48 rounded-xl" />
           ))}
         </div>
-      ) : pdfs.data && ((pdfs.data as any).items || []).length > 0 ? (
-        <div className="space-y-3">
-          {((pdfs.data as any).items || []).map((pdf: any) => (
-            <Link key={pdf.id} href={`/homebrew/pdfs/${pdf.id}`}>
-              <Card className="hover:border-foreground/50 transition-colors cursor-pointer">
-                <CardContent className="flex items-center gap-4 py-4">
-                  <FileText className="h-8 w-8 text-muted-foreground shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{pdf.filename}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {pdf.fileSize
-                        ? `${(pdf.fileSize / 1024 / 1024).toFixed(1)} MB`
-                        : 'Size unknown'}
-                    </p>
-                  </div>
-                  <Badge variant={statusVariant(pdf.processingStatus || 'pending')}>
-                    {pdf.processingStatus === 'processing' && (
-                      <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                    )}
-                    {pdf.processingStatus || 'pending'}
-                  </Badge>
-                </CardContent>
-              </Card>
-            </Link>
+      ) : filteredAndSorted.length > 0 ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {filteredAndSorted.map((pdf) => (
+            <PDFListCard
+              key={pdf.id}
+              pdf={pdf}
+              onDelete={(pdfId) => {
+                if (deleteMutation.isPending) return;
+                if (!window.confirm('Delete this PDF and all extracted content from this source?')) return;
+                deleteMutation.mutate({ pdfId });
+              }}
+              onReprocess={(pdfId) => {
+                if (reprocessMutation.isPending) return;
+                reprocessMutation.mutate({ pdfId });
+              }}
+            />
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <FileText className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No PDFs uploaded yet.</p>
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center py-14 text-center">
+            <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
+            <h2 className="text-lg font-semibold">No PDFs found</h2>
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              Upload your first PDF to start live processing with stage tracking, activity logs, and extraction status.
+            </p>
+            <Button className="mt-5 gap-2" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-4 w-4" />
+              Upload PDF
+            </Button>
           </CardContent>
         </Card>
       )}
+
+      <p className="text-xs text-muted-foreground">
+        Need campaign-level browsing? Open <Link href="/homebrew" className="underline">Homebrew Library</Link> to manage extracted content.
+      </p>
     </div>
   );
 }
+

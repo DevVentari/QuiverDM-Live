@@ -2,17 +2,17 @@
 
 import { useParams } from 'next/navigation';
 import { useCallback } from 'react';
+import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PDFProcessingProgress } from '@/components/PDFProcessingProgress';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { getTypeStyle } from '@/lib/homebrew-utils';
-import { ArrowLeft, Sparkles, FileText, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
-import Link from 'next/link';
+import { AlertCircle, ArrowLeft, FileText, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -20,12 +20,20 @@ export default function PDFDetailPage() {
   const params = useParams();
   const pdfId = params.pdfId as string;
 
-  const pdf = trpc.homebrewPdf.getPDF.useQuery({ pdfId }, { staleTime: 30_000 });
+  const pdf = trpc.homebrewPdf.getPDF.useQuery(
+    { pdfId },
+    {
+      staleTime: 30_000,
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+
   const data = pdf.data as any;
 
   const extractedContent = trpc.homebrewPdf.getExtractedContent.useQuery(
     { pdfId },
-    { staleTime: 30_000, enabled: data?.processingStatus === 'completed' }
+    { staleTime: 30_000, enabled: !!data && data.processingStatus === 'completed' }
   );
 
   const extractMutation = trpc.homebrewPdf.extractContent.useMutation({
@@ -36,95 +44,86 @@ export default function PDFDetailPage() {
     onSuccess: () => pdf.refetch(),
   });
 
-  const isProcessing = data?.processingStatus === 'pending' || data?.processingStatus === 'processing';
-
   const handleComplete = useCallback(() => {
-    pdf.refetch();
-  }, [pdf]);
+    void pdf.refetch();
+    void extractedContent.refetch();
+  }, [extractedContent, pdf]);
 
   if (pdf.isLoading) {
     return (
-      <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Skeleton className="h-16 rounded-lg" />
-        <Skeleton className="h-96 rounded-lg" />
+      <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <Skeleton className="h-10 w-32 rounded-lg" />
+        <Skeleton className="h-[420px] rounded-xl" />
       </div>
     );
   }
 
-  if (!data) {
-    return <p className="text-destructive">PDF not found</p>;
+  if (pdf.isError || !data) {
+    return (
+      <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <Card className="border-destructive/50">
+          <CardContent className="py-12">
+            <div className="flex flex-col items-center gap-4 text-center">
+              <AlertCircle className="h-12 w-12 text-destructive" />
+              <div>
+                <h2 className="text-lg font-semibold text-destructive">PDF Not Found</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  This PDF may have been deleted or you do not have permission to view it.
+                </p>
+              </div>
+              <Button variant="outline" asChild>
+                <Link href="/homebrew/pdfs">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to PDFs
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const items = (extractedContent.data || []) as any[];
-
-  // Group items by type for stats
   const typeCounts: Record<string, number> = {};
   items.forEach((item: any) => {
     typeCounts[item.type] = (typeCounts[item.type] || 0) + 1;
   });
 
-  const statusVariant = data.processingStatus === 'completed' ? 'default'
-    : data.processingStatus === 'failed' ? 'destructive'
-    : 'secondary';
-
   return (
-    <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <Button variant="ghost" size="icon" asChild className="self-start">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="ghost" size="sm" asChild className="w-fit gap-1.5">
           <Link href="/homebrew/pdfs">
             <ArrowLeft className="h-4 w-4" />
+            Back to PDFs
           </Link>
         </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold truncate">{data.filename}</h1>
-          <p className="text-sm text-muted-foreground">
-            {data.fileSize ? `${(data.fileSize / 1024 / 1024).toFixed(1)} MB` : ''}
-          </p>
+
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="capitalize">
+            {data.processingStatus || 'pending'}
+          </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => reprocessMutation.mutate({ pdfId })}
+            disabled={reprocessMutation.isPending}
+          >
+            {reprocessMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Re-process
+          </Button>
         </div>
-        <Badge variant={statusVariant}>{data.processingStatus || 'pending'}</Badge>
       </div>
 
-      {/* Processing Progress */}
-      {isProcessing && (
-        <PDFProcessingProgress
-          pdfId={pdfId}
-          filename={data.filename}
-          onComplete={handleComplete}
-        />
-      )}
+      <PDFProcessingProgress pdfId={pdfId} filename={data.filename} onComplete={handleComplete} />
 
-      {/* Failed state */}
-      {data.processingStatus === 'failed' && (
-        <Card className="border-destructive/50">
-          <CardContent className="py-6">
-            <div className="flex flex-col items-center gap-4 text-center">
-              <AlertCircle className="h-10 w-10 text-destructive" />
-              <div>
-                <p className="font-medium text-destructive">Processing Failed</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {data.errorMessage || 'An error occurred while processing this PDF.'}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => reprocessMutation.mutate({ pdfId })}
-                disabled={reprocessMutation.isPending}
-              >
-                {reprocessMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                )}
-                Re-process PDF
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Completed state - Tabs */}
-      {data.processingStatus === 'completed' && (
+      {data.processingStatus === 'completed' ? (
         <Tabs defaultValue="extracted" className="w-full">
           <TabsList>
             <TabsTrigger value="extracted" className="gap-1.5">
@@ -138,11 +137,10 @@ export default function PDFDetailPage() {
           </TabsList>
 
           <TabsContent value="extracted" className="mt-4 space-y-4">
-            {/* Stats bar */}
-            {items.length > 0 && (
+            {items.length > 0 ? (
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="font-medium">{items.length} items extracted</span>
-                <span className="text-muted-foreground">—</span>
+                <span className="text-muted-foreground">•</span>
                 {Object.entries(typeCounts).map(([type, count]) => {
                   const style = getTypeStyle(type);
                   return (
@@ -152,9 +150,8 @@ export default function PDFDetailPage() {
                   );
                 })}
               </div>
-            )}
+            ) : null}
 
-            {/* Content grid */}
             {extractedContent.isLoading ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {[1, 2, 3].map((i) => (
@@ -164,18 +161,14 @@ export default function PDFDetailPage() {
             ) : items.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 {items.map((item: any) => (
-                  <HomebrewContentCard
-                    key={item.id}
-                    item={item}
-                    href={`/homebrew/${item.id}`}
-                  />
+                  <HomebrewContentCard key={item.id} item={item} href={`/homebrew/${item.id}`} />
                 ))}
               </div>
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Sparkles className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">
+                  <Sparkles className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+                  <p className="mb-4 text-muted-foreground">
                     No D&D content has been extracted from this PDF yet.
                   </p>
                   <Button
@@ -183,9 +176,9 @@ export default function PDFDetailPage() {
                     disabled={extractMutation.isPending}
                   >
                     {extractMutation.isPending ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      <Sparkles className="h-4 w-4 mr-2" />
+                      <Sparkles className="mr-2 h-4 w-4" />
                     )}
                     Extract D&D Content
                   </Button>
@@ -200,7 +193,7 @@ export default function PDFDetailPage() {
                 <CardHeader>
                   <CardTitle className="text-sm">Markdown Content</CardTitle>
                 </CardHeader>
-                <CardContent className="prose prose-invert prose-sm max-w-none">
+                <CardContent className="prose prose-sm max-w-none">
                   <ReactMarkdown skipHtml remarkPlugins={[remarkGfm]}>
                     {data.markdownContent}
                   </ReactMarkdown>
@@ -215,7 +208,8 @@ export default function PDFDetailPage() {
             )}
           </TabsContent>
         </Tabs>
-      )}
+      ) : null}
     </div>
   );
 }
+
