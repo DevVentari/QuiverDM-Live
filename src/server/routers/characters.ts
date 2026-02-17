@@ -7,6 +7,8 @@ import {
 import { z } from 'zod';
 import { CharacterStatus } from '@prisma/client';
 import { characterService } from '../services/character.service';
+import { NotFoundError, ForbiddenError, ValidationError } from '../errors';
+import { prisma } from '@/lib/prisma';
 
 // Zod schemas for character data
 const abilityScoresSchema = z
@@ -241,4 +243,304 @@ export const charactersRouter = router({
         input.dmNotes
       )
     ),
+
+  /**
+   * Add homebrew item to character
+   */
+  addHomebrewItem: protectedProcedure
+    .input(
+      z.object({
+        characterId: z.string(),
+        homebrewId: z.string(),
+        quantity: z.number().min(1).default(1),
+        equipped: z.boolean().default(false),
+        attuned: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+      });
+
+      if (!character) {
+        throw new NotFoundError('character', input.characterId);
+      }
+
+      if (character.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('edit', 'Character');
+      }
+
+      const homebrew = await prisma.homebrewContent.findUnique({
+        where: { id: input.homebrewId },
+      });
+
+      if (!homebrew) {
+        throw new NotFoundError('homebrew', input.homebrewId);
+      }
+
+      if (homebrew.type !== 'item') {
+        throw new ValidationError('Only items can be added to inventory');
+      }
+
+      return prisma.characterItem.upsert({
+        where: {
+          characterId_homebrewId: {
+            characterId: input.characterId,
+            homebrewId: input.homebrewId,
+          },
+        },
+        update: {
+          quantity: input.quantity,
+          equipped: input.equipped,
+          attuned: input.attuned,
+        },
+        create: {
+          characterId: input.characterId,
+          homebrewId: input.homebrewId,
+          quantity: input.quantity,
+          equipped: input.equipped,
+          attuned: input.attuned,
+        },
+        include: {
+          homebrew: true,
+        },
+      });
+    }),
+
+  /**
+   * Add homebrew spell to character
+   */
+  addHomebrewSpell: protectedProcedure
+    .input(
+      z.object({
+        characterId: z.string(),
+        homebrewId: z.string(),
+        prepared: z.boolean().default(false),
+        alwaysPrepared: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+      });
+
+      if (!character) {
+        throw new NotFoundError('character', input.characterId);
+      }
+
+      if (character.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('edit', 'Character');
+      }
+
+      const homebrew = await prisma.homebrewContent.findUnique({
+        where: { id: input.homebrewId },
+      });
+
+      if (!homebrew) {
+        throw new NotFoundError('homebrew', input.homebrewId);
+      }
+
+      if (homebrew.type !== 'spell') {
+        throw new ValidationError('Only spells can be added to spellbook');
+      }
+
+      return prisma.characterSpell.upsert({
+        where: {
+          characterId_homebrewId: {
+            characterId: input.characterId,
+            homebrewId: input.homebrewId,
+          },
+        },
+        update: {
+          prepared: input.prepared,
+          alwaysPrepared: input.alwaysPrepared,
+        },
+        create: {
+          characterId: input.characterId,
+          homebrewId: input.homebrewId,
+          prepared: input.prepared,
+          alwaysPrepared: input.alwaysPrepared,
+        },
+        include: {
+          homebrew: true,
+        },
+      });
+    }),
+
+  /**
+   * Add homebrew feat to character
+   */
+  addHomebrewFeat: protectedProcedure
+    .input(
+      z.object({
+        characterId: z.string(),
+        homebrewId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+      });
+
+      if (!character) {
+        throw new NotFoundError('character', input.characterId);
+      }
+
+      if (character.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('edit', 'Character');
+      }
+
+      const homebrew = await prisma.homebrewContent.findUnique({
+        where: { id: input.homebrewId },
+      });
+
+      if (!homebrew) {
+        throw new NotFoundError('homebrew', input.homebrewId);
+      }
+
+      if (homebrew.type !== 'feat') {
+        throw new ValidationError('Only feats can be added to character');
+      }
+
+      return prisma.characterFeat.create({
+        data: {
+          characterId: input.characterId,
+          homebrewId: input.homebrewId,
+        },
+        include: {
+          homebrew: true,
+        },
+      });
+    }),
+
+  /**
+   * Remove homebrew item from character
+   */
+  removeHomebrewItem: protectedProcedure
+    .input(
+      z.object({
+        characterId: z.string(),
+        homebrewId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+      });
+
+      if (!character || character.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('edit', 'Character');
+      }
+
+      await prisma.characterItem.delete({
+        where: {
+          characterId_homebrewId: {
+            characterId: input.characterId,
+            homebrewId: input.homebrewId,
+          },
+        },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Remove homebrew spell from character
+   */
+  removeHomebrewSpell: protectedProcedure
+    .input(
+      z.object({
+        characterId: z.string(),
+        homebrewId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+      });
+
+      if (!character || character.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('edit', 'Character');
+      }
+
+      await prisma.characterSpell.delete({
+        where: {
+          characterId_homebrewId: {
+            characterId: input.characterId,
+            homebrewId: input.homebrewId,
+          },
+        },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Remove homebrew feat from character
+   */
+  removeHomebrewFeat: protectedProcedure
+    .input(
+      z.object({
+        characterId: z.string(),
+        homebrewId: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+      });
+
+      if (!character || character.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('edit', 'Character');
+      }
+
+      await prisma.characterFeat.delete({
+        where: {
+          characterId_homebrewId: {
+            characterId: input.characterId,
+            homebrewId: input.homebrewId,
+          },
+        },
+      });
+
+      return { success: true };
+    }),
+
+  /**
+   * Get character with homebrew content
+   */
+  getCharacterWithHomebrew: protectedProcedure
+    .input(z.object({ characterId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+        include: {
+          homebrewItems: {
+            include: {
+              homebrew: true,
+            },
+          },
+          homebrewSpells: {
+            include: {
+              homebrew: true,
+            },
+          },
+          homebrewFeats: {
+            include: {
+              homebrew: true,
+            },
+          },
+        },
+      });
+
+      if (!character) {
+        throw new NotFoundError('character', input.characterId);
+      }
+
+      if (character.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('view', 'Character');
+      }
+
+      return character;
+    }),
 });

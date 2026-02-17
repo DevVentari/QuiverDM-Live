@@ -304,6 +304,11 @@ model Character {
   // Campaign associations
   campaignCharacters  CampaignCharacter[]
 
+  // Homebrew content links
+  homebrewItems       CharacterItem[]
+  homebrewSpells      CharacterSpell[]
+  homebrewFeats       CharacterFeat[]
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -566,6 +571,7 @@ model Transcript {
   languageProbability Float?
   durationSeconds Float?
   hasSpeakers     Boolean           @default(false)
+  source          String            @default("upload") // 'upload' | 'live'
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
 
@@ -588,12 +594,14 @@ model TranscriptionJob {
   progress                Int      @default(0) // 0-100
   currentChunk            Int      @default(0)
   totalChunks             Int      @default(0)
-  currentStep             String?  // 'extracting_audio', 'splitting_chunks', 'transcribing', 'diarizing', 'saving'
+  currentStep             String?  // 'extracting_audio', 'splitting_chunks', 'transcribing', 'diarizing', 'saving', 'uploading_audio', 'submitting_to_assemblyai', 'waiting_for_assemblyai', 'downloading_result'
   currentSubStep          String?  // Detailed substep like 'loading_model', 'aligning_timestamps', 'detecting_speakers'
   estimatedTimeRemaining  Int?     // Seconds remaining (estimated)
   progressDetails         Json?    // Additional progress metadata (batch info, speaker count, etc.)
   errorMessage            String?  @db.Text
   transcriptId            String?  // Resulting transcript ID
+  assemblyaiTranscriptId  String?  // AssemblyAI transcript ID for polling
+  provider                String   @default("assemblyai") // 'assemblyai' | 'whisperx'
   startedAt               DateTime?
   completedAt             DateTime?
   createdAt               DateTime @default(now())
@@ -628,6 +636,9 @@ model HomebrewContent {
   sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
 
   campaigns    CampaignHomebrewContent[] // Many-to-many with campaigns
+  characterItems  CharacterItem[]
+  characterSpells CharacterSpell[]
+  characterFeats  CharacterFeat[]
   createdAt    DateTime                    @default(now())
   updatedAt    DateTime                    @updatedAt
 
@@ -637,6 +648,57 @@ model HomebrewContent {
   @@index([dndBeyondId])
   @@index([sourceType])
   @@index([sourcePdfId])
+}
+
+// Join table: Character has many Items (from Homebrew)
+model CharacterItem {
+  id          String          @id @default(cuid())
+  characterId String
+  character   Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  homebrewId  String
+  homebrew    HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
+
+  quantity    Int             @default(1)
+  equipped    Boolean         @default(false)
+  attuned     Boolean         @default(false)
+  notes       String?         @db.Text
+  addedAt     DateTime        @default(now())
+
+  @@unique([characterId, homebrewId])
+  @@index([characterId])
+  @@index([homebrewId])
+}
+
+// Join table: Character has many Spells (from Homebrew)
+model CharacterSpell {
+  id             String          @id @default(cuid())
+  characterId    String
+  character      Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  homebrewId     String
+  homebrew       HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
+
+  prepared       Boolean         @default(false)
+  alwaysPrepared Boolean         @default(false)
+  addedAt        DateTime        @default(now())
+
+  @@unique([characterId, homebrewId])
+  @@index([characterId])
+  @@index([homebrewId])
+}
+
+// Join table: Character has many Feats (from Homebrew)
+model CharacterFeat {
+  id          String          @id @default(cuid())
+  characterId String
+  character   Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  homebrewId  String
+  homebrew    HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
+
+  addedAt     DateTime        @default(now())
+
+  @@unique([characterId, homebrewId])
+  @@index([characterId])
+  @@index([homebrewId])
 }
 
 // Join table for many-to-many relationship between campaigns and homebrew

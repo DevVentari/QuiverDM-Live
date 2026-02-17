@@ -12,6 +12,7 @@ import { SpellDetail } from '@/components/homebrew/details/SpellDetail';
 import { CreatureDetail } from '@/components/homebrew/details/CreatureDetail';
 import { ItemDetail } from '@/components/homebrew/details/ItemDetail';
 import { GenericDetail } from '@/components/homebrew/details/GenericDetail';
+import { AddToCharacterButton } from '@/components/homebrew/AddToCharacterButton';
 
 export default function HomebrewDetailPage() {
   const params = useParams();
@@ -55,6 +56,9 @@ export default function HomebrewDetailPage() {
   const style = getTypeStyle(item.type);
   const TypeIcon = style.icon;
   const itemData = item.data || {};
+  const linkableType = ['item', 'spell', 'feat'].includes(item.type)
+    ? (item.type as 'item' | 'spell' | 'feat')
+    : null;
 
   function renderDetail() {
     switch (item.type) {
@@ -94,6 +98,13 @@ export default function HomebrewDetailPage() {
             )}
           </div>
         </div>
+        {linkableType && (
+          <AddToCharacterButton
+            homebrewId={item.id}
+            homebrewName={item.name}
+            homebrewType={linkableType}
+          />
+        )}
       </div>
 
       {/* Type-specific detail renderer */}
