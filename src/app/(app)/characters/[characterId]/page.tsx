@@ -19,6 +19,7 @@ import {
   BookOpen,
   GraduationCap,
   ScrollText,
+  FlaskConical,
   Users,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -33,6 +34,9 @@ import { CharacterBackground } from './_components/CharacterBackground';
 import { AddToCampaignDialog } from '@/components/character/AddToCampaignDialog';
 import { ShortRestDialog } from '@/components/character/ShortRestDialog';
 import { LongRestDialog } from '@/components/character/LongRestDialog';
+import { CharacterHomebrewItems } from '@/components/character/CharacterHomebrewItems';
+import { CharacterHomebrewSpells } from '@/components/character/CharacterHomebrewSpells';
+import { CharacterHomebrewFeats } from '@/components/character/CharacterHomebrewFeats';
 import { useDiceRoller } from '@/hooks/use-dice-roller';
 
 export default function CharacterDetailPage() {
@@ -228,6 +232,10 @@ export default function CharacterDetailPage() {
             <Backpack className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Inventory</span>
           </TabsTrigger>
+          <TabsTrigger value="homebrew" className="gap-1.5">
+            <FlaskConical className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Homebrew</span>
+          </TabsTrigger>
           <TabsTrigger value="features" className="gap-1.5">
             <BookOpen className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Features</span>
@@ -270,6 +278,22 @@ export default function CharacterDetailPage() {
               await updateChar.mutateAsync({ id: characterId, ...patch });
             }}
           />
+        </TabsContent>
+        <TabsContent value="homebrew" className="mt-4">
+          <div className="space-y-6">
+            <section>
+              <h3 className="text-lg font-semibold mb-2">Homebrew Items</h3>
+              <CharacterHomebrewItems characterId={characterId} />
+            </section>
+            <section>
+              <h3 className="text-lg font-semibold mb-2">Homebrew Spells</h3>
+              <CharacterHomebrewSpells characterId={characterId} />
+            </section>
+            <section>
+              <h3 className="text-lg font-semibold mb-2">Homebrew Feats</h3>
+              <CharacterHomebrewFeats characterId={characterId} />
+            </section>
+          </div>
         </TabsContent>
         <TabsContent value="features" className="mt-4">
           <CharacterFeatures data={data} />
