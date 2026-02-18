@@ -22,7 +22,7 @@ import { PrismaClient } from '@prisma/client';
 import { convertPdfWithPdfplumber } from '../pdf/pdfplumber-fallback';
 import { convertWithDocling, isDoclingAvailable } from '../pdf/docling';
 
-import { getSignedUrl } from '../storage';
+import { getSignedUrl, storage } from '../storage';
 import type { PDFProcessingJobData, PDFProcessingJobResult } from './queue';
 import { extractWithFallback, type ExtractionProvider } from '../ai/extraction';
 import { saveExtractedContent } from '../../server/repositories/homebrew-extraction.repository';
@@ -39,7 +39,7 @@ const broadcastPDFStatus: ((pdfId: string, status: string, data?: any) => void) 
 
 const prisma = new PrismaClient();
 
-type ProgressLogLevel = 'info' | 'success' | 'error';
+type ProgressLogLevel = 'info' | 'success' | 'warning' | 'error';
 
 interface ProgressLogEntry {
   timestamp: string;
@@ -49,6 +49,8 @@ interface ProgressLogEntry {
 
 const MAX_PROGRESS_LOGS = 150;
 const jobLogs = new Map<string, ProgressLogEntry[]>();
+
+type ExtractedImageMetadata = { url: string; pageNumber: number };
 
 function estimateTimeRemainingSeconds(startTime: number, progress: number): number | null {
   if (progress <= 0 || progress >= 100) return null;
@@ -256,6 +258,9 @@ async function processPDFJob(
 
     let markdown = '';
     let pdfMetadata: Record<string, unknown> = {};
+    let doclingImages: Array<{ data: string; pageNumber: number; format: string; filename: string }> = [];
+    let extractedImageMetadata: ExtractedImageMetadata[] = [];
+    let imageExtractionStatus: 'completed' | 'partial' | 'failed' = 'completed';
 
     const doclingAvailable = await isDoclingAvailable();
 
@@ -263,8 +268,9 @@ async function processPDFJob(
       try {
         let lastReportedDoclingProgress = 45;
         const doclingResult = await convertWithDocling(tempPdfPath, (percent) => {
-          // Map Docling progress (0-100) to overall job progress (40-85)
-          const jobPercent = 40 + Math.round(percent * 0.45);
+          // Map Docling progress (0-100) to overall job progress (40-70),
+          // leaving room for image processing (72-80) and markdown analysis (85).
+          const jobPercent = 40 + Math.round(percent * 0.30);
           if (jobPercent >= lastReportedDoclingProgress + 2) {
             lastReportedDoclingProgress = jobPercent;
             void updateJobProgress(job, pdfId, startTime, {
@@ -276,6 +282,7 @@ async function processPDFJob(
         });
         markdown = doclingResult.markdown;
         pdfMetadata = doclingResult.metadata;
+        doclingImages = Array.isArray(doclingResult.images) ? doclingResult.images : [];
       } catch (error) {
         console.error('[Worker] Docling conversion failed, falling back to pdfplumber:', error);
       }
@@ -302,6 +309,99 @@ async function processPDFJob(
         fallbackProvider: 'pdfplumber',
       };
     }
+
+    if (doclingImages.length > 0) {
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: 72,
+        currentStep: 'processing_images',
+        currentSubStep: `Storing ${doclingImages.length} extracted images`,
+        log: `Found ${doclingImages.length} images to store`,
+        level: 'info',
+      });
+
+      for (let i = 0; i < doclingImages.length; i++) {
+        const image = doclingImages[i];
+
+        try {
+          const format = (image.format || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+          const extension = format === 'jpeg' ? 'jpg' : format;
+          const contentType = extension === 'jpg'
+            ? 'image/jpeg'
+            : extension === 'svg'
+              ? 'image/svg+xml'
+              : `image/${extension}`;
+
+          let filenameForStorage = (image.filename || '').trim();
+          if (!filenameForStorage) {
+            filenameForStorage = `page${image.pageNumber}_${i + 1}.${extension}`;
+          }
+          filenameForStorage = filenameForStorage.replace(/[^a-zA-Z0-9._-]/g, '_');
+          if (!filenameForStorage.toLowerCase().includes('.')) {
+            filenameForStorage = `${filenameForStorage}.${extension}`;
+          }
+
+          const storageKey = `homebrew-images/extracted/${userId}/${pdfId}/${filenameForStorage}`;
+          const imageBuffer = Buffer.from(image.data, 'base64');
+          if (imageBuffer.length === 0) {
+            throw new Error('Decoded image buffer is empty');
+          }
+
+          const imageUrl = await storage.upload(storageKey, imageBuffer, contentType);
+          extractedImageMetadata.push({
+            url: imageUrl,
+            pageNumber: image.pageNumber,
+          });
+
+          await updateJobProgress(job, pdfId, startTime, {
+            progress: 72 + Math.round(((i + 1) / doclingImages.length) * 8),
+            currentStep: 'processing_images',
+            currentSubStep: `Stored image ${i + 1}/${doclingImages.length}`,
+            log: `Stored ${filenameForStorage} (page ${image.pageNumber})`,
+            level: 'info',
+          });
+        } catch (imageError) {
+          console.warn(`[Worker] Failed to store image ${i + 1}/${doclingImages.length}:`, imageError);
+          await updateJobProgress(job, pdfId, startTime, {
+            progress: 72 + Math.round(((i + 1) / doclingImages.length) * 8),
+            currentStep: 'processing_images',
+            currentSubStep: `Failed image ${i + 1}/${doclingImages.length}`,
+            log: `Failed to store image ${i + 1}: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`,
+            level: 'warning',
+          });
+        }
+      }
+
+      const successCount = extractedImageMetadata.length;
+      imageExtractionStatus =
+        successCount === doclingImages.length ? 'completed'
+          : successCount > 0 ? 'partial'
+            : 'failed';
+
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: 80,
+        currentStep: 'processing_images',
+        currentSubStep: `Image storage ${imageExtractionStatus}`,
+        log: `Stored ${successCount}/${doclingImages.length} extracted image(s)`,
+        level: imageExtractionStatus === 'completed' ? 'success' : imageExtractionStatus === 'partial' ? 'warning' : 'error',
+      });
+    } else {
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: 80,
+        currentStep: 'processing_images',
+        currentSubStep: 'No extracted images to store',
+        log: 'Docling returned no images',
+        level: 'info',
+      });
+    }
+
+    pdfMetadata = {
+      ...pdfMetadata,
+      extractedImages: extractedImageMetadata.length,
+      imagesDiscovered: doclingImages.length,
+      imageExtractionStatus,
+      imageExtractionErrors: doclingImages.length - extractedImageMetadata.length,
+      extractedImageMetadata,
+    };
 
     const result = {
       markdown,
@@ -371,12 +471,17 @@ async function processPDFJob(
         progress: 92,
         currentStep: 'extracting',
         currentSubStep: 'Extracting D&D entities with AI',
-        log: `Starting content extraction${extractionProvider ? ` (${extractionProvider})` : ''}`,
+        log: `Starting content extraction${extractionProvider ? ` (${extractionProvider})` : ''} with ${extractedImageMetadata.length} extracted image references`,
         level: 'info',
       });
 
       try {
-        const extractionResult = await extractWithFallback(markdownContent, extractionProvider);
+        const extractionPayload = {
+          markdown: markdownContent,
+          extractedImages: extractedImageMetadata,
+        };
+
+        const extractionResult = await extractWithFallback(extractionPayload.markdown, extractionProvider);
 
         if (extractionResult.success && extractionResult.items.length > 0) {
           console.log(`[Worker] Extracted ${extractionResult.items.length} items via ${extractionResult.provider}, saving...`);
@@ -404,6 +509,8 @@ async function processPDFJob(
           // Update metadata with extraction info
           const updatedMetadata = {
             ...result.metadata,
+            extractedImages: extractionPayload.extractedImages.length,
+            extractedImageMetadata: extractionPayload.extractedImages,
             extractionStatus: 'completed',
             extractionProvider: extractionResult.provider,
             extractionTokensUsed: extractionResult.tokensUsed,
@@ -437,6 +544,8 @@ async function processPDFJob(
           // Update metadata to reflect extraction completed but found nothing
           const updatedMetadata = {
             ...result.metadata,
+            extractedImages: extractionPayload.extractedImages.length,
+            extractedImageMetadata: extractionPayload.extractedImages,
             extractionStatus: extractionResult.success ? 'completed' : 'failed',
             extractionProvider: extractionResult.provider,
             extractionError: extractionResult.error || 'No items found',
@@ -462,6 +571,8 @@ async function processPDFJob(
         // Update metadata to record extraction failure
         const updatedMetadata = {
           ...result.metadata,
+          extractedImages: extractedImageMetadata.length,
+          extractedImageMetadata,
           extractionStatus: 'failed',
           extractionError: errorMsg,
           itemsExtracted: 0,
