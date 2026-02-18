@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
-import { BookOpen, Search, FileText, Upload, AlertCircle } from 'lucide-react';
+import { BookOpen, Search, FileText, AlertCircle } from 'lucide-react';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -131,20 +131,15 @@ export default function HomebrewPage() {
       {/* Empty state */}
       {content.data && !((content.data as any).items?.length > 0) && !content.isLoading && (
         <Card>
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <BookOpen className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="font-medium">No homebrew content yet</p>
-            <p className="text-sm text-muted-foreground mt-1 mb-6">
-              Upload a PDF or import from D&D Beyond to get started.
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <BookOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No homebrew content yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Upload PDFs to extract spells, monsters, and items - or browse your campaign homebrew.
             </p>
-            <div className="flex flex-wrap gap-3 justify-center">
-              <Button asChild>
-                <Link href="/homebrew/pdfs">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload PDF
-                </Link>
-              </Button>
-            </div>
+            <Button asChild size="sm">
+              <Link href="/homebrew/pdfs">Upload PDF</Link>
+            </Button>
           </CardContent>
         </Card>
       )}
