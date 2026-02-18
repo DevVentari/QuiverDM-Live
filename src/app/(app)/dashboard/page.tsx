@@ -184,6 +184,10 @@ export default function DashboardPage() {
               <Skeleton key={i} className="h-48 rounded-lg" />
             ))}
           </div>
+        ) : campaigns.isError ? (
+          <Card className="p-8 text-center">
+            <p className="text-sm text-muted-foreground">Failed to load campaigns. Please refresh.</p>
+          </Card>
         ) : campaigns.data && campaigns.data.length > 0 ? (
           <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent -mx-1 px-1">
             {campaigns.data.map((campaign: any) => (
@@ -263,6 +267,10 @@ export default function DashboardPage() {
                 <Skeleton key={i} className="h-20 rounded-lg" />
               ))}
             </div>
+          ) : characters.isError ? (
+            <Card className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">Failed to load characters. Please refresh.</p>
+            </Card>
           ) : characters.data && characters.data.length > 0 ? (
             <div className="space-y-3">
               {characters.data.map((char: any) => {
@@ -344,6 +352,10 @@ export default function DashboardPage() {
                 <Skeleton key={i} className="h-16 rounded-lg" />
               ))}
             </div>
+          ) : homebrew.isError ? (
+            <Card className="p-8 text-center">
+              <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
+            </Card>
           ) : homebrewItems.length > 0 ? (
             <div className="space-y-2">
               {homebrewItems.slice(0, 8).map((item: any) => (

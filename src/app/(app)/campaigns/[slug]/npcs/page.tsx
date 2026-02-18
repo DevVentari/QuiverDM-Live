@@ -62,6 +62,10 @@ export default function NPCsPage() {
             <Skeleton key={i} className="h-32 rounded-lg" />
           ))}
         </div>
+      ) : npcs.isError ? (
+        <Card className="p-8 text-center">
+          <p className="text-sm text-muted-foreground">Failed to load NPCs. Please refresh.</p>
+        </Card>
       ) : npcs.data && (npcs.data as any[]).length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(npcs.data as any[]).map((npc) => (
