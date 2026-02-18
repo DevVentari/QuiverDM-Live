@@ -70,6 +70,12 @@ export async function POST(request: NextRequest) {
     );
     const url = await storage.upload(fileKey, buffer, file.type);
 
+    // Append URL to the homebrew content's images array
+    await prisma.homebrewContent.update({
+      where: { id: homebrewId },
+      data: { images: { push: url } },
+    });
+
     return NextResponse.json({
       url,
       key: fileKey,

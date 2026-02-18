@@ -94,6 +94,28 @@ export const homebrewRouter = router({
     ),
 
   /**
+   * Remove a single image URL from homebrew content
+   */
+  removeImage: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        imageUrl: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const content = await homebrewService.getContentById(input.id);
+      if (content.userId !== ctx.session.user.id) {
+        throw new Error('Forbidden');
+      }
+      const filtered = (content.images ?? []).filter((img) => img !== input.imageUrl);
+      return homebrewService.updateContent(ctx.session.user.id, {
+        id: input.id,
+        images: filtered,
+      });
+    }),
+
+  /**
    * Delete homebrew content
    */
   deleteContent: protectedProcedure
