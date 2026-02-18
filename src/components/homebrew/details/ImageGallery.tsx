@@ -2,23 +2,34 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Trash2, Plus, ImageIcon } from 'lucide-react';
+import { Trash2, Plus, ImageIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { ImageLightbox } from './ImageLightbox';
 import { ImageUploadDialog } from '../ImageUploadDialog';
+import { ImageGenerationDialog } from '../ImageGenerationDialog';
 
 interface ImageGalleryProps {
   homebrewId: string;
   images: string[];
   isOwner: boolean;
   itemName: string;
+  itemType: string;
+  itemDescription?: string;
 }
 
-export function ImageGallery({ homebrewId, images, isOwner, itemName }: ImageGalleryProps) {
+export function ImageGallery({
+  homebrewId,
+  images,
+  isOwner,
+  itemName,
+  itemType,
+  itemDescription,
+}: ImageGalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [generateOpen, setGenerateOpen] = useState(false);
   const utils = trpc.useUtils();
 
   const removeImage = trpc.homebrew.removeImage.useMutation({
@@ -41,12 +52,26 @@ export function ImageGallery({ homebrewId, images, isOwner, itemName }: ImageGal
         <ImageIcon className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
         <p className="text-sm text-muted-foreground mb-4">No images yet</p>
         {isOwner && (
-          <Button size="sm" onClick={() => setUploadOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Upload Image
-          </Button>
+          <div className="flex gap-2 justify-center">
+            <Button size="sm" onClick={() => setUploadOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Upload Image
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setGenerateOpen(true)}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              Generate with AI
+            </Button>
+          </div>
         )}
         <ImageUploadDialog homebrewId={homebrewId} open={uploadOpen} onClose={() => setUploadOpen(false)} />
+        <ImageGenerationDialog
+          homebrewId={homebrewId}
+          itemType={itemType}
+          itemName={itemName}
+          itemDescription={itemDescription}
+          open={generateOpen}
+          onClose={() => setGenerateOpen(false)}
+        />
       </div>
     );
   }
@@ -54,10 +79,16 @@ export function ImageGallery({ homebrewId, images, isOwner, itemName }: ImageGal
   return (
     <div className="space-y-3">
       {isOwner && (
-        <Button size="sm" variant="outline" onClick={() => setUploadOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Upload Image
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setUploadOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Upload Image
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setGenerateOpen(true)}>
+            <Sparkles className="w-4 h-4 mr-2" />
+            Generate with AI
+          </Button>
+        </div>
       )}
 
       <div className="columns-1 sm:columns-2 lg:columns-3 gap-3">
@@ -101,6 +132,14 @@ export function ImageGallery({ homebrewId, images, isOwner, itemName }: ImageGal
       />
 
       <ImageUploadDialog homebrewId={homebrewId} open={uploadOpen} onClose={() => setUploadOpen(false)} />
+      <ImageGenerationDialog
+        homebrewId={homebrewId}
+        itemType={itemType}
+        itemName={itemName}
+        itemDescription={itemDescription}
+        open={generateOpen}
+        onClose={() => setGenerateOpen(false)}
+      />
     </div>
   );
 }
