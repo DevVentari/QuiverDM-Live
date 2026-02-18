@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Plus, Swords } from 'lucide-react';
+import { Plus, Shield } from 'lucide-react';
 
 export default function CampaignsPage() {
   const campaigns = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 120_000 });
@@ -75,15 +75,15 @@ export default function CampaignsPage() {
         </div>
       ) : (
         <Card>
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <Swords className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">
-              No campaigns yet. Create your first one!
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <Shield className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No campaigns yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Create a campaign to start your adventure - invite players, track sessions, and manage your world.
             </p>
-            <Button asChild>
+            <Button asChild size="sm">
               <Link href="/campaigns/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Campaign
+                New Campaign
               </Link>
             </Button>
           </CardContent>
