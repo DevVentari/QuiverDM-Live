@@ -122,6 +122,8 @@ export default function HomebrewDetailPage() {
           images={item.images ?? []}
           isOwner={isOwner}
           itemName={item.name}
+          itemType={item.type}
+          itemDescription={itemData?.description}
         />
       </div>
 
