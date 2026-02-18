@@ -1,6 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,10 +14,12 @@ import { CreatureDetail } from '@/components/homebrew/details/CreatureDetail';
 import { ItemDetail } from '@/components/homebrew/details/ItemDetail';
 import { GenericDetail } from '@/components/homebrew/details/GenericDetail';
 import { AddToCharacterButton } from '@/components/homebrew/AddToCharacterButton';
+import { ImageGallery } from '@/components/homebrew/details/ImageGallery';
 
 export default function HomebrewDetailPage() {
   const params = useParams();
   const homebrewId = params.homebrewId as string;
+  const { data: session } = useSession();
 
   const content = trpc.homebrew.getContentById.useQuery(
     { id: homebrewId },
@@ -56,6 +59,7 @@ export default function HomebrewDetailPage() {
   const style = getTypeStyle(item.type);
   const TypeIcon = style.icon;
   const itemData = item.data || {};
+  const isOwner = session?.user?.id === item.userId;
   const linkableType = ['item', 'spell', 'feat'].includes(item.type)
     ? (item.type as 'item' | 'spell' | 'feat')
     : null;
@@ -109,6 +113,17 @@ export default function HomebrewDetailPage() {
 
       {/* Type-specific detail renderer */}
       {renderDetail()}
+
+      {/* Image Gallery */}
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Images</h2>
+        <ImageGallery
+          homebrewId={item.id}
+          images={item.images ?? []}
+          isOwner={isOwner}
+          itemName={item.name}
+        />
+      </div>
 
       {/* Raw data collapsible */}
       <details className="text-sm">
