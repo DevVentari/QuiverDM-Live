@@ -1,0 +1,250 @@
+'use client';
+
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { trpc } from '@/lib/trpc';
+
+interface LiveTranscriptSegment {
+  text: string;
+  isFinal: boolean;
+  speaker?: string;
+  timestamp: number;
+}
+
+interface UseLiveTranscriptionReturn {
+  /** Whether the WebSocket is connected */
+  isConnected: boolean;
+  /** Whether we are actively recording from the mic */
+  isRecording: boolean;
+  /** The current partial (non-final) transcript text */
+  currentText: string;
+  /** All final transcript segments received so far */
+  segments: LiveTranscriptSegment[];
+  /** Error message if something went wrong */
+  error: string | null;
+  /** Elapsed recording time in seconds */
+  durationSeconds: number;
+  /** Start recording and streaming */
+  start: () => Promise<void>;
+  /** Stop recording — returns the saved transcript ID */
+  stop: () => Promise<{ transcriptId: string | null }>;
+}
+
+/**
+ * Browser-side hook for live transcription.
+ *
+ * Manages mic capture via MediaDevices + AudioContext,
+ * WebSocket connection for sending audio chunks and receiving transcript turns.
+ */
+export function useLiveTranscription(sessionId: string): UseLiveTranscriptionReturn {
+  const [isConnected, setIsConnected] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [currentText, setCurrentText] = useState('');
+  const [segments, setSegments] = useState<LiveTranscriptSegment[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [durationSeconds, setDurationSeconds] = useState(0);
+
+  const wsRef = useRef<WebSocket | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTimeRef = useRef<number>(0);
+
+  const startMutation = trpc.sessionTranscription.startLiveTranscription.useMutation();
+  const stopMutation = trpc.sessionTranscription.stopLiveTranscription.useMutation();
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const cleanup = useCallback(() => {
+    // Stop mic
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    // Stop audio processing
+    if (processorRef.current) {
+      processorRef.current.disconnect();
+      processorRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    // Close WebSocket
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    // Stop timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    setIsConnected(false);
+    setIsRecording(false);
+  }, []);
+
+  const start = useCallback(async () => {
+    setError(null);
+    setSegments([]);
+    setCurrentText('');
+    setDurationSeconds(0);
+
+    try {
+      // 1. Request mic permission
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+      streamRef.current = stream;
+
+      // 2. Call tRPC to start server-side live session and get WS auth
+      const { wsUrl, token } = await startMutation.mutateAsync({
+        sessionId,
+        sampleRate: 16000,
+      });
+
+      // 3. Connect WebSocket
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.binaryType = 'arraybuffer';
+
+      await new Promise<void>((resolve, reject) => {
+        ws.onopen = () => {
+          setIsConnected(true);
+
+          // Send join + start_live messages
+          ws.send(JSON.stringify({
+            type: 'join_live_session',
+            sessionId,
+            token,
+          }));
+          ws.send(JSON.stringify({
+            type: 'start_live',
+            sessionId,
+            sampleRate: 16000,
+          }));
+
+          resolve();
+        };
+        ws.onerror = () => reject(new Error('WebSocket connection failed'));
+        // Timeout after 5s
+        setTimeout(() => reject(new Error('WebSocket connection timeout')), 5000);
+      });
+
+      // 4. Handle incoming messages
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'live_transcript') {
+            const turn = data.turn;
+            if (turn.isFinal) {
+              setSegments((prev) => [
+                ...prev,
+                {
+                  text: turn.text,
+                  isFinal: true,
+                  speaker: turn.speaker,
+                  timestamp: turn.timestamp,
+                },
+              ]);
+              setCurrentText('');
+            } else {
+              setCurrentText(turn.text);
+            }
+          } else if (data.type === 'live_session_error') {
+            setError(data.error);
+          } else if (data.type === 'live_session_ended') {
+            cleanup();
+          }
+        } catch {
+          // Ignore parse errors
+        }
+      };
+
+      ws.onclose = () => {
+        setIsConnected(false);
+      };
+
+      // 5. Set up AudioContext to capture PCM and send over WebSocket
+      const audioContext = new AudioContext({ sampleRate: 16000 });
+      audioContextRef.current = audioContext;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      // ScriptProcessorNode is deprecated but widely supported;
+      // AudioWorklet requires a separate file which adds complexity
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+      processorRef.current = processor;
+
+      processor.onaudioprocess = (e) => {
+        if (ws.readyState !== WebSocket.OPEN) return;
+
+        const inputData = e.inputBuffer.getChannelData(0);
+        // Convert Float32 to Int16 PCM
+        const pcm16 = new Int16Array(inputData.length);
+        for (let i = 0; i < inputData.length; i++) {
+          const s = Math.max(-1, Math.min(1, inputData[i]));
+          pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+        ws.send(pcm16.buffer);
+      };
+
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+
+      // 6. Start duration timer
+      startTimeRef.current = Date.now();
+      timerRef.current = setInterval(() => {
+        setDurationSeconds(Math.floor((Date.now() - startTimeRef.current) / 1000));
+      }, 1000);
+
+      setIsRecording(true);
+    } catch (err) {
+      cleanup();
+      const msg = err instanceof Error ? err.message : 'Failed to start live transcription';
+      setError(msg);
+      throw err;
+    }
+  }, [sessionId, startMutation, cleanup]);
+
+  const stop = useCallback(async (): Promise<{ transcriptId: string | null }> => {
+    try {
+      // Tell server to stop
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'stop_live', sessionId }));
+      }
+
+      const result = await stopMutation.mutateAsync({ sessionId });
+      cleanup();
+      return { transcriptId: result.transcriptId ?? null };
+    } catch (err) {
+      cleanup();
+      const msg = err instanceof Error ? err.message : 'Failed to stop live transcription';
+      setError(msg);
+      return { transcriptId: null };
+    }
+  }, [sessionId, stopMutation, cleanup]);
+
+  return {
+    isConnected,
+    isRecording,
+    currentText,
+    segments,
+    error,
+    durationSeconds,
+    start,
+    stop,
+  };
+}
