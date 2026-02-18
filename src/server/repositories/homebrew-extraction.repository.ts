@@ -76,6 +76,29 @@ export async function createManyExtractedContent(
   return Promise.all(items.map((item) => createExtractedContent(item)));
 }
 
+interface ExtractedImageRef {
+  url: string;
+  pageNumber: number;
+}
+
+function matchImagesToItem(
+  itemData: Record<string, unknown>,
+  images: ExtractedImageRef[]
+): { imageMetadata: ExtractedImageRef[] | null; extractionPageNumber: number | null } {
+  if (images.length === 0) return { imageMetadata: null, extractionPageNumber: null };
+
+  const pageRaw = itemData.page ?? itemData.pageNumber ?? itemData.page_number;
+  const page = typeof pageRaw === 'number' ? pageRaw : typeof pageRaw === 'string' ? parseInt(pageRaw, 10) : NaN;
+
+  if (!Number.isFinite(page) || page <= 0) return { imageMetadata: null, extractionPageNumber: null };
+
+  const matched = images.filter((img) => img.pageNumber === page || img.pageNumber === page - 1);
+  return {
+    imageMetadata: matched.length > 0 ? matched : null,
+    extractionPageNumber: page,
+  };
+}
+
 /**
  * Save extracted content with deduplication and transactional writes.
  * Upserts items: if content with same name+type+userId+sourceType exists, update it.
@@ -86,7 +109,8 @@ export async function saveExtractedContent(
   userId: string,
   pdfId: string,
   campaignId?: string | null,
-  db?: PrismaClient
+  db?: PrismaClient,
+  extractedImages?: ExtractedImageRef[]
 ): Promise<{ saved: number; errors: string[] }> {
   const client = db || prisma;
   const errors: string[] = [];
@@ -96,6 +120,8 @@ export async function saveExtractedContent(
     return { saved: 0, errors: [] };
   }
 
+  const images = extractedImages ?? [];
+
   try {
     await client.$transaction(async (tx) => {
       for (const item of items) {
@@ -104,6 +130,7 @@ export async function saveExtractedContent(
           const searchText = `${item.name} ${JSON.stringify(item.data)}`.toLowerCase();
 
           const itemData = item.data as Prisma.InputJsonValue;
+          const { imageMetadata, extractionPageNumber } = matchImagesToItem(item.data, images);
 
           // Check for existing content (deduplication)
           const existing = await tx.homebrewContent.findFirst({
@@ -125,6 +152,8 @@ export async function saveExtractedContent(
                 tags: [item.type, 'extracted', 'ai-generated'],
                 searchText,
                 sourcePdfId: pdfId,
+                ...(imageMetadata !== null && { imageMetadata: imageMetadata as unknown as Prisma.InputJsonValue }),
+                ...(extractionPageNumber !== null && { extractionPageNumber }),
               },
             });
             console.log(`[Extraction] Updated existing: ${item.name} (${contentType})`);
@@ -140,6 +169,8 @@ export async function saveExtractedContent(
                 sourcePdfId: pdfId,
                 tags: [item.type, 'extracted', 'ai-generated'],
                 searchText,
+                ...(imageMetadata !== null && { imageMetadata: imageMetadata as unknown as Prisma.InputJsonValue }),
+                ...(extractionPageNumber !== null && { extractionPageNumber }),
               },
             });
             console.log(`[Extraction] Saved new: ${item.name} (${contentType})`);
