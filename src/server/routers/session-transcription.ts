@@ -1,5 +1,7 @@
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
+import { randomUUID } from 'crypto';
+import Redis from 'ioredis';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -24,6 +26,7 @@ import { saveTranscript } from '@/lib/transcription/db';
 import { deleteFromLocal, extractKeyFromLocalUrl, getAbsolutePathFromKey } from '@/lib/storage/local-storage';
 import { deleteFromR2, extractKeyFromUrl } from '@/lib/storage/r2';
 import { prisma } from '@/lib/prisma';
+import { ForbiddenError, NotFoundError } from '@/server/errors';
 import { authz } from '../services/authorization.service';
 
 export const sessionTranscriptionRouter = router({
@@ -283,5 +286,87 @@ export const sessionTranscriptionRouter = router({
       const userId = ctx.session.user.id;
       await authz.session(input.sessionId, userId).verify();
       return await getTranscriptionProgressBySessionId(input.sessionId);
+    }),
+
+  startLiveTranscription: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string(),
+        sampleRate: z.number().default(16000),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id;
+      const access = await authz.session(input.sessionId, userId).verify();
+      if (!access.isDM) {
+        throw new ForbiddenError('Only DMs can start live transcription');
+      }
+
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: { campaignId: true },
+      });
+
+      if (!session) {
+        throw new NotFoundError('session', input.sessionId);
+      }
+
+      const token = randomUUID();
+      const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
+
+      try {
+        await redis.setex(
+          `live-session-token:${token}`,
+          60,
+          JSON.stringify({
+            userId,
+            sessionId: input.sessionId,
+            campaignId: session.campaignId,
+            sampleRate: input.sampleRate,
+          })
+        );
+      } finally {
+        await redis.quit();
+      }
+
+      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3004';
+      return { wsUrl, token };
+    }),
+
+  stopLiveTranscription: protectedProcedure
+    .input(z.object({ sessionId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id;
+      await authz.session(input.sessionId, userId).verify();
+
+      const modulePath = '@/lib/transcription/live-session-manager';
+      const { liveSessionManager } = (await import(modulePath)) as {
+        liveSessionManager: {
+          stopLiveSession: (sessionId: string) => Promise<string | null | undefined>;
+        };
+      };
+
+      const transcriptId = await liveSessionManager.stopLiveSession(input.sessionId);
+      return { transcriptId: transcriptId ?? null };
+    }),
+
+  getLiveTranscriptionStatus: protectedProcedure
+    .input(z.object({ sessionId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id;
+      await authz.session(input.sessionId, userId).verify();
+
+      const modulePath = '@/lib/transcription/live-session-manager';
+      const { liveSessionManager } = (await import(modulePath)) as {
+        liveSessionManager: {
+          isSessionLive: (sessionId: string) => boolean;
+          getSessionInfo: (sessionId: string) => unknown;
+        };
+      };
+
+      const isLive = liveSessionManager.isSessionLive(input.sessionId);
+      const info = isLive ? liveSessionManager.getSessionInfo(input.sessionId) : null;
+
+      return { isLive, sessionId: input.sessionId, info };
     }),
 });
