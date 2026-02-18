@@ -810,3 +810,24 @@ model UserUsage {
   @@index([userId])
   @@index([periodEnd])
 }
+
+model ImageGenerationJob {
+  id           String    @id @default(cuid())
+  homebrewId   String
+  userId       String
+  prompt       String    @db.Text
+  provider     String    @default("auto") // 'comfyui', 'replicate', 'dalle', 'auto'
+  status       String    @default("queued") // queued, processing, completed, failed
+  progress     Int       @default(0)
+  workflowId   String?   // ComfyUI workflow/prompt ID
+  resultUrl    String?
+  errorMessage String?   @db.Text
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  @@index([homebrewId, userId, status])
+  @@index([status, createdAt])
+  @@index([userId])
+}
