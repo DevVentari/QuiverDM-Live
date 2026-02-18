@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UserPlus, Copy, Check } from 'lucide-react';
+import { UserPlus, Copy, Check, Loader2 } from 'lucide-react';
 
 export function InviteDialog() {
   const { campaignId } = useCampaign();
@@ -52,7 +52,7 @@ export function InviteDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setCode(''); setEmail(''); } }}>
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setCode(''); setEmail(''); setRole('PLAYER'); } }}>
       <DialogTrigger asChild>
         <Button size="sm">
           <UserPlus className="mr-2 h-4 w-4" />
@@ -109,7 +109,8 @@ export function InviteDialog() {
               />
             </div>
             <Button onClick={handleCreate} disabled={createInvite.isPending} className="w-full">
-              {createInvite.isPending ? 'Creating...' : 'Create Invite'}
+              {createInvite.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Invite
             </Button>
             {createInvite.error && (
               <p className="text-sm text-destructive">{createInvite.error.message}</p>
