@@ -90,7 +90,7 @@ async function generateWithReplicate(request: ImageGenerationRequest): Promise<I
     }
   );
 
-  const imageUrl = Array.isArray(output) ? (output[0] as string) : (output as string);
+  const imageUrl = Array.isArray(output) ? (output[0] as unknown as string) : (output as unknown as string);
   if (!imageUrl) throw new Error('Replicate returned no image URL');
 
   const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(60_000) });
@@ -121,7 +121,7 @@ async function generateWithDALLE(request: ImageGenerationRequest): Promise<Image
     quality: 'standard',
   });
 
-  const imageUrl = response.data[0]?.url;
+  const imageUrl = response.data?.[0]?.url;
   if (!imageUrl) throw new Error('DALL-E returned no image URL');
 
   const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(60_000) });

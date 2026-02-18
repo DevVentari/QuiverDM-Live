@@ -105,9 +105,32 @@ services:
     depends_on:
       - n8n
 
+  comfyui:
+    image: ghcr.io/ai-dock/comfyui:latest-cuda
+    container_name: quiverdm-comfyui
+    restart: unless-stopped
+    ports:
+      - "8188:8188"
+    volumes:
+      - comfyui_models:/opt/ComfyUI/models
+      - comfyui_output:/opt/ComfyUI/output
+    environment:
+      - COMFYUI_FLAGS=--listen 0.0.0.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    profiles:
+      - gpu
+
 volumes:
   postgres_data:
   redis_data:
   meilisearch_data:
   ollama_data:
   n8n_data:
+  comfyui_models:
+  comfyui_output:
