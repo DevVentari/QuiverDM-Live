@@ -1,207 +1,352 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { IncomingMessage } from 'http';
-import { parse } from 'url';
+import Redis from 'ioredis';
 import type { TranscriptionProgress } from '@/lib/transcription/progress';
 
-interface ClientSubscription {
-  ws: WebSocket;
+type LiveClientState = {
+  sessionId: string;
+  userId: string;
+  campaignId: string;
+};
+
+type JoinLiveMessage = {
+  type: 'join_live_session';
+  sessionId: string;
+  token: string;
+  sampleRate?: number;
+};
+
+type StopLiveMessage = {
+  type: 'stop_live';
+  sessionId: string;
+};
+
+type SubscribeMessage = {
+  type: 'subscribe' | 'unsubscribe';
   jobId: string;
+};
+
+type IncomingMessage = JoinLiveMessage | StopLiveMessage | SubscribeMessage | { type: 'ping' };
+
+type LiveSessionTokenPayload = {
+  userId: string;
+  sessionId: string;
+  campaignId: string;
+  sampleRate?: number;
+};
+
+type LiveSessionManager = {
+  subscribeToSession: (sessionId: string, ws: WebSocket) => void;
+  startLiveSession: (input: {
+    sessionId: string;
+    campaignId: string;
+    dmUserId: string;
+    sampleRate: number;
+  }) => Promise<unknown>;
+  sendAudio: (sessionId: string, audio: Buffer) => Promise<unknown> | unknown;
+  removeClient: (ws: WebSocket) => void;
+  stopLiveSession: (sessionId: string) => Promise<string | null | undefined>;
+  isSessionLive: (sessionId: string) => boolean;
+};
+
+let wss: WebSocketServer | null = null;
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
+const jobSubscriptions = new Map<string, Set<WebSocket>>();
+const liveClients = new Map<WebSocket, LiveClientState>();
+let liveSessionManagerPromise: Promise<LiveSessionManager | null> | null = null;
+
+async function getLiveSessionManager(): Promise<LiveSessionManager | null> {
+  if (!liveSessionManagerPromise) {
+    liveSessionManagerPromise = (async () => {
+      try {
+        const modulePath = '@/lib/transcription/live-session-manager';
+        const loaded = (await import(modulePath)) as { liveSessionManager?: LiveSessionManager };
+        return loaded.liveSessionManager ?? null;
+      } catch {
+        return null;
+      }
+    })();
+  }
+
+  return liveSessionManagerPromise;
 }
 
-class TranscriptionProgressWebSocketServer {
-  private wss: WebSocketServer;
-  private subscriptions: Map<string, Set<WebSocket>> = new Map();
+function sendJSON(ws: WebSocket, payload: Record<string, unknown>) {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(payload));
+  }
+}
 
-  constructor(port: number = 3004) {
-    this.wss = new WebSocketServer({ port });
-
-    this.wss.on('connection', (ws: WebSocket, request: IncomingMessage) => {
-      console.log('WebSocket client connected');
-
-      // Parse URL to get job ID from query params
-      const { query } = parse(request.url || '', true);
-      const jobId = query.jobId as string;
-
-      if (jobId) {
-        this.subscribe(ws, jobId);
-        console.log(`Client subscribed to job: ${jobId}`);
-      }
-
-      ws.on('message', (message: string) => {
-        try {
-          const data = JSON.parse(message.toString());
-
-          if (data.type === 'subscribe' && data.jobId) {
-            this.subscribe(ws, data.jobId);
-            console.log(`Client subscribed to job: ${data.jobId}`);
-          } else if (data.type === 'unsubscribe' && data.jobId) {
-            this.unsubscribe(ws, data.jobId);
-            console.log(`Client unsubscribed from job: ${data.jobId}`);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      });
-
-      ws.on('close', () => {
-        console.log('WebSocket client disconnected');
-        this.removeClient(ws);
-      });
-
-      ws.on('error', (error) => {
-        console.error('WebSocket error:', error);
-        this.removeClient(ws);
-      });
-    });
-
-    console.log(`WebSocket server running on ws://localhost:${port}`);
+function parseJSONMessage(raw: WebSocket.RawData): IncomingMessage | null {
+  if (Buffer.isBuffer(raw)) {
+    return null;
   }
 
-  /**
-   * Subscribe a WebSocket client to progress updates for a specific job
-   */
-  private subscribe(ws: WebSocket, jobId: string) {
-    if (!this.subscriptions.has(jobId)) {
-      this.subscriptions.set(jobId, new Set());
-    }
-    this.subscriptions.get(jobId)!.add(ws);
+  try {
+    const parsed = JSON.parse(raw.toString()) as IncomingMessage;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function addJobSubscription(ws: WebSocket, jobId: string) {
+  if (!jobSubscriptions.has(jobId)) {
+    jobSubscriptions.set(jobId, new Set());
+  }
+  jobSubscriptions.get(jobId)!.add(ws);
+}
+
+function removeJobSubscription(ws: WebSocket, jobId: string) {
+  const subscribers = jobSubscriptions.get(jobId);
+  if (!subscribers) {
+    return;
   }
 
-  /**
-   * Unsubscribe a WebSocket client from a specific job
-   */
-  private unsubscribe(ws: WebSocket, jobId: string) {
-    const subscribers = this.subscriptions.get(jobId);
-    if (subscribers) {
-      subscribers.delete(ws);
-      if (subscribers.size === 0) {
-        this.subscriptions.delete(jobId);
-      }
+  subscribers.delete(ws);
+  if (subscribers.size === 0) {
+    jobSubscriptions.delete(jobId);
+  }
+}
+
+function removeClientFromAllJobSubscriptions(ws: WebSocket) {
+  for (const [jobId, subscribers] of jobSubscriptions.entries()) {
+    subscribers.delete(ws);
+    if (subscribers.size === 0) {
+      jobSubscriptions.delete(jobId);
     }
   }
+}
 
-  /**
-   * Remove a client from all subscriptions
-   */
-  private removeClient(ws: WebSocket) {
-    for (const [jobId, subscribers] of this.subscriptions.entries()) {
-      subscribers.delete(ws);
-      if (subscribers.size === 0) {
-        this.subscriptions.delete(jobId);
-      }
-    }
+function broadcastToJobSubscribers(jobId: string, payload: Record<string, unknown>) {
+  const subscribers = jobSubscriptions.get(jobId);
+  if (!subscribers || subscribers.size === 0) {
+    return;
   }
 
-  /**
-   * Broadcast progress update to all clients subscribed to a specific job
-   */
-  public broadcastProgress(jobId: string, progress: TranscriptionProgress | any) {
-    const subscribers = this.subscriptions.get(jobId);
+  const serialized = JSON.stringify(payload);
+  for (const ws of subscribers) {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(serialized);
+    }
+  }
+}
 
-    if (!subscribers || subscribers.size === 0) {
+async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
+  const { sessionId, token } = message;
+  const tokenKey = `live-session-token:${token}`;
+
+  try {
+    const tokenValue = await redis.get(tokenKey);
+    if (!tokenValue) {
+      sendJSON(ws, {
+        type: 'live_session_error',
+        sessionId,
+        error: 'Invalid or expired live session token',
+      });
+      ws.close(4001, 'Invalid token');
       return;
     }
 
-    const message = JSON.stringify({
-      type: 'progress',
-      jobId,
-      data: progress,
-    });
-
-    // Send to all subscribers
-    for (const ws of subscribers) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(message);
-      }
-    }
-
-    console.log(`Broadcasted progress for job ${jobId} to ${subscribers.size} client(s)`);
-  }
-
-  /**
-   * Broadcast generic message to all clients subscribed to a specific job
-   */
-  public broadcastMessage(jobId: string, message: any) {
-    const subscribers = this.subscriptions.get(jobId);
-
-    if (!subscribers || subscribers.size === 0) {
+    const payload = JSON.parse(tokenValue) as LiveSessionTokenPayload;
+    if (payload.sessionId !== sessionId) {
+      await redis.del(tokenKey);
+      sendJSON(ws, {
+        type: 'live_session_error',
+        sessionId,
+        error: 'Session mismatch for live session token',
+      });
+      ws.close(4002, 'Session mismatch');
       return;
     }
 
-    const messageStr = JSON.stringify({
-      ...message,
-      jobId,
-      timestamp: Date.now(),
-    });
+    await redis.del(tokenKey);
 
-    // Send to all subscribers
-    for (const ws of subscribers) {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(messageStr);
-      }
+    const manager = await getLiveSessionManager();
+    if (!manager) {
+      sendJSON(ws, {
+        type: 'live_session_error',
+        sessionId,
+        error: 'Live transcription server is unavailable',
+      });
+      ws.close(1011, 'Live session manager unavailable');
+      return;
     }
 
-    console.log(`Broadcasted message for job ${jobId} to ${subscribers.size} client(s)`);
-  }
+    liveClients.set(ws, {
+      sessionId,
+      userId: payload.userId,
+      campaignId: payload.campaignId,
+    });
 
-  /**
-   * Close the WebSocket server
-   */
-  public close() {
-    this.wss.close();
+    manager.subscribeToSession(sessionId, ws);
+    const isAlreadyLive = manager.isSessionLive(sessionId);
+
+    if (!isAlreadyLive) {
+      await manager.startLiveSession({
+        sessionId,
+        campaignId: payload.campaignId,
+        dmUserId: payload.userId,
+        sampleRate: message.sampleRate ?? payload.sampleRate ?? 16000,
+      });
+      sendJSON(ws, { type: 'live_session_started', sessionId });
+    }
+  } catch (error) {
+    console.error('[WebSocket] Failed to join live session:', error);
+    sendJSON(ws, {
+      type: 'live_session_error',
+      sessionId,
+      error: 'Failed to start live transcription session',
+    });
   }
 }
 
-// Singleton instance
-let wsServer: TranscriptionProgressWebSocketServer | null = null;
-
-/**
- * Initialize the WebSocket server
- */
-export function initWebSocketServer(port: number = 3004): TranscriptionProgressWebSocketServer {
-  if (!wsServer) {
-    wsServer = new TranscriptionProgressWebSocketServer(port);
+async function handleStopLive(ws: WebSocket, message: StopLiveMessage) {
+  const manager = await getLiveSessionManager();
+  if (!manager) {
+    sendJSON(ws, {
+      type: 'live_session_error',
+      sessionId: message.sessionId,
+      error: 'Live transcription server is unavailable',
+    });
+    return;
   }
-  return wsServer;
+
+  try {
+    const transcriptId = await manager.stopLiveSession(message.sessionId);
+    sendJSON(ws, {
+      type: 'live_session_ended',
+      sessionId: message.sessionId,
+      transcriptId: transcriptId ?? null,
+    });
+  } catch (error) {
+    console.error('[WebSocket] Failed to stop live session:', error);
+    sendJSON(ws, {
+      type: 'live_session_error',
+      sessionId: message.sessionId,
+      error: 'Failed to stop live transcription session',
+    });
+  }
 }
 
-/**
- * Get the WebSocket server instance
- */
-export function getWebSocketServer(): TranscriptionProgressWebSocketServer | null {
-  return wsServer;
+async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
+  if (Buffer.isBuffer(raw)) {
+    const state = liveClients.get(ws);
+    if (!state) {
+      return;
+    }
+
+    const manager = await getLiveSessionManager();
+    if (!manager) {
+      return;
+    }
+
+    await manager.sendAudio(state.sessionId, raw);
+    return;
+  }
+
+  const message = parseJSONMessage(raw);
+  if (!message) {
+    sendJSON(ws, { type: 'error', message: 'Invalid message format' });
+    return;
+  }
+
+  if (message.type === 'subscribe') {
+    addJobSubscription(ws, message.jobId);
+    return;
+  }
+
+  if (message.type === 'unsubscribe') {
+    removeJobSubscription(ws, message.jobId);
+    return;
+  }
+
+  if (message.type === 'join_live_session') {
+    await handleJoinLiveSession(ws, message);
+    return;
+  }
+
+  if (message.type === 'stop_live') {
+    await handleStopLive(ws, message);
+    return;
+  }
+
+  if (message.type === 'ping') {
+    sendJSON(ws, { type: 'pong' });
+  }
 }
 
-/**
- * Broadcast progress update to subscribed clients
- */
+async function handleSocketClose(ws: WebSocket) {
+  removeClientFromAllJobSubscriptions(ws);
+  liveClients.delete(ws);
+
+  const manager = await getLiveSessionManager();
+  manager?.removeClient(ws);
+}
+
+export function initWebSocketServer(port: number): WebSocketServer {
+  if (wss) {
+    return wss;
+  }
+
+  wss = new WebSocketServer({ port });
+  console.log(`[WebSocket] Server running on ws://localhost:${port}`);
+
+  wss.on('connection', (ws) => {
+    ws.on('message', async (raw) => {
+      await handleSocketMessage(ws, raw);
+    });
+
+    ws.on('close', async () => {
+      await handleSocketClose(ws);
+    });
+
+    ws.on('error', async () => {
+      await handleSocketClose(ws);
+    });
+  });
+
+  return wss;
+}
+
+export function getWebSocketServer(): WebSocketServer | null {
+  return wss;
+}
+
+export function broadcastToAll(message: string) {
+  if (!wss) {
+    return;
+  }
+
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  }
+}
+
 export function broadcastTranscriptionProgress(jobId: string, progress: TranscriptionProgress) {
-  if (wsServer) {
-    wsServer.broadcastProgress(jobId, progress);
-  }
+  broadcastToJobSubscribers(jobId, {
+    type: 'progress',
+    jobId,
+    data: progress,
+  });
 }
 
-/**
- * Broadcast PDF processing progress to subscribed clients
- */
 export function broadcastPDFProgress(pdfId: string, progress: number) {
-  if (wsServer) {
-    wsServer.broadcastMessage(pdfId, {
-      type: 'pdf_progress',
-      progress,
-    });
-  }
+  broadcastToJobSubscribers(pdfId, {
+    type: 'pdf_progress',
+    jobId: pdfId,
+    progress,
+    timestamp: Date.now(),
+  });
 }
 
-/**
- * Broadcast PDF processing status to subscribed clients
- */
-export function broadcastPDFStatus(pdfId: string, status: string, data?: any) {
-  if (wsServer) {
-    wsServer.broadcastMessage(pdfId, {
-      type: 'pdf_status',
-      status,
-      data,
-    });
-  }
+export function broadcastPDFStatus(pdfId: string, status: string, data?: unknown) {
+  broadcastToJobSubscribers(pdfId, {
+    type: 'pdf_status',
+    jobId: pdfId,
+    status,
+    data,
+    timestamp: Date.now(),
+  });
 }

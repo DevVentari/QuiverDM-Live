@@ -65,6 +65,7 @@
     "@trpc/server": "^11.0.0-rc.628",
     "@types/three": "^0.162.0",
     "@types/ws": "^8.18.1",
+    "assemblyai": "^4.23.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.63.1",
