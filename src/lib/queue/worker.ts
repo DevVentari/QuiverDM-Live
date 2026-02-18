@@ -498,7 +498,8 @@ async function processPDFJob(
             userId,
             pdfId,
             campaignId,
-            prisma
+            prisma,
+            extractedImageMetadata
           );
 
           console.log(`[Worker] Saved ${saveResult.saved} items to homebrew library`);
