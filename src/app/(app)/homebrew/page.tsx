@@ -9,7 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
-import { BookOpen, Search, FileText, Upload, AlertCircle } from 'lucide-react';
+import { BookOpen, Search, FileText, Upload } from 'lucide-react';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -90,33 +90,17 @@ export default function HomebrewPage() {
         />
       </div>
 
-      {/* Error state */}
-      {content.isError && (
-        <Card className="border-destructive/50">
-          <CardContent className="flex flex-col items-center py-8 text-center">
-            <AlertCircle className="h-10 w-10 text-destructive mb-4" />
-            <p className="text-destructive font-medium">Failed to load homebrew content</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {content.error?.message || 'An unexpected error occurred'}
-            </p>
-            <Button variant="outline" className="mt-4" onClick={() => content.refetch()}>
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Loading state */}
-      {content.isLoading && (
+      {content.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-32 rounded-lg" />
           ))}
         </div>
-      )}
-
-      {/* Content grid */}
-      {content.data && (content.data as any).items?.length > 0 && (
+      ) : content.isError ? (
+        <Card className="p-8 text-center">
+          <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
+        </Card>
+      ) : content.data && (content.data as any).items?.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {((content.data as any).items || []).map((item: any) => (
             <HomebrewContentCard
@@ -126,10 +110,7 @@ export default function HomebrewPage() {
             />
           ))}
         </div>
-      )}
-
-      {/* Empty state */}
-      {content.data && !((content.data as any).items?.length > 0) && !content.isLoading && (
+      ) : content.data ? (
         <Card>
           <CardContent className="flex flex-col items-center py-12 text-center">
             <BookOpen className="h-10 w-10 text-muted-foreground mb-4" />
@@ -147,7 +128,7 @@ export default function HomebrewPage() {
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
     </div>
   );
 }

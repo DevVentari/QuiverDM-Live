@@ -105,6 +105,10 @@ export default function SessionsPage() {
             <Skeleton key={i} className="h-20 rounded-lg" />
           ))}
         </div>
+      ) : sessions.isError ? (
+        <Card className="p-8 text-center">
+          <p className="text-sm text-muted-foreground">Failed to load sessions. Please refresh.</p>
+        </Card>
       ) : sessions.data && sessions.data.length > 0 ? (
         <div className="space-y-3">
           {(sessions.data as any[]).map((session) => (
