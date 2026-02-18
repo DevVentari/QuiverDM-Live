@@ -5,6 +5,8 @@ import { useState, useRef, useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { LiveTranscriptionControls } from '@/components/session/live-transcription-controls';
+import { TranscriptionStatus } from '@/components/session/transcription-status';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -504,6 +506,10 @@ export default function SessionDetailPage() {
 
   const session = trpc.sessions.getById.useQuery({ id: sessionId }, { staleTime: 30_000 });
   const recordings = trpc.sessionRecordings.getBySessionId.useQuery({ sessionId }, { staleTime: 30_000 });
+  const transcriptionJobs = trpc.sessionTranscription.getSessionTranscriptionJobs.useQuery(
+    { sessionId },
+    { staleTime: 5_000, refetchInterval: 3_000 }
+  );
   const utils = trpc.useUtils();
 
   const updateSession = trpc.sessions.update.useMutation({
@@ -584,6 +590,7 @@ export default function SessionDetailPage() {
   }
 
   const data = session.data as any;
+  const latestTranscriptionJob = transcriptionJobs.data?.[0] ?? null;
 
   return (
     <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -656,6 +663,33 @@ export default function SessionDetailPage() {
         recap={data.recap || null}
         isDM={isDM}
       />
+
+      <LiveTranscriptionControls
+        sessionId={sessionId}
+        isDM={isDM}
+        onTranscriptSaved={() => {
+          void utils.sessionTranscription.getSessionTranscriptionJobs.invalidate({ sessionId });
+          void utils.transcript.getSessionTranscripts.invalidate({ sessionId });
+        }}
+      />
+
+      {latestTranscriptionJob && latestTranscriptionJob.status !== 'completed' && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm">Transcription Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TranscriptionStatus
+              jobId={latestTranscriptionJob.jobId}
+              onComplete={() => {
+                void utils.sessionTranscription.getSessionTranscriptionJobs.invalidate({ sessionId });
+                void utils.transcript.getSessionTranscripts.invalidate({ sessionId });
+                void utils.sessionRecordings.getBySessionId.invalidate({ sessionId });
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Separator />
 
