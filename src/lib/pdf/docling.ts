@@ -9,12 +9,23 @@ import path from 'path';
 
 const DOCLING_URL = process.env.DOCLING_URL || 'http://localhost:5001';
 
+export interface DoclingImage {
+  data: string;
+  pageNumber: number;
+  format: string;
+  filename: string;
+  width?: number;
+  height?: number;
+}
+
 export interface DoclingResult {
   markdown: string;
+  images: DoclingImage[];
   metadata: {
     pages: number;
     processingTimeMs: number;
     provider: 'docling';
+    imagesExtracted: number;
   };
 }
 
@@ -37,6 +48,8 @@ export async function convertWithDocling(
 
   const formData = new FormData();
   formData.append('files', new Blob([fileBuffer], { type: 'application/pdf' }), filename);
+  formData.append('include_images', 'true');
+  formData.append('image_export_mode', 'embedded');
 
   onProgress?.(20);
 
@@ -59,15 +72,18 @@ export async function convertWithDocling(
 
   const markdown = extractMarkdown(result);
   const pages = extractPageCount(result);
+  const images = extractImages(result);
 
   onProgress?.(100);
 
   return {
     markdown,
+    images,
     metadata: {
       pages,
       processingTimeMs: Date.now() - startTime,
       provider: 'docling',
+      imagesExtracted: images.length,
     },
   };
 }
@@ -122,6 +138,186 @@ function extractPageCount(result: unknown): number {
   }
 
   return 0;
+}
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function toFiniteNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+}
+
+function formatFromMime(mimeType: string): string | undefined {
+  const normalized = mimeType.trim().toLowerCase();
+  if (!normalized) return undefined;
+
+  if (normalized.includes('/')) {
+    const [, subtypeRaw] = normalized.split('/', 2);
+    const subtype = subtypeRaw.split(';', 1)[0].trim();
+    if (subtype === 'jpeg') return 'jpg';
+    return subtype || undefined;
+  }
+
+  if (normalized.startsWith('.')) {
+    return normalized.slice(1);
+  }
+
+  return normalized;
+}
+
+function parseImageData(value: unknown): { data: string; format?: string } | null {
+  if (typeof value !== 'string') return null;
+  const raw = value.trim();
+  if (!raw) return null;
+
+  const match = /^data:image\/([a-zA-Z0-9.+-]+);base64,(.+)$/i.exec(raw);
+  if (match) {
+    const format = formatFromMime(match[1]);
+    return { data: match[2], format };
+  }
+
+  return { data: raw };
+}
+
+function parsePageNumber(imageRecord: Record<string, unknown>): number {
+  const directCandidates = [
+    imageRecord.pageNumber,
+    imageRecord.page,
+    imageRecord.page_no,
+    imageRecord.pageIndex,
+  ];
+
+  for (const candidate of directCandidates) {
+    const parsed = toFiniteNumber(candidate);
+    if (parsed !== undefined) return parsed;
+  }
+
+  const prov = imageRecord.prov;
+  if (Array.isArray(prov)) {
+    for (const entry of prov) {
+      const entryRecord = asRecord(entry);
+      if (!entryRecord) continue;
+      const parsed = toFiniteNumber(entryRecord.page_no ?? entryRecord.page);
+      if (parsed !== undefined) return parsed;
+    }
+  }
+
+  return 0;
+}
+
+function normalizeImage(
+  image: unknown,
+  index: number,
+): DoclingImage | null {
+  const imageRecord = asRecord(image);
+  if (!imageRecord) return null;
+
+  const dataCandidates = [
+    imageRecord.data,
+    imageRecord.base64,
+    imageRecord.content,
+    imageRecord.image,
+    imageRecord.uri,
+  ];
+
+  let parsedData: { data: string; format?: string } | null = null;
+  for (const candidate of dataCandidates) {
+    parsedData = parseImageData(candidate);
+    if (parsedData) break;
+  }
+
+  if (!parsedData) return null;
+
+  const formatCandidates = [
+    imageRecord.format,
+    imageRecord.type,
+    imageRecord.mimeType,
+    imageRecord.mime_type,
+    imageRecord.extension,
+    imageRecord.ext,
+    parsedData.format,
+  ];
+
+  let format = 'png';
+  for (const candidate of formatCandidates) {
+    if (typeof candidate !== 'string') continue;
+    const parsed = formatFromMime(candidate);
+    if (!parsed) continue;
+    format = parsed;
+    break;
+  }
+
+  const pageNumber = parsePageNumber(imageRecord);
+  const filenameValue = imageRecord.filename ?? imageRecord.name;
+  const filename =
+    typeof filenameValue === 'string' && filenameValue.trim().length > 0
+      ? filenameValue
+      : `image_${index + 1}.${format}`;
+
+  const width = toFiniteNumber(imageRecord.width);
+  const height = toFiniteNumber(imageRecord.height);
+
+  return {
+    data: parsedData.data,
+    pageNumber,
+    format,
+    filename,
+    ...(width !== undefined ? { width } : {}),
+    ...(height !== undefined ? { height } : {}),
+  };
+}
+
+export function extractImages(result: unknown): DoclingImage[] {
+  if (!result) return [];
+
+  if (Array.isArray(result)) {
+    return result.flatMap((entry) => extractImages(entry));
+  }
+
+  const value = asRecord(result);
+  if (!value) return [];
+
+  const document = asRecord(value.document);
+  const output = asRecord(value.output);
+  const documentJson = asRecord(document?.json_content);
+  const outputJson = asRecord(output?.json_content);
+
+  const imageCandidates: unknown[] = [
+    document?.images,
+    output?.images,
+    value.images,
+    documentJson?.pictures,
+    outputJson?.pictures,
+  ];
+
+  const extracted: DoclingImage[] = [];
+  const seen = new Set<string>();
+
+  for (const candidate of imageCandidates) {
+    if (!Array.isArray(candidate)) continue;
+
+    for (const [index, image] of candidate.entries()) {
+      const normalized = normalizeImage(image, index);
+      if (!normalized) continue;
+
+      const signature = `${normalized.pageNumber}:${normalized.format}:${normalized.data.slice(0, 64)}`;
+      if (seen.has(signature)) continue;
+
+      seen.add(signature);
+      extracted.push(normalized);
+    }
+  }
+
+  return extracted;
 }
 
 export async function isDoclingAvailable(): Promise<boolean> {
