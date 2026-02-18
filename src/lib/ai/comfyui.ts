@@ -1,0 +1,139 @@
+/**
+ * ComfyUI REST API Client
+ * Docs: https://github.com/comfyanonymous/ComfyUI
+ */
+
+const COMFYUI_URL = process.env.COMFYUI_URL || 'http://localhost:8188';
+
+export interface ComfyUIOutput {
+  promptId: string;
+  imageUrls: string[]; // Data URLs or file paths
+}
+
+/**
+ * Build a simple text-to-image workflow for SD/SDXL
+ * Uses the standard txt2img workflow structure
+ */
+function buildTxt2ImgWorkflow(prompt: string, negativePrompt: string): Record<string, unknown> {
+  return {
+    '3': {
+      inputs: {
+        seed: Math.floor(Math.random() * 2 ** 32),
+        steps: 20,
+        cfg: 7,
+        sampler_name: 'euler',
+        scheduler: 'normal',
+        denoise: 1,
+        model: ['4', 0],
+        positive: ['6', 0],
+        negative: ['7', 0],
+        latent_image: ['5', 0],
+      },
+      class_type: 'KSampler',
+    },
+    '4': {
+      inputs: { ckpt_name: 'v1-5-pruned-emaonly.ckpt' },
+      class_type: 'CheckpointLoaderSimple',
+    },
+    '5': {
+      inputs: { width: 512, height: 512, batch_size: 1 },
+      class_type: 'EmptyLatentImage',
+    },
+    '6': {
+      inputs: { text: prompt, clip: ['4', 1] },
+      class_type: 'CLIPTextEncode',
+    },
+    '7': {
+      inputs: { text: negativePrompt, clip: ['4', 1] },
+      class_type: 'CLIPTextEncode',
+    },
+    '8': {
+      inputs: { samples: ['3', 0], vae: ['4', 2] },
+      class_type: 'VAEDecode',
+    },
+    '9': {
+      inputs: {
+        filename_prefix: 'quiverdm',
+        images: ['8', 0],
+      },
+      class_type: 'SaveImage',
+    },
+  };
+}
+
+export async function isComfyUIAvailable(): Promise<boolean> {
+  try {
+    const res = await fetch(`${COMFYUI_URL}/system_stats`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function queueComfyUIPrompt(
+  prompt: string,
+  negativePrompt = 'nsfw, gore, violence, low quality, blurry, watermark'
+): Promise<string> {
+  const workflow = buildTxt2ImgWorkflow(prompt, negativePrompt);
+
+  const res = await fetch(`${COMFYUI_URL}/prompt`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: workflow }),
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`ComfyUI queue failed (${res.status}): ${text}`);
+  }
+
+  const data = (await res.json()) as { prompt_id: string };
+  return data.prompt_id;
+}
+
+/**
+ * Poll ComfyUI until the job completes or times out.
+ * Returns base64 image data.
+ */
+export async function waitForComfyUIResult(promptId: string, timeoutMs = 120_000): Promise<Buffer> {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, 2000));
+
+    const res = await fetch(`${COMFYUI_URL}/history/${promptId}`, {
+      signal: AbortSignal.timeout(5_000),
+    });
+
+    if (!res.ok) continue;
+
+    const history = (await res.json()) as Record<string, unknown>;
+    const job = history[promptId] as Record<string, unknown> | undefined;
+
+    if (!job) continue; // Not in history yet
+
+    const outputs = job.outputs as Record<string, unknown> | undefined;
+    if (!outputs) continue;
+
+    // Find first image output
+    for (const nodeOutput of Object.values(outputs)) {
+      const node = nodeOutput as Record<string, unknown>;
+      const images = node.images as Array<{ filename: string; subfolder: string; type: string }> | undefined;
+      if (!images || images.length === 0) continue;
+
+      const image = images[0];
+      // Download image from ComfyUI
+      const imgUrl = `${COMFYUI_URL}/view?filename=${encodeURIComponent(image.filename)}&subfolder=${encodeURIComponent(image.subfolder)}&type=${image.type}`;
+      const imgRes = await fetch(imgUrl, { signal: AbortSignal.timeout(30_000) });
+
+      if (!imgRes.ok) throw new Error(`Failed to download ComfyUI image: ${imgRes.status}`);
+
+      return Buffer.from(await imgRes.arrayBuffer());
+    }
+  }
+
+  throw new Error(`ComfyUI generation timed out after ${timeoutMs}ms`);
+}
