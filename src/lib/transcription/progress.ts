@@ -9,7 +9,11 @@ export type TranscriptionStep =
   | 'splitting_chunks'
   | 'transcribing'
   | 'diarizing'
-  | 'saving';
+  | 'saving'
+  | 'uploading_audio'
+  | 'submitting_to_assemblyai'
+  | 'waiting_for_assemblyai'
+  | 'downloading_result';
 
 export interface TranscriptionProgress {
   jobId: string;
