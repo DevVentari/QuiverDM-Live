@@ -634,6 +634,8 @@ model HomebrewContent {
   sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction'
   sourcePdfId  String?
   sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
+  imageMetadata Json? // Metadata for each image (source, page number, etc.)
+  extractionPageNumber Int? // Which PDF page this content was extracted from
 
   campaigns    CampaignHomebrewContent[] // Many-to-many with campaigns
   characterItems  CharacterItem[]
@@ -735,6 +737,8 @@ model HomebrewPDF {
   markerProcessed     Boolean   @default(false)
   markerMetadata      Json?     // { pages, processingTime, imagesExtracted, etc. }
   useLLM              Boolean   @default(false) // Whether to use LLM enhancement for better extraction
+  extractedImages     Int       @default(0) // Count of extracted images
+  imageExtractionStatus String  @default("pending") // pending, processing, completed, failed
 
   // Processing status
   processingStatus    String    @default("pending") // pending, processing, completed, failed
