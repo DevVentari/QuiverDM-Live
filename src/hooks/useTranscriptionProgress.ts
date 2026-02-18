@@ -40,8 +40,8 @@ export function useTranscriptionProgress(jobId: string | null): TranscriptionPro
     { jobId: jobId! },
     {
       enabled: !!jobId,
-      refetchInterval: (q) => {
-        const data = q.state.data;
+      refetchInterval: (query) => {
+        const data = (query.state.data as any);
         if (!data) return 3000;
         if (data.status === 'completed' || data.status === 'failed') {
           return false;
