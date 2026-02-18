@@ -26,6 +26,7 @@ export default function NewNPCPage() {
 
   const create = trpc.npcs.create.useMutation({
     onSuccess: (data: any) => {
+      toast({ title: 'NPC created' });
       router.push(`/campaigns/${slug}/npcs/${data.id}`);
     },
     onError: (error) => {

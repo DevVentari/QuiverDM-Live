@@ -32,7 +32,10 @@ export default function MembersPage() {
   const utils = trpc.useUtils();
 
   const updateRole = trpc.members.updateRole.useMutation({
-    onSuccess: () => utils.members.getAll.invalidate({ campaignId }),
+    onSuccess: () => {
+      utils.members.getAll.invalidate({ campaignId });
+      toast({ title: 'Role updated' });
+    },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
@@ -107,6 +110,7 @@ export default function MembersPage() {
                   ) : isDM ? (
                     <Select
                       value={member.role}
+                      disabled={updateRole.isPending}
                       onValueChange={(role) =>
                         updateRole.mutate({
                           campaignId,

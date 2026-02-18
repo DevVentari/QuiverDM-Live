@@ -33,7 +33,10 @@ export default function PlayersPage() {
   });
 
   const updateStatus = trpc.characters.updateCampaignStatus.useMutation({
-    onSuccess: () => utils.characters.getCampaignCharacters.invalidate({ campaignId }),
+    onSuccess: () => {
+      utils.characters.getCampaignCharacters.invalidate({ campaignId });
+      toast({ title: 'Status updated' });
+    },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
