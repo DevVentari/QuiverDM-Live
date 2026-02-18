@@ -9,6 +9,13 @@ import path from 'path';
 
 const DOCLING_URL = process.env.DOCLING_URL || 'http://localhost:5001';
 
+export interface DoclingImage {
+  data: string; // base64 image data
+  pageNumber: number;
+  format: string;
+  filename: string;
+}
+
 export interface DoclingResult {
   markdown: string;
   metadata: {
@@ -16,6 +23,7 @@ export interface DoclingResult {
     processingTimeMs: number;
     provider: 'docling';
   };
+  images?: DoclingImage[];
 }
 
 /**
@@ -59,6 +67,7 @@ export async function convertWithDocling(
 
   const markdown = extractMarkdown(result);
   const pages = extractPageCount(result);
+  const images = extractImages(result);
 
   onProgress?.(100);
 
@@ -69,6 +78,7 @@ export async function convertWithDocling(
       processingTimeMs: Date.now() - startTime,
       provider: 'docling',
     },
+    images,
   };
 }
 
@@ -122,6 +132,51 @@ function extractPageCount(result: unknown): number {
   }
 
   return 0;
+}
+
+function extractImages(result: unknown): DoclingImage[] {
+  if (!result) return [];
+  if (Array.isArray(result) && result.length > 0) return extractImages(result[0]);
+
+  const value = result as Record<string, unknown>;
+  const candidates = [
+    value.images,
+    value.extracted_images,
+    value?.document && (value.document as Record<string, unknown>).images,
+    value?.output && (value.output as Record<string, unknown>).images,
+  ];
+
+  for (const candidate of candidates) {
+    if (!Array.isArray(candidate)) continue;
+
+    const normalized = candidate
+      .map((item): DoclingImage | null => {
+        if (!item || typeof item !== 'object') return null;
+        const image = item as Record<string, unknown>;
+
+        const data = typeof image.data === 'string' ? image.data : '';
+        const pageRaw = image.pageNumber ?? image.page_number ?? image.page ?? 0;
+        const pageNumber = typeof pageRaw === 'number' ? pageRaw : Number(pageRaw);
+        const format = typeof image.format === 'string' ? image.format : 'png';
+        const filename = typeof image.filename === 'string' ? image.filename : `page-${pageNumber || 1}.png`;
+
+        if (!data || !Number.isFinite(pageNumber)) return null;
+
+        return {
+          data,
+          pageNumber,
+          format,
+          filename,
+        };
+      })
+      .filter((img): img is DoclingImage => img !== null);
+
+    if (normalized.length > 0) {
+      return normalized;
+    }
+  }
+
+  return [];
 }
 
 export async function isDoclingAvailable(): Promise<boolean> {
