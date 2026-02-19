@@ -19,6 +19,7 @@ export default function NewCharacterPage() {
   const [level, setLevel] = useState(1);
   const [background, setBackground] = useState('');
   const [backstory, setBackstory] = useState('');
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const create = trpc.characters.create.useMutation({
     onSuccess: (data: any) => {
@@ -32,6 +33,8 @@ export default function NewCharacterPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim()) { setNameError('Name is required'); return; }
+    if (name.trim().length > 100) { setNameError('Name must be 100 characters or fewer'); return; }
     create.mutate({
       name,
       race: race || undefined,
@@ -63,9 +66,10 @@ export default function NewCharacterPage() {
                   id="name"
                   placeholder="Tharivol Moonwhisper"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
+                  onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                  aria-invalid={!!nameError}
                 />
+                {nameError && <p className="text-sm text-destructive">{nameError}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="level">Level</Label>

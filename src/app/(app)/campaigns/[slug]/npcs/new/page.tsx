@@ -21,6 +21,7 @@ export default function NewNPCPage() {
   const [secrets, setSecrets] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
@@ -60,6 +61,8 @@ export default function NewNPCPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim()) { setNameError('Name is required'); return; }
+    if (name.trim().length > 100) { setNameError('Name must be 100 characters or fewer'); return; }
     create.mutate({
       campaignId,
       name,
@@ -90,9 +93,10 @@ export default function NewNPCPage() {
                 id="name"
                 placeholder="Strahd von Zarovich"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                aria-invalid={!!nameError}
               />
+              {nameError && <p className="text-sm text-destructive">{nameError}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="faction">Faction</Label>
