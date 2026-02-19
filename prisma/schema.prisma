@@ -650,6 +650,8 @@ model HomebrewContent {
   @@index([dndBeyondId])
   @@index([sourceType])
   @@index([sourcePdfId])
+  @@index([userId, type])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 // Join table: Character has many Items (from Homebrew)
