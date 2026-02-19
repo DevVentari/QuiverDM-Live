@@ -25,7 +25,7 @@ export default function CampaignLayout({
       utils.sessions.getAll.prefetch({ campaignId });
       utils.members.getAll.prefetch({ campaignId });
     }
-  }, [campaign.data?.id, utils]);
+  }, [campaign.data, utils]);
 
   if (campaign.isLoading) {
     return (
