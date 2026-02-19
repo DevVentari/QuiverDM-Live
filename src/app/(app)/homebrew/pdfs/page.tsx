@@ -11,6 +11,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { CircularProgress } from '@/components/ui/circular-progress';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -118,11 +129,17 @@ function formatEta(seconds: number | null | undefined) {
 
 function PDFListCard({
   pdf,
-  onDelete,
+  deletingPdfId,
+  setDeletingPdfId,
+  onConfirmDelete,
+  isDeleting,
   onReprocess,
 }: {
   pdf: PdfItem;
-  onDelete: (pdfId: string) => void;
+  deletingPdfId: string | null;
+  setDeletingPdfId: (pdfId: string | null) => void;
+  onConfirmDelete: (pdfId: string) => void;
+  isDeleting: boolean;
   onReprocess: (pdfId: string) => void;
 }) {
   const router = useRouter();
@@ -217,18 +234,47 @@ function PDFListCard({
           </Button>
         ) : null}
 
-        <Button
-          size="sm"
-          variant="outline"
-          className="ml-auto gap-1.5 text-destructive hover:text-destructive"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete(pdf.id);
+        <AlertDialog
+          open={deletingPdfId === pdf.id}
+          onOpenChange={(open) => {
+            setDeletingPdfId(open ? pdf.id : null);
           }}
         >
-          <Trash2 className="h-3.5 w-3.5" />
-          Delete
-        </Button>
+          <AlertDialogTrigger asChild>
+            <Button
+              size="sm"
+              variant="outline"
+              className="ml-auto gap-1.5 text-destructive hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete PDF?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the PDF and all extracted content. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onConfirmDelete(pdf.id);
+                }}
+                disabled={isDeleting}
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardFooter>
     </Card>
   );
@@ -240,6 +286,7 @@ export default function PDFsPage() {
   const [uploading, setUploading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sortBy, setSortBy] = useState<SortKey>('newest');
+  const [deletingPdfId, setDeletingPdfId] = useState<string | null>(null);
 
   const utils = trpc.useUtils();
 
@@ -261,6 +308,7 @@ export default function PDFsPage() {
   const deleteMutation = trpc.homebrewPdf.deletePDF.useMutation({
     onSuccess: () => {
       toast.success('PDF deleted');
+      setDeletingPdfId(null);
       void utils.homebrewPdf.getPDFs.invalidate();
     },
     onError: (error) => {
@@ -437,9 +485,11 @@ export default function PDFsPage() {
             <PDFListCard
               key={pdf.id}
               pdf={pdf}
-              onDelete={(pdfId) => {
+              deletingPdfId={deletingPdfId}
+              setDeletingPdfId={setDeletingPdfId}
+              isDeleting={deleteMutation.isPending}
+              onConfirmDelete={(pdfId) => {
                 if (deleteMutation.isPending) return;
-                if (!window.confirm('Delete this PDF and all extracted content from this source?')) return;
                 deleteMutation.mutate({ pdfId });
               }}
               onReprocess={(pdfId) => {

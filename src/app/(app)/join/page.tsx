@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 function JoinForm() {
   const router = useRouter();
@@ -59,6 +60,7 @@ function JoinForm() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={acceptInvite.isPending}>
+              {acceptInvite.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {acceptInvite.isPending ? 'Joining...' : 'Join Campaign'}
             </Button>
           </form>
