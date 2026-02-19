@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Scroll } from 'lucide-react';
+import { Plus, ScrollText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -137,16 +137,13 @@ export default function SessionsPage() {
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Scroll className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium">No sessions yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Create a session to start tracking your campaign adventures, recordings, and transcripts.
+            <ScrollText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No sessions yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Sessions track your D&D game nights - recordings, transcripts, and AI recaps all live here.
             </p>
             {isDM && (
-              <Button className="mt-4" size="sm" onClick={() => setOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create First Session
-              </Button>
+              <Button size="sm" onClick={() => setOpen(true)}>New Session</Button>
             )}
           </CardContent>
         </Card>
