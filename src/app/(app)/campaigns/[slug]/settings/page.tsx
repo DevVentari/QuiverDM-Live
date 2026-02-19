@@ -45,6 +45,7 @@ export default function CampaignSettingsPage() {
     onSuccess: () => {
       utils.campaigns.getBySlug.invalidate();
       utils.campaigns.getById.invalidate({ id: campaignId });
+      toast({ title: 'Settings saved', description: 'Campaign settings updated successfully.' });
     },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });

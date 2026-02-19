@@ -22,6 +22,7 @@ export default function NewCharacterPage() {
 
   const create = trpc.characters.create.useMutation({
     onSuccess: (data: any) => {
+      toast({ title: 'Character created' });
       router.push(`/characters/${data.id}`);
     },
     onError: (error) => {
