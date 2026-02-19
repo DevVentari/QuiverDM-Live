@@ -21,6 +21,7 @@ export function CampaignNav() {
   const base = `/campaigns/${slug}`;
 
   const visibleTabs = tabs.filter((tab) => {
+    // Players: visible to all - members can see the party roster
     if (tab.href === '/members' || tab.href === '/settings') return isDM;
     return true;
   });

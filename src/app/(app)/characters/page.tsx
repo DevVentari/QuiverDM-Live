@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { Plus, Users, Download, RefreshCw, Loader2, ExternalLink } from 'lucide-react';
+import { Plus, Users, Download, RefreshCw, Loader2, ExternalLink, Sword } from 'lucide-react';
 
 export default function CharactersPage() {
   const { toast } = useToast();
@@ -252,13 +252,15 @@ export default function CharactersPage() {
         </div>
       ) : (
         <Card>
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <Users className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">No characters yet.</p>
-            <Button asChild>
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <Sword className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No characters yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Create a character or import one from D&D Beyond to join campaigns.
+            </p>
+            <Button asChild size="sm">
               <Link href="/characters/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Character
+                New Character
               </Link>
             </Button>
           </CardContent>

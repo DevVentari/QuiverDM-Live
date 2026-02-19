@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Search, BookUser } from 'lucide-react';
+import { Plus, Search, Users } from 'lucide-react';
 
 export default function NPCsPage() {
   const { campaignId, slug, isDM } = useCampaign();
@@ -93,16 +93,15 @@ export default function NPCsPage() {
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <BookUser className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium">No NPCs yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Create NPCs to track the characters your party encounters throughout the campaign.
+            <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No NPCs yet</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+              Add NPCs to track the characters your players encounter - stats, descriptions, and faction memberships.
             </p>
             {isDM && (
-              <Button asChild className="mt-4" size="sm">
+              <Button asChild size="sm">
                 <Link href={`/campaigns/${slug}/npcs/new`}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create First NPC
+                  New NPC
                 </Link>
               </Button>
             )}
