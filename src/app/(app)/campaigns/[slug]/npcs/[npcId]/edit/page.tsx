@@ -30,6 +30,7 @@ export default function EditNPCPage() {
   const [secrets, setSecrets] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!npc.data) return;
@@ -87,6 +88,8 @@ export default function EditNPCPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim()) { setNameError('Name is required'); return; }
+    if (name.trim().length > 100) { setNameError('Name must be 100 characters or fewer'); return; }
     update.mutate({
       id: npcId,
       name: name || undefined,
@@ -131,9 +134,10 @@ export default function EditNPCPage() {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                aria-invalid={!!nameError}
               />
+              {nameError && <p className="text-sm text-destructive">{nameError}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="faction">Faction</Label>

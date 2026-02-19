@@ -31,6 +31,7 @@ export default function CampaignSettingsPage() {
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('active');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (campaign.data) {
@@ -61,6 +62,8 @@ export default function CampaignSettingsPage() {
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
+    if (!name.trim()) { setNameError('Name is required'); return; }
+    if (name.trim().length > 100) { setNameError('Name must be 100 characters or fewer'); return; }
     update.mutate({
       id: campaignId,
       name,
@@ -95,9 +98,10 @@ export default function CampaignSettingsPage() {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                aria-invalid={!!nameError}
               />
+              {nameError && <p className="text-sm text-destructive">{nameError}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
