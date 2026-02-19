@@ -157,15 +157,14 @@ export async function getStats(params: { userId: string; campaignId?: string }) 
     };
   }
 
-  const stats = await prisma.homebrewContent.groupBy({
-    by: ['type'],
-    where,
-    _count: {
-      id: true,
-    },
-  });
-
-  const total = await prisma.homebrewContent.count({ where });
+  const [stats, total] = await Promise.all([
+    prisma.homebrewContent.groupBy({
+      by: ['type'],
+      where,
+      _count: { id: true },
+    }),
+    prisma.homebrewContent.count({ where }),
+  ]);
 
   return { stats, total };
 }

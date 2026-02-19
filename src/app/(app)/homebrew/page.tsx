@@ -36,9 +36,9 @@ export default function HomebrewPage() {
   const content = trpc.homebrew.getContent.useQuery({
     search: debouncedSearch || undefined,
     type: typeFilter as any,
-  }, { staleTime: 30_000 });
+  }, { staleTime: 300_000 });
 
-  const stats = trpc.homebrew.getContentStats.useQuery({}, { staleTime: 30_000 });
+  const stats = trpc.homebrew.getContentStats.useQuery({}, { staleTime: 300_000 });
 
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
