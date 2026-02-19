@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -88,11 +89,9 @@ export default function NPCDetailPage() {
       </div>
 
       {data.imageUrl && (
-        <img
-          src={data.imageUrl}
-          alt={data.name}
-          className="w-full sm:w-32 h-48 sm:h-32 rounded-lg object-cover"
-        />
+        <div className="relative w-full sm:w-32 h-48 sm:h-32 rounded-lg overflow-hidden shrink-0">
+          <Image src={data.imageUrl} alt={data.name} fill className="object-cover" unoptimized />
+        </div>
       )}
 
       {data.description && (

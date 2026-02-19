@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -142,7 +143,7 @@ export default function NewNPCPage() {
                   {uploading ? 'Uploading...' : 'Upload Image'}
                 </Button>
                 {imageUrl && (
-                  <img src={imageUrl} alt={name ? `${name} portrait preview` : "NPC portrait preview"} className="h-12 w-12 rounded object-cover" />
+                  <Image src={imageUrl} alt={name ? `${name} portrait preview` : 'NPC portrait preview'} width={48} height={48} className="rounded object-cover" unoptimized />
                 )}
               </div>
             </div>
