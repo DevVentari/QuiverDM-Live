@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { homebrewRepository } from '../repositories/homebrew.repository';
 import { authz } from './authorization.service';
+import { indexHomebrew, deleteHomebrew, searchHomebrew } from '@/lib/search';
 
 export class HomebrewService {
   async createContent(
@@ -42,6 +43,16 @@ export class HomebrewService {
       });
     }
 
+    void indexHomebrew({
+      id: content.id,
+      userId: content.userId,
+      name: content.name,
+      type: content.type,
+      tags: content.tags,
+      searchText,
+      sourceType: input.sourceType,
+    });
+
     return content;
   }
 
@@ -56,6 +67,25 @@ export class HomebrewService {
       cursor?: string;
     }
   ) {
+    // When a search term is provided, use MeiliSearch for relevance ranking.
+    // Fall back to Postgres if MeiliSearch is unavailable.
+    if (input.search) {
+      try {
+        const ids = await searchHomebrew(
+          input.search,
+          { userId, type: input.type, tags: input.tags },
+          { limit: input.limit }
+        );
+        if (ids.length > 0) {
+          const items = await homebrewRepository.findByIds(ids);
+          return { items, nextCursor: undefined };
+        }
+        return { items: [], nextCursor: undefined };
+      } catch {
+        // MeiliSearch unavailable — fall through to Postgres
+      }
+    }
+
     const content = await homebrewRepository.findContent({
       userId,
       type: input.type,
@@ -117,12 +147,25 @@ export class HomebrewService {
       updateData.searchText = `${name} ${JSON.stringify(data)}`;
     }
 
-    return homebrewRepository.updateContent(input.id, updateData);
+    const updated = await homebrewRepository.updateContent(input.id, updateData);
+
+    void indexHomebrew({
+      id: updated.id,
+      userId: updated.userId,
+      name: updated.name,
+      type: updated.type,
+      tags: updated.tags,
+      searchText: updated.searchText,
+      sourceType: updated.sourceType,
+    });
+
+    return updated;
   }
 
   async deleteContent(userId: string, id: string) {
     await authz.homebrew(id, userId).verify();
     await homebrewRepository.deleteContent(id);
+    void deleteHomebrew(id);
     return { success: true };
   }
 

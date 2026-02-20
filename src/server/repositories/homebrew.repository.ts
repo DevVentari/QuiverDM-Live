@@ -80,6 +80,21 @@ export async function findContent(params: {
   });
 }
 
+export async function findByIds(ids: string[]) {
+  return prisma.homebrewContent.findMany({
+    where: { id: { in: ids } },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      campaigns: {
+        select: { campaignId: true },
+      },
+      sourcePdf: {
+        select: { filename: true },
+      },
+    },
+  });
+}
+
 export async function findById(id: string) {
   return prisma.homebrewContent.findUnique({
     where: { id },
@@ -221,6 +236,7 @@ export const homebrewRepository = {
   createContent,
   addContentToCampaign,
   findContent,
+  findByIds,
   findById,
   updateContent,
   deleteContent,
