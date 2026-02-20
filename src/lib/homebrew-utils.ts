@@ -27,3 +27,11 @@ export function getSourceLabel(sourceType: string) {
     default: return sourceType;
   }
 }
+
+export function formatPdfName(filename: string): string {
+  return filename
+    .replace(/\.pdf$/i, '')
+    .replace(/[_-]/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
