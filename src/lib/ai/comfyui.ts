@@ -14,11 +14,11 @@ export interface ComfyUIOutput {
  * Build a simple text-to-image workflow for SD/SDXL
  * Uses the standard txt2img workflow structure
  */
-function buildTxt2ImgWorkflow(prompt: string, negativePrompt: string): Record<string, unknown> {
+function buildTxt2ImgWorkflow(prompt: string, negativePrompt: string, seed: number): Record<string, unknown> {
   return {
     '3': {
       inputs: {
-        seed: Math.floor(Math.random() * 2 ** 32),
+        seed,
         steps: 20,
         cfg: 7,
         sampler_name: 'euler',
@@ -32,11 +32,11 @@ function buildTxt2ImgWorkflow(prompt: string, negativePrompt: string): Record<st
       class_type: 'KSampler',
     },
     '4': {
-      inputs: { ckpt_name: 'v1-5-pruned-emaonly.ckpt' },
+      inputs: { ckpt_name: process.env.COMFYUI_MODEL || 'sd_xl_base_1.0.safetensors' },
       class_type: 'CheckpointLoaderSimple',
     },
     '5': {
-      inputs: { width: 512, height: 512, batch_size: 1 },
+      inputs: { width: 1024, height: 1024, batch_size: 1 },
       class_type: 'EmptyLatentImage',
     },
     '6': {
@@ -75,8 +75,9 @@ export async function isComfyUIAvailable(): Promise<boolean> {
 export async function queueComfyUIPrompt(
   prompt: string,
   negativePrompt = 'nsfw, gore, violence, low quality, blurry, watermark'
-): Promise<string> {
-  const workflow = buildTxt2ImgWorkflow(prompt, negativePrompt);
+): Promise<{ promptId: string; seed: number }> {
+  const seed = Math.floor(Math.random() * 2 ** 32);
+  const workflow = buildTxt2ImgWorkflow(prompt, negativePrompt, seed);
 
   const res = await fetch(`${COMFYUI_URL}/prompt`, {
     method: 'POST',
@@ -91,7 +92,7 @@ export async function queueComfyUIPrompt(
   }
 
   const data = (await res.json()) as { prompt_id: string };
-  return data.prompt_id;
+  return { promptId: data.prompt_id, seed };
 }
 
 /**

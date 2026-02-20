@@ -14,6 +14,7 @@ export interface ImageGenerationRequest {
   type: string; // 'item', 'creature', 'spell', 'character', etc.
   name: string;
   description?: string;
+  imagePromptHint?: string; // Visual description extracted from source PDF
   prompt?: string; // Custom prompt override
 }
 
@@ -24,6 +25,11 @@ export interface ImageGenerationResult {
     prompt: string;
     generationTimeMs: number;
     model?: string;
+    seed?: number;
+    width?: number;
+    height?: number;
+    cfg?: number;
+    steps?: number;
   };
 }
 
@@ -42,8 +48,14 @@ const TYPE_STYLE_HINTS: Record<string, string> = {
   default: 'D&D 5e fantasy art, detailed illustration',
 };
 
-export function buildPrompt(type: string, name: string, description?: string): string {
+export function buildPrompt(type: string, name: string, description?: string, imagePromptHint?: string): string {
   const styleHint = TYPE_STYLE_HINTS[type] || TYPE_STYLE_HINTS.default;
+
+  if (imagePromptHint) {
+    // Use the PDF-extracted visual description as the primary prompt
+    return `D&D 5e fantasy art, ${styleHint}, ${imagePromptHint}, high quality, digital art, professional illustration`;
+  }
+
   const base = `D&D 5e fantasy art, ${styleHint}, ${name}`;
   const desc = description ? `, ${description.slice(0, 200)}` : '';
   return `${base}${desc}, high quality, digital art, professional illustration`;
@@ -55,24 +67,25 @@ function storageKey(userId: string, homebrewId: string): string {
 
 async function generateWithComfyUI(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const start = Date.now();
-  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description);
+  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
 
-  const promptId = await queueComfyUIPrompt(prompt, NEGATIVE_PROMPT);
+  const { promptId, seed } = await queueComfyUIPrompt(prompt, NEGATIVE_PROMPT);
   const imageBuffer = await waitForComfyUIResult(promptId);
 
   const key = storageKey(request.userId, request.homebrewId);
   const url = await storage.upload(key, imageBuffer, 'image/png');
+  const model = process.env.COMFYUI_MODEL || 'sd_xl_base_1.0.safetensors';
 
   return {
     url,
     provider: 'comfyui',
-    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'comfyui-local' },
+    metadata: { prompt, generationTimeMs: Date.now() - start, model, seed, width: 1024, height: 1024, cfg: 7, steps: 20 },
   };
 }
 
 async function generateWithReplicate(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const start = Date.now();
-  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description);
+  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
 
   const replicate = new Replicate({ auth: process.env.REPLICATE_API_KEY! });
 
@@ -103,13 +116,13 @@ async function generateWithReplicate(request: ImageGenerationRequest): Promise<I
   return {
     url,
     provider: 'replicate',
-    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'sdxl' },
+    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'sdxl', width: 1024, height: 1024, cfg: 7.5, steps: 30 },
   };
 }
 
 async function generateWithDALLE(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const start = Date.now();
-  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description);
+  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
@@ -134,7 +147,7 @@ async function generateWithDALLE(request: ImageGenerationRequest): Promise<Image
   return {
     url,
     provider: 'dalle',
-    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'dall-e-3' },
+    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'dall-e-3', width: 1024, height: 1024 },
   };
 }
 

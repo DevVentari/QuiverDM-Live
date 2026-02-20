@@ -40,7 +40,9 @@ export const homebrewImageRouter = router({
       }
 
       // Create DB job record
-      const description = (homebrew.data as Record<string, unknown>)?.description as string | undefined;
+      const homebrewData = homebrew.data as Record<string, unknown>;
+      const description = homebrewData?.description as string | undefined;
+      const imagePromptHint = homebrewData?.imagePromptHint as string | undefined;
       const job = await prisma.imageGenerationJob.create({
         data: {
           homebrewId: input.homebrewId,
@@ -59,6 +61,7 @@ export const homebrewImageRouter = router({
         type: homebrew.type,
         name: homebrew.name,
         description,
+        imagePromptHint,
         customPrompt: input.prompt,
       });
 
