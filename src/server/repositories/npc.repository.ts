@@ -69,6 +69,27 @@ export async function findFactions(campaignId: string) {
   });
 }
 
+export async function findByIds(ids: string[], includeSecrets = false) {
+  return prisma.nPC.findMany({
+    where: { id: { in: ids } },
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      campaignId: true,
+      name: true,
+      description: true,
+      faction: true,
+      role: true,
+      imageUrl: true,
+      stats: true,
+      tags: true,
+      secrets: includeSecrets,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+
 export async function create(data: {
   campaignId: string;
   name: string;
@@ -106,6 +127,7 @@ export async function remove(id: string) {
 export const npcRepository = {
   findById,
   findByCampaignId,
+  findByIds,
   findFactions,
   create,
   update,
