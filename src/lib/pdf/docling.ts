@@ -30,10 +30,12 @@ export interface DoclingResult {
 }
 
 /**
- * Convert a PDF file to markdown using Docling REST API.
+ * Convert a PDF file to markdown using Docling REST API (async endpoint).
  *
- * Uses the documented file-upload endpoint:
- * POST /v1/convert/file
+ * Uses the async flow to avoid the sync timeout limit (DOCLING_SERVE_MAX_SYNC_WAIT):
+ *   1. POST /v1/convert/file/async  → { task_id }
+ *   2. Poll  GET /v1/status/poll/{task_id}  until complete
+ *   3. Fetch GET /v1/result/{task_id}
  */
 export async function convertWithDocling(
   pdfPath: string,
@@ -48,27 +50,90 @@ export async function convertWithDocling(
 
   const formData = new FormData();
   formData.append('files', new Blob([fileBuffer], { type: 'application/pdf' }), filename);
+  // Request both markdown (for AI extraction) and json (for structured image extraction)
+  formData.append('to_formats', 'md');
+  formData.append('to_formats', 'json');
   formData.append('include_images', 'true');
   formData.append('image_export_mode', 'embedded');
 
-  onProgress?.(20);
+  onProgress?.(15);
 
-  const response = await fetch(`${DOCLING_URL}/v1/convert/file`, {
+  // ── Step 1: Submit async job ──────────────────────────────────────────────
+  const submitRes = await fetch(`${DOCLING_URL}/v1/convert/file/async`, {
     method: 'POST',
     body: formData,
-    signal: AbortSignal.timeout(600_000),
+    signal: AbortSignal.timeout(60_000), // 60s to accept the upload
   });
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => 'Unknown error');
-    throw new Error(`Docling conversion failed (${response.status}): ${errorText}`);
+  if (!submitRes.ok) {
+    const errorText = await submitRes.text().catch(() => 'Unknown error');
+    throw new Error(`Docling async submit failed (${submitRes.status}): ${errorText}`);
+  }
+
+  const taskInfo = await submitRes.json() as { task_id: string; task_status: string };
+  const taskId = taskInfo.task_id;
+  if (!taskId) throw new Error('Docling async submit returned no task_id');
+
+  console.log(`[Docling] Async task submitted: ${taskId}`);
+  onProgress?.(25);
+
+  // ── Step 2: Poll until complete ───────────────────────────────────────────
+  const MAX_WAIT_MS = 540_000; // 9 minutes (worker lock is 10 min)
+  const POLL_INTERVAL_MS = 4_000;
+  const pollStart = Date.now();
+
+  while (Date.now() - pollStart < MAX_WAIT_MS) {
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+
+    let poll: { task_status: string } | null = null;
+    try {
+      const pollRes = await fetch(`${DOCLING_URL}/v1/status/poll/${taskId}`, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (pollRes.ok) poll = await pollRes.json();
+    } catch {
+      // Transient network error — keep polling
+    }
+
+    const taskStatus = poll?.task_status?.toLowerCase() ?? '';
+
+    // Estimate progress: 25% → 78% during conversion
+    const elapsed = Date.now() - pollStart;
+    const estimatedPct = 25 + Math.min(53, Math.floor((elapsed / MAX_WAIT_MS) * 53));
+    onProgress?.(estimatedPct);
+
+    if (taskStatus === 'success' || taskStatus === 'failure' || taskStatus === 'partial_success') {
+      console.log(`[Docling] Task ${taskId} finished with status: ${taskStatus}`);
+      break;
+    }
+    // 'pending' | 'started' → keep polling
   }
 
   onProgress?.(80);
 
-  const result = await response.json();
+  // ── Step 3: Fetch result ──────────────────────────────────────────────────
+  const resultRes = await fetch(`${DOCLING_URL}/v1/result/${taskId}`, {
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!resultRes.ok) {
+    const errorText = await resultRes.text().catch(() => 'Unknown error');
+    throw new Error(`Docling result fetch failed (${resultRes.status}): ${errorText}`);
+  }
+
+  const result = await resultRes.json();
 
   onProgress?.(90);
+
+  // Check conversion status before extracting content
+  const status = extractStatus(result);
+  if (status === 'failure' || status === 'skipped') {
+    const errors = extractErrors(result);
+    throw new Error(`Docling conversion ${status}: ${errors || 'no details'}`);
+  }
+  if (status && status !== 'success' && status !== 'partial_success') {
+    console.warn(`[Docling] Unexpected conversion status: ${status}`);
+  }
 
   const markdown = extractMarkdown(result);
   const pages = extractPageCount(result);
@@ -86,6 +151,30 @@ export async function convertWithDocling(
       imagesExtracted: images.length,
     },
   };
+}
+
+function extractStatus(result: unknown): string | undefined {
+  if (!result) return undefined;
+  if (Array.isArray(result) && result.length > 0) return extractStatus(result[0]);
+  const value = result as Record<string, unknown>;
+  const s = value?.status;
+  return typeof s === 'string' ? s : undefined;
+}
+
+function extractErrors(result: unknown): string {
+  if (!result) return '';
+  if (Array.isArray(result) && result.length > 0) return extractErrors(result[0]);
+  const value = result as Record<string, unknown>;
+  const errors = value?.errors;
+  if (Array.isArray(errors) && errors.length > 0) {
+    return errors
+      .map((e: unknown) => {
+        const er = asRecord(e);
+        return er?.error_message ?? er?.message ?? JSON.stringify(er);
+      })
+      .join('; ');
+  }
+  return '';
 }
 
 function extractMarkdown(result: unknown): string {
@@ -174,18 +263,30 @@ function formatFromMime(mimeType: string): string | undefined {
   return normalized;
 }
 
-function parseImageData(value: unknown): { data: string; format?: string } | null {
-  if (typeof value !== 'string') return null;
+function parseImageUri(value: string): { data: string; format?: string } | null {
   const raw = value.trim();
   if (!raw) return null;
-
   const match = /^data:image\/([a-zA-Z0-9.+-]+);base64,(.+)$/i.exec(raw);
   if (match) {
     const format = formatFromMime(match[1]);
     return { data: match[2], format };
   }
-
   return { data: raw };
+}
+
+function parseImageData(value: unknown): { data: string; format?: string } | null {
+  // Handle ImageRef object: { uri: "data:image/png;base64,...", mimetype: "image/png", ... }
+  const rec = asRecord(value);
+  if (rec) {
+    const uri = rec.uri;
+    if (typeof uri === 'string' && uri.trim()) {
+      return parseImageUri(uri);
+    }
+    return null;
+  }
+
+  if (typeof value !== 'string') return null;
+  return parseImageUri(value);
 }
 
 function parsePageNumber(imageRecord: Record<string, unknown>): number {
@@ -222,11 +323,12 @@ function normalizeImage(
   if (!imageRecord) return null;
 
   const dataCandidates = [
+    // DoclingDocument PictureItem stores image as ImageRef object at .image
+    imageRecord.image,    // ImageRef: { uri: "data:...", mimetype, dpi, size }
     imageRecord.data,
     imageRecord.base64,
     imageRecord.content,
-    imageRecord.image,
-    imageRecord.uri,
+    imageRecord.uri,      // fallback: direct uri string
   ];
 
   let parsedData: { data: string; format?: string } | null = null;
@@ -237,7 +339,10 @@ function normalizeImage(
 
   if (!parsedData) return null;
 
+  // Format can come from ImageRef.mimetype (DoclingDocument) or legacy fields
+  const imageRef = asRecord(imageRecord.image);
   const formatCandidates = [
+    imageRef?.mimetype,
     imageRecord.format,
     imageRecord.type,
     imageRecord.mimeType,
@@ -291,12 +396,14 @@ export function extractImages(result: unknown): DoclingImage[] {
   const documentJson = asRecord(document?.json_content);
   const outputJson = asRecord(output?.json_content);
 
+  // DoclingDocument stores pictures in json_content.pictures[]
+  // Collect from all known locations
   const imageCandidates: unknown[] = [
+    documentJson?.pictures,
+    outputJson?.pictures,
     document?.images,
     output?.images,
     value.images,
-    documentJson?.pictures,
-    outputJson?.pictures,
   ];
 
   const extracted: DoclingImage[] = [];
