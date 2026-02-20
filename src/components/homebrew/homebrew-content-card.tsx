@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CardDescription } from '@/components/ui/card';
 import { FileText, Pencil, Globe } from 'lucide-react';
-import { getTypeStyle, getSourceLabel } from '@/lib/homebrew-utils';
+import { getTypeStyle, getSourceLabel, formatPdfName } from '@/lib/homebrew-utils';
 
 interface HomebrewContentCardProps {
   item: {
@@ -14,6 +14,7 @@ interface HomebrewContentCardProps {
     name: string;
     type: string;
     sourceType?: string;
+    sourcePdf?: { filename: string } | null;
     data?: any;
     tags?: string[];
     images?: string[];
@@ -65,7 +66,11 @@ export function HomebrewContentCard({ item, href }: HomebrewContentCardProps) {
               {item.sourceType && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <SourceIcon className="h-3 w-3" />
-                  <span>{getSourceLabel(item.sourceType)}</span>
+                  <span>
+                    {item.sourceType === 'pdf_extraction' && item.sourcePdf
+                      ? `PDF · ${formatPdfName(item.sourcePdf.filename)}`
+                      : getSourceLabel(item.sourceType)}
+                  </span>
                 </div>
               )}
             </div>

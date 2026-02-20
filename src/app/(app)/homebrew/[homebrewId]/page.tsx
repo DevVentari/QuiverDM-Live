@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { getTypeStyle, getSourceLabel } from '@/lib/homebrew-utils';
+import { getTypeStyle, getSourceLabel, formatPdfName } from '@/lib/homebrew-utils';
 import { SpellDetail } from '@/components/homebrew/details/SpellDetail';
 import { CreatureDetail } from '@/components/homebrew/details/CreatureDetail';
 import { ItemDetail } from '@/components/homebrew/details/ItemDetail';
@@ -97,7 +97,9 @@ export default function HomebrewDetailPage() {
             </Badge>
             {item.sourceType && (
               <span className="text-xs text-muted-foreground">
-                {getSourceLabel(item.sourceType)}
+                {item.sourceType === 'pdf_extraction' && item.sourcePdf
+                  ? `PDF · ${formatPdfName(item.sourcePdf.filename)}`
+                  : getSourceLabel(item.sourceType)}
               </span>
             )}
           </div>

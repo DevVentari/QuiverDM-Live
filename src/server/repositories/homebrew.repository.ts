@@ -71,6 +71,11 @@ export async function findContent(params: {
           campaignId: true,
         },
       },
+      sourcePdf: {
+        select: {
+          filename: true,
+        },
+      },
     },
   });
 }
@@ -87,6 +92,11 @@ export async function findById(id: string) {
               name: true,
             },
           },
+        },
+      },
+      sourcePdf: {
+        select: {
+          filename: true,
         },
       },
     },
@@ -140,6 +150,11 @@ export async function findByType(params: {
       campaigns: {
         select: {
           campaignId: true,
+        },
+      },
+      sourcePdf: {
+        select: {
+          filename: true,
         },
       },
     },
