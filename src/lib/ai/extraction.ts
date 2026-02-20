@@ -374,32 +374,94 @@ async function extractWithOllamaProvider(markdown: string): Promise<ExtractionRe
 // =============================================================================
 
 /**
- * Split markdown into chunks that won't exceed token limits
- * Target ~20K characters per chunk (roughly 5K tokens)
+ * Split markdown at paragraph boundaries (last resort for oversized sections).
  */
-function chunkMarkdown(markdown: string, maxChunkSize: number = 20000): string[] {
-  if (markdown.length <= maxChunkSize) {
-    return [markdown];
-  }
-
+function splitAtParagraphs(text: string, maxSize: number): string[] {
+  if (text.length <= maxSize) return [text];
   const chunks: string[] = [];
+  const paragraphs = text.split(/\n\n+/);
+  let current = '';
+  for (const para of paragraphs) {
+    if (current.length > 0 && current.length + para.length + 2 > maxSize) {
+      chunks.push(current.trim());
+      current = para;
+    } else {
+      current += (current ? '\n\n' : '') + para;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks;
+}
+
+/**
+ * Semantic chunking: split at heading boundaries so that stat blocks, spell
+ * entries, and other D&D content items are never split across chunks.
+ *
+ * Strategy:
+ * - Split the document into "sections" at # / ## / ### headings
+ * - Group consecutive sections into chunks that fit within maxChunkSize
+ * - If a single section exceeds maxChunkSize (rare), fall back to paragraph split
+ *
+ * This preserves tables and multi-paragraph content under each heading intact.
+ */
+function chunkMarkdown(markdown: string, maxChunkSize: number = 25000): string[] {
+  if (markdown.length <= maxChunkSize) return [markdown];
+
+  const headingRegex = /^#{1,3} /;
   const lines = markdown.split('\n');
-  let currentChunk = '';
+
+  // Build sections: each section is one heading + its body
+  interface Section { heading: string; body: string[] }
+  const sections: Section[] = [];
+  let currentHeading = '';
+  let currentBody: string[] = [];
 
   for (const line of lines) {
-    if (currentChunk.length + line.length + 1 > maxChunkSize && currentChunk.length > 0) {
-      chunks.push(currentChunk);
-      currentChunk = line;
+    if (headingRegex.test(line)) {
+      // Save current section (even if empty body — heading-only sections exist)
+      if (currentHeading || currentBody.length > 0) {
+        sections.push({ heading: currentHeading, body: currentBody });
+      }
+      currentHeading = line;
+      currentBody = [];
     } else {
-      currentChunk += (currentChunk ? '\n' : '') + line;
+      currentBody.push(line);
+    }
+  }
+  // Last section
+  if (currentHeading || currentBody.length > 0) {
+    sections.push({ heading: currentHeading, body: currentBody });
+  }
+
+  // Group sections into chunks
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const section of sections) {
+    const sectionText = section.heading
+      ? `${section.heading}\n${section.body.join('\n')}`
+      : section.body.join('\n');
+
+    if (currentChunk.length > 0 && currentChunk.length + sectionText.length + 2 > maxChunkSize) {
+      chunks.push(currentChunk.trim());
+      currentChunk = sectionText;
+    } else {
+      currentChunk += (currentChunk ? '\n\n' : '') + sectionText;
+    }
+  }
+  if (currentChunk.trim()) chunks.push(currentChunk.trim());
+
+  // Safety: if any chunk is still oversized (no headings in a big block), split at paragraphs
+  const finalChunks: string[] = [];
+  for (const chunk of chunks) {
+    if (chunk.length > maxChunkSize) {
+      finalChunks.push(...splitAtParagraphs(chunk, maxChunkSize));
+    } else {
+      finalChunks.push(chunk);
     }
   }
 
-  if (currentChunk) {
-    chunks.push(currentChunk);
-  }
-
-  return chunks;
+  return finalChunks.filter((c) => c.length > 0);
 }
 
 // =============================================================================
@@ -423,7 +485,7 @@ export async function extractContent(
   }
 
   const chunks = chunkMarkdown(markdown, 25000);
-  console.log(`[AI Extraction] Split into ${chunks.length} chunks`);
+  console.log(`[AI Extraction] Split into ${chunks.length} semantic chunk(s)`);
 
   const allItems: ExtractedContent[] = [];
   let totalTokens = 0;

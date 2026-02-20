@@ -229,20 +229,26 @@ async function processPDFJob(
       console.log('[Worker] Using Docling for PDF conversion');
     }
 
-    // Check if AI extraction (cheap text model) is enabled
+    // Check if AI extraction is enabled
     const shouldExtract = options.useAIExtraction !== false;
     if (shouldExtract) {
-      const provider = options.llmProvider || 'gemini';
-      const requiredKey = providerKeyMap[provider];
-
-      if (requiredKey && !process.env[requiredKey]) {
-        throw new Error(
-          `AI content extraction requested but ${requiredKey} is not set. ` +
-          `Please add ${requiredKey} to your .env.local file or disable AI extraction.`
-        );
+      const provider = options.llmProvider;
+      if (provider) {
+        // Specific provider requested — check its key
+        const requiredKey = providerKeyMap[provider];
+        if (requiredKey && !process.env[requiredKey]) {
+          console.warn(
+            `[Worker] Requested provider "${provider}" has no API key (${requiredKey}). ` +
+            `Falling back to auto-select (Ollama or other configured providers).`
+          );
+        } else {
+          console.log(`[Worker] AI content extraction enabled with provider: ${provider}`);
+        }
+      } else {
+        // Auto-select: extractWithFallback will pick best available provider (Ollama, cloud, etc.)
+        const anyCloudKey = Object.values(providerKeyMap).some((k) => !!process.env[k]);
+        console.log(`[Worker] AI content extraction enabled (auto-select; cloud keys: ${anyCloudKey ? 'yes' : 'no, will use Ollama'})`);
       }
-
-      console.log(`[Worker] AI content extraction enabled with provider: ${provider}`);
     } else {
       console.log(`[Worker] AI content extraction disabled`);
     }
@@ -284,7 +290,8 @@ async function processPDFJob(
         pdfMetadata = doclingResult.metadata;
         doclingImages = Array.isArray(doclingResult.images) ? doclingResult.images : [];
       } catch (error) {
-        console.error('[Worker] Docling conversion failed, falling back to pdfplumber:', error);
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(`[Worker] Docling conversion failed (falling back to pdfplumber): ${msg}`);
       }
     } else {
       console.warn('[Worker] Docling not available, using pdfplumber fallback');
