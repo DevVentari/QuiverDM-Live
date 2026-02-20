@@ -36,7 +36,15 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.r2.cloudflarestorage.com',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.dndbeyond.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.dndbeyond.com',
+      },
     ]
   },
   // Increase body size limit for video uploads
