@@ -17,6 +17,7 @@ interface ImageGalleryProps {
   itemName: string;
   itemType: string;
   itemDescription?: string;
+  imagePromptHint?: string;
 }
 
 export function ImageGallery({
@@ -26,6 +27,7 @@ export function ImageGallery({
   itemName,
   itemType,
   itemDescription,
+  imagePromptHint,
 }: ImageGalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -69,6 +71,7 @@ export function ImageGallery({
           itemType={itemType}
           itemName={itemName}
           itemDescription={itemDescription}
+          imagePromptHint={imagePromptHint}
           open={generateOpen}
           onClose={() => setGenerateOpen(false)}
         />
@@ -137,6 +140,7 @@ export function ImageGallery({
         itemType={itemType}
         itemName={itemName}
         itemDescription={itemDescription}
+        imagePromptHint={imagePromptHint}
         open={generateOpen}
         onClose={() => setGenerateOpen(false)}
       />

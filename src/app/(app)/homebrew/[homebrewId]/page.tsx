@@ -126,6 +126,7 @@ export default function HomebrewDetailPage() {
           itemName={item.name}
           itemType={item.type}
           itemDescription={itemData?.description}
+          imagePromptHint={itemData?.imagePromptHint}
         />
       </div>
 

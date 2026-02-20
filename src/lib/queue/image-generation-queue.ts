@@ -29,6 +29,7 @@ export interface ImageGenerationJobData {
   type: string;        // 'item', 'creature', 'spell', etc.
   name: string;
   description?: string;
+  imagePromptHint?: string; // Visual description extracted from source PDF
   customPrompt?: string;
 }
 

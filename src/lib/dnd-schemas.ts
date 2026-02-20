@@ -68,6 +68,7 @@ export const SpellSchema = z.object({
   attackType: z.enum(['melee', 'ranged', 'none']).optional(),
   classes: z.array(z.string()).optional(),
   source: z.string().optional(),
+  imagePromptHint: z.string().optional(), // Visual description for AI image generation
 });
 
 export type Spell = z.infer<typeof SpellSchema>;
@@ -104,6 +105,7 @@ export const MagicItemSchema = z.object({
     currency: z.enum(['cp', 'sp', 'ep', 'gp', 'pp']),
   }).optional(),
   source: z.string().optional(),
+  imagePromptHint: z.string().optional(), // Visual description for AI image generation
 });
 
 export type MagicItem = z.infer<typeof MagicItemSchema>;
@@ -175,6 +177,7 @@ export const MonsterSchema = z.object({
     initiative: z.number().int().optional(),
   })).optional(),
   source: z.string().optional(),
+  imagePromptHint: z.string().optional(), // Visual description for AI image generation
 });
 
 export type Monster = z.infer<typeof MonsterSchema>;
@@ -196,6 +199,7 @@ export const ClassFeatureSchema = z.object({
     recharge: z.string().optional(),
   }).optional(),
   source: z.string().optional(),
+  imagePromptHint: z.string().optional(),
 });
 
 export type ClassFeature = z.infer<typeof ClassFeatureSchema>;
@@ -213,6 +217,7 @@ export const FeatSchema = z.object({
     amount: z.number().int().positive(),
   }).optional(),
   source: z.string().optional(),
+  imagePromptHint: z.string().optional(),
 });
 
 export type Feat = z.infer<typeof FeatSchema>;
@@ -237,6 +242,7 @@ export const RaceSchema = z.object({
     description: z.string(),
   })),
   source: z.string().optional(),
+  imagePromptHint: z.string().optional(),
 });
 
 export type Race = z.infer<typeof RaceSchema>;
@@ -262,6 +268,7 @@ export const BackgroundSchema = z.object({
     flaws: z.array(z.string()).optional(),
   }).optional(),
   source: z.string().optional(),
+  imagePromptHint: z.string().optional(),
 });
 
 export type Background = z.infer<typeof BackgroundSchema>;

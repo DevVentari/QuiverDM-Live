@@ -15,6 +15,7 @@ interface ImageGenerationDialogProps {
   itemType: string;
   itemName: string;
   itemDescription?: string;
+  imagePromptHint?: string;
   open: boolean;
   onClose: () => void;
 }
@@ -26,6 +27,7 @@ export function ImageGenerationDialog({
   itemType,
   itemName,
   itemDescription,
+  imagePromptHint,
   open,
   onClose,
 }: ImageGenerationDialogProps) {
@@ -100,9 +102,11 @@ export function ImageGenerationDialog({
   };
 
   const isGenerating = genState === 'queued' || genState === 'processing';
-  const defaultPrompt = `D&D 5e fantasy art, ${itemType} named ${itemName}${
-    itemDescription ? `, ${itemDescription.slice(0, 100)}` : ''
-  }, high quality digital art`;
+  const defaultPrompt = imagePromptHint
+    ? `D&D 5e fantasy art, ${imagePromptHint}`
+    : `D&D 5e fantasy art, ${itemType} named ${itemName}${
+        itemDescription ? `, ${itemDescription.slice(0, 100)}` : ''
+      }, high quality digital art`;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

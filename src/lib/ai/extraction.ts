@@ -56,6 +56,8 @@ For each item found, identify its type and extract relevant data:
 7. **class_feature**: class or subclass features
    - name, className, level, description
 
+For EVERY item, also include an "imagePromptHint" field: a concise 1-2 sentence visual description drawn from the source text, written as an image generation prompt. Focus on physical appearance, colours, materials, and atmosphere. Example: "A gnarled obsidian staff crowned with a swirling void gem, crackling with dark purple lightning." If no visual description exists in the text, generate a fitting one based on the item's name and type.
+
 Return a JSON array like:
 [
   {
@@ -66,21 +68,18 @@ Return a JSON array like:
       "rarity": "rare",
       "requiresAttunement": true,
       "description": "...",
-      "properties": ["1d8 slashing", "+1 to attack and damage", "1d6 fire damage"]
+      "properties": ["1d8 slashing", "+1 to attack and damage", "1d6 fire damage"],
+      "imagePromptHint": "A blazing longsword with a hilt wrapped in fire-resistant leather, its blade permanently wreathed in dancing orange and red flames."
     }
   },
   {
-    "type": "spell",
-    "name": "Arcane Bolt",
+    "type": "creature",
+    "name": "Vhle-Zotha",
     "data": {
-      "level": 1,
-      "school": "evocation",
-      "castingTime": "1 action",
-      "range": "60 feet",
-      "components": "V, S",
-      "duration": "Instantaneous",
-      "description": "...",
-      "higherLevels": "..."
+      "size": "large",
+      "type": "aberration",
+      "challengeRating": 9,
+      "imagePromptHint": "A towering shadow-wreathed figure with writhing tendrils, hollow glowing eyes, and tattered robes that dissolve into darkness at the edges."
     }
   }
 ]
@@ -90,6 +89,7 @@ IMPORTANT:
 - Extract ALL items found in the text
 - Be thorough - don't miss any content
 - Use the exact type strings specified above
+- Always include imagePromptHint in the data object
 
 Markdown to parse:
 `;

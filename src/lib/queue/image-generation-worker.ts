@@ -34,17 +34,18 @@ async function updateJobStatus(jobId: string, update: {
   workflowId?: string;
   provider?: string;
   completedAt?: Date;
+  metadata?: Record<string, unknown>;
 }) {
   await prisma.imageGenerationJob.update({
     where: { id: jobId },
-    data: { updatedAt: new Date(), ...update },
+    data: update as any,
   });
 }
 
 const worker = new Worker<ImageGenerationJobData>(
   'image-generation',
   async (job: Job<ImageGenerationJobData>) => {
-    const { jobId, homebrewId, userId, type, name, description, customPrompt } = job.data;
+    const { jobId, homebrewId, userId, type, name, description, imagePromptHint, customPrompt } = job.data;
 
     console.log(`[ImageWorker] Processing job ${jobId} for homebrewId=${homebrewId}`);
 
@@ -57,6 +58,7 @@ const worker = new Worker<ImageGenerationJobData>(
         type,
         name,
         description,
+        imagePromptHint,
         prompt: customPrompt,
       });
 
@@ -66,6 +68,7 @@ const worker = new Worker<ImageGenerationJobData>(
         resultUrl: result.url,
         provider: result.provider,
         completedAt: new Date(),
+        metadata: result.metadata as any,
       });
 
       // Append to HomebrewContent.images
