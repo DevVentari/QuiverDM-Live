@@ -9,12 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
-import { BookOpen, Upload, Search } from 'lucide-react';
+import { AddFromLibraryDialog } from '@/components/homebrew/add-from-library-dialog';
+import { BookOpen, Upload, Search, Library } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CampaignHomebrewPage() {
-  const { campaignId } = useCampaign();
+  const { campaignId, isDM } = useCampaign();
   const [search, setSearch] = useState('');
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -90,7 +92,18 @@ export default function CampaignHomebrewPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Homebrew Content</h2>
-        <div>
+        <div className="flex items-center gap-2">
+          {isDM && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setLibraryOpen(true)}
+              disabled={!isDM}
+            >
+              <Library className="mr-2 h-4 w-4" />
+              Add from Library
+            </Button>
+          )}
           <input
             ref={fileInputRef}
             type="file"
@@ -165,6 +178,13 @@ export default function CampaignHomebrewPage() {
           </CardContent>
         </Card>
       )}
+
+      <AddFromLibraryDialog
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        campaignId={campaignId}
+        onAdded={() => content.refetch()}
+      />
     </div>
   );
 }
