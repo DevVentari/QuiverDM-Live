@@ -147,3 +147,47 @@ export async function deleteTranscript(transcriptId: string): Promise<void> {
     where: { id: transcriptId },
   });
 }
+
+export async function updateTranscriptSegment(
+  transcriptId: string,
+  segmentIndex: number,
+  newText: string
+): Promise<void> {
+  const transcript = await prisma.transcript.findUnique({
+    where: { id: transcriptId },
+  });
+  if (!transcript?.timestamps) return;
+  const segments = transcript.timestamps as Array<{
+    start: number;
+    end: number;
+    text: string;
+    speaker?: string;
+  }>;
+  if (segmentIndex < 0 || segmentIndex >= segments.length) return;
+  segments[segmentIndex] = { ...segments[segmentIndex], text: newText };
+  await prisma.transcript.update({
+    where: { id: transcriptId },
+    data: { timestamps: segments },
+  });
+}
+
+export async function renameSpeaker(
+  transcriptId: string,
+  oldName: string,
+  newName: string
+): Promise<void> {
+  const transcript = await prisma.transcript.findUnique({
+    where: { id: transcriptId },
+  });
+  if (!transcript) return;
+  const segments = ((transcript.timestamps as any[]) ?? []).map((seg: any) =>
+    seg.speaker === oldName ? { ...seg, speaker: newName } : seg
+  );
+  const speakers = ((transcript.speakers as any[]) ?? []).map((sp: any) =>
+    sp.id === oldName ? { ...sp, id: newName, name: newName } : sp
+  );
+  await prisma.transcript.update({
+    where: { id: transcriptId },
+    data: { timestamps: segments, speakers },
+  });
+}

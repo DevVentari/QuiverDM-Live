@@ -5,11 +5,13 @@
  * Uses local models without needing API keys
  */
 
+const DEFAULT_BASE_URL = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
+
 export interface OllamaOptions {
   model?: string; // Default: 'llama3.2'
   temperature?: number; // 0-1, default: 0.1 for structured extraction
   stream?: boolean; // Default: false
-  baseUrl?: string; // Default: http://localhost:11434
+  baseUrl?: string; // Default: OLLAMA_BASE_URL env var or http://localhost:11434
   format?: 'json' | string; // Request specific output format (e.g., 'json')
 }
 
@@ -36,7 +38,7 @@ export interface OllamaResponse {
 /**
  * Check if Ollama is running and accessible
  */
-export async function isOllamaAvailable(baseUrl = 'http://localhost:11434'): Promise<boolean> {
+export async function isOllamaAvailable(baseUrl = DEFAULT_BASE_URL): Promise<boolean> {
   try {
     const response = await fetch(`${baseUrl}/api/tags`, {
       signal: AbortSignal.timeout(2000), // 2 second timeout
@@ -50,7 +52,7 @@ export async function isOllamaAvailable(baseUrl = 'http://localhost:11434'): Pro
 /**
  * List available models in Ollama
  */
-export async function listOllamaModels(baseUrl = 'http://localhost:11434'): Promise<string[]> {
+export async function listOllamaModels(baseUrl = DEFAULT_BASE_URL): Promise<string[]> {
   try {
     const response = await fetch(`${baseUrl}/api/tags`);
     if (!response.ok) {
@@ -75,7 +77,7 @@ export async function chatWithOllama(
     model = 'llama3.2',
     temperature = 0.1,
     stream = false,
-    baseUrl = 'http://localhost:11434',
+    baseUrl = DEFAULT_BASE_URL,
   } = options;
 
   try {
@@ -117,7 +119,7 @@ export async function generateWithOllama(
     model = 'llama3.2',
     temperature = 0.1,
     stream = false,
-    baseUrl = 'http://localhost:11434',
+    baseUrl = DEFAULT_BASE_URL,
     format,
   } = options;
 
