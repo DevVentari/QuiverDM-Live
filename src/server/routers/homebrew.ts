@@ -1,6 +1,7 @@
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { homebrewService } from '../services/homebrew.service';
+import { ForbiddenError } from '../errors';
 
 // Homebrew content types
 export const HomebrewType = z.enum([
@@ -106,7 +107,7 @@ export const homebrewRouter = router({
     .mutation(async ({ input, ctx }) => {
       const content = await homebrewService.getContentById(input.id);
       if (content.userId !== ctx.session.user.id) {
-        throw new Error('Forbidden');
+        throw ForbiddenError.forPermission('edit', 'homebrew content');
       }
       const filtered = (content.images ?? []).filter((img) => img !== input.imageUrl);
       return homebrewService.updateContent(ctx.session.user.id, {

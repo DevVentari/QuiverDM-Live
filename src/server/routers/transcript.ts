@@ -7,6 +7,7 @@ import {
   deleteTranscript,
 } from '@/lib/transcription/db';
 import { authz } from '../services/authorization.service';
+import { NotFoundError } from '../errors';
 
 export const transcriptRouter = router({
   /**
@@ -23,7 +24,7 @@ export const transcriptRouter = router({
       await authz.transcript(input.transcriptId, userId);
       const transcript = await getTranscript(input.transcriptId);
       if (!transcript) {
-        throw new Error('Transcript not found');
+        throw new NotFoundError('transcript', input.transcriptId);
       }
       return transcript;
     }),
