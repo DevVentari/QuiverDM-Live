@@ -25,18 +25,23 @@ const feedbackStatusEnum = z.enum([
 ]);
 
 /**
- * Check if user is admin (for now, all authenticated users are admins)
- * TODO: Add admin role to User model or use env variable for admin emails
+ * Check if user is admin via ADMIN_EMAILS environment variable.
+ * Throws ForbiddenError if the user's email is not in the list.
  */
-function requireAdmin(userId: string) {
-  // For closed beta, all authenticated users have admin access
-  // You can add proper admin checking here later:
-  // const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  // const isAdmin = adminEmails.includes(userEmail);
-  // if (!isAdmin) throw ForbiddenError.forPermission('manage', 'feedback');
+function requireAdmin(userEmail: string | null | undefined) {
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
 
-  // For now, just return (all authenticated users can access)
-  return;
+  if (adminEmails.length === 0) {
+    // No ADMIN_EMAILS configured — lock down to prevent accidental exposure
+    throw ForbiddenError.forPermission('manage', 'feedback');
+  }
+
+  if (!userEmail || !adminEmails.includes(userEmail.toLowerCase())) {
+    throw ForbiddenError.forPermission('manage', 'feedback');
+  }
 }
 
 export const feedbackRouter = router({
@@ -100,7 +105,7 @@ export const feedbackRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      requireAdmin(ctx.session.user.id);
+      requireAdmin(ctx.session.user.email);
 
       return feedbackService.getAll(input);
     }),
@@ -117,7 +122,7 @@ export const feedbackRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      requireAdmin(ctx.session.user.id);
+      requireAdmin(ctx.session.user.email);
 
       return feedbackService.updateStatus(
         input.feedbackId,
@@ -130,7 +135,7 @@ export const feedbackRouter = router({
    * Get feedback statistics (admin only)
    */
   getStats: protectedProcedure.query(async ({ ctx }) => {
-    requireAdmin(ctx.session.user.id);
+    requireAdmin(ctx.session.user.email);
 
     return feedbackService.getStats();
   }),

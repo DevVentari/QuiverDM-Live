@@ -9,7 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
-import { BookOpen, Search, FileText } from 'lucide-react';
+import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
+import { BookOpen, Search, FileText, Plus } from 'lucide-react';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -24,6 +25,7 @@ export default function HomebrewPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
+  const [createOpen, setCreateOpen] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -45,6 +47,9 @@ export default function HomebrewPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Homebrew Library</h1>
         <div className="flex items-center gap-2">
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />Create
+          </Button>
           <Button asChild variant="outline" size="sm">
             <Link href="/homebrew/pdfs">
               <FileText className="mr-2 h-4 w-4" />
@@ -124,6 +129,12 @@ export default function HomebrewPage() {
           </CardContent>
         </Card>
       ) : null}
+
+      <CreateHomebrewDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={() => content.refetch()}
+      />
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { feedbackRouter } from './feedback';
 import { usageRouter } from './usage';
 import { billingRouter } from './billing';
 import { homebrewImageRouter } from './homebrew-image';
+import { whisperRouter } from './whisper';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -43,6 +44,7 @@ export const appRouter = router({
   usage: usageRouter,
   billing: billingRouter,
   homebrewImage: homebrewImageRouter,
+  whisper: whisperRouter,
 });
 
 export type AppRouter = typeof appRouter;
