@@ -183,6 +183,7 @@ export default function CampaignHomebrewPage() {
         open={libraryOpen}
         onOpenChange={setLibraryOpen}
         campaignId={campaignId}
+        campaignItems={((content.data as any)?.items || []).map((item: any) => ({ id: item.id }))}
         onAdded={() => content.refetch()}
       />
     </div>
