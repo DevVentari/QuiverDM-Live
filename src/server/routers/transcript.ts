@@ -4,6 +4,8 @@ import {
   getTranscript,
   getSessionTranscripts,
   updateTranscriptCorrection,
+  updateTranscriptSegment,
+  renameSpeaker,
   deleteTranscript,
 } from '@/lib/transcription/db';
 import { authz } from '../services/authorization.service';
@@ -57,6 +59,38 @@ export const transcriptRouter = router({
       const userId = ctx.session.user.id;
       await authz.transcript(input.transcriptId, userId);
       await updateTranscriptCorrection(input.transcriptId, input.correctedText);
+      return { success: true };
+    }),
+
+  updateSegment: protectedProcedure
+    .input(
+      z.object({
+        transcriptId: z.string(),
+        segmentIndex: z.number().int().min(0),
+        text: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await authz.transcript(input.transcriptId, ctx.session.user.id);
+      await updateTranscriptSegment(
+        input.transcriptId,
+        input.segmentIndex,
+        input.text
+      );
+      return { success: true };
+    }),
+
+  renameSpeaker: protectedProcedure
+    .input(
+      z.object({
+        transcriptId: z.string(),
+        oldName: z.string(),
+        newName: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await authz.transcript(input.transcriptId, ctx.session.user.id);
+      await renameSpeaker(input.transcriptId, input.oldName, input.newName);
       return { success: true };
     }),
 
