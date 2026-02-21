@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import {
   Upload,
   Trash2,
@@ -29,6 +30,7 @@ import {
   Languages,
   Users,
   X,
+  Pencil,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -171,13 +173,38 @@ function RecordingCard({ rec }: { rec: any }) {
 
 /** Transcript viewer section */
 function TranscriptViewer({ sessionId }: { sessionId: string }) {
+  const { isDM } = useCampaign();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editingSegment, setEditingSegment] = useState<{
+    transcriptId: string;
+    index: number;
+    text: string;
+  } | null>(null);
+  const [editingSpeaker, setEditingSpeaker] = useState<{
+    transcriptId: string;
+    name: string;
+    draft: string;
+  } | null>(null);
 
   const transcripts = trpc.transcript.getSessionTranscripts.useQuery(
     { sessionId },
     { refetchOnWindowFocus: false, staleTime: 30_000 }
   );
+  const updateSegmentMutation = trpc.transcript.updateSegment.useMutation({
+    onSuccess: () => {
+      setEditingSegment(null);
+      transcripts.refetch();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const renameSpeakerMutation = trpc.transcript.renameSpeaker.useMutation({
+    onSuccess: () => {
+      setEditingSpeaker(null);
+      transcripts.refetch();
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const transcriptList = (transcripts.data ?? []) as any[];
 
@@ -328,25 +355,158 @@ function TranscriptViewer({ sessionId }: { sessionId: string }) {
                         filteredSegments.map((seg, idx) => (
                           <div
                             key={idx}
-                            className="flex gap-3 text-sm group hover:bg-muted/20 rounded px-1 py-0.5 -mx-1"
+                            className="relative flex gap-3 text-sm group hover:bg-muted/20 rounded px-1 py-0.5 -mx-1"
                           >
                             <span className="text-xs text-muted-foreground font-mono shrink-0 pt-0.5 w-[48px]">
                               {formatTimestamp(seg.start)}
                             </span>
-                            {seg.speaker && (
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] h-5 shrink-0"
-                              >
-                                {seg.speaker}
-                              </Badge>
+                            {seg.speaker &&
+                              (isDM && transcript.hasSpeakers ? (
+                                editingSpeaker?.transcriptId === transcript.id &&
+                                editingSpeaker?.name === seg.speaker ? (
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Input
+                                      value={editingSpeaker!.draft}
+                                      onChange={(e) =>
+                                        setEditingSpeaker((prev) =>
+                                          prev
+                                            ? {
+                                                ...prev,
+                                                draft: e.target.value,
+                                              }
+                                            : prev
+                                        )
+                                      }
+                                      className="h-6 text-[10px] w-28"
+                                    />
+                                    <Button
+                                      size="sm"
+                                      className="h-6 px-2 text-[10px]"
+                                      disabled={renameSpeakerMutation.isPending}
+                                      onClick={() => {
+                                        const newName =
+                                          editingSpeaker!.draft.trim();
+                                        if (!newName) {
+                                          toast.error(
+                                            'Speaker name cannot be empty'
+                                          );
+                                          return;
+                                        }
+                                        renameSpeakerMutation.mutate({
+                                          transcriptId: transcript.id,
+                                          oldName: editingSpeaker!.name,
+                                          newName,
+                                        });
+                                      }}
+                                    >
+                                      Save
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 px-2 text-[10px]"
+                                      onClick={() => setEditingSpeaker(null)}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <span className="text-xs font-semibold text-primary shrink-0 flex items-center gap-1">
+                                    {seg.speaker}
+                                    <button
+                                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground"
+                                      onClick={() =>
+                                        setEditingSpeaker({
+                                          transcriptId: transcript.id,
+                                          name: seg.speaker!,
+                                          draft: seg.speaker!,
+                                        })
+                                      }
+                                      aria-label={`Rename speaker ${seg.speaker}`}
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                    </button>
+                                  </span>
+                                )
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] h-5 shrink-0"
+                                >
+                                  {seg.speaker}
+                                </Badge>
+                              ))}
+                            {isDM &&
+                            editingSegment?.transcriptId === transcript.id &&
+                            editingSegment?.index === segments.indexOf(seg) ? (
+                              <div className="flex-1 space-y-1">
+                                <Textarea
+                                  value={editingSegment!.text}
+                                  onChange={(e) =>
+                                    setEditingSegment((prev) =>
+                                      prev
+                                        ? { ...prev, text: e.target.value }
+                                        : prev
+                                    )
+                                  }
+                                  className="min-h-[64px] text-sm"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    className="h-7 px-2 text-xs"
+                                    disabled={updateSegmentMutation.isPending}
+                                    onClick={() => {
+                                      const text =
+                                        editingSegment!.text.trim();
+                                      if (!text) {
+                                        toast.error(
+                                          'Segment text cannot be empty'
+                                        );
+                                        return;
+                                      }
+                                      updateSegmentMutation.mutate({
+                                        transcriptId: transcript.id,
+                                        segmentIndex: editingSegment!.index,
+                                        text,
+                                      });
+                                    }}
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={() => setEditingSegment(null)}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-foreground/90 flex-1 flex items-start gap-1">
+                                <HighlightedText
+                                  text={seg.text}
+                                  query={searchQuery}
+                                />
+                                {isDM && (
+                                  <button
+                                    className="mt-0.5 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground"
+                                    onClick={() =>
+                                      setEditingSegment({
+                                        transcriptId: transcript.id,
+                                        index: segments.indexOf(seg),
+                                        text: seg.text,
+                                      })
+                                    }
+                                    aria-label="Edit segment text"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </button>
+                                )}
+                              </span>
                             )}
-                            <span className="text-foreground/90">
-                              <HighlightedText
-                                text={seg.text}
-                                query={searchQuery}
-                              />
-                            </span>
                           </div>
                         ))
                       )}
@@ -386,13 +546,13 @@ function RecapSection({
   recap: string | null;
   isDM: boolean;
 }) {
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const utils = trpc.useUtils();
 
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
     onError: (error) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      uiToast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -498,7 +658,7 @@ export default function SessionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { campaignId, slug, isDM } = useCampaign();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
   const sessionId = params.sessionId as string;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -515,21 +675,21 @@ export default function SessionDetailPage() {
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
     onError: (error) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      uiToast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 
   const deleteSession = trpc.sessions.delete.useMutation({
     onSuccess: () => router.push(`/campaigns/${slug}/sessions`),
     onError: (error) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      uiToast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 
   const completeSession = trpc.sessions.complete.useMutation({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
     onError: (error) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      uiToast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -551,7 +711,7 @@ export default function SessionDetailPage() {
 
       utils.sessionRecordings.getBySessionId.invalidate({ sessionId });
     } catch (err) {
-      toast({
+      uiToast({
         title: 'Upload failed',
         description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
         variant: 'destructive',
