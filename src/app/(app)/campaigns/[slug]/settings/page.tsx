@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { WebhookSettings } from '@/components/campaign/webhook-settings';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,7 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function CampaignSettingsPage() {
   const router = useRouter();
-  const { campaignId, isOwner } = useCampaign();
+  const { campaignId, isOwner, isDM } = useCampaign();
   const { toast } = useToast();
   const campaign = trpc.campaigns.getById.useQuery({ id: campaignId }, { staleTime: 120_000 });
   const utils = trpc.useUtils();
@@ -132,6 +133,8 @@ export default function CampaignSettingsPage() {
           </form>
         </CardContent>
       </Card>
+
+      {isDM && <WebhookSettings campaignId={campaignId} />}
 
       {isOwner && (
         <>
