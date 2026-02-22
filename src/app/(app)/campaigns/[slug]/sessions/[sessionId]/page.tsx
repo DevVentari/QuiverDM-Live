@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { LiveTranscriptionControls } from '@/components/session/live-transcription-controls';
 import { TranscriptionStatus } from '@/components/session/transcription-status';
+import { SummaryPanel } from '@/components/session/summary-panel';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -823,6 +824,8 @@ export default function SessionDetailPage() {
         recap={data.recap || null}
         isDM={isDM}
       />
+
+      <SummaryPanel sessionId={sessionId} isDM={isDM} />
 
       <LiveTranscriptionControls
         sessionId={sessionId}
