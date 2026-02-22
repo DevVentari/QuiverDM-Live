@@ -11,6 +11,7 @@ import { EncounterTracker } from '@/components/session/encounter-tracker';
 import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-plan-dialog';
 import { RulesPanel } from '@/components/session/rules-panel';
 import { SummaryPanel } from '@/components/session/summary-panel';
+import { AudioRecorder } from '@/components/session/audio-recorder';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -875,6 +876,7 @@ export default function SessionDetailPage() {
                 ref={fileInputRef}
                 type="file"
                 accept="audio/*,video/*"
+                capture="environment"
                 className="hidden"
                 onChange={handleUpload}
               />
@@ -890,6 +892,16 @@ export default function SessionDetailPage() {
             </div>
           )}
         </div>
+
+        {isDM && (
+          <AudioRecorder
+            sessionId={sessionId}
+            campaignId={campaignId}
+            onUploadComplete={() => {
+              void utils.sessionRecordings.getBySessionId.invalidate({ sessionId });
+            }}
+          />
+        )}
 
         {recordings.isLoading ? (
           <div className="animate-pulse space-y-2">
