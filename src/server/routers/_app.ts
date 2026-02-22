@@ -24,6 +24,7 @@ import { whisperRouter } from './whisper';
 import { encountersRouter } from './encounters';
 import { encounterPlansRouter } from './encounter-plans';
 import { rulesRouter } from './rules';
+import { webhooksRouter } from './webhooks';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -51,6 +52,7 @@ export const appRouter = router({
   encounters: encountersRouter,
   encounterPlans: encounterPlansRouter,
   rules: rulesRouter,
+  webhooks: webhooksRouter,
 });
 
 export type AppRouter = typeof appRouter;

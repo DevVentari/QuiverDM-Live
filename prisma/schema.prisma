@@ -170,6 +170,7 @@ model Campaign {
   players          Player[]                    // Legacy player records (will migrate to Character)
   characters       CampaignCharacter[]         // Characters in this campaign
   encounterPlans   EncounterPlan[]             // Pre-session encounter designs
+  webhooks         WebhookEndpoint[]
 
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
@@ -179,6 +180,20 @@ model Campaign {
   @@index([slug])
   @@index([inviteCode])
   @@index([isPublic])
+}
+
+model WebhookEndpoint {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  url        String
+  secret     String
+  events     Json
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([campaignId])
 }
 
 // Campaign membership - who belongs to a campaign and their role
