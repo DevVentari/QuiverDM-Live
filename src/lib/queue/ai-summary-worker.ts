@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local', override: true });
 
 import { Worker } from 'bullmq';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
 import { chatWithOllama } from '../ai/ollama';
 import type {
@@ -111,7 +112,7 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
     where: { id: data.sessionId },
     data: {
       aiSummary: parsed.summary,
-      aiHighlights: parsed.highlights,
+      aiHighlights: parsed.highlights as unknown as Prisma.InputJsonValue,
       aiSummaryStatus: 'done',
       aiSummaryAt: new Date(),
       aiSummaryError: null,

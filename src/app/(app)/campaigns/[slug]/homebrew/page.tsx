@@ -185,7 +185,7 @@ export default function CampaignHomebrewPage() {
                   <Switch
                     id={`share-${item.id}`}
                     checked={Boolean(item.sharedWithPlayers)}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       updateSharingMutation.mutate({
                         homebrewId: item.id,
                         sharedWithPlayers: checked,

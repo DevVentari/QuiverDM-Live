@@ -83,7 +83,7 @@ export const sessionsRouter = router({
     .mutation(async ({ input, ctx }) => {
       await authz
         .session(input.sessionId, ctx.session.user.id)
-        .requirePermission('canManageSessions');
+        .requireManage();
 
       return prisma.gameSession.update({
         where: { id: input.sessionId },

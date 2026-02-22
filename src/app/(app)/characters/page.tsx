@@ -93,7 +93,7 @@ export default function CharactersPage() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <Dialog
             open={importOpen}
-            onOpenChange={(open) => {
+            onOpenChange={(open: boolean) => {
               setImportOpen(open);
               if (!open) {
                 setImportResult(null);
