@@ -11,6 +11,7 @@ const tabs = [
   { label: 'Summaries', href: '/summaries' },
   { label: 'NPCs', href: '/npcs' },
   { label: 'Players', href: '/players' },
+  { label: 'Search', href: '/search' },
   { label: 'Homebrew', href: '/homebrew' },
   { label: 'Encounters', href: '/encounters' },
   { label: 'Members', href: '/members' },
