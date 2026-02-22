@@ -10,6 +10,7 @@ import { TranscriptionStatus } from '@/components/session/transcription-status';
 import { EncounterTracker } from '@/components/session/encounter-tracker';
 import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-plan-dialog';
 import { RulesPanel } from '@/components/session/rules-panel';
+import { SummaryPanel } from '@/components/session/summary-panel';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -827,6 +828,8 @@ export default function SessionDetailPage() {
         recap={data.recap || null}
         isDM={isDM}
       />
+
+      <SummaryPanel sessionId={sessionId} isDM={isDM} />
 
       {isDM && (
         <LoadEncounterPlanDialog campaignId={campaignId} sessionId={sessionId} />

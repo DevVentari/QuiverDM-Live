@@ -8,6 +8,7 @@ import { useCampaign } from './campaign-context';
 const tabs = [
   { label: 'Overview', href: '' },
   { label: 'Sessions', href: '/sessions' },
+  { label: 'Summaries', href: '/summaries' },
   { label: 'NPCs', href: '/npcs' },
   { label: 'Players', href: '/players' },
   { label: 'Homebrew', href: '/homebrew' },

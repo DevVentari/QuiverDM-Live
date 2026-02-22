@@ -133,4 +133,44 @@ export const sessionsRouter = router({
       );
       return { recap };
     }),
+
+  generateSummary: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string(),
+      })
+    )
+    .mutation(({ input, ctx }) =>
+      sessionService.generateSummary(input.sessionId, ctx.session.user.id)
+    ),
+
+  getSummaryStatus: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string(),
+      })
+    )
+    .query(({ input, ctx }) =>
+      sessionService.getSummaryStatus(input.sessionId, ctx.session.user.id)
+    ),
+
+  createShareToken: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string(),
+      })
+    )
+    .mutation(({ input, ctx }) =>
+      sessionService.createShareToken(input.sessionId, ctx.session.user.id)
+    ),
+
+  getSessionsWithSummaries: protectedProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+      })
+    )
+    .query(({ input, ctx }) =>
+      sessionService.getSessionsWithSummaries(input.campaignId, ctx.session.user.id)
+    ),
 });

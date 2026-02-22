@@ -378,6 +378,12 @@ model GameSession {
   recordings       SessionRecording[]
   transcripts      Transcript[]
   encounters       Encounter[]
+  aiSummary        String?             @db.Text
+  aiSummaryStatus  String              @default("none") // none|pending|processing|done|error
+  aiSummaryError   String?
+  aiSummaryAt      DateTime?
+  aiHighlights     Json? // [{type,text,timestampMs,speakerLabel}]
+  shareToken       String?             @unique
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 

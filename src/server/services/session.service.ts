@@ -4,6 +4,8 @@
  */
 
 import { TRPCError } from '@trpc/server';
+import { randomBytes } from 'crypto';
+import { addAiSummaryJob } from '@/lib/queue/ai-summary-queue';
 import { sessionRepository } from '../repositories/session.repository';
 import { authz } from './authorization.service';
 import { prisma } from '../db';
@@ -116,6 +118,88 @@ export class SessionService {
     await authz.session(sessionId, userId).requireManage();
     await sessionRepository.remove(sessionId);
     return { success: true };
+  }
+
+  async generateSummary(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).verify();
+    const session = await sessionRepository.findById(sessionId);
+    if (!session) {
+      throw new NotFoundError('session', sessionId);
+    }
+
+    const transcriptText = session.transcripts
+      .map((t) => t.correctedText || t.rawText)
+      .filter((text): text is string => Boolean(text))
+      .join('\n\n---\n\n');
+
+    if (!transcriptText.trim()) {
+      throw new BadRequestError('No transcript available to summarize');
+    }
+
+    await sessionRepository.updateSummaryStatus(sessionId, {
+      aiSummaryStatus: 'pending',
+      aiSummaryError: null,
+    });
+
+    await addAiSummaryJob({
+      jobId: sessionId,
+      sessionId,
+      userId,
+      transcriptText,
+      sessionTitle: session.title || `Session ${session.sessionNumber}`,
+      sessionNumber: session.sessionNumber,
+    });
+
+    return { status: 'pending' as const };
+  }
+
+  async getSummaryStatus(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).verify();
+    const session = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: {
+        aiSummaryStatus: true,
+        aiSummary: true,
+        aiHighlights: true,
+        aiSummaryError: true,
+        aiSummaryAt: true,
+        shareToken: true,
+      },
+    });
+
+    if (!session) {
+      throw new NotFoundError('session', sessionId);
+    }
+    return session;
+  }
+
+  async createShareToken(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).verify();
+    const token = randomBytes(16).toString('hex');
+    await sessionRepository.setShareToken(sessionId, token);
+    return { shareToken: token };
+  }
+
+  async getByShareToken(shareToken: string) {
+    const session = await sessionRepository.findByShareToken(shareToken);
+    if (!session) {
+      throw new NotFoundError('session share', shareToken);
+    }
+
+    return {
+      id: session.id,
+      title: session.title,
+      sessionNumber: session.sessionNumber,
+      date: session.date,
+      campaignName: session.campaign.name,
+      aiSummary: session.aiSummary,
+      aiHighlights: session.aiHighlights,
+    };
+  }
+
+  async getSessionsWithSummaries(campaignId: string, userId: string) {
+    await authz.campaign(campaignId, userId).verify();
+    return sessionRepository.findByCampaignIdWithSummaries(campaignId);
   }
 
   /**
