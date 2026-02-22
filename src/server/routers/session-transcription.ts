@@ -339,8 +339,7 @@ export const sessionTranscriptionRouter = router({
       const userId = ctx.session.user.id;
       await authz.session(input.sessionId, userId).verify();
 
-      const modulePath = '@/lib/transcription/live-session-manager';
-      const { liveSessionManager } = (await import(modulePath)) as {
+      const { liveSessionManager } = (await import('@/lib/transcription/live-session-manager')) as {
         liveSessionManager: {
           stopLiveSession: (sessionId: string) => Promise<string | null | undefined>;
         };
@@ -356,8 +355,7 @@ export const sessionTranscriptionRouter = router({
       const userId = ctx.session.user.id;
       await authz.session(input.sessionId, userId).verify();
 
-      const modulePath = '@/lib/transcription/live-session-manager';
-      const { liveSessionManager } = (await import(modulePath)) as {
+      const { liveSessionManager } = (await import('@/lib/transcription/live-session-manager')) as {
         liveSessionManager: {
           isSessionLive: (sessionId: string) => boolean;
           getSessionInfo: (sessionId: string) => unknown;

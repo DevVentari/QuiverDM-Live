@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  transpilePackages: ['next-themes'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
@@ -55,6 +56,10 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     config.externals = config.externals || [];
     config.externals.push('bufferutil', 'utf-8-validate');
+    if (isServer) {
+      // These packages use dynamic requires incompatible with webpack bundling
+      config.externals.push('@ffmpeg-installer/ffmpeg', 'fluent-ffmpeg');
+    }
     return config;
   }
 };

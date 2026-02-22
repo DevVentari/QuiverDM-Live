@@ -20,10 +20,11 @@ type SharedHighlight = {
 export default async function SharedSessionPage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
+  const { token } = await params;
   const session = await prisma.gameSession.findUnique({
-    where: { shareToken: params.token },
+    where: { shareToken: token },
     include: { campaign: { select: { name: true } } },
   });
 
