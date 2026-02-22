@@ -359,6 +359,7 @@ model GameSession {
   quickNotes       String?             @db.Text
   recap            String?             @db.Text
   status           String              @default("active") // active, completed, cancelled
+  playerVisibility String              @default("dm-only") // dm-only|summary-only|public
   recordings       SessionRecording[]
   transcripts      Transcript[]
   createdAt        DateTime            @default(now())
@@ -641,6 +642,7 @@ model HomebrewContent {
   characterItems  CharacterItem[]
   characterSpells CharacterSpell[]
   characterFeats  CharacterFeat[]
+  sharedWithPlayers Boolean               @default(false)
   createdAt    DateTime                    @default(now())
   updatedAt    DateTime                    @updatedAt
 

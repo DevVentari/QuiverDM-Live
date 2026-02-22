@@ -1,7 +1,8 @@
 import { router, publicProcedure, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { homebrewService } from '../services/homebrew.service';
-import { ForbiddenError } from '../errors';
+import { ForbiddenError, NotFoundError } from '../errors';
+import { prisma } from '../db';
 
 // Homebrew content types
 export const HomebrewType = z.enum([
@@ -62,9 +63,28 @@ export const homebrewRouter = router({
         cursor: z.string().optional(),
       })
     )
-    .query(({ input, ctx }) =>
-      homebrewService.getContent(ctx.session.user.id, input)
-    ),
+    .query(async ({ input, ctx }) => {
+      const result = await homebrewService.getContent(ctx.session.user.id, input);
+
+      if (!input.campaignId) {
+        return result;
+      }
+
+      const member = await prisma.campaignMember.findFirst({
+        where: { campaignId: input.campaignId, userId: ctx.session.user.id },
+        select: { role: true },
+      });
+      const isDM = member?.role === 'OWNER' || member?.role === 'CO_DM';
+
+      if (isDM) {
+        return result;
+      }
+
+      return {
+        ...result,
+        items: result.items.filter((item: any) => item.sharedWithPlayers),
+      };
+    }),
 
   /**
    * Get a single homebrew content item by ID
@@ -93,6 +113,36 @@ export const homebrewRouter = router({
     .mutation(({ input, ctx }) =>
       homebrewService.updateContent(ctx.session.user.id, input)
     ),
+
+  /**
+   * Toggle whether a homebrew item is shared with players
+   */
+  updateSharing: protectedProcedure
+    .input(
+      z.object({
+        homebrewId: z.string(),
+        sharedWithPlayers: z.boolean(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const homebrew = await prisma.homebrewContent.findUnique({
+        where: { id: input.homebrewId },
+        select: { userId: true },
+      });
+
+      if (!homebrew) {
+        throw new NotFoundError('homebrew', input.homebrewId);
+      }
+
+      if (homebrew.userId !== ctx.session.user.id) {
+        throw ForbiddenError.forPermission('share', 'homebrew content');
+      }
+
+      return prisma.homebrewContent.update({
+        where: { id: input.homebrewId },
+        data: { sharedWithPlayers: input.sharedWithPlayers },
+      });
+    }),
 
   /**
    * Remove a single image URL from homebrew content
