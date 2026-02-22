@@ -23,6 +23,7 @@ import { homebrewImageRouter } from './homebrew-image';
 import { whisperRouter } from './whisper';
 import { encountersRouter } from './encounters';
 import { encounterPlansRouter } from './encounter-plans';
+import { rulesRouter } from './rules';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -49,6 +50,7 @@ export const appRouter = router({
   whisper: whisperRouter,
   encounters: encountersRouter,
   encounterPlans: encounterPlansRouter,
+  rules: rulesRouter,
 });
 
 export type AppRouter = typeof appRouter;
