@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '../db';
+import type { Prisma } from '@prisma/client';
 
 export async function findById(id: string) {
   return prisma.gameSession.findUnique({
@@ -93,6 +94,59 @@ export async function getNextSessionNumber(campaignId: string) {
   return (lastSession?.sessionNumber ?? 0) + 1;
 }
 
+export async function updateSummaryStatus(
+  id: string,
+  data: {
+    aiSummaryStatus: string;
+    aiSummary?: string;
+    aiHighlights?: Prisma.InputJsonValue;
+    aiSummaryError?: string | null;
+    aiSummaryAt?: Date | null;
+  }
+) {
+  return prisma.gameSession.update({ where: { id }, data });
+}
+
+export async function findByShareToken(shareToken: string) {
+  return prisma.gameSession.findUnique({
+    where: { shareToken },
+    include: {
+      campaign: { select: { id: true, name: true } },
+      transcripts: {
+        select: {
+          id: true,
+          rawText: true,
+          correctedText: true,
+          speakers: true,
+          timestamps: true,
+        },
+      },
+    },
+  });
+}
+
+export async function setShareToken(id: string, shareToken: string) {
+  return prisma.gameSession.update({ where: { id }, data: { shareToken } });
+}
+
+export async function findByCampaignIdWithSummaries(campaignId: string) {
+  return prisma.gameSession.findMany({
+    where: { campaignId },
+    orderBy: { sessionNumber: 'desc' },
+    select: {
+      id: true,
+      sessionNumber: true,
+      title: true,
+      date: true,
+      status: true,
+      aiSummary: true,
+      aiSummaryStatus: true,
+      aiHighlights: true,
+      shareToken: true,
+    },
+  });
+}
+
 export const sessionRepository = {
   findById,
   findByCampaignId,
@@ -101,4 +155,8 @@ export const sessionRepository = {
   update,
   remove,
   getNextSessionNumber,
+  updateSummaryStatus,
+  findByShareToken,
+  setShareToken,
+  findByCampaignIdWithSummaries,
 };
