@@ -12,6 +12,7 @@ import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-p
 import { RulesPanel } from '@/components/session/rules-panel';
 import { SummaryPanel } from '@/components/session/summary-panel';
 import { AudioRecorder } from '@/components/session/audio-recorder';
+import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -177,7 +178,13 @@ function RecordingCard({ rec }: { rec: any }) {
 }
 
 /** Transcript viewer section */
-function TranscriptViewer({ sessionId }: { sessionId: string }) {
+function TranscriptViewer({
+  sessionId,
+  canView,
+}: {
+  sessionId: string;
+  canView: boolean;
+}) {
   const { isDM } = useCampaign();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -194,7 +201,7 @@ function TranscriptViewer({ sessionId }: { sessionId: string }) {
 
   const transcripts = trpc.transcript.getSessionTranscripts.useQuery(
     { sessionId },
-    { refetchOnWindowFocus: false, staleTime: 30_000 }
+    { enabled: canView, refetchOnWindowFocus: false, staleTime: 30_000 }
   );
   const updateSegmentMutation = trpc.transcript.updateSegment.useMutation({
     onSuccess: () => {
@@ -212,6 +219,24 @@ function TranscriptViewer({ sessionId }: { sessionId: string }) {
   });
 
   const transcriptList = (transcripts.data ?? []) as any[];
+
+  if (!canView) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Transcripts
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            The DM has not shared transcripts for this session.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Filter segments based on search query
   const getFilteredSegments = useCallback(
@@ -670,10 +695,22 @@ export default function SessionDetailPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const session = trpc.sessions.getById.useQuery({ id: sessionId }, { staleTime: 30_000 });
-  const recordings = trpc.sessionRecordings.getBySessionId.useQuery({ sessionId }, { staleTime: 30_000 });
+  const playerVisibility =
+    ((session.data as any)?.playerVisibility as
+      | 'dm-only'
+      | 'summary-only'
+      | 'public'
+      | undefined) ?? 'dm-only';
+  const canSeeSummaryContent = isDM || playerVisibility !== 'dm-only';
+  const canSeeFullSessionContent = isDM || playerVisibility === 'public';
+
+  const recordings = trpc.sessionRecordings.getBySessionId.useQuery(
+    { sessionId },
+    { enabled: canSeeFullSessionContent, staleTime: 30_000 }
+  );
   const transcriptionJobs = trpc.sessionTranscription.getSessionTranscriptionJobs.useQuery(
     { sessionId },
-    { staleTime: 5_000, refetchInterval: 3_000 }
+    { enabled: isDM, staleTime: 5_000, refetchInterval: 3_000 }
   );
   const utils = trpc.useUtils();
 
@@ -798,6 +835,15 @@ export default function SessionDetailPage() {
         </div>
       </div>
 
+      {isDM && (
+        <div className="flex justify-start sm:justify-end">
+          <DmVisibilityControls
+            sessionId={sessionId}
+            currentVisibility={playerVisibility}
+          />
+        </div>
+      )}
+
       {/* Notes */}
       {isDM && (
         <Card>
@@ -823,12 +869,18 @@ export default function SessionDetailPage() {
       )}
 
       {/* Recap Section */}
-      <RecapSection
-        sessionId={sessionId}
-        campaignId={campaignId}
-        recap={data.recap || null}
-        isDM={isDM}
-      />
+      {canSeeSummaryContent ? (
+        <RecapSection
+          sessionId={sessionId}
+          campaignId={campaignId}
+          recap={data.recap || null}
+          isDM={isDM}
+        />
+      ) : (
+        <p className="text-muted-foreground text-sm text-center py-8">
+          The DM hasn&apos;t shared this session yet.
+        </p>
+      )}
 
       <SummaryPanel sessionId={sessionId} isDM={isDM} />
 
@@ -846,7 +898,7 @@ export default function SessionDetailPage() {
         }}
       />
 
-      {latestTranscriptionJob && latestTranscriptionJob.status !== 'completed' && (
+      {isDM && latestTranscriptionJob && latestTranscriptionJob.status !== 'completed' && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Transcription Progress</CardTitle>
@@ -864,65 +916,69 @@ export default function SessionDetailPage() {
         </Card>
       )}
 
-      <Separator />
+      {canSeeFullSessionContent && <Separator />}
 
       {/* Recordings with Playback */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <h3 className="font-semibold">Recordings</h3>
-          {isDM && (
-            <div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*,video/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleUpload}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-              >
-                <Upload className="mr-2 h-4 w-4" />
-                {uploading ? 'Uploading...' : 'Upload Recording'}
-              </Button>
+      {canSeeFullSessionContent && (
+        <>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <h3 className="font-semibold">Recordings</h3>
+              {isDM && (
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="audio/*,video/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={handleUpload}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {uploading ? 'Uploading...' : 'Upload Recording'}
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {isDM && (
-          <AudioRecorder
-            sessionId={sessionId}
-            campaignId={campaignId}
-            onUploadComplete={() => {
-              void utils.sessionRecordings.getBySessionId.invalidate({ sessionId });
-            }}
-          />
-        )}
+            {isDM && (
+              <AudioRecorder
+                sessionId={sessionId}
+                campaignId={campaignId}
+                onUploadComplete={() => {
+                  void utils.sessionRecordings.getBySessionId.invalidate({ sessionId });
+                }}
+              />
+            )}
 
-        {recordings.isLoading ? (
-          <div className="animate-pulse space-y-2">
-            <div className="h-20 bg-muted rounded-lg" />
-            <div className="h-20 bg-muted rounded-lg" />
+            {recordings.isLoading ? (
+              <div className="animate-pulse space-y-2">
+                <div className="h-20 bg-muted rounded-lg" />
+                <div className="h-20 bg-muted rounded-lg" />
+              </div>
+            ) : recordings.data && (recordings.data as any[]).length > 0 ? (
+              <div className="space-y-2">
+                {(recordings.data as any[]).map((rec) => (
+                  <RecordingCard key={rec.id} rec={rec} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No recordings yet.</p>
+            )}
           </div>
-        ) : recordings.data && (recordings.data as any[]).length > 0 ? (
-          <div className="space-y-2">
-            {(recordings.data as any[]).map((rec) => (
-              <RecordingCard key={rec.id} rec={rec} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">No recordings yet.</p>
-        )}
-      </div>
 
-      <Separator />
+          <Separator />
+        </>
+      )}
 
       {/* Transcript Viewer */}
-      <TranscriptViewer sessionId={sessionId} />
+      <TranscriptViewer sessionId={sessionId} canView={canSeeFullSessionContent} />
 
         <ConfirmDialog
           open={deleteDialogOpen}
