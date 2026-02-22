@@ -21,6 +21,8 @@ import { usageRouter } from './usage';
 import { billingRouter } from './billing';
 import { homebrewImageRouter } from './homebrew-image';
 import { whisperRouter } from './whisper';
+import { encountersRouter } from './encounters';
+import { encounterPlansRouter } from './encounter-plans';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -45,6 +47,8 @@ export const appRouter = router({
   billing: billingRouter,
   homebrewImage: homebrewImageRouter,
   whisper: whisperRouter,
+  encounters: encountersRouter,
+  encounterPlans: encounterPlansRouter,
 });
 
 export type AppRouter = typeof appRouter;
