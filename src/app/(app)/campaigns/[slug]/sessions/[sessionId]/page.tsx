@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { LiveTranscriptionControls } from '@/components/session/live-transcription-controls';
 import { TranscriptionStatus } from '@/components/session/transcription-status';
+import { RulesPanel } from '@/components/session/rules-panel';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -753,7 +754,8 @@ export default function SessionDetailPage() {
   const latestTranscriptionJob = transcriptionJobs.data?.[0] ?? null;
 
   return (
-    <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
+    <>
+      <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -900,16 +902,18 @@ export default function SessionDetailPage() {
       {/* Transcript Viewer */}
       <TranscriptViewer sessionId={sessionId} />
 
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Delete Session"
-        description="Are you sure you want to delete this session? All recordings and transcripts will also be deleted."
-        confirmLabel="Delete"
-        variant="destructive"
-        onConfirm={() => deleteSession.mutate({ id: sessionId })}
-        loading={deleteSession.isPending}
-      />
-    </div>
+        <ConfirmDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete Session"
+          description="Are you sure you want to delete this session? All recordings and transcripts will also be deleted."
+          confirmLabel="Delete"
+          variant="destructive"
+          onConfirm={() => deleteSession.mutate({ id: sessionId })}
+          loading={deleteSession.isPending}
+        />
+      </div>
+      <RulesPanel />
+    </>
   );
 }

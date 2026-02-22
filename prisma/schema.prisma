@@ -747,6 +747,8 @@ model HomebrewPDF {
   errorMessage        String?   @db.Text
   processingStartedAt DateTime?
   processingEndedAt   DateTime?
+  isRulesSource       Boolean   @default(false)
+  indexedAt           DateTime?
 
   extractedContent    HomebrewContent[]
 
