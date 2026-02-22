@@ -9,6 +9,7 @@ import { authz } from './authorization.service';
 import { prisma } from '../db';
 import { generateWithOllama } from '@/lib/ai/ollama';
 import { BadRequestError, NotFoundError } from '../errors';
+import { webhookService } from './webhook.service';
 
 export class SessionService {
   async getById(sessionId: string, userId: string) {
@@ -50,13 +51,21 @@ export class SessionService {
 
     const title = input.title || `Session ${sessionNumber}`;
 
-    return sessionRepository.create({
+    const session = await sessionRepository.create({
       campaignId,
       title,
       sessionNumber,
       quickNotes: input.quickNotes,
       status: 'in_progress',
     });
+
+    void webhookService.dispatch(campaignId, 'session.started', {
+      sessionId: session.id,
+      sessionNumber: session.sessionNumber,
+      title: session.title,
+    });
+
+    return session;
   }
 
   async update(
@@ -70,7 +79,17 @@ export class SessionService {
     }
   ) {
     await authz.session(sessionId, userId).requireManage();
-    return sessionRepository.update(sessionId, input);
+    const session = await sessionRepository.update(sessionId, input);
+
+    if (input.status === 'completed') {
+      void webhookService.dispatch(session.campaignId, 'session.ended', {
+        sessionId: session.id,
+        sessionNumber: session.sessionNumber,
+        title: session.title,
+      });
+    }
+
+    return session;
   }
 
   async complete(
@@ -79,10 +98,18 @@ export class SessionService {
     input: { recap?: string }
   ) {
     await authz.session(sessionId, userId).requireManage();
-    return sessionRepository.update(sessionId, {
+    const session = await sessionRepository.update(sessionId, {
       status: 'completed',
       recap: input.recap,
     });
+
+    void webhookService.dispatch(session.campaignId, 'session.ended', {
+      sessionId: session.id,
+      sessionNumber: session.sessionNumber,
+      title: session.title,
+    });
+
+    return session;
   }
 
   async delete(sessionId: string, userId: string) {
@@ -134,6 +161,11 @@ export class SessionService {
 
     // Save recap to the session record
     await sessionRepository.update(sessionId, { recap });
+
+    void webhookService.dispatch(session.campaignId, 'summary.ready', {
+      sessionId,
+      summaryLength: recap.length,
+    });
 
     return recap;
   }

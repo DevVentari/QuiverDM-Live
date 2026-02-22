@@ -23,6 +23,7 @@
     "worker:pdf": "tsx src/lib/queue/worker.ts",
     "worker:transcription": "tsx src/lib/queue/transcription-worker.ts",
     "worker:image": "tsx src/lib/queue/image-generation-worker.ts",
+    "worker:webhooks": "tsx src/lib/queue/webhooks-worker.ts",
     "worker:pdf:dev": "tsx watch src/lib/queue/worker.ts",
     "setup:stripe": "tsx scripts/setup-stripe.ts",
     "check:launch": "tsx scripts/pre-launch-check.ts",
