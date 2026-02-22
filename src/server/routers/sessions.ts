@@ -1,6 +1,8 @@
 import { router, protectedProcedure, campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
 import { sessionService } from '../services/session.service';
+import { prisma } from '../db';
+import { authz } from '../services/authorization.service';
 
 export const sessionsRouter = router({
   /**
@@ -65,6 +67,28 @@ export const sessionsRouter = router({
     .mutation(({ input, ctx }) => {
       const { id, ...data } = input;
       return sessionService.update(id, ctx.session.user.id, data);
+    }),
+
+  /**
+   * Update player visibility for a session
+   * Requires DM access or canManageSessions permission
+   */
+  updateVisibility: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string(),
+        playerVisibility: z.enum(['dm-only', 'summary-only', 'public']),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await authz
+        .session(input.sessionId, ctx.session.user.id)
+        .requirePermission('canManageSessions');
+
+      return prisma.gameSession.update({
+        where: { id: input.sessionId },
+        data: { playerVisibility: input.playerVisibility },
+      });
     }),
 
   /**

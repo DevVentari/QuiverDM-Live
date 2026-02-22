@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { AddFromLibraryDialog } from '@/components/homebrew/add-from-library-dialog';
 import { BookOpen, Upload, Search, Library } from 'lucide-react';
@@ -19,6 +21,7 @@ export default function CampaignHomebrewPage() {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const utils = trpc.useUtils();
 
   const content = trpc.homebrew.getContent.useQuery({
     campaignId,
@@ -26,6 +29,15 @@ export default function CampaignHomebrewPage() {
   }, { staleTime: 30_000 });
 
   const pdfs = trpc.homebrewPdf.getPDFs.useQuery({ campaignId }, { staleTime: 30_000 });
+  const updateSharingMutation = trpc.homebrew.updateSharing.useMutation({
+    onSuccess: () => {
+      void utils.homebrew.getContent.invalidate({
+        campaignId,
+        search: search || undefined,
+      });
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   async function handlePdfUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -163,11 +175,29 @@ export default function CampaignHomebrewPage() {
       ) : content.data && (content.data as any).items?.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {((content.data as any).items || []).map((item: any) => (
-            <HomebrewContentCard
-              key={item.id}
-              item={item}
-              href={`/homebrew/${item.id}`}
-            />
+            <div key={item.id} className="space-y-2">
+              <HomebrewContentCard
+                item={item}
+                href={`/homebrew/${item.id}`}
+              />
+              {isDM && (
+                <div className="flex items-center gap-2 px-1">
+                  <Switch
+                    id={`share-${item.id}`}
+                    checked={Boolean(item.sharedWithPlayers)}
+                    onCheckedChange={(checked) =>
+                      updateSharingMutation.mutate({
+                        homebrewId: item.id,
+                        sharedWithPlayers: checked,
+                      })
+                    }
+                  />
+                  <Label htmlFor={`share-${item.id}`} className="text-xs">
+                    Share with players
+                  </Label>
+                </div>
+              )}
+            </div>
           ))}
         </div>
       ) : (

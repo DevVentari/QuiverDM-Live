@@ -3,7 +3,6 @@
  * Business logic for session operations.
  */
 
-import { TRPCError } from '@trpc/server';
 import { sessionRepository } from '../repositories/session.repository';
 import { authz } from './authorization.service';
 import { prisma } from '../db';
@@ -16,10 +15,50 @@ export class SessionService {
     const session = await sessionRepository.findById(sessionId);
 
     if (!session) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Session not found' });
+      throw new NotFoundError('session', sessionId);
     }
 
-    return session;
+    const member = await prisma.campaignMember.findFirst({
+      where: { campaignId: session.campaign.id, userId },
+      select: { role: true },
+    });
+
+    const isDM = member?.role === 'OWNER' || member?.role === 'CO_DM';
+    if (isDM) return session;
+
+    const visibility =
+      (session.playerVisibility as 'dm-only' | 'summary-only' | 'public' | null) ??
+      'dm-only';
+
+    if (visibility === 'dm-only') {
+      return {
+        id: session.id,
+        title: session.title,
+        sessionNumber: session.sessionNumber,
+        date: session.date,
+        createdAt: session.createdAt,
+        updatedAt: session.updatedAt,
+        status: session.status,
+        playerVisibility: visibility,
+        recordings: [],
+        transcripts: [],
+        aiSummary: null,
+        aiHighlights: null,
+        quickNotes: null,
+        recap: null,
+      };
+    }
+
+    if (visibility === 'summary-only') {
+      return {
+        ...session,
+        transcripts: [],
+        recordings: [],
+        quickNotes: null,
+      };
+    }
+
+    return { ...session, quickNotes: null };
   }
 
   async getByCampaignId(campaignId: string, userId: string) {
