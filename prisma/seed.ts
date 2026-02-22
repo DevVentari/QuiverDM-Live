@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding database...');
+  await prisma.$executeRawUnsafe('CREATE EXTENSION IF NOT EXISTS vector');
 
   // ---------------------------------------------------------------------------
   // 1. Demo Users

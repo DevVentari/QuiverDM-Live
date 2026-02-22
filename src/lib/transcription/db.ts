@@ -3,6 +3,8 @@ import type {
   TranscriptionSegment,
   WhisperXTranscriptionResult,
 } from './whisperx';
+import { addEmbeddingJob } from '@/lib/queue/embeddings-queue';
+import { deleteEntityEmbeddings } from '@/server/repositories/embedding.repository';
 
 // Alias for compatibility
 type LocalTranscriptionResult = WhisperXTranscriptionResult;
@@ -23,6 +25,46 @@ function isSpeakerResult(
   result: LocalTranscriptionResult | SpeakerTranscriptionResult
 ): result is SpeakerTranscriptionResult {
   return 'hasSpeakers' in result;
+}
+
+async function enqueueTranscriptEmbedding(transcriptId: string) {
+  const transcript = await prisma.transcript.findUnique({
+    where: { id: transcriptId },
+    include: {
+      session: {
+        select: {
+          campaignId: true,
+          sessionNumber: true,
+          title: true,
+          date: true,
+        },
+      },
+    },
+  });
+
+  if (!transcript) {
+    return;
+  }
+
+  const text = (transcript.correctedText || transcript.rawText || '').trim();
+  if (!text) {
+    return;
+  }
+
+  void addEmbeddingJob({
+    entityId: transcript.id,
+    entityType: 'transcript',
+    text,
+    metadata: {
+      sessionId: transcript.sessionId,
+      sessionNumber: transcript.session.sessionNumber,
+      title: transcript.session.title,
+      date: transcript.session.date.toISOString(),
+    },
+    campaignId: transcript.session.campaignId,
+  }).catch((error) => {
+    console.error('[embeddings] Failed to enqueue transcript:', error);
+  });
 }
 
 /**
@@ -71,6 +113,8 @@ export async function saveTranscript(
     },
   });
 
+  await enqueueTranscriptEmbedding(transcript.id);
+
   return transcript.id;
 }
 
@@ -111,6 +155,7 @@ export async function updateTranscriptCorrection(
     where: { id: transcriptId },
     data: { correctedText },
   });
+  await enqueueTranscriptEmbedding(transcriptId);
 }
 
 /**
@@ -146,6 +191,11 @@ export async function deleteTranscript(transcriptId: string): Promise<void> {
   await prisma.transcript.delete({
     where: { id: transcriptId },
   });
+  try {
+    await deleteEntityEmbeddings(transcriptId, 'transcript');
+  } catch (error) {
+    console.error('[embeddings] Failed to delete transcript embeddings:', error);
+  }
 }
 
 export async function updateTranscriptSegment(
@@ -169,6 +219,7 @@ export async function updateTranscriptSegment(
     where: { id: transcriptId },
     data: { timestamps: segments },
   });
+  await enqueueTranscriptEmbedding(transcriptId);
 }
 
 export async function renameSpeaker(
@@ -190,4 +241,5 @@ export async function renameSpeaker(
     where: { id: transcriptId },
     data: { timestamps: segments, speakers },
   });
+  await enqueueTranscriptEmbedding(transcriptId);
 }

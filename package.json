@@ -25,6 +25,7 @@
     "worker:image": "tsx src/lib/queue/image-generation-worker.ts",
     "worker:webhooks": "tsx src/lib/queue/webhooks-worker.ts",
     "worker:summary": "tsx src/lib/queue/ai-summary-worker.ts",
+    "worker:embeddings": "tsx src/lib/queue/embeddings-worker.ts",
     "worker:pdf:dev": "tsx watch src/lib/queue/worker.ts",
     "setup:stripe": "tsx scripts/setup-stripe.ts",
     "check:launch": "tsx scripts/pre-launch-check.ts",

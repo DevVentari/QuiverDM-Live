@@ -2,6 +2,8 @@ import { TRPCError } from '@trpc/server';
 import { npcRepository } from '../repositories/npc.repository';
 import { authz } from './authorization.service';
 import { indexNpc, deleteNpc, searchNpcs } from '@/lib/search';
+import { addEmbeddingJob } from '@/lib/queue/embeddings-queue';
+import { deleteEntityEmbeddings } from '../repositories/embedding.repository';
 
 export class NPCService {
   async getById(npcId: string, userId: string) {
@@ -91,6 +93,20 @@ export class NPCService {
       tags: npc.tags ?? [],
     });
 
+    void addEmbeddingJob({
+      entityId: npc.id,
+      entityType: 'npc',
+      text: [npc.name, npc.description, npc.secrets].filter(Boolean).join('\n\n'),
+      metadata: {
+        name: npc.name,
+        faction: npc.faction,
+        role: npc.role,
+      },
+      campaignId: npc.campaignId,
+    }).catch((error) => {
+      console.error('[embeddings] Failed to enqueue NPC:', error);
+    });
+
     return npc;
   }
 
@@ -120,12 +136,29 @@ export class NPCService {
       tags: npc.tags ?? [],
     });
 
+    void addEmbeddingJob({
+      entityId: npc.id,
+      entityType: 'npc',
+      text: [npc.name, npc.description, npc.secrets].filter(Boolean).join('\n\n'),
+      metadata: {
+        name: npc.name,
+        faction: npc.faction,
+        role: npc.role,
+      },
+      campaignId: npc.campaignId,
+    }).catch((error) => {
+      console.error('[embeddings] Failed to enqueue NPC:', error);
+    });
+
     return npc;
   }
 
   async delete(npcId: string, userId: string) {
     await authz.npc(npcId, userId).requireEdit();
     await npcRepository.remove(npcId);
+    void deleteEntityEmbeddings(npcId, 'npc').catch((error) => {
+      console.error('[embeddings] Failed to delete NPC embeddings:', error);
+    });
     void deleteNpc(npcId);
     return { success: true };
   }
