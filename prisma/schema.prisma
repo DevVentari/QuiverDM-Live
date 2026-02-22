@@ -169,6 +169,7 @@ model Campaign {
   homebrewPDFs     HomebrewPDF[]               // Campaign-specific PDFs
   players          Player[]                    // Legacy player records (will migrate to Character)
   characters       CampaignCharacter[]         // Characters in this campaign
+  encounterPlans   EncounterPlan[]             // Pre-session encounter designs
 
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
@@ -361,12 +362,45 @@ model GameSession {
   status           String              @default("active") // active, completed, cancelled
   recordings       SessionRecording[]
   transcripts      Transcript[]
+  encounters       Encounter[]
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
   @@index([date])
+}
+
+model Encounter {
+  id           String                 @id @default(cuid())
+  sessionId    String
+  session      GameSession            @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name         String
+  round        Int                    @default(1)
+  status       String                 @default("active") // active|complete
+  log          Json?                  // [{round, events: [{participantId, action, value}]}]
+  participants EncounterParticipant[]
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@index([sessionId])
+}
+
+model EncounterParticipant {
+  id          String    @id @default(cuid())
+  encounterId String
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  npcId       String?
+  name        String
+  type        String    // pc|npc|monster
+  initiative  Int       @default(0)
+  hp          Int
+  maxHp       Int
+  conditions  Json      @default("[]") // D&D 5e condition strings
+  isAlive     Boolean   @default(true)
+  updatedAt   DateTime  @updatedAt
+
+  @@index([encounterId])
 }
 
 model NPC {
@@ -832,4 +866,45 @@ model ImageGenerationJob {
   @@index([homebrewId, userId, status])
   @@index([status, createdAt])
   @@index([userId])
+}
+
+// ============================================================================
+// Encounter Builder — pre-session planning models
+// ============================================================================
+
+model EncounterPlan {
+  id               String                 @id @default(cuid())
+  campaignId       String
+  campaign         Campaign               @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name             String
+  aiPrompt         String?                @db.Text   // original user prompt
+  sceneDescription String?                @db.Text   // AI-generated prose
+  tacticalNotes    String?                @db.Text   // AI DM tips
+  difficulty       String                 @default("medium") // easy|medium|hard|deadly
+  partySize        Int?
+  partyLevel       Int?
+  xpBudget         Int?                              // target XP budget
+  totalXp          Int?                              // actual raw XP of selected creatures
+  adjustedXp       Int?                              // XP after encounter multiplier
+  creatures        EncounterPlanCreature[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([campaignId])
+}
+
+model EncounterPlanCreature {
+  id          String        @id @default(cuid())
+  planId      String
+  plan        EncounterPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  name        String
+  count       Int           @default(1)
+  cr          String?                     // "1/4", "1", "10"
+  xp          Int?                        // XP per creature
+  sourceType  String                      // 'srd' | 'npc' | 'homebrew'
+  sourceId    String?                     // NPC id or HomebrewContent id
+  statBlock   Json?                       // Full stat block snapshot
+  createdAt   DateTime      @default(now())
+
+  @@index([planId])
 }
