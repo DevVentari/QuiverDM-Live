@@ -24,7 +24,8 @@ const redisConnection = getRedisConnection();
 
 export interface ImageGenerationJobData {
   jobId: string;       // ImageGenerationJob.id from Prisma
-  homebrewId: string;
+  homebrewId?: string;
+  npcId?: string;
   userId: string;
   type: string;        // 'item', 'creature', 'spell', etc.
   name: string;

@@ -379,6 +379,7 @@ model NPC {
   role        String?
   secrets     String?  @db.Text
   imageUrl    String?
+  imageJobId  String?
   stats       Json? // Flexible stats object
   tags        String[] // For filtering
   createdAt   DateTime @default(now())
@@ -634,6 +635,8 @@ model HomebrewContent {
   sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction'
   sourcePdfId  String?
   sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
+  imageUrl     String?
+  imageJobId   String?
   imageMetadata Json? // Metadata for each image (source, page number, etc.)
   extractionPageNumber Int? // Which PDF page this content was extracted from
 
@@ -815,7 +818,8 @@ model UserUsage {
 
 model ImageGenerationJob {
   id           String    @id @default(cuid())
-  homebrewId   String
+  homebrewId   String?
+  npcId        String?
   userId       String
   prompt       String    @db.Text
   provider     String    @default("auto") // 'comfyui', 'replicate', 'dalle', 'auto'
@@ -830,6 +834,7 @@ model ImageGenerationJob {
   updatedAt    DateTime  @updatedAt
 
   @@index([homebrewId, userId, status])
+  @@index([npcId, userId, status])
   @@index([status, createdAt])
   @@index([userId])
 }

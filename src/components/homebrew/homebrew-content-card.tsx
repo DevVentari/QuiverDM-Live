@@ -18,6 +18,7 @@ interface HomebrewContentCardProps {
     data?: any;
     tags?: string[];
     images?: string[];
+    imageUrl?: string | null;
   };
   href?: string;
 }
@@ -25,7 +26,7 @@ interface HomebrewContentCardProps {
 export function HomebrewContentCard({ item, href }: HomebrewContentCardProps) {
   const style = getTypeStyle(item.type);
   const TypeIcon = style.icon;
-  const imageUrl = item.images?.[0];
+  const imageUrl = item.imageUrl ?? item.images?.[0];
 
   const sourceIcon = item.sourceType === 'pdf_extraction' ? FileText
     : item.sourceType === 'dndbeyond_import' ? Globe

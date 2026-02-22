@@ -45,15 +45,26 @@ async function updateJobStatus(jobId: string, update: {
 const worker = new Worker<ImageGenerationJobData>(
   'image-generation',
   async (job: Job<ImageGenerationJobData>) => {
-    const { jobId, homebrewId, userId, type, name, description, imagePromptHint, customPrompt } = job.data;
+    const { jobId, homebrewId, npcId, userId, type, name, description, imagePromptHint, customPrompt } = job.data;
+    const targetId = homebrewId ?? npcId;
+    if (!targetId) {
+      throw new Error(`Job ${jobId} is missing both homebrewId and npcId`);
+    }
 
-    console.log(`[ImageWorker] Processing job ${jobId} for homebrewId=${homebrewId}`);
+    console.log(`[ImageWorker] Processing job ${jobId} for targetId=${targetId}`);
 
     await updateJobStatus(jobId, { status: 'processing', progress: 10 });
 
     try {
+      const comfyUrl = process.env.COMFYUI_URL;
+      if (comfyUrl) {
+        process.env.COMFYUI_ENABLED = 'true';
+        console.log(`[ImageWorker] COMFYUI_URL is set (${comfyUrl}); prioritizing ComfyUI`);
+      }
+
       const result = await generateImage({
         homebrewId,
+        npcId,
         userId,
         type,
         name,
@@ -71,11 +82,25 @@ const worker = new Worker<ImageGenerationJobData>(
         metadata: result.metadata as any,
       });
 
-      // Append to HomebrewContent.images
-      await prisma.homebrewContent.update({
-        where: { id: homebrewId },
-        data: { images: { push: result.url } },
-      });
+      if (type === 'npc') {
+        await prisma.nPC.update({
+          where: { id: targetId },
+          data: {
+            imageUrl: result.url,
+            imageJobId: null,
+          },
+        });
+      } else if (homebrewId) {
+        // Keep existing image history while also tracking latest generated image.
+        await prisma.homebrewContent.update({
+          where: { id: homebrewId },
+          data: {
+            images: { push: result.url },
+            imageUrl: result.url,
+            imageJobId: null,
+          },
+        });
+      }
 
       console.log(`[ImageWorker] Job ${jobId} complete -> ${result.url}`);
       return { url: result.url, provider: result.provider };
@@ -87,6 +112,20 @@ const worker = new Worker<ImageGenerationJobData>(
         status: 'failed',
         errorMessage,
       });
+
+      if (type === 'npc' && targetId) {
+        await prisma.nPC.update({
+          where: { id: targetId },
+          data: { imageJobId: null },
+        }).catch(() => undefined);
+      }
+
+      if (homebrewId) {
+        await prisma.homebrewContent.update({
+          where: { id: homebrewId },
+          data: { imageJobId: null },
+        }).catch(() => undefined);
+      }
 
       throw error; // Let BullMQ handle retries
     }

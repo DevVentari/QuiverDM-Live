@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -14,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Trash2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { ImageGallery } from '@/components/homebrew/image-gallery';
 
 export default function NPCDetailPage() {
   const params = useParams();
@@ -88,11 +88,17 @@ export default function NPCDetailPage() {
         )}
       </div>
 
-      {data.imageUrl && (
-        <div className="relative w-full sm:w-32 h-48 sm:h-32 rounded-lg overflow-hidden shrink-0">
-          <Image src={data.imageUrl} alt={data.name} fill className="object-cover" unoptimized />
-        </div>
-      )}
+      <div className="space-y-2">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Image</h2>
+        <ImageGallery
+          entityType="npc"
+          entityId={data.id}
+          currentImageUrl={data.imageUrl}
+          currentJobId={data.imageJobId}
+          canGenerate={isDM}
+          entityName={data.name}
+        />
+      </div>
 
       {data.description && (
         <Card>
