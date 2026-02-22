@@ -9,7 +9,8 @@ import { storage } from '../storage';
 import { isComfyUIAvailable, queueComfyUIPrompt, waitForComfyUIResult } from './comfyui';
 
 export interface ImageGenerationRequest {
-  homebrewId: string;
+  homebrewId?: string;
+  npcId?: string;
   userId: string;
   type: string; // 'item', 'creature', 'spell', 'character', etc.
   name: string;
@@ -45,6 +46,7 @@ const TYPE_STYLE_HINTS: Record<string, string> = {
   feat: 'magical ability, D&D feat concept art',
   background: 'D&D background, character backstory scene',
   location: 'D&D location, fantasy environment art',
+  npc: 'fantasy NPC portrait, character design, dramatic lighting',
   default: 'D&D 5e fantasy art, detailed illustration',
 };
 
@@ -65,6 +67,14 @@ function storageKey(userId: string, homebrewId: string): string {
   return `homebrew-images/generated/${userId}/${homebrewId}/${Date.now()}.png`;
 }
 
+function resolveEntityId(request: ImageGenerationRequest): string {
+  const entityId = request.homebrewId ?? request.npcId;
+  if (!entityId) {
+    throw new Error('Image generation requires homebrewId or npcId');
+  }
+  return entityId;
+}
+
 async function generateWithComfyUI(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const start = Date.now();
   const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
@@ -72,7 +82,7 @@ async function generateWithComfyUI(request: ImageGenerationRequest): Promise<Ima
   const { promptId, seed } = await queueComfyUIPrompt(prompt, NEGATIVE_PROMPT);
   const imageBuffer = await waitForComfyUIResult(promptId);
 
-  const key = storageKey(request.userId, request.homebrewId);
+  const key = storageKey(request.userId, resolveEntityId(request));
   const url = await storage.upload(key, imageBuffer, 'image/png');
   const model = process.env.COMFYUI_MODEL || 'sd_xl_base_1.0.safetensors';
 
@@ -110,7 +120,7 @@ async function generateWithReplicate(request: ImageGenerationRequest): Promise<I
   if (!imgRes.ok) throw new Error(`Failed to fetch Replicate image: ${imgRes.status}`);
   const buffer = Buffer.from(await imgRes.arrayBuffer());
 
-  const key = storageKey(request.userId, request.homebrewId);
+  const key = storageKey(request.userId, resolveEntityId(request));
   const url = await storage.upload(key, buffer, 'image/png');
 
   return {
@@ -141,7 +151,7 @@ async function generateWithDALLE(request: ImageGenerationRequest): Promise<Image
   if (!imgRes.ok) throw new Error(`Failed to fetch DALL-E image: ${imgRes.status}`);
   const buffer = Buffer.from(await imgRes.arrayBuffer());
 
-  const key = storageKey(request.userId, request.homebrewId);
+  const key = storageKey(request.userId, resolveEntityId(request));
   const url = await storage.upload(key, buffer, 'image/png');
 
   return {
@@ -163,7 +173,7 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
   }> = [
     {
       name: 'comfyui',
-      enabled: process.env.COMFYUI_ENABLED === 'true',
+      enabled: process.env.COMFYUI_ENABLED === 'true' || !!process.env.COMFYUI_URL,
       fn: () => generateWithComfyUI(request),
     },
     {

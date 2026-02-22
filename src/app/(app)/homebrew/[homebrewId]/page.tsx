@@ -14,7 +14,7 @@ import { CreatureDetail } from '@/components/homebrew/details/CreatureDetail';
 import { ItemDetail } from '@/components/homebrew/details/ItemDetail';
 import { GenericDetail } from '@/components/homebrew/details/GenericDetail';
 import { AddToCharacterButton } from '@/components/homebrew/AddToCharacterButton';
-import { ImageGallery } from '@/components/homebrew/details/ImageGallery';
+import { ImageGallery } from '@/components/homebrew/image-gallery';
 
 export default function HomebrewDetailPage() {
   const params = useParams();
@@ -120,13 +120,12 @@ export default function HomebrewDetailPage() {
       <div className="space-y-2">
         <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Images</h2>
         <ImageGallery
-          homebrewId={item.id}
-          images={item.images ?? []}
-          isOwner={isOwner}
-          itemName={item.name}
-          itemType={item.type}
-          itemDescription={itemData?.description}
-          imagePromptHint={itemData?.imagePromptHint}
+          entityType="homebrew"
+          entityId={item.id}
+          currentImageUrl={item.imageUrl ?? item.images?.[0] ?? null}
+          currentJobId={item.imageJobId}
+          canGenerate={isOwner}
+          entityName={item.name}
         />
       </div>
 
