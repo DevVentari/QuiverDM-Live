@@ -10,6 +10,7 @@ const tabs = [
   { label: 'Sessions', href: '/sessions' },
   { label: 'NPCs', href: '/npcs' },
   { label: 'Players', href: '/players' },
+  { label: 'Search', href: '/search' },
   { label: 'Homebrew', href: '/homebrew' },
   { label: 'Members', href: '/members' },
   { label: 'Settings', href: '/settings' },
