@@ -236,7 +236,7 @@ function PDFListCard({
 
         <AlertDialog
           open={deletingPdfId === pdf.id}
-          onOpenChange={(open) => {
+          onOpenChange={(open: boolean) => {
             setDeletingPdfId(open ? pdf.id : null);
           }}
         >
@@ -253,7 +253,7 @@ function PDFListCard({
               Delete
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogContent onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete PDF?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -264,7 +264,7 @@ function PDFListCard({
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   onConfirmDelete(pdf.id);
                 }}
@@ -459,7 +459,7 @@ export default function PDFsPage() {
         </div>
 
         <div className="w-full sm:w-52">
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortKey)}>
+          <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as SortKey)}>
             <SelectTrigger>
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>

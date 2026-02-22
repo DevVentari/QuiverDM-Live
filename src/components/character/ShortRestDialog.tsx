@@ -59,7 +59,7 @@ export function ShortRestDialog({ data, onRoll, onFinish, disabled }: ShortRestD
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => {
+      onOpenChange={(next: boolean) => {
         setOpen(next);
         if (next) {
           setLocalHp(hitPoints.current);

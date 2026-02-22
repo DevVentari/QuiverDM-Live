@@ -111,7 +111,7 @@ export default function MembersPage() {
                     <Select
                       value={member.role}
                       disabled={updateRole.isPending}
-                      onValueChange={(role) =>
+                      onValueChange={(role: string) =>
                         updateRole.mutate({
                           campaignId,
                           memberId: member.id,

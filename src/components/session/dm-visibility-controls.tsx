@@ -67,7 +67,7 @@ export function DmVisibilityControls({
       <Label className="text-xs text-muted-foreground">Player Visibility</Label>
       <Select
         value={currentVisibility}
-        onValueChange={(value) =>
+        onValueChange={(value: string) =>
           updateMutation.mutate({
             sessionId,
             playerVisibility: value as PlayerVisibility,

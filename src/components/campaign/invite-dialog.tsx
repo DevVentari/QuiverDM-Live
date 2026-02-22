@@ -52,7 +52,7 @@ export function InviteDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setCode(''); setEmail(''); setRole('PLAYER'); } }}>
+    <Dialog open={open} onOpenChange={(o: boolean) => { setOpen(o); if (!o) { setCode(''); setEmail(''); setRole('PLAYER'); } }}>
       <DialogTrigger asChild>
         <Button size="sm">
           <UserPlus className="mr-2 h-4 w-4" />

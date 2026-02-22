@@ -139,7 +139,7 @@ export function CreateHomebrewDialog({ open, onOpenChange, onCreated }: CreateHo
 
           <div className="space-y-2">
             <Label htmlFor="homebrew-type">Type</Label>
-            <Select value={type} onValueChange={(value) => setType(value as ContentType)}>
+            <Select value={type} onValueChange={(value: string) => setType(value as ContentType)}>
               <SelectTrigger id="homebrew-type">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
