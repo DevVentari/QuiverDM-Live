@@ -76,7 +76,7 @@ test.describe('Encounter Builder — UI Review', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
-    await expect(page.locator('h1', { hasText: 'Encounters' })).toBeVisible();
+    await expect(page.locator('h1', { hasText: 'Encounter Plans' })).toBeVisible();
 
     // DM sees "New Encounter" button
     const newBtn = page.locator('button', { hasText: 'New Encounter' });
@@ -115,17 +115,35 @@ test.describe('Encounter Builder — UI Review', () => {
     const errors = collectErrors(page);
     await goToBuilder(page, 'Builder Structure Test');
 
+    // Always-visible elements (outside the tabs)
     await expect(page.locator('nav', { hasText: 'Builder' })).toBeVisible();
     await expect(page.locator('label:has-text("Encounter Name")')).toBeVisible();
-    await expect(page.locator('label:has-text("Party Size")').first()).toBeVisible();
+    await expect(page.locator('label:has-text("Party")').first()).toBeVisible();
     await expect(page.locator('label:has-text("Level")').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Save Plan")')).toBeVisible();
+
+    // Tab bar visible with all 3 tabs
+    await expect(page.locator('[role="tablist"]')).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Combat/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /Story/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /AI Generate/i })).toBeVisible();
+
+    // Combat tab (default) — difficulty meter
     await expect(page.locator('text=Encounter Difficulty')).toBeVisible();
-    await expect(page.getByText('AI Generate', { exact: true })).toBeVisible();
-    await expect(page.locator('button:has-text("Generate Encounter")')).toBeVisible();
+    await expect(page.getByText('Add Creatures', { exact: true })).toBeVisible();
+
+    // Story tab — scene + tactical fields
+    await page.getByRole('tab', { name: /Story/i }).click();
+    await page.waitForTimeout(300);
     await expect(page.locator('text=Scene Description')).toBeVisible();
     await expect(page.locator('text=Tactical Notes')).toBeVisible();
-    await expect(page.locator('button:has-text("Save Plan")')).toBeVisible();
-    await expect(page.locator('text=Add Creatures')).toBeVisible();
+
+    // AI Generate tab — generate button
+    await page.getByRole('tab', { name: /AI Generate/i }).click();
+    await page.waitForTimeout(300);
+    await expect(page.locator('button:has-text("Generate Encounter")')).toBeVisible();
+
+    // Monster picker always visible on the right
     await expect(page.locator('text=SRD Monsters')).toBeVisible();
 
     await page.screenshot({ path: 'playwright-report/04-builder-overview.png', fullPage: true });
@@ -210,6 +228,10 @@ test.describe('Encounter Builder — UI Review', () => {
     const errors = collectErrors(page);
     await goToBuilder(page);
 
+    // Navigate to the AI Generate tab first
+    await page.getByRole('tab', { name: /AI Generate/i }).click();
+    await page.waitForTimeout(400);
+
     // Difficulty buttons in the AI panel
     for (const d of ['Easy', 'Medium', 'Hard', 'Deadly']) {
       await expect(page.locator(`button:has-text("${d}")`).first()).toBeVisible();
@@ -238,6 +260,10 @@ test.describe('Encounter Builder — UI Review', () => {
   test('9. Save Plan persists scene description and tactical notes', async ({ page }) => {
     const errors = collectErrors(page);
     await goToBuilder(page, 'Save Test Plan');
+
+    // Navigate to Story tab to access the narrative textareas
+    await page.getByRole('tab', { name: /Story/i }).click();
+    await page.waitForTimeout(400);
 
     const textareas = page.locator('textarea');
     await textareas.nth(0).fill('Moonlit clearing. Goblins in the trees. Read aloud: "The forest falls silent..."');
