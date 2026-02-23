@@ -915,12 +915,14 @@ model EncounterPlan {
   difficulty       String                 @default("medium") // easy|medium|hard|deadly
   partySize        Int?
   partyLevel       Int?
-  xpBudget         Int?                              // target XP budget
-  totalXp          Int?                              // actual raw XP of selected creatures
-  adjustedXp       Int?                              // XP after encounter multiplier
-  creatures        EncounterPlanCreature[]
-  createdAt        DateTime               @default(now())
-  updatedAt        DateTime               @updatedAt
+  xpBudget              Int?                              // target XP budget
+  totalXp               Int?                              // actual raw XP of selected creatures
+  adjustedXp            Int?                              // XP after encounter multiplier
+  environmentalEffects  String?                @db.Text   // weather, terrain, lighting conditions
+  portraitUrl           String?                           // banner / portrait image URL
+  creatures             EncounterPlanCreature[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   @@index([campaignId])
 }

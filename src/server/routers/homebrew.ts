@@ -87,15 +87,17 @@ export const homebrewRouter = router({
     }),
 
   /**
-   * Get a single homebrew content item by ID
+   * Get a single homebrew content item by ID.
+   * Requires authentication; returns the item if the caller owns it or
+   * if it has been shared with players in any campaign they belong to.
    */
-  getContentById: publicProcedure
+  getContentById: protectedProcedure
     .input(
       z.object({
         id: z.string(),
       })
     )
-    .query(({ input }) => homebrewService.getContentById(input.id)),
+    .query(({ input, ctx }) => homebrewService.getContentById(input.id, ctx.session.user.id)),
 
   /**
    * Update homebrew content
@@ -155,7 +157,7 @@ export const homebrewRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const content = await homebrewService.getContentById(input.id);
+      const content = await homebrewService.getContentById(input.id, ctx.session.user.id);
       if (content.userId !== ctx.session.user.id) {
         throw ForbiddenError.forPermission('edit', 'homebrew content');
       }

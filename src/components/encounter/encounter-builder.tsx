@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Trash2, ChevronDown, ChevronRight, Play, Save, Plus } from 'lucide-react';
+import {
+  Trash2, ChevronDown, ChevronRight, Save, Image,
+  Leaf, Swords, Sparkles, Shield, BookOpen,
+} from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { AiPromptPanel } from './ai-prompt-panel';
 import { DifficultyMeter } from './difficulty-meter';
 import { MonsterPicker } from './monster-picker';
@@ -18,7 +22,7 @@ import type { EncounterDifficulty } from './ai-prompt-panel';
 
 interface EncounterBuilderProps {
   campaignId: string;
-  planId?: string; // if editing existing plan
+  planId?: string;
   campaignSlug: string;
   defaultPartySize?: number;
   defaultPartyLevel?: number;
@@ -46,11 +50,11 @@ function CreatureRow({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border border-border rounded">
-      <div className="flex items-center gap-2 p-2">
+    <div className="border border-border rounded-md overflow-hidden">
+      <div className="flex items-center gap-2 p-2.5 bg-card">
         <button
           onClick={() => setExpanded((e) => !e)}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground shrink-0"
           disabled={!creature.statBlock}
         >
           {expanded ? (
@@ -62,39 +66,35 @@ function CreatureRow({
 
         <div className="flex-1 min-w-0">
           <div className="font-medium text-sm truncate">{creature.name}</div>
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
             {creature.cr && <span>CR {creature.cr}</span>}
-            {creature.xp && <span>• {creature.xp.toLocaleString()} XP ea.</span>}
-            <Badge variant="outline" className="text-xs py-0 px-1">
+            {creature.xp && <span>· {creature.xp.toLocaleString()} XP ea.</span>}
+            <Badge variant="outline" className="text-xs py-0 px-1 h-4">
               {creature.sourceType}
             </Badge>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
-            className="w-6 h-6 rounded border border-border text-xs hover:bg-muted flex items-center justify-center"
+            className="w-6 h-6 rounded border border-border text-xs hover:bg-muted flex items-center justify-center font-bold"
             onClick={() => onCountChange(Math.max(1, creature.count - 1))}
-          >
-            −
-          </button>
-          <span className="w-6 text-center text-sm font-medium">{creature.count}</span>
+          >−</button>
+          <span className="w-6 text-center text-sm font-semibold tabular-nums">{creature.count}</span>
           <button
-            className="w-6 h-6 rounded border border-border text-xs hover:bg-muted flex items-center justify-center"
+            className="w-6 h-6 rounded border border-border text-xs hover:bg-muted flex items-center justify-center font-bold"
             onClick={() => onCountChange(Math.min(20, creature.count + 1))}
-          >
-            +
-          </button>
+          >+</button>
         </div>
 
-        <div className="text-xs text-muted-foreground w-16 text-right">
+        <div className="text-xs text-amber-500/90 w-16 text-right shrink-0 tabular-nums font-medium">
           {creature.xp ? (creature.xp * creature.count).toLocaleString() + ' XP' : '—'}
         </div>
 
         <Button
           size="sm"
           variant="ghost"
-          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive shrink-0"
           onClick={onRemove}
         >
           <Trash2 className="h-3 w-3" />
@@ -102,7 +102,7 @@ function CreatureRow({
       </div>
 
       {expanded && creature.statBlock && (
-        <div className="border-t border-border p-2">
+        <div className="border-t border-border p-3 bg-muted/20">
           <StatBlockCard monster={creature.statBlock as Parameters<typeof StatBlockCard>[0]['monster']} />
         </div>
       )}
@@ -113,22 +113,23 @@ function CreatureRow({
 export function EncounterBuilder({
   campaignId,
   planId,
+  campaignSlug,
   defaultPartySize = 4,
   defaultPartyLevel = 1,
 }: EncounterBuilderProps) {
   const utils = trpc.useUtils();
 
-  // Plan fields
   const [name, setName] = useState('New Encounter');
   const [sceneDescription, setSceneDescription] = useState('');
   const [tacticalNotes, setTacticalNotes] = useState('');
+  const [environmentalEffects, setEnvironmentalEffects] = useState('');
+  const [portraitUrl, setPortraitUrl] = useState('');
   const [difficulty, setDifficulty] = useState<EncounterDifficulty>('medium');
   const [partySize, setPartySize] = useState(defaultPartySize);
   const [partyLevel, setPartyLevel] = useState(defaultPartyLevel);
   const [creatures, setCreatures] = useState<CreatureRow[]>([]);
   const [activePlanId, setActivePlanId] = useState<string | null>(planId ?? null);
 
-  // Load existing plan if planId provided
   const planQuery = trpc.encounterPlans.getById.useQuery(
     { planId: planId! },
     { enabled: !!planId }
@@ -137,15 +138,19 @@ export function EncounterBuilder({
   useEffect(() => {
     const plan = planQuery.data;
     if (!plan) return;
-    setName(plan.name);
-    setSceneDescription(plan.sceneDescription ?? '');
-    setTacticalNotes(plan.tacticalNotes ?? '');
-    setDifficulty((plan.difficulty as EncounterDifficulty) ?? 'medium');
-    setPartySize(plan.partySize ?? defaultPartySize);
-    setPartyLevel(plan.partyLevel ?? defaultPartyLevel);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const p = plan as any;
+    setName(p.name);
+    setSceneDescription(p.sceneDescription ?? '');
+    setTacticalNotes(p.tacticalNotes ?? '');
+    setEnvironmentalEffects(p.environmentalEffects ?? '');
+    setPortraitUrl(p.portraitUrl ?? '');
+    setDifficulty((p.difficulty as EncounterDifficulty) ?? 'medium');
+    setPartySize(p.partySize ?? defaultPartySize);
+    setPartyLevel(p.partyLevel ?? defaultPartyLevel);
     setCreatures(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (plan.creatures as any[]).map((c) => ({
+      (p.creatures as any[]).map((c: any) => ({
         id: c.id as string,
         name: c.name as string,
         count: c.count as number,
@@ -161,13 +166,15 @@ export function EncounterBuilder({
   const generateMutation = trpc.encounterPlans.generate.useMutation({
     onSuccess: (plan) => {
       if (!plan) return;
-      setActivePlanId(plan.id);
-      setName(plan.name);
-      setSceneDescription(plan.sceneDescription ?? '');
-      setTacticalNotes(plan.tacticalNotes ?? '');
-      setDifficulty((plan.difficulty as EncounterDifficulty) ?? 'medium');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const p = plan as any;
+      setActivePlanId(p.id);
+      setName(p.name);
+      setSceneDescription(p.sceneDescription ?? '');
+      setTacticalNotes(p.tacticalNotes ?? '');
+      setDifficulty((p.difficulty as EncounterDifficulty) ?? 'medium');
       setCreatures(
-        (plan.creatures as CreatureRow[]).map((c) => ({
+        (p.creatures as CreatureRow[]).map((c) => ({
           id: c.id,
           name: c.name,
           count: c.count,
@@ -225,6 +232,13 @@ export function EncounterBuilder({
     onError: (err) => toast.error(err.message),
   });
 
+  const deletePlanMutation = trpc.encounterPlans.delete.useMutation({
+    onSuccess: () => {
+      window.location.href = `/campaigns/${campaignSlug}/encounters`;
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const handleGenerate = async (params: {
     userPrompt: string;
     partySize: number;
@@ -234,12 +248,7 @@ export function EncounterBuilder({
     setPartySize(params.partySize);
     setPartyLevel(params.partyLevel);
     setDifficulty(params.difficulty);
-
-    await generateMutation.mutateAsync({
-      campaignId,
-      name,
-      ...params,
-    });
+    await generateMutation.mutateAsync({ campaignId, name, ...params });
   };
 
   const handleAddCreature = async (payload: {
@@ -253,181 +262,257 @@ export function EncounterBuilder({
   }) => {
     let pId: string = activePlanId ?? '';
     if (!pId) {
-      // Auto-create the plan first
       const plan = await createPlanMutation.mutateAsync({
-        campaignId,
-        name,
-        partySize,
-        partyLevel,
-        difficulty,
+        campaignId, name, partySize, partyLevel, difficulty,
       });
       pId = plan.id;
     }
-
     await addCreatureMutation.mutateAsync({ planId: pId, ...payload });
   };
 
-  const handleRemoveCreature = (creatureId: string) => {
-    removeCreatureMutation.mutate({ creatureId });
-  };
-
   const handleCountChange = (creatureId: string, count: number) => {
-    setCreatures((prev) =>
-      prev.map((c) => (c.id === creatureId ? { ...c, count } : c))
-    );
+    setCreatures((prev) => prev.map((c) => (c.id === creatureId ? { ...c, count } : c)));
     updateCreatureMutation.mutate({ creatureId, count });
   };
 
   const handleSave = async () => {
     if (!activePlanId) {
-      // Create new plan
       const plan = await createPlanMutation.mutateAsync({
-        campaignId,
-        name,
-        partySize,
-        partyLevel,
-        difficulty,
+        campaignId, name, partySize, partyLevel, difficulty,
       });
       setActivePlanId(plan.id);
       return;
     }
-
     updatePlanMutation.mutate({
       planId: activePlanId!,
       name,
       sceneDescription,
       tacticalNotes,
+      environmentalEffects: environmentalEffects || undefined,
+      portraitUrl: portraitUrl || undefined,
       difficulty,
       partySize,
       partyLevel,
     });
   };
 
-  const creaturesForCalc = creatures.map((c) => ({
-    xp: c.xp ?? 0,
-    count: c.count,
-  }));
+  const creaturesForCalc = creatures.map((c) => ({ xp: c.xp ?? 0, count: c.count }));
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
-      {/* Left column */}
-      <div className="space-y-4">
-        {/* Plan name + party info */}
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_420px] gap-4 items-start">
+
+      {/* ── Left column — tabbed form ─────────────────────────────────────── */}
+      <div className="space-y-3">
+
+        {/* Encounter name bar — always visible */}
         <Card>
-          <CardContent className="pt-4 space-y-3">
+          <CardContent className="pt-4 pb-3">
             <div className="flex gap-3 items-end">
               <div className="flex-1 space-y-1">
-                <Label className="text-xs">Encounter Name</Label>
+                <Label className="text-xs text-muted-foreground">Encounter Name</Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="h-8"
+                  className="h-9 font-medium text-base"
                 />
               </div>
               <div className="w-20 space-y-1">
-                <Label className="text-xs">Party Size</Label>
+                <Label className="text-xs text-muted-foreground">Party</Label>
                 <Input
-                  type="number"
-                  min={1}
-                  max={12}
+                  type="number" min={1} max={12}
                   value={partySize}
                   onChange={(e) => setPartySize(parseInt(e.target.value) || 4)}
-                  className="h-8 text-sm"
+                  className="h-9 text-sm"
                 />
               </div>
               <div className="w-20 space-y-1">
-                <Label className="text-xs">Level</Label>
+                <Label className="text-xs text-muted-foreground">Level</Label>
                 <Input
-                  type="number"
-                  min={1}
-                  max={20}
+                  type="number" min={1} max={20}
                   value={partyLevel}
                   onChange={(e) => setPartyLevel(parseInt(e.target.value) || 1)}
-                  className="h-8 text-sm"
+                  className="h-9 text-sm"
                 />
               </div>
             </div>
-
-            {/* Difficulty Meter */}
-            <DifficultyMeter
-              creatures={creaturesForCalc}
-              partySize={partySize}
-              partyLevel={partyLevel}
-            />
           </CardContent>
         </Card>
 
-        {/* AI Prompt */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">AI Generate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AiPromptPanel
-              onGenerate={handleGenerate}
-              defaultPartySize={partySize}
-              defaultPartyLevel={partyLevel}
-              loading={generateMutation.isPending}
-            />
-          </CardContent>
-        </Card>
+        {/* Three-tab workspace */}
+        <Tabs defaultValue="combat" className="w-full">
+          <TabsList className="w-full justify-start gap-0 border-b border-border bg-transparent rounded-none px-0 mb-0">
+            <TabsTrigger
+              value="combat"
+              className="flex items-center gap-1.5 px-4 data-[state=active]:border-primary data-[state=active]:text-primary"
+            >
+              <Swords className="h-3.5 w-3.5" />
+              Combat
+            </TabsTrigger>
+            <TabsTrigger
+              value="story"
+              className="flex items-center gap-1.5 px-4 data-[state=active]:border-primary data-[state=active]:text-primary"
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              Story
+            </TabsTrigger>
+            <TabsTrigger
+              value="generate"
+              className="flex items-center gap-1.5 px-4 data-[state=active]:border-primary data-[state=active]:text-primary"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              AI Generate
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Creature list */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center justify-between">
-              <span>Creatures ({creatures.length})</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {creatures.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No creatures yet. Use AI Generate or add from the picker.
-              </p>
-            )}
-            {creatures.map((creature) => (
-              <CreatureRow
-                key={creature.id}
-                creature={creature}
-                onRemove={() => handleRemoveCreature(creature.id)}
-                onCountChange={(count) => handleCountChange(creature.id, count)}
-              />
-            ))}
-          </CardContent>
-        </Card>
+          {/* ── COMBAT tab ─────────────────────────────────────────────── */}
+          <TabsContent value="combat" className="mt-3 space-y-3">
+            {/* Difficulty meter */}
+            <Card>
+              <CardContent className="pt-3 pb-3">
+                <DifficultyMeter
+                  creatures={creaturesForCalc}
+                  partySize={partySize}
+                  partyLevel={partyLevel}
+                />
+              </CardContent>
+            </Card>
 
-        {/* Scene description */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Scene Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={sceneDescription}
-              onChange={(e) => setSceneDescription(e.target.value)}
-              placeholder="Describe the scene to read aloud to players..."
-              className="min-h-[80px] text-sm resize-none"
-            />
-          </CardContent>
-        </Card>
+            {/* Creature list */}
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Swords className="h-4 w-4 text-red-400" />
+                    <span className="text-sm font-semibold">Creatures</span>
+                    {creatures.length > 0 && (
+                      <Badge variant="secondary" className="text-xs h-5 px-1.5">
+                        {creatures.length}
+                      </Badge>
+                    )}
+                  </div>
+                  {creatures.length > 0 && (
+                    <span className="text-xs text-amber-500/80 font-medium tabular-nums">
+                      {creaturesForCalc.reduce((s, c) => s + c.xp * c.count, 0).toLocaleString()} raw XP
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {creatures.length === 0 ? (
+                    <div className="text-sm text-muted-foreground text-center py-6 border border-dashed border-border rounded-md">
+                      Add creatures from the picker →
+                    </div>
+                  ) : (
+                    creatures.map((creature) => (
+                      <CreatureRow
+                        key={creature.id}
+                        creature={creature}
+                        onRemove={() => removeCreatureMutation.mutate({ creatureId: creature.id })}
+                        onCountChange={(count) => handleCountChange(creature.id, count)}
+                      />
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Tactical notes */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Tactical Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={tacticalNotes}
-              onChange={(e) => setTacticalNotes(e.target.value)}
-              placeholder="DM tactics, positioning, environmental hazards..."
-              className="min-h-[80px] text-sm resize-none"
-            />
-          </CardContent>
-        </Card>
+          {/* ── STORY tab ──────────────────────────────────────────────── */}
+          <TabsContent value="story" className="mt-3 space-y-3">
+            {/* Scene description */}
+            <Card>
+              <CardContent className="pt-4 pb-3 space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-sky-400" />
+                  Scene Description
+                </Label>
+                <Textarea
+                  value={sceneDescription}
+                  onChange={(e) => setSceneDescription(e.target.value)}
+                  placeholder="Describe the scene to read aloud to players..."
+                  className="min-h-[90px] text-sm resize-none"
+                />
+              </CardContent>
+            </Card>
 
-        {/* Actions */}
-        <div className="flex gap-2">
+            {/* Environmental effects */}
+            <Card>
+              <CardContent className="pt-4 pb-3 space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Leaf className="h-3.5 w-3.5 text-emerald-400" />
+                  Environmental Effects
+                  <Badge variant="outline" className="text-xs py-0 px-1.5 h-4 font-normal">optional</Badge>
+                </Label>
+                <Textarea
+                  value={environmentalEffects}
+                  onChange={(e) => setEnvironmentalEffects(e.target.value)}
+                  placeholder="Weather, terrain, lighting, hazards... e.g. Heavy rain (−2 ranged), slippery stone (DC 10 Athletics), dim torchlight..."
+                  className="min-h-[80px] text-sm resize-none"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Tactical notes */}
+            <Card>
+              <CardContent className="pt-4 pb-3 space-y-1.5">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+                  Tactical Notes
+                </Label>
+                <Textarea
+                  value={tacticalNotes}
+                  onChange={(e) => setTacticalNotes(e.target.value)}
+                  placeholder="DM-only: monster tactics, positioning, lair actions, secret triggers..."
+                  className="min-h-[80px] text-sm resize-none"
+                />
+              </CardContent>
+            </Card>
+
+            {/* Portrait / Banner URL */}
+            <Card>
+              <CardContent className="pt-4 pb-3 space-y-2">
+                <Label className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Image className="h-3.5 w-3.5 text-purple-400" />
+                  Encounter Banner
+                  <Badge variant="outline" className="text-xs py-0 px-1.5 h-4 font-normal">optional</Badge>
+                </Label>
+                <Input
+                  value={portraitUrl}
+                  onChange={(e) => setPortraitUrl(e.target.value)}
+                  placeholder="https://... (image shown on encounter card)"
+                  className="h-8 text-sm"
+                />
+                {portraitUrl && (
+                  <div className="rounded overflow-hidden border border-border mt-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={portraitUrl}
+                      alt="Banner preview"
+                      className="w-full h-28 object-cover"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ── AI GENERATE tab ────────────────────────────────────────── */}
+          <TabsContent value="generate" className="mt-3">
+            <Card>
+              <CardContent className="pt-4 pb-4">
+                <AiPromptPanel
+                  onGenerate={handleGenerate}
+                  defaultPartySize={partySize}
+                  defaultPartyLevel={partyLevel}
+                  loading={generateMutation.isPending}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Save / Delete — always visible below tabs */}
+        <div className="flex gap-2 pt-1">
           <Button
             variant="outline"
             className="flex-1"
@@ -437,22 +522,40 @@ export function EncounterBuilder({
             <Save className="h-4 w-4 mr-2" />
             Save Plan
           </Button>
+          {activePlanId && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              disabled={deletePlanMutation.isPending}
+              onClick={() => {
+                if (!window.confirm('Delete this encounter plan? This cannot be undone.')) return;
+                deletePlanMutation.mutate({ planId: activePlanId });
+              }}
+              title="Delete plan"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Right column — Monster Picker */}
-      <Card className="h-fit lg:sticky lg:top-4">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">Add Creatures</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <MonsterPicker
-            campaignId={campaignId}
-            onAdd={handleAddCreature}
-            className="h-[600px]"
-          />
-        </CardContent>
-      </Card>
+      {/* ── Right column — Monster Picker (sticky) ────────────────────────── */}
+      <div className="lg:sticky lg:top-4">
+        <Card>
+          <CardContent className="p-0">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+              <Swords className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-semibold">Add Creatures</span>
+            </div>
+            <MonsterPicker
+              campaignId={campaignId}
+              onAdd={handleAddCreature}
+              className="h-[580px]"
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -64,6 +64,8 @@ export const encounterPlanRepository = {
       aiPrompt?: string;
       sceneDescription?: string;
       tacticalNotes?: string;
+      environmentalEffects?: string;
+      portraitUrl?: string;
       difficulty?: string;
       partySize?: number;
       partyLevel?: number;
