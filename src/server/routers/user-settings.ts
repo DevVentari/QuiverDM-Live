@@ -1,9 +1,75 @@
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
 import { router, protectedProcedure } from '../trpc';
-import { prisma } from '../db';
+import { prisma } from '@/lib/prisma';
 import { encrypt, decrypt, maskApiKey } from '@/lib/encryption';
+import { ValidationError, BadRequestError } from '../errors';
 
 export const userSettingsRouter = router({
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const user = await prisma.user.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { name: true, displayName: true, bio: true, email: true, image: true },
+    });
+    return user;
+  }),
+
+  updateProfile: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(100).optional(),
+        displayName: z.string().min(1).max(50).optional(),
+        bio: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const data: Record<string, string | null> = {};
+      if (input.name !== undefined) data.name = input.name;
+      if (input.displayName !== undefined) data.displayName = input.displayName;
+      if (input.bio !== undefined) data.bio = input.bio || null;
+
+      return prisma.user.update({ where: { id: userId }, data });
+    }),
+
+  changePassword: protectedProcedure
+    .input(
+      z.object({
+        currentPassword: z.string().min(1),
+        newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const account = await prisma.account.findFirst({
+        where: { userId, provider: 'credentials' },
+      });
+
+      if (!account || !account.password) {
+        throw new BadRequestError('No password set on this account. Use "Forgot password" to set one.');
+      }
+
+      const valid = await bcrypt.compare(input.currentPassword, account.password);
+      if (!valid) {
+        throw ValidationError.forField('currentPassword', 'Current password is incorrect');
+      }
+
+      const hashed = await bcrypt.hash(input.newPassword, 12);
+      await prisma.account.update({
+        where: { id: account.id },
+        data: { password: hashed },
+      });
+
+      return { success: true };
+    }),
+
+  deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    await prisma.user.delete({ where: { id: userId } });
+    return { success: true };
+  }),
+
   // Get user settings (with masked API keys)
   getSettings: protectedProcedure
     .query(async ({ ctx }) => {

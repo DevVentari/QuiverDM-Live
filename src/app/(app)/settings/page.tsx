@@ -1,17 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 
 const keyConfigs = [
@@ -129,11 +131,35 @@ function getSubscriptionLabel(status: string | null | undefined): string {
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const profile = trpc.userSettings.getProfile.useQuery(undefined, { staleTime: 300_000 });
   const settings = trpc.userSettings.getSettings.useQuery(undefined, { staleTime: 300_000 });
   const usage = trpc.usage.getStatus.useQuery(undefined, { staleTime: 300_000 });
   const billingStatus = trpc.billing.getStatus.useQuery(undefined, { staleTime: 300_000 });
   const billingPlans = trpc.billing.getPlans.useQuery(undefined, { staleTime: 300_000 });
   const utils = trpc.useUtils();
+
+  const updateProfile = trpc.userSettings.updateProfile.useMutation({
+    onSuccess: () => {
+      toast({ title: 'Profile updated' });
+      utils.userSettings.getProfile.invalidate();
+    },
+    onError: (error) => toast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
+
+  const changePassword = trpc.userSettings.changePassword.useMutation({
+    onSuccess: () => {
+      toast({ title: 'Password changed' });
+      setPasswordForm({ current: '', next: '', confirm: '' });
+    },
+    onError: (error) => toast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
+
+  const deleteAccount = trpc.userSettings.deleteAccount.useMutation({
+    onSuccess: async () => {
+      await signOut({ callbackUrl: '/auth/signin' });
+    },
+    onError: (error) => toast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
 
   const updateKeys = trpc.userSettings.updateApiKeys.useMutation({
     onSuccess: () => utils.userSettings.getSettings.invalidate(),
@@ -188,6 +214,22 @@ export default function SettingsPage() {
 
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: '', displayName: '', bio: '' });
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
+  const [passwordError, setPasswordError] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (profile.data && !profileLoaded) {
+      setProfileForm({
+        name: profile.data.name || '',
+        displayName: profile.data.displayName || '',
+        bio: profile.data.bio || '',
+      });
+      setProfileLoaded(true);
+    }
+  }, [profile.data, profileLoaded]);
 
   function handleStartCheckout(priceId: string | null | undefined) {
     if (!priceId) {
@@ -469,6 +511,129 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Profile</CardTitle>
+          <CardDescription>Your public display information</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {profile.isLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="profile-name">Name</Label>
+                  <Input
+                    id="profile-name"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Your name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="profile-displayname">Display Name</Label>
+                  <Input
+                    id="profile-displayname"
+                    value={profileForm.displayName}
+                    onChange={(e) => setProfileForm(prev => ({ ...prev, displayName: e.target.value }))}
+                    placeholder="Shown to other players"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-bio">Bio</Label>
+                <Textarea
+                  id="profile-bio"
+                  value={profileForm.bio}
+                  onChange={(e) => setProfileForm(prev => ({ ...prev, bio: e.target.value }))}
+                  placeholder="Tell other players about yourself..."
+                  rows={3}
+                  maxLength={500}
+                />
+                <p className="text-xs text-muted-foreground text-right">{profileForm.bio.length}/500</p>
+              </div>
+              <Button
+                size="sm"
+                onClick={() => updateProfile.mutate(profileForm)}
+                disabled={updateProfile.isPending}
+              >
+                {updateProfile.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                Save Profile
+              </Button>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Password</CardTitle>
+          <CardDescription>Change your account password</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {passwordError && (
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+              {passwordError}
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="pw-current">Current password</Label>
+            <Input
+              id="pw-current"
+              type="password"
+              value={passwordForm.current}
+              onChange={(e) => setPasswordForm(prev => ({ ...prev, current: e.target.value }))}
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pw-new">New password</Label>
+              <Input
+                id="pw-new"
+                type="password"
+                value={passwordForm.next}
+                onChange={(e) => setPasswordForm(prev => ({ ...prev, next: e.target.value }))}
+                minLength={8}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pw-confirm">Confirm new password</Label>
+              <Input
+                id="pw-confirm"
+                type="password"
+                value={passwordForm.confirm}
+                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm: e.target.value }))}
+                minLength={8}
+              />
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => {
+              setPasswordError('');
+              if (passwordForm.next !== passwordForm.confirm) {
+                setPasswordError('Passwords do not match.');
+                return;
+              }
+              if (passwordForm.next.length < 8) {
+                setPasswordError('New password must be at least 8 characters.');
+                return;
+              }
+              changePassword.mutate({ currentPassword: passwordForm.current, newPassword: passwordForm.next });
+            }}
+            disabled={changePassword.isPending || !passwordForm.current || !passwordForm.next}
+          >
+            {changePassword.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+            Change Password
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>API Keys</CardTitle>
           <CardDescription>
             Configure API keys for AI extraction and integrations.
@@ -596,6 +761,26 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      <Card className="border-destructive/30">
+        <CardHeader>
+          <CardTitle className="text-destructive">Delete Account</CardTitle>
+          <CardDescription>
+            Permanently delete your account and all campaign data. This cannot be undone.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setDeleteDialogOpen(true)}
+            disabled={deleteAccount.isPending}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete My Account
+          </Button>
+        </CardContent>
+      </Card>
+
       <ConfirmDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
@@ -608,6 +793,20 @@ export default function SettingsPage() {
           setCancelDialogOpen(false);
         }}
         loading={cancelSubscription.isPending}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Account"
+        description="This will permanently delete your account, all your campaigns, characters, NPCs, and session data. This action cannot be undone."
+        confirmLabel="Delete My Account"
+        variant="destructive"
+        onConfirm={() => {
+          deleteAccount.mutate();
+          setDeleteDialogOpen(false);
+        }}
+        loading={deleteAccount.isPending}
       />
     </div>
   );
