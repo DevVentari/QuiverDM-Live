@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,12 +66,20 @@ export default function PlayersPage() {
 
   if (chars.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center py-12 text-center">
-          <Users className="h-10 w-10 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No characters in this campaign yet.</p>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border border-dashed border-border">
+        <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+          <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-4">
+            <Users className="h-6 w-6 text-muted-foreground/40" />
+          </div>
+          <h3 className="font-semibold text-base mb-1">No players in this campaign yet</h3>
+          <p className="text-sm text-muted-foreground mb-5 max-w-xs">
+            Players appear here once they join this campaign with an invite code.
+          </p>
+          <Button asChild size="sm">
+            <Link href="/characters/new">Create Character</Link>
+          </Button>
+        </div>
+      </div>
     );
   }
 
