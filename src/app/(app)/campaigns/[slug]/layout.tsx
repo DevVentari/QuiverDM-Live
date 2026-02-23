@@ -48,9 +48,13 @@ export default function CampaignLayout({
   }
 
   const data = campaign.data as any;
-  const membership = data.membership || data.campaignMembers?.[0];
-  const role = membership?.role || 'PLAYER';
+  const role = data.myRole || data.myPermissions?.role || 'PLAYER';
   const isDM = role === 'OWNER' || role === 'CO_DM';
+
+  const roleLabel = role === 'OWNER' ? 'Dungeon Master' : role === 'CO_DM' ? 'Co-DM' : role === 'PLAYER' ? 'Player' : 'Spectator';
+  const roleColor = isDM
+    ? 'text-amber-400 border-amber-500/30 bg-amber-500/10'
+    : 'text-sky-400 border-sky-500/30 bg-sky-500/10';
 
   return (
     <CampaignProvider
@@ -63,15 +67,25 @@ export default function CampaignLayout({
         isDM,
       }}
     >
-      <div className="space-y-6 max-w-6xl">
-        <div>
-          <h1 className="text-2xl font-bold">{data.name}</h1>
-          {data.description && (
-            <p className="text-muted-foreground mt-1">{data.description}</p>
-          )}
+      <div className="space-y-0 w-full max-w-[1400px]">
+        {/* Campaign header */}
+        <div className="flex items-start justify-between gap-4 pb-4">
+          <div className="min-w-0">
+            <h1 className="font-display text-3xl font-bold tracking-wide leading-tight truncate">
+              {data.name}
+            </h1>
+            {data.description && (
+              <p className="text-muted-foreground text-sm mt-1 line-clamp-1">{data.description}</p>
+            )}
+          </div>
+          <span className={`shrink-0 mt-1 text-xs font-medium px-2.5 py-1 rounded-full border ${roleColor}`}>
+            {roleLabel}
+          </span>
         </div>
+
         <CampaignNav />
-        <div>{children}</div>
+
+        <div className="pt-6">{children}</div>
       </div>
     </CampaignProvider>
   );

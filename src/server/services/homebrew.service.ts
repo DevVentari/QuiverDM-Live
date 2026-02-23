@@ -2,6 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { homebrewRepository } from '../repositories/homebrew.repository';
 import { authz } from './authorization.service';
 import { indexHomebrew, deleteHomebrew, searchHomebrew } from '@/lib/search';
+import { prisma } from '../db';
 
 export class HomebrewService {
   async createContent(
@@ -108,14 +109,30 @@ export class HomebrewService {
     };
   }
 
-  async getContentById(id: string) {
+  async getContentById(id: string, userId: string) {
     const content = await homebrewRepository.findById(id);
 
     if (!content) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Homebrew content not found',
-      });
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Homebrew content not found' });
+    }
+
+    // Owner can always read their own content
+    if (content.userId === userId) {
+      return content;
+    }
+
+    // Non-owners may read if the item is shared in a campaign they belong to
+    const prismaAny = prisma as any;
+    const sharedAccess = await prismaAny.campaignHomebrewContent.findFirst({
+      where: {
+        homebrewId: id,
+        homebrew: { sharedWithPlayers: true },
+        campaign: { members: { some: { userId } } },
+      },
+    });
+
+    if (!sharedAccess) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
     }
 
     return content;

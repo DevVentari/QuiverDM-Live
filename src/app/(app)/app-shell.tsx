@@ -33,8 +33,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex-1" />
             <UserMenu />
           </header>
-          <main className="flex-1 overflow-y-auto p-6">
-            <ErrorBoundary>{children}</ErrorBoundary>
+          <main className="flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1400px] p-6">
+              <ErrorBoundary>{children}</ErrorBoundary>
+            </div>
           </main>
         </div>
       </div>

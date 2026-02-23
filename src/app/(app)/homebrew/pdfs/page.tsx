@@ -296,7 +296,8 @@ export default function PDFsPage() {
       staleTime: 30_000,
       refetchInterval: (query) => {
         const items = (query.state.data as any)?.items;
-        if (!items) return false;
+        // Poll while loading or while any item is still processing
+        if (!items) return 2000;
         const hasProcessing = items.some(
           (p: any) => p.processingStatus === 'pending' || p.processingStatus === 'processing'
         );

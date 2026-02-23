@@ -58,6 +58,8 @@ export const encounterPlansRouter = router({
         name: z.string().trim().min(1).max(150).optional(),
         sceneDescription: z.string().max(2000).optional(),
         tacticalNotes: z.string().max(2000).optional(),
+        environmentalEffects: z.string().max(1000).optional(),
+        portraitUrl: z.string().url().optional().or(z.literal('')),
         difficulty: difficultySchema.optional(),
         partySize: z.number().int().min(1).max(12).optional(),
         partyLevel: z.number().int().min(1).max(20).optional(),

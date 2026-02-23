@@ -1,12 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { getTypeStyle, getSourceLabel, formatPdfName } from '@/lib/homebrew-utils';
 import { SpellDetail } from '@/components/homebrew/details/SpellDetail';
@@ -15,11 +16,13 @@ import { ItemDetail } from '@/components/homebrew/details/ItemDetail';
 import { GenericDetail } from '@/components/homebrew/details/GenericDetail';
 import { AddToCharacterButton } from '@/components/homebrew/AddToCharacterButton';
 import { ImageGallery } from '@/components/homebrew/image-gallery';
+import { EditHomebrewDialog } from '@/components/homebrew/edit-homebrew-dialog';
 
 export default function HomebrewDetailPage() {
   const params = useParams();
   const homebrewId = params.homebrewId as string;
   const { data: session } = useSession();
+  const [editOpen, setEditOpen] = useState(false);
 
   const content = trpc.homebrew.getContentById.useQuery(
     { id: homebrewId },
@@ -104,14 +107,42 @@ export default function HomebrewDetailPage() {
             )}
           </div>
         </div>
-        {linkableType && (
-          <AddToCharacterButton
-            homebrewId={item.id}
-            homebrewName={item.name}
-            homebrewType={linkableType}
-          />
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {isOwner && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setEditOpen(true)}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edit
+            </Button>
+          )}
+          {linkableType && (
+            <AddToCharacterButton
+              homebrewId={item.id}
+              homebrewName={item.name}
+              homebrewType={linkableType}
+            />
+          )}
+        </div>
       </div>
+
+      {/* Edit dialog */}
+      {isOwner && (
+        <EditHomebrewDialog
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          onUpdated={() => content.refetch()}
+          item={{
+            id: item.id,
+            name: item.name,
+            tags: item.tags ?? [],
+            data: item.data as Record<string, unknown> | undefined,
+          }}
+        />
+      )}
 
       {/* Type-specific detail renderer */}
       {renderDetail()}
