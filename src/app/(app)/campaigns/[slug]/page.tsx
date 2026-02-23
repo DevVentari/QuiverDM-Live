@@ -1,50 +1,251 @@
 'use client';
 
+import Link from 'next/link';
+import Image from 'next/image';
+import { formatDistanceToNow } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Scroll, Swords, BookOpen } from 'lucide-react';
+import {
+  Scroll,
+  Swords,
+  Users,
+  BookOpen,
+  Play,
+  Plus,
+  Mail,
+  Settings,
+  ArrowRight,
+} from 'lucide-react';
 
 export default function CampaignOverviewPage() {
-  const { campaignId } = useCampaign();
-  const stats = trpc.campaigns.getStats.useQuery({ campaignId }, { staleTime: 120_000 });
+  const { campaignId, slug, isDM } = useCampaign();
 
-  if (stats.isLoading) {
+  const campaignQuery = trpc.campaigns.getBySlug.useQuery(
+    { slug },
+    { staleTime: 300_000 }
+  );
+  const statsQuery = trpc.campaigns.getStats.useQuery(
+    { campaignId },
+    { staleTime: 120_000 }
+  );
+  const sessionsQuery = trpc.sessions.getAll.useQuery(
+    { campaignId },
+    { staleTime: 60_000 }
+  );
+  const membersQuery = trpc.members.getAll.useQuery(
+    { campaignId },
+    { enabled: !isDM, staleTime: 120_000 }
+  );
+
+  const isLoading =
+    campaignQuery.isLoading || statsQuery.isLoading || sessionsQuery.isLoading;
+
+  const campaign = campaignQuery.data;
+  const stats = statsQuery.data;
+  const lastSession = sessionsQuery.data?.[0] ?? null;
+
+  // ─── Loading skeleton ────────────────────────────────────────────────────────
+  if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-28 rounded-lg" />
-        ))}
+      <div className="space-y-6">
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <div className="flex gap-3 flex-wrap">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-8 w-28 rounded-full" />
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Skeleton className="h-64 md:col-span-2 rounded-xl" />
+          <Skeleton className="h-64 rounded-xl" />
+        </div>
       </div>
     );
   }
 
-  const data = (stats.data || {}) as any;
+  // ─── Hero ────────────────────────────────────────────────────────────────────
+  const heroSection = (
+    <div className="relative overflow-hidden rounded-xl h-64">
+      {campaign?.bannerUrl ? (
+        <Image
+          src={campaign.bannerUrl}
+          alt={campaign.name}
+          fill
+          className="object-cover"
+          priority
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-indigo-950 to-slate-950" />
+      )}
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+      {/* Content */}
+      <div className="absolute bottom-0 left-0 right-0 p-6">
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="font-display text-3xl font-bold text-foreground truncate">
+              {campaign?.name ?? ''}
+            </h1>
+            {campaign?.description && (
+              <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                {campaign.description}
+              </p>
+            )}
+          </div>
+          <Badge variant={isDM ? 'default' : 'secondary'} className="shrink-0 mb-1">
+            {isDM ? 'Dungeon Master' : 'Player'}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
 
-  const statCards = [
-    { label: 'Sessions', value: data.sessions ?? 0, icon: Scroll },
-    { label: 'NPCs', value: data.npcs ?? 0, icon: Swords },
-    { label: 'Members', value: data.members ?? 0, icon: Users },
-    { label: 'Homebrew', value: data.homebrew ?? 0, icon: BookOpen },
-  ];
+  // ─── Stat pills ──────────────────────────────────────────────────────────────
+  const statPills = (
+    <div className="flex gap-2 flex-wrap">
+      {[
+        { icon: Scroll, count: stats?.sessionCount ?? 0, label: 'Sessions' },
+        { icon: Swords, count: stats?.npcCount ?? 0, label: 'NPCs' },
+        { icon: Users, count: stats?.playerCount ?? 0, label: 'Members' },
+        { icon: BookOpen, count: stats?.homebrewCount ?? 0, label: 'Homebrew' },
+      ].map(({ icon: Icon, count, label }, i, arr) => (
+        <span key={label} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Icon className="h-3.5 w-3.5" />
+          <span className="font-semibold text-foreground">{count}</span>
+          <span>{label}</span>
+          {i < arr.length - 1 && <span className="ml-1 opacity-30">·</span>}
+        </span>
+      ))}
+    </div>
+  );
+
+  // ─── Last session card ───────────────────────────────────────────────────────
+  const lastSessionCard = (
+    <Card className="relative overflow-hidden md:col-span-2">
+      {lastSession && (
+        <span className="absolute right-4 top-2 text-8xl font-bold text-foreground/5 select-none leading-none pointer-events-none">
+          #{lastSession.sessionNumber}
+        </span>
+      )}
+      <CardHeader>
+        <CardTitle className="text-base">Last Session</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {lastSession ? (
+          <div className="space-y-3">
+            <div>
+              <p className="font-semibold text-lg leading-tight">
+                {lastSession.title ?? `Session ${lastSession.sessionNumber}`}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {lastSession.date
+                  ? formatDistanceToNow(new Date(lastSession.date), { addSuffix: true })
+                  : lastSession.createdAt
+                  ? formatDistanceToNow(new Date(lastSession.createdAt), { addSuffix: true })
+                  : null}
+              </p>
+            </div>
+            {lastSession.aiSummary && typeof lastSession.aiSummary === 'string' && (
+              <p className="text-sm text-muted-foreground line-clamp-3">
+                {lastSession.aiSummary}
+              </p>
+            )}
+            <Button asChild variant="outline" size="sm" className="gap-2">
+              <Link href={`/campaigns/${slug}/sessions/${lastSession.id}`}>
+                Continue <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="py-6 text-center text-muted-foreground">
+            <Scroll className="h-8 w-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">No sessions yet — start your first!</p>
+            {isDM && (
+              <Button asChild size="sm" className="mt-3">
+                <Link href={`/campaigns/${slug}/sessions`}>
+                  Create Session
+                </Link>
+              </Button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  // ─── Quick actions (DM) / Members (player) ───────────────────────────────────
+  const sidePanel = isDM ? (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Quick Actions</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <Button asChild variant="outline" className="justify-start gap-3 h-11">
+          <Link href={`/campaigns/${slug}/sessions`}>
+            <Play className="h-4 w-4" />
+            Start Session
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="justify-start gap-3 h-11">
+          <Link href={`/campaigns/${slug}/npcs`}>
+            <Plus className="h-4 w-4" />
+            Add NPC
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="justify-start gap-3 h-11">
+          <Link href={`/campaigns/${slug}/members`}>
+            <Mail className="h-4 w-4" />
+            Invite Player
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="justify-start gap-3 h-11">
+          <Link href={`/campaigns/${slug}/settings`}>
+            <Settings className="h-4 w-4" />
+            Campaign Settings
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  ) : (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Party</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {membersQuery.isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-8 w-full rounded" />
+            ))}
+          </div>
+        ) : membersQuery.data && membersQuery.data.length > 0 ? (
+          <ul className="space-y-1.5">
+            {membersQuery.data.map((m) => (
+              <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
+                <span className="truncate">{m.user?.displayName ?? m.user?.name ?? m.user?.email ?? 'Unknown'}</span>
+                <Badge variant="outline" className="text-xs capitalize shrink-0">
+                  {m.role.toLowerCase().replace('_', ' ')}
+                </Badge>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-muted-foreground">No members yet.</p>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {stat.label}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-            </CardContent>
-          </Card>
-        ))}
+      {heroSection}
+      {statPills}
+      <div className="grid gap-6 md:grid-cols-3">
+        {lastSessionCard}
+        {sidePanel}
       </div>
     </div>
   );
