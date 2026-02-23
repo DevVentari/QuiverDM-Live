@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Plus, Swords, Sparkles, Trash2, Shield, Skull, Flame, Zap } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -31,6 +32,7 @@ type DiffKey = keyof typeof DIFF;
 export default function EncountersPage() {
   const { campaignId, slug, isDM } = useCampaign();
   const utils = trpc.useUtils();
+  const prefersReducedMotion = useReducedMotion();
   const [newPlanOpen, setNewPlanOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -67,11 +69,35 @@ export default function EncountersPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const plans = (plansQuery.data ?? []) as any[];
 
+  const gridVariants = {
+    hidden: {},
+    visible: {
+      transition: prefersReducedMotion ? {} : { staggerChildren: 0.06 },
+    },
+  };
+
+  const cardVariants = {
+    hidden: prefersReducedMotion ? {} : { opacity: 0, scale: 0.97, y: 8 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: prefersReducedMotion
+        ? { duration: 0 }
+        : { type: 'spring', stiffness: 300, damping: 25 },
+    },
+  };
+
   return (
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <motion.div
+        className="flex items-end justify-between"
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
+      >
         <div>
           <h1 className="font-display text-2xl font-bold tracking-wide">Encounter Plans</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
@@ -86,7 +112,7 @@ export default function EncountersPage() {
             New Encounter
           </Button>
         )}
-      </div>
+      </motion.div>
 
       {/* Cards */}
       {plansQuery.isLoading ? (
@@ -94,7 +120,12 @@ export default function EncountersPage() {
           {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-44 rounded-lg" />)}
         </div>
       ) : plans.length === 0 ? (
-        <div className="relative rounded-lg border border-dashed border-border overflow-hidden">
+        <motion.div
+          className="relative rounded-lg border border-dashed border-border overflow-hidden"
+          initial={prefersReducedMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4 }}
+        >
           <div className="absolute inset-0 bg-gradient-to-br from-red-950/15 via-transparent to-transparent pointer-events-none" />
           <div className="relative flex flex-col items-center justify-center py-20 text-center px-4">
             <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-5">
@@ -111,9 +142,14 @@ export default function EncountersPage() {
               </Button>
             )}
           </div>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          variants={gridVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {plans.map((plan) => {
             const key = (plan.difficulty ?? 'medium') as DiffKey;
             const d = DIFF[key] ?? DIFF.medium;
@@ -121,7 +157,7 @@ export default function EncountersPage() {
             const creatureCount = plan._count?.creatures ?? plan.creatures?.length ?? 0;
 
             return (
-              <div key={plan.id} className="relative group">
+              <motion.div key={plan.id} variants={cardVariants} className="relative group">
                 <Link href={`/campaigns/${slug}/encounters/${plan.id}`} className="block h-full">
                   <div className="relative h-full rounded-lg border border-border bg-card hover:border-foreground/25 transition-all duration-200 overflow-hidden flex flex-col">
 
@@ -192,10 +228,10 @@ export default function EncountersPage() {
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 )}
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
 
       {/* New encounter dialog */}
