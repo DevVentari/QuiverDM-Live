@@ -26,6 +26,7 @@ import { encounterPlansRouter } from './encounter-plans';
 import { rulesRouter } from './rules';
 import { webhooksRouter } from './webhooks';
 import { searchRouter } from './search';
+import { passwordResetRouter } from './password-reset';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -55,6 +56,7 @@ export const appRouter = router({
   rules: rulesRouter,
   webhooks: webhooksRouter,
   search: searchRouter,
+  passwordReset: passwordResetRouter,
 });
 
 export type AppRouter = typeof appRouter;

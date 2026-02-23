@@ -82,6 +82,18 @@ model User {
   updatedAt       DateTime          @updatedAt
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
 model UserSettings {
   id                      String   @id @default(cuid())
   userId                  String   @unique
