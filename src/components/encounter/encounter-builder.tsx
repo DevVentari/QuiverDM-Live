@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { AiPromptPanel } from './ai-prompt-panel';
 import { DifficultyMeter } from './difficulty-meter';
 import { MonsterPicker } from './monster-picker';
@@ -129,6 +130,7 @@ export function EncounterBuilder({
   const [partyLevel, setPartyLevel] = useState(defaultPartyLevel);
   const [creatures, setCreatures] = useState<CreatureRow[]>([]);
   const [activePlanId, setActivePlanId] = useState<string | null>(planId ?? null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const planQuery = trpc.encounterPlans.getById.useQuery(
     { planId: planId! },
@@ -294,6 +296,12 @@ export function EncounterBuilder({
       partySize,
       partyLevel,
     });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!activePlanId) return;
+    deletePlanMutation.mutate({ planId: activePlanId });
+    setConfirmDeleteOpen(false);
   };
 
   const creaturesForCalc = creatures.map((c) => ({ xp: c.xp ?? 0, count: c.count }));
@@ -529,8 +537,8 @@ export function EncounterBuilder({
               className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               disabled={deletePlanMutation.isPending}
               onClick={() => {
-                if (!window.confirm('Delete this encounter plan? This cannot be undone.')) return;
-                deletePlanMutation.mutate({ planId: activePlanId });
+                setConfirmDeleteOpen(true);
+                return;
               }}
               title="Delete plan"
             >
@@ -556,6 +564,15 @@ export function EncounterBuilder({
           </CardContent>
         </Card>
       </div>
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+        title="Delete encounter plan?"
+        description="This will permanently delete this plan and all its creatures. This cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }
