@@ -245,6 +245,7 @@ function FirstCampaignStep({
   onNext: () => void;
   onSkip: () => void;
 }) {
+  const router = useRouter();
   const { toast } = useToast();
   const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose');
   const [campaignName, setCampaignName] = useState('');
@@ -258,8 +259,11 @@ function FirstCampaignStep({
   });
 
   const createCampaign = trpc.campaigns.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       completeFirstCampaign.mutate();
+      if (data.slug) {
+        router.push(`/campaigns/${data.slug}`);
+      }
     },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
