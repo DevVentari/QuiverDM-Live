@@ -9,6 +9,7 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ export default function EncountersPage() {
   const [newPlanOpen, setNewPlanOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
   const deleteMutation = trpc.encounterPlans.delete.useMutation({
     onSuccess: () => {
@@ -218,9 +220,7 @@ export default function EncountersPage() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      if (!window.confirm(`Delete "${plan.name}"?`)) return;
-                      setDeletingId(plan.id);
-                      deleteMutation.mutate({ planId: plan.id });
+                      setDeletingPlanId(plan.id);
                     }}
                     disabled={deletingId === plan.id}
                     title="Delete"
@@ -268,6 +268,24 @@ export default function EncountersPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <ConfirmDialog
+        open={deletingPlanId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingPlanId(null);
+        }}
+        title="Delete encounter plan?"
+        description="This will permanently delete the plan and all its creatures. This cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={() => {
+          if (deletingPlanId) {
+            setDeletingId(deletingPlanId);
+            deleteMutation.mutate({ planId: deletingPlanId });
+            setDeletingPlanId(null);
+          }
+        }}
+        loading={deleteMutation.isPending}
+      />
     </div>
   );
 }
