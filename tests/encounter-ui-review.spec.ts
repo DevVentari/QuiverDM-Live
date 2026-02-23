@@ -317,6 +317,10 @@ test.describe('Encounter Builder — UI Review', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
+    // Encounter Tracker is in the "Live Play" tab (DM default)
+    await page.getByRole('tab', { name: /Live Play/i }).click();
+    await page.waitForTimeout(500);
+
     await expect(page.locator('h3').filter({ hasText: 'Encounters' })).toBeVisible();
     await page.screenshot({ path: 'playwright-report/11-session-tracker.png', fullPage: true });
     console.log('✅ Encounter Tracker section visible in session');
@@ -339,6 +343,13 @@ test.describe('Encounter Builder — UI Review', () => {
     await sessionLink.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
+
+    // Encounter Tracker is in the "Live Play" tab (DM default)
+    const livePlayTab = page.getByRole('tab', { name: /Live Play/i });
+    if (await livePlayTab.isVisible()) {
+      await livePlayTab.click();
+      await page.waitForTimeout(600);
+    }
 
     const encounterInput = page.locator('input[placeholder="Encounter name"]');
     if (!await encounterInput.isVisible()) {
