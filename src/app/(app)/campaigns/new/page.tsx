@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { z } from 'zod';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,11 +11,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
+const createCampaignSchema = z.object({
+  name: z.string().min(1, 'Campaign name is required').max(100, 'Name must be 100 characters or less'),
+});
+
 export default function NewCampaignPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const create = trpc.campaigns.create.useMutation({
     onSuccess: (campaign: any) => {
@@ -27,7 +33,17 @@ export default function NewCampaignPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    create.mutate({ name, description: description || undefined });
+    const result = createCampaignSchema.safeParse({ name: name.trim() });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0] as string] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+    setErrors({});
+    create.mutate({ name: name.trim(), description: description || undefined });
   }
 
   return (
@@ -50,9 +66,15 @@ export default function NewCampaignPage() {
                 id="name"
                 placeholder="Curse of Strahd"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setErrors({});
+                }}
                 required
               />
+              {errors.name && (
+                <p className="text-xs text-destructive mt-1">{errors.name}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
