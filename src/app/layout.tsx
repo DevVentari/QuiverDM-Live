@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter, Cinzel } from 'next/font/google';
+import { Cinzel, Bricolage_Grotesque } from 'next/font/google';
 import { Providers } from './providers';
 import './globals.css';
 
-const inter = Inter({
+const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-bricolage',
+  axes: ['opsz', 'wdth'],
 });
 
 const cinzel = Cinzel({
@@ -26,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${cinzel.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${bricolage.variable} ${cinzel.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
         <Providers>{children}</Providers>
       </body>
