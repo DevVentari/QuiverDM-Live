@@ -16,38 +16,38 @@ const config: Config = {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
         },
       },
       borderRadius: {
@@ -56,8 +56,9 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["var(--font-bricolage)", "system-ui", "sans-serif"],
         display: ["var(--font-cinzel)", "serif"],
+        mono: ["var(--font-mono, ui-monospace)", "monospace"],
       },
       keyframes: {
         "accordion-down": {
@@ -77,44 +78,44 @@ const config: Config = {
         DEFAULT: {
           css: {
             maxWidth: 'none',
-            color: 'hsl(var(--foreground))',
+            color: 'var(--foreground)',
             h1: {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
               fontWeight: '700',
-              borderBottom: '2px solid hsl(var(--border))',
+              borderBottom: '2px solid var(--border)',
               paddingBottom: '0.5rem',
               marginBottom: '1rem',
             },
             h2: {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
               fontWeight: '600',
-              borderBottom: '1px solid hsl(var(--border))',
+              borderBottom: '1px solid var(--border)',
               paddingBottom: '0.25rem',
               marginTop: '2rem',
             },
             h3: {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
               fontWeight: '600',
             },
             h4: {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
               fontWeight: '600',
             },
             strong: {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
               fontWeight: '600',
             },
             a: {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
               textDecoration: 'underline',
               textUnderlineOffset: '2px',
               '&:hover': {
-                color: 'hsl(var(--muted-foreground))',
+                color: 'var(--muted-foreground)',
               },
             },
             code: {
-              color: 'hsl(var(--foreground))',
-              backgroundColor: 'hsl(var(--muted))',
+              color: 'var(--foreground)',
+              backgroundColor: 'var(--muted)',
               padding: '0.125rem 0.25rem',
               borderRadius: '0.25rem',
               fontWeight: '500',
@@ -126,34 +127,34 @@ const config: Config = {
               content: '""',
             },
             pre: {
-              backgroundColor: 'hsl(var(--muted))',
-              border: '1px solid hsl(var(--border))',
+              backgroundColor: 'var(--muted)',
+              border: '1px solid var(--border)',
               borderRadius: '0.375rem',
             },
             blockquote: {
-              borderLeftColor: 'hsl(var(--border))',
+              borderLeftColor: 'var(--border)',
               borderLeftWidth: '4px',
-              color: 'hsl(var(--muted-foreground))',
+              color: 'var(--muted-foreground)',
             },
             table: {
-              borderColor: 'hsl(var(--border))',
+              borderColor: 'var(--border)',
             },
             thead: {
-              borderBottomColor: 'hsl(var(--border))',
+              borderBottomColor: 'var(--border)',
               borderBottomWidth: '2px',
             },
             'thead th': {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
               fontWeight: '600',
             },
             'tbody tr': {
-              borderBottomColor: 'hsl(var(--border))',
+              borderBottomColor: 'var(--border)',
             },
             'tbody td': {
-              color: 'hsl(var(--foreground))',
+              color: 'var(--foreground)',
             },
             hr: {
-              borderColor: 'hsl(var(--border))',
+              borderColor: 'var(--border)',
             },
             ul: {
               listStyleType: 'disc',
@@ -173,3 +174,4 @@ const config: Config = {
 };
 
 export default config;
+
