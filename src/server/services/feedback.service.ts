@@ -69,8 +69,8 @@ export const feedbackService = {
       },
     });
 
-    // TODO: Send Discord webhook notification for new feedback
-    // await this.notifyNewFeedback(feedback);
+    // Fire-and-forget Discord notification (non-blocking)
+    void this.notifyNewFeedback(feedback);
 
     return feedback;
   },
