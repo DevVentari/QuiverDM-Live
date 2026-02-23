@@ -12,10 +12,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U quiverdm"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -89,7 +90,8 @@ services:
       - n8n_data:/home/node/.n8n
       - ./test-documents/makita-masters/transcriptions:/data/transcriptions
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   n8n-mcp:
     image: ghcr.io/czlonkowski/n8n-mcp/n8n-mcp:latest
@@ -125,6 +127,20 @@ services:
               capabilities: [gpu]
     profiles:
       - gpu
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - tunnel
 
 volumes:
   postgres_data:

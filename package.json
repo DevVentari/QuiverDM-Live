@@ -33,6 +33,8 @@
     "generate-beta-invites": "tsx scripts/generate-beta-invites.ts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:playwright": "playwright test",
+    "test:playwright:ui": "playwright test --ui",
     "db:seed": "npx prisma db seed"
   },
   "prisma": {
