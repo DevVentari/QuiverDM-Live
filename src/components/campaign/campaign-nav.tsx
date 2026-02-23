@@ -45,7 +45,7 @@ export function CampaignNav() {
       {/* Bottom border full-width rule */}
       <div className="absolute bottom-0 left-0 right-0 h-px bg-border" />
 
-      <nav className="flex gap-0.5 overflow-x-auto scrollbar-hide pb-px">
+      <nav className="flex w-full overflow-x-auto scrollbar-hide pb-px">
         {visibleTabs.map((tab) => {
           const href = base + tab.href;
           const isActive =
@@ -59,7 +59,7 @@ export function CampaignNav() {
               key={tab.href}
               href={href}
               className={cn(
-                'group relative flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap transition-all duration-150 select-none outline-none',
+                'group relative flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium whitespace-nowrap transition-all duration-150 select-none outline-none min-w-0',
                 isActive
                   ? 'text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
