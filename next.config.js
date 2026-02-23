@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
+const securityHeaders = [
+  { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=()' },
+  { key: 'X-DNS-Prefetch-Control', value: 'on' },
+];
+
 const nextConfig = {
   output: 'standalone',
+  async headers() {
+    return [{ source: '/(.*)', headers: securityHeaders }];
+  },
   transpilePackages: ['next-themes'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
