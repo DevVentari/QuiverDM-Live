@@ -36,6 +36,10 @@ export function CampaignNav() {
   const base = `/campaigns/${slug}`;
 
   const visibleTabs = tabs.filter((tab) => {
+    // Visibility rules:
+    // - /members and /settings are DM-only (campaign management)
+    // - /players is visible to all roles (party overview â€” intentionally public within campaign)
+    // - All other tabs are visible to all roles
     if (tab.href === '/members' || tab.href === '/settings') return isDM;
     return true;
   });
