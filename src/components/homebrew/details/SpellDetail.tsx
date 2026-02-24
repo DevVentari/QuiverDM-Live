@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
+import { htmlToText } from '@/lib/html-utils';
 
 interface SpellDetailProps {
   data: any;
@@ -60,7 +61,7 @@ export function SpellDetail({ data }: SpellDetailProps) {
             <CardTitle className="text-sm">Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{data.description || data.text}</p>
+            <p className="text-sm whitespace-pre-wrap">{htmlToText(data.description || data.text || '')}</p>
           </CardContent>
         </Card>
       )}
@@ -71,7 +72,7 @@ export function SpellDetail({ data }: SpellDetailProps) {
             <CardTitle className="text-sm">At Higher Levels</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{data.higher_levels}</p>
+            <p className="text-sm whitespace-pre-wrap">{htmlToText(data.higher_levels || '')}</p>
           </CardContent>
         </Card>
       )}

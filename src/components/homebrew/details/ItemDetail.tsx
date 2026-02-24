@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wand2 } from 'lucide-react';
+import { htmlToText } from '@/lib/html-utils';
 
 interface ItemDetailProps {
   data: any;
@@ -55,7 +56,7 @@ export function ItemDetail({ data }: ItemDetailProps) {
             <CardTitle className="text-sm">Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{data.description || data.text}</p>
+            <p className="text-sm whitespace-pre-wrap">{htmlToText(data.description || data.text || '')}</p>
           </CardContent>
         </Card>
       )}
