@@ -1,4 +1,4 @@
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import {
   getTranscript,
@@ -9,7 +9,12 @@ import {
   deleteTranscript,
 } from '@/lib/transcription/db';
 import { authz } from '../services/authorization.service';
-import { NotFoundError } from '../errors';
+import { BadRequestError, NotFoundError } from '../errors';
+
+const TranscriptIdSchema = z.string().min(1);
+const SessionIdSchema = z.string().min(1);
+const SegmentTextSchema = z.string().min(1).max(20000);
+const SpeakerNameSchema = z.string().min(1).max(255);
 
 export const transcriptRouter = router({
   /**
@@ -18,7 +23,7 @@ export const transcriptRouter = router({
   getTranscript: protectedProcedure
     .input(
       z.object({
-        transcriptId: z.string(),
+        transcriptId: TranscriptIdSchema,
       })
     )
     .query(async ({ input, ctx }) => {
@@ -37,7 +42,7 @@ export const transcriptRouter = router({
   getSessionTranscripts: protectedProcedure
     .input(
       z.object({
-        sessionId: z.string(),
+        sessionId: SessionIdSchema,
       })
     )
     .query(async ({ input, ctx }) => {
@@ -52,8 +57,8 @@ export const transcriptRouter = router({
   updateCorrection: protectedProcedure
     .input(
       z.object({
-        transcriptId: z.string(),
-        correctedText: z.string(),
+        transcriptId: TranscriptIdSchema,
+        correctedText: z.string().max(50000),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -66,13 +71,19 @@ export const transcriptRouter = router({
   updateSegment: protectedProcedure
     .input(
       z.object({
-        transcriptId: z.string().min(1),
+        transcriptId: TranscriptIdSchema,
         segmentIndex: z.number().int().min(0),
-        text: z.string().min(1).max(5000),
+        text: SegmentTextSchema,
       })
     )
     .mutation(async ({ input, ctx }) => {
-      await authz.transcript(input.transcriptId, ctx.session.user.id);
+      const transcript = await authz.transcript(input.transcriptId, ctx.session.user.id);
+      const timestamps = (transcript.timestamps as any[]) ?? [];
+
+      if (input.segmentIndex >= timestamps.length) {
+        throw new BadRequestError('Segment index is out of range for this transcript');
+      }
+
       await updateTranscriptSegment(
         input.transcriptId,
         input.segmentIndex,
@@ -84,9 +95,9 @@ export const transcriptRouter = router({
   renameSpeaker: protectedProcedure
     .input(
       z.object({
-        transcriptId: z.string().min(1),
+        transcriptId: TranscriptIdSchema,
         oldName: z.string().min(1).max(255),
-        newName: z.string().min(1).max(255),
+        newName: SpeakerNameSchema,
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -101,7 +112,7 @@ export const transcriptRouter = router({
   deleteTranscript: protectedProcedure
     .input(
       z.object({
-        transcriptId: z.string(),
+        transcriptId: TranscriptIdSchema,
       })
     )
     .mutation(async ({ input, ctx }) => {

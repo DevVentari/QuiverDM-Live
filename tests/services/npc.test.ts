@@ -1,129 +1,181 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ValidationError, NotFoundError } from '@/server/errors';
 
-/**
- * Unit tests for NPC business logic and validation rules.
- * These test the validation constraints and data-shaping logic
- * without hitting the database. DB-level tests require integration setup.
- */
+const mocks = vi.hoisted(() => ({
+  npcRepository: {
+    findById: vi.fn(),
+    findByCampaignId: vi.fn(),
+    findByIds: vi.fn(),
+    findFactions: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
+  },
+  authz: {
+    campaign: vi.fn(),
+    npc: vi.fn(),
+  },
+  search: {
+    indexNpc: vi.fn(),
+    deleteNpc: vi.fn(),
+    searchNpcs: vi.fn(),
+  },
+  queue: {
+    addEmbeddingJob: vi.fn(),
+  },
+  embeddings: {
+    deleteEntityEmbeddings: vi.fn(),
+  },
+}));
 
-// Mirror the Zod schema used in src/server/routers/npcs.ts
-import { z } from 'zod';
+vi.mock('@/server/repositories/npc.repository', () => ({
+  npcRepository: mocks.npcRepository,
+}));
 
-const NpcCreateSchema = z.object({
-  campaignId: z.string(),
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  faction: z.string().optional(),
-  secrets: z.string().optional(),
-  imageUrl: z.string().optional(),
-});
+vi.mock('@/server/services/authorization.service', () => ({
+  authz: mocks.authz,
+}));
 
-const NpcUpdateSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, 'Name is required').optional(),
-  description: z.string().optional(),
-  faction: z.string().optional(),
-  secrets: z.string().optional(),
-  imageUrl: z.string().optional(),
-});
+vi.mock('@/lib/search', () => ({
+  indexNpc: mocks.search.indexNpc,
+  deleteNpc: mocks.search.deleteNpc,
+  searchNpcs: mocks.search.searchNpcs,
+}));
 
-describe('NPC create schema validation', () => {
-  it('accepts valid NPC create payload', () => {
-    const result = NpcCreateSchema.safeParse({
+vi.mock('@/lib/queue/embeddings-queue', () => ({
+  addEmbeddingJob: mocks.queue.addEmbeddingJob,
+}));
+
+vi.mock('@/server/repositories/embedding.repository', () => ({
+  deleteEntityEmbeddings: mocks.embeddings.deleteEntityEmbeddings,
+}));
+
+import { npcService } from '@/server/services/npc.service';
+
+describe('npcService', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mocks.authz.campaign.mockReturnValue({
+      verify: vi.fn().mockResolvedValue({ isDM: true, member: null }),
+      requirePermission: vi.fn().mockResolvedValue({ isDM: true, member: null }),
+    });
+
+    mocks.authz.npc.mockReturnValue({
+      verify: vi.fn().mockResolvedValue({ isDM: true, member: null }),
+      requireEdit: vi.fn().mockResolvedValue({ isDM: true, member: null }),
+    });
+
+    mocks.search.indexNpc.mockResolvedValue(undefined);
+    mocks.search.deleteNpc.mockResolvedValue(undefined);
+    mocks.search.searchNpcs.mockResolvedValue([]);
+    mocks.queue.addEmbeddingJob.mockResolvedValue(undefined);
+    mocks.embeddings.deleteEntityEmbeddings.mockResolvedValue(undefined);
+  });
+
+  it('throws ValidationError when creating NPC without a name', async () => {
+    await expect(
+      npcService.create('campaign-1', 'user-1', { name: '' })
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it('throws ValidationError when name exceeds 255 chars', async () => {
+    await expect(
+      npcService.create('campaign-1', 'user-1', { name: 'a'.repeat(256) })
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it('stores XSS-like description as-is without crashing', async () => {
+    mocks.npcRepository.create.mockImplementation(async (data: any) => ({
+      id: 'npc-1',
+      campaignId: data.campaignId,
+      name: data.name,
+      description: data.description,
+      faction: null,
+      role: null,
+      tags: [],
+      secrets: null,
+    }));
+
+    const result = await npcService.create('campaign-1', 'user-1', {
+      name: 'Suspicious NPC',
+      description: '<script>alert(1)</script>',
+    });
+
+    expect(result.description).toBe('<script>alert(1)</script>');
+  });
+
+  it('throws NotFoundError when NPC does not exist', async () => {
+    mocks.npcRepository.findById.mockResolvedValue(null);
+
+    await expect(npcService.getById('missing', 'user-1')).rejects.toBeInstanceOf(NotFoundError);
+  });
+
+  it('does partial update without wiping unspecified fields', async () => {
+    mocks.npcRepository.update.mockImplementation(async (_id: string, data: any) => ({
+      id: 'npc-1',
       campaignId: 'campaign-1',
-      name: 'Garrek the Bold',
-    });
-    expect(result.success).toBe(true);
+      name: data.name ?? 'Old Name',
+      description: 'Keeps description',
+      faction: 'Guild',
+      role: 'Scout',
+      tags: ['tag1'],
+      secrets: 'secret',
+    }));
+
+    const result = await npcService.update('npc-1', 'user-1', { name: 'New Name' });
+
+    expect(mocks.npcRepository.update).toHaveBeenCalledWith('npc-1', { name: 'New Name' });
+    expect(result.description).toBe('Keeps description');
   });
 
-  it('rejects empty name', () => {
-    const result = NpcCreateSchema.safeParse({
+  it('deleted NPC is not returned by campaign list query', async () => {
+    let items = [
+      { id: 'npc-1', campaignId: 'campaign-a', name: 'Alpha' },
+      { id: 'npc-2', campaignId: 'campaign-a', name: 'Beta' },
+    ];
+
+    mocks.npcRepository.remove.mockImplementation(async (id: string) => {
+      items = items.filter((npc) => npc.id !== id);
+    });
+    mocks.npcRepository.findByCampaignId.mockImplementation(async (campaignId: string) =>
+      items.filter((npc) => npc.campaignId === campaignId)
+    );
+
+    await npcService.delete('npc-1', 'user-1');
+    const result = await npcService.getByCampaignId('campaign-a', 'user-1');
+
+    expect(result.map((npc: any) => npc.id)).toEqual(['npc-2']);
+  });
+
+  it('scopes list queries to the requested campaign', async () => {
+    mocks.npcRepository.findByCampaignId.mockImplementation(async (campaignId: string) =>
+      [{ id: 'npc-b', campaignId, name: 'B NPC' }]
+    );
+
+    const result = await npcService.getByCampaignId('campaign-b', 'user-1');
+
+    expect(result).toEqual([{ id: 'npc-b', campaignId: 'campaign-b', name: 'B NPC' }]);
+  });
+
+  it('still creates NPC when search indexing fails', async () => {
+    mocks.npcRepository.create.mockResolvedValue({
+      id: 'npc-1',
       campaignId: 'campaign-1',
-      name: '',
+      name: 'Resilient NPC',
+      description: null,
+      faction: null,
+      role: null,
+      tags: [],
+      secrets: null,
     });
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0]?.message).toMatch(/required/i);
-  });
+    mocks.search.indexNpc.mockRejectedValue(new Error('Meili down'));
 
-  it('rejects missing name', () => {
-    const result = NpcCreateSchema.safeParse({
-      campaignId: 'campaign-1',
+    const result = await npcService.create('campaign-1', 'user-1', {
+      name: 'Resilient NPC',
     });
-    expect(result.success).toBe(false);
-  });
 
-  it('rejects missing campaignId', () => {
-    const result = NpcCreateSchema.safeParse({ name: 'Garrek' });
-    expect(result.success).toBe(false);
-  });
-
-  it('accepts NPC with all optional fields', () => {
-    const result = NpcCreateSchema.safeParse({
-      campaignId: 'campaign-1',
-      name: 'Garrek the Bold',
-      description: 'A fierce warrior',
-      faction: 'Iron Brotherhood',
-      secrets: 'Works for the Shadow King',
-      imageUrl: 'https://example.com/garrek.png',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts NPC description with HTML content (not sanitized at router level)', () => {
-    const result = NpcCreateSchema.safeParse({
-      campaignId: 'campaign-1',
-      name: 'Garrek',
-      description: '<p>A <strong>fierce</strong> warrior</p>',
-    });
-    expect(result.success).toBe(true); // Sanitization is display concern
-  });
-
-  it('accepts single-character name', () => {
-    const result = NpcCreateSchema.safeParse({ campaignId: 'c1', name: 'X' });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts name at 255 characters', () => {
-    const result = NpcCreateSchema.safeParse({
-      campaignId: 'c1',
-      name: 'A'.repeat(255),
-    });
-    // Current schema has no max — should pass
-    expect(result.success).toBe(true);
-  });
-});
-
-describe('NPC update schema validation', () => {
-  it('accepts partial update with only name', () => {
-    const result = NpcUpdateSchema.safeParse({ id: 'npc-1', name: 'Updated Name' });
-    expect(result.success).toBe(true);
-  });
-
-  it('rejects update with empty name (when name is provided)', () => {
-    const result = NpcUpdateSchema.safeParse({ id: 'npc-1', name: '' });
-    expect(result.success).toBe(false);
-  });
-
-  it('accepts update with only description (name not required in update)', () => {
-    const result = NpcUpdateSchema.safeParse({ id: 'npc-1', description: 'New description' });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts no-op update (only id)', () => {
-    const result = NpcUpdateSchema.safeParse({ id: 'npc-1' });
-    expect(result.success).toBe(true);
-  });
-});
-
-describe('NPC data shaping', () => {
-  it('optional description defaults to undefined when not provided', () => {
-    const result = NpcCreateSchema.parse({ campaignId: 'c1', name: 'Garrek' });
-    expect(result.description).toBeUndefined();
-  });
-
-  it('optional fields are stripped when undefined', () => {
-    const result = NpcCreateSchema.parse({ campaignId: 'c1', name: 'Garrek' });
-    expect(result).not.toHaveProperty('faction');
-    expect(result).not.toHaveProperty('secrets');
+    expect(result.id).toBe('npc-1');
+    expect(mocks.npcRepository.create).toHaveBeenCalled();
   });
 });
