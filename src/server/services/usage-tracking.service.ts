@@ -1,31 +1,16 @@
-import { prisma } from '@/lib/prisma';
+import { usageService } from './usage.service';
 
-const TIER_LIMITS: Record<string, { imagesPerMonth: number; isUnlimited: boolean }> = {
-  free: { imagesPerMonth: 10, isUnlimited: false },
-  pro: { imagesPerMonth: 100, isUnlimited: false },
-  team: { imagesPerMonth: 1000, isUnlimited: true },
-};
-
+/**
+ * Check image generation limit for a user.
+ * Delegates to usageService (UserUsage table, Option A caps).
+ */
 export async function checkImageGenerationLimit(userId: string) {
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
-  const limits = TIER_LIMITS[user?.tier ?? 'free'] ?? TIER_LIMITS.free;
-
-  const now = new Date();
-  const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  const used = await prisma.imageGenerationJob.count({
-    where: {
-      userId,
-      status: { in: ['queued', 'processing', 'completed'] },
-      createdAt: { gte: periodStart },
-    },
-  });
-
-  const remaining = Math.max(0, limits.imagesPerMonth - used);
+  const status = await usageService.getUsageStatus(userId);
+  const { used, limit, remaining } = status.imageGenerations;
   return {
-    allowed: limits.isUnlimited || remaining > 0,
-    remaining,
-    limit: limits.imagesPerMonth,
+    allowed: limit === -1 || remaining > 0,
+    remaining: limit === -1 ? Infinity : remaining,
+    limit,
     used,
   };
 }

@@ -1,6 +1,8 @@
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import { searchService } from '../services/search.service';
+import { usageService } from '../services/usage.service';
 
 export const searchRouter = router({
   semantic: protectedProcedure
@@ -15,13 +17,28 @@ export const searchRouter = router({
         limit: z.number().int().min(1).max(20).optional().default(10),
       })
     )
-    .query(({ input, ctx }) =>
-      searchService.semantic(
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id;
+
+      const canSearch = await usageService.canSearch(userId);
+      if (!canSearch) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Semantic search limit reached for your tier. Upgrade to Pro for more searches.',
+        });
+      }
+
+      const results = await searchService.semantic(
         input.query,
         input.campaignId,
-        ctx.session.user.id,
+        userId,
         input.entityTypes,
         input.limit
-      )
-    ),
+      );
+
+      // Fire-and-forget increment (search already ran; don't block on accounting)
+      void usageService.incrementSemanticSearches(userId).catch(() => {});
+
+      return results;
+    }),
 });

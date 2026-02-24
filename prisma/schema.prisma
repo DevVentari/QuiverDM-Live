@@ -869,15 +869,31 @@ model UserUsage {
 
   // Transcription usage (in seconds)
   transcriptionSeconds    Int      @default(0)
-  transcriptionLimit      Int      @default(1800) // 30 minutes for free tier
+  transcriptionLimit      Int      @default(7200) // 120 minutes for free tier
 
   // PDF uploads
   pdfUploads              Int      @default(0)
-  pdfUploadLimit          Int      @default(5) // 5 PDFs for free tier
+  pdfUploadLimit          Int      @default(3) // 3 PDFs for free tier
 
   // Campaigns owned
   campaignsOwned          Int      @default(0)
   campaignLimit           Int      @default(1) // 1 campaign for free tier
+
+  // Session uploads (audio recording uploads)
+  sessionUploads          Int      @default(0)
+  sessionUploadLimit      Int      @default(4) // 4/mo for free tier
+
+  // AI recaps (session summary generations)
+  aiRecaps                Int      @default(0)
+  aiRecapLimit            Int      @default(4) // 4/mo for free tier
+
+  // Semantic searches
+  semanticSearches        Int      @default(0)
+  semanticSearchLimit     Int      @default(50) // 50/mo for free tier
+
+  // Image generations
+  imageGenerations        Int      @default(0)
+  imageGenerationLimit    Int      @default(5) // 5/mo for free tier
 
   // Last reset date (for tracking monthly resets)
   lastResetAt             DateTime @default(now())
