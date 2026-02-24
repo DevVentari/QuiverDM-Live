@@ -6,6 +6,7 @@
  */
 
 import { TRPCError } from '@trpc/server';
+import { NotFoundError, ValidationError } from '../errors';
 import { CampaignRole } from '@prisma/client';
 import { campaignRepository } from '../repositories/campaign.repository';
 import { authz, type CampaignAccess } from './authorization.service';
@@ -142,7 +143,7 @@ export class CampaignService {
     const campaignBasic = await campaignRepository.findBySlug(slug);
 
     if (!campaignBasic) {
-      return null;
+      throw new NotFoundError('campaign', slug);
     }
 
     return this.getById(campaignBasic.id, userId);
@@ -152,17 +153,22 @@ export class CampaignService {
    * Create a new campaign
    */
   async create(userId: string, input: CreateCampaignInput) {
+    const normalizedName = input.name.trim();
+    if (!normalizedName) {
+      throw ValidationError.forField('name', 'Campaign name is required');
+    }
+
     // Check usage limits before creating campaign
     await usageService.incrementCampaigns(userId);
 
     // Generate unique slug
-    const slug = await generateUniqueSlug(input.name, async (slug) => {
+    const slug = await generateUniqueSlug(normalizedName, async (slug) => {
       return campaignRepository.slugExists(slug);
     });
 
     try {
       const campaign = await campaignRepository.create({
-        name: input.name,
+        name: normalizedName,
         slug,
         description: input.description,
         bannerUrl: input.bannerUrl,
@@ -350,3 +356,4 @@ export class CampaignService {
 
 // Singleton instance
 export const campaignService = new CampaignService();
+

@@ -95,6 +95,22 @@
       ],
       "cogs_risk": "low",
       "priority": "p1"
+    },
+    {
+      "id": "market-pricing-validation",
+      "title": "Market Pricing and Position Validation",
+      "state": "researching",
+      "research_gate": "pending",
+      "owner": "research",
+      "evidence_refs": [
+        "docs/obsidian-vault/10-Research/2026-02-24-market-snapshot-pricing-signals.md",
+        "docs/obsidian-vault/10-Research/2026-02-24-deep-market-research-matrix.md"
+      ],
+      "implementation_refs": [
+        "docs/plans/2026-02-23-90-day-breakeven-model.md"
+      ],
+      "cogs_risk": "high",
+      "priority": "p0"
     }
   ]
 }

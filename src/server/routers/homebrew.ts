@@ -35,14 +35,14 @@ export const homebrewRouter = router({
     .input(
       z.object({
         type: HomebrewType,
-        name: z.string(),
+        name: z.string().min(1).max(255),
         data: z.any().default({}),
         images: z.array(z.string()).default([]),
         tags: z.array(z.string()).default([]),
         addToCampaignId: z.string().optional(), // Optionally add to campaign immediately
         sourceType: SourceType.default('manual'),
-        dndBeyondId: z.string().optional(),
-        dndBeyondUrl: z.string().optional(),
+        dndBeyondId: z.string().min(1).optional(),
+        dndBeyondUrl: z.string().url().optional(),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -55,7 +55,7 @@ export const homebrewRouter = router({
   getContent: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string().optional(),
+        campaignId: z.string().min(1).optional(),
         type: HomebrewType.optional(),
         search: z.string().optional(),
         tags: z.array(z.string()).optional(),
@@ -94,7 +94,7 @@ export const homebrewRouter = router({
   getContentById: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
       })
     )
     .query(({ input, ctx }) => homebrewService.getContentById(input.id, ctx.session.user.id)),
@@ -105,8 +105,8 @@ export const homebrewRouter = router({
   updateContent: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
-        name: z.string().optional(),
+        id: z.string().min(1),
+        name: z.string().min(1).max(255).optional(),
         data: z.any().optional(),
         images: z.array(z.string()).optional(),
         tags: z.array(z.string()).optional(),
@@ -122,7 +122,7 @@ export const homebrewRouter = router({
   updateSharing: protectedProcedure
     .input(
       z.object({
-        homebrewId: z.string(),
+        homebrewId: z.string().min(1),
         sharedWithPlayers: z.boolean(),
       })
     )
@@ -152,7 +152,7 @@ export const homebrewRouter = router({
   removeImage: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
         imageUrl: z.string(),
       })
     )
@@ -174,7 +174,7 @@ export const homebrewRouter = router({
   deleteContent: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -188,7 +188,7 @@ export const homebrewRouter = router({
     .input(
       z.object({
         type: HomebrewType,
-        campaignId: z.string().optional(),
+        campaignId: z.string().min(1).optional(),
       })
     )
     .query(({ input, ctx }) =>
@@ -201,7 +201,7 @@ export const homebrewRouter = router({
   getContentStats: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string().optional(),
+        campaignId: z.string().min(1).optional(),
       })
     )
     .query(({ input, ctx }) =>
@@ -214,8 +214,8 @@ export const homebrewRouter = router({
   addToCampaign: protectedProcedure
     .input(
       z.object({
-        homebrewId: z.string(),
-        campaignId: z.string(),
+        homebrewId: z.string().min(1),
+        campaignId: z.string().min(1),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -228,11 +228,13 @@ export const homebrewRouter = router({
   removeFromCampaign: protectedProcedure
     .input(
       z.object({
-        homebrewId: z.string(),
-        campaignId: z.string(),
+        homebrewId: z.string().min(1),
+        campaignId: z.string().min(1),
       })
     )
     .mutation(({ input, ctx }) =>
       homebrewService.removeFromCampaign(ctx.session.user.id, input)
     ),
 });
+
+

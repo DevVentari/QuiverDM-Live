@@ -1,0 +1,182 @@
+import { test, expect, type Page } from '@playwright/test';
+import { signInAsTestUser } from './helpers/auth';
+
+async function openFirstCampaignPlayers(page: Page): Promise<boolean> {
+  await page.goto('/campaigns');
+  await page.waitForLoadState('networkidle');
+
+  const campaignLink = page.locator('a[href*="/campaigns/"]').first();
+  if ((await campaignLink.count()) === 0) {
+    return false;
+  }
+
+  await campaignLink.click();
+  await page.waitForLoadState('networkidle');
+  await page.getByRole('link', { name: /players/i }).click();
+  await page.waitForLoadState('networkidle');
+  return true;
+}
+
+async function isDungeonMaster(page: Page): Promise<boolean> {
+  return (await page.getByText(/dungeon master|co-dm/i).count()) > 0;
+}
+
+test.describe('Characters', () => {
+  test('characters list for a campaign loads via Players tab', async ({ page }) => {
+    await signInAsTestUser(page);
+
+    const opened = await openFirstCampaignPlayers(page);
+    if (!opened) {
+      test.skip(true, 'No campaign exists for players/characters coverage.');
+      return;
+    }
+
+    // Edge case: campaign characters page may be populated or empty.
+    await expect(
+      page.getByRole('heading', { name: /pending characters|party/i })
+        .or(page.getByText(/no players in this campaign yet/i))
+    ).toBeVisible({ timeout: 10000 });
+  });
+
+  test('empty state is shown when campaign has no characters', async ({ page }) => {
+    await signInAsTestUser(page);
+
+    const opened = await openFirstCampaignPlayers(page);
+    if (!opened) {
+      test.skip(true, 'No campaign exists for players/characters coverage.');
+      return;
+    }
+
+    const characterCards = page.locator('[class*="Card"]').filter({ hasText: /level|pending|active|retired/i });
+    if ((await characterCards.count()) > 0) {
+      test.skip(true, 'Campaign already has characters; empty-state assertion is not applicable.');
+      return;
+    }
+
+    // Edge case: empty state should not be treated as an error.
+    await expect(page.getByText(/no players in this campaign yet/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/failed|error|500/i)).toHaveCount(0);
+  });
+
+  test('D&D Beyond import UI is visible for DM users', async ({ page }) => {
+    await signInAsTestUser(page);
+    await page.goto('/campaigns');
+    await page.waitForLoadState('networkidle');
+
+    const campaignLink = page.locator('a[href*="/campaigns/"]').first();
+    if ((await campaignLink.count()) === 0) {
+      test.skip(true, 'No campaign exists to validate DM role prerequisites.');
+      return;
+    }
+
+    await campaignLink.click();
+    await page.waitForLoadState('networkidle');
+    if (!(await isDungeonMaster(page))) {
+      test.skip(true, 'Current campaign role is not DM.');
+      return;
+    }
+
+    // Edge case: DM flow should expose import entry points in character management UI.
+    await page.goto('/characters');
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByRole('button', { name: /import from d&d beyond/i })).toBeVisible({ timeout: 10000 });
+  });
+
+  test('D&D Beyond URL validation rejects non-DDB URLs', async ({ page }) => {
+    await signInAsTestUser(page);
+    await page.goto('/characters');
+    await page.waitForLoadState('networkidle');
+
+    // Edge case: malformed/non-DDB URL should produce a validation/service error.
+    await page.getByRole('button', { name: /import from d&d beyond/i }).click();
+    await page.getByLabel(/character url/i).fill('https://example.com/not-a-dndbeyond-character');
+    await page.getByRole('button', { name: /import character/i }).click();
+
+    await expect(
+      page.getByText(/could not extract character id|expected format|dndbeyond\.com\/characters/i)
+    ).toBeVisible({ timeout: 10000 });
+  });
+
+  test('clicking a character card opens detail view with key stats', async ({ page }) => {
+    await signInAsTestUser(page);
+    await page.goto('/characters');
+    await page.waitForLoadState('networkidle');
+
+    const characterLink = page.locator('a[href*="/characters/"]').first();
+    if ((await characterLink.count()) === 0) {
+      test.skip(true, 'No characters exist for detail-page coverage.');
+      return;
+    }
+
+    // Edge case: character card navigation should land on a detail page with stats.
+    await characterLink.click();
+    await page.waitForLoadState('networkidle');
+
+    await expect(page).toHaveURL(/\/characters\/[a-zA-Z0-9_-]+/);
+    await expect(page.getByText(/armor class|level|overview/i)).toBeVisible({ timeout: 10000 });
+  });
+
+  test('player role cannot access DM-only character controls in campaign view', async ({ page }) => {
+    await signInAsTestUser(page);
+    await page.goto('/campaigns');
+    await page.waitForLoadState('networkidle');
+
+    const campaignLinks = await page.locator('a[href*="/campaigns/"]').evaluateAll((links) => {
+      const unique = new Set<string>();
+      for (const link of links) {
+        const href = link.getAttribute('href');
+        if (href && /\/campaigns\/[^/]+$/.test(href)) unique.add(href);
+      }
+      return [...unique];
+    });
+
+    let playerCampaignFound = false;
+    for (const href of campaignLinks) {
+      await page.goto(href);
+      await page.waitForLoadState('networkidle');
+      if ((await page.getByText(/player/i).count()) > 0) {
+        playerCampaignFound = true;
+        break;
+      }
+    }
+
+    if (!playerCampaignFound) {
+      test.skip(true, 'No player-role campaign available for permission check.');
+      return;
+    }
+
+    await page.getByRole('link', { name: /players/i }).click();
+    await page.waitForLoadState('networkidle');
+
+    // Edge case: DM-only moderation controls should be hidden for player role.
+    await expect(page.getByRole('button', { name: /approve|reject|remove/i })).toHaveCount(0);
+  });
+
+  test('delete character action requires confirmation dialog', async ({ page }) => {
+    await signInAsTestUser(page);
+    await page.goto('/characters');
+    await page.waitForLoadState('networkidle');
+
+    const characterLink = page.locator('a[href*="/characters/"]').first();
+    if ((await characterLink.count()) === 0) {
+      test.skip(true, 'No characters exist for delete-flow coverage.');
+      return;
+    }
+
+    await characterLink.click();
+    await page.waitForLoadState('networkidle');
+
+    const deleteButton = page.getByRole('button', { name: /delete/i }).first();
+    if ((await deleteButton.count()) === 0) {
+      test.skip(true, 'Delete action is not available for this character/user.');
+      return;
+    }
+
+    // Edge case: destructive character delete must prompt for confirmation.
+    await deleteButton.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('dialog').getByText(/delete character/i)).toBeVisible();
+    await page.getByRole('dialog').getByRole('button', { name: /cancel/i }).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  });
+});

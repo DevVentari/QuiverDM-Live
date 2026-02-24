@@ -4,6 +4,17 @@ import { authz } from './authorization.service';
 import { indexNpc, deleteNpc, searchNpcs } from '@/lib/search';
 import { addEmbeddingJob } from '@/lib/queue/embeddings-queue';
 import { deleteEntityEmbeddings } from '../repositories/embedding.repository';
+import { NotFoundError, ValidationError } from '../errors';
+
+function validateNpcName(name: string | undefined, required: boolean) {
+  if (required && (!name || !name.trim())) {
+    throw ValidationError.forField('name', 'NPC name is required');
+  }
+
+  if (name !== undefined && name.length > 255) {
+    throw ValidationError.forField('name', 'NPC name must be 255 characters or fewer');
+  }
+}
 
 export class NPCService {
   async getById(npcId: string, userId: string) {
@@ -11,7 +22,7 @@ export class NPCService {
     const npc = await npcRepository.findById(npcId);
 
     if (!npc) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'NPC not found' });
+      throw new NotFoundError('npc', npcId);
     }
 
     const canViewSecrets =
@@ -46,7 +57,7 @@ export class NPCService {
         }
         return [];
       } catch {
-        // MeiliSearch unavailable — fall back to Postgres
+        // MeiliSearch unavailable; fall back to Postgres
       }
     }
 
@@ -81,8 +92,10 @@ export class NPCService {
       stats?: any;
     }
   ) {
+    validateNpcName(input.name, true);
+
     await authz.campaign(campaignId, userId).requirePermission('canEditNPCs');
-    const npc = await npcRepository.create({ campaignId, ...input });
+    const npc = await npcRepository.create({ campaignId, ...input, name: input.name.trim() });
 
     void indexNpc({
       id: npc.id,
@@ -91,6 +104,8 @@ export class NPCService {
       description: npc.description ?? null,
       faction: npc.faction ?? null,
       tags: npc.tags ?? [],
+    }).catch((error) => {
+      console.error('[search] Failed to index NPC:', error);
     });
 
     void addEmbeddingJob({
@@ -124,8 +139,15 @@ export class NPCService {
       stats?: any;
     }
   ) {
+    validateNpcName(input.name, false);
+
     await authz.npc(npcId, userId).requireEdit();
-    const npc = await npcRepository.update(npcId, input);
+    const nextInput = {
+      ...input,
+      ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+    };
+
+    const npc = await npcRepository.update(npcId, nextInput);
 
     void indexNpc({
       id: npc.id,
@@ -134,6 +156,8 @@ export class NPCService {
       description: npc.description ?? null,
       faction: npc.faction ?? null,
       tags: npc.tags ?? [],
+    }).catch((error) => {
+      console.error('[search] Failed to index NPC:', error);
     });
 
     void addEmbeddingJob({
@@ -159,9 +183,12 @@ export class NPCService {
     void deleteEntityEmbeddings(npcId, 'npc').catch((error) => {
       console.error('[embeddings] Failed to delete NPC embeddings:', error);
     });
-    void deleteNpc(npcId);
+    void deleteNpc(npcId).catch((error) => {
+      console.error('[search] Failed to delete NPC index:', error);
+    });
     return { success: true };
   }
 }
 
 export const npcService = new NPCService();
+

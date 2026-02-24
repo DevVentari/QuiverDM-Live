@@ -2,6 +2,9 @@ import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { npcService } from '../services/npc.service';
 
+const npcNameSchema = z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or fewer');
+const npcDescriptionSchema = z.string().max(10000, 'Description must be 10000 characters or fewer');
+
 export const npcsRouter = router({
   /**
    * Get all NPCs for a campaign with optional search
@@ -10,8 +13,8 @@ export const npcsRouter = router({
   getAll: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        search: z.string().optional(),
+        campaignId: z.string().min(1),
+        search: z.string().max(10000).optional(),
       })
     )
     .query(({ input, ctx }) =>
@@ -27,7 +30,7 @@ export const npcsRouter = router({
   getById: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
       })
     )
     .query(({ input, ctx }) =>
@@ -41,12 +44,12 @@ export const npcsRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        name: z.string().min(1, 'Name is required'),
-        description: z.string().optional(),
-        faction: z.string().optional(),
-        secrets: z.string().optional(),
-        imageUrl: z.string().optional(),
+        campaignId: z.string().min(1),
+        name: npcNameSchema,
+        description: npcDescriptionSchema.optional(),
+        faction: z.string().max(255).optional(),
+        secrets: z.string().max(10000).optional(),
+        imageUrl: z.string().max(2048).optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -61,12 +64,12 @@ export const npcsRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
-        name: z.string().min(1, 'Name is required').optional(),
-        description: z.string().optional(),
-        faction: z.string().optional(),
-        secrets: z.string().optional(),
-        imageUrl: z.string().optional(),
+        id: z.string().min(1),
+        name: npcNameSchema.optional(),
+        description: npcDescriptionSchema.optional(),
+        faction: z.string().max(255).optional(),
+        secrets: z.string().max(10000).optional(),
+        imageUrl: z.string().max(2048).optional(),
         stats: z.any().optional(), // JSON field for D&D stats
       })
     )
@@ -82,7 +85,7 @@ export const npcsRouter = router({
   delete: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -96,8 +99,8 @@ export const npcsRouter = router({
   getByFaction: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        faction: z.string(),
+        campaignId: z.string().min(1),
+        faction: z.string().min(1).max(255),
       })
     )
     .query(({ input, ctx }) =>
@@ -113,7 +116,7 @@ export const npcsRouter = router({
   getFactions: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
+        campaignId: z.string().min(1),
       })
     )
     .query(({ input, ctx }) =>
