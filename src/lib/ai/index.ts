@@ -34,5 +34,8 @@ export {
   extractStructuredData,
 } from './ollama';
 
+// Custom section detection exports
+export { detectCustomSections, type CustomSection } from './detect-custom-sections';
+
 // Save function re-exported from repository for convenience
 export { saveExtractedContent } from '../../server/repositories/homebrew-extraction.repository';

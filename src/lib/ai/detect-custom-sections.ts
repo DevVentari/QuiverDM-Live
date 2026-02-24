@@ -108,6 +108,7 @@ export async function detectCustomSections(
     const ollamaBaseUrl = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
     const model = process.env.OLLAMA_MODEL ?? 'llama3.2';
 
+    // Uses raw fetch (not generateWithOllama) because AbortSignal timeout support is required
     const response = await fetch(`${ollamaBaseUrl}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -119,8 +120,9 @@ export async function detectCustomSections(
 
     const result = await response.json();
     return parseResponse(result.response ?? '');
-  } catch {
+  } catch (err) {
     // Fire-and-forget safe: always return [] on any error
+    console.warn('[detect-custom-sections] Failed to detect custom sections:', err instanceof Error ? err.message : 'Unknown error');
     return [];
   }
 }
