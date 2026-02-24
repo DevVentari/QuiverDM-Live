@@ -12,6 +12,7 @@ import { prisma } from '../db';
 import { generateWithOllama } from '@/lib/ai/ollama';
 import { BadRequestError, NotFoundError } from '../errors';
 import { webhookService } from './webhook.service';
+import { usageService } from './usage.service';
 
 export class SessionService {
   async getById(sessionId: string, userId: string) {
@@ -162,6 +163,15 @@ export class SessionService {
 
   async generateSummary(sessionId: string, userId: string) {
     await authz.session(sessionId, userId).verify();
+
+    const canRecap = await usageService.canGenerateRecap(userId);
+    if (!canRecap) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'AI recap limit reached for your tier. Upgrade to Pro for more recaps.',
+      });
+    }
+
     const session = await sessionRepository.findById(sessionId);
     if (!session) {
       throw new NotFoundError('session', sessionId);
@@ -175,6 +185,8 @@ export class SessionService {
     if (!transcriptText.trim()) {
       throw new BadRequestError('No transcript available to summarize');
     }
+
+    await usageService.incrementAiRecaps(userId);
 
     await sessionRepository.updateSummaryStatus(sessionId, {
       aiSummaryStatus: 'pending',
