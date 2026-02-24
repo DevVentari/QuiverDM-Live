@@ -42,8 +42,8 @@ export const sessionsRouter = router({
     .input(
       z.object({
         campaignId: z.string().min(1),
-        title: z.string().optional(),
-        quickNotes: z.string().optional(),
+        title: z.string().max(500).optional(),
+        quickNotes: z.string().max(10000).optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -59,9 +59,9 @@ export const sessionsRouter = router({
     .input(
       z.object({
         id: z.string().min(1),
-        title: z.string().optional(),
-        quickNotes: z.string().optional(),
-        recap: z.string().optional(),
+        title: z.string().max(500).optional(),
+        quickNotes: z.string().max(10000).optional(),
+        recap: z.string().max(50000).optional(),
         status: z.enum(['planning', 'in_progress', 'completed']).optional(),
       })
     )
@@ -131,7 +131,7 @@ export const sessionsRouter = router({
     .input(
       z.object({
         id: z.string().min(1),
-        recap: z.string().optional(),
+        recap: z.string().max(50000).optional(),
       })
     )
     .mutation(({ input, ctx }) =>
