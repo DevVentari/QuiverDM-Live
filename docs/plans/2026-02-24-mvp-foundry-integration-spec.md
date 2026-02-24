@@ -121,7 +121,9 @@ foundryModuleVersion String?
 
 ## API Routes
 
-### `POST /api/foundry/events`
+All routes are under `/api/integrations/foundry/`.
+
+### `POST /api/integrations/foundry/events`
 
 **Auth:** `Authorization: Bearer <foundryApiKey>` (campaign-scoped key, not user session).
 
@@ -153,13 +155,44 @@ foundryModuleVersion String?
 
 **Rate limit:** 60 events/minute per campaign (prevent runaway hooks).
 
-### `GET /api/foundry/session-url?campaignSlug={slug}`
+### `GET /api/integrations/foundry/launch-token`
 
-Returns the active session URL for the campaign (used by the Foundry module to open the sidecar).
+Issues a short-lived token + URL for the Foundry module to open the QuiverDM sidecar tab.
+Replaces the need to hard-code the session URL in the module settings.
 
 **Auth:** `Authorization: Bearer <foundryApiKey>`
 
-**Response:** `{ sessionUrl: string | null, sessionId: string | null }`
+**Response:**
+
+```ts
+{
+  launchUrl: string,      // https://app.quiverdm.com/campaigns/{slug}/sessions/{id}?token={t}
+  sessionId: string | null,
+  expiresIn: 300          // seconds
+}
+```
+
+### `GET /api/integrations/foundry/capabilities`
+
+Used by the Foundry module on init to check which QuiverDM features are available for this
+campaign (tier, feature flags). Module uses this to enable/disable hook registrations.
+
+**Auth:** `Authorization: Bearer <foundryApiKey>`
+
+**Response:**
+
+```ts
+{
+  version: string,             // QuiverDM API version
+  campaignId: string,
+  tier: "free" | "pro" | "team",
+  features: {
+    eventIngestion: boolean,   // can POST events
+    sseStream: boolean,        // SSE event feed active
+    foundryBridge: boolean,    // FOUNDRY_BRIDGE_ENABLED flag
+  }
+}
+```
 
 ### tRPC: `foundry.getEvents`
 
