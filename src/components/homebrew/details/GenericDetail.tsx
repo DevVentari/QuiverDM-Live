@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Swords } from 'lucide-react';
 import { htmlToText } from '@/lib/html-utils';
+import { CustomSections } from './CustomSections';
 
 interface GenericDetailProps {
   data: any;
@@ -49,6 +50,7 @@ export function GenericDetail({ data, typeName }: GenericDetailProps) {
           ))}
         </CardContent>
       </Card>
+      <CustomSections data={data} />
     </div>
   );
 }

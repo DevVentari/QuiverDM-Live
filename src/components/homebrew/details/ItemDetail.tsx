@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wand2 } from 'lucide-react';
 import { htmlToText } from '@/lib/html-utils';
+import { CustomSections } from './CustomSections';
 
 interface ItemDetailProps {
   data: any;
@@ -60,6 +61,7 @@ export function ItemDetail({ data }: ItemDetailProps) {
           </CardContent>
         </Card>
       )}
+      <CustomSections data={data} />
     </div>
   );
 }
