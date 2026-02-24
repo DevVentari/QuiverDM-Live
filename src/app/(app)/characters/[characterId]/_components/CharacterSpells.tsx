@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Wand2, Dices } from 'lucide-react';
 import { SpellSlotPips } from '@/components/character/SpellSlotPips';
 import type { DiceRoll } from '@/lib/dice';
+import { htmlToText } from '@/lib/html-utils';
 
 const LEVEL_LABELS: Record<number, string> = {
   0: 'Cantrips',
@@ -27,10 +28,6 @@ const LEVEL_LABELS: Record<number, string> = {
   8: '8th Level',
   9: '9th Level',
 };
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').trim();
-}
 
 type CharacterSpellsProps = {
   data: any;
@@ -254,15 +251,15 @@ export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: Characte
                         </div>
 
                         {spell.description && (
-                          <p className="text-muted-foreground leading-relaxed">
-                            {stripHtml(spell.description)}
+                          <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                            {htmlToText(spell.description)}
                           </p>
                         )}
                         {spell.atHigherLevels && (
                           <div className="mt-1">
                             <span className="font-medium text-foreground text-xs">At Higher Levels:</span>
-                            <p className="text-muted-foreground text-xs mt-0.5">
-                              {stripHtml(spell.atHigherLevels)}
+                            <p className="text-muted-foreground text-xs mt-0.5 whitespace-pre-wrap">
+                              {htmlToText(spell.atHigherLevels)}
                             </p>
                           </div>
                         )}

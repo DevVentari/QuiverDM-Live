@@ -20,6 +20,7 @@ import {
 import { Backpack, RotateCcw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { htmlToText } from '@/lib/html-utils';
 
 const RARITY_COLORS: Record<string, string> = {
   Common: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
@@ -29,10 +30,6 @@ const RARITY_COLORS: Record<string, string> = {
   Legendary: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
   Artifact: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 };
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').trim();
-}
 
 type CharacterInventoryProps = {
   data: any;
@@ -280,7 +277,7 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
                                   </div>
                                 )}
                                 {item.description && (
-                                  <p className="leading-relaxed mt-1">{stripHtml(item.description)}</p>
+                                  <p className="leading-relaxed whitespace-pre-wrap mt-1">{htmlToText(item.description)}</p>
                                 )}
                               </div>
                             </AccordionContent>
