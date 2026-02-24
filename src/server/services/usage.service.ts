@@ -1,6 +1,6 @@
 /**
  * Usage Limit Service
- * Business logic for tier-based usage limits
+ * Business logic for tier-based usage limits (Option A — dec-003, 90-day validation profile)
  */
 
 import { prisma } from '@/lib/prisma';
@@ -8,22 +8,35 @@ import { NotFoundError, RateLimitedError } from '../errors';
 
 export type UserTier = 'free' | 'pro' | 'team';
 
-// Tier limits configuration
+// Option A cap profile (dec-003 accepted 2026-02-24)
+// Source: docs/obsidian-vault/10-Research/2026-02-23-usage-caps-benchmark.md
 export const TIER_LIMITS = {
   free: {
     campaigns: 1,
-    transcriptionSeconds: 1800, // 30 minutes
-    pdfUploads: 5,
+    transcriptionSeconds: 7200,   // 120 minutes
+    sessionUploads: 4,
+    aiRecaps: 4,
+    pdfUploads: 3,
+    semanticSearches: 50,
+    imageGenerations: 5,
   },
   pro: {
-    campaigns: -1, // Unlimited
-    transcriptionSeconds: 36000, // 10 hours
-    pdfUploads: 50,
+    campaigns: -1,                 // Unlimited
+    transcriptionSeconds: 72000,   // 1,200 minutes
+    sessionUploads: 30,
+    aiRecaps: 30,
+    pdfUploads: 40,
+    semanticSearches: 1000,
+    imageGenerations: 80,
   },
   team: {
-    campaigns: -1, // Unlimited
-    transcriptionSeconds: 108000, // 30 hours
-    pdfUploads: 200,
+    campaigns: -1,                 // Unlimited
+    transcriptionSeconds: 216000,  // 3,600 minutes
+    sessionUploads: 100,
+    aiRecaps: 120,
+    pdfUploads: 150,
+    semanticSearches: 4000,
+    imageGenerations: 300,
   },
 };
 
@@ -60,6 +73,10 @@ export const usageService = {
           transcriptionLimit: limits.transcriptionSeconds,
           pdfUploadLimit: limits.pdfUploads,
           campaignLimit: limits.campaigns,
+          sessionUploadLimit: limits.sessionUploads,
+          aiRecapLimit: limits.aiRecaps,
+          semanticSearchLimit: limits.semanticSearches,
+          imageGenerationLimit: limits.imageGenerations,
         },
       });
     }
@@ -68,7 +85,7 @@ export const usageService = {
   },
 
   /**
-   * Get current usage status
+   * Get current usage status for all limit families
    */
   async getUsageStatus(userId: string) {
     const usage = await this.getOrCreateUsage(userId);
@@ -79,44 +96,24 @@ export const usageService = {
 
     const tier = (user?.tier as UserTier) || 'free';
 
+    function limitStat(used: number, limit: number) {
+      return {
+        used,
+        limit,
+        remaining: limit === -1 ? -1 : limit - used,
+        percentage: limit === -1 ? 0 : (used / limit) * 100,
+      };
+    }
+
     return {
       tier,
-      transcription: {
-        used: usage.transcriptionSeconds,
-        limit: usage.transcriptionLimit,
-        remaining:
-          usage.transcriptionLimit === -1
-            ? -1
-            : usage.transcriptionLimit - usage.transcriptionSeconds,
-        percentage:
-          usage.transcriptionLimit === -1
-            ? 0
-            : (usage.transcriptionSeconds / usage.transcriptionLimit) * 100,
-      },
-      pdfUploads: {
-        used: usage.pdfUploads,
-        limit: usage.pdfUploadLimit,
-        remaining:
-          usage.pdfUploadLimit === -1
-            ? -1
-            : usage.pdfUploadLimit - usage.pdfUploads,
-        percentage:
-          usage.pdfUploadLimit === -1
-            ? 0
-            : (usage.pdfUploads / usage.pdfUploadLimit) * 100,
-      },
-      campaigns: {
-        used: usage.campaignsOwned,
-        limit: usage.campaignLimit,
-        remaining:
-          usage.campaignLimit === -1
-            ? -1
-            : usage.campaignLimit - usage.campaignsOwned,
-        percentage:
-          usage.campaignLimit === -1
-            ? 0
-            : (usage.campaignsOwned / usage.campaignLimit) * 100,
-      },
+      transcription: limitStat(usage.transcriptionSeconds, usage.transcriptionLimit),
+      pdfUploads: limitStat(usage.pdfUploads, usage.pdfUploadLimit),
+      campaigns: limitStat(usage.campaignsOwned, usage.campaignLimit),
+      sessionUploads: limitStat(usage.sessionUploads, usage.sessionUploadLimit),
+      aiRecaps: limitStat(usage.aiRecaps, usage.aiRecapLimit),
+      semanticSearches: limitStat(usage.semanticSearches, usage.semanticSearchLimit),
+      imageGenerations: limitStat(usage.imageGenerations, usage.imageGenerationLimit),
       periodStart: usage.periodStart,
       periodEnd: usage.periodEnd,
     };
@@ -127,14 +124,11 @@ export const usageService = {
    */
   async canCreateCampaign(userId: string): Promise<boolean> {
     const usage = await this.getOrCreateUsage(userId);
-
-    // Check if needs reset
     if (new Date() > usage.periodEnd) {
       await this.resetUsagePeriod(userId);
-      return true; // After reset, can create
+      return true;
     }
-
-    if (usage.campaignLimit === -1) return true; // Unlimited
+    if (usage.campaignLimit === -1) return true;
     return usage.campaignsOwned < usage.campaignLimit;
   },
 
@@ -143,14 +137,11 @@ export const usageService = {
    */
   async canUploadPdf(userId: string): Promise<boolean> {
     const usage = await this.getOrCreateUsage(userId);
-
-    // Check if needs reset
     if (new Date() > usage.periodEnd) {
       await this.resetUsagePeriod(userId);
       return true;
     }
-
-    if (usage.pdfUploadLimit === -1) return true; // Unlimited
+    if (usage.pdfUploadLimit === -1) return true;
     return usage.pdfUploads < usage.pdfUploadLimit;
   },
 
@@ -159,20 +150,68 @@ export const usageService = {
    */
   async canTranscribe(userId: string, durationSeconds: number): Promise<boolean> {
     const usage = await this.getOrCreateUsage(userId);
-
-    // Check if needs reset
     if (new Date() > usage.periodEnd) {
       await this.resetUsagePeriod(userId);
       return true;
     }
-
-    if (usage.transcriptionLimit === -1) return true; // Unlimited
+    if (usage.transcriptionLimit === -1) return true;
     return usage.transcriptionSeconds + durationSeconds <= usage.transcriptionLimit;
   },
 
   /**
-   * Increment campaign count
+   * Check if user can upload a session recording
    */
+  async canUploadSession(userId: string): Promise<boolean> {
+    const usage = await this.getOrCreateUsage(userId);
+    if (new Date() > usage.periodEnd) {
+      await this.resetUsagePeriod(userId);
+      return true;
+    }
+    if (usage.sessionUploadLimit === -1) return true;
+    return usage.sessionUploads < usage.sessionUploadLimit;
+  },
+
+  /**
+   * Check if user can generate an AI recap
+   */
+  async canGenerateRecap(userId: string): Promise<boolean> {
+    const usage = await this.getOrCreateUsage(userId);
+    if (new Date() > usage.periodEnd) {
+      await this.resetUsagePeriod(userId);
+      return true;
+    }
+    if (usage.aiRecapLimit === -1) return true;
+    return usage.aiRecaps < usage.aiRecapLimit;
+  },
+
+  /**
+   * Check if user can perform a semantic search
+   */
+  async canSearch(userId: string): Promise<boolean> {
+    const usage = await this.getOrCreateUsage(userId);
+    if (new Date() > usage.periodEnd) {
+      await this.resetUsagePeriod(userId);
+      return true;
+    }
+    if (usage.semanticSearchLimit === -1) return true;
+    return usage.semanticSearches < usage.semanticSearchLimit;
+  },
+
+  /**
+   * Check if user can generate an image
+   */
+  async canGenerateImage(userId: string): Promise<boolean> {
+    const usage = await this.getOrCreateUsage(userId);
+    if (new Date() > usage.periodEnd) {
+      await this.resetUsagePeriod(userId);
+      return true;
+    }
+    if (usage.imageGenerationLimit === -1) return true;
+    return usage.imageGenerations < usage.imageGenerationLimit;
+  },
+
+  // ─── Increment methods ──────────────────────────────────────────────────────
+
   async incrementCampaigns(userId: string) {
     const canCreate = await this.canCreateCampaign(userId);
     if (!canCreate) {
@@ -180,16 +219,12 @@ export const usageService = {
         'Campaign limit reached for your tier. Upgrade to Pro for unlimited campaigns.'
       );
     }
-
     return prisma.userUsage.update({
       where: { userId },
       data: { campaignsOwned: { increment: 1 } },
     });
   },
 
-  /**
-   * Decrement campaign count (when campaign is deleted)
-   */
   async decrementCampaigns(userId: string) {
     return prisma.userUsage.update({
       where: { userId },
@@ -197,9 +232,6 @@ export const usageService = {
     });
   },
 
-  /**
-   * Increment PDF upload count
-   */
   async incrementPdfUploads(userId: string) {
     const canUpload = await this.canUploadPdf(userId);
     if (!canUpload) {
@@ -207,16 +239,12 @@ export const usageService = {
         'PDF upload limit reached for your tier. Upgrade to Pro for more uploads.'
       );
     }
-
     return prisma.userUsage.update({
       where: { userId },
       data: { pdfUploads: { increment: 1 } },
     });
   },
 
-  /**
-   * Increment transcription seconds
-   */
   async incrementTranscription(userId: string, durationSeconds: number) {
     const canTranscribe = await this.canTranscribe(userId, durationSeconds);
     if (!canTranscribe) {
@@ -224,16 +252,66 @@ export const usageService = {
         'Transcription limit reached for your tier. Upgrade to Pro for more minutes.'
       );
     }
-
     return prisma.userUsage.update({
       where: { userId },
       data: { transcriptionSeconds: { increment: Math.ceil(durationSeconds) } },
     });
   },
 
-  /**
-   * Reset usage period (monthly reset)
-   */
+  async incrementSessionUploads(userId: string) {
+    const canUpload = await this.canUploadSession(userId);
+    if (!canUpload) {
+      throw new RateLimitedError(
+        'Session upload limit reached for your tier. Upgrade to Pro for more session uploads.'
+      );
+    }
+    return prisma.userUsage.update({
+      where: { userId },
+      data: { sessionUploads: { increment: 1 } },
+    });
+  },
+
+  async incrementAiRecaps(userId: string) {
+    const canGenerate = await this.canGenerateRecap(userId);
+    if (!canGenerate) {
+      throw new RateLimitedError(
+        'AI recap limit reached for your tier. Upgrade to Pro for more recaps.'
+      );
+    }
+    return prisma.userUsage.update({
+      where: { userId },
+      data: { aiRecaps: { increment: 1 } },
+    });
+  },
+
+  async incrementSemanticSearches(userId: string) {
+    const canSearch = await this.canSearch(userId);
+    if (!canSearch) {
+      throw new RateLimitedError(
+        'Semantic search limit reached for your tier. Upgrade to Pro for more searches.'
+      );
+    }
+    return prisma.userUsage.update({
+      where: { userId },
+      data: { semanticSearches: { increment: 1 } },
+    });
+  },
+
+  async incrementImageGenerations(userId: string) {
+    const canGenerate = await this.canGenerateImage(userId);
+    if (!canGenerate) {
+      throw new RateLimitedError(
+        'Image generation limit reached for your tier. Upgrade to Pro for more images.'
+      );
+    }
+    return prisma.userUsage.update({
+      where: { userId },
+      data: { imageGenerations: { increment: 1 } },
+    });
+  },
+
+  // ─── Period management ──────────────────────────────────────────────────────
+
   async resetUsagePeriod(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -257,49 +335,52 @@ export const usageService = {
         periodEnd,
         transcriptionSeconds: 0,
         pdfUploads: 0,
+        campaignsOwned: 0,
+        sessionUploads: 0,
+        aiRecaps: 0,
+        semanticSearches: 0,
+        imageGenerations: 0,
         transcriptionLimit: limits.transcriptionSeconds,
         pdfUploadLimit: limits.pdfUploads,
         campaignLimit: limits.campaigns,
+        sessionUploadLimit: limits.sessionUploads,
+        aiRecapLimit: limits.aiRecaps,
+        semanticSearchLimit: limits.semanticSearches,
+        imageGenerationLimit: limits.imageGenerations,
         lastResetAt: now,
       },
     });
   },
 
-  /**
-   * Update tier and adjust limits
-   */
   async updateTier(userId: string, newTier: UserTier) {
     const limits = TIER_LIMITS[newTier];
 
-    // Update user tier
     await prisma.user.update({
       where: { id: userId },
       data: { tier: newTier },
     });
 
-    // Update usage limits (but don't reset current usage)
-    const usage = await this.getOrCreateUsage(userId);
+    await this.getOrCreateUsage(userId);
     return prisma.userUsage.update({
       where: { userId },
       data: {
         transcriptionLimit: limits.transcriptionSeconds,
         pdfUploadLimit: limits.pdfUploads,
         campaignLimit: limits.campaigns,
+        sessionUploadLimit: limits.sessionUploads,
+        aiRecapLimit: limits.aiRecaps,
+        semanticSearchLimit: limits.semanticSearches,
+        imageGenerationLimit: limits.imageGenerations,
       },
     });
   },
 
-  /**
-   * Check if user needs to reset their usage period
-   */
   async checkAndResetIfNeeded(userId: string) {
     const usage = await this.getOrCreateUsage(userId);
-
     if (new Date() > usage.periodEnd) {
       await this.resetUsagePeriod(userId);
       return true;
     }
-
     return false;
   },
 };

@@ -2,6 +2,7 @@ import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { checkImageGenerationLimit } from '../services/usage-tracking.service';
+import { usageService } from '../services/usage.service';
 import { addImageGenerationJob } from '@/lib/queue/image-generation-queue';
 import { NotFoundError } from '../errors';
 import { TRPCError } from '@trpc/server';
@@ -79,6 +80,8 @@ export const homebrewImageRouter = router({
         customPrompt: input.prompt,
       });
 
+      await usageService.incrementImageGenerations(userId);
+
       return { jobId: job.id, remaining: remaining - 1, limit };
     }),
 
@@ -139,6 +142,8 @@ export const homebrewImageRouter = router({
         where: { id: npc.id },
         data: { imageJobId: job.id },
       });
+
+      await usageService.incrementImageGenerations(userId);
 
       return { jobId: job.id, remaining: remaining - 1, limit };
     }),
