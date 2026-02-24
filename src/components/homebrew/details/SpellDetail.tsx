@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
 import { htmlToText } from '@/lib/html-utils';
+import { CustomSections } from './CustomSections';
 
 interface SpellDetailProps {
   data: any;
@@ -76,6 +77,7 @@ export function SpellDetail({ data }: SpellDetailProps) {
           </CardContent>
         </Card>
       )}
+      <CustomSections data={data} />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skull } from 'lucide-react';
 import { htmlToText } from '@/lib/html-utils';
+import { CustomSections } from './CustomSections';
 
 interface CreatureDetailProps {
   data: any;
@@ -104,6 +105,7 @@ export function CreatureDetail({ data }: CreatureDetailProps) {
           </CardContent>
         </Card>
       )}
+      <CustomSections data={data} />
     </div>
   );
 }
