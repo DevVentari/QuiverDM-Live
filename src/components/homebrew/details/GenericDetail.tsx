@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Swords } from 'lucide-react';
+import { htmlToText } from '@/lib/html-utils';
 
 interface GenericDetailProps {
   data: any;
@@ -26,7 +27,7 @@ export function GenericDetail({ data, typeName }: GenericDetailProps) {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{data.description || data.text}</p>
+            <p className="text-sm whitespace-pre-wrap">{htmlToText(data.description || data.text || '')}</p>
           </CardContent>
         </Card>
       )}
