@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -39,8 +40,35 @@ import {
   Pencil,
   Mic,
   Video,
+  ScrollText,
+  Zap,
+  Map,
+  Eye,
+  Mountain,
+  Swords,
+  Gift,
+  PlayCircle,
+  PenLine,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+
+// ---------------------------------------------------------------------------
+// Status config
+// ---------------------------------------------------------------------------
+
+const STATUS_LABELS: Record<string, string> = {
+  planning:    'Planning',
+  in_progress: 'In Progress',
+  active:      'Active',
+  completed:   'Completed',
+};
+
+function getStatusClass(status: string) {
+  if (status === 'completed') return 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10';
+  if (status === 'in_progress' || status === 'active') return 'text-amber-400 border-amber-500/30 bg-amber-500/10';
+  if (status === 'planning') return 'text-slate-400 border-slate-500/30 bg-slate-500/10';
+  return 'text-muted-foreground border-border';
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -447,6 +475,157 @@ function RecapSection({ sessionId, campaignId, recap, isDM }: {
 }
 
 // ---------------------------------------------------------------------------
+// Prep section components
+// ---------------------------------------------------------------------------
+
+function PrepSection({ title, icon: Icon, content }: {
+  title: string;
+  icon: React.ElementType;
+  content: string;
+}) {
+  if (!content?.trim()) return null;
+  return (
+    <div className="rounded-lg border-2 border-border bg-card p-4 space-y-2">
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-primary shrink-0" />
+        <h3 className="text-sm font-semibold">{title}</h3>
+      </div>
+      <p className="text-sm text-foreground/90 whitespace-pre-wrap leading-relaxed">{content}</p>
+    </div>
+  );
+}
+
+function PrepListSection({ title, icon: Icon, items }: {
+  title: string;
+  icon: React.ElementType;
+  items: { label: string; sub?: string }[];
+}) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="rounded-lg border-2 border-border bg-card p-4 space-y-2">
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-primary shrink-0" />
+        <h3 className="text-sm font-semibold">{title}</h3>
+      </div>
+      <ul className="space-y-1.5">
+        {items.map((item, i) => (
+          <li key={i} className="flex gap-2 text-sm">
+            <span className="text-muted-foreground shrink-0 w-5 text-right">{i + 1}.</span>
+            <span className="flex-1">
+              <span className="text-foreground/90">{item.label}</span>
+              {item.sub && <span className="text-muted-foreground ml-1 text-xs">— {item.sub}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function PrepTabContent({
+  data,
+  sessionId,
+  slug,
+  onStartSession,
+  isStarting,
+}: {
+  data: any;
+  sessionId: string;
+  slug: string;
+  onStartSession: () => void;
+  isStarting: boolean;
+}) {
+  const isPlanning = data.status === 'planning';
+
+  const sceneItems = (data.prepSceneOutline as { id: string; text: string }[] | null) ?? [];
+  const secretItems = (data.prepSecrets as { id: string; text: string }[] | null) ?? [];
+  const locationItems = (data.prepLocations as { id: string; name: string; description: string }[] | null) ?? [];
+  const npcItems = (data.prepNpcs as { id: string; name: string; motivation: string }[] | null) ?? [];
+  const encounterItems = (data.prepEncounters as { id: string; name: string }[] | null) ?? [];
+  const rewardItems = (data.prepRewards as { id: string; text: string }[] | null) ?? [];
+
+  const hasPrepContent =
+    data.prepStrongStart || sceneItems.length > 0 || secretItems.length > 0 ||
+    locationItems.length > 0 || npcItems.length > 0 || encounterItems.length > 0 ||
+    rewardItems.length > 0 || data.prepSessionArc;
+
+  return (
+    <div className="space-y-4 mt-5">
+      {/* Planning CTA banner */}
+      {isPlanning && (
+        <div className="rounded-xl border-2 border-amber-500/30 bg-amber-500/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <p className="font-semibold text-amber-300 text-sm">Ready to run?</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Starting the session moves it to In Progress and notifies players.</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={onStartSession}
+            disabled={isStarting}
+            className="gap-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold shrink-0"
+          >
+            <PlayCircle className="h-3.5 w-3.5" />
+            {isStarting ? 'Starting…' : 'Start Session'}
+          </Button>
+        </div>
+      )}
+
+      {/* Prep content */}
+      {hasPrepContent ? (
+        <div className="space-y-3">
+          <PrepSection title="Strong Start" icon={Zap} content={data.prepStrongStart ?? ''} />
+          <PrepListSection
+            title="Scene Outline"
+            icon={Map}
+            items={sceneItems.map((s) => ({ label: s.text }))}
+          />
+          <PrepListSection
+            title="Secrets & Clues"
+            icon={Eye}
+            items={secretItems.map((s) => ({ label: s.text }))}
+          />
+          <PrepListSection
+            title="Locations"
+            icon={Mountain}
+            items={locationItems.map((l) => ({ label: l.name, sub: l.description }))}
+          />
+          <PrepListSection
+            title="Featured NPCs"
+            icon={Users}
+            items={npcItems.map((n) => ({ label: n.name, sub: n.motivation }))}
+          />
+          <PrepListSection
+            title="Encounters"
+            icon={Swords}
+            items={encounterItems.map((e) => ({ label: e.name }))}
+          />
+          <PrepListSection
+            title="Rewards"
+            icon={Gift}
+            items={rewardItems.map((r) => ({ label: r.text }))}
+          />
+          <PrepSection title="Session Arc" icon={ScrollText} content={data.prepSessionArc ?? ''} />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-border rounded-xl text-center">
+          <ScrollText className="h-8 w-8 text-muted-foreground/30 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground mb-1">No prep notes yet</p>
+          <p className="text-xs text-muted-foreground/60 mb-4 max-w-xs">
+            Use the Lazy DM prep wizard to outline your session before you run it.
+          </p>
+          <Button size="sm" variant="outline" className="gap-1.5" asChild>
+            <Link href={`/campaigns/${slug}/sessions/new`}>
+              <PenLine className="h-3.5 w-3.5" />
+              Add Prep Notes
+            </Link>
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Tab trigger shared class
 // ---------------------------------------------------------------------------
 const TAB_CLS = 'rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground px-4 py-2.5 gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors';
@@ -496,6 +675,11 @@ export default function SessionDetailPage() {
     onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
   });
 
+  const startSession = trpc.sessions.startSession.useMutation({
+    onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
+    onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
+
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -524,7 +708,7 @@ export default function SessionDetailPage() {
   if (session.isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-16 w-2/3" />
+        <Skeleton className="h-48 rounded-xl" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-48 rounded-lg" />
         <Skeleton className="h-48 rounded-lg" />
@@ -548,60 +732,81 @@ export default function SessionDetailPage() {
 
   const data = session.data as any;
   const latestTranscriptionJob = transcriptionJobs.data?.[0] ?? null;
+  const sessionStatus: string = data.status ?? 'planning';
+  const isPlanning = sessionStatus === 'planning';
+  const isActive = sessionStatus === 'in_progress' || sessionStatus === 'active';
 
-  // Status badge colour
-  const statusClass =
-    data.status === 'completed'
-      ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
-      : data.status === 'in_progress' || data.status === 'active'
-      ? 'text-amber-400 border-amber-500/30 bg-amber-500/10'
-      : 'text-muted-foreground border-border';
+  // Tab default: DM planning → prep, completed → recap, else → play; non-DM → recap
+  const defaultTab = !isDM ? 'recap'
+    : isPlanning ? 'prep'
+    : sessionStatus === 'completed' ? 'recap'
+    : 'play';
 
   return (
     <>
       <div className="space-y-5">
 
-        {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex items-start gap-4">
-            {/* Session number bubble */}
-            <div className="shrink-0 h-12 w-12 rounded-full border-2 border-primary/50 bg-card flex items-center justify-center">
-              <span className="font-display text-sm font-bold text-primary leading-none">
-                {String(data.sessionNumber ?? 1).padStart(2, '0')}
-              </span>
-            </div>
-            <div>
-              <h1 className="font-display text-2xl font-bold tracking-wide leading-tight">
+        {/* ── Hero Section ──────────────────────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-xl h-48">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950" />
+
+          {/* Watermark session number */}
+          <span className="absolute right-6 top-1/2 -translate-y-1/2 text-[10rem] font-bold
+                           text-foreground/5 select-none leading-none pointer-events-none tabular-nums font-display">
+            {String(data.sessionNumber ?? 1).padStart(2, '0')}
+          </span>
+
+          {/* Fade overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+
+          {/* Content */}
+          <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground mb-1">
+                Session {data.sessionNumber ?? 1}
+                {data.createdAt && ` · ${format(new Date(data.createdAt), 'MMMM d, yyyy')}`}
+              </p>
+              <h1 className="font-display text-3xl font-bold text-foreground truncate leading-tight">
                 {data.title || `Session ${data.sessionNumber ?? 1}`}
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {data.createdAt && format(new Date(data.createdAt), 'MMMM d, yyyy')}
-              </p>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {data.status && (
-              <Badge variant="outline" className={statusClass}>
-                {data.status.replace(/_/g, ' ')}
+            <div className="flex items-center gap-2 shrink-0">
+              <Badge variant="outline" className={getStatusClass(sessionStatus)}>
+                {STATUS_LABELS[sessionStatus] ?? sessionStatus.replace(/_/g, ' ')}
               </Badge>
-            )}
-            {isDM && data.status !== 'completed' && (
-              <Button size="sm" variant="outline" onClick={() => completeSession.mutate({ id: sessionId })}>
-                <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
-                Complete
-              </Button>
-            )}
-            {isDM && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            )}
+
+              {isDM && isPlanning && (
+                <Button
+                  size="sm"
+                  onClick={() => startSession.mutate({ id: sessionId })}
+                  disabled={startSession.isPending}
+                  className="gap-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                >
+                  <PlayCircle className="h-3.5 w-3.5" />
+                  {startSession.isPending ? 'Starting…' : 'Start Session'}
+                </Button>
+              )}
+
+              {isDM && isActive && (
+                <Button size="sm" variant="outline" onClick={() => completeSession.mutate({ id: sessionId })}>
+                  <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
+                  Complete
+                </Button>
+              )}
+
+              {isDM && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -624,10 +829,20 @@ export default function SessionDetailPage() {
 
         {/* ── Tabs ──────────────────────────────────────────────────────── */}
         {(isDM || canSeeSummaryContent || canSeeFullSessionContent) && (
-          <Tabs defaultValue={isDM ? 'play' : 'recap'} className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
 
             {/* Tab bar */}
             <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+              {/* Prep tab (DM only) */}
+              {isDM && (
+                <TabsTrigger value="prep" className={TAB_CLS}>
+                  <ScrollText className="h-3.5 w-3.5" />
+                  Prep
+                  {isPlanning && (
+                    <span className="ml-1 inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse" aria-label="Planning" />
+                  )}
+                </TabsTrigger>
+              )}
               {isDM && (
                 <TabsTrigger value="play" className={TAB_CLS}>
                   <Mic className="h-3.5 w-3.5" />
@@ -653,6 +868,19 @@ export default function SessionDetailPage() {
                 </TabsTrigger>
               )}
             </TabsList>
+
+            {/* ── Prep tab (DM only) ─────────────────────────────────── */}
+            {isDM && (
+              <TabsContent value="prep">
+                <PrepTabContent
+                  data={data}
+                  sessionId={sessionId}
+                  slug={slug}
+                  onStartSession={() => startSession.mutate({ id: sessionId })}
+                  isStarting={startSession.isPending}
+                />
+              </TabsContent>
+            )}
 
             {/* ── Live Play tab (DM only) ────────────────────────────── */}
             {isDM && (
