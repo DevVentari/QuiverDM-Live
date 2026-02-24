@@ -82,6 +82,15 @@ export class SessionService {
     input: {
       title?: string;
       quickNotes?: string;
+      status?: 'planning' | 'in_progress';
+      prepStrongStart?: string;
+      prepSceneOutline?: unknown;
+      prepSecrets?: unknown;
+      prepLocations?: unknown;
+      prepNpcs?: unknown;
+      prepEncounters?: unknown;
+      prepRewards?: unknown;
+      prepSessionArc?: string;
     }
   ) {
     await authz
@@ -93,21 +102,70 @@ export class SessionService {
     );
 
     const title = input.title || `Session ${sessionNumber}`;
+    const status = input.status ?? 'in_progress';
 
     const session = await sessionRepository.create({
       campaignId,
       title,
       sessionNumber,
       quickNotes: input.quickNotes,
-      status: 'in_progress',
+      status,
+      prepStrongStart: input.prepStrongStart,
+      prepSceneOutline: input.prepSceneOutline as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepSecrets: input.prepSecrets as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepLocations: input.prepLocations as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepNpcs: input.prepNpcs as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepEncounters: input.prepEncounters as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepRewards: input.prepRewards as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepSessionArc: input.prepSessionArc,
     });
 
-    void webhookService.dispatch(campaignId, 'session.started', {
+    if (status === 'in_progress') {
+      void webhookService.dispatch(campaignId, 'session.started', {
+        sessionId: session.id,
+        sessionNumber: session.sessionNumber,
+        title: session.title,
+      });
+    }
+
+    return session;
+  }
+
+  async updatePrep(
+    sessionId: string,
+    userId: string,
+    input: {
+      prepStrongStart?: string;
+      prepSceneOutline?: unknown;
+      prepSecrets?: unknown;
+      prepLocations?: unknown;
+      prepNpcs?: unknown;
+      prepEncounters?: unknown;
+      prepRewards?: unknown;
+      prepSessionArc?: string;
+    }
+  ) {
+    await authz.session(sessionId, userId).requireManage();
+    return sessionRepository.update(sessionId, {
+      prepStrongStart: input.prepStrongStart,
+      prepSceneOutline: input.prepSceneOutline as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepSecrets: input.prepSecrets as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepLocations: input.prepLocations as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepNpcs: input.prepNpcs as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepEncounters: input.prepEncounters as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepRewards: input.prepRewards as import('@prisma/client').Prisma.InputJsonValue | undefined,
+      prepSessionArc: input.prepSessionArc,
+    });
+  }
+
+  async startSession(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).requireManage();
+    const session = await sessionRepository.update(sessionId, { status: 'in_progress' });
+    void webhookService.dispatch(session.campaignId, 'session.started', {
       sessionId: session.id,
       sessionNumber: session.sessionNumber,
       title: session.title,
     });
-
     return session;
   }
 

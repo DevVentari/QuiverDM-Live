@@ -388,8 +388,19 @@ model GameSession {
   title            String?
   quickNotes       String?             @db.Text
   recap            String?             @db.Text
-  status           String              @default("active") // active, completed, cancelled
+  status           String              @default("planning") // planning, in_progress, active, completed, cancelled
   playerVisibility String              @default("dm-only") // dm-only|summary-only|public
+
+  // Lazy DM prep fields
+  prepStrongStart  String?             @db.Text
+  prepSceneOutline Json?               // [{id, text}] max 7
+  prepSecrets      Json?               // [{id, text}] max 10
+  prepLocations    Json?               // [{id, name, description}]
+  prepNpcs         Json?               // [{id, name, motivation, npcId?}]
+  prepEncounters   Json?               // [{id, name, encounterPlanId?}]
+  prepRewards      Json?               // [{id, text}]
+  prepSessionArc   String?             @db.Text
+
   recordings       SessionRecording[]
   transcripts      Transcript[]
   encounters       Encounter[]

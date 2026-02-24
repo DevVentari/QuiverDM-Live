@@ -44,12 +44,54 @@ export const sessionsRouter = router({
         campaignId: z.string().min(1),
         title: z.string().max(500).optional(),
         quickNotes: z.string().max(10000).optional(),
+        status: z.enum(['planning', 'in_progress']).optional(),
+        prepStrongStart: z.string().max(20000).optional(),
+        prepSceneOutline: z.array(z.object({ id: z.string(), text: z.string() })).max(7).optional(),
+        prepSecrets: z.array(z.object({ id: z.string(), text: z.string() })).max(10).optional(),
+        prepLocations: z.array(z.object({ id: z.string(), name: z.string(), description: z.string() })).optional(),
+        prepNpcs: z.array(z.object({ id: z.string(), name: z.string(), motivation: z.string(), npcId: z.string().optional() })).optional(),
+        prepEncounters: z.array(z.object({ id: z.string(), name: z.string(), encounterPlanId: z.string().optional() })).optional(),
+        prepRewards: z.array(z.object({ id: z.string(), text: z.string() })).optional(),
+        prepSessionArc: z.string().max(20000).optional(),
       })
     )
     .mutation(({ input, ctx }) => {
       const { campaignId, ...data } = input;
       return sessionService.create(campaignId, ctx.session.user.id, data);
     }),
+
+  /**
+   * Update session prep content
+   * Requires DM access or canManageSessions permission
+   */
+  updatePrep: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        prepStrongStart: z.string().max(20000).optional(),
+        prepSceneOutline: z.array(z.object({ id: z.string(), text: z.string() })).max(7).optional(),
+        prepSecrets: z.array(z.object({ id: z.string(), text: z.string() })).max(10).optional(),
+        prepLocations: z.array(z.object({ id: z.string(), name: z.string(), description: z.string() })).optional(),
+        prepNpcs: z.array(z.object({ id: z.string(), name: z.string(), motivation: z.string(), npcId: z.string().optional() })).optional(),
+        prepEncounters: z.array(z.object({ id: z.string(), name: z.string(), encounterPlanId: z.string().optional() })).optional(),
+        prepRewards: z.array(z.object({ id: z.string(), text: z.string() })).optional(),
+        prepSessionArc: z.string().max(20000).optional(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { id, ...data } = input;
+      return sessionService.updatePrep(id, ctx.session.user.id, data);
+    }),
+
+  /**
+   * Start a planned session (planning → in_progress)
+   * Requires DM access or canManageSessions permission
+   */
+  startSession: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      sessionService.startSession(input.id, ctx.session.user.id)
+    ),
 
   /**
    * Update session
