@@ -1,0 +1,100 @@
+{
+  "version": "2026-02-23",
+  "states": [
+    "brainstorm",
+    "researching",
+    "research_gate=pass",
+    "research_gate=fail",
+    "integration_candidate",
+    "in_mvp_plan",
+    "deferred"
+  ],
+  "features": [
+    {
+      "id": "foundry-sidecar-bridge",
+      "title": "Foundry Sidecar Bridge",
+      "state": "in_mvp_plan",
+      "research_gate": "pass",
+      "owner": "product",
+      "evidence_refs": [
+        "docs/plans/2026-02-24-mvp-foundry-integration-spec.md"
+      ],
+      "implementation_refs": [
+        "src/app/api/integrations/foundry/launch-token/route.ts",
+        "src/app/api/integrations/foundry/events/route.ts",
+        "src/app/api/integrations/foundry/capabilities/route.ts"
+      ],
+      "cogs_risk": "medium",
+      "priority": "p0"
+    },
+    {
+      "id": "expanded-usage-caps",
+      "title": "Expanded Usage Caps and Cost Guardrails",
+      "state": "in_mvp_plan",
+      "research_gate": "pass",
+      "owner": "product",
+      "evidence_refs": [
+        "docs/obsidian-vault/10-Research/2026-02-23-usage-caps-benchmark.md",
+        "docs/plans/2026-02-23-90-day-breakeven-model.md"
+      ],
+      "implementation_refs": [
+        "src/server/services/usage.service.ts"
+      ],
+      "cogs_risk": "high",
+      "priority": "p0"
+    },
+    {
+      "id": "foundry-import-plugin",
+      "title": "Foundry VTT Import (QuiverDM → Foundry)",
+      "state": "research_gate=pass",
+      "research_gate": "pass",
+      "owner": "product",
+      "evidence_refs": [
+        "docs/obsidian-vault/10-Research/2026-02-24-foundry-import-api-research.md"
+      ],
+      "implementation_refs": [],
+      "cogs_risk": "low",
+      "priority": "p2",
+      "notes": "Extend QuiverDM Companion Foundry module with polling-based import. Phase v0: macro export. Phase v1: Actor (npc) + JournalEntry push. Requires Foundry to be running. Blocked by foundry-sidecar-bridge MVP (share same module)."
+    },
+    {
+      "id": "derailment-detector",
+      "title": "Derailment Detection Agent",
+      "state": "brainstorm",
+      "research_gate": "pending",
+      "owner": "research",
+      "evidence_refs": [],
+      "implementation_refs": [],
+      "cogs_risk": "medium",
+      "priority": "p2"
+    },
+    {
+      "id": "condition-copilot",
+      "title": "Combat Condition Co-pilot",
+      "state": "researching",
+      "research_gate": "pending",
+      "owner": "research",
+      "evidence_refs": [],
+      "implementation_refs": [],
+      "cogs_risk": "medium",
+      "priority": "p1"
+    },
+    {
+      "id": "design-system-v1",
+      "title": "Branding and Styling System v1",
+      "state": "integration_candidate",
+      "research_gate": "pass",
+      "owner": "design",
+      "evidence_refs": [
+        "docs/obsidian-vault/10-Research/2026-02-23-branding-and-styling-practices.md"
+      ],
+      "implementation_refs": [
+        "src/app/globals.css",
+        "tailwind.config.ts",
+        "src/lib/design-tokens.ts"
+      ],
+      "cogs_risk": "low",
+      "priority": "p1"
+    }
+  ]
+}
