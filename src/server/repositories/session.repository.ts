@@ -63,6 +63,14 @@ export async function create(data: {
   summary?: string;
   status?: string;
   quickNotes?: string;
+  prepStrongStart?: string;
+  prepSceneOutline?: Prisma.InputJsonValue;
+  prepSecrets?: Prisma.InputJsonValue;
+  prepLocations?: Prisma.InputJsonValue;
+  prepNpcs?: Prisma.InputJsonValue;
+  prepEncounters?: Prisma.InputJsonValue;
+  prepRewards?: Prisma.InputJsonValue;
+  prepSessionArc?: string;
 }) {
   return prisma.gameSession.create({ data });
 }
@@ -76,6 +84,14 @@ export async function update(
     status?: string;
     quickNotes?: string;
     recap?: string;
+    prepStrongStart?: string;
+    prepSceneOutline?: Prisma.InputJsonValue;
+    prepSecrets?: Prisma.InputJsonValue;
+    prepLocations?: Prisma.InputJsonValue;
+    prepNpcs?: Prisma.InputJsonValue;
+    prepEncounters?: Prisma.InputJsonValue;
+    prepRewards?: Prisma.InputJsonValue;
+    prepSessionArc?: string;
   }
 ) {
   return prisma.gameSession.update({ where: { id }, data });
