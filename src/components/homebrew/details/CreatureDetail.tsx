@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skull } from 'lucide-react';
+import { htmlToText } from '@/lib/html-utils';
 
 interface CreatureDetailProps {
   data: any;
@@ -86,7 +87,7 @@ export function CreatureDetail({ data }: CreatureDetailProps) {
             {data.actions.map((action: any, i: number) => (
               <div key={i}>
                 <p className="text-sm font-medium">{action.name}</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{action.description || action.desc}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{htmlToText(action.description || action.desc || '')}</p>
               </div>
             ))}
           </CardContent>
@@ -99,7 +100,7 @@ export function CreatureDetail({ data }: CreatureDetailProps) {
             <CardTitle className="text-sm">Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{data.description || data.text}</p>
+            <p className="text-sm whitespace-pre-wrap">{htmlToText(data.description || data.text || '')}</p>
           </CardContent>
         </Card>
       )}
