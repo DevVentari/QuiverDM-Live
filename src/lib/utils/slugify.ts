@@ -1,27 +1,33 @@
 /**
- * Generate a URL-friendly slug from a string
+ * Generate a URL-friendly slug from a string.
+ * Falls back to a safe default when input has no slug-safe characters.
  */
 export function slugify(text: string): string {
-  return text
+  const slug = text
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric chars with hyphens
-    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
-    .slice(0, 50); // Limit length
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);
+
+  return slug || 'campaign';
 }
 
 /**
- * Generate a unique slug by appending a number if needed
+ * Generate a unique slug by appending a number if needed.
  */
 export async function generateUniqueSlug(
   baseText: string,
   checkExists: (slug: string) => Promise<boolean>
 ): Promise<string> {
-  let slug = slugify(baseText);
+  const baseSlug = slugify(baseText);
+  let slug = baseSlug;
   let counter = 1;
 
   while (await checkExists(slug)) {
-    slug = `${slugify(baseText)}-${counter}`;
+    const suffix = `-${counter}`;
+    const maxBaseLength = Math.max(1, 50 - suffix.length);
+    slug = `${baseSlug.slice(0, maxBaseLength)}${suffix}`;
     counter++;
   }
 

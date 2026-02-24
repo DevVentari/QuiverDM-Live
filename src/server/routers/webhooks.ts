@@ -8,10 +8,11 @@ import {
 } from '../services/webhook.service';
 
 const WebhookEventSchema = z.enum(WEBHOOK_EVENTS);
+const MAX_WEBHOOKS_PER_CAMPAIGN = 10;
 
 export const webhooksRouter = router({
   list: protectedProcedure
-    .input(z.object({ campaignId: z.string() }))
+    .input(z.object({ campaignId: z.string().min(1) }))
     .query(async ({ input, ctx }) => {
       await authz
         .campaign(input.campaignId, ctx.session.user.id)
@@ -23,8 +24,10 @@ export const webhooksRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        url: z.string().url(),
+        campaignId: z.string().min(1),
+        url: z.string().url().refine((value) => value.startsWith('https://'), {
+          message: 'Webhook URL must use HTTPS',
+        }),
         events: z.array(WebhookEventSchema).min(1),
       })
     )
@@ -33,6 +36,14 @@ export const webhooksRouter = router({
         .campaign(input.campaignId, ctx.session.user.id)
         .requirePermission('canManageSessions');
 
+      const existing = await webhookService.list(input.campaignId);
+      if (existing.length >= MAX_WEBHOOKS_PER_CAMPAIGN) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `A campaign can have at most ${MAX_WEBHOOKS_PER_CAMPAIGN} webhooks`,
+        });
+      }
+
       return webhookService.create(input.campaignId, {
         url: input.url,
         events: input.events,
@@ -40,7 +51,7 @@ export const webhooksRouter = router({
     }),
 
   delete: protectedProcedure
-    .input(z.object({ endpointId: z.string() }))
+    .input(z.object({ endpointId: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
       const endpoint = await webhookService.getById(input.endpointId);
       if (!endpoint) {
@@ -55,7 +66,7 @@ export const webhooksRouter = router({
     }),
 
   testPing: protectedProcedure
-    .input(z.object({ endpointId: z.string() }))
+    .input(z.object({ endpointId: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
       const endpoint = await webhookService.getById(input.endpointId);
       if (!endpoint) {
@@ -69,4 +80,3 @@ export const webhooksRouter = router({
       return webhookService.sendTestPing(input.endpointId);
     }),
 });
-

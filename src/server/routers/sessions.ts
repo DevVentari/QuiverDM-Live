@@ -1,5 +1,6 @@
 import { router, protectedProcedure, campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import { sessionService } from '../services/session.service';
 import { prisma } from '../db';
 import { authz } from '../services/authorization.service';
@@ -12,7 +13,7 @@ export const sessionsRouter = router({
   getAll: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
+        campaignId: z.string().min(1),
       })
     )
     .query(({ input, ctx }) =>
@@ -26,7 +27,7 @@ export const sessionsRouter = router({
   getById: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
       })
     )
     .query(({ input, ctx }) =>
@@ -40,9 +41,9 @@ export const sessionsRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        title: z.string().optional(),
-        quickNotes: z.string().optional(),
+        campaignId: z.string().min(1),
+        title: z.string().max(500).optional(),
+        quickNotes: z.string().max(10000).optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -57,10 +58,10 @@ export const sessionsRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
-        title: z.string().optional(),
-        quickNotes: z.string().optional(),
-        recap: z.string().optional(),
+        id: z.string().min(1),
+        title: z.string().max(500).optional(),
+        quickNotes: z.string().max(10000).optional(),
+        recap: z.string().max(50000).optional(),
         status: z.enum(['planning', 'in_progress', 'completed']).optional(),
       })
     )
@@ -76,7 +77,7 @@ export const sessionsRouter = router({
   updateVisibility: protectedProcedure
     .input(
       z.object({
-        sessionId: z.string(),
+        sessionId: z.string().min(1),
         playerVisibility: z.enum(['dm-only', 'summary-only', 'public']),
       })
     )
@@ -98,7 +99,7 @@ export const sessionsRouter = router({
   delete: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -112,7 +113,7 @@ export const sessionsRouter = router({
   getActive: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
+        campaignId: z.string().min(1),
       })
     )
     .query(({ input, ctx }) =>
@@ -129,8 +130,8 @@ export const sessionsRouter = router({
   complete: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
-        recap: z.string().optional(),
+        id: z.string().min(1),
+        recap: z.string().max(50000).optional(),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -146,11 +147,22 @@ export const sessionsRouter = router({
   generateRecap: campaignDMProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        sessionId: z.string(),
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
       })
     )
     .mutation(async ({ input, ctx }) => {
+      const sessionAccess = await authz
+        .session(input.sessionId, ctx.session.user.id)
+        .verify();
+
+      if (sessionAccess.resource.campaignId !== input.campaignId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Session does not belong to the provided campaign',
+        });
+      }
+
       const recap = await sessionService.generateRecap(
         input.sessionId,
         ctx.session.user.id
@@ -161,7 +173,7 @@ export const sessionsRouter = router({
   generateSummary: protectedProcedure
     .input(
       z.object({
-        sessionId: z.string(),
+        sessionId: z.string().min(1),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -171,7 +183,7 @@ export const sessionsRouter = router({
   getSummaryStatus: protectedProcedure
     .input(
       z.object({
-        sessionId: z.string(),
+        sessionId: z.string().min(1),
       })
     )
     .query(({ input, ctx }) =>
@@ -181,7 +193,7 @@ export const sessionsRouter = router({
   createShareToken: protectedProcedure
     .input(
       z.object({
-        sessionId: z.string(),
+        sessionId: z.string().min(1),
       })
     )
     .mutation(({ input, ctx }) =>
@@ -191,7 +203,7 @@ export const sessionsRouter = router({
   getSessionsWithSummaries: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
+        campaignId: z.string().min(1),
       })
     )
     .query(({ input, ctx }) =>
