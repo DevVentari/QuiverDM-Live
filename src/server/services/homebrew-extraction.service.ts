@@ -13,6 +13,9 @@ import {
 } from '@/lib/markdown-parser';
 import { extractBatch, testOllama } from '@/lib/ai/ollama-extraction';
 import { extractContent, type ExtractionProvider } from '@/lib/ai/extraction';
+import { detectCustomSections } from '@/lib/ai/detect-custom-sections';
+import { prisma } from '../db';
+import { Prisma } from '@prisma/client';
 
 // Type mapping from AI extraction types to database types
 const TYPE_MAPPING: Record<string, string> = {
@@ -94,6 +97,20 @@ export class HomebrewExtractionService {
         data: item.data,
       }))
     );
+
+    // Fire-and-forget: detect custom sections for each saved item
+    Promise.all(
+      savedItems.map(async (saved, i) => {
+        const itemData = result.items[i]?.data as Record<string, unknown> | undefined;
+        if (!itemData) return;
+        const customSections = await detectCustomSections(saved.type, itemData);
+        if (customSections.length === 0) return;
+        await prisma.homebrewContent.update({
+          where: { id: saved.id },
+          data: { data: { ...itemData, customSections } as unknown as Prisma.InputJsonValue },
+        });
+      })
+    ).catch(() => {}); // Never block the response
 
     return {
       success: result.success,
@@ -178,6 +195,20 @@ export class HomebrewExtractionService {
 
     console.log(`[Extraction] Saved ${savedItems.length} items to database`);
 
+    // Fire-and-forget: detect custom sections for each saved item
+    Promise.all(
+      savedItems.map(async (saved, i) => {
+        const itemData = result.items[i]?.data as Record<string, unknown> | undefined;
+        if (!itemData) return;
+        const customSections = await detectCustomSections(saved.type, itemData);
+        if (customSections.length === 0) return;
+        await prisma.homebrewContent.update({
+          where: { id: saved.id },
+          data: { data: { ...itemData, customSections } as unknown as Prisma.InputJsonValue },
+        });
+      })
+    ).catch(() => {}); // Never block the response
+
     return {
       success: result.success,
       extractedCount: result.items.length,
@@ -230,6 +261,20 @@ export class HomebrewExtractionService {
     console.log(
       `[Extraction] Saved ${savedItems.length} items to database using ${provider}`
     );
+
+    // Fire-and-forget: detect custom sections for each saved item
+    Promise.all(
+      savedItems.map(async (saved, i) => {
+        const itemData = result.items[i]?.data as Record<string, unknown> | undefined;
+        if (!itemData) return;
+        const customSections = await detectCustomSections(saved.type, itemData);
+        if (customSections.length === 0) return;
+        await prisma.homebrewContent.update({
+          where: { id: saved.id },
+          data: { data: { ...itemData, customSections } as unknown as Prisma.InputJsonValue },
+        });
+      })
+    ).catch(() => {}); // Never block the response
 
     return {
       success: true,
