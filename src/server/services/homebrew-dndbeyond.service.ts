@@ -108,7 +108,7 @@ export class HomebrewDndbeyondService {
           where: { id: content.id },
           data: {
             data: merged as unknown as Prisma.InputJsonValue,
-            searchText: JSON.stringify(merged).toLowerCase(),
+            searchText: this.generateSearchText(transformedData.name, merged),
           },
         });
       }).catch(() => {});
