@@ -12,13 +12,21 @@ interface CustomSectionsProps {
 }
 
 export function CustomSections({ data }: CustomSectionsProps) {
-  const sections = data.customSections as CustomSection[] | undefined;
-  if (!sections?.length) return null;
+  const raw = data.customSections;
+  if (!Array.isArray(raw) || raw.length === 0) return null;
+  const sections = (raw as unknown[]).filter(
+    (s): s is CustomSection =>
+      s !== null &&
+      typeof s === 'object' &&
+      typeof (s as CustomSection).label === 'string' &&
+      typeof (s as CustomSection).content === 'string'
+  );
+  if (sections.length === 0) return null;
 
   return (
     <>
-      {sections.map((section, i) => (
-        <Card key={i}>
+      {sections.map((section) => (
+        <Card key={section.label}>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">{section.label}</CardTitle>
           </CardHeader>
