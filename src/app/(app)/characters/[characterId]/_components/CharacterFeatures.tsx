@@ -9,10 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { BookOpen } from 'lucide-react';
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').trim();
-}
+import { htmlToText } from '@/lib/html-utils';
 
 export function CharacterFeatures({ data }: { data: any }) {
   const features = data.features as any[] | null;
@@ -70,7 +67,7 @@ export function CharacterFeatures({ data }: { data: any }) {
                   <AccordionContent className="text-sm text-muted-foreground pb-3">
                     {feat.description ? (
                       <p className="leading-relaxed whitespace-pre-wrap">
-                        {stripHtml(feat.description)}
+                        {htmlToText(feat.description)}
                       </p>
                     ) : (
                       <p className="italic">No description available</p>
