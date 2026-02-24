@@ -66,9 +66,9 @@ export const transcriptRouter = router({
   updateSegment: protectedProcedure
     .input(
       z.object({
-        transcriptId: z.string(),
+        transcriptId: z.string().min(1),
         segmentIndex: z.number().int().min(0),
-        text: z.string().min(1),
+        text: z.string().min(1).max(5000),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -84,9 +84,9 @@ export const transcriptRouter = router({
   renameSpeaker: protectedProcedure
     .input(
       z.object({
-        transcriptId: z.string(),
-        oldName: z.string(),
-        newName: z.string().min(1),
+        transcriptId: z.string().min(1),
+        oldName: z.string().min(1).max(255),
+        newName: z.string().min(1).max(255),
       })
     )
     .mutation(async ({ input, ctx }) => {
