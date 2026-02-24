@@ -105,9 +105,13 @@ export class HomebrewExtractionService {
         if (!itemData) return;
         const customSections = await detectCustomSections(saved.type, itemData);
         if (customSections.length === 0) return;
+        const merged = { ...itemData, customSections };
         await prisma.homebrewContent.update({
           where: { id: saved.id },
-          data: { data: { ...itemData, customSections } as unknown as Prisma.InputJsonValue },
+          data: {
+            data: merged as unknown as Prisma.InputJsonValue,
+            searchText: JSON.stringify(merged).toLowerCase(),
+          },
         });
       })
     ).catch(() => {}); // Never block the response
@@ -202,9 +206,13 @@ export class HomebrewExtractionService {
         if (!itemData) return;
         const customSections = await detectCustomSections(saved.type, itemData);
         if (customSections.length === 0) return;
+        const merged = { ...itemData, customSections };
         await prisma.homebrewContent.update({
           where: { id: saved.id },
-          data: { data: { ...itemData, customSections } as unknown as Prisma.InputJsonValue },
+          data: {
+            data: merged as unknown as Prisma.InputJsonValue,
+            searchText: JSON.stringify(merged).toLowerCase(),
+          },
         });
       })
     ).catch(() => {}); // Never block the response
@@ -269,9 +277,13 @@ export class HomebrewExtractionService {
         if (!itemData) return;
         const customSections = await detectCustomSections(saved.type, itemData);
         if (customSections.length === 0) return;
+        const merged = { ...itemData, customSections };
         await prisma.homebrewContent.update({
           where: { id: saved.id },
-          data: { data: { ...itemData, customSections } as unknown as Prisma.InputJsonValue },
+          data: {
+            data: merged as unknown as Prisma.InputJsonValue,
+            searchText: JSON.stringify(merged).toLowerCase(),
+          },
         });
       })
     ).catch(() => {}); // Never block the response
