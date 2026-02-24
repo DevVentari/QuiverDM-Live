@@ -8,61 +8,38 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Plus, ScrollText, Mic, FileText, Sparkles, ChevronRight, Clock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
-  planned:     { label: 'Planned',     color: 'text-slate-400 border-slate-500/30 bg-slate-500/10',   dot: 'bg-slate-500' },
+  planning:    { label: 'Planning',    color: 'text-slate-400 border-slate-500/30 bg-slate-500/10',   dot: 'bg-slate-500' },
   in_progress: { label: 'In Progress', color: 'text-amber-400 border-amber-500/30 bg-amber-500/10',   dot: 'bg-amber-400' },
+  active:      { label: 'Active',      color: 'text-amber-400 border-amber-500/30 bg-amber-500/10',   dot: 'bg-amber-400' },
   completed:   { label: 'Completed',   color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10', dot: 'bg-emerald-500' },
 };
 
-type FilterStatus = 'all' | 'planned' | 'in_progress' | 'completed';
+type FilterStatus = 'all' | 'planning' | 'in_progress' | 'completed';
 
 export default function SessionsPage() {
   const { campaignId, slug, isDM } = useCampaign();
-  const { toast } = useToast();
   const prefersReducedMotion = useReducedMotion();
   const sessionsQuery = trpc.sessions.getAll.useQuery({ campaignId }, { staleTime: 30_000 });
-  const utils = trpc.useUtils();
-  const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [notes, setNotes] = useState('');
   const [filter, setFilter] = useState<FilterStatus>('all');
-
-  const create = trpc.sessions.create.useMutation({
-    onSuccess: () => {
-      utils.sessions.getAll.invalidate({ campaignId });
-      setOpen(false);
-      setTitle('');
-      setNotes('');
-    },
-    onError: (error) => {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    },
-  });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const allSessions = (sessionsQuery.data ?? []) as any[];
   const sessions = filter === 'all'
     ? allSessions
-    : allSessions.filter((s) => s.status === filter);
+    : allSessions.filter((s) => {
+        if (filter === 'in_progress') return s.status === 'in_progress' || s.status === 'active';
+        if (filter === 'planning') return s.status === 'planning' || !s.status;
+        return s.status === filter;
+      });
 
   const counts = {
     all:         allSessions.length,
-    planned:     allSessions.filter((s) => s.status === 'planned' || !s.status).length,
-    in_progress: allSessions.filter((s) => s.status === 'in_progress').length,
+    planning:    allSessions.filter((s) => s.status === 'planning' || !s.status).length,
+    in_progress: allSessions.filter((s) => s.status === 'in_progress' || s.status === 'active').length,
     completed:   allSessions.filter((s) => s.status === 'completed').length,
   };
 
@@ -100,61 +77,19 @@ export default function SessionsPage() {
           </p>
         </div>
         {isDM && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5">
-                <Plus className="h-3.5 w-3.5" />
-                New Session
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle className="font-display tracking-wide">New Session</DialogTitle>
-              </DialogHeader>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  create.mutate({
-                    campaignId,
-                    title: title || undefined,
-                    quickNotes: notes || undefined,
-                  });
-                }}
-                className="space-y-4"
-              >
-                <div className="space-y-1.5">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    placeholder={`Session ${allSessions.length + 1}: ...`}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    autoFocus
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="notes">Pre-session notes</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="What's planned for tonight..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    rows={3}
-                  />
-                </div>
-                <Button type="submit" disabled={create.isPending} className="w-full">
-                  {create.isPending ? 'Creating…' : 'Create Session'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button size="sm" className="gap-1.5" asChild>
+            <Link href={`/campaigns/${slug}/sessions/new`}>
+              <Plus className="h-3.5 w-3.5" />
+              New Session
+            </Link>
+          </Button>
         )}
       </motion.div>
 
       {/* Status filter pills */}
       {allSessions.length > 0 && (
         <div className="flex gap-1.5 flex-wrap">
-          {(['all', 'in_progress', 'completed', 'planned'] as FilterStatus[]).map((f) => (
+          {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -191,12 +126,14 @@ export default function SessionsPage() {
             initial="hidden"
             animate="visible"
           >
-            {sessions.map((session, index) => {
+            {sessions.map((session) => {
               const sessionNum = session.sessionNumber ?? (allSessions.length - allSessions.indexOf(session));
-              const status = STATUS_CONFIG[session.status] ?? STATUS_CONFIG.planned;
+              const statusKey = session.status === 'active' ? 'in_progress' : (session.status ?? 'planning');
+              const status = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.planning;
               const hasRecording  = (session._count?.recordings ?? 0) > 0 || (session.recordings?.length ?? 0) > 0;
               const hasTranscript = (session._count?.transcriptions ?? 0) > 0 || (session.transcriptions?.length ?? 0) > 0;
               const hasSummary    = !!session.aiSummary;
+              const isPlanning    = session.status === 'planning' || !session.status;
 
               return (
                 <motion.div key={session.id} variants={itemVariants}>
@@ -204,7 +141,7 @@ export default function SessionsPage() {
                     <div className="flex gap-4 group cursor-pointer">
                       {/* Session number bubble */}
                       <div className="relative z-10 shrink-0 hidden sm:flex items-start pt-1.5">
-                        <div className="w-12 h-12 rounded-full border-2 border-border bg-card group-hover:border-primary/50 transition-all duration-200 flex items-center justify-center">
+                        <div className={`w-12 h-12 rounded-full border-2 bg-card group-hover:border-primary/50 transition-all duration-200 flex items-center justify-center ${isPlanning ? 'border-dashed border-border/70' : 'border-border'}`}>
                           <span className="font-display text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors tabular-nums">
                             {String(sessionNum).padStart(2, '0')}
                           </span>
@@ -224,10 +161,15 @@ export default function SessionsPage() {
                             <span className="font-semibold text-sm">
                               {session.title || `Session ${sessionNum}`}
                             </span>
-                            {session.status && session.status !== 'planned' && (
+                            {!isPlanning && session.status !== 'completed' && (
                               <Badge variant="outline" className={`text-xs capitalize shrink-0 ${status.color}`}>
                                 <span className={`inline-block w-1.5 h-1.5 rounded-full ${status.dot} mr-1.5`} />
                                 {status.label}
+                              </Badge>
+                            )}
+                            {isPlanning && (
+                              <Badge variant="outline" className="text-xs shrink-0 text-slate-400 border-slate-500/30 bg-slate-500/10">
+                                Planning
                               </Badge>
                             )}
                           </div>
@@ -295,9 +237,11 @@ export default function SessionsPage() {
                 : 'Sessions track your D&D game nights — recordings, transcripts, and AI recaps all live here.'}
             </p>
             {isDM && filter === 'all' && (
-              <Button size="sm" onClick={() => setOpen(true)} className="gap-1.5">
-                <Plus className="h-3.5 w-3.5" />
-                Create First Session
+              <Button size="sm" className="gap-1.5" asChild>
+                <Link href={`/campaigns/${slug}/sessions/new`}>
+                  <Plus className="h-3.5 w-3.5" />
+                  Create First Session
+                </Link>
               </Button>
             )}
           </div>
