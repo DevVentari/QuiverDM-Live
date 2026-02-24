@@ -11,7 +11,7 @@ interface GenericDetailProps {
 
 export function GenericDetail({ data, typeName }: GenericDetailProps) {
   // Filter out internal/noisy keys
-  const skipKeys = new Set(['id', 'userId', 'createdAt', 'updatedAt', 'searchText', 'images', 'tags']);
+  const skipKeys = new Set(['id', 'userId', 'createdAt', 'updatedAt', 'searchText', 'images', 'tags', 'customSections']);
   const entries = Object.entries(data).filter(
     ([key, value]) => !skipKeys.has(key) && value !== null && value !== undefined && value !== ''
   );
