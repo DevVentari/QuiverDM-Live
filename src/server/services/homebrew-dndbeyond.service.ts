@@ -5,8 +5,11 @@
  */
 
 import { TRPCError } from '@trpc/server';
+import { Prisma } from '@prisma/client';
 import { homebrewDndbeyondRepository } from '../repositories/homebrew-dndbeyond.repository';
+import { prisma } from '../db';
 import { authz } from './authorization.service';
+import { detectCustomSections } from '@/lib/ai/detect-custom-sections';
 
 // =============================================================================
 // Service Class
@@ -95,6 +98,20 @@ export class HomebrewDndbeyondService {
         dndBeyondId: input.dndBeyondId,
         dndBeyondUrl: `https://www.dndbeyond.com/${this.getContentTypePath(input.contentType)}/${input.dndBeyondId}`,
       });
+
+      // Fire-and-forget: detect custom sections from non-standard DDB fields
+      const ddbPayload = transformedData.data as Record<string, unknown>;
+      detectCustomSections(input.contentType, ddbPayload).then(async (customSections) => {
+        if (customSections.length === 0) return;
+        const merged = { ...ddbPayload, customSections };
+        await prisma.homebrewContent.update({
+          where: { id: content.id },
+          data: {
+            data: merged as unknown as Prisma.InputJsonValue,
+            searchText: JSON.stringify(merged).toLowerCase(),
+          },
+        });
+      }).catch(() => {});
 
       if (input.addToCampaignId) {
         await homebrewDndbeyondRepository.addToCampaign(content.id, input.addToCampaignId);
