@@ -40,9 +40,9 @@ export const sessionsRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        title: z.string().optional(),
-        quickNotes: z.string().optional(),
+        campaignId: z.string().min(1),
+        title: z.string().max(500).optional(),
+        quickNotes: z.string().max(10000).optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -57,10 +57,10 @@ export const sessionsRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
-        title: z.string().optional(),
-        quickNotes: z.string().optional(),
-        recap: z.string().optional(),
+        id: z.string().min(1),
+        title: z.string().max(500).optional(),
+        quickNotes: z.string().max(10000).optional(),
+        recap: z.string().max(50000).optional(),
         status: z.enum(['planning', 'in_progress', 'completed']).optional(),
       })
     )

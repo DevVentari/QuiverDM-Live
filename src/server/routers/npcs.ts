@@ -41,12 +41,12 @@ export const npcsRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string(),
-        name: z.string().min(1, 'Name is required'),
-        description: z.string().optional(),
-        faction: z.string().optional(),
-        secrets: z.string().optional(),
-        imageUrl: z.string().optional(),
+        campaignId: z.string().min(1),
+        name: z.string().min(1, 'Name is required').max(255),
+        description: z.string().max(10000).optional(),
+        faction: z.string().max(255).optional(),
+        secrets: z.string().max(10000).optional(),
+        imageUrl: z.string().url().optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -61,12 +61,12 @@ export const npcsRouter = router({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
-        name: z.string().min(1, 'Name is required').optional(),
-        description: z.string().optional(),
-        faction: z.string().optional(),
-        secrets: z.string().optional(),
-        imageUrl: z.string().optional(),
+        id: z.string().min(1),
+        name: z.string().min(1, 'Name is required').max(255).optional(),
+        description: z.string().max(10000).optional(),
+        faction: z.string().max(255).optional(),
+        secrets: z.string().max(10000).optional(),
+        imageUrl: z.string().url().optional(),
         stats: z.any().optional(), // JSON field for D&D stats
       })
     )
