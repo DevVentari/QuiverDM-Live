@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
-import { BookOpen, Search, FileText, Plus } from 'lucide-react';
+import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
+import { BookOpen, Search, FileText, Plus, Globe } from 'lucide-react';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -26,6 +27,7 @@ export default function HomebrewPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
   const [createOpen, setCreateOpen] = useState(false);
+  const [ddbImportOpen, setDdbImportOpen] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -49,6 +51,10 @@ export default function HomebrewPage() {
         <div className="flex items-center gap-2">
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />Create
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setDdbImportOpen(true)}>
+            <Globe className="mr-2 h-4 w-4" />
+            D&amp;D Beyond
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link href="/homebrew/pdfs">
@@ -134,6 +140,11 @@ export default function HomebrewPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={() => content.refetch()}
+      />
+      <ImportFromDDBDialog
+        open={ddbImportOpen}
+        onOpenChange={setDdbImportOpen}
+        onImported={() => { content.refetch(); stats.refetch(); }}
       />
     </div>
   );
