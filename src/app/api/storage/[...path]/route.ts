@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFromLocal, existsInLocal } from '@/lib/storage/local-storage';
+import { getPresignedDownloadUrl } from '@/lib/storage/r2';
+import { getStorageMode } from '@/lib/storage';
 import path from 'path';
 
 export const runtime = 'nodejs';
@@ -45,13 +47,16 @@ export async function GET(
 
     // Security check: prevent directory traversal
     if (filePath.includes('..')) {
-      return NextResponse.json(
-        { error: 'Invalid file path' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid file path' }, { status: 400 });
     }
 
-    // Check if file exists
+    // In R2 mode: redirect to a presigned download URL
+    if (getStorageMode() === 'r2') {
+      const presignedUrl = await getPresignedDownloadUrl(filePath, 3600);
+      return NextResponse.redirect(presignedUrl, { status: 302 });
+    }
+
+    // Local mode: serve from disk (development only)
     const exists = await existsInLocal(filePath);
     if (!exists) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
