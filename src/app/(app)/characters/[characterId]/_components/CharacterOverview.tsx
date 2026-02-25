@@ -139,13 +139,13 @@ export function CharacterOverview({
                         type="button"
                         key={key}
                         onClick={() => onRoll?.(`1d20${mod >= 0 ? `+${mod}` : mod}`, `${key.toUpperCase()} Check`)}
-                        className={`relative flex flex-col items-center rounded-lg border-2 border-border px-2 pt-1.5 pb-5 ${onRoll ? rollableClass() : ''}`}
+                        className={`relative flex flex-col items-center rounded-lg border-2 border-border px-2 pt-1.5 pb-5 transition-colors hover:border-primary/40 ${onRoll ? rollableClass() : ''}`}
                       >
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                           {key}
                         </span>
                         <span className="text-xl font-bold leading-tight tabular-nums">{score}</span>
-                        <div className="absolute -bottom-3 flex h-6 min-w-[2.5rem] items-center justify-center rounded-full border-2 border-border bg-card text-sm font-bold tabular-nums">
+                        <div className="absolute -bottom-3 flex h-6 min-w-[2.5rem] items-center justify-center rounded-full border-2 border-primary/50 bg-card text-sm font-bold tabular-nums text-primary">
                           {formatModifier(mod)}
                         </div>
                       </button>
@@ -317,7 +317,7 @@ export function CharacterOverview({
               <Card>
                 <CardContent className="pt-3 pb-3 px-4 text-center">
                   <Shield className="h-4 w-4 mx-auto text-blue-400 mb-0.5" />
-                  <div className="text-3xl font-bold tabular-nums">{data.armorClass}</div>
+                  <div className="text-3xl font-bold tabular-nums text-primary">{data.armorClass}</div>
                   <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                     Armor Class
                   </div>
@@ -329,7 +329,7 @@ export function CharacterOverview({
               <Card>
                 <CardContent className="pt-3 pb-3 px-4 text-center">
                   <Zap className="h-4 w-4 mx-auto text-yellow-500 mb-0.5" />
-                  <div className="text-3xl font-bold tabular-nums">{data.speed}</div>
+                  <div className="text-3xl font-bold tabular-nums text-primary">{data.speed}</div>
                   <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Speed (ft)</div>
                 </CardContent>
               </Card>
@@ -338,7 +338,7 @@ export function CharacterOverview({
             <Card>
               <CardContent className="pt-3 pb-3 px-4 text-center">
                 <Star className="h-4 w-4 mx-auto text-primary mb-0.5" />
-                <div className="text-3xl font-bold tabular-nums">+{profBonus}</div>
+                <div className="text-3xl font-bold tabular-nums text-primary">+{profBonus}</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Proficiency</div>
               </CardContent>
             </Card>
@@ -352,7 +352,7 @@ export function CharacterOverview({
                     onClick={() => onRoll?.(`1d20${initMod >= 0 ? `+${initMod}` : initMod}`, 'Initiative')}
                   >
                     <div className="h-4 mb-0.5" />
-                    <div className="text-3xl font-bold tabular-nums">{formatModifier(initMod)}</div>
+                    <div className="text-3xl font-bold tabular-nums text-primary">{formatModifier(initMod)}</div>
                     <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Initiative</div>
                   </button>
                 </CardContent>
@@ -402,7 +402,7 @@ export function CharacterOverview({
           {(spellSaveDC != null || spellAttackBonus != null) && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Spellcasting</CardTitle>
+                <CardTitle className="text-sm font-display tracking-wide">Spellcasting</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -465,8 +465,8 @@ export function CharacterOverview({
           {(weaponAttacks.length > 0 || attackCantrips.length > 0) && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Swords className="h-4 w-4" />
+                <CardTitle className="text-sm font-display tracking-wide flex items-center gap-2">
+                  <Swords className="h-4 w-4 text-primary" />
                   Attacks
                 </CardTitle>
               </CardHeader>
