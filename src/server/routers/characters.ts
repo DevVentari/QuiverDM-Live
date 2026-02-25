@@ -507,6 +507,15 @@ export const charactersRouter = router({
     }),
 
   /**
+   * Get equipped homebrew item effects for a character (owner only)
+   */
+  getEquippedEffects: protectedProcedure
+    .input(z.object({ characterId: z.string() }))
+    .query(({ input, ctx }) =>
+      characterService.getEquippedEffects(input.characterId, ctx.session.user.id)
+    ),
+
+  /**
    * Get character with homebrew content
    */
   getCharacterWithHomebrew: protectedProcedure

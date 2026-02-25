@@ -37,5 +37,8 @@ export {
 // Custom section detection exports
 export { detectCustomSections, type CustomSection } from './detect-custom-sections';
 
+// Homebrew description parser exports
+export { parseHomebrewDescription, type ParsedDescription } from './parse-homebrew-description';
+
 // Save function re-exported from repository for convenience
 export { saveExtractedContent } from '../../server/repositories/homebrew-extraction.repository';

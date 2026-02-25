@@ -2,9 +2,16 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wand2 } from 'lucide-react';
+import { Wand2, Zap } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { htmlToText } from '@/lib/html-utils';
 import { CustomSections } from './CustomSections';
+import type { ItemEffect } from '@/lib/dnd-schemas';
 
 interface ItemDetailProps {
   data: any;
@@ -21,6 +28,8 @@ function DetailRow({ label, value }: { label: string; value?: string | number | 
 }
 
 export function ItemDetail({ data }: ItemDetailProps) {
+  const effects = Array.isArray(data.effects) ? (data.effects as ItemEffect[]) : [];
+
   return (
     <div className="space-y-4">
       <Card>
@@ -51,16 +60,60 @@ export function ItemDetail({ data }: ItemDetailProps) {
         </CardContent>
       </Card>
 
-      {(data.description || data.text) && (
+      {effects.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Zap className="h-4 w-4 text-amber-400" />
+              Effects
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Accordion type="multiple">
+              {effects.map((effect, idx) => (
+                <AccordionItem key={idx} value={String(idx)} className="px-4">
+                  <AccordionTrigger className="py-2.5 text-sm font-medium hover:no-underline">
+                    {effect.name}
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-3 text-sm text-muted-foreground">
+                    <p className="whitespace-pre-wrap">{effect.description}</p>
+                    {effect.mechanic && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <Badge variant="secondary" className="text-xs capitalize">
+                          {effect.mechanic.type.replace(/_/g, ' ')}
+                        </Badge>
+                        {effect.mechanic.target && (
+                          <Badge variant="outline" className="text-xs">{effect.mechanic.target}</Badge>
+                        )}
+                        {effect.mechanic.value != null && (
+                          <Badge variant="outline" className="text-xs">+{effect.mechanic.value}</Badge>
+                        )}
+                        {effect.mechanic.condition && (
+                          <span className="text-xs italic text-muted-foreground">{effect.mechanic.condition}</span>
+                        )}
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+      )}
+
+      {(data.lore || data.description || data.text) && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{htmlToText(data.description || data.text || '')}</p>
+            <p className="text-sm whitespace-pre-wrap">
+              {htmlToText(data.lore || data.description || data.text || '')}
+            </p>
           </CardContent>
         </Card>
       )}
+
       <CustomSections data={data} />
     </div>
   );

@@ -37,6 +37,7 @@ import { LongRestDialog } from '@/components/character/LongRestDialog';
 import { CharacterHomebrewItems } from '@/components/character/CharacterHomebrewItems';
 import { CharacterHomebrewSpells } from '@/components/character/CharacterHomebrewSpells';
 import { CharacterHomebrewFeats } from '@/components/character/CharacterHomebrewFeats';
+import { CharacterActiveEffects } from '@/components/character/CharacterActiveEffects';
 import { useDiceRoller } from '@/hooks/use-dice-roller';
 
 export default function CharacterDetailPage() {
@@ -281,6 +282,11 @@ export default function CharacterDetailPage() {
         </TabsContent>
         <TabsContent value="homebrew" className="mt-4">
           <div className="space-y-6">
+            <CharacterActiveEffects
+              characterId={characterId}
+              abilityScores={data.abilityScores ?? null}
+              armorClass={data.armorClass ?? null}
+            />
             <section>
               <h3 className="text-lg font-semibold mb-2">Homebrew Items</h3>
               <CharacterHomebrewItems characterId={characterId} />

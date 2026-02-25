@@ -13,6 +13,8 @@ import {
   UpdateCharacterInput,
 } from '../repositories/character.repository';
 import { authz } from './authorization.service';
+import { prisma } from '../db';
+import { NotFoundError, ForbiddenError } from '../errors';
 
 export class CharacterService {
   // ===========================================================================
@@ -297,6 +299,38 @@ export class CharacterService {
 
     return characterRepository.updateCampaignCharacter(campaignCharacterId, {
       dmNotes,
+    });
+  }
+
+  // ===========================================================================
+  // HOMEBREW EFFECTS
+  // ===========================================================================
+
+  /**
+   * Get all equipped homebrew item effects for a character
+   */
+  async getEquippedEffects(characterId: string, userId: string) {
+    const character = await prisma.character.findUnique({
+      where: { id: characterId }, select: { userId: true }
+    });
+    if (!character) throw new NotFoundError('character', characterId);
+    if (character.userId !== userId) throw ForbiddenError.forPermission('view', 'Character');
+
+    const items = await prisma.characterItem.findMany({
+      where: { characterId, equipped: true },
+      include: { homebrew: { select: { id: true, name: true, data: true } } },
+    });
+
+    return items.map((ci) => {
+      const data = ci.homebrew.data as Record<string, unknown>;
+      const raw = data.effects;
+      const effects = Array.isArray(raw)
+        ? (raw as unknown[]).filter(
+            (e): e is { name: string; description: string } =>
+              typeof (e as any)?.name === 'string' && typeof (e as any)?.description === 'string'
+          )
+        : [];
+      return { itemName: ci.homebrew.name, itemId: ci.homebrew.id, equipped: ci.equipped, attuned: ci.attuned, effects };
     });
   }
 }
