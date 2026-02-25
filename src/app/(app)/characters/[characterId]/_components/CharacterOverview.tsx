@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Shield, Zap, Star, Dices, Swords } from 'lucide-react';
+import { Shield, Zap, Star, Dices, Swords, ChevronRight } from 'lucide-react';
 import { HPTracker } from '@/components/character/HPTracker';
 import { SpellSlotPips } from '@/components/character/SpellSlotPips';
 import { DeathSaves, type DeathSavesValue } from '@/components/character/DeathSaves';
@@ -82,6 +83,31 @@ export function CharacterOverview({
     failures: 0,
   };
 
+  const [actionMode, setActionMode] = useState<'attacks' | 'spells'>('attacks');
+  const [featActionsOpen, setFeatActionsOpen] = useState(false);
+
+  function detectActionType(description: string): string | null {
+    const text = (description ?? '').toLowerCase();
+    if (text.includes('as a reaction') || text.includes('as your reaction')) return 'Reaction';
+    if (text.includes('bonus action')) return 'Bonus Action';
+    if (text.includes('as an action') || text.includes('use your action') || text.includes('using your action')) return 'Action';
+    return null;
+  }
+
+  const allFeatures = (data.features as any[] | null) ?? [];
+  const featActions = allFeatures
+    .map((f: any) => ({ ...f, actionType: detectActionType(f.description ?? '') }))
+    .filter((f: any) => f.actionType !== null);
+
+  const allSpells = (spellcasting?.spells as any[] | null) ?? [];
+  const spellsByLevel: Record<number, any[]> = {};
+  for (const spell of allSpells) {
+    const lvl = spell.level ?? 0;
+    if (!spellsByLevel[lvl]) spellsByLevel[lvl] = [];
+    spellsByLevel[lvl].push(spell);
+  }
+  const spellLevelsSorted = Object.keys(spellsByLevel).map(Number).sort((a, b) => a - b);
+
   const weaponAttacks = inventory
     .filter((item: any) => item.equipped && item.damage)
     .map((item: any) => {
@@ -113,6 +139,182 @@ export function CharacterOverview({
 
   return (
     <div className="space-y-4">
+      {/* ── Quick Actions ───────────────────────────────────────── */}
+      {(weaponAttacks.length > 0 || attackCantrips.length > 0 || allSpells.length > 0) && (
+        <Card>
+          <CardHeader className="pb-2 pt-3 px-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-display tracking-wide flex items-center gap-2">
+                <Swords className="h-4 w-4 text-primary" />
+                Quick Actions
+              </CardTitle>
+              <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setActionMode('attacks')}
+                  className={`px-2.5 py-0.5 text-xs font-medium rounded transition-colors ${
+                    actionMode === 'attacks'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Attacks
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActionMode('spells')}
+                  className={`px-2.5 py-0.5 text-xs font-medium rounded transition-colors ${
+                    actionMode === 'spells'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Spells
+                </button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="px-4 pb-3 space-y-1.5">
+            {actionMode === 'attacks' && (
+              <>
+                {weaponAttacks.length === 0 && attackCantrips.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-2 text-center">No attacks equipped</p>
+                )}
+                {weaponAttacks.map((attack: any) => (
+                  <div key={attack.name} className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2 text-sm">
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium">{attack.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {attack.damage}{attack.damageType ? ` ${attack.damageType}` : ''}
+                      </span>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => onRoll?.(`1d20${attack.attackBonus >= 0 ? `+${attack.attackBonus}` : attack.attackBonus}`, `${attack.name} Attack`)}
+                        className="text-xs rounded border border-border/60 px-2 py-0.5 font-mono font-bold text-primary hover:bg-muted hover:border-primary/40 transition-colors"
+                      >
+                        {attack.attackBonus >= 0 ? `+${attack.attackBonus}` : attack.attackBonus}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const notation = String(attack.damage).replace(/\s+/g, '');
+                          const match = notation.match(/^\d+d\d+([+-]\d+)?/i);
+                          if (match) onRoll?.(match[0], `${attack.name} Damage`);
+                        }}
+                        className="text-xs rounded border border-border/60 px-2 py-0.5 hover:bg-muted transition-colors"
+                      >
+                        Dmg
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {attackCantrips.map((spell: any) => (
+                  <div key={spell.name} className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2 text-sm">
+                    <div className="flex-1 min-w-0">
+                      <span className="font-medium">{spell.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {spell.damage || (spell.savingThrow ? `${spell.savingThrow} save` : 'Cantrip')}
+                      </span>
+                    </div>
+                    {onRoll && spell.damage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const match = String(spell.damage).match(/(\d+d\d+([+-]\d+)?)/i);
+                          if (match) onRoll(match[1], `${spell.name} Damage`);
+                        }}
+                        className="text-xs rounded border border-border/60 px-2 py-0.5 hover:bg-muted transition-colors shrink-0"
+                      >
+                        Dmg
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Feat & Class Actions */}
+                {featActions.length > 0 && (
+                  <div className="border-t border-border/50 pt-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setFeatActionsOpen(!featActionsOpen)}
+                      className="w-full flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground py-1 transition-colors"
+                    >
+                      <ChevronRight className={`h-3 w-3 transition-transform duration-150 ${featActionsOpen ? 'rotate-90' : ''}`} />
+                      Feat & Class Actions ({featActions.length})
+                    </button>
+                    {featActionsOpen && (
+                      <div className="mt-1.5 space-y-1">
+                        {featActions.map((feat: any, i: number) => (
+                          <div key={i} className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-1.5 text-sm">
+                            <span className="flex-1 min-w-0 truncate">{feat.name}</span>
+                            <Badge variant="outline" className="text-[10px] h-5 shrink-0 font-normal">
+                              {feat.actionType}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {actionMode === 'spells' && (
+              <>
+                {allSpells.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2 text-center">No spells available</p>
+                ) : (
+                  spellLevelsSorted.map((level) => (
+                    <div key={level}>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 mt-2 first:mt-0 flex items-center gap-2">
+                        {level === 0 ? 'Cantrips' : `Level ${level}`}
+                        {level > 0 && spellSlots?.[`level${level}`] && (
+                          <span className="font-normal normal-case text-muted-foreground/60">
+                            {spellSlots[`level${level}`].total - spellSlots[`level${level}`].used}/{spellSlots[`level${level}`].total} slots
+                          </span>
+                        )}
+                      </div>
+                      {spellsByLevel[level]
+                        .sort((a: any, b: any) => a.name.localeCompare(b.name))
+                        .map((spell: any, i: number) => (
+                          <div key={i} className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-1.5 text-sm mb-1">
+                            <div className="flex-1 min-w-0">
+                              <span className={`font-medium ${!spell.prepared && !spell.alwaysPrepared && spell.level > 0 ? 'text-muted-foreground' : ''}`}>
+                                {spell.name}
+                              </span>
+                              {spell.school && (
+                                <span className="text-xs text-muted-foreground ml-2">{spell.school}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {spell.concentration && <span className="text-[10px] text-amber-500/70 font-bold" title="Concentration">C</span>}
+                              {spell.ritual && <span className="text-[10px] text-muted-foreground/60 font-bold" title="Ritual">R</span>}
+                              {onRoll && spell.damage && (() => {
+                                const match = String(spell.damage).match(/(\d+d\d+([+-]\d+)?)/i);
+                                return match ? (
+                                  <button
+                                    type="button"
+                                    className="text-xs rounded border border-border/60 px-2 py-0.5 hover:bg-muted transition-colors"
+                                    onClick={() => onRoll(match[1], `${spell.name} Damage`)}
+                                  >
+                                    Dmg
+                                  </button>
+                                ) : null;
+                              })()}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {(inspiration || xp != null || (conditions && conditions.length > 0)) && (
         <div className="flex flex-wrap gap-2">
           {inspiration && <Badge variant="default">Inspired</Badge>}
@@ -462,78 +664,6 @@ export function CharacterOverview({
             </Card>
           )}
 
-          {(weaponAttacks.length > 0 || attackCantrips.length > 0) && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-display tracking-wide flex items-center gap-2">
-                  <Swords className="h-4 w-4 text-primary" />
-                  Attacks
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {weaponAttacks.map((attack: any) => (
-                  <div key={attack.name} className="flex items-center justify-between rounded border p-2">
-                    <div>
-                      <div className="text-sm font-medium">{attack.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {attack.damage} {attack.damageType ?? ''}
-                      </div>
-                    </div>
-                    {onRoll && (
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          className="text-xs rounded border px-2 py-1 hover:bg-muted"
-                          onClick={() =>
-                            onRoll(
-                              `1d20${attack.attackBonus >= 0 ? `+${attack.attackBonus}` : attack.attackBonus}`,
-                              `${attack.name} Attack`
-                            )
-                          }
-                        >
-                          To Hit
-                        </button>
-                        <button
-                          type="button"
-                          className="text-xs rounded border px-2 py-1 hover:bg-muted"
-                          onClick={() => {
-                            const notation = String(attack.damage).replace(/\s+/g, '');
-                            const match = notation.match(/^\d+d\d+([+-]\d+)?/i);
-                            if (match) onRoll(match[0], `${attack.name} Damage`);
-                          }}
-                        >
-                          Damage
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {attackCantrips.map((spell: any) => (
-                  <div key={spell.name} className="flex items-center justify-between rounded border p-2">
-                    <div>
-                      <div className="text-sm font-medium">{spell.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {spell.damage || (spell.savingThrow ? `${spell.savingThrow} save` : 'Attack cantrip')}
-                      </div>
-                    </div>
-                    {onRoll && spell.damage && (
-                      <button
-                        type="button"
-                        className="text-xs rounded border px-2 py-1 hover:bg-muted"
-                        onClick={() => {
-                          const match = String(spell.damage).match(/(\d+d\d+([+-]\d+)?)/i);
-                          if (match) onRoll(match[1], `${spell.name} Damage`);
-                        }}
-                      >
-                        Damage
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
 
           {(senses || languages || resistances) && (
             <Card>
