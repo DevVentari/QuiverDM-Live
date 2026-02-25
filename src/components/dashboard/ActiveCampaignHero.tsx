@@ -9,13 +9,13 @@ import type { DashboardCampaign } from '@/server/services/campaign.service';
 
 export function ActiveCampaignHero({ campaign }: { campaign: DashboardCampaign }) {
   return (
-    <div className="relative overflow-hidden rounded-xl border-2">
+    <div className="glass-panel relative overflow-hidden rounded-xl border">
       {campaign.bannerUrl ? (
         <Image src={campaign.bannerUrl} alt={campaign.name} fill className="object-cover" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-indigo-950 to-blue-950" />
       )}
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-black/45" />
       <div className="relative z-10 p-6">
         <div className="mb-1 flex items-center justify-between">
           <p className="text-[10px] uppercase tracking-widest text-primary">ACTIVE CAMPAIGN</p>
@@ -27,11 +27,11 @@ export function ActiveCampaignHero({ campaign }: { campaign: DashboardCampaign }
           {campaign.lastSessionDate
             ? formatDistanceToNow(new Date(campaign.lastSessionDate), { addSuffix: true })
             : 'No sessions yet'}
-          {campaign.nextSession && ` · Next: ${format(new Date(campaign.nextSession.date), 'EEE MMM d, h:mmaaa')}`}
+          {campaign.nextSession && ` | Next: ${format(new Date(campaign.nextSession.date), 'EEE MMM d, h:mmaaa')}`}
         </p>
         <p className="mb-4 text-sm text-white/60">
-          {campaign.sessionCount} sessions · {campaign.memberCount} members
-          {campaign.myCharacter && ` · Playing: ${campaign.myCharacter.name}`}
+          {campaign.sessionCount} sessions | {campaign.memberCount} members
+          {campaign.myCharacter && ` | Playing: ${campaign.myCharacter.name}`}
         </p>
         <div className="flex flex-wrap gap-2">
           <Button asChild>

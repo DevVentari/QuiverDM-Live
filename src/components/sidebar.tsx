@@ -32,7 +32,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col border-r border-border bg-card transition-all duration-200',
+        'glass-shell hidden md:flex flex-col border-r border-border transition-all duration-200',
         collapsed ? 'w-16' : 'w-60'
       )}
     >
@@ -62,8 +62,8 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-accent text-foreground border-l-2 border-primary'
-                  : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground',
+                  ? 'bg-white/10 text-foreground border-l-2 border-primary shadow-[inset_0_0_0_1px_hsl(240_20%_85%_/_0.14)]'
+                  : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
                 collapsed && 'justify-center px-2'
               )}
               title={collapsed ? item.label : undefined}
@@ -93,8 +93,8 @@ export function MobileSidebar() {
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
               isActive
-                ? 'bg-accent text-foreground border-l-2 border-primary'
-                : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                ? 'bg-white/10 text-foreground border-l-2 border-primary shadow-[inset_0_0_0_1px_hsl(240_20%_85%_/_0.14)]'
+                : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
             )}
           >
             <item.icon className="h-4 w-4 shrink-0" />

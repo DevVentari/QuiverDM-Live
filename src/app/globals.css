@@ -32,22 +32,22 @@
   .dark {
     --background: hsl(240 10% 4%);
     --foreground: hsl(240 5% 96%);
-    --card: hsl(240 6% 8%);
+    --card: hsl(240 10% 9% / 0.56);
     --card-foreground: hsl(240 5% 96%);
-    --popover: hsl(240 6% 8%);
+    --popover: hsl(240 10% 9% / 0.7);
     --popover-foreground: hsl(240 5% 96%);
     --primary: hsl(35 80% 55%);
     --primary-foreground: hsl(240 10% 4%);
-    --secondary: hsl(240 4% 16%);
+    --secondary: hsl(240 8% 16% / 0.62);
     --secondary-foreground: hsl(240 5% 96%);
-    --muted: hsl(240 4% 16%);
+    --muted: hsl(240 8% 16% / 0.52);
     --muted-foreground: hsl(240 5% 64%);
     --accent: hsl(35 15% 14%);
     --accent-foreground: hsl(35 60% 80%);
     --destructive: hsl(0 62% 50%);
     --destructive-foreground: hsl(240 5% 96%);
-    --border: hsl(240 4% 16%);
-    --input: hsl(240 4% 16%);
+    --border: hsl(240 20% 80% / 0.09);
+    --input: hsl(240 20% 80% / 0.2);
     --ring: hsl(35 80% 55%);
   }
 
@@ -77,22 +77,22 @@
     .dark {
       --background: oklch(0.12 0.005 265);
       --foreground: oklch(0.96 0.003 265);
-      --card: oklch(0.16 0.005 265);
+      --card: oklch(0.16 0.005 265 / 0.56);
       --card-foreground: oklch(0.96 0.003 265);
-      --popover: oklch(0.16 0.005 265);
+      --popover: oklch(0.16 0.005 265 / 0.7);
       --popover-foreground: oklch(0.96 0.003 265);
       --primary: oklch(0.7 0.16 55);
       --primary-foreground: oklch(0.12 0.005 265);
-      --secondary: oklch(0.22 0.005 265);
+      --secondary: oklch(0.22 0.005 265 / 0.62);
       --secondary-foreground: oklch(0.96 0.003 265);
-      --muted: oklch(0.22 0.005 265);
+      --muted: oklch(0.22 0.005 265 / 0.52);
       --muted-foreground: oklch(0.64 0.007 265);
       --accent: oklch(0.2 0.015 55);
       --accent-foreground: oklch(0.78 0.12 55);
       --destructive: oklch(0.55 0.22 25);
       --destructive-foreground: oklch(0.96 0.003 265);
-      --border: oklch(0.22 0.005 265);
-      --input: oklch(0.22 0.005 265);
+      --border: oklch(0.9 0.01 265 / 0.09);
+      --input: oklch(0.9 0.01 265 / 0.2);
       --ring: oklch(0.7 0.16 55);
     }
   }
@@ -155,5 +155,21 @@
     background-image:
       radial-gradient(ellipse 80% 50% at 50% -10%, hsl(258 40% 12% / 0.6), transparent),
       radial-gradient(ellipse 60% 40% at 80% 100%, hsl(35 40% 10% / 0.4), transparent);
+  }
+
+  .glass-shell {
+    background-color: hsl(240 10% 8% / 0.4);
+    backdrop-filter: blur(12px);
+  }
+
+  .glass-panel {
+    background-color: hsl(240 10% 8% / 0.42);
+    backdrop-filter: blur(10px);
+    border-color: hsl(240 20% 85% / 0.09);
+  }
+
+  .glass-row {
+    background-color: hsl(240 10% 8% / 0.3);
+    border-color: hsl(240 20% 85% / 0.07);
   }
 }

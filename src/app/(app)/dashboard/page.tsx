@@ -67,7 +67,7 @@ export default function DashboardPage() {
   }, [campaigns.data]);
 
   return (
-    <div className="space-y-6 max-w-6xl overflow-hidden">
+    <div className="dashboard-bg space-y-6 max-w-6xl overflow-hidden rounded-2xl border border-white/5 p-4 sm:p-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -82,7 +82,7 @@ export default function DashboardPage() {
       {/* Quick Stats */}
       {!campaigns.isLoading && !characters.isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Card>
+          <Card className="glass-panel">
             <CardContent className="p-3 flex items-center gap-3">
               <Swords className="h-5 w-5 text-primary shrink-0" />
               <div>
@@ -91,7 +91,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-panel">
             <CardContent className="p-3 flex items-center gap-3">
               <Users className="h-5 w-5 text-primary shrink-0" />
               <div>
@@ -100,7 +100,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="glass-panel">
             <CardContent className="p-3 flex items-center gap-3">
               <BookOpen className="h-5 w-5 text-primary shrink-0" />
               <div>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         <div className="space-y-2">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Pending Invites</h2>
           {invites.data.map((invite: any) => (
-            <Card key={invite.id} className="border-primary/30">
+            <Card key={invite.id} className="glass-panel border-primary/30">
               <CardContent className="flex items-center justify-between py-3 px-4">
                 <div>
                   <p className="font-medium text-sm">{invite.campaign?.name || 'Campaign'}</p>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Campaigns — full-width with top banners */}
+      {/* Campaigns - full-width with top banners */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Continue Playing</h2>
@@ -167,7 +167,7 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : campaigns.isError ? (
-          <Card className="p-8 text-center">
+          <Card className="glass-panel p-8 text-center">
             <p className="text-sm text-muted-foreground">Failed to load campaigns. Please refresh.</p>
           </Card>
         ) : campaigns.data && campaigns.data.length > 0 ? (
@@ -178,7 +178,7 @@ export default function DashboardPage() {
                 href={`/campaigns/${campaign.slug || campaign.id}`}
                 className="shrink-0 w-[280px] sm:w-[320px] snap-start"
               >
-                <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+                <Card className="glass-panel h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
                   {campaign.bannerUrl ? (
                     <div className="relative h-28 w-full">
                       <Image
@@ -224,7 +224,7 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : (
-          <Card>
+          <Card className="glass-panel">
             <CardContent className="flex flex-col items-center py-8 text-center">
               <Swords className="h-8 w-8 text-muted-foreground mb-3" />
               <p className="text-sm text-muted-foreground mb-3">
@@ -258,7 +258,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : characters.isError ? (
-            <Card className="p-8 text-center">
+            <Card className="glass-panel p-8 text-center">
               <p className="text-sm text-muted-foreground">Failed to load characters. Please refresh.</p>
             </Card>
           ) : characters.data && characters.data.length > 0 ? (
@@ -268,15 +268,17 @@ export default function DashboardPage() {
                 const hpPct = hp?.max > 0 ? (hp.current / hp.max) * 100 : null;
                 return (
                   <Link key={char.id} href={`/characters/${char.id}`}>
-                    <Card className="hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
-                      <div className="flex">
+                    <Card className="glass-panel group relative isolate cursor-pointer overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.05]">
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(246,166,35,0.16),transparent_35%)] opacity-70" />
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-60" />
+                      <div className="relative z-10 flex">
                         {char.portraitUrl ? (
-                          <div className="relative w-20 shrink-0">
+                          <div className="relative w-20 shrink-0 overflow-hidden">
                             <Image
                               src={char.portraitUrl}
                               alt={char.name}
                               fill
-                              className="object-cover"
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                           </div>
                         ) : (
@@ -288,13 +290,13 @@ export default function DashboardPage() {
                           <div className="flex items-center justify-between gap-2">
                             <CardTitle className="text-sm truncate">{char.name}</CardTitle>
                             {char.level && (
-                              <Badge variant="outline" className="text-[10px] shrink-0 tabular-nums">
+                              <Badge variant="outline" className="border-white/35 bg-white/5 text-[10px] shrink-0 tabular-nums">
                                 Lvl {char.level}
                               </Badge>
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {[char.race, char.class].filter(Boolean).join(' · ') || 'No details'}
+                            {[char.race, char.class].filter(Boolean).join(' | ') || 'No details'}
                           </p>
                           {hp && hpPct != null && (
                             <div className="flex items-center gap-2 mt-2">
@@ -313,7 +315,7 @@ export default function DashboardPage() {
               })}
             </div>
           ) : (
-            <Card>
+            <Card className="glass-panel">
               <CardContent className="flex flex-col items-center py-8 text-center">
                 <Users className="h-8 w-8 text-muted-foreground mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">No characters yet</p>
@@ -343,13 +345,13 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : homebrew.isError ? (
-            <Card className="p-8 text-center">
+            <Card className="glass-panel p-8 text-center">
               <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
             </Card>
           ) : homebrewItems.length > 0 ? (
             <div className="space-y-2">
               {homebrewItems.slice(0, 8).map((item: any) => (
-                <Card key={item.id} className="overflow-hidden">
+                <Card key={item.id} className="glass-row overflow-hidden">
                   <CardContent className="flex items-center gap-3 py-2.5 px-4 overflow-hidden">
                     {item.images?.[0] ? (
                       <Image
@@ -388,7 +390,7 @@ export default function DashboardPage() {
               )}
             </div>
           ) : (
-            <Card>
+            <Card className="glass-panel">
               <CardContent className="flex flex-col items-center py-8 text-center">
                 <BookOpen className="h-8 w-8 text-muted-foreground mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">No homebrew content yet</p>
@@ -405,3 +407,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
