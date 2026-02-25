@@ -1,30 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  uploadToLocal,
-  generateLocalFileKey,
-  getLocalUrl,
-} from '@/lib/storage/local-storage';
 import { auth } from '@/lib/auth';
+import { getPresignedUploadUrl, generateFileKey } from '@/lib/storage/r2';
+import { getStorageMode } from '@/lib/storage';
+import { uploadToLocal, generateLocalFileKey } from '@/lib/storage/local-storage';
 
 export const runtime = 'nodejs';
-export const maxDuration = 300; // 5 minutes (Vercel hobby plan limit)
+export const maxDuration = 30;
 
-// Configure body size limit for this route
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1gb',
-    },
-  },
-};
+const ALLOWED_TYPES = [
+  'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo',
+  'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm',
+  'audio/flac', 'audio/x-m4a', 'audio/aac',
+];
 
 /**
- * Upload video/audio file for session recording
- * (Use R2 in production by importing from @/lib/r2-storage instead)
+ * POST /api/recordings/upload
+ *
+ * In R2 mode (production): Returns a presigned upload URL.
+ *   Body: { sessionId: string, filename: string, contentType: string, fileSize: number }
+ *   Response: { uploadUrl: string, key: string }
+ *   After upload: call trpc.sessionRecordings.create to register in DB.
+ *
+ * In local mode (development): Accepts file body and stores locally.
+ *   Body: FormData { file, sessionId }
+ *   Response: { url: string, key: string, ... }
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get user from session
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -32,81 +34,93 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id;
 
-    const formData = await request.formData();
-    const file = formData.get('file') as File | null;
-    const sessionId = formData.get('sessionId') as string | null;
+    if (getStorageMode() === 'r2') {
+      // Presigned URL flow for production — browser uploads directly to R2
+      const body = await request.json() as {
+        sessionId: string;
+        filename: string;
+        contentType: string;
+        fileSize: number;
+      };
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
+      const { sessionId, filename, contentType, fileSize } = body;
 
-    if (!sessionId) {
-      return NextResponse.json(
-        { error: 'sessionId is required' },
-        { status: 400 }
-      );
-    }
+      if (!sessionId || !filename || !contentType) {
+        return NextResponse.json(
+          { error: 'sessionId, filename, and contentType are required' },
+          { status: 400 }
+        );
+      }
 
-    // Validate file type (video or audio)
-    const isVideo = file.type.startsWith('video/');
-    const isAudio = file.type.startsWith('audio/');
+      const isVideo = contentType.startsWith('video/');
+      const isAudio = contentType.startsWith('audio/');
+      if (!isVideo && !isAudio) {
+        return NextResponse.json(
+          { error: 'Only video and audio files are allowed' },
+          { status: 400 }
+        );
+      }
 
-    if (!isVideo && !isAudio) {
-      return NextResponse.json(
-        { error: 'Only video and audio files are allowed' },
-        { status: 400 }
-      );
-    }
+      if (!ALLOWED_TYPES.includes(contentType)) {
+        return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
+      }
 
-    // Validate file size (max 1GB)
-    const maxSize = 1024 * 1024 * 1024; // 1GB
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: 'File size must be less than 1GB' },
-        { status: 400 }
-      );
-    }
+      const maxSize = 1024 * 1024 * 1024; // 1GB
+      if (fileSize > maxSize) {
+        return NextResponse.json(
+          { error: 'File size must be less than 1GB' },
+          { status: 400 }
+        );
+      }
 
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+      const key = generateFileKey(userId, sessionId, filename, 'session-recordings');
+      // Presigned URL valid for 60 minutes (large files may take time to upload)
+      const uploadUrl = await getPresignedUploadUrl(key, contentType, 3600);
 
-    // Generate unique key for local storage
-    const key = generateLocalFileKey(
-      userId,
-      sessionId,
-      file.name,
-      'session-recordings'
-    );
+      return NextResponse.json({ uploadUrl, key });
+    } else {
+      // Local development: accept file body via FormData
+      const formData = await request.formData();
+      const file = formData.get('file') as File | null;
+      const sessionId = formData.get('sessionId') as string | null;
 
-    // Upload to local storage
-    const url = await uploadToLocal({
-      key,
-      body: buffer,
-      contentType: file.type,
-      metadata: {
-        originalName: file.name,
-        userId,
-        sessionId,
-        uploadedAt: new Date().toISOString(),
+      if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      if (!sessionId) return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
+
+      const isVideo = file.type.startsWith('video/');
+      const isAudio = file.type.startsWith('audio/');
+      if (!isVideo && !isAudio) {
+        return NextResponse.json(
+          { error: 'Only video and audio files are allowed' },
+          { status: 400 }
+        );
+      }
+
+      const maxSize = 1024 * 1024 * 1024;
+      if (file.size > maxSize) {
+        return NextResponse.json(
+          { error: 'File size must be less than 1GB' },
+          { status: 400 }
+        );
+      }
+
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const key = generateLocalFileKey(userId, sessionId, file.name, 'session-recordings');
+      const url = await uploadToLocal({ key, body: buffer, contentType: file.type });
+
+      return NextResponse.json({
+        success: true,
+        url,
+        key,
+        filename: file.name,
+        fileSize: file.size,
         type: isVideo ? 'video' : 'audio',
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      url,
-      key,
-      filename: file.name,
-      fileSize: file.size,
-      type: isVideo ? 'video' : 'audio',
-      contentType: file.type,
-    });
+        contentType: file.type,
+      });
+    }
   } catch (error) {
-    console.error('Error uploading recording:', error);
-    return NextResponse.json(
-      { error: 'Failed to upload file' },
-      { status: 500 }
-    );
+    console.error('Error in recordings upload:', error);
+    return NextResponse.json({ error: 'Failed to process upload request' }, { status: 500 });
   }
 }
