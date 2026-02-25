@@ -1,6 +1,8 @@
 'use client';
 
+import { useMemo } from 'react';
 import Link from 'next/link';
+import { formatDistanceToNow, format } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,8 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
-import { Plus, Swords, Users, Check, X, BookOpen, Shield, Heart } from 'lucide-react';
+import { Plus, Swords, Users, Check, X, BookOpen, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ActiveCampaignHero } from '@/components/dashboard/ActiveCampaignHero';
 
 const typeColorMap: Record<string, string> = {
   item: 'border-amber-500/50 text-amber-600 dark:text-amber-400',
@@ -53,15 +56,18 @@ export default function DashboardPage() {
   // Quick stats
   const campaignCount = campaigns.data?.length ?? 0;
   const characterCount = characters.data?.length ?? 0;
-  const inviteCount = invites.data?.length ?? 0;
-  const totalSessions = (campaigns.data || []).reduce(
-    (sum: number, c: any) => sum + (c._count?.sessions || 0),
-    0
-  );
   const homebrewItems = ((homebrew.data as any)?.items || []) as any[];
+  const activeCampaign = useMemo(() => {
+    if (!campaigns.data?.length) return null;
+    return [...campaigns.data].sort((a, b) => {
+      const aDate = a.lastSessionDate ? new Date(a.lastSessionDate).getTime() : new Date(a.updatedAt).getTime();
+      const bDate = b.lastSessionDate ? new Date(b.lastSessionDate).getTime() : new Date(b.updatedAt).getTime();
+      return bDate - aDate;
+    })[0] ?? null;
+  }, [campaigns.data]);
 
   return (
-    <div className="space-y-6 max-w-6xl overflow-hidden">
+    <div className="space-y-6 max-w-6xl overflow-hidden dashboard-bg">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -75,9 +81,9 @@ export default function DashboardPage() {
 
       {/* Quick Stats */}
       {!campaigns.isLoading && !characters.isLoading && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <Card>
-            <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+            <CardContent className="p-3 flex items-center gap-3">
               <Swords className="h-5 w-5 text-primary shrink-0" />
               <div>
                 <div className="text-2xl font-bold tabular-nums leading-tight">{campaignCount}</div>
@@ -86,7 +92,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+            <CardContent className="p-3 flex items-center gap-3">
               <Users className="h-5 w-5 text-primary shrink-0" />
               <div>
                 <div className="text-2xl font-bold tabular-nums leading-tight">{characterCount}</div>
@@ -95,42 +101,18 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
+            <CardContent className="p-3 flex items-center gap-3">
               <BookOpen className="h-5 w-5 text-primary shrink-0" />
               <div>
-                <div className="text-2xl font-bold tabular-nums leading-tight">{totalSessions}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Sessions</div>
+                <div className="text-2xl font-bold tabular-nums leading-tight">{homebrewItems.length}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Homebrew</div>
               </div>
             </CardContent>
           </Card>
-          {inviteCount > 0 ? (
-            <Card className="border-primary/50">
-              <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
-                <div className="relative">
-                  <Check className="h-5 w-5 text-primary shrink-0" />
-                  <div className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold tabular-nums leading-tight">{inviteCount}</div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Invites</div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="pt-3 pb-3 px-4 flex items-center gap-3">
-                <Shield className="h-5 w-5 text-primary shrink-0" />
-                <div>
-                  <div className="text-2xl font-bold tabular-nums leading-tight">
-                    {(campaigns.data || []).reduce((sum: number, c: any) => sum + (c._count?.npcs || 0), 0)}
-                  </div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">NPCs</div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       )}
+
+      {activeCampaign && <ActiveCampaignHero campaign={activeCampaign} />}
 
       {/* Pending Invites */}
       {invites.data && invites.data.length > 0 && (
@@ -173,7 +155,7 @@ export default function DashboardPage() {
       {/* Campaigns — full-width with top banners */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">My Campaigns</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Continue Playing</h2>
           <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
             <Link href="/campaigns">View all</Link>
           </Button>
@@ -224,9 +206,17 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent className="pt-0">
                     <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span>{campaign._count?.sessions || 0} sessions</span>
-                      <span>{campaign._count?.npcs || 0} NPCs</span>
-                      <span>{campaign._count?.members || campaign._count?.campaignMembers || 0} members</span>
+                      <span>{campaign.sessionCount} sessions</span>
+                      <span>{campaign.memberCount} members</span>
+                      {campaign.lastSessionDate && (
+                        <span>Last played {formatDistanceToNow(new Date(campaign.lastSessionDate), { addSuffix: true })}</span>
+                      )}
+                      {campaign.nextSession && (
+                        <span className="text-amber-400">Next: {format(new Date(campaign.nextSession.date), 'EEE MMM d')}</span>
+                      )}
+                      {campaign.myCharacter && (
+                        <span>Playing: {campaign.myCharacter.name}</span>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -256,7 +246,7 @@ export default function DashboardPage() {
         {/* Characters */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">My Characters</h2>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your Party</h2>
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
               <Link href="/characters">View all</Link>
             </Button>
