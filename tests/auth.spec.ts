@@ -3,7 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Authentication', () => {
   test('sign in page loads', async ({ page }) => {
     await page.goto('/auth/signin');
-    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+    // CardTitle renders as <div>, not a heading — check for the submit button instead
+    await expect(page.getByRole('button', { name: /^sign in$/i })).toBeVisible({ timeout: 5000 });
   });
 
   test('redirects unauthenticated users to sign in', async ({ page }) => {
@@ -23,6 +24,7 @@ test.describe('Authentication', () => {
 
   test('sign up page loads', async ({ page }) => {
     await page.goto('/auth/signup');
-    await expect(page.getByRole('heading', { name: /sign up|create account|register/i })).toBeVisible();
+    // CardTitle renders as <div>, not a heading — check for the submit button instead
+    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible({ timeout: 5000 });
   });
 });

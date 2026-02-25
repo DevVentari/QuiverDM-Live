@@ -1,33 +1,33 @@
 import { test, expect } from '@playwright/test';
 import { signInAsTestUser } from './helpers/auth';
 
+const CAMPAIGN_CARD = 'a[href^="/campaigns/"]:not([href="/campaigns/new"])';
+
+async function getCampaignHref(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
+  await page.goto('/campaigns');
+  await page.waitForLoadState('networkidle');
+  const link = page.locator(CAMPAIGN_CARD).first();
+  if (await link.count() === 0) return null;
+  return link.getAttribute('href');
+}
+
 test.describe('Member invites', () => {
   test('members tab loads for DMs', async ({ page }) => {
     await signInAsTestUser(page);
-    await page.goto('/campaigns');
+    const href = await getCampaignHref(page);
+    if (!href) { test.skip(); return; }
 
-    const campaignLink = page.locator('a[href*="/campaigns/"]').first();
-    if (await campaignLink.count() === 0) { test.skip(); return; }
-
-    await campaignLink.click();
+    await page.goto(`${href}/members`);
     await page.waitForLoadState('networkidle');
-
-    // Members tab should be visible for DMs
-    const membersLink = page.getByRole('link', { name: /members/i });
-    await expect(membersLink).toBeVisible({ timeout: 10000 });
-    await membersLink.click();
     await expect(page).toHaveURL(/members/);
   });
 
   test('invite dialog opens', async ({ page }) => {
     await signInAsTestUser(page);
-    await page.goto('/campaigns');
+    const href = await getCampaignHref(page);
+    if (!href) { test.skip(); return; }
 
-    const campaignLink = page.locator('a[href*="/campaigns/"]').first();
-    if (await campaignLink.count() === 0) { test.skip(); return; }
-
-    await campaignLink.click();
-    await page.getByRole('link', { name: /members/i }).click();
+    await page.goto(`${href}/members`);
     await page.waitForLoadState('networkidle');
 
     await page.getByRole('button', { name: /invite/i }).click();

@@ -29,7 +29,7 @@ test.describe('Billing', () => {
     }
 
     // Edge case: portal action should be exposed to subscribed users.
-    await expect(manageSubscription).toBeVisible({ timeout: 10000 });
+    await expect(manageSubscription.first()).toBeVisible({ timeout: 10000 });
   });
 
   test('current plan is displayed in settings billing section', async ({ page }) => {
@@ -52,8 +52,9 @@ test.describe('Billing', () => {
     }
 
     // Edge case: free tier must expose upgrade entry points.
+    // Use .first() to avoid strict mode violation when both "Upgrade to Pro" and "Upgrade to Team" appear.
     await expect(
-      page.getByRole('button', { name: /upgrade to pro|upgrade to team/i })
+      page.getByRole('button', { name: /upgrade to pro|upgrade to team/i }).first()
     ).toBeVisible({ timeout: 10000 });
   });
 
@@ -64,7 +65,8 @@ test.describe('Billing', () => {
 
     // Edge case: usage section should surface limit tracking labels.
     await expect(page.getByText(/usage & limits/i)).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(/campaigns/i)).toBeVisible();
+    // Scope to main content to avoid strict-mode collision with sidebar nav "Campaigns" link.
+    await expect(page.getByRole('main').getByText(/campaigns/i).first()).toBeVisible();
     await expect(page.getByText(/transcription/i)).toBeVisible();
     await expect(page.getByText(/pdf uploads/i)).toBeVisible();
   });

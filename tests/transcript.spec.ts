@@ -5,14 +5,17 @@ async function openFirstSessionDetail(page: Page): Promise<boolean> {
   await page.goto('/campaigns');
   await page.waitForLoadState('networkidle');
 
-  const campaignLink = page.locator('a[href*="/campaigns/"]').first();
+  // Get href directly and navigate — avoids click-navigation race with waitForLoadState.
+  const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
   if ((await campaignLink.count()) === 0) {
     return false;
   }
 
-  await campaignLink.click();
-  await page.waitForLoadState('networkidle');
-  await page.getByRole('link', { name: /sessions/i }).click();
+  const campaignHref = await campaignLink.getAttribute('href');
+  if (!campaignHref) return false;
+
+  // Navigate directly to sessions to avoid strict mode on sidebar vs tab nav links.
+  await page.goto(`${campaignHref}/sessions`);
   await page.waitForLoadState('networkidle');
 
   const sessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {

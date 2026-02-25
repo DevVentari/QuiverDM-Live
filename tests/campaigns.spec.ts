@@ -15,21 +15,25 @@ test.describe('Campaigns', () => {
     ).toBeVisible({ timeout: 10000 });
   });
 
-  test('new campaign button is visible for authenticated users', async ({ page }) => {
+  test('new campaign link is visible for authenticated users', async ({ page }) => {
+    // Button asChild + Link renders as an <a> element
     await expect(
-      page.getByRole('button', { name: /new campaign|create campaign/i })
+      page.getByRole('link', { name: /new campaign/i })
     ).toBeVisible({ timeout: 10000 });
   });
 
-  test('campaign create dialog opens', async ({ page }) => {
-    await page.getByRole('button', { name: /new campaign|create campaign/i }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
+  test('new campaign link navigates to create page', async ({ page }) => {
+    await page.getByRole('link', { name: /new campaign/i }).first().click();
+    await page.waitForURL(/\/campaigns\/new/, { timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /create campaign/i })).toBeVisible();
   });
 
   test('campaign name is required', async ({ page }) => {
-    await page.getByRole('button', { name: /new campaign|create campaign/i }).click();
-    await page.getByRole('dialog').getByRole('button', { name: /create/i }).click();
-    // Should show validation error
+    await page.goto('/campaigns/new');
+    // Fill with whitespace only — passes HTML5 required but fails Zod .min(1) after .trim()
+    await page.getByRole('textbox', { name: /campaign name/i }).fill('   ');
+    await page.getByRole('button', { name: /create campaign/i }).click();
+    // Should show Zod validation error
     await expect(
       page.getByText(/required|name is required/i)
     ).toBeVisible({ timeout: 5000 });

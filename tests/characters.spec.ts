@@ -5,15 +5,18 @@ async function openFirstCampaignPlayers(page: Page): Promise<boolean> {
   await page.goto('/campaigns');
   await page.waitForLoadState('networkidle');
 
-  const campaignLink = page.locator('a[href*="/campaigns/"]').first();
+  // Exclude the "New Campaign" create link; find actual campaign card links only.
+  const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
   if ((await campaignLink.count()) === 0) {
     return false;
   }
 
-  await campaignLink.click();
+  const href = await campaignLink.getAttribute('href');
+  if (!href) return false;
+  // Navigate directly to players to avoid strict mode on sidebar vs tab nav links.
+  await page.goto(`${href}/players`);
   await page.waitForLoadState('networkidle');
-  await page.getByRole('link', { name: /players/i }).click();
-  await page.waitForLoadState('networkidle');
+  if (!page.url().includes('/players')) return false;
   return true;
 }
 
@@ -63,13 +66,15 @@ test.describe('Characters', () => {
     await page.goto('/campaigns');
     await page.waitForLoadState('networkidle');
 
-    const campaignLink = page.locator('a[href*="/campaigns/"]').first();
+    const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
     if ((await campaignLink.count()) === 0) {
       test.skip(true, 'No campaign exists to validate DM role prerequisites.');
       return;
     }
 
-    await campaignLink.click();
+    const campaignHref = await campaignLink.getAttribute('href');
+    if (!campaignHref) { test.skip(true, 'Could not read campaign href.'); return; }
+    await page.goto(campaignHref);
     await page.waitForLoadState('networkidle');
     if (!(await isDungeonMaster(page))) {
       test.skip(true, 'Current campaign role is not DM.');
@@ -121,11 +126,12 @@ test.describe('Characters', () => {
     await page.goto('/campaigns');
     await page.waitForLoadState('networkidle');
 
-    const campaignLinks = await page.locator('a[href*="/campaigns/"]').evaluateAll((links) => {
+    const campaignLinks = await page.locator('a[href^="/campaigns/"]').evaluateAll((links) => {
       const unique = new Set<string>();
       for (const link of links) {
         const href = link.getAttribute('href');
-        if (href && /\/campaigns\/[^/]+$/.test(href)) unique.add(href);
+        // Match campaign slugs but exclude the "New Campaign" create link.
+        if (href && /\/campaigns\/(?!new(?:\/|$))[^/]+$/.test(href)) unique.add(href);
       }
       return [...unique];
     });
@@ -145,7 +151,9 @@ test.describe('Characters', () => {
       return;
     }
 
-    await page.getByRole('link', { name: /players/i }).click();
+    const slug = page.url().match(/\/campaigns\/([^/]+)/)?.[1];
+    if (!slug) { test.skip(); return; }
+    await page.goto(`/campaigns/${slug}/players`);
     await page.waitForLoadState('networkidle');
 
     // Edge case: DM-only moderation controls should be hidden for player role.
