@@ -67,7 +67,7 @@ export default function DashboardPage() {
   }, [campaigns.data]);
 
   return (
-    <div className="space-y-6 max-w-6xl overflow-hidden dashboard-bg">
+    <div className="space-y-6 max-w-6xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
