@@ -111,6 +111,27 @@ export const MagicItemSchema = z.object({
 export type MagicItem = z.infer<typeof MagicItemSchema>;
 
 /**
+ * Item Effect Schemas
+ */
+export const ItemEffectMechanicSchema = z.object({
+  type: z.enum([
+    'advantage', 'damage_bypass', 'ac_bonus', 'attack_bonus',
+    'ability_bonus', 'resistance', 'immunity', 'custom',
+  ]),
+  target: z.string().optional(),
+  value: z.number().optional(),
+  condition: z.string().optional(),
+});
+
+export const ItemEffectSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  mechanic: ItemEffectMechanicSchema.optional(),
+});
+
+export type ItemEffect = z.infer<typeof ItemEffectSchema>;
+
+/**
  * Monster/Creature Schema
  */
 export const MonsterSchema = z.object({

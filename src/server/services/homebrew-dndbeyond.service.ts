@@ -10,6 +10,7 @@ import { homebrewDndbeyondRepository } from '../repositories/homebrew-dndbeyond.
 import { prisma } from '../db';
 import { authz } from './authorization.service';
 import { detectCustomSections } from '@/lib/ai/detect-custom-sections';
+import { parseHomebrewDescription } from '@/lib/ai/parse-homebrew-description';
 
 // =============================================================================
 // Service Class
@@ -112,6 +113,26 @@ export class HomebrewDndbeyondService {
           },
         });
       }).catch(() => {});
+
+      // Fire-and-forget: parse description into lore + structured effects (items only)
+      if (input.contentType === 'item') {
+        const rawDesc = (ddbPayload.description || ddbPayload.text || '') as string;
+        if (rawDesc.trim()) {
+          parseHomebrewDescription({ name: transformedData.name, type: 'item', rawDescription: rawDesc })
+            .then(async (parsed) => {
+              if (parsed.effects.length === 0 && parsed.lore === rawDesc) return;
+              const current = await prisma.homebrewContent.findUnique({
+                where: { id: content.id }, select: { data: true }
+              });
+              if (!current) return;
+              const merged = { ...(current.data as Record<string, unknown>), lore: parsed.lore, effects: parsed.effects };
+              await prisma.homebrewContent.update({
+                where: { id: content.id },
+                data: { data: merged as unknown as Prisma.InputJsonValue },
+              });
+            }).catch(() => {});
+        }
+      }
 
       if (input.addToCampaignId) {
         await homebrewDndbeyondRepository.addToCampaign(content.id, input.addToCampaignId);

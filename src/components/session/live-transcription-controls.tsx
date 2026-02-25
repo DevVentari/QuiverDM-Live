@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertCircle, Mic, MicOff, Radio, Square } from 'lucide-react';
+import { AlertCircle, Mic, Radio, Square } from 'lucide-react';
+import { DmHintsPanel } from './DmHintsPanel';
 
 interface LiveTranscriptionControlsProps {
   sessionId: string;
@@ -37,12 +38,29 @@ export function LiveTranscriptionControls({
     segments,
     error,
     durationSeconds,
+    dmHints,
     start,
     stop,
   } = useLiveTranscription(sessionId);
 
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
+  const [dismissedHintIndices, setDismissedHintIndices] = useState<Set<number>>(new Set());
+
+  const visibleHints = dmHints.filter((_, idx) => !dismissedHintIndices.has(idx));
+
+  function handleDismissHint(index: number) {
+    // Map visible index back to dmHints index
+    let dmIdx = 0;
+    let visible = 0;
+    for (let i = 0; i < dmHints.length; i++) {
+      if (!dismissedHintIndices.has(i)) {
+        if (visible === index) { dmIdx = i; break; }
+        visible++;
+      }
+    }
+    setDismissedHintIndices((prev) => new Set([...prev, dmIdx]));
+  }
 
   // Check if session already has a live transcription going
   const liveStatus = trpc.sessionTranscription.getLiveTranscriptionStatus.useQuery(
@@ -78,6 +96,7 @@ export function LiveTranscriptionControls({
   }
 
   return (
+    <>
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
@@ -176,5 +195,10 @@ export function LiveTranscriptionControls({
         )}
       </CardContent>
     </Card>
+
+    {isDM && isRecording && (
+      <DmHintsPanel hints={visibleHints} onDismiss={handleDismissHint} />
+    )}
+  </>
   );
 }

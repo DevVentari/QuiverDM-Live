@@ -29,6 +29,7 @@ interface LiveSession {
   subscribers: Set<WebSocket>;
   startedAt: Date;
   sampleRate: number;
+  lastPromptGeneratedAt: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -64,6 +65,7 @@ class LiveSessionManager {
       subscribers: new Set(),
       startedAt: new Date(),
       sampleRate,
+      lastPromptGeneratedAt: 0,
     };
 
     // Create AssemblyAI real-time transcriber
@@ -102,6 +104,30 @@ class LiveSessionManager {
         for (const ws of session.subscribers) {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(message);
+          }
+        }
+
+        // Trigger DM hints every 30s after a final turn
+        if (turn.isFinal && session.accumulatedSegments.length > 0) {
+          const now = Date.now();
+          if (now - session.lastPromptGeneratedAt > 30_000) {
+            session.lastPromptGeneratedAt = now; // claim slot before async work
+            const recentSegments = session.accumulatedSegments.slice(-20);
+            const recentText = recentSegments
+              .map((s) => (s.speaker ? `${s.speaker}: ${s.text}` : s.text))
+              .join('\n');
+            import('@/server/services/dm-prompt.service')
+              .then(({ generateDmPrompts }) =>
+                generateDmPrompts(params.sessionId, params.campaignId, recentText)
+              )
+              .then((hints) => {
+                if (hints.length === 0) return;
+                const msg = JSON.stringify({ type: 'dm_hints', sessionId: params.sessionId, hints });
+                for (const ws of session.subscribers) {
+                  if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+                }
+              })
+              .catch(() => {});
           }
         }
       },
