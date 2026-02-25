@@ -101,14 +101,14 @@ export function ItemDetail({ data }: ItemDetailProps) {
         </Card>
       )}
 
-      {(data.lore || data.description || data.text) && (
+      {(data.description || data.text) && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm">Description</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm whitespace-pre-wrap">
-              {htmlToText(data.lore || data.description || data.text || '')}
+              {htmlToText(data.description || data.text || '')}
             </p>
           </CardContent>
         </Card>

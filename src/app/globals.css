@@ -105,6 +105,11 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image: url('/bg-app.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
   }
 }
 
