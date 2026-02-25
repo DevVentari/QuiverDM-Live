@@ -131,99 +131,103 @@ export default function CharacterDetailPage() {
 
   return (
     <div className="max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
-      {/* Hero Header */}
+      {/* Hero Header — mirrors dashboard character card, scaled up */}
       <div className="relative overflow-hidden rounded-xl border border-border bg-card">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-950/50 via-indigo-950/30 to-transparent pointer-events-none" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-primary/50 via-primary/20 to-transparent pointer-events-none" />
-        <div className="relative p-4 sm:p-5 flex items-start gap-4">
+        <div className="flex">
 
-          {/* Back button */}
-          <Button variant="ghost" size="icon" asChild className="shrink-0 mt-1">
-            <Link href="/characters">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-
-          {/* Portrait — large */}
-          {data.portraitUrl ? (
-            <Image
-              src={data.portraitUrl}
-              alt={data.name}
-              width={80}
-              height={80}
-              className="w-20 h-20 rounded-xl object-cover shrink-0 ring-2 ring-primary/30"
-            />
-          ) : (
-            <div className="flex w-20 h-20 shrink-0 items-center justify-center rounded-xl bg-gradient-to-b from-purple-950 to-blue-950 ring-2 ring-primary/30">
-              <Users className="h-8 w-8 text-muted-foreground" />
-            </div>
-          )}
-
-          {/* Name + subtitle (right of portrait) */}
-          <div className="flex-1 min-w-0 pt-0.5">
-            <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-wide leading-tight">{data.name}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-            {data.background && (
-              <div className="mt-1.5">
-                <Badge variant="outline" className="border-primary/30 text-primary/80">
-                  {data.background}
-                </Badge>
+          {/* Portrait — flush left, fills full card height */}
+          <div className="relative w-28 sm:w-36 shrink-0">
+            {data.portraitUrl ? (
+              <Image
+                src={data.portraitUrl}
+                alt={data.name}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-b from-purple-950 to-blue-950 flex items-center justify-center">
+                <Users className="h-10 w-10 text-muted-foreground" />
               </div>
             )}
+            {/* Fade right edge into card bg */}
+            <div className="absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-card to-transparent pointer-events-none" />
           </div>
 
-          {/* Action buttons — right side */}
-          <div className="flex flex-wrap items-start justify-end gap-2 shrink-0">
-            <AddToCampaignDialog
-              characterId={characterId}
-              existingCampaignIds={existingCampaignIds}
-              onAdded={() => utils.characters.getById.invalidate({ id: characterId })}
-            />
-            <ShortRestDialog
-              data={data}
-              onRoll={roll}
-              disabled={updateChar.isPending}
-              onFinish={async (patch) => {
-                await updateChar.mutateAsync({ id: characterId, ...patch });
-                toast({ title: 'Short rest complete' });
-              }}
-            />
-            <LongRestDialog
-              data={data}
-              disabled={updateChar.isPending}
-              onFinish={async (patch) => {
-                await updateChar.mutateAsync({ id: characterId, ...patch });
-                toast({ title: 'Long rest complete' });
-              }}
-            />
-            <Button size="sm" variant="outline" asChild>
-              <Link href={`/characters/${characterId}/edit`}>
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Link>
-            </Button>
-            {hasDndBeyond && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => syncChar.mutate({ characterId })}
-                disabled={syncChar.isPending}
-              >
-                <RefreshCw
-                  className={`h-4 w-4 mr-1 ${syncChar.isPending ? 'animate-spin' : ''}`}
-                />
-                Sync
+          {/* Content */}
+          <div className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col gap-3">
+
+            {/* Row 1: back button + action buttons */}
+            <div className="flex items-center justify-between gap-2">
+              <Button variant="ghost" size="icon" asChild className="-ml-1.5 h-8 w-8 shrink-0">
+                <Link href="/characters">
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
               </Button>
-            )}
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+              <div className="flex flex-wrap items-center justify-end gap-1.5 shrink-0">
+                <AddToCampaignDialog
+                  characterId={characterId}
+                  existingCampaignIds={existingCampaignIds}
+                  onAdded={() => utils.characters.getById.invalidate({ id: characterId })}
+                />
+                <ShortRestDialog
+                  data={data}
+                  onRoll={roll}
+                  disabled={updateChar.isPending}
+                  onFinish={async (patch) => {
+                    await updateChar.mutateAsync({ id: characterId, ...patch });
+                    toast({ title: 'Short rest complete' });
+                  }}
+                />
+                <LongRestDialog
+                  data={data}
+                  disabled={updateChar.isPending}
+                  onFinish={async (patch) => {
+                    await updateChar.mutateAsync({ id: characterId, ...patch });
+                    toast({ title: 'Long rest complete' });
+                  }}
+                />
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/characters/${characterId}/edit`}>
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Link>
+                </Button>
+                {hasDndBeyond && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => syncChar.mutate({ characterId })}
+                    disabled={syncChar.isPending}
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 mr-1 ${syncChar.isPending ? 'animate-spin' : ''}`}
+                    />
+                    Sync
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
 
+            {/* Row 2: name, subtitle, background badge */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-wide leading-tight">{data.name}</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+              {data.background && (
+                <Badge variant="outline" className="mt-1.5 border-primary/30 text-primary/80">
+                  {data.background}
+                </Badge>
+              )}
+            </div>
+
+          </div>
         </div>
       </div>
 
