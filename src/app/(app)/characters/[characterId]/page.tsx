@@ -38,6 +38,7 @@ import { CharacterHomebrewItems } from '@/components/character/CharacterHomebrew
 import { CharacterHomebrewSpells } from '@/components/character/CharacterHomebrewSpells';
 import { CharacterHomebrewFeats } from '@/components/character/CharacterHomebrewFeats';
 import { CharacterActiveEffects } from '@/components/character/CharacterActiveEffects';
+import { HeroStatBar } from '@/components/character/HeroStatBar';
 import { useDiceRoller } from '@/hooks/use-dice-roller';
 
 export default function CharacterDetailPage() {
@@ -216,15 +217,27 @@ export default function CharacterDetailPage() {
               </div>
             </div>
 
-            {/* Row 2: name, subtitle, background badge */}
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-wide leading-tight">{data.name}</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
-              {data.background && (
-                <Badge variant="outline" className="mt-1.5 border-primary/30 text-primary/80">
-                  {data.background}
-                </Badge>
-              )}
+            {/* Row 2: name/subtitle (left) + combat stats (right) */}
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="min-w-0">
+                <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-wide leading-tight">{data.name}</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+                {data.background && (
+                  <Badge variant="outline" className="mt-1.5 border-primary/30 text-primary/80">
+                    {data.background}
+                  </Badge>
+                )}
+              </div>
+              <HeroStatBar
+                hp={(data.hitPoints as any) ?? null}
+                armorClass={data.armorClass ?? null}
+                speed={data.speed ?? null}
+                proficiencyBonus={data.proficiencyBonus ?? null}
+                isUpdating={updateChar.isPending}
+                onUpdateHp={async (next) => {
+                  await updateChar.mutateAsync({ id: characterId, hitPoints: next });
+                }}
+              />
             </div>
 
           </div>
