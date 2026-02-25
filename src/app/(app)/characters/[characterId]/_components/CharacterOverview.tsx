@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Shield, Zap, Star, Dices, Swords, ChevronRight } from 'lucide-react';
-import { HPTracker } from '@/components/character/HPTracker';
+import { Dices, Swords, ChevronRight } from 'lucide-react';
 import { SpellSlotPips } from '@/components/character/SpellSlotPips';
 import { DeathSaves, type DeathSavesValue } from '@/components/character/DeathSaves';
 import type { DiceRoll } from '@/lib/dice';
@@ -55,8 +53,6 @@ export function CharacterOverview({
   const spellcasting = data.spellcasting as any;
   const inventory = (data.inventory as any[] | null) ?? [];
   const spellSlots = spellcasting?.slots as Record<string, { total: number; used: number }> | undefined;
-
-  const initMod = abilities ? abilityModifier(abilities.dex ?? 10) : 0;
 
   const getSkillMod = (skillName: string): number => {
     const skill = skills?.find((s: any) => s.name === skillName);
@@ -139,70 +135,6 @@ export function CharacterOverview({
 
   return (
     <div className="space-y-4">
-      {/* ── Combat Stats (HP / AC / Speed / Prof / Initiative) ──── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {hp && (
-          <Card className="col-span-2">
-            <CardContent className="pt-3 pb-3 px-4">
-              <HPTracker
-                value={hp}
-                disabled={isUpdating}
-                onApply={async (next) => {
-                  await onUpdate?.({ hitPoints: next });
-                }}
-              />
-              <Progress value={hp.max > 0 ? (hp.current / hp.max) * 100 : 0} className="h-2 mt-1.5" />
-            </CardContent>
-          </Card>
-        )}
-
-        {data.armorClass != null && (
-          <Card>
-            <CardContent className="pt-3 pb-3 px-4 text-center">
-              <Shield className="h-4 w-4 mx-auto text-blue-400 mb-0.5" />
-              <div className="text-3xl font-bold tabular-nums text-primary">{data.armorClass}</div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Armor Class
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {data.speed != null && (
-          <Card>
-            <CardContent className="pt-3 pb-3 px-4 text-center">
-              <Zap className="h-4 w-4 mx-auto text-yellow-500 mb-0.5" />
-              <div className="text-3xl font-bold tabular-nums text-primary">{data.speed}</div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Speed (ft)</div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardContent className="pt-3 pb-3 px-4 text-center">
-            <Star className="h-4 w-4 mx-auto text-primary mb-0.5" />
-            <div className="text-3xl font-bold tabular-nums text-primary">+{profBonus}</div>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Proficiency</div>
-          </CardContent>
-        </Card>
-
-        {abilities && (
-          <Card>
-            <CardContent className="pt-3 pb-3 px-4 text-center">
-              <button
-                type="button"
-                className={`w-full ${onRoll ? rollableClass() : ''}`}
-                onClick={() => onRoll?.(`1d20${initMod >= 0 ? `+${initMod}` : initMod}`, 'Initiative')}
-              >
-                <div className="h-4 mb-0.5" />
-                <div className="text-3xl font-bold tabular-nums text-primary">{formatModifier(initMod)}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Initiative</div>
-              </button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
       {hp?.current === 0 && (
         <DeathSaves
           value={deathSaves}
