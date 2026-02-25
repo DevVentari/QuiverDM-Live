@@ -11,5 +11,12 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     console.log('[Instrumentation] Next.js server runtime initialized');
+
+    // Configure MeiliSearch index settings on startup (idempotent).
+    // Safe to run every cold start — only updates settings, never destroys data.
+    const { initSearchIndexes } = await import('./lib/search');
+    initSearchIndexes().catch((err) =>
+      console.warn('[Instrumentation] MeiliSearch index init failed:', err)
+    );
   }
 }
