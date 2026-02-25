@@ -93,6 +93,28 @@ async function runChecks(): Promise<CheckResult[]> {
     await redis.quit().catch(() => undefined);
   }
 
+  // Check MeiliSearch
+  try {
+    const meiliUrl = env('MEILI_URL') || 'http://localhost:7701';
+    const meiliKey = env('MEILI_MASTER_KEY');
+    const response = await fetch(`${meiliUrl}/health`, {
+      headers: meiliKey ? { Authorization: `Bearer ${meiliKey}` } : {},
+      signal: AbortSignal.timeout(5_000),
+    });
+    const body = await response.json() as { status?: string };
+    results.push({
+      name: 'meilisearch connectivity',
+      ok: body.status === 'available',
+      detail: body.status ?? `http ${response.status}`,
+    });
+  } catch (error) {
+    results.push({
+      name: 'meilisearch connectivity',
+      ok: false,
+      detail: error instanceof Error ? error.message : String(error),
+    });
+  }
+
   // Check Docling
   try {
     const response = await fetch(`${env('DOCLING_URL') || 'http://localhost:5001'}/health`, {
