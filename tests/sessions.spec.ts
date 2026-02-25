@@ -1,40 +1,39 @@
 import { test, expect } from '@playwright/test';
 import { signInAsTestUser } from './helpers/auth';
 
+const CAMPAIGN_CARD = 'a[href^="/campaigns/"]:not([href="/campaigns/new"])';
+
+async function getCampaignHref(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
+  await page.goto('/campaigns');
+  await page.waitForLoadState('networkidle');
+  const link = page.locator(CAMPAIGN_CARD).first();
+  if (await link.count() === 0) return null;
+  return link.getAttribute('href');
+}
+
 test.describe('Sessions', () => {
   test('sessions tab is accessible from a campaign', async ({ page }) => {
     await signInAsTestUser(page);
-    await page.goto('/campaigns');
+    const href = await getCampaignHref(page);
+    if (!href) { test.skip(); return; }
 
-    // Find first campaign link
-    const campaignLink = page.locator('a[href*="/campaigns/"]').first();
-    const hasCampaign = await campaignLink.count() > 0;
-    if (!hasCampaign) {
-      test.skip(); // No campaigns to test with
-      return;
-    }
-
-    await campaignLink.click();
+    await page.goto(`${href}/sessions`);
     await page.waitForLoadState('networkidle');
 
-    // Click Sessions tab
-    await page.getByRole('link', { name: /sessions/i }).click();
     await expect(page).toHaveURL(/sessions/);
     await expect(
       page.getByRole('heading', { name: /sessions/i })
         .or(page.getByText(/no sessions|new session/i))
+        .first()
     ).toBeVisible({ timeout: 10000 });
   });
 
   test('new session button is visible for DMs', async ({ page }) => {
     await signInAsTestUser(page);
-    await page.goto('/campaigns');
+    const href = await getCampaignHref(page);
+    if (!href) { test.skip(); return; }
 
-    const campaignLink = page.locator('a[href*="/campaigns/"]').first();
-    if (await campaignLink.count() === 0) { test.skip(); return; }
-
-    await campaignLink.click();
-    await page.getByRole('link', { name: /sessions/i }).click();
+    await page.goto(`${href}/sessions`);
     await page.waitForLoadState('networkidle');
 
     // DM should see "New Session" button

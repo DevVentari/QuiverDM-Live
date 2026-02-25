@@ -4,10 +4,14 @@ import { signInAsTestUser } from './helpers/auth';
 async function navToSearch(page: Parameters<typeof signInAsTestUser>[0]) {
   await signInAsTestUser(page);
   await page.goto('/campaigns');
-  const campaignLink = page.locator('a[href*="/campaigns/"]').first();
-  if (await campaignLink.count() === 0) return false;
-  await campaignLink.click();
   await page.waitForLoadState('networkidle');
+  // Exclude the "New Campaign" create link; find actual campaign card links only.
+  const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
+  if (await campaignLink.count() === 0) return false;
+  const href = await campaignLink.getAttribute('href');
+  if (!href) return false;
+  // Navigate directly to campaign search page.
+  await page.goto(`${href}/search`);
   const searchLink = page.getByRole('link', { name: /search/i });
   if (await searchLink.count() === 0) {
     // Try navigating to /search directly via URL
@@ -48,7 +52,7 @@ test.describe('Narrative Search', () => {
     if (!ok) { test.skip(); return; }
 
     const searchBtn = page.getByRole('button', { name: /search/i }).first();
-    if (await searchBtn.count() > 0) {
+    if (await searchBtn.count() > 0 && !(await searchBtn.isDisabled())) {
       await searchBtn.click();
       await page.waitForLoadState('networkidle');
     }

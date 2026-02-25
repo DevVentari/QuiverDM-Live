@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 
-export const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL ?? 'test@quiverdm.test';
-export const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD ?? 'testpassword123';
+export const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL ?? 'demo@quiverdm.com';
+export const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD ?? 'demo1234';
 
 export async function signInAsTestUser(page: Page) {
   await page.goto('/auth/signin');
