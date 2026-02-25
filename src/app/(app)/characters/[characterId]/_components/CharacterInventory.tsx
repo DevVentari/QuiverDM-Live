@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Backpack, RotateCcw } from 'lucide-react';
+import { Backpack, RotateCcw, Sword, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { htmlToText } from '@/lib/html-utils';
@@ -75,14 +75,17 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
           <CardContent className="space-y-3">
             <div className="grid grid-cols-5 gap-2 text-center">
               {[
-                { label: 'PP', key: 'pp', color: 'text-gray-400' },
-                { label: 'GP', key: 'gp', color: 'text-yellow-500' },
-                { label: 'EP', key: 'ep', color: 'text-blue-400' },
-                { label: 'SP', key: 'sp', color: 'text-gray-500' },
-                { label: 'CP', key: 'cp', color: 'text-orange-600' },
+                { label: 'PP', key: 'pp', color: 'text-gray-400', coin: 'bg-gray-400' },
+                { label: 'GP', key: 'gp', color: 'text-yellow-500', coin: 'bg-yellow-500' },
+                { label: 'EP', key: 'ep', color: 'text-blue-400', coin: 'bg-blue-400' },
+                { label: 'SP', key: 'sp', color: 'text-slate-400', coin: 'bg-slate-400' },
+                { label: 'CP', key: 'cp', color: 'text-orange-600', coin: 'bg-orange-600' },
               ].map((c) => (
                 <div key={c.label} className="space-y-1">
-                  <div className={`text-xs font-semibold ${c.color}`}>{c.label}</div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <div className={`h-4 w-4 rounded-full border-2 border-current ${c.color} opacity-80`} />
+                    <div className={`text-[10px] font-bold ${c.color}`}>{c.label}</div>
+                  </div>
                   <Input
                     type="number"
                     min={0}
@@ -171,16 +174,16 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex gap-1 flex-wrap">
+                            <div className="flex gap-2 items-center">
                               {item.equipped && (
-                                <Badge variant="default" className="text-xs">
-                                  Equipped
-                                </Badge>
+                                <span title="Equipped">
+                                  <Sword className="h-3.5 w-3.5 text-primary" />
+                                </span>
                               )}
                               {item.attuned && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Attuned
-                                </Badge>
+                                <span title="Attuned">
+                                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                                </span>
                               )}
                             </div>
                           </TableCell>

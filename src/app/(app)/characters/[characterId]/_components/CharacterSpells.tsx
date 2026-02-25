@@ -158,8 +158,14 @@ export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: Characte
                   return (
                     <AccordionItem key={`${spell.name}-${idx}`} value={`${spell.name}-${idx}`}>
                       <AccordionTrigger className="py-2 text-sm hover:no-underline">
-                        <div className="flex items-center gap-2 flex-wrap text-left">
+                        <div className="flex items-center gap-2 flex-wrap text-left min-w-0">
                           <span className="font-medium">{spell.name}</span>
+                          {spell.castingTime && (
+                            <span className="text-[11px] text-muted-foreground/70 hidden sm:inline">
+                              {spell.castingTime}
+                              {spell.range ? ` · ${spell.range}` : ''}
+                            </span>
+                          )}
                           {spell.school && (
                             <Badge variant="outline" className="text-xs">
                               {spell.school}

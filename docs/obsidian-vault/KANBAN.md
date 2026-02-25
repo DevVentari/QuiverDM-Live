@@ -18,7 +18,6 @@ kanban-plugin: board
 - [ ] **Combat Condition Co-pilot** — Auto-track HP, concentration, conditions from transcript. High value for alpha testers. Research gate: pending — needs scoping first.
 - [ ] **Foundry Sidecar Bridge MVP** — Core integration. Blocks Foundry Import Plugin. Refs: `docs/plans/2026-02-24-mvp-foundry-integration-spec.md`
 - [ ] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries). Blocked by: Foundry Sidecar Bridge MVP.
-- [ ] **DnD Beyond Homebrew Import** — Pull homebrew monsters/spells/items directly from DnD Beyond into the homebrew library. Builds on existing CobaltSession auth. Delta: add `?includeCustomItems=true`, monster/spell/item endpoints, auto-create homebrew entries from `detectHomebrew()` output. Refs: `src/lib/dndbeyond-api.ts`, `src/lib/dndbeyond-character-mapper.ts`
 
 
 ## 🟢 Later — Backlog
@@ -43,7 +42,6 @@ kanban-plugin: board
 
 ## ✅ Done
 
-**Phase 1 — Core Platform**
 - [x] Campaigns, sessions, NPCs, characters, homebrew (core CRUD)
 - [x] Auth, billing (Stripe), transactional email
 - [x] D&D Beyond character import
@@ -51,23 +49,18 @@ kanban-plugin: board
 - [x] Homebrew Effects — structured effects, character active effects panel, DM hints overlay
 - [x] Comprehensive test suite (Playwright E2E + Vitest)
 - [x] Vercel Deployment — standalone output, R2 storage redirect, presigned upload rewrite
+- [x] DnD Beyond Homebrew Import — full implementation: router, service, repository, UI dialog, page button
 
-**Phase 2 — AI Layer**
-- [x] F1 AI Session Summaries
-- [x] F2 Narrative Search (pgvector embeddings)
-- [x] F3 Encounter Builder
-- [x] F4 Audio Ingest (MediaRecorder)
-- [x] F5 Visual Assets (image generation)
-- [x] F6 Player Portal (visibility controls)
-- [x] F7 Rules RAG (homebrew rules indexing)
-- [x] F8 Webhooks (endpoint delivery)
-- [x] Live Transcription (AssemblyAI + WebSocket)
+
+## Feedback/Bugs
+
+- [ ] Character Sheets - move health speed prof init, above quick actions, on mobile the same, spell slot tracking not working, currency add icons find appriopate svgs , is there maybe a resource we import for vectors images so so, for equiped and attuned can we use icons? for quick actions, and spells can we use a short hand description that shows inline with the name on the right next to the drop down. we dont need ahero secion in the campaign overview
 
 
 
 
 %% kanban:settings
 ```
-{"kanban-plugin":"board"}
+{"kanban-plugin":"board","list-collapse":[false]}
 ```
 %%

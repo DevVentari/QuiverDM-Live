@@ -139,6 +139,82 @@ export function CharacterOverview({
 
   return (
     <div className="space-y-4">
+      {/* ── Combat Stats (HP / AC / Speed / Prof / Initiative) ──── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {hp && (
+          <Card className="col-span-2">
+            <CardContent className="pt-3 pb-3 px-4">
+              <HPTracker
+                value={hp}
+                disabled={isUpdating}
+                onApply={async (next) => {
+                  await onUpdate?.({ hitPoints: next });
+                }}
+              />
+              <Progress value={hp.max > 0 ? (hp.current / hp.max) * 100 : 0} className="h-2 mt-1.5" />
+            </CardContent>
+          </Card>
+        )}
+
+        {data.armorClass != null && (
+          <Card>
+            <CardContent className="pt-3 pb-3 px-4 text-center">
+              <Shield className="h-4 w-4 mx-auto text-blue-400 mb-0.5" />
+              <div className="text-3xl font-bold tabular-nums text-primary">{data.armorClass}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Armor Class
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {data.speed != null && (
+          <Card>
+            <CardContent className="pt-3 pb-3 px-4 text-center">
+              <Zap className="h-4 w-4 mx-auto text-yellow-500 mb-0.5" />
+              <div className="text-3xl font-bold tabular-nums text-primary">{data.speed}</div>
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Speed (ft)</div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardContent className="pt-3 pb-3 px-4 text-center">
+            <Star className="h-4 w-4 mx-auto text-primary mb-0.5" />
+            <div className="text-3xl font-bold tabular-nums text-primary">+{profBonus}</div>
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Proficiency</div>
+          </CardContent>
+        </Card>
+
+        {abilities && (
+          <Card>
+            <CardContent className="pt-3 pb-3 px-4 text-center">
+              <button
+                type="button"
+                className={`w-full ${onRoll ? rollableClass() : ''}`}
+                onClick={() => onRoll?.(`1d20${initMod >= 0 ? `+${initMod}` : initMod}`, 'Initiative')}
+              >
+                <div className="h-4 mb-0.5" />
+                <div className="text-3xl font-bold tabular-nums text-primary">{formatModifier(initMod)}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Initiative</div>
+              </button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {hp?.current === 0 && (
+        <DeathSaves
+          value={deathSaves}
+          disabled={isUpdating}
+          onChange={async (next) => {
+            const nextFeatures = { ...(data.features ?? {}) };
+            nextFeatures._quiver = { ...(nextFeatures._quiver ?? {}), deathSaves: next };
+            await onUpdate?.({ features: nextFeatures });
+          }}
+        />
+      )}
+
       {/* ── Quick Actions ───────────────────────────────────────── */}
       {(weaponAttacks.length > 0 || attackCantrips.length > 0 || allSpells.length > 0) && (
         <Card>
@@ -284,9 +360,9 @@ export function CharacterOverview({
                               <span className={`font-medium ${!spell.prepared && !spell.alwaysPrepared && spell.level > 0 ? 'text-muted-foreground' : ''}`}>
                                 {spell.name}
                               </span>
-                              {spell.school && (
-                                <span className="text-xs text-muted-foreground ml-2">{spell.school}</span>
-                              )}
+                              <span className="text-xs text-muted-foreground ml-2">
+                                {spell.castingTime ?? spell.school ?? ''}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
                               {spell.concentration && <span className="text-[10px] text-amber-500/70 font-bold" title="Concentration">C</span>}
@@ -499,81 +575,6 @@ export function CharacterOverview({
         </div>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {hp && (
-              <Card className="col-span-2">
-                <CardContent className="pt-3 pb-3 px-4">
-                  <HPTracker
-                    value={hp}
-                    disabled={isUpdating}
-                    onApply={async (next) => {
-                      await onUpdate?.({ hitPoints: next });
-                    }}
-                  />
-                  <Progress value={hp.max > 0 ? (hp.current / hp.max) * 100 : 0} className="h-2 mt-1.5" />
-                </CardContent>
-              </Card>
-            )}
-
-            {data.armorClass != null && (
-              <Card>
-                <CardContent className="pt-3 pb-3 px-4 text-center">
-                  <Shield className="h-4 w-4 mx-auto text-blue-400 mb-0.5" />
-                  <div className="text-3xl font-bold tabular-nums text-primary">{data.armorClass}</div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    Armor Class
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {data.speed != null && (
-              <Card>
-                <CardContent className="pt-3 pb-3 px-4 text-center">
-                  <Zap className="h-4 w-4 mx-auto text-yellow-500 mb-0.5" />
-                  <div className="text-3xl font-bold tabular-nums text-primary">{data.speed}</div>
-                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Speed (ft)</div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
-              <CardContent className="pt-3 pb-3 px-4 text-center">
-                <Star className="h-4 w-4 mx-auto text-primary mb-0.5" />
-                <div className="text-3xl font-bold tabular-nums text-primary">+{profBonus}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Proficiency</div>
-              </CardContent>
-            </Card>
-
-            {abilities && (
-              <Card>
-                <CardContent className="pt-3 pb-3 px-4 text-center">
-                  <button
-                    type="button"
-                    className={`w-full ${onRoll ? rollableClass() : ''}`}
-                    onClick={() => onRoll?.(`1d20${initMod >= 0 ? `+${initMod}` : initMod}`, 'Initiative')}
-                  >
-                    <div className="h-4 mb-0.5" />
-                    <div className="text-3xl font-bold tabular-nums text-primary">{formatModifier(initMod)}</div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Initiative</div>
-                  </button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {hp?.current === 0 && (
-            <DeathSaves
-              value={deathSaves}
-              disabled={isUpdating}
-              onChange={async (next) => {
-                const nextFeatures = { ...(data.features ?? {}) };
-                nextFeatures._quiver = { ...(nextFeatures._quiver ?? {}), deathSaves: next };
-                await onUpdate?.({ features: nextFeatures });
-              }}
-            />
-          )}
-
           <div className="grid grid-cols-3 gap-3">
             <Card>
               <CardContent className="pt-2 pb-2 px-3 text-center">

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -52,7 +51,7 @@ export default function CampaignOverviewPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-10 w-64 rounded" />
         <div className="flex gap-3 flex-wrap">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-8 w-28 rounded-full" />
@@ -65,43 +64,6 @@ export default function CampaignOverviewPage() {
       </div>
     );
   }
-
-  // ─── Hero ────────────────────────────────────────────────────────────────────
-  const heroSection = (
-    <div className="relative overflow-hidden rounded-xl h-64">
-      {campaign?.bannerUrl ? (
-        <Image
-          src={campaign.bannerUrl}
-          alt={campaign.name}
-          fill
-          className="object-cover"
-          priority
-        />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-indigo-950 to-slate-950" />
-      )}
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-      {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-6">
-        <div className="flex items-end justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="font-display text-3xl font-bold text-foreground truncate">
-              {campaign?.name ?? ''}
-            </h1>
-            {campaign?.description && (
-              <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
-                {campaign.description}
-              </p>
-            )}
-          </div>
-          <Badge variant={isDM ? 'default' : 'secondary'} className="shrink-0 mb-1">
-            {isDM ? 'Dungeon Master' : 'Player'}
-          </Badge>
-        </div>
-      </div>
-    </div>
-  );
 
   // ─── Stat pills ──────────────────────────────────────────────────────────────
   const statPills = (
@@ -241,7 +203,17 @@ export default function CampaignOverviewPage() {
 
   return (
     <div className="space-y-6">
-      {heroSection}
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-bold truncate">{campaign?.name ?? ''}</h1>
+          {campaign?.description && (
+            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{campaign.description}</p>
+          )}
+        </div>
+        <Badge variant={isDM ? 'default' : 'secondary'} className="shrink-0">
+          {isDM ? 'Dungeon Master' : 'Player'}
+        </Badge>
+      </div>
       {statPills}
       <div className="grid gap-6 md:grid-cols-3">
         {lastSessionCard}
