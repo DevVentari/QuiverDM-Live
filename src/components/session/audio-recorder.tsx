@@ -25,28 +25,49 @@ export function AudioRecorder({ sessionId, campaignId, onUploadComplete }: Audio
     useAudioRecorder();
   const [uploading, setUploading] = useState(false);
   const utils = trpc.useUtils();
+  const createRecording = trpc.sessionRecordings.create.useMutation();
 
   async function handleUpload() {
     if (!audioBlob) return;
     setUploading(true);
     try {
-      const formData = new FormData();
       const ext = audioBlob.type.includes('ogg') ? 'ogg' : 'webm';
-      formData.append('file', audioBlob, `recording-${Date.now()}.${ext}`);
-      formData.append('sessionId', sessionId);
-      formData.append('campaignId', campaignId);
-      formData.append('type', 'audio');
+      const filename = `recording-${Date.now()}.${ext}`;
+      const contentType = audioBlob.type;
+      let recordingUrl: string;
 
-      const res = await fetch('/api/recordings/upload', { method: 'POST', body: formData });
-      if (!res.ok) {
-        throw new Error(`Upload failed: ${res.statusText}`);
+      if (process.env.NEXT_PUBLIC_STORAGE_MODE === 'r2') {
+        // R2: get presigned upload URL, PUT directly to R2, then register in DB
+        const res = await fetch('/api/recordings/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, filename, contentType, fileSize: audioBlob.size }),
+        });
+        if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`);
+        const { uploadUrl, key } = (await res.json()) as { uploadUrl: string; key: string };
+        const r2Res = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentType }, body: audioBlob });
+        if (!r2Res.ok) throw new Error('Upload to storage failed');
+        recordingUrl = `/api/storage/${key}`;
+      } else {
+        // Local: POST FormData directly to API
+        const formData = new FormData();
+        formData.append('file', audioBlob, filename);
+        formData.append('sessionId', sessionId);
+        const res = await fetch('/api/recordings/upload', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`);
+        const data = (await res.json()) as { url: string };
+        recordingUrl = data.url;
       }
-      const data = (await res.json()) as { recordingId?: string };
+
+      const recording = await createRecording.mutateAsync({
+        sessionId,
+        type: 'audio',
+        url: recordingUrl,
+        fileSize: audioBlob.size,
+      });
       toast.success('Recording uploaded. Transcription will begin shortly.');
       void utils.sessionRecordings.getBySessionId.invalidate({ sessionId });
-      if (data.recordingId) {
-        onUploadComplete?.(data.recordingId);
-      }
+      onUploadComplete?.(recording.id);
       reset();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Upload failed');
