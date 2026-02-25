@@ -178,6 +178,25 @@ OLLAMA_BASE_URL=
 - `scripts/stripe-webhook-local.sh` forwards Stripe events during local testing.
 - `npm run check:launch` performs DB/Redis/env/Stripe/invite readiness checks.
 
+## Task Tracking
+
+Kanban board lives at `docs/obsidian-vault/KANBAN.md` (Obsidian Kanban plugin format).
+
+- **Check it** when starting new feature work to pick up the next task
+- **Update it** when completing a feature (move card to Done) or starting work (move to In Progress)
+- Columns: Backlog → In Progress → Review → Done
+
+## Skills
+
+Project skills live in `.claude/skills/` and are auto-loaded. Available: `quiverdm-worker`, `quiverdm-repository`, `quiverdm-auth`, `homebrew-schema`, `trpc-architect`, `pipeline-debugger`, `d5e-rules`.
+
+**Build a new skill when:**
+- You implement the same pattern a 2nd time (worker, repo, auth procedure, etc.)
+- A pattern has subtle mistakes that keep recurring (wrong queue name, missing `maxRetriesPerRequest`, etc.)
+- Saving the pattern would meaningfully reduce context usage on future tasks
+
+Skills go in `.claude/skills/<name>/SKILL.md` and are immediately available.
+
 ## Maintenance
 
 Keep this file synced with architecture changes (router count, scripts, and deployment-critical flows).
