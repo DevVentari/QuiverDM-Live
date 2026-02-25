@@ -105,7 +105,9 @@
 
   body {
     @apply bg-background text-foreground;
-    background-image: url('/bg-app.png');
+    background-image:
+      linear-gradient(hsl(240 10% 4% / 0.88), hsl(240 10% 4% / 0.88)),
+      url('/bg-app.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
