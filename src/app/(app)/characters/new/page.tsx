@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function NewCharacterPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const utils = trpc.useUtils();
   const [name, setName] = useState('');
   const [race, setRace] = useState('');
   const [charClass, setCharClass] = useState('');
@@ -22,7 +23,8 @@ export default function NewCharacterPage() {
   const [nameError, setNameError] = useState<string | null>(null);
 
   const create = trpc.characters.create.useMutation({
-    onSuccess: (data: any) => {
+    onSuccess: async (data: any) => {
+      await utils.characters.getMyCharacters.invalidate();
       toast({ title: 'Character created' });
       router.push(`/characters/${data.id}`);
     },

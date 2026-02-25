@@ -19,7 +19,7 @@ export async function fetchCharacterFromDDB(
   cobaltToken: string
 ): Promise<DDBCharacterResponse> {
   try {
-    const url = `https://character-service.dndbeyond.com/character/v5/character/${characterId}`;
+    const url = `https://character-service.dndbeyond.com/character/v5/character/${characterId}?includeCustomItems=true`;
 
     const response = await fetch(url, {
       method: 'GET',
