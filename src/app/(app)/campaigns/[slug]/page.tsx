@@ -203,17 +203,6 @@ export default function CampaignOverviewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="font-display text-2xl font-bold truncate">{campaign?.name ?? ''}</h1>
-          {campaign?.description && (
-            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{campaign.description}</p>
-          )}
-        </div>
-        <Badge variant={isDM ? 'default' : 'secondary'} className="shrink-0">
-          {isDM ? 'Dungeon Master' : 'Player'}
-        </Badge>
-      </div>
       {statPills}
       <div className="grid gap-6 md:grid-cols-3">
         {lastSessionCard}

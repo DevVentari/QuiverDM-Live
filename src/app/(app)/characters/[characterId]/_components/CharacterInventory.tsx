@@ -1,14 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import {
   Table,
   TableBody,
@@ -17,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Backpack, RotateCcw, Sword, Sparkles } from 'lucide-react';
+import { Backpack, RotateCcw, ShieldCheck, Star, ChevronDown, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { htmlToText } from '@/lib/html-utils';
@@ -44,6 +38,9 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
   const [editingCurrency, setEditingCurrency] = useState(
     currency ?? { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }
   );
+  const [openRows, setOpenRows] = useState<Set<string>>(new Set());
+  const toggleRow = (key: string) =>
+    setOpenRows((prev) => { const s = new Set(prev); s.has(key) ? s.delete(key) : s.add(key); return s; });
 
   if (!inventory?.length && !currency) {
     return (
@@ -141,157 +138,142 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
             <CardTitle className="text-sm font-display tracking-wide">Equipment</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Accordion type="multiple" className="w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="hidden sm:table-cell">Type</TableHead>
-                    <TableHead className="text-center w-12">Qty</TableHead>
-                    <TableHead className="hidden sm:table-cell">Rarity</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sorted.map((item: any, idx: number) => (
-                    <AccordionItem key={`${item.name}-${idx}`} value={`${item.name}-${idx}`} asChild>
-                      <>
-                        <TableRow className="cursor-pointer">
-                          <TableCell>
-                            <AccordionTrigger className="py-0 hover:no-underline [&>svg]:h-3 [&>svg]:w-3">
-                              <span className="text-sm font-medium">{item.name}</span>
-                            </AccordionTrigger>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
-                            {item.type || '-'}
-                          </TableCell>
-                          <TableCell className="text-center text-xs">{item.quantity}</TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            {item.rarity && item.rarity !== 'Common' && (
-                              <Badge className={`text-xs ${RARITY_COLORS[item.rarity] || ''}`} variant="outline">
-                                {item.rarity}
-                              </Badge>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
+                  <TableHead className="text-center w-12">Qty</TableHead>
+                  <TableHead className="hidden sm:table-cell">Rarity</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sorted.map((item: any, idx: number) => {
+                  const rowKey = `${item.name}-${idx}`;
+                  const isOpen = openRows.has(rowKey);
+                  const hasDetail = item.damage || item.attackType || item.armorClassBonus != null || item.properties?.length || item.charges || item.range || item.description;
+                  return (
+                    <Fragment key={rowKey}>
+                      <TableRow
+                        className={hasDetail ? 'cursor-pointer' : ''}
+                        onClick={() => hasDetail && toggleRow(rowKey)}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            {hasDetail && (isOpen
+                              ? <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                              : <ChevronRight className="h-3 w-3 text-muted-foreground shrink-0" />
                             )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2 items-center">
-                              {item.equipped && (
-                                <span title="Equipped">
-                                  <Sword className="h-3.5 w-3.5 text-primary" />
-                                </span>
+                            {item.name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
+                          {item.type || '-'}
+                        </TableCell>
+                        <TableCell className="text-center text-xs">{item.quantity}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {item.rarity && item.rarity !== 'Common' && (
+                            <Badge className={`text-xs ${RARITY_COLORS[item.rarity] || ''}`} variant="outline">
+                              {item.rarity}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2 items-center">
+                            {item.equipped && (
+                              <span title="Equipped">
+                                <ShieldCheck className="h-3.5 w-3.5 text-primary" fill="currentColor" strokeWidth={1.5} stroke="var(--background)" />
+                              </span>
+                            )}
+                            {item.attuned && (
+                              <span title="Attuned">
+                                <Star className="h-3.5 w-3.5 text-amber-400" fill="currentColor" strokeWidth={0} />
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      {isOpen && hasDetail && (
+                        <TableRow key={`${rowKey}-detail`}>
+                          <TableCell colSpan={5} className="bg-muted/30 px-4 pb-3 text-sm text-muted-foreground">
+                            <div className="space-y-1.5 pt-1">
+                              {item.damage && (
+                                <div>
+                                  <span className="font-medium text-foreground">Damage:</span> {item.damage}
+                                  {item.damageType && ` ${item.damageType}`}
+                                  {item.magicBonus ? ` (+${item.magicBonus})` : ''}
+                                </div>
                               )}
-                              {item.attuned && (
-                                <span title="Attuned">
-                                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                                </span>
+                              {item.attackType && (
+                                <div>
+                                  <span className="font-medium text-foreground">Attack:</span> {item.attackType}
+                                </div>
+                              )}
+                              {item.armorClassBonus != null && (
+                                <div>
+                                  <span className="font-medium text-foreground">AC:</span> {item.armorClassBonus}
+                                </div>
+                              )}
+                              {item.properties?.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {item.properties.map((p: string) => (
+                                    <Badge key={p} variant="outline" className="text-xs">{p}</Badge>
+                                  ))}
+                                </div>
+                              )}
+                              {item.charges && (
+                                <div className="flex items-center gap-2">
+                                  <span>
+                                    <span className="font-medium text-foreground">Charges:</span>{' '}
+                                    {item.charges.current}/{item.charges.max}
+                                  </span>
+                                  <Button
+                                    type="button" size="sm" variant="outline" className="h-7"
+                                    disabled={isUpdating || item.charges.current <= 0}
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (!onUpdate) return;
+                                      const next = (inventory || []).map((entry: any) =>
+                                        entry !== item ? entry : { ...entry, charges: { ...entry.charges, current: Math.max(0, Number(entry.charges.current || 0) - 1) } }
+                                      );
+                                      await onUpdate({ inventory: next });
+                                    }}
+                                  >Use</Button>
+                                  <Button
+                                    type="button" size="sm" variant="ghost" className="h-7"
+                                    disabled={isUpdating}
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (!onUpdate) return;
+                                      const next = (inventory || []).map((entry: any) =>
+                                        entry !== item ? entry : { ...entry, charges: { ...entry.charges, current: Number(entry.charges.max || 0) } }
+                                      );
+                                      await onUpdate({ inventory: next });
+                                    }}
+                                  >
+                                    <RotateCcw className="h-3 w-3 mr-1" />Reset
+                                  </Button>
+                                </div>
+                              )}
+                              {item.range && (
+                                <div>
+                                  <span className="font-medium text-foreground">Range:</span> {item.range.normal} ft
+                                  {item.range.long ? ` / ${item.range.long} ft` : ''}
+                                </div>
+                              )}
+                              {item.description && (
+                                <p className="leading-relaxed whitespace-pre-wrap mt-1">{htmlToText(item.description)}</p>
                               )}
                             </div>
                           </TableCell>
                         </TableRow>
-                        <tr>
-                          <td colSpan={5} className="p-0">
-                            <AccordionContent className="px-4 pb-3 text-sm text-muted-foreground">
-                              <div className="space-y-1.5 pt-1">
-                                {item.damage && (
-                                  <div>
-                                    <span className="font-medium text-foreground">Damage:</span> {item.damage}
-                                    {item.damageType && ` ${item.damageType}`}
-                                    {item.magicBonus ? ` (+${item.magicBonus})` : ''}
-                                  </div>
-                                )}
-                                {item.attackType && (
-                                  <div>
-                                    <span className="font-medium text-foreground">Attack:</span> {item.attackType}
-                                  </div>
-                                )}
-                                {item.armorClassBonus != null && (
-                                  <div>
-                                    <span className="font-medium text-foreground">AC:</span> {item.armorClassBonus}
-                                  </div>
-                                )}
-                                {item.properties?.length > 0 && (
-                                  <div className="flex flex-wrap gap-1">
-                                    {item.properties.map((p: string) => (
-                                      <Badge key={p} variant="outline" className="text-xs">
-                                        {p}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                )}
-                                {item.charges && (
-                                  <div className="flex items-center gap-2">
-                                    <span>
-                                      <span className="font-medium text-foreground">Charges:</span>{' '}
-                                      {item.charges.current}/{item.charges.max}
-                                    </span>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="outline"
-                                      className="h-7"
-                                      disabled={isUpdating || item.charges.current <= 0}
-                                      onClick={async () => {
-                                        if (!onUpdate) return;
-                                        const next = (inventory || []).map((entry: any) => {
-                                          if (entry !== item) return entry;
-                                          return {
-                                            ...entry,
-                                            charges: {
-                                              ...entry.charges,
-                                              current: Math.max(0, Number(entry.charges.current || 0) - 1),
-                                            },
-                                          };
-                                        });
-                                        await onUpdate({ inventory: next });
-                                      }}
-                                    >
-                                      Use
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-7"
-                                      disabled={isUpdating}
-                                      onClick={async () => {
-                                        if (!onUpdate) return;
-                                        const next = (inventory || []).map((entry: any) => {
-                                          if (entry !== item) return entry;
-                                          return {
-                                            ...entry,
-                                            charges: {
-                                              ...entry.charges,
-                                              current: Number(entry.charges.max || 0),
-                                            },
-                                          };
-                                        });
-                                        await onUpdate({ inventory: next });
-                                      }}
-                                    >
-                                      <RotateCcw className="h-3 w-3 mr-1" />
-                                      Reset
-                                    </Button>
-                                  </div>
-                                )}
-                                {item.range && (
-                                  <div>
-                                    <span className="font-medium text-foreground">Range:</span> {item.range.normal} ft
-                                    {item.range.long ? ` / ${item.range.long} ft` : ''}
-                                  </div>
-                                )}
-                                {item.description && (
-                                  <p className="leading-relaxed whitespace-pre-wrap mt-1">{htmlToText(item.description)}</p>
-                                )}
-                              </div>
-                            </AccordionContent>
-                          </td>
-                        </tr>
-                      </>
-                    </AccordionItem>
-                  ))}
-                </TableBody>
-              </Table>
-            </Accordion>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
