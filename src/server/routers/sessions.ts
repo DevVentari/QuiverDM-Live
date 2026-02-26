@@ -2,7 +2,6 @@ import {
   router,
   protectedProcedure,
   campaignDMProcedure,
-  campaignMemberProcedure,
 } from '../trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
@@ -217,10 +216,9 @@ export const sessionsRouter = router({
       sessionService.getSessionsWithSummaries(input.campaignId, ctx.session.user.id)
     ),
 
-  generateCombatCopilot: campaignDMProcedure
+  generateCombatCopilot: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string().min(1),
         sessionId: z.string().min(1),
       })
     )
@@ -234,12 +232,6 @@ export const sessionsRouter = router({
         include: { transcripts: { take: 1, orderBy: { createdAt: 'desc' } } },
       });
       if (!session) throw new NotFoundError('session', input.sessionId);
-      if (session.campaignId !== input.campaignId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Session does not belong to the provided campaign',
-        });
-      }
 
       const transcript = session.transcripts[0];
       if (!transcript) throw new BadRequestError('No transcript available');
@@ -259,34 +251,26 @@ export const sessionsRouter = router({
       return { ok: true };
     }),
 
-  getCombatCopiloterStatus: campaignMemberProcedure
+  getCombatCopiloterStatus: protectedProcedure
     .input(
       z.object({
-        campaignId: z.string().min(1),
         sessionId: z.string().min(1),
       })
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
+      await authz
+        .session(input.sessionId, ctx.session.user.id)
+        .verify();
+
       const session = await prisma.gameSession.findUnique({
         where: { id: input.sessionId },
         select: {
-          campaignId: true,
           combatCopiloterStatus: true,
           combatCopiloterData: true,
         },
       });
 
       if (!session) throw new NotFoundError('session', input.sessionId);
-      if (session.campaignId !== input.campaignId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Session does not belong to the provided campaign',
-        });
-      }
-
-      return {
-        combatCopiloterStatus: session.combatCopiloterStatus,
-        combatCopiloterData: session.combatCopiloterData,
-      };
+      return session;
     }),
 });
