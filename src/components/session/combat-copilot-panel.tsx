@@ -1,11 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { RefreshCw, Swords } from 'lucide-react';
 
-interface CombatCopiloterPanelProps {
+interface CombatCopilotPanelProps {
   sessionId: string;
   data: any;
   status: string;
@@ -13,131 +13,104 @@ interface CombatCopiloterPanelProps {
   isGenerating: boolean;
 }
 
-interface Participant {
-  name?: string;
-  hpChanges?: Array<{ amount?: number; cause?: string; round?: number }>;
-  conditions?: Array<{ name?: string; applied?: boolean; round?: number }>;
-  concentration?: Array<{ spell?: string; started?: boolean; round?: number }>;
-}
-
 export function CombatCopiloterPanel({
+  sessionId: _sessionId,
   data,
   status,
   onGenerate,
   isGenerating,
-}: CombatCopiloterPanelProps) {
-  if (status === 'none') {
-    return (
-      <Card>
-        <CardContent className="py-4">
+}: CombatCopilotPanelProps) {
+  const participants = Array.isArray(data?.participants) ? data.participants : [];
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <Swords className="h-4 w-4" />
+          Combat Co-pilot
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {status === 'none' && (
           <Button size="sm" variant="outline" onClick={onGenerate} disabled={isGenerating}>
-            <Swords className="mr-2 h-3 w-3" />
+            <Swords className="mr-1 h-3.5 w-3.5" />
             Analyze Combat
           </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (status === 'pending') {
-    return (
-      <Card>
-        <CardContent className="py-4">
-          <p className="text-sm text-muted-foreground flex items-center gap-2">
-            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-            Analyzing...
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <Card>
-        <CardContent className="py-4">
-          <p className="text-sm text-destructive">Analysis failed</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (status === 'done' && data) {
-    const participants = ((data as { participants?: Participant[] }).participants ?? []) as Participant[];
-
-    return (
-      <div className="space-y-3">
-        {participants.length === 0 && (
-          <Card>
-            <CardContent className="py-4">
-              <p className="text-sm text-muted-foreground">No combat events found.</p>
-            </CardContent>
-          </Card>
         )}
-        {participants.map((participant, idx) => (
-          <Card key={`${participant.name ?? 'participant'}-${idx}`}>
-            <CardContent className="py-4 space-y-3">
-              <p className="font-semibold">{participant.name ?? 'Unknown participant'}</p>
 
-              {Array.isArray(participant.hpChanges) && participant.hpChanges.length > 0 && (
-                <div className="space-y-1">
-                  {participant.hpChanges.map((change, changeIdx) => {
-                    const amount = Number(change.amount ?? 0);
-                    const isHealing = amount > 0;
-                    return (
-                      <p
-                        key={`hp-${changeIdx}`}
-                        className={`text-sm ${isHealing ? 'text-emerald-500' : 'text-red-500'}`}
-                      >
-                        {isHealing ? `+${amount}` : amount}{' '}
-                        {change.cause ? `(${change.cause})` : ''}
-                        {typeof change.round === 'number' ? ` - Round ${change.round}` : ''}
-                      </p>
-                    );
-                  })}
-                </div>
-              )}
+        {status === 'pending' && (
+          <div className="text-sm text-muted-foreground flex items-center gap-2">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            Analyzing...
+          </div>
+        )}
 
-              {Array.isArray(participant.conditions) && participant.conditions.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {participant.conditions.map((condition, conditionIdx) => (
-                    <Badge
-                      key={`condition-${conditionIdx}`}
-                      variant="outline"
-                      className={
-                        condition.applied
-                          ? 'border-red-500 text-red-500'
-                          : 'opacity-60 line-through'
-                      }
-                    >
-                      {condition.name ?? 'Condition'}
-                      {typeof condition.round === 'number' ? ` (R${condition.round})` : ''}
-                    </Badge>
-                  ))}
-                </div>
-              )}
+        {status === 'error' && (
+          <p className="text-sm text-destructive">Analysis failed</p>
+        )}
 
-              {Array.isArray(participant.concentration) &&
-                participant.concentration.length > 0 && (
+        {status === 'done' && data && (
+          <div className="space-y-4">
+            {participants.length === 0 && (
+              <p className="text-sm text-muted-foreground">No combat events found.</p>
+            )}
+
+            {participants.map((participant: any, participantIndex: number) => (
+              <div key={`${participant?.name ?? 'participant'}-${participantIndex}`} className="space-y-2 border border-border rounded-md p-3">
+                <h4 className="text-sm font-semibold">{participant?.name ?? 'Unknown participant'}</h4>
+
+                {Array.isArray(participant?.hpChanges) && participant.hpChanges.length > 0 && (
+                  <div className="space-y-1">
+                    {participant.hpChanges.map((change: any, index: number) => {
+                      const amount = Number(change?.amount ?? 0);
+                      const isHeal = amount > 0;
+                      return (
+                        <p
+                          key={`hp-${index}`}
+                          className={`text-xs ${isHeal ? 'text-emerald-600' : 'text-red-600'}`}
+                        >
+                          {isHeal ? '+' : ''}
+                          {amount} {change?.cause ? `(${change.cause})` : ''}{' '}
+                          {change?.round ? `- round ${change.round}` : ''}
+                        </p>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {Array.isArray(participant?.conditions) && participant.conditions.length > 0 && (
                   <div className="flex flex-wrap gap-2">
-                    {participant.concentration.map((entry, concentrationIdx) => (
-                      <Badge
-                        key={`concentration-${concentrationIdx}`}
-                        variant="outline"
-                        className="border-amber-500 text-amber-600"
-                      >
-                        {entry.started ? 'Started' : 'Ended'} {entry.spell ?? 'Concentration'}
-                        {typeof entry.round === 'number' ? ` (R${entry.round})` : ''}
+                    {participant.conditions.map((condition: any, index: number) => {
+                      const applied = !!condition?.applied;
+                      return (
+                        <Badge
+                          key={`condition-${index}`}
+                          variant="outline"
+                          className={applied ? 'border-red-300 bg-red-100 text-red-800' : 'opacity-60 line-through'}
+                        >
+                          {condition?.name ?? 'Unknown condition'}
+                          {condition?.round ? ` (r${condition.round})` : ''}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {Array.isArray(participant?.concentration) && participant.concentration.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {participant.concentration.map((entry: any, index: number) => (
+                      <Badge key={`concentration-${index}`} variant="outline" className="border-amber-300 bg-amber-100 text-amber-800">
+                        {entry?.spell ?? 'Unknown spell'}
+                        {entry?.round ? ` (r${entry.round})` : ''}
                       </Badge>
                     ))}
                   </div>
                 )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  return null;
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
