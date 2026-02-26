@@ -8,6 +8,7 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { LiveTranscriptionControls } from '@/components/session/live-transcription-controls';
 import { TranscriptionStatus } from '@/components/session/transcription-status';
 import { EncounterTracker } from '@/components/session/encounter-tracker';
+import { FoundryEventsPanel } from '@/components/session/foundry-events-panel';
 import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-plan-dialog';
 import { RulesPanel } from '@/components/session/rules-panel';
 import { SummaryPanel } from '@/components/session/summary-panel';
@@ -745,6 +746,7 @@ export default function SessionDetailPage() {
                   <div className="lg:col-span-2 space-y-4">
                     <LoadEncounterPlanDialog campaignId={campaignId} sessionId={sessionId} />
                     <EncounterTracker sessionId={sessionId} isDM={isDM} />
+                    <FoundryEventsPanel campaignId={campaignId} sessionId={sessionId} campaignSlug={slug} />
                   </div>
                 </div>
               </TabsContent>
