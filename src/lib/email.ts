@@ -122,6 +122,37 @@ class EmailService {
       ].join(''),
     });
   }
+
+  async sendUsageAlert(params: {
+    userId: string;
+    tier: string;
+    limitFamily: string;
+    used: number;
+    limit: number;
+    percentage: number;
+    periodEnd: Date;
+  }): Promise<void> {
+    const adminEmails = process.env.ADMIN_EMAILS?.split(',')
+      .map((e) => e.trim())
+      .filter(Boolean);
+    if (!adminEmails?.length) return;
+
+    const subject = `[QuiverDM] Usage alert: ${params.limitFamily} at ${Math.round(params.percentage)}%`;
+    const html = `
+    <p><strong>Usage threshold alert</strong></p>
+    <ul>
+      <li>User: ${params.userId}</li>
+      <li>Tier: ${params.tier}</li>
+      <li>Limit: ${params.limitFamily}</li>
+      <li>Used: ${params.used} / ${params.limit} (${Math.round(params.percentage)}%)</li>
+      <li>Period ends: ${params.periodEnd.toISOString()}</li>
+    </ul>
+  `;
+
+    for (const email of adminEmails) {
+      await this.send({ to: email, subject, html, text: subject }).catch(() => {});
+    }
+  }
 }
 
 export const emailService = new EmailService();
