@@ -46,11 +46,11 @@ async function processPlayerRecapJob(data: PlayerRecapJobData): Promise<PlayerRe
     where: { id: data.sessionId },
     data: {
       playerRecapStatus: 'done',
-      playerRecap: recapText.trim(),
+      playerRecap: recapText,
     },
   });
 
-  return { success: true, recap: recapText.trim() };
+  return { success: true, recap: recapText };
 }
 
 const worker = new Worker<PlayerRecapJobData, PlayerRecapJobResult>(
