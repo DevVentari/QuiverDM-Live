@@ -174,6 +174,8 @@ model Campaign {
 
   // Campaign settings (JSON for flexibility)
   settings         Json?                       // { allowPlayerNotes, shareRecaps, etc. }
+  foundryApiKey    String?                     @unique // bcrypt hash of campaign-scoped Foundry API key
+  foundryModuleVersion String?
 
   // Content relations
   gameSessions     GameSession[]
@@ -185,6 +187,7 @@ model Campaign {
   characters       CampaignCharacter[]         // Characters in this campaign
   encounterPlans   EncounterPlan[]             // Pre-session encounter designs
   webhooks         WebhookEndpoint[]
+  foundryEvents    FoundryEvent[]
 
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
@@ -399,12 +402,28 @@ model GameSession {
   aiSummaryAt      DateTime?
   aiHighlights     Json? // [{type,text,timestampMs,speakerLabel}]
   shareToken       String?             @unique
+  foundryEvents    FoundryEvent[]
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
   @@index([date])
+}
+
+model FoundryEvent {
+  id               String      @id @default(cuid())
+  sessionId        String
+  session          GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  campaignId       String
+  campaign         Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type             String // "combat_round" | "hp_change" | "actor_death" | "combat_start" | "combat_end"
+  payload          Json
+  foundryTimestamp DateTime?
+  createdAt        DateTime    @default(now())
+
+  @@index([sessionId])
+  @@index([campaignId, createdAt])
 }
 
 model Encounter {
