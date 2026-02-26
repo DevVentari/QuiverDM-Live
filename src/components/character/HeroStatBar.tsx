@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Heart, Shield, Zap, Star, X } from 'lucide-react';
+import { Heart, Shield, Zap, Star, X, Timer } from 'lucide-react';
 
 type HitPoints = { current: number; max: number; temp?: number };
 
@@ -10,6 +10,7 @@ type HeroStatBarProps = {
   armorClass: number | null;
   speed: number | null;
   proficiencyBonus: number | null;
+  initiative: number | null;
   isUpdating?: boolean;
   onUpdateHp?: (next: HitPoints) => Promise<void>;
 };
@@ -19,6 +20,7 @@ export function HeroStatBar({
   armorClass,
   speed,
   proficiencyBonus,
+  initiative,
   isUpdating,
   onUpdateHp,
 }: HeroStatBarProps) {
@@ -98,7 +100,8 @@ export function HeroStatBar({
           ? 'text-yellow-400'
           : 'text-foreground';
 
-  const hasStats = armorClass != null || speed != null || proficiencyBonus != null;
+  const hasStats =
+    armorClass != null || speed != null || proficiencyBonus != null || initiative != null;
 
   return (
     <div className="flex items-center gap-3 flex-wrap shrink-0">
@@ -184,6 +187,18 @@ export function HeroStatBar({
           <span className="text-xl font-bold tabular-nums leading-none">+{proficiencyBonus}</span>
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-end mb-px">
             Prof
+          </span>
+        </div>
+      )}
+
+      {initiative != null && (
+        <div className="flex items-center gap-1">
+          <Timer className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <span className="text-xl font-bold tabular-nums leading-none">
+            {initiative >= 0 ? `+${initiative}` : initiative}
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-end mb-px">
+            Init
           </span>
         </div>
       )}

@@ -9,10 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Scroll,
-  Swords,
-  Users,
-  BookOpen,
   Play,
   Plus,
   Mail,
@@ -27,10 +23,6 @@ export default function CampaignOverviewPage() {
     { slug },
     { staleTime: 300_000 }
   );
-  const statsQuery = trpc.campaigns.getStats.useQuery(
-    { campaignId },
-    { staleTime: 120_000 }
-  );
   const sessionsQuery = trpc.sessions.getAll.useQuery(
     { campaignId },
     { staleTime: 60_000 }
@@ -41,10 +33,9 @@ export default function CampaignOverviewPage() {
   );
 
   const isLoading =
-    campaignQuery.isLoading || statsQuery.isLoading || sessionsQuery.isLoading;
+    campaignQuery.isLoading || sessionsQuery.isLoading;
 
   const campaign = campaignQuery.data;
-  const stats = statsQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
 
   // ─── Loading skeleton ────────────────────────────────────────────────────────
@@ -65,26 +56,8 @@ export default function CampaignOverviewPage() {
     );
   }
 
-  // ─── Stat pills ──────────────────────────────────────────────────────────────
-  const statPills = (
-    <div className="flex gap-2 flex-wrap">
-      {[
-        { icon: Scroll, count: stats?.sessionCount ?? 0, label: 'Sessions' },
-        { icon: Swords, count: stats?.npcCount ?? 0, label: 'NPCs' },
-        { icon: Users, count: stats?.playerCount ?? 0, label: 'Members' },
-        { icon: BookOpen, count: stats?.homebrewCount ?? 0, label: 'Homebrew' },
-      ].map(({ icon: Icon, count, label }, i, arr) => (
-        <span key={label} className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Icon className="h-3.5 w-3.5" />
-          <span className="font-semibold text-foreground">{count}</span>
-          <span>{label}</span>
-          {i < arr.length - 1 && <span className="ml-1 opacity-30">·</span>}
-        </span>
-      ))}
-    </div>
-  );
-
-  // ─── Last session card ───────────────────────────────────────────────────────
+  
+// ─── Last session card ───────────────────────────────────────────────────────
   const lastSessionCard = (
     <Card className="relative overflow-hidden md:col-span-2">
       {lastSession && (

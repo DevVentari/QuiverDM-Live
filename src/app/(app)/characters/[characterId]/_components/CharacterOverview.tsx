@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dices, Swords, ChevronRight } from 'lucide-react';
 import { SpellSlotPips } from '@/components/character/SpellSlotPips';
 import { DeathSaves, type DeathSavesValue } from '@/components/character/DeathSaves';
+import { HeroStatBar } from '@/components/character/HeroStatBar';
 import type { DiceRoll } from '@/lib/dice';
 
 function abilityModifier(score: number): number {
@@ -53,6 +54,9 @@ export function CharacterOverview({
   const spellcasting = data.spellcasting as any;
   const inventory = (data.inventory as any[] | null) ?? [];
   const spellSlots = spellcasting?.slots as Record<string, { total: number; used: number }> | undefined;
+  const [localSpellSlots, setLocalSpellSlots] = useState<
+    Record<string, { total: number; used: number }>
+  >(spellSlots ?? {});
 
   const getSkillMod = (skillName: string): number => {
     const skill = skills?.find((s: any) => s.name === skillName);
@@ -82,6 +86,10 @@ export function CharacterOverview({
   const [actionMode, setActionMode] = useState<'attacks' | 'spells'>('attacks');
   const [featActionsOpen, setFeatActionsOpen] = useState(false);
 
+  useEffect(() => {
+    setLocalSpellSlots(spellSlots ?? {});
+  }, [spellSlots]);
+
   function detectActionType(description: string): string | null {
     const text = (description ?? '').toLowerCase();
     if (text.includes('as a reaction') || text.includes('as your reaction')) return 'Reaction';
@@ -94,6 +102,16 @@ export function CharacterOverview({
   const featActions = allFeatures
     .map((f: any) => ({ ...f, actionType: detectActionType(f.description ?? '') }))
     .filter((f: any) => f.actionType !== null);
+
+  function quickSummary(entry: { actionType?: string | null; castingTime?: string | null; range?: string | null; damage?: string | null; savingThrow?: string | null; school?: string | null }) {
+    if (entry.actionType) return entry.actionType;
+    if (entry.castingTime) return entry.castingTime;
+    if (entry.damage) return entry.damage;
+    if (entry.savingThrow) return `${entry.savingThrow} save`;
+    if (entry.range) return entry.range;
+    if (entry.school) return entry.school;
+    return 'Action';
+  }
 
   const allSpells = (spellcasting?.spells as any[] | null) ?? [];
   const spellsByLevel: Record<number, any[]> = {};
@@ -133,6 +151,11 @@ export function CharacterOverview({
       savingThrow: s.savingThrow || null,
     }));
 
+  const initiative =
+    typeof rawChar?.initiativeBonus === 'number'
+      ? rawChar.initiativeBonus
+      : abilityModifier(abilities?.dex ?? 10);
+
   return (
     <div className="space-y-4">
       {hp?.current === 0 && (
@@ -146,6 +169,18 @@ export function CharacterOverview({
           }}
         />
       )}
+
+      <HeroStatBar
+        hp={hp}
+        armorClass={data.armorClass ?? null}
+        speed={data.speed ?? null}
+        proficiencyBonus={data.proficiencyBonus ?? null}
+        initiative={initiative}
+        isUpdating={isUpdating}
+        onUpdateHp={async (next) => {
+          await onUpdate?.({ hitPoints: next });
+        }}
+      />
 
       {/* ── Quick Actions ───────────────────────────────────────── */}
       {(weaponAttacks.length > 0 || attackCantrips.length > 0 || allSpells.length > 0) && (
@@ -257,6 +292,9 @@ export function CharacterOverview({
                         {featActions.map((feat: any, i: number) => (
                           <div key={i} className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-1.5 text-sm">
                             <span className="flex-1 min-w-0 truncate">{feat.name}</span>
+                            <span className="text-[11px] text-muted-foreground/80 hidden sm:inline truncate max-w-[11rem] text-right">
+                              {quickSummary({ actionType: feat.actionType })}
+                            </span>
                             <Badge variant="outline" className="text-[10px] h-5 shrink-0 font-normal">
                               {feat.actionType}
                             </Badge>
@@ -278,9 +316,9 @@ export function CharacterOverview({
                     <div key={level}>
                       <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 mt-2 first:mt-0 flex items-center gap-2">
                         {level === 0 ? 'Cantrips' : `Level ${level}`}
-                        {level > 0 && spellSlots?.[`level${level}`] && (
+                        {level > 0 && localSpellSlots?.[`level${level}`] && (
                           <span className="font-normal normal-case text-muted-foreground/60">
-                            {spellSlots[`level${level}`].total - spellSlots[`level${level}`].used}/{spellSlots[`level${level}`].total} slots
+                            {localSpellSlots[`level${level}`].total - localSpellSlots[`level${level}`].used}/{localSpellSlots[`level${level}`].total} slots
                           </span>
                         )}
                       </div>
@@ -293,7 +331,13 @@ export function CharacterOverview({
                                 {spell.name}
                               </span>
                               <span className="text-xs text-muted-foreground ml-2">
-                                {spell.castingTime ?? spell.school ?? ''}
+                                {quickSummary({
+                                  castingTime: spell.castingTime,
+                                  damage: spell.damage,
+                                  savingThrow: spell.savingThrow,
+                                  range: spell.range,
+                                  school: spell.school,
+                                })}
                               </span>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
@@ -564,9 +608,9 @@ export function CharacterOverview({
                   )}
                 </div>
 
-                {spellSlots && Object.keys(spellSlots).length > 0 && (
+                {Object.keys(localSpellSlots).length > 0 && (
                   <div className="space-y-1">
-                    {Object.entries(spellSlots).map(([key, slot]) => (
+                    {Object.entries(localSpellSlots).map(([key, slot]) => (
                       <div key={key} className="flex items-center justify-between text-sm">
                         <span className="capitalize text-muted-foreground">{key.replace('level', 'Level ')}</span>
                         <SpellSlotPips
@@ -575,12 +619,13 @@ export function CharacterOverview({
                           disabled={isUpdating}
                           onChangeUsed={async (nextUsed) => {
                             const nextSlots = {
-                              ...spellSlots,
+                              ...localSpellSlots,
                               [key]: {
                                 ...slot,
                                 used: nextUsed,
                               },
                             };
+                            setLocalSpellSlots(nextSlots);
                             await onUpdate?.({
                               spellcasting: {
                                 ...(spellcasting ?? {}),
@@ -641,4 +686,3 @@ export function CharacterOverview({
     </div>
   );
 }
-
