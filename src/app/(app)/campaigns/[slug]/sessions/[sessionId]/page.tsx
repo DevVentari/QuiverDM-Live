@@ -484,7 +484,7 @@ export default function SessionDetailPage() {
   const utils = trpc.useUtils();
 
   const combatCopiloterStatusQuery = trpc.sessions.getCombatCopiloterStatus.useQuery(
-    { campaignId, sessionId },
+    { sessionId },
     {
       enabled: isDM,
       refetchInterval: (query) => {
@@ -849,9 +849,7 @@ export default function SessionDetailPage() {
                     sessionId={sessionId}
                     data={combatCopiloterStatusQuery.data?.combatCopiloterData}
                     status={combatCopiloterStatusQuery.data?.combatCopiloterStatus ?? 'none'}
-                    onGenerate={() =>
-                      generateCombatCopilot.mutate({ campaignId, sessionId })
-                    }
+                    onGenerate={() => generateCombatCopilot.mutate({ sessionId })}
                     isGenerating={generateCombatCopilot.isPending}
                   />
                 )}
