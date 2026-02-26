@@ -212,9 +212,16 @@ export const sessionsRouter = router({
           sessionNumber: true,
           title: true,
           playerRecapStatus: true,
+          campaignId: true,
         },
       });
       if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Session does not belong to the provided campaign',
+        });
+      }
       if (!session.aiSummary) throw new BadRequestError('Generate AI summary first');
 
       await prisma.gameSession.update({
@@ -242,13 +249,24 @@ export const sessionsRouter = router({
       const session = await prisma.gameSession.findUnique({
         where: { id: input.sessionId },
         select: {
+          campaignId: true,
           playerRecapStatus: true,
           playerRecap: true,
           playerVisibility: true,
         },
       });
       if (!session) throw new NotFoundError('session', input.sessionId);
-      return session;
+      if (session.campaignId !== input.campaignId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Session does not belong to the provided campaign',
+        });
+      }
+      return {
+        playerRecapStatus: session.playerRecapStatus,
+        playerRecap: session.playerRecap,
+        playerVisibility: session.playerVisibility,
+      };
     }),
 
   createShareToken: protectedProcedure
