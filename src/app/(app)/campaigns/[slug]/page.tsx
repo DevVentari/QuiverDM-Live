@@ -14,6 +14,7 @@ import {
   Mail,
   Settings,
   ArrowRight,
+  Scroll,
 } from 'lucide-react';
 
 export default function CampaignOverviewPage() {
@@ -37,6 +38,7 @@ export default function CampaignOverviewPage() {
 
   const campaign = campaignQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
+  const sessionCount = sessionsQuery.data?.length ?? 0;
 
   // ─── Loading skeleton ────────────────────────────────────────────────────────
   if (isLoading) {
@@ -56,8 +58,19 @@ export default function CampaignOverviewPage() {
     );
   }
 
-  
-// ─── Last session card ───────────────────────────────────────────────────────
+  // ─── Stat pills ──────────────────────────────────────────────────────────────
+  const statPills = (
+    <div className="flex gap-2 flex-wrap">
+      <Badge variant="secondary">{sessionCount} {sessionCount === 1 ? 'Session' : 'Sessions'}</Badge>
+      {campaign?.createdAt && (
+        <Badge variant="secondary">
+          Since {new Date(campaign.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+        </Badge>
+      )}
+    </div>
+  );
+
+  // ─── Last session card ───────────────────────────────────────────────────────
   const lastSessionCard = (
     <Card className="relative overflow-hidden md:col-span-2">
       {lastSession && (
