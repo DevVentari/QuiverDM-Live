@@ -2,6 +2,7 @@ import {
   router,
   protectedProcedure,
   campaignDMProcedure,
+  campaignMemberProcedure,
 } from '../trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
@@ -11,6 +12,7 @@ import { authz } from '../services/authorization.service';
 import { BadRequestError, NotFoundError } from '../errors';
 import { derailmentQueue } from '@/lib/queue/derailment-queue';
 import { combatCopilotQueue } from '@/lib/queue/combat-copilot-queue';
+import { playerRecapQueue } from '@/lib/queue/player-recap-queue';
 
 export const sessionsRouter = router({
   /**
@@ -254,6 +256,72 @@ export const sessionsRouter = router({
       return {
         derailmentStatus: session.derailmentStatus,
         derailmentData: session.derailmentData,
+      };
+    }),
+
+  generatePlayerRecap: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: {
+          aiSummary: true,
+          sessionNumber: true,
+          title: true,
+          playerRecapStatus: true,
+          campaignId: true,
+        },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new BadRequestError('Session does not belong to the provided campaign');
+      }
+      if (!session.aiSummary) throw new BadRequestError('Generate AI summary first');
+
+      await prisma.gameSession.update({
+        where: { id: input.sessionId },
+        data: { playerRecapStatus: 'pending' },
+      });
+
+      await playerRecapQueue.add('generate-recap', {
+        sessionId: input.sessionId,
+        aiSummary: session.aiSummary,
+        sessionTitle: session.title,
+        sessionNumber: session.sessionNumber,
+      });
+      return { ok: true };
+    }),
+
+  getPlayerRecapStatus: campaignMemberProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .query(async ({ input }) => {
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: {
+          campaignId: true,
+          playerRecapStatus: true,
+          playerRecap: true,
+          playerVisibility: true,
+        },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new BadRequestError('Session does not belong to the provided campaign');
+      }
+      return {
+        playerRecapStatus: session.playerRecapStatus,
+        playerRecap: session.playerRecap,
+        playerVisibility: session.playerVisibility,
       };
     }),
 
