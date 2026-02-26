@@ -13,11 +13,11 @@ kanban-plugin: board
 
 ## 🟡 Next — Post-Alpha
 
-- [ ] **Expanded Usage Caps & Cost Guardrails** — Not urgent for friends & family alpha (no COGS risk), but needed before any public/paid launch. Refs: `src/server/services/usage.service.ts`
+- [x] **Expanded Usage Caps & Cost Guardrails** — PDF/session/transcription caps enforced, 80% threshold admin email alerts, 4 new settings meters.
 - [ ] **Market Pricing & Position Validation** — Pricing tiers needed before paid tier opens. Not blocking alpha. Refs: `docs/obsidian-vault/10-Research/2026-02-24-deep-market-research-matrix.md`
-- [ ] **Combat Condition Co-pilot** — Auto-track HP, concentration, conditions from transcript. High value for alpha testers. Research gate: pending — needs scoping first.
-- [ ] **Foundry Sidecar Bridge MVP** — Core integration. Blocks Foundry Import Plugin. Refs: `docs/plans/2026-02-24-mvp-foundry-integration-spec.md`
-- [ ] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries). Blocked by: Foundry Sidecar Bridge MVP.
+- [ ] **Combat Condition Co-pilot** — Auto-track HP, concentration, conditions from transcript. High value for alpha testers. In Progress.
+- [x] **Foundry Sidecar Bridge MVP** — Core integration complete. Schema, API routes, tRPC router, SSE stream, UI, foundry-module/ scaffold. Needs: `npm run db:push`.
+- [ ] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries). Unblocked.
 
 
 ## 🟢 Later — Backlog
@@ -28,8 +28,8 @@ kanban-plugin: board
 - [ ] **Phase 4 — Autonomous Co-DM** — Real-time narrative operator inside Session Mode, powered by DM Brain. Simultaneously: observes (NPC names spoken, goals, threats, HP trends, pacing), predicts (combat drag alerts, engagement drops, escape likelihood), autonomously updates NPC behavior (goals/fear/loyalty/secrets), generates world-consistent improv content on demand, manages encounter autopilot (conditions, recharge, initiative), guards lore continuity, propagates world reactions between sessions, detects table emotional state (spotlight imbalance, boredom). Confidence-threshold UI (silent → hint → highlight → alert). Four permission levels: Manual → Assist → Auto Mechanical → Full Co-DM. Architecture: Context Stream → Decision Models → Action Generator → Session UI. Refs: `docs/obsidian-vault/20-Brainstorm/autonomous-co-dm.md`
 - [ ] **Phase 3 — Session Mode Dashboard** — Full-screen play UI: party HP/conditions/initiative panel, live scene notes with AI overlay (auto-updates from transcription), zero-friction NPC recall, combat mode (UI morphs in place — no navigation), DM panic tools (roll, generate NPC, suggest twist), real-time AI context alerts, end-session one-click pipeline (summary → journals → NPCs → timeline → prep tasks). No page switching. Everything live. Refs: `docs/obsidian-vault/20-Brainstorm/session-mode-dashboard.md`
 - [ ] **Session Continuity Graph** — Persistent NPC/quest/state graph, surfaces unresolved threads between sessions.
-- [ ] **Player Recap Mode** — 90-second player-safe summary generated after each session.
-- [ ] **Derailment Detector** — Detects objective drift mid-session, surfaces 2-3 GM recovery options.
+- [ ] **Player Recap Mode** — 90-second player-safe summary generated after each session. In Progress.
+- [ ] **Derailment Detector** — Detects objective drift mid-session, surfaces 2-3 GM recovery options. In Progress.
 
 
 ## 💡 Ideas — Not Yet Scoped
@@ -54,7 +54,7 @@ kanban-plugin: board
 
 ## Feedback/Bugs
 
-- [ ] Character Sheets - move health speed prof init, above quick actions, on mobile the same, spell slot tracking not working, currency add icons find appriopate svgs , is there maybe a resource we import for vectors images so so, for equiped and attuned can we use icons? for quick actions, and spells can we use a short hand description that shows inline with the name on the right next to the drop down. we dont need ahero secion in the campaign overview
+- [x] Character Sheets - move health speed prof init above quick actions; mobile matches; spell slot tracking; currency/equipped/attuned icons; inline shorthand for quick actions/spells; remove hero section in campaign overview.
 
 
 
