@@ -9,6 +9,7 @@ import { LiveTranscriptionControls } from '@/components/session/live-transcripti
 import { TranscriptionStatus } from '@/components/session/transcription-status';
 import { EncounterTracker } from '@/components/session/encounter-tracker';
 import { FoundryEventsPanel } from '@/components/session/foundry-events-panel';
+import { DerailmentPanel } from '@/components/session/derailment-panel';
 import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-plan-dialog';
 import { RulesPanel } from '@/components/session/rules-panel';
 import { SummaryPanel } from '@/components/session/summary-panel';
@@ -480,6 +481,17 @@ export default function SessionDetailPage() {
     { sessionId },
     { enabled: isDM, staleTime: 5_000, refetchInterval: 3_000 }
   );
+  const derailmentStatusQuery = trpc.sessions.getDerailmentStatus.useQuery(
+    { campaignId, sessionId },
+    {
+      enabled: isDM && Boolean(campaignId),
+      refetchInterval: (query) => {
+        const status = (query.state.data as { derailmentStatus?: string } | undefined)?.derailmentStatus;
+        return status === 'pending' ? 3000 : false;
+      },
+      refetchOnWindowFocus: false,
+    }
+  );
   const utils = trpc.useUtils();
 
   const updateSession = trpc.sessions.update.useMutation({
@@ -498,6 +510,12 @@ export default function SessionDetailPage() {
   });
 
   const createRecording = trpc.sessionRecordings.create.useMutation();
+  const runDerailmentDetector = trpc.sessions.runDerailmentDetector.useMutation({
+    onSuccess: () => {
+      void utils.sessions.getDerailmentStatus.invalidate({ campaignId, sessionId });
+    },
+    onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -572,6 +590,8 @@ export default function SessionDetailPage() {
 
   const data = session.data as any;
   const latestTranscriptionJob = transcriptionJobs.data?.[0] ?? null;
+  const derailmentStatus = (derailmentStatusQuery.data as any)?.derailmentStatus ?? 'none';
+  const derailmentData = (derailmentStatusQuery.data as any)?.derailmentData ?? null;
 
   // Status badge colour
   const statusClass =
@@ -747,6 +767,13 @@ export default function SessionDetailPage() {
                     <LoadEncounterPlanDialog campaignId={campaignId} sessionId={sessionId} />
                     <EncounterTracker sessionId={sessionId} isDM={isDM} />
                     <FoundryEventsPanel campaignId={campaignId} sessionId={sessionId} campaignSlug={slug} />
+                    <DerailmentPanel
+                      sessionId={sessionId}
+                      data={derailmentData}
+                      status={derailmentStatus}
+                      onAnalyze={() => runDerailmentDetector.mutate({ campaignId, sessionId })}
+                      isAnalyzing={runDerailmentDetector.isPending || derailmentStatus === 'pending'}
+                    />
                   </div>
                 </div>
               </TabsContent>
