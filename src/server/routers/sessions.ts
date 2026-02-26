@@ -4,6 +4,8 @@ import { TRPCError } from '@trpc/server';
 import { sessionService } from '../services/session.service';
 import { prisma } from '../db';
 import { authz } from '../services/authorization.service';
+import { BadRequestError, NotFoundError } from '../errors';
+import { derailmentQueue } from '@/lib/queue/derailment-queue';
 
 export const sessionsRouter = router({
   /**
@@ -189,6 +191,66 @@ export const sessionsRouter = router({
     .query(({ input, ctx }) =>
       sessionService.getSummaryStatus(input.sessionId, ctx.session.user.id)
     ),
+
+  runDerailmentDetector: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        include: { transcripts: { take: 1, orderBy: { createdAt: 'desc' } } },
+      });
+
+      if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new BadRequestError('Session does not belong to the provided campaign');
+      }
+
+      const transcript = session.transcripts[0];
+      if (!transcript) throw new BadRequestError('No transcript available');
+
+      const text = transcript.correctedText ?? transcript.rawText;
+      await prisma.gameSession.update({
+        where: { id: input.sessionId },
+        data: { derailmentStatus: 'pending' },
+      });
+
+      await derailmentQueue.add('detect-derailment', {
+        sessionId: input.sessionId,
+        transcriptText: text,
+        quickNotes: session.quickNotes ?? '',
+      });
+
+      return { ok: true };
+    }),
+
+  getDerailmentStatus: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .query(async ({ input }) => {
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: { derailmentStatus: true, derailmentData: true, campaignId: true },
+      });
+
+      if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new BadRequestError('Session does not belong to the provided campaign');
+      }
+
+      return {
+        derailmentStatus: session.derailmentStatus,
+        derailmentData: session.derailmentData,
+      };
+    }),
 
   createShareToken: protectedProcedure
     .input(
