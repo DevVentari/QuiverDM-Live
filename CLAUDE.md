@@ -197,6 +197,10 @@ Project skills live in `.claude/skills/` and are auto-loaded. Available: `quiver
 
 Skills go in `.claude/skills/<name>/SKILL.md` and are immediately available.
 
+## Codex Delegation
+
+Use the `codex-router` skill to decide what to delegate. Claude = architect/reviewer. Codex = pattern-following implementation.
+
 ## Maintenance
 
 Keep this file synced with architecture changes (router count, scripts, and deployment-critical flows).

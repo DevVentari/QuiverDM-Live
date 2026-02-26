@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -45,6 +45,11 @@ function extractDiceNotation(damage: string): string | null {
 export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: CharacterSpellsProps) {
   const spellcasting = data.spellcasting as any;
   const [preparedOnly, setPreparedOnly] = useState(false);
+  const [localSlots, setLocalSlots] = useState<Record<string, { total: number; used: number }>>(spellcasting?.slots ?? {});
+
+  useEffect(() => {
+    setLocalSlots(spellcasting?.slots ?? {});
+  }, [spellcasting?.slots]);
 
   if (!spellcasting) {
     return (
@@ -55,7 +60,7 @@ export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: Characte
     );
   }
 
-  const { spells, slots, ability } = spellcasting;
+  const { spells, ability } = spellcasting;
 
   const filteredSpells = preparedOnly
     ? (spells || []).filter((s: any) => s.prepared || s.alwaysPrepared || s.level === 0)
@@ -93,14 +98,14 @@ export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: Characte
         </div>
       </div>
 
-      {slots && Object.keys(slots).length > 0 && (
+      {localSlots && Object.keys(localSlots).length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-display tracking-wide">Spell Slots</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-              {Object.entries(slots).map(([key, slot]: [string, any]) => {
+              {Object.entries(localSlots).map(([key, slot]: [string, any]) => {
                 const level = Number(key.replace('level', ''));
                 const remaining = slot.total - slot.used;
                 return (
@@ -115,16 +120,18 @@ export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: Characte
                         disabled={isUpdating}
                         onChangeUsed={async (nextUsed) => {
                           if (!onUpdate) return;
+                          const nextSlots = {
+                            ...localSlots,
+                            [key]: {
+                              ...slot,
+                              used: nextUsed,
+                            },
+                          };
+                          setLocalSlots(nextSlots);
                           await onUpdate({
                             spellcasting: {
                               ...spellcasting,
-                              slots: {
-                                ...slots,
-                                [key]: {
-                                  ...slot,
-                                  used: nextUsed,
-                                },
-                              },
+                              slots: nextSlots,
                             },
                           });
                         }}

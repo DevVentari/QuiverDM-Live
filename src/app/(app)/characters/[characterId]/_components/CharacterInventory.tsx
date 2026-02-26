@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Backpack, RotateCcw, ShieldCheck, Star, ChevronDown, ChevronRight } from 'lucide-react';
+import { Backpack, RotateCcw, ShieldCheck, Star, ChevronDown, ChevronRight, Coins } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { htmlToText } from '@/lib/html-utils';
@@ -66,7 +66,8 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
     <div className="space-y-6">
       {currency && (
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 flex items-center gap-2">
+            <Coins className="h-4 w-4 text-amber-500" />
             <CardTitle className="text-sm font-display tracking-wide">Currency</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
