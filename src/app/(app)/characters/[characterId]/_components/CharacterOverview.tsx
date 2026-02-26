@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Dices, Swords, ChevronRight } from 'lucide-react';
 import { SpellSlotPips } from '@/components/character/SpellSlotPips';
 import { DeathSaves, type DeathSavesValue } from '@/components/character/DeathSaves';
-import { HeroStatBar } from '@/components/character/HeroStatBar';
 import type { DiceRoll } from '@/lib/dice';
 
 function abilityModifier(score: number): number {
@@ -151,11 +150,6 @@ export function CharacterOverview({
       savingThrow: s.savingThrow || null,
     }));
 
-  const initiative =
-    typeof rawChar?.initiativeBonus === 'number'
-      ? rawChar.initiativeBonus
-      : abilityModifier(abilities?.dex ?? 10);
-
   return (
     <div className="space-y-4">
       {hp?.current === 0 && (
@@ -169,18 +163,6 @@ export function CharacterOverview({
           }}
         />
       )}
-
-      <HeroStatBar
-        hp={hp}
-        armorClass={data.armorClass ?? null}
-        speed={data.speed ?? null}
-        proficiencyBonus={data.proficiencyBonus ?? null}
-        initiative={initiative}
-        isUpdating={isUpdating}
-        onUpdateHp={async (next) => {
-          await onUpdate?.({ hitPoints: next });
-        }}
-      />
 
       {/* ── Quick Actions ───────────────────────────────────────── */}
       {(weaponAttacks.length > 0 || attackCantrips.length > 0 || allSpells.length > 0) && (
@@ -314,13 +296,24 @@ export function CharacterOverview({
                 ) : (
                   spellLevelsSorted.map((level) => (
                     <div key={level}>
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 mt-2 first:mt-0 flex items-center gap-2">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 mt-2 first:mt-0 flex items-center gap-2 flex-wrap">
                         {level === 0 ? 'Cantrips' : `Level ${level}`}
-                        {level > 0 && localSpellSlots?.[`level${level}`] && (
-                          <span className="font-normal normal-case text-muted-foreground/60">
-                            {localSpellSlots[`level${level}`].total - localSpellSlots[`level${level}`].used}/{localSpellSlots[`level${level}`].total} slots
-                          </span>
-                        )}
+                        {level > 0 && localSpellSlots?.[`level${level}`] && (() => {
+                          const key = `level${level}`;
+                          const slot = localSpellSlots[key];
+                          return (
+                            <SpellSlotPips
+                              total={slot.total}
+                              used={slot.used}
+                              disabled={isUpdating}
+                              onChangeUsed={async (nextUsed) => {
+                                const nextSlots = { ...localSpellSlots, [key]: { ...slot, used: nextUsed } };
+                                setLocalSpellSlots(nextSlots);
+                                await onUpdate?.({ spellcasting: { ...(spellcasting ?? {}), slots: nextSlots } });
+                              }}
+                            />
+                          );
+                        })()}
                       </div>
                       {spellsByLevel[level]
                         .sort((a: any, b: any) => a.name.localeCompare(b.name))
