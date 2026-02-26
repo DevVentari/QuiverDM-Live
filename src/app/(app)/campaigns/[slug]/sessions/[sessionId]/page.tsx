@@ -14,6 +14,7 @@ import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-p
 import { RulesPanel } from '@/components/session/rules-panel';
 import { SummaryPanel } from '@/components/session/summary-panel';
 import { CombatCopiloterPanel } from '@/components/session/combat-copilot-panel';
+import { PlayerRecapPanel } from '@/components/session/player-recap-panel';
 import { AudioRecorder } from '@/components/session/audio-recorder';
 import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
 import { useToast } from '@/hooks/use-toast';
@@ -493,6 +494,16 @@ export default function SessionDetailPage() {
       refetchOnWindowFocus: false,
     }
   );
+  const playerRecapStatus = trpc.sessions.getPlayerRecapStatus.useQuery(
+    { campaignId, sessionId },
+    {
+      enabled: Boolean(campaignId) && (isDM || playerVisibility !== 'dm-only'),
+      refetchInterval: (query) => {
+        const data = query.state.data as { playerRecapStatus?: string } | undefined;
+        return data?.playerRecapStatus === 'pending' ? 3000 : false;
+      },
+    }
+  );
   const utils = trpc.useUtils();
 
   const combatCopiloterStatusQuery = trpc.sessions.getCombatCopiloterStatus.useQuery(
@@ -537,6 +548,11 @@ export default function SessionDetailPage() {
     onSuccess: () => {
       void utils.sessions.getDerailmentStatus.invalidate({ campaignId, sessionId });
     },
+    onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
+  const generatePlayerRecap = trpc.sessions.generatePlayerRecap.useMutation({
+    onSuccess: () =>
+      utils.sessions.getPlayerRecapStatus.invalidate({ campaignId, sessionId }),
     onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
   });
 
@@ -615,6 +631,9 @@ export default function SessionDetailPage() {
   const latestTranscriptionJob = transcriptionJobs.data?.[0] ?? null;
   const derailmentStatus = (derailmentStatusQuery.data as any)?.derailmentStatus ?? 'none';
   const derailmentData = (derailmentStatusQuery.data as any)?.derailmentData ?? null;
+  const recapStatus = playerRecapStatus.data?.playerRecapStatus ?? 'none';
+  const recapText = playerRecapStatus.data?.playerRecap ?? null;
+  const recapVisibility = playerRecapStatus.data?.playerVisibility ?? playerVisibility;
 
   // Status badge colour
   const statusClass =
@@ -878,6 +897,17 @@ export default function SessionDetailPage() {
                     status={combatCopiloterStatusQuery.data?.combatCopiloterStatus ?? 'none'}
                     onGenerate={() => generateCombatCopilot.mutate({ sessionId })}
                     isGenerating={generateCombatCopilot.isPending}
+                  />
+                )}
+                {(isDM || recapVisibility !== 'dm-only') && (
+                  <PlayerRecapPanel
+                    sessionId={sessionId}
+                    recap={recapText}
+                    status={recapStatus}
+                    playerVisibility={recapVisibility}
+                    isDM={isDM}
+                    onGenerate={() => generatePlayerRecap.mutate({ campaignId, sessionId })}
+                    isGenerating={generatePlayerRecap.isPending}
                   />
                 )}
               </TabsContent>

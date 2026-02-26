@@ -53,6 +53,15 @@ export default async function SharedSessionPage({
           <span>AI-generated summary</span>
         </div>
 
+        {session.playerRecapStatus === 'done' && session.playerRecap && (
+          <div className="space-y-2">
+            <h2 className="text-base font-semibold">Session Recap</h2>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              {session.playerRecap}
+            </p>
+          </div>
+        )}
+
         <div className="prose max-w-none dark:prose-invert">
           <ReactMarkdown>{session.aiSummary}</ReactMarkdown>
         </div>
