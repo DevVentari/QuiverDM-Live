@@ -17,7 +17,7 @@ kanban-plugin: board
 - [ ] **Market Pricing & Position Validation** — Pricing tiers needed before paid tier opens. Not blocking alpha. Refs: `docs/obsidian-vault/10-Research/2026-02-24-deep-market-research-matrix.md`
 - [x] **Combat Condition Co-pilot** — Auto-track HP, concentration, conditions from transcript. High value for alpha testers.
 - [x] **Foundry Sidecar Bridge MVP** — Core integration complete. Schema, API routes, tRPC router, SSE stream, UI, foundry-module/ scaffold. Needs: `npm run db:push`.
-- [ ] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries). Unblocked.
+- [x] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries). Unblocked.
 
 
 ## 🟢 Later — Backlog
