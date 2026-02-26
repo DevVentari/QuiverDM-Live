@@ -4,6 +4,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { emailService } from '@/lib/email';
 import { NotFoundError, RateLimitedError } from '../errors';
 
 export type UserTier = 'free' | 'pro' | 'team';
@@ -239,10 +240,20 @@ export const usageService = {
         'PDF upload limit reached for your tier. Upgrade to Pro for more uploads.'
       );
     }
-    return prisma.userUsage.update({
+    const updated = await prisma.userUsage.update({
       where: { userId },
       data: { pdfUploads: { increment: 1 } },
     });
+
+    // Fire-and-forget threshold alert
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
+    if (user) {
+      void this.checkAndAlertThreshold(
+        userId, user.tier ?? 'free', 'pdfUploads',
+        updated.pdfUploads, updated.pdfUploadLimit, updated.periodEnd
+      );
+    }
+    return updated;
   },
 
   async incrementTranscription(userId: string, durationSeconds: number) {
@@ -252,10 +263,20 @@ export const usageService = {
         'Transcription limit reached for your tier. Upgrade to Pro for more minutes.'
       );
     }
-    return prisma.userUsage.update({
+    const updated = await prisma.userUsage.update({
       where: { userId },
       data: { transcriptionSeconds: { increment: Math.ceil(durationSeconds) } },
     });
+
+    // Fire-and-forget threshold alert
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
+    if (user) {
+      void this.checkAndAlertThreshold(
+        userId, user.tier ?? 'free', 'transcriptionSeconds',
+        updated.transcriptionSeconds, updated.transcriptionLimit, updated.periodEnd
+      );
+    }
+    return updated;
   },
 
   async incrementSessionUploads(userId: string) {
@@ -265,10 +286,20 @@ export const usageService = {
         'Session upload limit reached for your tier. Upgrade to Pro for more session uploads.'
       );
     }
-    return prisma.userUsage.update({
+    const updated = await prisma.userUsage.update({
       where: { userId },
       data: { sessionUploads: { increment: 1 } },
     });
+
+    // Fire-and-forget threshold alert
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
+    if (user) {
+      void this.checkAndAlertThreshold(
+        userId, user.tier ?? 'free', 'sessionUploads',
+        updated.sessionUploads, updated.sessionUploadLimit, updated.periodEnd
+      );
+    }
+    return updated;
   },
 
   async incrementAiRecaps(userId: string) {
@@ -278,10 +309,20 @@ export const usageService = {
         'AI recap limit reached for your tier. Upgrade to Pro for more recaps.'
       );
     }
-    return prisma.userUsage.update({
+    const updated = await prisma.userUsage.update({
       where: { userId },
       data: { aiRecaps: { increment: 1 } },
     });
+
+    // Fire-and-forget threshold alert
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
+    if (user) {
+      void this.checkAndAlertThreshold(
+        userId, user.tier ?? 'free', 'aiRecaps',
+        updated.aiRecaps, updated.aiRecapLimit, updated.periodEnd
+      );
+    }
+    return updated;
   },
 
   async incrementSemanticSearches(userId: string) {
@@ -291,10 +332,20 @@ export const usageService = {
         'Semantic search limit reached for your tier. Upgrade to Pro for more searches.'
       );
     }
-    return prisma.userUsage.update({
+    const updated = await prisma.userUsage.update({
       where: { userId },
       data: { semanticSearches: { increment: 1 } },
     });
+
+    // Fire-and-forget threshold alert
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
+    if (user) {
+      void this.checkAndAlertThreshold(
+        userId, user.tier ?? 'free', 'semanticSearches',
+        updated.semanticSearches, updated.semanticSearchLimit, updated.periodEnd
+      );
+    }
+    return updated;
   },
 
   async incrementImageGenerations(userId: string) {
@@ -304,10 +355,20 @@ export const usageService = {
         'Image generation limit reached for your tier. Upgrade to Pro for more images.'
       );
     }
-    return prisma.userUsage.update({
+    const updated = await prisma.userUsage.update({
       where: { userId },
       data: { imageGenerations: { increment: 1 } },
     });
+
+    // Fire-and-forget threshold alert
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
+    if (user) {
+      void this.checkAndAlertThreshold(
+        userId, user.tier ?? 'free', 'imageGenerations',
+        updated.imageGenerations, updated.imageGenerationLimit, updated.periodEnd
+      );
+    }
+    return updated;
   },
 
   // ─── Period management ──────────────────────────────────────────────────────
@@ -382,5 +443,21 @@ export const usageService = {
       return true;
     }
     return false;
+  },
+
+  async checkAndAlertThreshold(
+    userId: string,
+    tier: string,
+    limitFamily: string,
+    used: number,
+    limit: number,
+    periodEnd: Date
+  ): Promise<void> {
+    if (limit === -1) return;
+    const percentage = (used / limit) * 100;
+    if (percentage < 80) return;
+
+    // Fire-and-forget
+    emailService.sendUsageAlert({ userId, tier, limitFamily, used, limit, percentage, periodEnd }).catch(() => {});
   },
 };
