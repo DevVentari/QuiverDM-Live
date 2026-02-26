@@ -32,15 +32,15 @@ export interface PlayerRecapJobResult {
   error?: string;
 }
 
-export const playerRecapQueue = new Queue<
-  PlayerRecapJobData,
-  PlayerRecapJobResult
->('player-recap', {
-  connection: getRedisConnection() as any,
-  defaultJobOptions: {
-    attempts: 2,
-    backoff: { type: 'exponential', delay: 15000 },
-    removeOnComplete: { age: 24 * 3600, count: 500 },
-    removeOnFail: { age: 7 * 24 * 3600 },
-  },
-});
+export const playerRecapQueue = new Queue<PlayerRecapJobData, PlayerRecapJobResult>(
+  'player-recap',
+  {
+    connection: getRedisConnection() as any,
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 15000 },
+      removeOnComplete: { age: 24 * 3600, count: 500 },
+      removeOnFail: { age: 7 * 24 * 3600 },
+    },
+  }
+);
