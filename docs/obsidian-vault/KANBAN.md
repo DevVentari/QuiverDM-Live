@@ -7,17 +7,11 @@ kanban-plugin: board
 ## 🔴 Now — Alpha Launch Blockers
 
 - [ ] **Vercel Deployment (infra)** — App needs to be live for friends & family alpha. Provision: Neon, Upstash, Cloudflare R2 + Tunnel, Vercel account. Refs: `docs/plans/2026-02-24-vercel-deployment.md`
-- [x] **Design System v1 — Dashboard** — Active campaign hero, background depth, section renames, campaign card upgrades.
-- [x] **Design System v1 — Homebrew Formatting** — Fix raw HTML in detail views, uniform section layout, AI-detected custom sections. In Progress. Refs: `docs/plans/2026-02-24-homebrew-uniform-formatting.md`
 
 
 ## 🟡 Next — Post-Alpha
 
-- [x] **Expanded Usage Caps & Cost Guardrails** — PDF/session/transcription caps enforced, 80% threshold admin email alerts, 4 new settings meters.
 - [ ] **Market Pricing & Position Validation** — Pricing tiers needed before paid tier opens. Not blocking alpha. Refs: `docs/obsidian-vault/10-Research/2026-02-24-deep-market-research-matrix.md`
-- [x] **Combat Condition Co-pilot** — Auto-track HP, concentration, conditions from transcript. High value for alpha testers.
-- [x] **Foundry Sidecar Bridge MVP** — Core integration complete. Schema, API routes, tRPC router, SSE stream, UI, foundry-module/ scaffold. Needs: `npm run db:push`.
-- [x] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries). Unblocked.
 
 
 ## 🟢 Later — Backlog
@@ -50,6 +44,12 @@ kanban-plugin: board
 - [x] Comprehensive test suite (Playwright E2E + Vitest)
 - [x] Vercel Deployment — standalone output, R2 storage redirect, presigned upload rewrite
 - [x] DnD Beyond Homebrew Import — full implementation: router, service, repository, UI dialog, page button
+- [x] **Design System v1 — Dashboard** — Active campaign hero, background depth, section renames, campaign card upgrades.
+- [x] **Design System v1 — Homebrew Formatting** — Fix raw HTML in detail views, uniform section layout, AI-detected custom sections.
+- [x] **Expanded Usage Caps & Cost Guardrails** — PDF/session/transcription caps enforced, 80% threshold admin email alerts, 4 new settings meters.
+- [x] **Combat Condition Co-pilot** — Auto-track HP, concentration, conditions from transcript.
+- [x] **Foundry Sidecar Bridge MVP** — Schema, API routes, tRPC router, SSE stream, UI, foundry-module/ scaffold.
+- [x] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries).
 
 
 ## Feedback/Bugs
