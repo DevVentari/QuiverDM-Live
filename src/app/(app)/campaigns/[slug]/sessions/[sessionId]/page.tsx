@@ -13,6 +13,7 @@ import { DerailmentPanel } from '@/components/session/derailment-panel';
 import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-plan-dialog';
 import { RulesPanel } from '@/components/session/rules-panel';
 import { SummaryPanel } from '@/components/session/summary-panel';
+import { CombatCopiloterPanel } from '@/components/session/combat-copilot-panel';
 import { AudioRecorder } from '@/components/session/audio-recorder';
 import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
 import { useToast } from '@/hooks/use-toast';
@@ -494,6 +495,28 @@ export default function SessionDetailPage() {
   );
   const utils = trpc.useUtils();
 
+  const combatCopiloterStatusQuery = trpc.sessions.getCombatCopiloterStatus.useQuery(
+    { sessionId },
+    {
+      enabled: isDM,
+      refetchInterval: (query) => {
+        const data = query.state.data as
+          | { combatCopiloterStatus?: string }
+          | undefined;
+        return data?.combatCopiloterStatus === 'pending' ? 3000 : false;
+      },
+    }
+  );
+
+  const generateCombatCopilot = trpc.sessions.generateCombatCopilot.useMutation({
+    onSuccess: () => {
+      void combatCopiloterStatusQuery.refetch();
+      void utils.sessions.getById.invalidate({ id: sessionId });
+    },
+    onError: (error) =>
+      uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
+
   const updateSession = trpc.sessions.update.useMutation({
     onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
     onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
@@ -848,6 +871,15 @@ export default function SessionDetailPage() {
                   isDM={isDM}
                 />
                 <SummaryPanel sessionId={sessionId} isDM={isDM} />
+                {isDM && (
+                  <CombatCopiloterPanel
+                    sessionId={sessionId}
+                    data={combatCopiloterStatusQuery.data?.combatCopiloterData}
+                    status={combatCopiloterStatusQuery.data?.combatCopiloterStatus ?? 'none'}
+                    onGenerate={() => generateCombatCopilot.mutate({ sessionId })}
+                    isGenerating={generateCombatCopilot.isPending}
+                  />
+                )}
               </TabsContent>
             )}
 
