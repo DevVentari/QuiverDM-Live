@@ -52,6 +52,7 @@ export function GenericDetail({ data, typeName }: GenericDetailProps) {
           ))}
         </CardContent>
       </Card>
+
       <CustomSections data={data} />
     </div>
   );

@@ -77,6 +77,7 @@ export function SpellDetail({ data }: SpellDetailProps) {
           </CardContent>
         </Card>
       )}
+
       <CustomSections data={data} />
     </div>
   );
