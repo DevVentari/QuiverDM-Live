@@ -1,0 +1,21 @@
+{
+  "id": "quiverdm",
+  "title": "QuiverDM Companion",
+  "description": "Send Foundry combat events to QuiverDM and open the QuiverDM sidecar.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "QuiverDM"
+    }
+  ],
+  "compatibility": {
+    "minimum": "11",
+    "verified": "12"
+  },
+  "esmodules": [
+    "src/index.js"
+  ],
+  "url": "https://github.com/yourorg/foundry-quiverdm",
+  "manifest": "https://github.com/yourorg/foundry-quiverdm/releases/latest/download/module.json",
+  "download": "https://github.com/yourorg/foundry-quiverdm/releases/latest/download/module.zip"
+}
