@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function RulesSourcesPage() {
   const utils = trpc.useUtils();
-  const { data: pdfs, isLoading } = trpc.rules.listAllPdfs.useQuery();
+  const { data: pdfs, isLoading, isError } = trpc.rules.listAllPdfs.useQuery();
 
   const indexMutation = trpc.rules.indexSource.useMutation({
     onSuccess: () => {
@@ -34,6 +34,14 @@ export default function RulesSourcesPage() {
 
   if (isLoading) {
     return <div className="p-6 text-sm text-muted-foreground">Loading...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 text-sm text-destructive">
+        Failed to load rules sources. Ensure your account has admin access.
+      </div>
+    );
   }
 
   return (
