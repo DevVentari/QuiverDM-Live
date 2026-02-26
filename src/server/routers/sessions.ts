@@ -1,9 +1,16 @@
-import { router, protectedProcedure, campaignDMProcedure } from '../trpc';
+import {
+  router,
+  protectedProcedure,
+  campaignDMProcedure,
+  campaignMemberProcedure,
+} from '../trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { sessionService } from '../services/session.service';
 import { prisma } from '../db';
 import { authz } from '../services/authorization.service';
+import { BadRequestError, NotFoundError } from '../errors';
+import { combatCopilotQueue } from '@/lib/queue/combat-copilot-queue';
 
 export const sessionsRouter = router({
   /**
@@ -209,4 +216,77 @@ export const sessionsRouter = router({
     .query(({ input, ctx }) =>
       sessionService.getSessionsWithSummaries(input.campaignId, ctx.session.user.id)
     ),
+
+  generateCombatCopilot: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await authz
+        .session(input.sessionId, ctx.session.user.id)
+        .requireManage();
+
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        include: { transcripts: { take: 1, orderBy: { createdAt: 'desc' } } },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Session does not belong to the provided campaign',
+        });
+      }
+
+      const transcript = session.transcripts[0];
+      if (!transcript) throw new BadRequestError('No transcript available');
+
+      const text = transcript.correctedText ?? transcript.rawText;
+
+      await prisma.gameSession.update({
+        where: { id: input.sessionId },
+        data: { combatCopiloterStatus: 'pending' },
+      });
+
+      await combatCopilotQueue.add('extract-combat', {
+        sessionId: input.sessionId,
+        transcriptText: text,
+      });
+
+      return { ok: true };
+    }),
+
+  getCombatCopiloterStatus: campaignMemberProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .query(async ({ input }) => {
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: {
+          campaignId: true,
+          combatCopiloterStatus: true,
+          combatCopiloterData: true,
+        },
+      });
+
+      if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Session does not belong to the provided campaign',
+        });
+      }
+
+      return {
+        combatCopiloterStatus: session.combatCopiloterStatus,
+        combatCopiloterData: session.combatCopiloterData,
+      };
+    }),
 });
