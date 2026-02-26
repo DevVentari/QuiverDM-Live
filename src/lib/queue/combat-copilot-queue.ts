@@ -41,3 +41,7 @@ export const combatCopilotQueue = new Queue<
     removeOnFail: { age: 7 * 24 * 3600 },
   },
 });
+
+export async function addCombatCopilotJob(data: CombatCopilotJobData) {
+  return combatCopilotQueue.add('extract-combat', data);
+}
