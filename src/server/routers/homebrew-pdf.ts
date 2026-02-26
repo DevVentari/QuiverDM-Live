@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { homebrewPdfService } from '../services/homebrew-pdf.service';
+import { usageService } from '../services/usage.service';
 import { prisma } from '@/lib/prisma';
 
 export const homebrewPdfRouter = router({
@@ -21,9 +22,10 @@ export const homebrewPdfRouter = router({
         llmProvider: z.enum(['gemini', 'anthropic', 'openai']).optional(),
       })
     )
-    .mutation(({ input, ctx }) =>
-      homebrewPdfService.createPDF(ctx.session.user.id, input)
-    ),
+    .mutation(async ({ input, ctx }) => {
+      await usageService.incrementPdfUploads(ctx.session.user.id);
+      return homebrewPdfService.createPDF(ctx.session.user.id, input);
+    }),
 
   /**
    * Process a PDF to markdown using Marker (via job queue)
