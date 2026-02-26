@@ -28,6 +28,7 @@ import { deleteFromR2, extractKeyFromUrl } from '@/lib/storage/r2';
 import { prisma } from '@/lib/prisma';
 import { ForbiddenError, NotFoundError } from '@/server/errors';
 import { authz } from '../services/authorization.service';
+import { usageService } from '../services/usage.service';
 
 export const sessionTranscriptionRouter = router({
   /**
@@ -222,6 +223,11 @@ export const sessionTranscriptionRouter = router({
 
         // Mark as completed
         await tracker.complete(transcriptId);
+
+        // Track transcription usage (fire-and-forget - don't block return)
+        if (result.duration) {
+          void usageService.incrementTranscription(userId, result.duration).catch(() => {});
+        }
 
         return {
           success: true,
