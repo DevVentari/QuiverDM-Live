@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Copy, KeyRound, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -33,6 +34,8 @@ export default function CampaignSettingsPage() {
   const [status, setStatus] = useState('active');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
+  const foundryEnabled = process.env.NEXT_PUBLIC_FOUNDRY_BRIDGE_ENABLED === 'true';
 
   useEffect(() => {
     if (campaign.data) {
@@ -60,6 +63,22 @@ export default function CampaignSettingsPage() {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
+
+  const generateFoundryApiKey = trpc.foundry.generateApiKey.useMutation({
+    onSuccess: (data) => {
+      setLatestApiKey(data.apiKey);
+      void utils.campaigns.getById.invalidate({ id: campaignId });
+      toast({ title: 'Foundry API key regenerated', description: 'Copy this key now. It will only be shown once.' });
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  function copyValue(value: string, label: string) {
+    void navigator.clipboard.writeText(value);
+    toast({ title: `${label} copied` });
+  }
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -135,6 +154,63 @@ export default function CampaignSettingsPage() {
       </Card>
 
       {isDM && <WebhookSettings campaignId={campaignId} />}
+
+      {isDM && foundryEnabled && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4" />
+              Foundry Integration
+            </CardTitle>
+            <CardDescription>
+              Use this API key in the QuiverDM Foundry module settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>API Key</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={latestApiKey ?? ((campaign.data as any)?.foundryApiKey ? 'Configured (hidden)' : 'Not configured')}
+                  className="font-mono text-xs"
+                />
+                {latestApiKey && (
+                  <Button size="sm" variant="outline" onClick={() => copyValue(latestApiKey, 'API key')}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Raw keys are only shown once after generation.
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-2 rounded-md border border-border p-3">
+              <div>
+                <p className="text-sm font-medium">Module ID</p>
+                <p className="text-xs text-muted-foreground font-mono">quiverdm</p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => copyValue('quiverdm', 'Module ID')}>
+                <Copy className="mr-1 h-3.5 w-3.5" />
+                Copy
+              </Button>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => generateFoundryApiKey.mutate({ campaignId })}
+              disabled={generateFoundryApiKey.isPending}
+            >
+              {generateFoundryApiKey.isPending ? (
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              Regenerate API Key
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {isOwner && (
         <>
