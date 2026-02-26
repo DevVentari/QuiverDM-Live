@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2 } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
@@ -482,6 +482,118 @@ export default function SettingsPage() {
                       />
                       <p className={`text-sm ${getTextColor(usage.data.pdfUploads.percentage)}`}>
                         {usage.data.pdfUploads.used} of {usage.data.pdfUploads.limit} used
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Session Uploads Meter */}
+                <div className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Upload className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Session Uploads</span>
+                  </div>
+                  {usage.data.sessionUploads.limit === -1 ? (
+                    <>
+                      <Progress value={0} className="h-2" aria-label="Session upload usage" />
+                      <p className="text-sm text-muted-foreground">
+                        {usage.data.sessionUploads.used} used - Unlimited
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Progress
+                        value={Math.min(usage.data.sessionUploads.percentage, 100)}
+                        className="h-2"
+                        indicatorClassName={getProgressColor(usage.data.sessionUploads.percentage)}
+                        aria-label="Session upload usage"
+                      />
+                      <p className={`text-sm ${getTextColor(usage.data.sessionUploads.percentage)}`}>
+                        {usage.data.sessionUploads.used} of {usage.data.sessionUploads.limit} used
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* AI Recaps Meter */}
+                <div className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">AI Recaps</span>
+                  </div>
+                  {usage.data.aiRecaps.limit === -1 ? (
+                    <>
+                      <Progress value={0} className="h-2" aria-label="AI recap usage" />
+                      <p className="text-sm text-muted-foreground">
+                        {usage.data.aiRecaps.used} used - Unlimited
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Progress
+                        value={Math.min(usage.data.aiRecaps.percentage, 100)}
+                        className="h-2"
+                        indicatorClassName={getProgressColor(usage.data.aiRecaps.percentage)}
+                        aria-label="AI recap usage"
+                      />
+                      <p className={`text-sm ${getTextColor(usage.data.aiRecaps.percentage)}`}>
+                        {usage.data.aiRecaps.used} of {usage.data.aiRecaps.limit} used
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Semantic Searches Meter */}
+                <div className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Semantic Searches</span>
+                  </div>
+                  {usage.data.semanticSearches.limit === -1 ? (
+                    <>
+                      <Progress value={0} className="h-2" aria-label="Semantic search usage" />
+                      <p className="text-sm text-muted-foreground">
+                        {usage.data.semanticSearches.used} used - Unlimited
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Progress
+                        value={Math.min(usage.data.semanticSearches.percentage, 100)}
+                        className="h-2"
+                        indicatorClassName={getProgressColor(usage.data.semanticSearches.percentage)}
+                        aria-label="Semantic search usage"
+                      />
+                      <p className={`text-sm ${getTextColor(usage.data.semanticSearches.percentage)}`}>
+                        {usage.data.semanticSearches.used} of {usage.data.semanticSearches.limit} used
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                {/* Image Generations Meter */}
+                <div className="rounded-lg border p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Image className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Image Generations</span>
+                  </div>
+                  {usage.data.imageGenerations.limit === -1 ? (
+                    <>
+                      <Progress value={0} className="h-2" aria-label="Image generation usage" />
+                      <p className="text-sm text-muted-foreground">
+                        {usage.data.imageGenerations.used} used - Unlimited
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <Progress
+                        value={Math.min(usage.data.imageGenerations.percentage, 100)}
+                        className="h-2"
+                        indicatorClassName={getProgressColor(usage.data.imageGenerations.percentage)}
+                        aria-label="Image generation usage"
+                      />
+                      <p className={`text-sm ${getTextColor(usage.data.imageGenerations.percentage)}`}>
+                        {usage.data.imageGenerations.used} of {usage.data.imageGenerations.limit} used
                       </p>
                     </>
                   )}
