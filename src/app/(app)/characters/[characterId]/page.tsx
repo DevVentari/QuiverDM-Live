@@ -38,6 +38,7 @@ import { CharacterHomebrewItems } from '@/components/character/CharacterHomebrew
 import { CharacterHomebrewSpells } from '@/components/character/CharacterHomebrewSpells';
 import { CharacterHomebrewFeats } from '@/components/character/CharacterHomebrewFeats';
 import { CharacterActiveEffects } from '@/components/character/CharacterActiveEffects';
+import { HeroStatBar } from '@/components/character/HeroStatBar';
 import { useDiceRoller } from '@/hooks/use-dice-roller';
 
 export default function CharacterDetailPage() {
@@ -113,6 +114,14 @@ export default function CharacterDetailPage() {
   const data = character.data as any;
   const classes = data.classes as any[] | null;
   const hasDndBeyond = !!data.dndBeyondId;
+
+  // Compute initiative for hero stat bar
+  const rawChar = (data.rawData as any)?.data;
+  const dexScore = (data.abilityScores as any)?.dex ?? 10;
+  const initiative =
+    typeof rawChar?.initiativeBonus === 'number'
+      ? rawChar.initiativeBonus
+      : Math.floor((dexScore - 10) / 2);
 
   // Build subtitle
   const parts: string[] = [];
@@ -228,6 +237,19 @@ export default function CharacterDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Row 3: HP / AC / Speed / Prof / Initiative — always visible */}
+            <HeroStatBar
+              hp={data.hitPoints ?? null}
+              armorClass={data.armorClass ?? null}
+              speed={data.speed ?? null}
+              proficiencyBonus={data.proficiencyBonus ?? null}
+              initiative={initiative}
+              isUpdating={updateChar.isPending}
+              onUpdateHp={async (next) => {
+                await updateChar.mutateAsync({ id: characterId, hitPoints: next });
+              }}
+            />
 
           </div>
         </div>
