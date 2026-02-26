@@ -107,6 +107,7 @@ export function CreatureDetail({ data }: CreatureDetailProps) {
           </CardContent>
         </Card>
       )}
+
       <CustomSections data={data} />
     </div>
   );
