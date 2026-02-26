@@ -29,3 +29,10 @@ This module forwards live Foundry VTT combat events to QuiverDM and adds an **Op
 
 - API key auth uses `Authorization: Bearer <key>`.
 - QuiverDM must have an active session for events to be accepted.
+
+## Changelog
+
+### 0.2.0
+
+- Added import polling for pending QuiverDM export jobs.
+- Added import delivery/error acknowledgements.

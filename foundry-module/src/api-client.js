@@ -49,6 +49,33 @@ export class QuiverApiClient {
       }),
     });
   }
+
+  async getPendingImports() {
+    const response = await fetch(`${this.baseUrl}/api/integrations/foundry/pending-imports`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.jobs ?? [];
+  }
+
+  async ackImportJob(jobId, status, error) {
+    await fetch(`${this.baseUrl}/api/integrations/foundry/import-ack`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({ jobId, status, error }),
+    });
+  }
 }
 
 export function getModuleConfig() {
