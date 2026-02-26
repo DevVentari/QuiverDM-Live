@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { deleteFromLocal, extractKeyFromLocalUrl } from '@/lib/storage/local-storage';
 import { deleteFromR2, extractKeyFromUrl } from '@/lib/storage/r2';
 import { authz } from '../services/authorization.service';
+import { usageService } from '../services/usage.service';
 
 export const sessionRecordingsRouter = router({
   /**
@@ -23,6 +24,7 @@ export const sessionRecordingsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
       await authz.session(input.sessionId, userId).verify();
+      await usageService.incrementSessionUploads(userId);
       const recording = await prisma.sessionRecording.create({
         data: {
           sessionId: input.sessionId,
