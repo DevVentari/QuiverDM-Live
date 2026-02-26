@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/server/db';
-
-const API_KEY_PREFIX = 'qdmf';
+import { parseCampaignIdFromFoundryApiKey } from '@/server/foundry-api-key';
 
 export const FOUNDRY_CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -42,26 +41,13 @@ export function parseBearerToken(request: NextRequest): string | null {
   return token.trim();
 }
 
-function getCampaignIdFromApiKey(rawKey: string): string | null {
-  if (!rawKey.startsWith(`${API_KEY_PREFIX}_`)) {
-    return null;
-  }
-
-  const parts = rawKey.split('_');
-  if (parts.length < 3) {
-    return null;
-  }
-
-  return parts[1] || null;
-}
-
 export async function authenticateFoundryRequest(request: NextRequest) {
   const rawKey = parseBearerToken(request);
   if (!rawKey) {
     return { error: withFoundryCors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 })) };
   }
 
-  const campaignId = getCampaignIdFromApiKey(rawKey);
+  const campaignId = parseCampaignIdFromFoundryApiKey(rawKey);
   if (!campaignId) {
     return { error: withFoundryCors(NextResponse.json({ error: 'Invalid API key format' }, { status: 401 })) };
   }
