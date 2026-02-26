@@ -88,7 +88,9 @@ export function CreatureDetail({ data }: CreatureDetailProps) {
             {data.actions.map((action: any, i: number) => (
               <div key={i}>
                 <p className="text-sm font-medium">{action.name}</p>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{htmlToText(action.description || action.desc || '')}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {htmlToText(action.description || action.desc || '')}
+                </p>
               </div>
             ))}
           </CardContent>
