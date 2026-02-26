@@ -27,6 +27,7 @@ import { rulesRouter } from './rules';
 import { webhooksRouter } from './webhooks';
 import { searchRouter } from './search';
 import { passwordResetRouter } from './password-reset';
+import { foundryRouter } from './foundry';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -57,6 +58,7 @@ export const appRouter = router({
   webhooks: webhooksRouter,
   search: searchRouter,
   passwordReset: passwordResetRouter,
+  foundry: foundryRouter,
 });
 
 export type AppRouter = typeof appRouter;
