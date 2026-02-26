@@ -38,7 +38,18 @@ export default function CampaignOverviewPage() {
 
   const campaign = campaignQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
-  const sessionCount = sessionsQuery.data?.length ?? 0;
+  const statPills = (
+    <div className="flex gap-3 flex-wrap">
+      <Badge variant="secondary">Campaign</Badge>
+      <Badge variant="outline">
+        {sessionsQuery.data?.length ?? 0} Session{(sessionsQuery.data?.length ?? 0) === 1 ? '' : 's'}
+      </Badge>
+      <Badge variant="outline">
+        {membersQuery.data?.length ?? 0} Member{(membersQuery.data?.length ?? 0) === 1 ? '' : 's'}
+      </Badge>
+      {campaign?.isPublic ? <Badge>Public</Badge> : <Badge variant="secondary">Private</Badge>}
+    </div>
+  );
 
   // ─── Loading skeleton ────────────────────────────────────────────────────────
   if (isLoading) {
@@ -57,18 +68,6 @@ export default function CampaignOverviewPage() {
       </div>
     );
   }
-
-  // ─── Stat pills ──────────────────────────────────────────────────────────────
-  const statPills = (
-    <div className="flex gap-2 flex-wrap">
-      <Badge variant="secondary">{sessionCount} {sessionCount === 1 ? 'Session' : 'Sessions'}</Badge>
-      {campaign?.createdAt && (
-        <Badge variant="secondary">
-          Since {new Date(campaign.createdAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
-        </Badge>
-      )}
-    </div>
-  );
 
   // ─── Last session card ───────────────────────────────────────────────────────
   const lastSessionCard = (

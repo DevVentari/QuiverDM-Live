@@ -14,7 +14,7 @@ import {
 import { extractBatch, testOllama } from '@/lib/ai/ollama-extraction';
 import { extractContent, type ExtractionProvider } from '@/lib/ai/extraction';
 import { detectCustomSections } from '@/lib/ai/detect-custom-sections';
-import { prisma } from '../db';
+import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 
 // Type mapping from AI extraction types to database types
@@ -108,10 +108,7 @@ export class HomebrewExtractionService {
         const merged = { ...itemData, customSections };
         await prisma.homebrewContent.update({
           where: { id: saved.id },
-          data: {
-            data: merged as unknown as Prisma.InputJsonValue,
-            searchText: JSON.stringify(merged).toLowerCase(),
-          },
+          data: { data: merged as unknown as Prisma.InputJsonValue },
         });
       })
     ).catch(() => {}); // Never block the response
