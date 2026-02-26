@@ -107,9 +107,7 @@ export function ItemDetail({ data }: ItemDetailProps) {
             <CardTitle className="text-sm">Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm whitespace-pre-wrap">
-              {htmlToText(data.description || data.text || '')}
-            </p>
+            <p className="text-sm whitespace-pre-wrap">{htmlToText(data.description || data.text || '')}</p>
           </CardContent>
         </Card>
       )}
