@@ -188,6 +188,7 @@ model Campaign {
   encounterPlans   EncounterPlan[]             // Pre-session encounter designs
   webhooks         WebhookEndpoint[]
   foundryEvents    FoundryEvent[]
+  foundryImportJobs FoundryImportJob[]
 
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
@@ -432,6 +433,23 @@ model FoundryEvent {
   createdAt        DateTime    @default(now())
 
   @@index([sessionId])
+  @@index([campaignId, createdAt])
+}
+
+model FoundryImportJob {
+  id          String    @id @default(cuid())
+  campaignId  String
+  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  status      String    @default("pending") // pending|delivered|error
+  type        String    // npc|homebrew_item|homebrew_spell|session_journal
+  sourceId    String    // QuiverDM entity ID (npcId, homebrewId, sessionId)
+  sourceName  String    // Human-readable name for the UI
+  payload     Json      // Foundry document JSON (actor/item/journal) ready to create
+  error       String?
+  createdAt   DateTime  @default(now())
+  deliveredAt DateTime?
+
+  @@index([campaignId, status])
   @@index([campaignId, createdAt])
 }
 
