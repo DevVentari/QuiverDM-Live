@@ -7,9 +7,9 @@ Guidance for coding agents working in `E:\Projects\QuiverDM`.
 QuiverDM is an AI-powered D&D session management app for closed beta.
 
 Current status:
-- Feature-complete for beta launch
+- Active development, approaching alpha launch
 - Frontend + backend both active (App Router pages + API routes)
-- 20 tRPC routers
+- 29 tRPC routers
 - 12+ services
 - 9 repositories
 
@@ -40,17 +40,23 @@ npm run worker:pdf
 
 | Service | Port | Purpose |
 | --- | --- | --- |
-| PostgreSQL | 5433 | Primary application database |
+| PostgreSQL (pgvector) | 5433 | Primary database — pgvector extension required |
 | Redis | 6380 | BullMQ queue + caching |
 | MeiliSearch | 7701 | Full-text search |
 | Docling | 5001 | PDF-to-markdown conversion |
+| Ollama | 11434 | Local LLM for AI features |
 
 ## Dev Commands
 
 ```bash
 npm run dev                # Next.js on http://localhost:3847
 npm run dev:ws             # WebSocket server
-npm run worker:pdf         # PDF worker
+npm run worker:pdf         # PDF processing worker
+npm run worker:transcription   # Transcription worker
+npm run worker:summary     # AI session summary worker
+npm run worker:embeddings  # Narrative search embeddings worker
+npm run worker:image       # Image generation worker
+npm run worker:webhooks    # Outbound webhooks worker
 npm run lint               # ESLint
 npx tsc --noEmit           # Type checking
 npm run build              # Production build
@@ -78,35 +84,24 @@ src/app/
 
 ```text
 src/server/
-  routers/                       # 20 routers
+  routers/                       # 29 routers
   services/                      # 12+ services
   repositories/                  # 9 repositories
   errors/                        # Typed app errors
   trpc.ts                        # tRPC init + procedures
 ```
 
-### Router List (20)
+### Router List (29)
 
-- campaigns
-- sessions
-- npcs
-- players
-- characters
-- charactersDndBeyond
-- sessionTranscription
-- sessionRecordings
-- transcript
-- homebrew
-- homebrewDndBeyond
-- homebrewPdf
-- homebrewExtraction
-- userSettings
-- members
-- invites
-- onboarding
-- feedback
-- usage
-- billing
+- campaigns, sessions, npcs, players
+- characters, charactersDndBeyond
+- sessionTranscription, sessionRecordings, transcript
+- homebrew, homebrewDndBeyond, homebrewPdf, homebrewExtraction, homebrewImage
+- userSettings, members, invites, onboarding, feedback
+- usage, billing, passwordReset
+- encounters, encounterPlans
+- rules, webhooks, search, whisper
+- foundry
 
 ## Core Patterns
 
