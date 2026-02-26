@@ -12,6 +12,7 @@ import { FoundryEventsPanel } from '@/components/session/foundry-events-panel';
 import { LoadEncounterPlanDialog } from '@/components/encounter/load-encounter-plan-dialog';
 import { RulesPanel } from '@/components/session/rules-panel';
 import { SummaryPanel } from '@/components/session/summary-panel';
+import { PlayerRecapPanel } from '@/components/session/player-recap-panel';
 import { AudioRecorder } from '@/components/session/audio-recorder';
 import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
 import { useToast } from '@/hooks/use-toast';
@@ -480,6 +481,16 @@ export default function SessionDetailPage() {
     { sessionId },
     { enabled: isDM, staleTime: 5_000, refetchInterval: 3_000 }
   );
+  const playerRecapStatus = trpc.sessions.getPlayerRecapStatus.useQuery(
+    { campaignId, sessionId },
+    {
+      enabled: Boolean(campaignId) && (isDM || playerVisibility !== 'dm-only'),
+      refetchInterval: (query) => {
+        const data = query.state.data as { playerRecapStatus?: string } | undefined;
+        return data?.playerRecapStatus === 'pending' ? 3000 : false;
+      },
+    }
+  );
   const utils = trpc.useUtils();
 
   const updateSession = trpc.sessions.update.useMutation({
@@ -498,6 +509,11 @@ export default function SessionDetailPage() {
   });
 
   const createRecording = trpc.sessionRecordings.create.useMutation();
+  const generatePlayerRecap = trpc.sessions.generatePlayerRecap.useMutation({
+    onSuccess: () =>
+      utils.sessions.getPlayerRecapStatus.invalidate({ campaignId, sessionId }),
+    onError: (error) => toast.error(error.message),
+  });
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -572,6 +588,9 @@ export default function SessionDetailPage() {
 
   const data = session.data as any;
   const latestTranscriptionJob = transcriptionJobs.data?.[0] ?? null;
+  const recapStatus = playerRecapStatus.data?.playerRecapStatus ?? 'none';
+  const recapText = playerRecapStatus.data?.playerRecap ?? null;
+  const recapVisibility = playerRecapStatus.data?.playerVisibility ?? playerVisibility;
 
   // Status badge colour
   const statusClass =
@@ -821,6 +840,17 @@ export default function SessionDetailPage() {
                   isDM={isDM}
                 />
                 <SummaryPanel sessionId={sessionId} isDM={isDM} />
+                {(isDM || recapVisibility !== 'dm-only') && (
+                  <PlayerRecapPanel
+                    sessionId={sessionId}
+                    recap={recapText}
+                    status={recapStatus}
+                    playerVisibility={recapVisibility}
+                    isDM={isDM}
+                    onGenerate={() => generatePlayerRecap.mutate({ campaignId, sessionId })}
+                    isGenerating={generatePlayerRecap.isPending}
+                  />
+                )}
               </TabsContent>
             )}
 
