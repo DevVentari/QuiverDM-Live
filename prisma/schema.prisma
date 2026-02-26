@@ -403,6 +403,15 @@ model GameSession {
   aiHighlights     Json? // [{type,text,timestampMs,speakerLabel}]
   shareToken       String?             @unique
   foundryEvents    FoundryEvent[]
+  // Combat Condition Co-pilot
+  combatCopiloterStatus  String  @default("none") // none|pending|done|error
+  combatCopiloterData    Json?   // {participants:[{name,hpChanges:[],conditions:[],concentration:[]}]}
+  // Player Recap Mode
+  playerRecapStatus      String  @default("none") // none|pending|done|error
+  playerRecap            String? @db.Text
+  // Derailment Detector
+  derailmentStatus       String  @default("none") // none|pending|done|error
+  derailmentData         Json?   // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
