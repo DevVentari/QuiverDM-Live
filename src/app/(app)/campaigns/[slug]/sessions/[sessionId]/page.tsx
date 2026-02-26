@@ -17,6 +17,7 @@ import { CombatCopiloterPanel } from '@/components/session/combat-copilot-panel'
 import { PlayerRecapPanel } from '@/components/session/player-recap-panel';
 import { AudioRecorder } from '@/components/session/audio-recorder';
 import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
+import { ExportToFoundryButton } from '@/components/foundry/ExportToFoundryButton';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -890,6 +891,13 @@ export default function SessionDetailPage() {
                   isDM={isDM}
                 />
                 <SummaryPanel sessionId={sessionId} isDM={isDM} />
+                {isDM && (
+                  <ExportToFoundryButton
+                    type="session_journal"
+                    sourceId={sessionId}
+                    sourceName={data.title ?? `Session ${data.sessionNumber ?? 1}`}
+                  />
+                )}
                 {isDM && (
                   <CombatCopiloterPanel
                     sessionId={sessionId}
