@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Copy, KeyRound, RefreshCw } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { WebhookSettings } from '@/components/campaign/webhook-settings';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +39,10 @@ export default function CampaignSettingsPage() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
   const foundryEnabled = process.env.NEXT_PUBLIC_FOUNDRY_BRIDGE_ENABLED === 'true';
+  const importJobsQuery = (trpc as any).foundry.getImportJobs.useQuery(
+    { campaignId },
+    { enabled: isDM && foundryEnabled }
+  );
 
   useEffect(() => {
     if (campaign.data) {
@@ -80,6 +87,18 @@ export default function CampaignSettingsPage() {
     toast({ title: `${label} copied` });
   }
 
+  function getStatusClass(status: string) {
+    if (status === 'delivered') return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30';
+    if (status === 'error') return 'bg-destructive/10 text-destructive border-destructive/30';
+    return 'bg-amber-500/10 text-amber-500 border-amber-500/30';
+  }
+
+  function getStatusLabel(status: string) {
+    if (status === 'delivered') return 'Delivered';
+    if (status === 'error') return 'Error';
+    return 'Pending';
+  }
+
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { setNameError('Name is required'); return; }
@@ -103,6 +122,9 @@ export default function CampaignSettingsPage() {
       </div>
     );
   }
+
+  const recentImportJobs = (((importJobsQuery.data as any)?.jobs ?? importJobsQuery.data ?? []) as any[])
+    .slice(0, 10);
 
   return (
     <div className="space-y-6 max-w-2xl px-4 sm:px-6 lg:px-8">
@@ -208,6 +230,43 @@ export default function CampaignSettingsPage() {
               )}
               Regenerate API Key
             </Button>
+
+            <Separator />
+
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="recent-exports" className="border-b-0">
+                <AccordionTrigger className="py-2">Recent Exports</AccordionTrigger>
+                <AccordionContent className="pt-1">
+                  {importJobsQuery.isLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading recent exports...</p>
+                  ) : recentImportJobs.length > 0 ? (
+                    <div className="space-y-2">
+                      {recentImportJobs.map((job) => (
+                        <div key={job.id} className="rounded-md border border-border p-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-medium">{job.sourceName}</p>
+                            <Badge variant="outline" className="text-[10px] uppercase">
+                              {String(job.type).replace(/_/g, ' ')}
+                            </Badge>
+                            <Badge variant="outline" className={getStatusClass(job.status)}>
+                              {getStatusLabel(job.status)}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
+                            </span>
+                          </div>
+                          {job.status === 'pending' && (
+                            <p className="mt-1 text-xs text-amber-500">waiting for Foundry module...</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No exports yet.</p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </CardContent>
         </Card>
       )}
