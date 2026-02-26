@@ -7,7 +7,7 @@
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 import { homebrewDndbeyondRepository } from '../repositories/homebrew-dndbeyond.repository';
-import { prisma } from '../db';
+import { prisma } from '@/lib/prisma';
 import { authz } from './authorization.service';
 import { detectCustomSections } from '@/lib/ai/detect-custom-sections';
 import { parseHomebrewDescription } from '@/lib/ai/parse-homebrew-description';
@@ -85,8 +85,8 @@ export class HomebrewDndbeyondService {
         });
       }
 
-      const ddbData = await response.json();
-      const transformedData = this.transformDDBToQuiverDM(input.contentType, ddbData);
+      const ddbResponseData = await response.json();
+      const transformedData = this.transformDDBToQuiverDM(input.contentType, ddbResponseData);
 
       const content = await homebrewDndbeyondRepository.createFromImport({
         userId,
@@ -101,22 +101,19 @@ export class HomebrewDndbeyondService {
       });
 
       // Fire-and-forget: detect custom sections from non-standard DDB fields
-      const ddbPayload = transformedData.data as Record<string, unknown>;
-      detectCustomSections(input.contentType, ddbPayload).then(async (customSections) => {
+      const ddbData = transformedData.data as Record<string, unknown>;
+      detectCustomSections(input.contentType, ddbData).then(async (customSections) => {
         if (customSections.length === 0) return;
-        const merged = { ...ddbPayload, customSections };
+        const merged = { ...ddbData, customSections };
         await prisma.homebrewContent.update({
           where: { id: content.id },
-          data: {
-            data: merged as unknown as Prisma.InputJsonValue,
-            searchText: this.generateSearchText(transformedData.name, merged),
-          },
+          data: { data: merged as unknown as Prisma.InputJsonValue },
         });
       }).catch(() => {});
 
       // Fire-and-forget: parse description into lore + structured effects (items only)
       if (input.contentType === 'item') {
-        const rawDesc = (ddbPayload.description || ddbPayload.text || '') as string;
+        const rawDesc = (ddbData.description || ddbData.text || '') as string;
         if (rawDesc.trim()) {
           parseHomebrewDescription({ name: transformedData.name, type: 'item', rawDescription: rawDesc })
             .then(async (parsed) => {
