@@ -14,6 +14,7 @@ import { Trash2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGallery } from '@/components/homebrew/image-gallery';
+import { ExportToFoundryButton } from '@/components/foundry/ExportToFoundryButton';
 
 export default function NPCDetailPage() {
   const params = useParams();
@@ -70,6 +71,11 @@ export default function NPCDetailPage() {
         </div>
         {isDM && (
           <div className="flex items-center gap-2">
+            <ExportToFoundryButton
+              type="npc"
+              sourceId={npcId}
+              sourceName={data.name ?? 'NPC'}
+            />
             <Button size="sm" variant="outline" className="w-full sm:w-auto" asChild>
               <Link href={`/campaigns/${slug}/npcs/${npcId}/edit`}>
                 <Edit className="h-4 w-4 mr-1" />
