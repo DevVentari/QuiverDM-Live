@@ -9,6 +9,7 @@ import { Worker } from 'bullmq';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { chatWithOllama } from '@/lib/ai/ollama';
+import { combatCopilotQueue } from './combat-copilot-queue';
 import type {
   CombatCopilotJobData,
   CombatCopilotJobResult,
@@ -89,7 +90,7 @@ async function processCombatCopilotJob(
 }
 
 const worker = new Worker<CombatCopilotJobData, CombatCopilotJobResult>(
-  'combat-copilot',
+  combatCopilotQueue.name,
   async (job) => {
     try {
       return await processCombatCopilotJob(job.data);
