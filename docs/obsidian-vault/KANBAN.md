@@ -28,6 +28,7 @@ kanban-plugin: board
 
 ## 💡 Ideas — Not Yet Scoped
 
+- [ ] **Adopt Prep Wizard Aesthetic to Main UI** — The dark obsidian/amber candlelight palette, roman numeral sidebar, and atmospheric grain/vignette from the fullscreen prep wizard are strong. Evaluate porting to the dashboard, campaign overview, and session detail pages as an optional "immersive mode" or as the default dark theme.
 - [ ] Foundry two-screen co-pilot — real-time event sync between Foundry and QuiverDM
 - [ ] Shared campaign journal (player-facing write access)
 - [ ] Voice-activated DM assistant (push-to-talk during session)

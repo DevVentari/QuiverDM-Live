@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { Loader2, Sparkles } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
 import { AiSuggestionCard } from '../ai-suggestion-card';
+import { VoiceScribe } from '../voice-scribe';
 
 export function StepStrongStart({
   sessionId,
@@ -32,11 +32,11 @@ export function StepStrongStart({
 
   return (
     <div className="space-y-4">
-      <Textarea
+      <VoiceScribe
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
         placeholder="How does tonight begin? Drop the players immediately into action or an interesting situation..."
-        className="min-h-[160px] resize-none text-sm"
+        minHeight={160}
       />
 
       {!suggestion && (

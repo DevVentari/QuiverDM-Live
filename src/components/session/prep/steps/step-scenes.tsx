@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
 import type { PrepScene } from '@/lib/prep-types';
 import { AiSuggestionCard } from '../ai-suggestion-card';
+import { VoiceScribe } from '../voice-scribe';
 
 export function StepScenes({
   sessionId,
@@ -64,11 +64,11 @@ export function StepScenes({
                 placeholder="Scene title..."
                 className="h-8 text-sm font-medium"
               />
-              <Textarea
+              <VoiceScribe
                 value={scene.description}
-                onChange={(e) => update(scene.id, 'description', e.target.value)}
+                onChange={(v) => update(scene.id, 'description', v)}
                 placeholder="What happens? What's at stake?"
-                className="min-h-[70px] resize-none text-sm"
+                minHeight={70}
               />
               <Input
                 value={scene.location ?? ''}
