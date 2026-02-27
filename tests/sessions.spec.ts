@@ -36,9 +36,11 @@ test.describe('Sessions', () => {
     await page.goto(`${href}/sessions`);
     await page.waitForLoadState('networkidle');
 
-    // DM should see "New Session" button
+    // DM should see "New Session" link (renders as <Link>, not <button>)
     await expect(
-      page.getByRole('button', { name: /new session/i })
+      page.getByRole('link', { name: /new session/i })
+        .or(page.getByRole('button', { name: /new session/i }))
+        .first()
     ).toBeVisible({ timeout: 10000 });
   });
 });

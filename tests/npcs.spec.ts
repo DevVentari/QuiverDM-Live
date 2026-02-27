@@ -24,6 +24,7 @@ test.describe('NPCs', () => {
     await expect(
       page.getByRole('heading', { name: /npcs/i })
         .or(page.getByText(/no npcs|add.*npc/i))
+        .first()
     ).toBeVisible({ timeout: 10000 });
   });
 
