@@ -8,21 +8,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 
-// Configure PDF.js worker using CDN (avoids Next.js webpack worker config)
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Configure PDF.js worker using locally served file (avoids CDN dependency)
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
 interface PDFViewerProps {
   pdfId: string;
+  enabled?: boolean;
 }
 
-export function PDFViewer({ pdfId }: PDFViewerProps) {
+export function PDFViewer({ pdfId, enabled = true }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1.0);
 
   const presignedUrlQuery = trpc.homebrewPdf.getPresignedUrl.useQuery(
     { pdfId },
-    { staleTime: 45 * 60 * 1000 } // 45 min stale — 15 min safety margin before 1-hr expiry
+    {
+      staleTime: 45 * 60 * 1000, // 45 min stale — 15 min safety margin before 1-hr expiry
+      enabled,
+    }
   );
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
