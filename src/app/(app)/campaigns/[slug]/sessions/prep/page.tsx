@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { PrepWizard } from '@/components/session/prep/prep-wizard';
@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc';
 import { SessionPrepDataSchema, emptyPrepData } from '@/lib/prep-types';
 
-export default function SessionPrepPage() {
+function PrepPageInner() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,7 +27,7 @@ export default function SessionPrepPage() {
     if (!campaignId || sessionId || createdRef.current) return;
     createdRef.current = true;
     createPrepSession.mutate({ campaignId });
-  }, [campaignId, sessionId, createPrepSession, slug, router]);
+  }, [campaignId, sessionId, createPrepSession]);
 
   const contextQuery = trpc.sessions.getPrepContext.useQuery(
     { campaignId },
@@ -93,3 +93,18 @@ export default function SessionPrepPage() {
   );
 }
 
+export default function SessionPrepPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-3 p-6">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      }
+    >
+      <PrepPageInner />
+    </Suspense>
+  );
+}
