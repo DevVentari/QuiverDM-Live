@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,11 @@ import { getTypeStyle } from '@/lib/homebrew-utils';
 import { AlertCircle, ArrowLeft, BookOpen, FileText, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { PDFViewer } from '@/components/homebrew/pdf-viewer';
+import dynamic from 'next/dynamic';
+const PDFViewer = dynamic(
+  () => import('@/components/homebrew/pdf-viewer').then((m) => m.PDFViewer),
+  { ssr: false, loading: () => <Skeleton className="h-[600px] w-full rounded-lg" /> }
+);
 
 export default function PDFDetailPage() {
   const params = useParams();
@@ -45,10 +49,14 @@ export default function PDFDetailPage() {
     onSuccess: () => pdf.refetch(),
   });
 
+  const pdfRef = useRef(pdf);
+  pdfRef.current = pdf;
+  const extractedRef = useRef(extractedContent);
+  extractedRef.current = extractedContent;
   const handleComplete = useCallback(() => {
-    void pdf.refetch();
-    void extractedContent.refetch();
-  }, [extractedContent, pdf]);
+    void pdfRef.current.refetch();
+    void extractedRef.current.refetch();
+  }, []);
 
   const [activeTab, setActiveTab] = useState('extracted');
 

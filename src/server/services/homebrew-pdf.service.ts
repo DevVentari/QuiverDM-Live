@@ -8,6 +8,7 @@
 import { TRPCError } from '@trpc/server';
 import { homebrewPdfRepository } from '../repositories/homebrew-pdf.repository';
 import { deleteFromR2, getPresignedDownloadUrl, extractKeyFromUrl } from '@/lib/storage/r2';
+import { getSignedUrl, isLocalStorage } from '@/lib/storage';
 import {
   addPDFProcessingJob,
   getPDFProcessingJobStatus,
@@ -309,8 +310,16 @@ export class HomebrewPdfService {
       });
     }
 
-    const key = extractKeyFromUrl(pdf.r2Url);
-    const presignedUrl = await getPresignedDownloadUrl(key, expiresIn);
+    // In local storage mode, r2Url is a relative path like /api/files/{key}
+    // In R2 mode, r2Url is a full HTTPS URL — extract key for presigning
+    let presignedUrl: string;
+    if (isLocalStorage()) {
+      const key = pdf.r2Url.replace(/^\/api\/files\//, '');
+      presignedUrl = await getSignedUrl(key, expiresIn);
+    } else {
+      const key = extractKeyFromUrl(pdf.r2Url);
+      presignedUrl = await getPresignedDownloadUrl(key, expiresIn);
+    }
 
     return {
       url: presignedUrl,
