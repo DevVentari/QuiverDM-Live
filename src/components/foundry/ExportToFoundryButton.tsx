@@ -23,10 +23,6 @@ export function ExportToFoundryButton({
   sourceName,
   size = 'sm',
 }: ExportToFoundryButtonProps) {
-  if (process.env.NEXT_PUBLIC_FOUNDRY_BRIDGE_ENABLED !== 'true') {
-    return null;
-  }
-
   const { campaignId: campaignIdFromContext } = useCampaign();
   const { toast } = useToast();
 
@@ -45,6 +41,10 @@ export function ExportToFoundryButton({
       });
     },
   });
+
+  if (process.env.NEXT_PUBLIC_FOUNDRY_BRIDGE_ENABLED !== 'true') {
+    return null;
+  }
 
   return (
     <Button
