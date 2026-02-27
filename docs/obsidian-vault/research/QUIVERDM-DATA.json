@@ -1,0 +1,859 @@
+{
+  "meta": {
+    "product": "QuiverDM",
+    "generatedAt": "2026-02-23",
+    "version": "1.0",
+    "sources": [
+      "01-current-features.md",
+      "02-roadmap.md",
+      "03-market-viability.md",
+      "04-ttrpg-systems.md",
+      "05-ai-agent-strategy.md",
+      "06-marketing-strategy.md",
+      "07-financial-model.md",
+      "08-tech-architecture.md"
+    ]
+  },
+  "product": {
+    "tagline": "The AI-Powered DM Operating System",
+    "secondaryTagline": "Stop taking notes. Start telling stories.",
+    "description": "QuiverDM is an AI-powered D&D session management platform for Dungeon Masters. It handles session transcription, AI-generated summaries, semantic campaign search, homebrew PDF extraction, encounter building, NPC management, and player portal access — the complete DM workflow before, during, and after every session.",
+    "status": "closed_beta",
+    "devPort": 3847,
+    "repositoryType": "Next.js App Router monorepo",
+    "stats": {
+      "routers": 26,
+      "workers": 5,
+      "pages": 32,
+      "prismaModels": 40,
+      "integrations": 14,
+      "dockerServices": 7
+    },
+    "features": [
+      { "name": "Campaign Management", "category": "core", "status": "complete" },
+      { "name": "Session Management", "category": "core", "status": "complete" },
+      { "name": "Session Transcription (AssemblyAI + WhisperX)", "category": "ai", "status": "complete" },
+      { "name": "Live Transcription via WebSocket", "category": "ai", "status": "complete" },
+      { "name": "AI Session Summaries", "category": "ai", "status": "complete" },
+      { "name": "Shareable Public Session Pages", "category": "sharing", "status": "complete" },
+      { "name": "Semantic Search (pgvector HNSW)", "category": "ai", "status": "complete" },
+      { "name": "Homebrew PDF Upload + Docling Extraction", "category": "content", "status": "complete" },
+      { "name": "AI Content Extraction (creatures, spells, items)", "category": "ai", "status": "complete" },
+      { "name": "Encounter Builder (SRD monster picker)", "category": "gameplay", "status": "complete" },
+      { "name": "Encounter Builder (AI generation)", "category": "gameplay", "status": "complete" },
+      { "name": "Live Encounter Tracker (initiative, HP, conditions)", "category": "gameplay", "status": "complete" },
+      { "name": "Rules RAG (homebrew PDFs + SRD)", "category": "ai", "status": "complete" },
+      { "name": "NPC Management + AI Image Generation", "category": "content", "status": "complete" },
+      { "name": "D&D Beyond Character Import", "category": "integration", "status": "complete" },
+      { "name": "D&D Beyond Homebrew Import", "category": "integration", "status": "complete" },
+      { "name": "Player Portal with Role-Scoped Visibility", "category": "collaboration", "status": "complete" },
+      { "name": "Outbound Webhooks (HMAC-SHA256)", "category": "integration", "status": "complete" },
+      { "name": "Discord / iCal Integration", "category": "integration", "status": "complete" },
+      { "name": "OBS Overlay SSE Streaming", "category": "integration", "status": "complete" },
+      { "name": "Full-Text Search (MeiliSearch)", "category": "search", "status": "complete" },
+      { "name": "Stripe Billing (checkout, portal, webhooks)", "category": "billing", "status": "complete" },
+      { "name": "Usage Quota Enforcement (Free/Pro/Team)", "category": "billing", "status": "complete" },
+      { "name": "Transactional Email (Resend)", "category": "platform", "status": "complete" },
+      { "name": "Encrypted User API Key Storage", "category": "platform", "status": "complete" },
+      { "name": "4-Step Onboarding Wizard", "category": "platform", "status": "complete" },
+      { "name": "Campaign Member Role Management", "category": "collaboration", "status": "complete" },
+      { "name": "Beta Invite Code System", "category": "platform", "status": "complete" },
+      { "name": "Admin: Rules Sources Management", "category": "admin", "status": "complete" },
+      { "name": "Admin: Invite Code Generation", "category": "admin", "status": "complete" },
+      { "name": "E2E Tests (Playwright)", "category": "quality", "status": "partial" },
+      { "name": "Production Deployment (Vercel + Railway/Hetzner)", "category": "platform", "status": "pending" }
+    ],
+    "routers": [
+      { "id": 1, "name": "campaigns", "description": "Campaign CRUD, stats, dashboard queries, membership management" },
+      { "id": 2, "name": "sessions", "description": "Session lifecycle, DM visibility controls, player-scoped filtering" },
+      { "id": 3, "name": "npcs", "description": "NPC CRUD with campaign-scoped search, MeiliSearch indexing" },
+      { "id": 4, "name": "players", "description": "Legacy player records (being migrated to characters)" },
+      { "id": 5, "name": "characters", "description": "Player-owned D&D 5e characters — full stat blocks, inventory, spells, feats" },
+      { "id": 6, "name": "charactersDndBeyond", "description": "D&D Beyond character import and sync" },
+      { "id": 7, "name": "sessionTranscription", "description": "Live transcription job management (AssemblyAI)" },
+      { "id": 8, "name": "sessionRecordings", "description": "Audio/video recording upload and management" },
+      { "id": 9, "name": "transcript", "description": "Transcript CRUD, inline editing, speaker rename" },
+      { "id": 10, "name": "homebrew", "description": "Homebrew content library (10 types), manual create, campaign linking" },
+      { "id": 11, "name": "homebrewDndBeyond", "description": "D&D Beyond homebrew import/sync" },
+      { "id": 12, "name": "homebrewPdf", "description": "PDF upload, Docling processing, status polling" },
+      { "id": 13, "name": "homebrewExtraction", "description": "AI extraction of creatures/spells/items from PDF pages" },
+      { "id": 14, "name": "userSettings", "description": "Encrypted user API key storage (Gemini, OpenAI, etc.)" },
+      { "id": 15, "name": "members", "description": "Campaign membership, role management (OWNER/CO_DM/PLAYER/SPECTATOR)" },
+      { "id": 16, "name": "invites", "description": "Invite codes and direct email invites to campaigns" },
+      { "id": 17, "name": "onboarding", "description": "4-step onboarding wizard" },
+      { "id": 18, "name": "feedback", "description": "Closed beta feedback collection" },
+      { "id": 19, "name": "usage", "description": "Per-user tier tracking with quota enforcement" },
+      { "id": 20, "name": "billing", "description": "Stripe checkout, customer portal, subscription management" },
+      { "id": 21, "name": "homebrewImage", "description": "AI image generation jobs for NPCs and homebrew items" },
+      { "id": 22, "name": "whisper", "description": "Speech-to-text via Whisper model (WhisperX fallback)" },
+      { "id": 23, "name": "encounters", "description": "Real-time encounter tracker — initiative, HP, conditions" },
+      { "id": 24, "name": "encounterPlans", "description": "Pre-session encounter builder with SRD monster picker, AI generation" },
+      { "id": 25, "name": "rules", "description": "Rules lookup via semantic search (RAG over indexed homebrew PDFs + SRD)" },
+      { "id": 26, "name": "webhooks", "description": "Outbound webhooks for session events with HMAC-SHA256 signatures" },
+      { "id": 27, "name": "search", "description": "Semantic search across campaign content using pgvector embeddings" }
+    ],
+    "workers": [
+      { "name": "ai-summary-worker", "queue": "ai-summary", "description": "Generates session summaries + highlights via Ollama/Gemini/OpenAI" },
+      { "name": "embeddings-worker", "queue": "embeddings", "description": "Creates semantic embeddings for transcripts, NPCs, quests (pgvector)" },
+      { "name": "webhooks-worker", "queue": "webhooks", "description": "Delivers webhook payloads with HMAC-SHA256 signatures and retry logic" },
+      { "name": "image-generation-worker", "queue": "image-generation", "description": "Generates NPC/homebrew images via ComfyUI, Replicate, or DALL-E" },
+      { "name": "transcription-worker", "queue": "transcription", "description": "Processes audio uploads via AssemblyAI (WhisperX fallback)" }
+    ]
+  },
+  "market": {
+    "tamUsd2024": "1.9B–2.0B",
+    "tamUsd2026Projected": "2.41B",
+    "tamUsd2035Projected": "6.59B",
+    "cagr": "11.84%",
+    "digitalTabletopMarket2024": "1.68B",
+    "digitalTabletopMarket2033Projected": "5.23B",
+    "digitalTabletopCAGR": "13.9%",
+    "lifetimeDnDPlayers": "50M",
+    "activeTabletopDnDPlayers": "13.7M",
+    "dndBeyondUsers": "19M",
+    "roll20Users": "12M",
+    "vttAdoption2024": "48%",
+    "vttAdoption2020": "29%",
+    "vttShareOfGlobalCampaigns": "55%",
+    "wotcTabletopRevenue2024": "1.04B",
+    "dndBeyondAcquisitionPrice": "146.3M",
+    "dndBeyondProfitShare": ">50% of D&D profits",
+    "dndRevenueDirectToConsumer": "60%",
+    "activeDMsGlobal": "~5M",
+    "addressableDMsEnglishSpeaking": "1M–2M",
+    "ttrgpKickstarterProjects2024": 1892,
+    "kickstarterSuccessRate": "72%",
+    "independentCreatorShare": "58%",
+    "driveThruRPGCut": "35%",
+    "patreonCut": "10%",
+    "samDescription": "Digitally active TTRPG players (VTT + tool users): 12–19M registered platform users",
+    "somDescription": "Active English-speaking DMs willing to pay for AI tools: ~1–2M",
+    "competitors": [
+      {
+        "name": "D&D Beyond",
+        "type": "Character builder, rules compendium, basic VTT",
+        "price": "~$4.60/month (Master Tier ~$55/year)",
+        "users": "19M registered",
+        "strengths": "Official WotC content, largest user base, deep D&D 5e integration",
+        "gap": "Locked to D&D 5e. No session management, transcription, AI tools, homebrew AI, or audio ingest."
+      },
+      {
+        "name": "Roll20",
+        "type": "Browser-based VTT (maps, tokens, dice)",
+        "price": "~$4.17/month Plus, ~$8.33/month Pro",
+        "users": "12M registered",
+        "strengths": "Market leader in VTT, large community, system-agnostic",
+        "gap": "Aging UI, no AI features, no transcription, no summaries, no homebrew extraction."
+      },
+      {
+        "name": "Foundry VTT",
+        "type": "Self-hosted VTT with plugin ecosystem",
+        "price": "$50 one-time (GM)",
+        "users": "~300K licenses",
+        "strengths": "VTT of the Year 2024, extremely extensible, official D&D content",
+        "gap": "Requires self-hosting (technical barrier). No AI, no campaign narrative tools."
+      },
+      {
+        "name": "Fantasy Grounds",
+        "type": "Veteran VTT (since 2004), most official licenses",
+        "price": "$149.99 one-time or $9.99/month",
+        "users": "Niche",
+        "strengths": "Most licensed content of any VTT, strong rules automation",
+        "gap": "Dated UI, steep learning curve, no AI features."
+      },
+      {
+        "name": "World Anvil",
+        "type": "Wiki-style world-building and campaign management",
+        "price": "Freemium with paid tiers",
+        "users": "Unknown",
+        "strengths": "System-agnostic, rich world-building tools",
+        "gap": "No transcription, no AI session processing, no audio ingest."
+      },
+      {
+        "name": "Archivist (myarchivist.ai)",
+        "type": "Session recap and campaign memory",
+        "price": "Unknown",
+        "users": "Small, early stage",
+        "strengths": "Closest functional overlap (summary/memory features)",
+        "gap": "D&D-centric, no live transcription pipeline, no homebrew extraction, no encounter builder."
+      }
+    ],
+    "capabilityGaps": {
+      "sessionTranscription": "No tool has this integrated",
+      "aiSessionSummaries": "No tool has this integrated",
+      "homebrewPdfExtraction": "No tool has AI-powered extraction",
+      "campaignNarrativeMemory": "No tool has this",
+      "sessionRecordingManagement": "No tool has this",
+      "crossSessionNpcContinuity": "No tool has this",
+      "semanticSearch": "No tool has this",
+      "encounterBuilderWithAI": "No tool has native AI encounter generation",
+      "rulesRag": "No tool has homebrew-aware rules RAG"
+    }
+  },
+  "roadmap": {
+    "phases": [
+      {
+        "phase": "Beta",
+        "timeframe": "Now — ~4 weeks",
+        "status": "in_progress",
+        "items": [
+          "Replace window.confirm with ConfirmDialog in encounters page + encounter builder",
+          "Standardize empty states across NPC, player, homebrew list pages",
+          "Add Zod client-side validation to campaign create form",
+          "Redirect to new campaign after onboarding completion",
+          "Fix Playwright baseURL (3001 → 3847)",
+          "E2E tests: Auth, Onboarding, Campaign CRUD, Sessions, NPCs, Member invites",
+          "Deploy Next.js to Vercel",
+          "Deploy PostgreSQL + Redis + MeiliSearch + Docling to Railway/Hetzner",
+          "Deploy 5 BullMQ workers + WebSocket server to Railway/Hetzner",
+          "Ship NPC Voice Agent (tRPC inline, synchronous)",
+          "Ship Post-Session Hook Generator (BullMQ chained from recap)"
+        ]
+      },
+      {
+        "phase": "MVP",
+        "timeframe": "~6–10 weeks post-beta",
+        "status": "planned",
+        "items": [
+          "Stripe billing live (checkout, portal, cancel)",
+          "Email notifications via Resend (welcome, invite, password reset)",
+          "Invite-only beta → open waitlist → public launch",
+          "Product Hunt launch (coordinated with beta cohort upvotes)",
+          "Press outreach to EN World and Bell of Lost Souls",
+          "Plot Continuity Agent (BullMQ, CampaignPlotThread schema)",
+          "Player Engagement Tracker (BullMQ, post-session analytics)",
+          "Encounter Difficulty Advisor (tRPC inline, synchronous)"
+        ],
+        "successMetrics": {
+          "registeredUsers": 500,
+          "mrr": 1500,
+          "nps": 50,
+          "weeklyRetention": "80%"
+        },
+        "pricing": {
+          "free": { "price": 0, "campaigns": 1, "transcriptionHours": 0.5, "pdfs": 5 },
+          "pro": { "price": 15, "campaigns": "unlimited", "transcriptionHours": 10, "pdfs": 50 },
+          "team": { "price": 40, "coDMs": 5, "transcriptionHours": 30, "pdfs": 200 }
+        }
+      },
+      {
+        "phase": "V2",
+        "timeframe": "~6–8 months post-MVP",
+        "status": "designed",
+        "items": [
+          "Homebrew marketplace (10 content types + character templates listable for sale)",
+          "Quills virtual currency — players earn 1/min in sessions, DMs earn 2/min + Pro allocation",
+          "Adventure modules as marketplace listings (multi-session bundles)",
+          "Battle maps and visual assets marketplace category",
+          "Pathfinder 2e system support (Priority 1 expansion)",
+          "Campaign Arc Suggester agent (v2 AI agent)",
+          "Rules Lookup Agent v2 — conversational multi-turn upgrade",
+          "System-agnostic abstraction layer refactor (prerequisite for multi-system)",
+          "V2 marketplace: 0% platform cut (community-building phase)"
+        ],
+        "quillsEconomy": {
+          "playerEarnRate": "1 Quill/minute in active sessions",
+          "dmEarnRate": "2 Quills/minute running + Pro: 1,000/month allocation, Team: 3,000/month",
+          "platformCutV2": "0%",
+          "platformCutV3": "15%"
+        }
+      },
+      {
+        "phase": "V3",
+        "timeframe": "~12+ months post-MVP",
+        "status": "vision",
+        "items": [
+          "TTRPG Group Finder (campaign posts + player profiles)",
+          "Player profiles with full play history",
+          "Reviews and ratings for DM marketplace listings",
+          "Real-money cash-out for accumulated Quills",
+          "15% platform take rate on marketplace sales",
+          "Creator fund / revenue sharing program",
+          "Additional TTRPG systems: Call of Cthulhu, Vampire: The Masquerade 5e",
+          "Multi-monitor / ultra-wide layout tiers (1920px / 2560px+)",
+          "Mobile PWA (offline-first session capture)",
+          "Publisher partnerships / official content licensing"
+        ]
+      }
+    ]
+  },
+  "ttrpgSystems": [
+    {
+      "name": "D&D 5e / 2024",
+      "priority": 0,
+      "marketShare": "~50%",
+      "activePlayers": "20M–25M",
+      "complexity": "Already supported",
+      "recommendation": "Support in parallel with 5e — same codebase, flag 2024 rules where applicable. Not a new edition.",
+      "buildEffort": "2–4 weeks",
+      "tamGain": "Incremental — same audience"
+    },
+    {
+      "name": "Pathfinder 2e",
+      "priority": 1,
+      "marketShare": "~12%",
+      "activePlayers": "3M–4M additional",
+      "playerBase": "1.5M+ Remaster adopters in 6 months (2023–2024)",
+      "complexity": "Medium-High",
+      "recommendation": "Priority 1 — #2 globally, fastest-growing major system, free ORC-licensed SRD (Archives of Nethys), OGL refugee audience is tech-forward.",
+      "buildEffort": "3–4 months",
+      "tamGain": "+3–4M players",
+      "keyWork": [
+        "New encounter calculator (level-relative threat budget vs CR/XP)",
+        "New stat block renderer (3-action icons, level-scaling fields)",
+        "Import SRD monster data from Archives of Nethys",
+        "Condition tracker updates (30 named conditions with degree-of-success scaling)",
+        "Character sheet schema update"
+      ]
+    },
+    {
+      "name": "Call of Cthulhu 7e",
+      "priority": 2,
+      "marketShare": ">10% of Roll20 games historically",
+      "activePlayers": "2M–3M additional",
+      "complexity": "Medium-Low",
+      "recommendation": "Priority 2 — investigation-centric design maps perfectly to QuiverDM's NPC tracking and session notes. Transcription and AI features require zero changes.",
+      "buildEffort": "1–2 months",
+      "tamGain": "+2–3M players",
+      "keyWork": [
+        "New character/NPC schema (BRP attributes, skill percentages, SAN)",
+        "Remove/hide encounter math UI (not applicable to BRP)",
+        "Add clue/investigation tracker (new feature — high value for CoC)",
+        "Sanity (SAN) tracker component"
+      ]
+    },
+    {
+      "name": "Vampire: The Masquerade 5e",
+      "priority": 3,
+      "marketShare": "#3 on StartPlaying 2024",
+      "activePlayers": "1M–2M additional",
+      "complexity": "Low-Medium",
+      "recommendation": "Priority 3 — Storyteller role is more narrative than tactical, maps perfectly to QuiverDM's session summaries and NPC management.",
+      "buildEffort": "2–3 months",
+      "tamGain": "+1–2M players",
+      "keyWork": [
+        "New character schema (d10 pools, Discipline powers, Hunger, Humanity)",
+        "Faction/NPC relationship tracker (coteries vs. Camarilla vs. Anarchs)",
+        "Remove encounter math entirely",
+        "Dice roller UI (d10 pools with Hunger dice overlay)"
+      ]
+    },
+    {
+      "name": "Daggerheart",
+      "priority": 4,
+      "marketShare": "Unknown, rapidly growing (Critical Role-driven)",
+      "complexity": "Medium",
+      "recommendation": "Monitor closely. If Critical Role continues to drive player growth, could become top-5 by 2026. Official Demiplane integration announced.",
+      "buildEffort": "TBD",
+      "tamGain": "Unknown"
+    },
+    {
+      "name": "Shadowrun",
+      "priority": -1,
+      "recommendation": "Skip — publisher instability (Catalyst Game Labs), very high technical complexity, poor ROI.",
+      "buildEffort": "Very High"
+    },
+    {
+      "name": "GURPS",
+      "priority": -1,
+      "recommendation": "Skip — audience too small, system extremely complex.",
+      "buildEffort": "Very High"
+    }
+  ],
+  "tamExpansion": {
+    "dndOnly": "20M–25M players",
+    "afterPF2e": "+3–4M = ~25M–29M",
+    "afterCoC": "+2–3M = ~27M–32M",
+    "afterVtM": "+1–2M = ~28M–34M",
+    "totalExpansionPercent": "~35%",
+    "insight": "QuiverDM is already ~70% system-agnostic. System-specific modules (encounter calculators, stat blocks, character sheets) are the remaining 30%. Adding a new system is primarily a UI/schema update, not an architecture rebuild."
+  },
+  "aiAgents": [
+    {
+      "id": 1,
+      "name": "Session Recap Agent",
+      "phase": "Beta",
+      "mode": "async",
+      "queue": "ai-summary",
+      "status": "enhance_existing",
+      "purpose": "Multi-context-aware recap generator that references prior sessions, named NPCs, and unresolved plot threads",
+      "dataAccess": ["GameSession.transcripts", "Last 3 GameSession.aiSummary", "NPC table", "Campaign.settings", "Character/CampaignCharacter"],
+      "approach": "Prompt engineering + RAG. Inject prior summaries and NPC context as system-level context blocks.",
+      "implementationDays": "2–3",
+      "modelRouting": "Ollama (llama3.1 8B or Mistral) for <8k tokens; Gemini Flash / GPT-4o-mini for >12k tokens"
+    },
+    {
+      "id": 2,
+      "name": "NPC Voice Agent",
+      "phase": "Beta",
+      "mode": "synchronous",
+      "trpcProcedure": "npcs.generateDialogue",
+      "status": "new",
+      "purpose": "On-demand in-character dialogue generation — consistent voice, reactions, and motivations during play",
+      "dataAccess": ["NPC record (description, faction, role, secrets, stats)", "Last session aiSummary", "Campaign settings.glossary", "Encounter context (optional)"],
+      "approach": "Prompt engineering. NPC JSON + system prompt sufficient for 7B model. No RAG or fine-tuning.",
+      "implementationDays": "1–2",
+      "caching": "Redis, 30 min TTL per (npcId, sceneContext) key",
+      "modelRouting": "Ollama-first; Gemini Flash fallback"
+    },
+    {
+      "id": 3,
+      "name": "Post-Session Hook Generator",
+      "phase": "Beta",
+      "mode": "async",
+      "queue": "session-hooks",
+      "status": "new",
+      "purpose": "Generate 3–5 grounded 'next session hooks' — story directions, unresolved threads, NPC motivations",
+      "dataAccess": ["Current session aiSummary + aiHighlights", "Previous 2 session summaries", "Active NPCs with secrets field", "Character backstories and bonds/flaws/ideals"],
+      "approach": "Chained from Session Recap Agent — second pass using recap as input, not raw transcript.",
+      "output": "GameSession.aiHooks: [{hook, type: 'npc_thread'|'pc_arc'|'world_event'|'cliffhanger'}]",
+      "implementationDays": "1–2",
+      "modelRouting": "Gemini Flash or GPT-4o-mini preferred; Ollama fallback"
+    },
+    {
+      "id": 4,
+      "name": "Plot Continuity Agent",
+      "phase": "MVP",
+      "mode": "async",
+      "queue": "plot-continuity",
+      "status": "planned",
+      "purpose": "Maintain a living 'story bible' — open/closed plot threads, NPC relationship changes, world-state facts. Updated after each session.",
+      "dataAccess": ["All GameSession.aiSummary ordered by session number", "NPC table", "Character records", "Campaign's previous plotThreads state"],
+      "approach": "Structured extraction — input all summaries + current thread list; output JSON diff: {opened, closed, changed}.",
+      "schemaAddition": "CampaignPlotThread model (id, campaignId, title, description, status, sessionOpened, sessionClosed, relatedNpcIds)",
+      "implementationDays": "5–7",
+      "modelRouting": "Gemini Pro or GPT-4o (complex multi-document reasoning); Ollama fallback for small campaigns"
+    },
+    {
+      "id": 5,
+      "name": "Encounter Difficulty Advisor",
+      "phase": "MVP",
+      "mode": "synchronous",
+      "status": "planned",
+      "purpose": "Real-time difficulty advisory factoring in actual party resource state (spell slots, HP, daily abilities used) beyond XP budget alone",
+      "dataAccess": ["EncounterPlan and Encounter records", "Character.hitPoints + Character.spellcasting", "Session encounter history", "SRD monster data", "Transcript (to infer resource expenditure)"],
+      "approach": "Hybrid — XP/CR math is deterministic (existing encounter-calculator.ts). Natural language advisory is prompt engineering.",
+      "implementationDays": "3–5",
+      "modelRouting": "Inline calculation + Ollama for narrative advisory text"
+    },
+    {
+      "id": 6,
+      "name": "Player Engagement Tracker",
+      "phase": "MVP",
+      "mode": "async",
+      "queue": "player-engagement",
+      "status": "planned",
+      "purpose": "Analyze transcripts to detect spotlight distribution and suggest ways to bring quieter players into future sessions",
+      "dataAccess": ["Transcript segments with speakerLabel (AssemblyAI diarization)", "CampaignCharacter (player-character mapping)", "Last 3 sessions transcript data"],
+      "approach": "Mostly analytics (speaker time aggregation) + small prompt-engineering layer for actionable suggestions.",
+      "output": "GameSession.engagementStats: [{characterId, characterName, speakingFraction, avgFraction, delta}]",
+      "implementationDays": "2–3",
+      "modelRouting": "Analytics-first; small Ollama call for suggestion text"
+    },
+    {
+      "id": 7,
+      "name": "Campaign Arc Suggester",
+      "phase": "V2",
+      "mode": "async",
+      "queue": "campaign-arc",
+      "status": "vision",
+      "purpose": "After 5+ sessions, analyze campaign story shape and suggest macro-level arc structures (three-act, six-beat, five-room dungeon patterns)",
+      "dataAccess": ["All session summaries and plot threads (from Plot Continuity Agent)", "NPC roster with relationship map", "Campaign description and settings"],
+      "approach": "RAG + prompt engineering. Inject narrative theory documents + campaign history.",
+      "implementationDays": "7–10",
+      "modelRouting": "GPT-4o or Gemini Pro (needs strongest reasoning for multi-session analysis)"
+    },
+    {
+      "id": 8,
+      "name": "Rules Lookup Agent v2",
+      "phase": "V2",
+      "mode": "synchronous",
+      "status": "vision",
+      "purpose": "Upgrade single-turn RAG into conversational agent with follow-up questions, rule interactions, and specific source page citations",
+      "dataAccess": ["Embedding table with entityType='rules' (existing)", "HomebrewPDF indexed sources (existing)", "Conversation history (short-term via Redis session)"],
+      "approach": "Agentic RAG — agent decides whether to retrieve, can issue multiple retrieval queries, synthesizes combined answer. Max 5 tool calls, max 3 retrieval cycles.",
+      "implementationDays": "5–7",
+      "modelRouting": "Ollama Mistral or GPT-4o-mini (low temperature, citation-focused)"
+    }
+  ],
+  "agentArchitecture": {
+    "corePattern": "Stateless compute over stateful DB — agents read campaign context from PostgreSQL via Prisma, call LLM, write structured JSON back to DB, optionally emit webhook",
+    "sharedContextCache": "Session context bundle cached in Redis (1hr TTL) — shared across recap + hooks + continuity agents in same pipeline run, saving 3–5 DB round trips",
+    "failureHandling": "Each agent has status field (none/pending/processing/done/error). Workers retry up to 3 times with exponential backoff. Failed agents do not block upstream results.",
+    "reasoningBudget": "Multi-step agents enforce hard caps: max 5 tool calls, max 3 retrieval cycles per invocation",
+    "providerRouting": "Local-first (Ollama) for structured extraction and short-context tasks at zero marginal cost. Cloud providers (Gemini, OpenAI) for long-context or high-creativity tasks.",
+    "bullmqJobChain": "FlowProducer: session-recap → [session-hooks → plot-continuity] + [player-engagement] (parallel)"
+  },
+  "financials": {
+    "pricing": [
+      {
+        "tier": "Free",
+        "price": 0,
+        "limits": {
+          "campaigns": 1,
+          "transcriptionHoursPerMonth": 0.5,
+          "pdfs": 5
+        }
+      },
+      {
+        "tier": "Pro",
+        "price": 15,
+        "limits": {
+          "campaigns": "unlimited",
+          "transcriptionHoursPerMonth": 10,
+          "pdfs": 50
+        }
+      },
+      {
+        "tier": "Team",
+        "price": 40,
+        "limits": {
+          "campaigns": "unlimited",
+          "coDMs": 5,
+          "transcriptionHoursPerMonth": 30,
+          "pdfs": 200
+        }
+      }
+    ],
+    "unitEconomics": {
+      "freeCostToServe": 0.15,
+      "proCostToServe": 1.96,
+      "teamCostToServe": 5.30,
+      "proGrossMargin": 0.87,
+      "teamGrossMargin": 0.87,
+      "targetGrossMargin": "85–90%",
+      "proCostBreakdown": {
+        "infraShared": 0.10,
+        "assemblyAI": 1.50,
+        "aiInference": 0.25,
+        "r2Storage": 0.11
+      }
+    },
+    "assemblyAIPricing": {
+      "asyncPerHour": 0.15,
+      "streamingPerHour": 0.15,
+      "speakerDiarizationAddon": 0.02,
+      "effectiveRateWithSpeakerID": 0.17,
+      "budgetedRate": 0.20,
+      "blendedActualPerProUser": "1.20–1.60"
+    },
+    "ltv": {
+      "pro": { "arpu": 15, "monthlyChurn": 0.04, "ltv": 375 },
+      "team": { "arpu": 40, "monthlyChurn": 0.03, "ltv": 1333 },
+      "blended": { "arpu": 17.50, "monthlyChurn": 0.035, "ltv": 500 }
+    },
+    "cac": {
+      "organicSeo": "0–5",
+      "redditDiscord": "2–15",
+      "youtubeCreator": "10–30",
+      "paidSocial": "20–60",
+      "blendedRealistic": "10–25"
+    },
+    "ltvCacRatio": {
+      "proAt15cac": "25:1",
+      "proAt30cac": "12.5:1",
+      "teamAt15cac": "89:1",
+      "note": "Well above 3:1 healthy benchmark in all scenarios"
+    },
+    "infraCostBeta": "~$115–175/month (0–1K users): Vercel Pro $20 + Hetzner CX42 ~$17 + R2 $5–15 + Resend $20 + AssemblyAI $50–100",
+    "infraCostAt1kUsers": "~$115–175/month",
+    "infraCostAt10kUsers": "~$550–745/month (2x Hetzner CX52, dedicated volumes, higher AssemblyAI)",
+    "breakEven": {
+      "soloNoSalary": { "payingUsers": 65, "mrr": 975, "timeline": "Month 4–6" },
+      "soloWithSalary10k": { "payingUsers": 730, "mrr": 10950, "timeline": "Month 14–16 (Base)" },
+      "smallTeam20k": { "payingUsers": 1400, "mrr": 21000, "timeline": "Month 18–24" }
+    },
+    "scenarios": {
+      "conservative": {
+        "month3": { "users": 200, "paying": 10, "mrr": 155 },
+        "month6": { "users": 500, "paying": 40, "mrr": 560 },
+        "month9": { "users": 1000, "paying": 90, "mrr": 1260 },
+        "month12": { "users": 2000, "paying": 200, "mrr": 3000 },
+        "month18": { "users": 4000, "paying": 480, "mrr": 7200 },
+        "month24": { "users": 7000, "paying": 840, "mrr": 12600 },
+        "arr12": 36000,
+        "arr24": 151200
+      },
+      "base": {
+        "month3": { "users": 500, "paying": 40, "mrr": 560 },
+        "month6": { "users": 2000, "paying": 200, "mrr": 3000 },
+        "month9": { "users": 4500, "paying": 495, "mrr": 7425 },
+        "month12": { "users": 8000, "paying": 960, "mrr": 14400 },
+        "month18": { "users": 15000, "paying": 2100, "mrr": 31500 },
+        "month24": { "users": 25000, "paying": 3750, "mrr": 56250 },
+        "arr12": 172800,
+        "arr24": 675000,
+        "breakEvenMonth": "14–16",
+        "milestone100kArr": "Month 10"
+      },
+      "optimistic": {
+        "month3": { "users": 1000, "paying": 100, "mrr": 1500 },
+        "month6": { "users": 5000, "paying": 600, "mrr": 9000 },
+        "month9": { "users": 12000, "paying": 1680, "mrr": 25200 },
+        "month12": { "users": 20000, "paying": 3000, "mrr": 45000 },
+        "month18": { "users": 40000, "paying": 7200, "mrr": 108000 },
+        "month24": { "users": 75000, "paying": 15000, "mrr": 225000 },
+        "arr12": 540000,
+        "arr24": 2700000,
+        "breakEvenMonth": "8–10"
+      }
+    },
+    "fundingScenarios": {
+      "bootstrap50k": { "runway": "16 months", "at": "$3K/month burn" },
+      "bootstrap100k": { "runway": "33 months", "at": "$3K/month burn" },
+      "seed250k": {
+        "runway": "20–22 months",
+        "allocation": {
+          "developerSalary": 180000,
+          "infrastructure": 24000,
+          "marketing": 20000,
+          "legalAccountingTools": 10000,
+          "buffer": 16000
+        },
+        "goal": "Reach Base scenario ($14K MRR) by month 14"
+      },
+      "seed500k": {
+        "runway": "24 months",
+        "allocation": {
+          "engineering": 240000,
+          "infrastructure": 48000,
+          "marketing": 80000,
+          "productDesign": 60000,
+          "legalMisc": 20000,
+          "buffer": 52000
+        },
+        "goal": "Reach Optimistic scenario ($45K MRR) by month 12; raise Series A or become profitable"
+      }
+    },
+    "marketplaceRevenue": {
+      "v2PlatformCut": "0%",
+      "v3PlatformCut": "15%",
+      "v3MonthlyGmvEstimate": "5000–25000",
+      "v3PlatformRevenueEstimate": "750–3750 per month",
+      "v3ArrContribution": "9000–45000"
+    },
+    "seriesAReadiness": {
+      "targetMrr": "50000–100000",
+      "targetMomGrowth": "20%+",
+      "targetChurn": "<4% monthly",
+      "timeline": "Month 18–24 (Base), Month 12–14 (Optimistic)",
+      "targetRoundSize": "3M–5M"
+    }
+  },
+  "marketing": {
+    "tagline": "Stop taking notes. Start telling stories.",
+    "secondaryTaglines": {
+      "dm": "Your session, transcribed, summarized, and searchable — automatically.",
+      "player": "Never miss the story again. Your DM's recap, waiting the moment the session ends.",
+      "homebrewUser": "Upload any PDF. Search any monster, spell, or item in seconds."
+    },
+    "primaryAudience": "Active Dungeon Masters running weekly or biweekly campaigns, 18–45 years old, 2–5+ years experience",
+    "audienceSize": {
+      "activeDMsGlobal": "~5M",
+      "addressableEnglishSpeaking": "1M–2M",
+      "payingUserTarget": "DMs who bear organizational burden and demonstrably pay for tools"
+    },
+    "segments": [
+      {
+        "name": "Active Dungeon Masters",
+        "priority": "primary",
+        "willingness_to_pay": "High — over 42% of 18–35 TTRPG players already subscribe to paid tools",
+        "painPoints": ["3–5 hours/session on manual notes", "Homebrew PDFs unsearchable", "NPC and campaign continuity loss"]
+      },
+      {
+        "name": "Players Wanting Session Recaps",
+        "priority": "secondary",
+        "willingness_to_pay": "Low independently — acquire via DM invitation",
+        "size": "5–6M players who miss sessions or want recap access"
+      },
+      {
+        "name": "Homebrew Creators",
+        "priority": "tertiary_v2",
+        "size": "50,000–100,000 active publishers on DriveThruRPG + Itch.io",
+        "opportunity": "Creator marketplace in V2 — their content becomes 'playable' inside QuiverDM"
+      }
+    ],
+    "channels": [
+      { "channel": "Reddit (r/DMAcademy, r/DnD, r/DnDHomebrew)", "priority": 1, "cost": "$0", "expectedResult": "20–100 beta signups per well-crafted post; 2,000–5,000 qualified visitors", "notes": "Highest intent DM community online. r/DMAcademy: 654K members. r/DnD: 3.3M members." },
+      { "channel": "Discord communities (5–10 DM servers)", "priority": 1, "cost": "$0", "expectedResult": "10–20 quality signups per server", "notes": "Join #tools-and-resources and #dm-help channels. Official D&D Discord: 292K members." },
+      { "channel": "Direct DM outreach (personalized)", "priority": 1, "cost": "$0", "expectedResult": "20 hand-selected beta users; 30–40% acceptance rate", "notes": "Reference their specific posts. Offer lifetime Pro discount for 30-min feedback call." },
+      { "channel": "YouTube DM creator partnerships", "priority": 2, "cost": "$50–200/partnership", "expectedResult": "200–500 signups per video from mid-tier channels", "notes": "Target 10K–100K subs first (more responsive). Matt Colville: 459K subs. Dungeon Craft: 250K." },
+      { "channel": "TikTok / Instagram Reels", "priority": 2, "cost": "$0", "expectedResult": "Viral potential for 'before/after session management' content", "notes": "D&D TikTok is active. @dajackies: 950K. @ginnydi: 247K TikTok." },
+      { "channel": "Product Hunt launch", "priority": 3, "cost": "$0", "expectedResult": "200–500 upvotes if well-executed; featured in gaming tools", "notes": "Schedule for public launch day. Coordinate 50–100 beta users to upvote and comment." },
+      { "channel": "EN World + Bell of Lost Souls press", "priority": 3, "cost": "$0", "expectedResult": "Lasting SEO + credibility. Potential mainstream coverage.", "notes": "Angle: 'First AI-native session management platform for DMs.'" },
+      { "channel": "Reddit Ads (post-$1K MRR)", "priority": 4, "cost": "$200/month", "expectedResult": "+30–60 signups/month", "notes": "CPC: $0.10–$0.50. Target r/DMAcademy, r/DnD, r/DnDHomebrew." },
+      { "channel": "Meta retargeting (post-$1K MRR)", "priority": 4, "cost": "$300/month", "expectedResult": "Recover 10–20% of site visitors who bounced", "notes": "CPM $5–$15. Best for retargeting only, not cold acquisition." }
+    ],
+    "betaStrategy": "50–100 quality beta users in 30 days. Week 1: hand-select 20 DMs via personal outreach. Week 2: one authentic Reddit post on r/DMAcademy. Weeks 3–4: Discord + referral mechanic. Beta-to-paid conversion target: 20–35% at $10/month locked-in rate.",
+    "betaConversionProjection": "100 beta users × 25% conversion × $10/month = $250 MRR from beta cohort",
+    "budgetScenarios": {
+      "zeroBudget": { "monthlyBudget": 0, "founderTimeHours": 12, "expected3MonthUsers": "300–800", "expected3MonthMrr": "500–1500" },
+      "500mo": { "monthlyBudget": 500, "allocation": { "redditAds": 200, "creatorPartnership": 150, "substack": 50, "designTools": 50, "misc": 50 }, "expected3MonthUsers": "600–1500", "expected3MonthMrr": "1000–3000" },
+      "2000mo": { "monthlyBudget": 2000, "allocation": { "redditAds": 400, "metaRetargeting": 300, "youtubeCreators": 600, "contentWriter": 300, "pr": 200, "emailMarketing": 100, "communityManager": 100 }, "expected3MonthUsers": "1500–3500", "expected3MonthMrr": "3000–8000" }
+    },
+    "competitorPositioning": {
+      "vsRoll20": "Roll20 handles maps and dice. QuiverDM handles the 20 hours before and after the session.",
+      "vsDnDBeyond": "D&D Beyond is a reference tool. QuiverDM is the DM's operating system.",
+      "vsNotionObsidian": "General note-taking requires manual entry. QuiverDM transcribes, summarizes, and indexes automatically.",
+      "vsOtterDescript": "General transcription has no TTRPG context. QuiverDM knows your NPCs, your homebrew, and your story."
+    },
+    "aiSkepticismMitigation": [
+      "Lead with the output, not the technology — show the session recap, not 'our AI'",
+      "Emphasize DM control — editable transcripts, overridable summaries, private data",
+      "Avoid buzzwords — never say revolutionize, disrupt, or leverage AI",
+      "Show real sessions — authentic DM testimonials and real (not staged) session transcripts",
+      "Community-first framing — 'built by a DM, for DMs'"
+    ],
+    "keySubreddits": [
+      { "subreddit": "r/DnD", "members": "3.3M", "notes": "General D&D; high noise, high reach" },
+      { "subreddit": "r/DMAcademy", "members": "654K", "notes": "DMs seeking advice; highest intent" },
+      { "subreddit": "r/DnDHomebrew", "members": "~400K", "notes": "Homebrew creators and users" },
+      { "subreddit": "r/rpg", "members": "~2M", "notes": "System-agnostic; expansion path" },
+      { "subreddit": "r/mattcolville", "members": "~50K", "notes": "High-engagement DM community" }
+    ],
+    "keyYoutubeCreators": [
+      { "name": "Matt Colville", "channel": "Running the Game", "subscribers": "459K", "priority": "outreach_later" },
+      { "name": "Dungeon Craft", "subscribers": "~250K", "priority": "high" },
+      { "name": "Ginny Di", "subscribers": "500K+", "priority": "medium" },
+      { "name": "XP to Level 3", "subscribers": "~250K", "priority": "high" },
+      { "name": "Bob World Builder", "subscribers": "~100K", "priority": "high_first" },
+      { "name": "The DM Lair", "priority": "high" },
+      { "name": "Seth Skorkowsky", "priority": "medium" }
+    ]
+  },
+  "techStack": {
+    "frontend": "Next.js 15 (App Router) + TypeScript + Tailwind CSS + shadcn/ui + Lucide icons",
+    "backend": "tRPC v11 + Zod validation + NextAuth v5 beta",
+    "database": "PostgreSQL 15 + pgvector 0.8.x (HNSW indexes)",
+    "orm": "Prisma 5.x",
+    "queues": "BullMQ 5.x + Redis 7 (separate DB for queues vs. cache)",
+    "search": "MeiliSearch v1.5 (full-text) + pgvector HNSW (semantic/embeddings)",
+    "connectionPool": "PgBouncer (transaction mode, max 1000 client connections)",
+    "processManager": "pm2 (Hetzner VPS workers)",
+    "realtime": "WebSocket server (ws-server.ts) for live transcription streaming",
+    "aiProviders": ["Ollama (local, primary)", "Gemini (cloud fallback)", "OpenAI (cloud fallback)", "Anthropic (cloud fallback)"],
+    "deployment": {
+      "app": "Vercel (Pro plan, $20/month)",
+      "services": "Hetzner VPS CX42 (8 vCPU, 16GB RAM, ~$17/month) via Docker Compose",
+      "tunnel": "Cloudflare Tunnel (cloudflared, zero open VPS ports)",
+      "storage": "Cloudflare R2 ($0.015/GB, zero egress fees)",
+      "cdn": "Cloudflare (WAF + DDoS + CDN, free plan)",
+      "email": "Resend (Pro, $20/month, 50K emails)",
+      "payments": "Stripe (2.9% + $0.30 per transaction)",
+      "scalePathManagedServices": "Railway (Postgres + Redis + Workers) at 2K–10K users when ops overhead exceeds ROI"
+    },
+    "performanceTechniques": [
+      "PgBouncer transaction mode pooling (prevents Vercel serverless from exhausting Postgres max_connections)",
+      "pgvector HNSW index (1.5ms query latency vs IVFFlat 2.4ms; no training step required)",
+      "Redis caching with 5–15 min TTL for campaign/session/NPC lists (DB 1 for cache, DB 0 for BullMQ)",
+      "MeiliSearch full-text search co-located with Postgres (sub-10ms)",
+      "RSC server-side tRPC prefetch (parallel sessions + NPCs + homebrew, no waterfall on campaign dashboard)",
+      "Cloudflare R2 presigned URLs (direct browser-to-R2 uploads, bypasses Vercel 4.5MB limit)",
+      "React Query staleTime tuning (30s for lists, 0ms with 3s polling for live transcription)",
+      "Vercel ISR for marketing/public pages (1hr revalidation)",
+      "Separate BullMQ jobs for CPU-heavy work (no blocking main thread)",
+      "Redis context bundle caching for AI agent pipelines (1hr TTL, saves 3–5 DB round trips per post-session run)"
+    ],
+    "hetznerSpec": {
+      "betaCX42": { "vcpu": 8, "ram": "16GB", "ssd": "160GB", "bandwidth": "20TB", "costPerMonth": "€16.40 (~$17)" },
+      "growthCX52": { "vcpu": 16, "ram": "32GB", "ssd": "320GB", "costPerMonth": "€32.40 (~$35)" }
+    },
+    "r2VsS3": {
+      "r2StoragePerGB": 0.015,
+      "r2EgressPerGB": 0,
+      "s3StoragePerGB": 0.023,
+      "s3EgressPerGB": 0.09,
+      "savingsAt1TBPerMonth": "~$90/month on egress alone vs S3"
+    },
+    "postgresqlTuning": {
+      "sharedBuffers": "4GB (25% of CX42 RAM)",
+      "effectiveCacheSize": "12GB (75% of RAM)",
+      "workMem": "64MB",
+      "maintenanceWorkMem": "1GB",
+      "maxConnections": 100,
+      "walLevel": "replica"
+    },
+    "backupStrategy": {
+      "primary": "pg_dump to Cloudflare R2 (daily at 02:00 UTC, custom format compressed)",
+      "retention": { "daily": "30 days", "weekly": "3 months", "monthly": "1 year" },
+      "secondary": "WAL-based continuous archiving (wal-g or pgBackRest) at 10GB+ database size"
+    }
+  },
+  "teamNeeds": {
+    "now_beta": [
+      { "role": "Full-stack developer", "status": "existing", "focus": "Product polish, deployment, beta feedback loops" },
+      { "role": "Part-time designer", "status": "needed", "focus": "Onboarding UX, marketing assets, design system refinement" }
+    ],
+    "mvp": [
+      { "role": "Growth / marketing hire", "status": "needed", "focus": "Community management, creator partnerships, content strategy" }
+    ],
+    "v2": [
+      { "role": "Backend / AI engineer", "status": "needed", "focus": "Agent layer development, PF2e expansion, marketplace infrastructure" },
+      { "role": "Community manager", "status": "needed", "focus": "Discord moderation, creator relationships, DM content program" }
+    ],
+    "v3": [
+      { "role": "Sales / partnerships", "status": "needed", "focus": "B2B (game stores, publishers, convention organizers), pro DM partnerships" },
+      { "role": "Customer success", "status": "needed", "focus": "Onboarding, churn reduction, power user programs" }
+    ]
+  },
+  "risks": [
+    {
+      "risk": "WotC adds AI transcription to D&D Beyond",
+      "severity": "MEDIUM-HIGH",
+      "timeline": "12–24 months",
+      "mitigation": "System-agnostic expansion (PF2e/CoC); build features WotC won't prioritize (campaign memory, multi-system, homebrew AI); build community moat"
+    },
+    {
+      "risk": "AI cost scaling (transcription + inference)",
+      "severity": "HIGH",
+      "mitigation": "Hard usage caps (already implemented); Ollama self-hosted for zero marginal AI cost; volume discounts with AssemblyAI at $1K+/month"
+    },
+    {
+      "risk": "AI skepticism in TTRPG community",
+      "severity": "MEDIUM",
+      "mitigation": "Lead with output not technology; personal-productivity framing (not creative displacement); community-first communication; avoid generative art as core feature"
+    },
+    {
+      "risk": "Free tier abuse",
+      "severity": "MEDIUM",
+      "mitigation": "Email verification required; rate limiting; live transcription behind Pro only; 30 min/month cap enforced"
+    },
+    {
+      "risk": "Churn exceeds 4% monthly",
+      "severity": "MEDIUM",
+      "mitigation": "First session transcript within 24hrs of signup; group viral loop (DMs invite players); annual plan discount ($120/year = 33% off)"
+    },
+    {
+      "risk": "PDF extraction licensing scrutiny",
+      "severity": "LOW-MEDIUM",
+      "mitigation": "Personal use framing; users upload their own purchased PDFs; no hosted/redistributed content; clear ToS language"
+    }
+  ],
+  "opportunityGaps": [
+    {
+      "gap": "Session memory",
+      "description": "27% of players demand AI-enhanced NPC continuity; 37% cite retention issues. No tool maintains an indexed searchable campaign narrative log automatically.",
+      "quiverDmSolution": "Transcription + AI summary + vector search pipeline"
+    },
+    {
+      "gap": "Audio is entirely unserved",
+      "description": "Sessions happen, audio exists, nothing in the market turns that audio into structured campaign records automatically.",
+      "quiverDmSolution": "AssemblyAI live transcription + WhisperX fallback + BullMQ processing pipeline"
+    },
+    {
+      "gap": "Homebrew rules stranded in PDFs",
+      "description": "Third-party publishers, indie games, and homebrewed content live in PDFs no existing tool can ingest and reason over.",
+      "quiverDmSolution": "Docling PDF extraction + Rules RAG (pgvector semantic search over indexed content)"
+    },
+    {
+      "gap": "DM preparation workflow unaddressed",
+      "description": "Current tools are session-runtime tools. Pre-session planning, encounter design, NPC writing, and post-session documentation are done in Google Docs, Notion, or notebooks.",
+      "quiverDmSolution": "The entire QuiverDM platform — encounter builder, NPC management, session summaries, homebrew library"
+    },
+    {
+      "gap": "System-agnostic AI assistance",
+      "description": "D&D Beyond's AI roadmap serves only D&D 5e. The other ~50% of the TTRPG market — Pathfinder, OSR, indie systems — has no AI campaign management option at all.",
+      "quiverDmSolution": "System-agnostic architecture; PF2e / CoC / VtM expansion roadmap"
+    }
+  ]
+}

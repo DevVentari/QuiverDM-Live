@@ -1,0 +1,224 @@
+{
+  "main": {
+    "id": "a593d401120a752f",
+    "type": "split",
+    "children": [
+      {
+        "id": "91c05ca74e2d3ee5",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "dcb20231715be755",
+            "type": "leaf",
+            "state": {
+              "type": "kanban",
+              "state": {
+                "file": "KANBAN.md",
+                "kanbanViewState": {
+                  "kanban-plugin": "board",
+                  "list-collapse": [
+                    false
+                  ]
+                }
+              },
+              "icon": "lucide-trello",
+              "title": "KANBAN"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "9473ba348592ce39",
+    "type": "split",
+    "children": [
+      {
+        "id": "16523fd376ae86bc",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d65ed077cb93e39d",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "f5543a3c87d82180",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "f64f442ba2f185b4",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "64f9714e8d3f0521",
+    "type": "split",
+    "children": [
+      {
+        "id": "35b3b40e05b446c4",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "0d2267cdb48f6f2c",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "research/07-financial-model.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for 07-financial-model"
+            }
+          },
+          {
+            "id": "f8b78bf1435d4f1c",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "research/07-financial-model.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from 07-financial-model"
+            }
+          },
+          {
+            "id": "71e82c844f50fbd2",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "26624ffed37317e3",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "c3d1cc53a53b9dc3",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "research/07-financial-model.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of 07-financial-model"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "obsidian-kanban:Create new board": false
+    }
+  },
+  "active": "dcb20231715be755",
+  "lastOpenFiles": [
+    "KANBAN.md.tmp.38564.1772109464544",
+    "research/QUIVERDM-PITCH-DECK.md",
+    "KANBAN.md",
+    "KANBAN.md.tmp.40224.1772107109864",
+    "KANBAN.md.tmp.40224.1772106312855",
+    "KANBAN.md.tmp.40224.1772106307665",
+    "KANBAN.md.tmp.40224.1772105375483",
+    "KANBAN.md.tmp.40224.1772105371974",
+    "KANBAN.md.tmp.40224.1772104834262",
+    "README.md",
+    "KANBAN.md.tmp.47996.1772018821350",
+    "KANBAN.md.tmp.47996.1772018815591",
+    "KANBAN.md.tmp.3528.1772001122175",
+    "KANBAN.md.tmp.38040.1771999660294",
+    "20-Brainstorm/dm-brain.md",
+    "20-Brainstorm/autonomous-story-worlds.md",
+    "20-Brainstorm/autonomous-co-dm.md",
+    "20-Brainstorm/session-mode-dashboard.md",
+    "Untitled Kanban.md",
+    "research/07-financial-model.md",
+    "research/08-tech-architecture.md",
+    "10-Research/2026-02-23-branding-and-styling-practices.md",
+    "research/DM Operating System.md",
+    "research/SYNTHESIZER_PROMPT.md",
+    "research/02-roadmap.md",
+    "research/01-current-features.md",
+    "research/06-marketing-strategy.md",
+    "research/05-ai-agent-strategy.md",
+    "research/04-ttrpg-systems.md",
+    "research/03-market-viability.md"
+  ]
+}
