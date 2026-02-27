@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
+import { SessionPrepDataSchema } from '@/lib/prep-types';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { LiveTranscriptionControls } from '@/components/session/live-transcription-controls';
@@ -44,7 +45,7 @@ import {
   Zap,
   Map,
   Eye,
-  Mountain,
+  GitBranch,
   Swords,
   Gift,
   PlayCircle,
@@ -536,18 +537,17 @@ function PrepTabContent({
   isStarting: boolean;
 }) {
   const isPlanning = data.status === 'planning';
-
-  const sceneItems = (data.prepSceneOutline as { id: string; text: string }[] | null) ?? [];
-  const secretItems = (data.prepSecrets as { id: string; text: string }[] | null) ?? [];
-  const locationItems = (data.prepLocations as { id: string; name: string; description: string }[] | null) ?? [];
-  const npcItems = (data.prepNpcs as { id: string; name: string; motivation: string }[] | null) ?? [];
-  const encounterItems = (data.prepEncounters as { id: string; name: string }[] | null) ?? [];
-  const rewardItems = (data.prepRewards as { id: string; text: string }[] | null) ?? [];
+  const prepParsed = SessionPrepDataSchema.safeParse(data.prepData);
+  const prep = prepParsed.success ? prepParsed.data : null;
 
   const hasPrepContent =
-    data.prepStrongStart || sceneItems.length > 0 || secretItems.length > 0 ||
-    locationItems.length > 0 || npcItems.length > 0 || encounterItems.length > 0 ||
-    rewardItems.length > 0 || data.prepSessionArc;
+    !!prep?.strongStart ||
+    (prep?.scenes.length ?? 0) > 0 ||
+    (prep?.secretsAndClues.length ?? 0) > 0 ||
+    (prep?.npcs.length ?? 0) > 0 ||
+    (prep?.monsters.length ?? 0) > 0 ||
+    (prep?.rewards.length ?? 0) > 0 ||
+    (prep?.looseThreads.length ?? 0) > 0;
 
   return (
     <div className="space-y-4 mt-5">
@@ -558,53 +558,63 @@ function PrepTabContent({
             <p className="font-semibold text-amber-300 text-sm">Ready to run?</p>
             <p className="text-xs text-muted-foreground mt-0.5">Starting the session moves it to In Progress and notifies players.</p>
           </div>
-          <Button
-            size="sm"
-            onClick={onStartSession}
-            disabled={isStarting}
-            className="gap-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold shrink-0"
-          >
-            <PlayCircle className="h-3.5 w-3.5" />
-            {isStarting ? 'Starting…' : 'Start Session'}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5" asChild>
+              <Link href={`/campaigns/${slug}/sessions/prep?sessionId=${data.id}`}>
+                <PenLine className="h-3.5 w-3.5" />
+                Continue Prep
+              </Link>
+            </Button>
+            <Button
+              size="sm"
+              onClick={onStartSession}
+              disabled={isStarting}
+              className="gap-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+            >
+              <PlayCircle className="h-3.5 w-3.5" />
+              {isStarting ? 'Starting...' : 'Start Session'}
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Prep content */}
       {hasPrepContent ? (
         <div className="space-y-3">
-          <PrepSection title="Strong Start" icon={Zap} content={data.prepStrongStart ?? ''} />
+          <PrepSection title="Strong Start" icon={Zap} content={prep?.strongStart ?? ''} />
           <PrepListSection
-            title="Scene Outline"
+            title="Potential Scenes"
             icon={Map}
-            items={sceneItems.map((s) => ({ label: s.text }))}
+            items={(prep?.scenes ?? []).map((s) => ({ label: s.title, sub: s.description }))}
           />
           <PrepListSection
             title="Secrets & Clues"
             icon={Eye}
-            items={secretItems.map((s) => ({ label: s.text }))}
-          />
-          <PrepListSection
-            title="Locations"
-            icon={Mountain}
-            items={locationItems.map((l) => ({ label: l.name, sub: l.description }))}
+            items={(prep?.secretsAndClues ?? []).map((s) => ({ label: s.text, sub: s.linkedTo }))}
           />
           <PrepListSection
             title="Featured NPCs"
             icon={Users}
-            items={npcItems.map((n) => ({ label: n.name, sub: n.motivation }))}
+            items={(prep?.npcs ?? []).map((n) => ({ label: n.name, sub: n.motivation }))}
           />
           <PrepListSection
-            title="Encounters"
+            title="Monsters"
             icon={Swords}
-            items={encounterItems.map((e) => ({ label: e.name }))}
+            items={(prep?.monsters ?? []).map((m) => ({
+              label: `${m.count}x ${m.name}`,
+              sub: m.cr ? `CR ${m.cr}` : undefined,
+            }))}
           />
           <PrepListSection
             title="Rewards"
             icon={Gift}
-            items={rewardItems.map((r) => ({ label: r.text }))}
+            items={(prep?.rewards ?? []).map((r) => ({ label: r.name, sub: r.rarity }))}
           />
-          <PrepSection title="Session Arc" icon={ScrollText} content={data.prepSessionArc ?? ''} />
+          <PrepListSection
+            title="Loose Threads"
+            icon={GitBranch}
+            items={(prep?.looseThreads ?? []).map((t) => ({ label: t.text, sub: t.fromSessionTitle }))}
+          />
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-border rounded-xl text-center">
@@ -614,7 +624,7 @@ function PrepTabContent({
             Use the Lazy DM prep wizard to outline your session before you run it.
           </p>
           <Button size="sm" variant="outline" className="gap-1.5" asChild>
-            <Link href={`/campaigns/${slug}/sessions/new`}>
+            <Link href={`/campaigns/${slug}/sessions/prep?sessionId=${data.id}`}>
               <PenLine className="h-3.5 w-3.5" />
               Add Prep Notes
             </Link>
@@ -624,7 +634,6 @@ function PrepTabContent({
     </div>
   );
 }
-
 // ---------------------------------------------------------------------------
 // Tab trigger shared class
 // ---------------------------------------------------------------------------
@@ -1047,3 +1056,5 @@ export default function SessionDetailPage() {
     </>
   );
 }
+
+
