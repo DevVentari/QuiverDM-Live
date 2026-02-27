@@ -172,4 +172,56 @@
     background-color: hsl(240 10% 8% / 0.3);
     border-color: hsl(240 20% 85% / 0.07);
   }
+
+  /* Landing page utilities */
+  .text-gradient-amber {
+    background: linear-gradient(135deg, hsl(35 90% 70%), hsl(45 95% 65%), hsl(35 80% 55%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .hero-glow {
+    background:
+      radial-gradient(ellipse 70% 60% at 50% -5%, hsl(35 80% 55% / 0.18), transparent),
+      radial-gradient(ellipse 50% 40% at 80% 110%, hsl(258 40% 20% / 0.3), transparent),
+      radial-gradient(ellipse 50% 40% at 20% 110%, hsl(35 60% 10% / 0.25), transparent);
+  }
+
+  .landing-bg {
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(258 40% 12% / 0.7), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 100%, hsl(35 40% 10% / 0.5), transparent),
+      radial-gradient(ellipse 60% 40% at 20% 90%, hsl(258 30% 8% / 0.3), transparent);
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(35 80% 55%) 0%,
+      hsl(45 95% 75%) 40%,
+      hsl(35 80% 55%) 60%,
+      hsl(35 80% 55%) 100%
+    );
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
 }

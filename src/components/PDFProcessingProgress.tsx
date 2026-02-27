@@ -147,9 +147,11 @@ export function PDFProcessingProgress({ pdfId, filename, onComplete }: PDFProces
       : 0;
 
   const currentStageId = normalizeStage(job?.currentStep, progress);
-  const stageStatuses = getStageStatuses(
-    currentStageId,
-    processingStatus === 'completed' ? 'completed' : processingStatus === 'failed' ? 'failed' : null
+  const terminalStatus = processingStatus === 'completed' ? 'completed' : processingStatus === 'failed' ? 'failed' : null;
+  const stageStatuses = useMemo(
+    () => getStageStatuses(currentStageId, terminalStatus),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentStageId, terminalStatus]
   );
 
   const logs: LogEntry[] = Array.isArray(job?.logs)
@@ -172,19 +174,22 @@ export function PDFProcessingProgress({ pdfId, filename, onComplete }: PDFProces
 
   useEffect(() => {
     setStageTiming((prev) => {
-      const next = { ...prev };
       const now = Date.now();
+      let changed = false;
+      const next = { ...prev };
       for (const stage of STAGES) {
         const status = stageStatuses[stage.id];
         const prior = next[stage.id] || {};
         if (status === 'processing' && !prior.startedAt) {
           next[stage.id] = { ...prior, startedAt: now };
+          changed = true;
         }
         if ((status === 'completed' || status === 'failed') && prior.startedAt && !prior.completedAt) {
           next[stage.id] = { ...prior, completedAt: now };
+          changed = true;
         }
       }
-      return next;
+      return changed ? next : prev;
     });
   }, [stageStatuses]);
 
