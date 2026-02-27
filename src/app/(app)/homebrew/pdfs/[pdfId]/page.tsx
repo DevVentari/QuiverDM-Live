@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,6 +49,8 @@ export default function PDFDetailPage() {
     void pdf.refetch();
     void extractedContent.refetch();
   }, [extractedContent, pdf]);
+
+  const [activeTab, setActiveTab] = useState('extracted');
 
   if (pdf.isLoading) {
     return (
@@ -125,7 +127,7 @@ export default function PDFDetailPage() {
       <PDFProcessingProgress pdfId={pdfId} filename={data.filename} onComplete={handleComplete} />
 
       {data.processingStatus === 'completed' ? (
-        <Tabs defaultValue="extracted" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
             <TabsTrigger value="extracted" className="gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
@@ -214,7 +216,7 @@ export default function PDFDetailPage() {
           </TabsContent>
 
           <TabsContent value="pdf" className="mt-4">
-            <PDFViewer pdfId={pdfId} />
+            <PDFViewer pdfId={pdfId} enabled={activeTab === 'pdf'} />
           </TabsContent>
         </Tabs>
       ) : null}

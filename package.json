@@ -6,7 +6,7 @@
     "dev": "node scripts/kill-port.js 3847 && next dev -p 3847",
     "dev:ws": "tsx src/server/ws-server.ts",
     "build": "prisma generate && next build",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
