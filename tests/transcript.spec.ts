@@ -21,7 +21,7 @@ async function openFirstSessionDetail(page: Page): Promise<boolean> {
   const sessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {
     for (const link of links) {
       const href = link.getAttribute('href');
-      if (href && /\/campaigns\/[^/]+\/sessions\/[^/]+$/.test(href)) {
+      if (href && /\/campaigns\/[^/]+\/sessions\/(?!prep$|new$)[^/]+$/.test(href)) {
         return href;
       }
     }
