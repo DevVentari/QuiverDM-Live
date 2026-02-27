@@ -55,6 +55,25 @@ export async function findActiveByCampaignId(campaignId: string) {
   });
 }
 
+/** Return the N most recent sessions that have recaps, for loose-thread detection. */
+export async function findRecentByCampaignId(campaignId: string, limit = 5) {
+  return prisma.gameSession.findMany({
+    where: {
+      campaignId,
+      recap: { not: null },
+    },
+    orderBy: { sessionNumber: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      sessionNumber: true,
+      title: true,
+      recap: true,
+      aiSummary: true,
+    },
+  });
+}
+
 export async function create(data: {
   campaignId: string;
   title: string;
@@ -63,14 +82,8 @@ export async function create(data: {
   summary?: string;
   status?: string;
   quickNotes?: string;
-  prepStrongStart?: string;
-  prepSceneOutline?: Prisma.InputJsonValue;
-  prepSecrets?: Prisma.InputJsonValue;
-  prepLocations?: Prisma.InputJsonValue;
-  prepNpcs?: Prisma.InputJsonValue;
-  prepEncounters?: Prisma.InputJsonValue;
-  prepRewards?: Prisma.InputJsonValue;
-  prepSessionArc?: string;
+  prepData?: Prisma.InputJsonValue;
+  prepStatus?: string;
 }) {
   return prisma.gameSession.create({ data });
 }
@@ -84,14 +97,25 @@ export async function update(
     status?: string;
     quickNotes?: string;
     recap?: string;
-    prepStrongStart?: string;
-    prepSceneOutline?: Prisma.InputJsonValue;
-    prepSecrets?: Prisma.InputJsonValue;
-    prepLocations?: Prisma.InputJsonValue;
-    prepNpcs?: Prisma.InputJsonValue;
-    prepEncounters?: Prisma.InputJsonValue;
-    prepRewards?: Prisma.InputJsonValue;
-    prepSessionArc?: string;
+    prepData?: Prisma.InputJsonValue;
+    prepStatus?: string;
+    playerVisibility?: string;
+    aiSummaryStatus?: string;
+    aiSummary?: string;
+    aiHighlights?: Prisma.InputJsonValue;
+    aiSummaryError?: string | null;
+    aiSummaryAt?: Date | null;
+    shareToken?: string;
+  }
+) {
+  return prisma.gameSession.update({ where: { id }, data });
+}
+
+export async function updatePrep(
+  id: string,
+  data: {
+    prepData: Prisma.InputJsonValue;
+    prepStatus: string;
   }
 ) {
   return prisma.gameSession.update({ where: { id }, data });
@@ -155,6 +179,7 @@ export async function findByCampaignIdWithSummaries(campaignId: string) {
       title: true,
       date: true,
       status: true,
+      prepStatus: true,
       aiSummary: true,
       aiSummaryStatus: true,
       aiHighlights: true,
@@ -167,8 +192,10 @@ export const sessionRepository = {
   findById,
   findByCampaignId,
   findActiveByCampaignId,
+  findRecentByCampaignId,
   create,
   update,
+  updatePrep,
   remove,
   getNextSessionNumber,
   updateSummaryStatus,

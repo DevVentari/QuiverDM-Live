@@ -78,7 +78,7 @@ export default function SessionsPage() {
         </div>
         {isDM && (
           <Button size="sm" className="gap-1.5" asChild>
-            <Link href={`/campaigns/${slug}/sessions/new`}>
+            <Link href={`/campaigns/${slug}/sessions/prep`}>
               <Plus className="h-3.5 w-3.5" />
               New Session
             </Link>
@@ -170,6 +170,16 @@ export default function SessionsPage() {
                             {isPlanning && (
                               <Badge variant="outline" className="text-xs shrink-0 text-slate-400 border-slate-500/30 bg-slate-500/10">
                                 Planning
+                              </Badge>
+                            )}
+                            {session.prepStatus === 'draft' && (
+                              <Badge
+                                variant="outline"
+                                className="shrink-0 border-amber-500/30 bg-amber-500/10 text-xs text-amber-300 hover:border-amber-400/50"
+                              >
+                                <Link href={`/campaigns/${slug}/sessions/prep?sessionId=${session.id}`}>
+                                  Prep Draft
+                                </Link>
                               </Badge>
                             )}
                           </div>

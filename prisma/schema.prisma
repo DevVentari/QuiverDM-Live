@@ -391,15 +391,9 @@ model GameSession {
   status           String              @default("planning") // planning, in_progress, active, completed, cancelled
   playerVisibility String              @default("dm-only") // dm-only|summary-only|public
 
-  // Lazy DM prep fields
-  prepStrongStart  String?             @db.Text
-  prepSceneOutline Json?               // [{id, text}] max 7
-  prepSecrets      Json?               // [{id, text}] max 10
-  prepLocations    Json?               // [{id, name, description}]
-  prepNpcs         Json?               // [{id, name, motivation, npcId?}]
-  prepEncounters   Json?               // [{id, name, encounterPlanId?}]
-  prepRewards      Json?               // [{id, text}]
-  prepSessionArc   String?             @db.Text
+  // Lazy DM structured prep (8 steps)
+  prepData         Json?               // SessionPrepData blob
+  prepStatus       String              @default("none") // none | draft | complete
 
   recordings       SessionRecording[]
   transcripts      Transcript[]
