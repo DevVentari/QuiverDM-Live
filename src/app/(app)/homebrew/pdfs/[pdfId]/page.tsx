@@ -12,9 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PDFProcessingProgress } from '@/components/PDFProcessingProgress';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { getTypeStyle } from '@/lib/homebrew-utils';
-import { AlertCircle, ArrowLeft, FileText, Loader2, RefreshCw, Sparkles } from 'lucide-react';
+import { AlertCircle, ArrowLeft, BookOpen, FileText, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { PDFViewer } from '@/components/homebrew/pdf-viewer';
 
 export default function PDFDetailPage() {
   const params = useParams();
@@ -134,6 +135,10 @@ export default function PDFDetailPage() {
               <FileText className="h-3.5 w-3.5" />
               Raw Markdown
             </TabsTrigger>
+            <TabsTrigger value="pdf" className="gap-1.5">
+              <BookOpen className="h-3.5 w-3.5" />
+              View PDF
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="extracted" className="mt-4 space-y-4">
@@ -206,6 +211,10 @@ export default function PDFDetailPage() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="pdf" className="mt-4">
+            <PDFViewer pdfId={pdfId} />
           </TabsContent>
         </Tabs>
       ) : null}
