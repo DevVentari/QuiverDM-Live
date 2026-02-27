@@ -13,6 +13,7 @@ import { BadRequestError, NotFoundError } from '../errors';
 import { derailmentQueue } from '@/lib/queue/derailment-queue';
 import { combatCopilotQueue } from '@/lib/queue/combat-copilot-queue';
 import { playerRecapQueue } from '@/lib/queue/player-recap-queue';
+import { SessionPrepDataSchema } from '@/lib/prep-types';
 
 export const sessionsRouter = router({
   /**
@@ -44,8 +45,7 @@ export const sessionsRouter = router({
     ),
 
   /**
-   * Create new session
-   * Requires DM access or canManageSessions permission
+   * Create new session (quick-create, no wizard)
    */
   create: protectedProcedure
     .input(
@@ -53,6 +53,7 @@ export const sessionsRouter = router({
         campaignId: z.string().min(1),
         title: z.string().max(500).optional(),
         quickNotes: z.string().max(10000).optional(),
+        status: z.enum(['planning', 'in_progress']).optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -61,8 +62,99 @@ export const sessionsRouter = router({
     }),
 
   /**
+   * Create a planning session for the Lazy DM wizard.
+   * Returns a session in 'planning' status with empty prepData.
+   */
+  createPrepSession: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      sessionService.createPrepSession(input.campaignId, ctx.session.user.id)
+    ),
+
+  /**
+   * Save prep wizard data (auto-save). Merges with existing prepData.
+   */
+  updatePrep: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        prepData: SessionPrepDataSchema.partial(),
+      })
+    )
+    .mutation(({ input, ctx }) =>
+      sessionService.updatePrep(input.id, ctx.session.user.id, input.prepData)
+    ),
+
+  /**
+   * Mark prep as complete. Session stays 'planning' until DM starts it.
+   */
+  completePrep: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      sessionService.completePrep(input.id, ctx.session.user.id)
+    ),
+
+  /**
+   * Get context needed for the prep wizard (characters, NPCs, recent sessions, homebrew).
+   */
+  getPrepContext: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .query(({ input, ctx }) =>
+      sessionService.getContextForPrep(input.campaignId, ctx.session.user.id)
+    ),
+
+  /**
+   * AI: Suggest a strong start (step 2).
+   */
+  aiSuggestStrongStart: protectedProcedure
+    .input(z.object({ sessionId: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      sessionService.aiSuggestStrongStart(input.sessionId, ctx.session.user.id)
+    ),
+
+  /**
+   * AI: Suggest potential scenes (step 3).
+   */
+  aiSuggestScenes: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string().min(1),
+        strongStart: z.string().default(''),
+      })
+    )
+    .mutation(({ input, ctx }) =>
+      sessionService.aiSuggestScenes(input.sessionId, ctx.session.user.id, input.strongStart)
+    ),
+
+  /**
+   * AI: Suggest secrets & clues (step 4).
+   */
+  aiSuggestSecrets: protectedProcedure
+    .input(z.object({ sessionId: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      sessionService.aiSuggestSecrets(input.sessionId, ctx.session.user.id)
+    ),
+
+  /**
+   * AI: Detect loose threads from recent session recaps (step 8).
+   */
+  aiDetectLooseThreads: protectedProcedure
+    .input(z.object({ sessionId: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      sessionService.aiDetectLooseThreads(input.sessionId, ctx.session.user.id)
+    ),
+
+  /**
+   * Start a planned session (planning → in_progress)
+   */
+  startSession: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(({ input, ctx }) =>
+      sessionService.startSession(input.id, ctx.session.user.id)
+    ),
+
+  /**
    * Update session
-   * Requires DM access or canManageSessions permission
    */
   update: protectedProcedure
     .input(
@@ -81,7 +173,6 @@ export const sessionsRouter = router({
 
   /**
    * Update player visibility for a session
-   * Requires DM access or canManageSessions permission
    */
   updateVisibility: protectedProcedure
     .input(
@@ -103,7 +194,6 @@ export const sessionsRouter = router({
 
   /**
    * Delete session
-   * Requires DM access or canManageSessions permission
    */
   delete: protectedProcedure
     .input(
@@ -117,7 +207,6 @@ export const sessionsRouter = router({
 
   /**
    * Get active session for a campaign
-   * Supports multi-user: any campaign member can view
    */
   getActive: protectedProcedure
     .input(
@@ -134,7 +223,6 @@ export const sessionsRouter = router({
 
   /**
    * Complete session
-   * Requires DM access or canManageSessions permission
    */
   complete: protectedProcedure
     .input(
@@ -151,7 +239,6 @@ export const sessionsRouter = router({
 
   /**
    * Generate AI recap from session transcripts
-   * Requires DM access (OWNER or CO_DM)
    */
   generateRecap: campaignDMProcedure
     .input(
