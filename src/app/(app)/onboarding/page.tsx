@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import {
@@ -565,16 +566,27 @@ export default function OnboardingPage() {
   }
 
   if (error) {
+    // NOT_FOUND means the session references a user that no longer exists —
+    // sign out so they can log in with a valid account.
+    const isNotFound = (error as any)?.data?.code === 'NOT_FOUND';
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Card className="max-w-md w-full">
-          <CardContent className="py-8 text-center">
-            <p className="text-destructive mb-4">
-              Failed to load onboarding status.
+          <CardContent className="py-8 text-center space-y-4">
+            <p className="text-destructive">
+              {isNotFound
+                ? 'Your session is no longer valid.'
+                : 'Failed to load onboarding status.'}
             </p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Retry
-            </Button>
+            {isNotFound ? (
+              <Button onClick={() => signOut({ callbackUrl: '/auth/signin' })}>
+                Sign in again
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

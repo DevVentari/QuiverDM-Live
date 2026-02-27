@@ -138,6 +138,10 @@ export const onboardingService = {
       select: { onboardingCompleted: true },
     });
 
-    return !user?.onboardingCompleted;
+    // If user doesn't exist (stale JWT), don't redirect to onboarding —
+    // the app will surface an appropriate error elsewhere.
+    if (!user) return false;
+
+    return !user.onboardingCompleted;
   },
 };
