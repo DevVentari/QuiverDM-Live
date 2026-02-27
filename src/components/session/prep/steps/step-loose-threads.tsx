@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
 import type { PrepLooseThread } from '@/lib/prep-types';
 import { AiSuggestionCard } from '../ai-suggestion-card';
+import { VoiceScribe } from '../voice-scribe';
 
 export function StepLooseThreads({
   sessionId,
@@ -45,11 +45,11 @@ export function StepLooseThreads({
       {threads.map((thread) => (
         <div key={thread.id} className="flex items-start gap-2">
           <div className="flex-1">
-            <Textarea
+            <VoiceScribe
               value={thread.text}
-              onChange={(e) => update(thread.id, e.target.value)}
+              onChange={(v) => update(thread.id, v)}
               placeholder="An unresolved thread..."
-              className="min-h-[60px] resize-none text-sm"
+              minHeight={60}
             />
             {thread.fromSessionTitle && (
               <p className="mt-1 text-xs text-muted-foreground">
