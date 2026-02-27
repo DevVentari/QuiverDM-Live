@@ -22,7 +22,7 @@ export function PDFViewer({ pdfId }: PDFViewerProps) {
 
   const presignedUrlQuery = trpc.homebrewPdf.getPresignedUrl.useQuery(
     { pdfId },
-    { staleTime: 50 * 60 * 1000 } // Refresh before the 1-hour expiry
+    { staleTime: 45 * 60 * 1000 } // 45 min stale — 15 min safety margin before 1-hr expiry
   );
 
   const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
@@ -58,6 +58,7 @@ export function PDFViewer({ pdfId }: PDFViewerProps) {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
+            aria-label="Previous page"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage <= 1}
           >
@@ -70,6 +71,7 @@ export function PDFViewer({ pdfId }: PDFViewerProps) {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
+            aria-label="Next page"
             onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
             disabled={currentPage >= numPages}
           >
@@ -82,6 +84,7 @@ export function PDFViewer({ pdfId }: PDFViewerProps) {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
+            aria-label="Zoom out"
             onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
             disabled={scale <= 0.5}
           >
@@ -94,6 +97,7 @@ export function PDFViewer({ pdfId }: PDFViewerProps) {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
+            aria-label="Zoom in"
             onClick={() => setScale((s) => Math.min(2.5, s + 0.25))}
             disabled={scale >= 2.5}
           >
@@ -105,7 +109,7 @@ export function PDFViewer({ pdfId }: PDFViewerProps) {
       {/* PDF Canvas */}
       <div className="overflow-auto rounded-lg border bg-muted/20">
         <Document
-          file={presignedUrlQuery.data}
+          file={presignedUrlQuery.data.url}
           onLoadSuccess={onDocumentLoadSuccess}
           loading={<Skeleton className="mx-auto h-[600px] w-full" />}
           error={
