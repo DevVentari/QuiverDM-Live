@@ -12,6 +12,7 @@ const nextConfig = {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
   transpilePackages: ['next-themes'],
+  serverExternalPackages: ['pdfjs-dist'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
@@ -70,6 +71,19 @@ const nextConfig = {
       // These packages use dynamic requires incompatible with webpack bundling
       config.externals.push('@ffmpeg-installer/ffmpeg', 'fluent-ffmpeg');
     }
+    // pdfjs-dist optionally imports canvas — alias to false to avoid webpack errors
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      canvas: false,
+    };
+    // pdfjs-dist v5 is ESM-only (.mjs). Webpack's ES module initializer
+    // (Object.defineProperty on exports) fails for these files — use
+    // 'javascript/auto' to treat them as plain scripts instead.
+    // Uses path-based test regex to avoid Windows backslash issues with include.
+    config.module.rules.push({
+      test: /node_modules[/\\](?:pdfjs-dist|react-pdf[/\\]node_modules[/\\]pdfjs-dist)[/\\].*\.mjs$/,
+      type: 'javascript/auto',
+    });
     return config;
   }
 };

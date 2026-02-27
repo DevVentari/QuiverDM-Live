@@ -14,15 +14,26 @@ async function signIn(page: Page) {
   await page.waitForURL(`${BASE}/dashboard`, { timeout: 15_000 });
 }
 
-/** Returns the href of the first completed PDF, or null if none exist. */
+/** Returns the path of the first completed PDF, or null if none exist. */
 async function getFirstCompletedPdfHref(page: Page): Promise<string | null> {
   await page.goto(`${BASE}/homebrew/pdfs`);
   await page.waitForLoadState('networkidle');
-  // PDF cards render as links to /homebrew/pdfs/<id>
-  const link = page.locator('a[href^="/homebrew/pdfs/"]').first();
-  const visible = await link.isVisible({ timeout: 4_000 }).catch(() => false);
+
+  // Click the "completed" filter button to narrow results
+  const completedFilter = page.locator('button.capitalize', { hasText: 'completed' }).first();
+  await completedFilter.click();
+  await page.waitForTimeout(300);
+
+  // Cards use router.push — click on the card's filename heading to navigate
+  const cardHeading = page.locator('h3').first();
+  const visible = await cardHeading.isVisible({ timeout: 4_000 }).catch(() => false);
   if (!visible) return null;
-  return link.getAttribute('href');
+
+  await cardHeading.click();
+  await page.waitForURL(/\/homebrew\/pdfs\//, { timeout: 8_000 }).catch(() => {});
+  const url = page.url();
+  if (!url.includes('/homebrew/pdfs/')) return null;
+  return url.replace(BASE, '');
 }
 
 function collectErrors(page: Page) {
@@ -123,14 +134,15 @@ test.describe('PDF Viewer Tab', () => {
     await page.locator('[role="tab"]:has-text("View PDF")').click();
     await expect(page.locator('button[aria-label="Zoom in"]')).toBeVisible({ timeout: 5_000 });
 
-    await expect(page.locator('span').filter({ hasText: '100%' })).toBeVisible();
+    const zoomLevel = page.locator('[data-testid="pdf-zoom-level"]');
+    await expect(zoomLevel).toHaveText('100%');
 
     await page.locator('button[aria-label="Zoom in"]').click();
-    await expect(page.locator('span').filter({ hasText: '125%' })).toBeVisible();
+    await expect(zoomLevel).toHaveText('125%');
 
     await page.locator('button[aria-label="Zoom out"]').click();
     await page.locator('button[aria-label="Zoom out"]').click();
-    await expect(page.locator('span').filter({ hasText: '75%' })).toBeVisible();
+    await expect(zoomLevel).toHaveText('75%');
 
     console.log('✅ Zoom controls work correctly');
   });
