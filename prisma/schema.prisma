@@ -392,8 +392,13 @@ model GameSession {
   title            String?
   quickNotes       String?             @db.Text
   recap            String?             @db.Text
-  status           String              @default("active") // active, completed, cancelled
+  status           String              @default("planning") // planning, in_progress, active, completed, cancelled
   playerVisibility String              @default("dm-only") // dm-only|summary-only|public
+
+  // Lazy DM structured prep (8 steps)
+  prepData         Json?               // SessionPrepData blob
+  prepStatus       String              @default("none") // none | draft | complete
+
   recordings       SessionRecording[]
   transcripts      Transcript[]
   encounters       Encounter[]

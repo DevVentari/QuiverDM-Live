@@ -9,10 +9,21 @@ import { addAiSummaryJob } from '@/lib/queue/ai-summary-queue';
 import { sessionRepository } from '../repositories/session.repository';
 import { authz } from './authorization.service';
 import { prisma } from '../db';
-import { generateWithOllama } from '@/lib/ai/ollama';
+import { generateWithOllama, isOllamaAvailable } from '@/lib/ai/ollama';
 import { BadRequestError, NotFoundError } from '../errors';
 import { webhookService } from './webhook.service';
 import { usageService } from './usage.service';
+import {
+  SessionPrepDataSchema,
+  emptyPrepData,
+  type SessionPrepData,
+} from '@/lib/prep-types';
+import {
+  buildStrongStartPrompt,
+  buildScenesPrompt,
+  buildSecretsPrompt,
+  buildLooseThreadsPrompt,
+} from '@/lib/ai/prep-prompts';
 
 export class SessionService {
   async getById(sessionId: string, userId: string) {
@@ -82,32 +93,334 @@ export class SessionService {
     input: {
       title?: string;
       quickNotes?: string;
+      status?: 'planning' | 'in_progress';
     }
   ) {
     await authz
       .campaign(campaignId, userId)
       .requirePermission('canManageSessions');
 
-    const sessionNumber = await sessionRepository.getNextSessionNumber(
-      campaignId
-    );
-
+    const sessionNumber = await sessionRepository.getNextSessionNumber(campaignId);
     const title = input.title || `Session ${sessionNumber}`;
+    const status = input.status ?? 'in_progress';
 
     const session = await sessionRepository.create({
       campaignId,
       title,
       sessionNumber,
       quickNotes: input.quickNotes,
-      status: 'in_progress',
+      status,
     });
 
-    void webhookService.dispatch(campaignId, 'session.started', {
+    if (status === 'in_progress') {
+      void webhookService.dispatch(campaignId, 'session.started', {
+        sessionId: session.id,
+        sessionNumber: session.sessionNumber,
+        title: session.title,
+      });
+    }
+
+    return session;
+  }
+
+  /**
+   * Create a new planning session for the Lazy DM wizard.
+   * Sets status='planning', prepStatus='draft', and initializes empty prepData.
+   */
+  async createPrepSession(campaignId: string, userId: string) {
+    await authz.campaign(campaignId, userId).requirePermission('canManageSessions');
+
+    const sessionNumber = await sessionRepository.getNextSessionNumber(campaignId);
+    const title = `Session ${sessionNumber}`;
+
+    const initialPrep = emptyPrepData();
+    initialPrep.lastSavedAt = new Date().toISOString();
+
+    return sessionRepository.create({
+      campaignId,
+      title,
+      sessionNumber,
+      status: 'planning',
+      prepData: initialPrep as unknown as import('@prisma/client').Prisma.InputJsonValue,
+      prepStatus: 'draft',
+    });
+  }
+
+  /**
+   * Save prep data (auto-save from wizard). Sets prepStatus='draft'.
+   */
+  async updatePrep(
+    sessionId: string,
+    userId: string,
+    prepData: Partial<SessionPrepData>
+  ) {
+    await authz.session(sessionId, userId).requireManage();
+
+    // Merge with existing data and stamp lastSavedAt
+    const existing = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: { prepData: true },
+    });
+
+    const parsed = existing?.prepData
+      ? SessionPrepDataSchema.safeParse(existing.prepData)
+      : null;
+    const base = parsed?.success ? parsed.data : emptyPrepData();
+
+    const merged: SessionPrepData = {
+      ...base,
+      ...prepData,
+      lastSavedAt: new Date().toISOString(),
+    };
+
+    return sessionRepository.updatePrep(sessionId, {
+      prepData: merged as unknown as import('@prisma/client').Prisma.InputJsonValue,
+      prepStatus: 'draft',
+    });
+  }
+
+  /**
+   * Mark prep as complete. Session stays in 'planning' status until DM starts it.
+   */
+  async completePrep(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).requireManage();
+    return sessionRepository.updatePrep(sessionId, {
+      prepData: (await prisma.gameSession.findUnique({
+        where: { id: sessionId },
+        select: { prepData: true },
+      }))?.prepData as import('@prisma/client').Prisma.InputJsonValue,
+      prepStatus: 'complete',
+    });
+  }
+
+  /**
+   * Fetch all context needed for the prep wizard:
+   * - Campaign characters with goals
+   * - Campaign NPCs
+   * - Recent sessions (recaps for loose threads)
+   * - Homebrew items for rewards step
+   */
+  async getContextForPrep(campaignId: string, userId: string) {
+    await authz.campaign(campaignId, userId).requirePermission('canManageSessions');
+
+    const [characters, npcs, recentSessions, homebrewLinks] = await Promise.all([
+      prisma.campaignCharacter.findMany({
+        where: { campaignId },
+        select: {
+          character: {
+            select: {
+              id: true,
+              name: true,
+              class: true,
+              background: true,
+            },
+          },
+        },
+      }),
+      prisma.nPC.findMany({
+        where: { campaignId },
+        orderBy: { updatedAt: 'desc' },
+        take: 30,
+        select: {
+          id: true,
+          name: true,
+          role: true,
+          description: true,
+        },
+      }),
+      sessionRepository.findRecentByCampaignId(campaignId, 5),
+      prisma.homebrewContent.findMany({
+        where: {
+          campaigns: { some: { campaignId } },
+          type: { in: ['item', 'spell'] },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 50,
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          data: true,
+        },
+      }),
+    ]);
+
+    const charactersForPrep = characters.map((entry) => entry.character);
+    const npcsForPrep = npcs.map((npc) => ({
+      id: npc.id,
+      name: npc.name,
+      role: npc.role,
+      motivation: npc.description,
+    }));
+
+    return { characters: charactersForPrep, npcs: npcsForPrep, recentSessions, homebrew: homebrewLinks };
+  }
+
+  /**
+   * AI: Suggest a strong start (step 2).
+   */
+  async aiSuggestStrongStart(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).requireManage();
+
+    const session = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: { campaignId: true },
+    });
+    if (!session) throw new NotFoundError('session', sessionId);
+
+    const ctx = await this.getContextForPrep(session.campaignId, userId);
+    const recentRecap = ctx.recentSessions[0]?.recap ?? ctx.recentSessions[0]?.aiSummary ?? undefined;
+
+    const available = await isOllamaAvailable();
+    if (!available) {
+      throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Ollama is not available' });
+    }
+
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: session.campaignId },
+      select: { name: true, description: true },
+    });
+
+    const prompt = buildStrongStartPrompt({
+      campaignName: campaign?.name ?? 'Unknown Campaign',
+      campaignDescription: campaign?.description ?? undefined,
+      recentRecap,
+      characters: ctx.characters.map((c) => ({ name: c.name, class: c.class ?? undefined })),
+      knownNpcs: ctx.npcs.map((n) => ({ name: n.name, role: n.role ?? undefined })),
+    });
+
+    const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.8 });
+    const parsed = JSON.parse(raw) as { strongStart?: string };
+    return { strongStart: parsed.strongStart ?? '' };
+  }
+
+  /**
+   * AI: Suggest potential scenes (step 3).
+   */
+  async aiSuggestScenes(sessionId: string, userId: string, strongStart: string) {
+    await authz.session(sessionId, userId).requireManage();
+
+    const session = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: { campaignId: true },
+    });
+    if (!session) throw new NotFoundError('session', sessionId);
+
+    const available = await isOllamaAvailable();
+    if (!available) {
+      throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Ollama is not available' });
+    }
+
+    const [campaign, ctx] = await Promise.all([
+      prisma.campaign.findUnique({
+        where: { id: session.campaignId },
+        select: { name: true },
+      }),
+      this.getContextForPrep(session.campaignId, userId),
+    ]);
+
+    const recentRecap = ctx.recentSessions[0]?.recap ?? ctx.recentSessions[0]?.aiSummary ?? undefined;
+
+    const prompt = buildScenesPrompt(
+      {
+        campaignName: campaign?.name ?? 'Unknown Campaign',
+        recentRecap,
+        characters: ctx.characters.map((c) => ({ name: c.name, class: c.class ?? undefined })),
+        knownNpcs: ctx.npcs.map((n) => ({ name: n.name, role: n.role ?? undefined })),
+      },
+      strongStart
+    );
+
+    const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.8 });
+    const parsed = JSON.parse(raw) as { scenes?: unknown[] };
+    return { scenes: parsed.scenes ?? [] };
+  }
+
+  /**
+   * AI: Suggest secrets & clues (step 4).
+   */
+  async aiSuggestSecrets(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).requireManage();
+
+    const session = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: { campaignId: true },
+    });
+    if (!session) throw new NotFoundError('session', sessionId);
+
+    const available = await isOllamaAvailable();
+    if (!available) {
+      throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Ollama is not available' });
+    }
+
+    const [campaign, ctx] = await Promise.all([
+      prisma.campaign.findUnique({
+        where: { id: session.campaignId },
+        select: { name: true },
+      }),
+      this.getContextForPrep(session.campaignId, userId),
+    ]);
+
+    const recentRecap = ctx.recentSessions[0]?.recap ?? ctx.recentSessions[0]?.aiSummary ?? undefined;
+
+    const prompt = buildSecretsPrompt({
+      campaignName: campaign?.name ?? 'Unknown Campaign',
+      recentRecap,
+      characters: ctx.characters.map((c) => ({ name: c.name, class: c.class ?? undefined })),
+      knownNpcs: ctx.npcs.map((n) => ({ name: n.name, role: n.role ?? undefined })),
+    });
+
+    const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.8 });
+    const parsed = JSON.parse(raw) as { secretsAndClues?: unknown[] };
+    return { secretsAndClues: parsed.secretsAndClues ?? [] };
+  }
+
+  /**
+   * AI: Detect loose threads from recent session recaps (step 8).
+   */
+  async aiDetectLooseThreads(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).requireManage();
+
+    const session = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: { campaignId: true },
+    });
+    if (!session) throw new NotFoundError('session', sessionId);
+
+    const available = await isOllamaAvailable();
+    if (!available) {
+      throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Ollama is not available' });
+    }
+
+    const recentSessions = await sessionRepository.findRecentByCampaignId(session.campaignId, 5);
+
+    const recapsWithText = recentSessions
+      .filter((s) => s.recap || s.aiSummary)
+      .map((s) => ({
+        id: s.id,
+        sessionNumber: s.sessionNumber,
+        title: s.title ?? undefined,
+        recap: (s.recap || s.aiSummary) as string,
+      }));
+
+    if (recapsWithText.length === 0) {
+      return { looseThreads: [] };
+    }
+
+    const prompt = buildLooseThreadsPrompt(recapsWithText);
+    const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.6 });
+    const parsed = JSON.parse(raw) as { looseThreads?: unknown[] };
+    return { looseThreads: parsed.looseThreads ?? [] };
+  }
+
+  async startSession(sessionId: string, userId: string) {
+    await authz.session(sessionId, userId).requireManage();
+    const session = await sessionRepository.update(sessionId, { status: 'in_progress' });
+    void webhookService.dispatch(session.campaignId, 'session.started', {
       sessionId: session.id,
       sessionNumber: session.sessionNumber,
       title: session.title,
     });
-
     return session;
   }
 
@@ -254,21 +567,14 @@ export class SessionService {
     return sessionRepository.findByCampaignIdWithSummaries(campaignId);
   }
 
-  /**
-   * Generate an AI recap from session transcripts.
-   * Requires DM-level access on the session's campaign.
-   */
   async generateRecap(sessionId: string, userId: string): Promise<string> {
-    // Verify user has manage permission on the session
     await authz.session(sessionId, userId).requireManage();
 
-    // Fetch the session to ensure it exists
     const session = await sessionRepository.findById(sessionId);
     if (!session) {
       throw new NotFoundError('session', sessionId);
     }
 
-    // Fetch all transcripts for this session
     const transcripts = await prisma.transcript.findMany({
       where: { sessionId },
       orderBy: { createdAt: 'asc' },
@@ -278,7 +584,6 @@ export class SessionService {
       },
     });
 
-    // Concatenate transcript text (prefer correctedText, fall back to rawText)
     const transcriptText = transcripts
       .map((t) => t.correctedText || t.rawText)
       .filter(Boolean)
@@ -288,14 +593,12 @@ export class SessionService {
       throw new BadRequestError('No transcript text available for recap generation');
     }
 
-    // Generate recap with AI
     const prompt = `You are a D&D session recap writer. Summarize this session transcript into a narrative recap suitable for players. Include key events, NPC interactions, combat outcomes, and important decisions. Keep it concise (2-4 paragraphs).\n\nTranscript:\n${transcriptText}`;
 
     const recap = await generateWithOllama(prompt, {
       temperature: 0.7,
     });
 
-    // Save recap to the session record
     await sessionRepository.update(sessionId, { recap });
 
     void webhookService.dispatch(session.campaignId, 'summary.ready', {
