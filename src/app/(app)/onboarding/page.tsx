@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+// useRouter removed — all onboarding navigation uses window.location.href
+// to force a full page load and clear stale React Query caches.
 import { signOut } from 'next-auth/react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -246,7 +247,6 @@ function FirstCampaignStep({
   onNext: () => void;
   onSkip: () => void;
 }) {
-  const router = useRouter();
   const { toast } = useToast();
   const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose');
   const [campaignName, setCampaignName] = useState('');
@@ -543,7 +543,6 @@ function CompleteStep() {
 }
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const { data: status, isLoading, error } = trpc.onboarding.getStatus.useQuery(undefined, { staleTime: 300_000 });
 
   const [localStep, setLocalStep] = useState<OnboardingStep | null>(null);
@@ -553,7 +552,7 @@ export default function OnboardingPage() {
 
   // If onboarding is already completed and no local override, redirect to dashboard
   if (status?.completed && !localStep) {
-    router.push('/dashboard');
+    window.location.href = '/dashboard';
     return null;
   }
 
@@ -601,7 +600,9 @@ export default function OnboardingPage() {
   }
 
   function handleSkipComplete() {
-    router.push('/dashboard');
+    // Use hard navigation to wipe the stale needsOnboarding React Query cache
+    // (which was cached as `true` right after signup before onboarding ran).
+    window.location.href = '/dashboard';
   }
 
   return (
