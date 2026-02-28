@@ -41,6 +41,7 @@ export function PDFViewer({ pdfId, enabled = true }: PDFViewerProps) {
       // webpackIgnore: true bypasses webpack bundling for pdfjs-dist (ESM-only v5
       // causes "Object.defineProperty called on non-object" when webpack wraps it).
       // The browser loads /pdf.min.mjs natively as an ES module from the public dir.
+      // @ts-ignore -- browser-native ES module served from public/, bypassed by webpack
       const pdfjs = await import(/* webpackIgnore: true */ '/pdf.min.mjs') as any;
       pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
       const doc = await pdfjs.getDocument(url).promise;

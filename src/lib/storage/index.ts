@@ -37,9 +37,11 @@ class LocalStorageProvider implements StorageProvider {
   }
 
   private getFilePath(key: string): string {
-    // Ensure key doesn't escape base directory
-    const normalizedKey = key.replace(/\.\./g, '').replace(/^\//, '');
-    return path.join(this.basePath, normalizedKey);
+    const resolved = path.resolve(this.basePath, key);
+    if (!resolved.startsWith(this.basePath)) {
+      throw new Error('Invalid file path');
+    }
+    return resolved;
   }
 
   async upload(key: string, data: Buffer, _contentType?: string): Promise<string> {
@@ -133,14 +135,9 @@ class R2StorageProvider implements StorageProvider {
     return `/api/storage/${key}`;
   }
 
-  async exists(_key: string): Promise<boolean> {
-    // R2 doesn't have a simple exists check, try download
-    try {
-      await this.download(_key);
-      return true;
-    } catch {
-      return false;
-    }
+  async exists(key: string): Promise<boolean> {
+    const r2 = await this.getR2Module();
+    return r2.existsInR2(key);
   }
 }
 

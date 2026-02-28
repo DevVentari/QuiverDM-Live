@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Trash2, ChevronDown, ChevronRight, Save, Image,
+  Trash2, ChevronDown, ChevronRight, Save, Image as ImageIcon,
   Leaf, Swords, Sparkles, Shield, BookOpen,
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -479,7 +479,7 @@ export function EncounterBuilder({
             <Card>
               <CardContent className="pt-4 pb-3 space-y-2">
                 <Label className="text-xs text-muted-foreground flex items-center gap-2">
-                  <Image className="h-3.5 w-3.5 text-purple-400" />
+                  <ImageIcon className="h-3.5 w-3.5 text-purple-400" />
                   Encounter Banner
                   <Badge variant="outline" className="text-xs py-0 px-1.5 h-4 font-normal">optional</Badge>
                 </Label>

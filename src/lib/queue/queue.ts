@@ -9,7 +9,7 @@ import Redis from 'ioredis';
 
 // Redis connection configuration
 // Supports both Upstash (via REDIS_URL) and traditional Redis (via REDIS_HOST/PORT)
-function getRedisConnection() {
+export function getRedisConnection() {
   if (process.env.REDIS_URL) {
     // Upstash or Redis connection string format
     return process.env.REDIS_URL;
