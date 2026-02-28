@@ -10,9 +10,13 @@ import ffmpegPath from '@ffmpeg-installer/ffmpeg';
 // Set ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath.path);
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return _openai;
+}
 
 /**
  * Detect if file is video based on file signature
@@ -106,7 +110,7 @@ export const whisperRouter = router({
         const file = new File([new Uint8Array(audioBuffer)], 'audio.mp3', { type: 'audio/mpeg' });
 
         // Call Whisper API
-        const transcription = await openai.audio.transcriptions.create({
+        const transcription = await getOpenAI().audio.transcriptions.create({
           file: file,
           model: 'whisper-1',
           language: input.language,
@@ -148,7 +152,7 @@ export const whisperRouter = router({
         const file = new File([new Uint8Array(audioBuffer)], 'audio.mp3', { type: 'audio/mpeg' });
 
         // Call Whisper API for translation (translates to English)
-        const translation = await openai.audio.translations.create({
+        const translation = await getOpenAI().audio.translations.create({
           file: file,
           model: 'whisper-1',
           prompt: input.prompt,
