@@ -249,7 +249,7 @@ export function StepNpcs({
 
           {filteredCampaignNpcs.length === 0 && search && (
             <p className="text-sm text-center text-muted-foreground/50 py-4">
-              No NPCs match "{search}"
+              No NPCs match &quot;{search}&quot;
             </p>
           )}
         </section>

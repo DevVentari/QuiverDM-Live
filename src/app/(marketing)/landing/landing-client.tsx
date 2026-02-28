@@ -148,7 +148,7 @@ const FEATURE_TABS = [
           ))}
         </div>
         <div className="rounded border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-amber-400/70">
-          🔒 DM Note: He is secretly the Crimson Hand's informant
+          🔒 DM Note: He is secretly the Crimson Hand&apos;s informant
         </div>
       </div>
     ),

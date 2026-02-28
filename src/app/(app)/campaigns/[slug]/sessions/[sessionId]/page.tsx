@@ -215,6 +215,14 @@ function TranscriptViewer({ sessionId, canView }: { sessionId: string; canView: 
 
   const transcriptList = (transcripts.data ?? []) as any[];
 
+  const getFilteredSegments = useCallback(
+    (segments: TranscriptSegment[]): TranscriptSegment[] => {
+      if (!searchQuery.trim()) return segments;
+      return segments.filter((seg) => seg.text.toLowerCase().includes(searchQuery.toLowerCase()));
+    },
+    [searchQuery]
+  );
+
   if (!canView) {
     return (
       <Card>
@@ -224,14 +232,6 @@ function TranscriptViewer({ sessionId, canView }: { sessionId: string; canView: 
       </Card>
     );
   }
-
-  const getFilteredSegments = useCallback(
-    (segments: TranscriptSegment[]): TranscriptSegment[] => {
-      if (!searchQuery.trim()) return segments;
-      return segments.filter((seg) => seg.text.toLowerCase().includes(searchQuery.toLowerCase()));
-    },
-    [searchQuery]
-  );
 
   if (transcripts.isLoading) {
     return (
