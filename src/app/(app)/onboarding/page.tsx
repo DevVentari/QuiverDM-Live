@@ -252,8 +252,13 @@ function FirstCampaignStep({
   const [campaignName, setCampaignName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
 
+  const utils = trpc.useUtils();
   const completeFirstCampaign = trpc.onboarding.completeFirstCampaign.useMutation({
-    onSuccess: onNext,
+    onSuccess: () => {
+      // Invalidate needsOnboarding so OnboardingCheck doesn't redirect back
+      utils.onboarding.needsOnboarding.invalidate();
+      onNext();
+    },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
@@ -482,8 +487,6 @@ function FirstCampaignStep({
 }
 
 function CompleteStep() {
-  const router = useRouter();
-
   return (
     <Card className="max-w-lg w-full">
       <CardHeader className="text-center">
@@ -529,7 +532,7 @@ function CompleteStep() {
         <Button
           className="w-full"
           size="lg"
-          onClick={() => router.push('/dashboard')}
+          onClick={() => { window.location.href = '/dashboard'; }}
         >
           <ArrowRight className="mr-2 h-4 w-4" />
           Go to Dashboard
