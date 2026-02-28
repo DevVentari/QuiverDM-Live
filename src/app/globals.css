@@ -106,11 +106,15 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      linear-gradient(hsl(240 10% 4% / 0.93), hsl(240 10% 4% / 0.93)),
-      url('/bg-app.png');
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
+      /* Warm amber glow from upper-left (candlelight) */
+      radial-gradient(ellipse 60% 50% at 25% -10%, hsl(35 70% 15% / 0.7), transparent),
+      /* Cool purple glow from upper-right (mystical) */
+      radial-gradient(ellipse 50% 45% at 75% -5%, hsl(258 40% 12% / 0.6), transparent),
+      /* Faint amber warmth from bottom-center */
+      radial-gradient(ellipse 70% 40% at 50% 110%, hsl(35 50% 10% / 0.4), transparent),
+      /* Base near-black */
+      linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
+    background-attachment: fixed;
   }
 }
 
@@ -223,5 +227,44 @@
 
   .animate-float {
     animation: float 4s ease-in-out infinite;
+  }
+
+  /* Ambient grain texture */
+  .app-grain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 256px 256px;
+  }
+
+  /* Soft vignette — darkens edges */
+  .app-vignette::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(ellipse 70% 65% at 50% 45%, transparent 40%, hsl(240 10% 2% / 0.5) 100%);
+  }
+
+  /* Subtle breathing ambient glow */
+  @keyframes ambient-shift {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+  }
+
+  .app-ambient-glow {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 40% 35% at 30% 25%, hsl(35 80% 55% / 0.04), transparent),
+      radial-gradient(ellipse 35% 30% at 70% 70%, hsl(258 50% 40% / 0.03), transparent);
+    animation: ambient-shift 12s ease-in-out infinite;
   }
 }

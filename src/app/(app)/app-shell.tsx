@@ -13,7 +13,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <OnboardingCheck>
       <NavigationProgress />
-      <div className="flex h-screen overflow-hidden">
+      {/* Atmospheric layers */}
+      <div className="app-ambient-glow" />
+      <div className="flex h-screen overflow-hidden app-grain app-vignette">
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <header className="glass-shell flex h-14 items-center justify-between border-b border-border px-4">
