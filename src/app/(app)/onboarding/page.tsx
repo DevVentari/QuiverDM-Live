@@ -260,11 +260,11 @@ function FirstCampaignStep({
   });
 
   const createCampaign = trpc.campaigns.create.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
+      // Don't navigate away yet — wait for completeFirstCampaign to persist
+      // onboardingCompleted=true before leaving this page, otherwise OnboardingCheck
+      // will see needsOnboarding=true and bounce the user straight back here.
       completeFirstCampaign.mutate();
-      if (data.slug) {
-        router.push(`/campaigns/${data.slug}`);
-      }
     },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
