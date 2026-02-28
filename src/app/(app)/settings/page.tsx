@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
@@ -574,7 +574,7 @@ export default function SettingsPage() {
                 {/* Image Generations Meter */}
                 <div className="rounded-lg border p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <Image className="h-4 w-4 text-muted-foreground" />
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">Image Generations</span>
                   </div>
                   {usage.data.imageGenerations.limit === -1 ? (

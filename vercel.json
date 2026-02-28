@@ -1,0 +1,12 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "vercel/react-server-components-cve-vu-zgya83": false
+    }
+  },
+  "functions": {
+    "src/app/api/**/*": {
+      "maxDuration": 30
+    }
+  }
+}

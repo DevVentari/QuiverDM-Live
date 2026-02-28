@@ -24,6 +24,7 @@ import { convertWithDocling, isDoclingAvailable } from '../pdf/docling';
 
 import { getSignedUrl, storage } from '../storage';
 import type { PDFProcessingJobData, PDFProcessingJobResult } from './queue';
+import { getRedisConnection } from './queue';
 import { extractWithFallback, type ExtractionProvider } from '../ai/extraction';
 import { saveExtractedContent } from '../../server/repositories/homebrew-extraction.repository';
 import path from 'path';
@@ -98,12 +99,8 @@ async function updateJobProgress(
   broadcastPDFStatus?.(pdfId, input.currentStep, payload);
 }
 
-// Redis connection configuration
-const redisConnection = {
-  host: process.env.REDIS_HOST || 'localhost',
-  port: parseInt(process.env.REDIS_PORT || '6380'),
-  maxRetriesPerRequest: null,
-};
+// Redis connection — respects REDIS_URL (Upstash/production) and falls back to local host/port
+const redisConnection = getRedisConnection();
 
 /**
  * Process a PDF conversion job
@@ -712,7 +709,7 @@ export function startPDFWorker(concurrency: number = 2) {
     'pdf-processing',
     processPDFJob,
     {
-      connection: redisConnection,
+      connection: redisConnection as any,
       concurrency, // Process up to N jobs simultaneously
       limiter: {
         max: concurrency, // Maximum concurrent jobs

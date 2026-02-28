@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 // Check if R2 is configured (don't throw at module load time for build compatibility)
@@ -167,4 +167,19 @@ export function generateFileKey(
 export function extractKeyFromUrl(url: string): string {
   const urlObj = new URL(url);
   return urlObj.pathname.substring(1); // Remove leading slash
+}
+
+/**
+ * Check if a file exists in R2 using a lightweight HEAD request (no download)
+ */
+export async function existsInR2(key: string): Promise<boolean> {
+  try {
+    await getR2Client().send(new HeadObjectCommand({
+      Bucket: R2_BUCKET_NAME!,
+      Key: key,
+    }));
+    return true;
+  } catch {
+    return false;
+  }
 }
