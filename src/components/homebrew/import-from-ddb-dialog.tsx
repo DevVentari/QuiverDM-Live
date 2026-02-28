@@ -272,7 +272,7 @@ export function ImportFromDDBDialog({ open, onOpenChange, onImported, defaultCam
                   <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2.5 text-sm">
                     <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
                     <span>
-                      <span className="font-medium">"{duplicate.name}"</span> is already in your library.
+                      <span className="font-medium">&quot;{duplicate.name}&quot;</span> is already in your library.
                       Importing again will create a duplicate.
                     </span>
                   </div>

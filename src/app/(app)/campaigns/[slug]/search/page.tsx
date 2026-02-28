@@ -112,7 +112,7 @@ export default function SearchPage() {
 
       {!isFetching && submittedQuery.length >= 2 && searchResults.length === 0 && (
         <p className="text-muted-foreground text-sm">
-          No results found for "{submittedQuery}".
+          No results found for &quot;{submittedQuery}&quot;.
         </p>
       )}
 
