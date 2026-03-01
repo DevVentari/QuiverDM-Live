@@ -4,7 +4,8 @@ dotenv.config({ override: true });
 import { Queue } from 'bullmq';
 
 function getRedisConnection() {
-  if (process.env.REDIS_URL) return process.env.REDIS_URL;
+  // BullMQ workers require persistent blocking connections (LMPOP/BLMOVE).
+  // Upstash serverless Redis doesn't support these — always use local Redis.
   return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6380'),
