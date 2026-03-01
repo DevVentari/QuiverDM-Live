@@ -156,7 +156,7 @@ export const feedbackRouter = router({
     .mutation(async ({ input, ctx }) => {
       return feedbackService.createReport(
         ctx.session.user.id,
-        ctx.session.user.email ?? '',
+        ctx.session.user.name ?? ctx.session.user.email ?? 'Unknown',
         input
       );
     }),
