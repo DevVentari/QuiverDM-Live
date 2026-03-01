@@ -771,7 +771,7 @@ model HomebrewContent {
   dndBeyondUrl String? // D&D Beyond URL for reference
 
   // Source tracking
-  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import'
+  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import', 'media_import'
   sourcePdfId  String?
   sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
   imageUrl     String?
