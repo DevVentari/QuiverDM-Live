@@ -154,6 +154,10 @@ export default function DashboardPage() {
 
       {/* Campaigns - full-width with top banners */}
       <div className="space-y-3">
+        <div>
+          <p className="label-overline mb-1">Campaigns</p>
+          <div className="section-rule" />
+        </div>
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Continue Playing</h2>
           <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
@@ -245,6 +249,10 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2 min-w-0">
         {/* Characters */}
         <div className="space-y-3">
+          <div>
+            <p className="label-overline mb-1">Characters</p>
+            <div className="section-rule" />
+          </div>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your Party</h2>
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
@@ -332,6 +340,10 @@ export default function DashboardPage() {
 
         {/* Homebrew */}
         <div className="space-y-3 min-w-0">
+          <div>
+            <p className="label-overline mb-1">Homebrew</p>
+            <div className="section-rule" />
+          </div>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Homebrew Library</h2>
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
