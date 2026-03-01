@@ -352,11 +352,11 @@ export const feedbackService = {
       consoleLogs: { ts: number; level: string; msg: string }[];
     }
   ) {
-    const issueUrl = await this.createGithubIssue(feedback.id, { ...data, description: feedback.description });
-
     const botToken = process.env.DISCORD_BOT_TOKEN;
     const channelId = process.env.DISCORD_FEEDBACK_CHANNEL_ID;
     if (!botToken || !channelId) return;
+
+    const issueUrl = await this.createGithubIssue(feedback.id, { ...data, description: feedback.description });
 
     const typeColors: Record<string, number> = {
       bug: 0xff4444,
