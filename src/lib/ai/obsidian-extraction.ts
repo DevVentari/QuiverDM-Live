@@ -1,24 +1,4 @@
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
-const TIMEOUT_MS = 60_000;
-
-async function callGemini(prompt: string, userGeminiKey?: string): Promise<string> {
-  const apiKey = userGeminiKey || process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('No Gemini API key available');
-
-  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.1, maxOutputTokens: 2048 },
-    }),
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
-
-  if (!res.ok) throw new Error(`Gemini error ${res.status}`);
-  const json = await res.json();
-  return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-}
+import { callGemini } from './gemini';
 
 function parseJson<T>(text: string, fallback: T): T {
   const match = text.match(/```json\n?([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
