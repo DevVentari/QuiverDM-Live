@@ -189,6 +189,10 @@ export default function CampaignOverviewPage() {
   return (
     <div className="space-y-6">
       {statPills}
+      <div>
+        <p className="label-overline mb-1">Session History</p>
+        <div className="section-rule" />
+      </div>
       <div className="grid gap-6 md:grid-cols-3">
         {lastSessionCard}
         {sidePanel}
