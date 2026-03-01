@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
@@ -70,7 +71,14 @@ export default function NPCsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(npcs.data as any[]).map((npc) => (
             <Link key={npc.id} href={`/campaigns/${slug}/npcs/${npc.id}`}>
-              <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer">
+              <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+                {npc.imageUrl ? (
+                  <div className="relative h-24 w-full">
+                    <Image src={npc.imageUrl} alt={npc.name} fill className="object-cover" />
+                  </div>
+                ) : (
+                  <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
+                )}
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">{npc.name}</CardTitle>

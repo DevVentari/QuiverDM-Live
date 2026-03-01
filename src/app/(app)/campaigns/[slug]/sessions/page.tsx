@@ -149,7 +149,9 @@ export default function SessionsPage() {
                       </div>
 
                       {/* Card */}
-                      <div className="flex-1 min-w-0 rounded-lg border border-border bg-card hover:border-foreground/20 hover:bg-card/80 transition-all duration-150 px-4 py-3 flex items-center gap-3 mb-1">
+                      <div className="relative flex-1 min-w-0 rounded-lg border border-border bg-card hover:border-foreground/20 hover:bg-card/80 transition-all duration-150 overflow-hidden mb-1">
+                        <div className={`h-1 w-full ${status.dot}`} />
+                        <div className="px-4 py-3 flex items-center gap-3">
                         {/* Mobile number */}
                         <div className="sm:hidden shrink-0 w-8 h-8 rounded-full border border-border flex items-center justify-center">
                           <span className="font-display text-[10px] font-bold text-muted-foreground">{sessionNum}</span>
@@ -217,6 +219,7 @@ export default function SessionsPage() {
                             </span>
                           )}
                           <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors ml-1" />
+                        </div>
                         </div>
                       </div>
                     </div>
