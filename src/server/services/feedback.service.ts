@@ -436,46 +436,52 @@ export const feedbackService = {
     suggested_fix: string;
     reproduction_steps?: string;
   } | null> {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) return null;
-
     try {
-      const { Anthropic } = await import('@anthropic-ai/sdk');
-      const client = new Anthropic({ apiKey });
+      const { spawn } = await import('child_process');
 
       const logSummary = consoleLogs
         .slice(-20)
         .map((l) => `${l.level.toUpperCase()}: ${l.msg}`)
         .join('\n');
 
-      const message = await client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        system:
-          'You are a bug triage agent for QuiverDM, an AI-powered D&D session management web app built with Next.js 15, tRPC, Prisma, and PostgreSQL. Analyze the report and respond with JSON ONLY — no markdown, no explanation.',
-        messages: [
-          {
-            role: 'user',
-            content: `Type: ${type}
+      const prompt = `You are a bug triage agent for QuiverDM, an AI-powered D&D session management web app (Next.js 15, tRPC, Prisma, PostgreSQL).
+
+Type: ${type}
 Page: ${pageUrl}
 Description: ${description}
 
 Console logs (last 20):
 ${logSummary || 'None'}
 
-Respond with this JSON schema:
+Respond with JSON ONLY — no markdown, no explanation:
 {
   "severity": "low" | "medium" | "high" | "critical",
   "likely_cause": "1-2 sentence explanation",
   "affected_files": ["array of likely source file paths"],
   "suggested_fix": "concrete action to fix this",
   "reproduction_steps": "optional steps to reproduce"
-}`,
-          },
-        ],
+}`;
+
+      const text = await new Promise<string>((resolve, reject) => {
+        const child = spawn('claude', ['-p', prompt, '--output-format', 'json'], {
+          timeout: 30000,
+        });
+        let stdout = '';
+        let stderr = '';
+        child.stdout.on('data', (d: Buffer) => { stdout += d.toString(); });
+        child.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
+        child.on('close', (code: number) => {
+          if (code !== 0) return reject(new Error(`claude exited ${code}: ${stderr.slice(0, 200)}`));
+          try {
+            const parsed = JSON.parse(stdout) as { result?: string };
+            resolve(parsed.result ?? stdout);
+          } catch {
+            resolve(stdout);
+          }
+        });
+        child.on('error', reject);
       });
 
-      const text = message.content[0]?.type === 'text' ? message.content[0].text : '';
       return JSON.parse(text) as {
         severity: string;
         likely_cause: string;
