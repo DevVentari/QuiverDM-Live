@@ -276,6 +276,71 @@ export const feedbackService = {
     return { id: feedback.id };
   },
 
+  async createGithubIssue(
+    feedbackId: string,
+    data: {
+      type: string;
+      description: string;
+      pageUrl: string;
+      consoleLogs: { ts: number; level: string; msg: string }[];
+    }
+  ): Promise<string | null> {
+    const token = process.env.GITHUB_TOKEN;
+    const repo = process.env.GITHUB_FEEDBACK_REPO;
+    if (!token || !repo) return null;
+
+    const prefix = data.type === 'bug' ? '[Bug]' : data.type === 'feature' ? '[Feature]' : '[Feedback]';
+    const title = `${prefix} ${data.description.slice(0, 72)}${data.description.length > 72 ? '...' : ''}`;
+
+    const logLines = data.consoleLogs
+      .slice(-5)
+      .map((l) => `${l.level.toUpperCase()}: ${l.msg}`)
+      .join('\n');
+
+    const body = [
+      `**Type:** ${data.type}`,
+      `**Page:** ${data.pageUrl}`,
+      `**Feedback ID:** ${feedbackId}`,
+      '',
+      '### Description',
+      data.description,
+      ...(logLines ? ['', '### Console Logs (last 5)', '```', logLines, '```'] : []),
+    ].join('\n');
+
+    const label =
+      data.type === 'bug' ? 'bug' :
+      data.type === 'feature' ? 'feature-request' :
+      undefined;
+
+    try {
+      const res = await fetch(`https://api.github.com/repos/${repo}/issues`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          body,
+          labels: label ? [label] : [],
+        }),
+      });
+
+      if (!res.ok) {
+        console.error('[Feedback] GitHub issue creation failed:', await res.text());
+        return null;
+      }
+
+      const issue = await res.json() as { html_url: string };
+      return issue.html_url;
+    } catch (err) {
+      console.error('[Feedback] GitHub issue creation error:', err);
+      return null;
+    }
+  },
+
   async postDiscordThread(
     feedback: { id: string; type: string; description: string },
     userDisplayName: string,
@@ -287,6 +352,8 @@ export const feedbackService = {
       consoleLogs: { ts: number; level: string; msg: string }[];
     }
   ) {
+    const issueUrl = await this.createGithubIssue(feedback.id, { ...data, description: feedback.description });
+
     const botToken = process.env.DISCORD_BOT_TOKEN;
     const channelId = process.env.DISCORD_FEEDBACK_CHANNEL_ID;
     if (!botToken || !channelId) return;
@@ -385,6 +452,7 @@ export const feedbackService = {
         description: feedback.description,
         pageUrl: data.pageUrl,
         consoleLogs: data.consoleLogs,
+        issueUrl: issueUrl ?? undefined,
       });
     } catch (err) {
       console.error('[Feedback] Discord post failed:', err);
