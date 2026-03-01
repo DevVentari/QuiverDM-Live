@@ -104,6 +104,7 @@ model UserSettings {
   anthropicApiKey         String?  @db.Text // Encrypted
   huggingfaceToken        String?  @db.Text // Encrypted
   dndBeyondCobaltCookie   String?  @db.Text // Encrypted
+  geminiApiKey            String?  @db.Text // Encrypted
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
