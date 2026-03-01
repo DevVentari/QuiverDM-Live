@@ -114,7 +114,9 @@ export default function CampaignSettingsPage() {
       if (!res.ok) throw new Error('Upload failed');
       const { url } = await res.json() as { url: string };
       setBannerUrl(url);
-      update.mutate({ id: campaignId, bannerUrl: url });
+      update.mutate({ id: campaignId, bannerUrl: url }, {
+        onError: () => toast({ title: 'Banner save failed', description: 'Image uploaded but could not be saved.', variant: 'destructive' }),
+      });
     } catch {
       toast({ title: 'Upload failed', description: 'Could not upload banner image.', variant: 'destructive' });
     } finally {
@@ -158,7 +160,7 @@ export default function CampaignSettingsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSave} className="space-y-4">
-            {isDM && (
+            {isOwner && (
               <div className="space-y-2">
                 <Label>Campaign Banner</Label>
                 {bannerUrl && (
