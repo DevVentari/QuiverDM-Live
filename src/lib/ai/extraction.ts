@@ -205,15 +205,15 @@ function recoverPartialItems(text: string): ExtractedContent[] {
 // Provider Implementations
 // =============================================================================
 
-async function extractWithGemini(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
+async function extractWithGemini(markdown: string, signal?: AbortSignal, apiKey?: string): Promise<ExtractionResult> {
+  const resolvedKey = apiKey ?? process.env.GEMINI_API_KEY;
+  if (!resolvedKey) {
     return { success: false, items: [], provider: 'gemini', error: 'GEMINI_API_KEY not configured' };
   }
 
   const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+  const response = await fetch(`${GEMINI_API_URL}?key=${resolvedKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -474,7 +474,8 @@ function chunkMarkdown(markdown: string, maxChunkSize: number = 25000): string[]
  */
 export async function extractContent(
   markdown: string,
-  provider: ExtractionProvider = 'gemini'
+  provider: ExtractionProvider = 'gemini',
+  userKeys?: { geminiApiKey?: string }
 ): Promise<ExtractionResult> {
   console.log(`[AI Extraction] Starting extraction with ${provider}...`);
   console.log(`[AI Extraction] Markdown length: ${markdown.length} characters`);
@@ -507,7 +508,7 @@ export async function extractContent(
           break;
         case 'gemini':
         default:
-          result = await extractWithGemini(chunks[i], signal);
+          result = await extractWithGemini(chunks[i], signal, userKeys?.geminiApiKey);
           break;
       }
 
@@ -551,7 +552,8 @@ export async function extractContent(
  */
 export async function extractWithFallback(
   markdown: string,
-  preferredProvider?: ExtractionProvider
+  preferredProvider?: ExtractionProvider,
+  userKeys?: { geminiApiKey?: string }
 ): Promise<ExtractionResult> {
   const available = getAvailableProviders();
   console.log(`[AI Extraction] Available providers: ${available.join(', ')}`);
@@ -592,7 +594,7 @@ export async function extractWithFallback(
   for (const provider of chain) {
     try {
       console.log(`[AI Extraction] Trying provider: ${provider}`);
-      const result = await extractContent(markdown, provider);
+      const result = await extractContent(markdown, provider, userKeys);
 
       if (result.success) {
         return result;
