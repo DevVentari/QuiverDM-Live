@@ -18,6 +18,15 @@ import { useToast } from '@/hooks/use-toast';
 
 const keyConfigs = [
   {
+    name: 'geminiApiKey' as const,
+    label: 'Google Gemini API Key',
+    placeholder: 'AIza...',
+    hasField: 'hasGeminiApiKey' as const,
+    maskedField: 'maskedGeminiApiKey' as const,
+    description: 'Recommended for new users — 1,000 free requests/day. Powers homebrew AI extraction.',
+    badge: 'Free tier',
+  },
+  {
     name: 'openaiApiKey' as const,
     label: 'OpenAI API Key',
     placeholder: 'sk-...',
@@ -762,12 +771,22 @@ export default function SettingsPage() {
               <div key={config.name} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>{config.label}</Label>
-                  {hasKey && (
-                    <Badge variant="secondary" className="text-xs">
-                      Configured
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {(config as any).badge && (
+                      <Badge variant="secondary" className="text-xs text-emerald-400 border-emerald-500/30">
+                        {(config as any).badge}
+                      </Badge>
+                    )}
+                    {hasKey && (
+                      <Badge variant="secondary" className="text-xs">
+                        Configured
+                      </Badge>
+                    )}
+                  </div>
                 </div>
+                {(config as any).description && !hasKey && (
+                  <p className="text-xs text-muted-foreground mt-1">{(config as any).description}</p>
+                )}
                 {isEditing ? (
                   <div className="flex gap-2">
                     <Input
