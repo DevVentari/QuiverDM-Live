@@ -6,7 +6,7 @@
  * Run locally: npm run worker:feedback-triage
  */
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config({ override: true });
 
 import { Worker } from 'bullmq';
 import { spawn } from 'child_process';
@@ -54,8 +54,17 @@ Respond with JSON ONLY — no markdown, no explanation:
 }`;
 
   return new Promise((resolve) => {
+    // Use minimal env so claude uses stored credentials rather than inheriting
+    // the parent session's tokens — avoids "nested session" detection and hangs
+    const childEnv: Record<string, string> = {};
+    for (const key of ['PATH', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMP', 'SystemRoot', 'COMSPEC']) {
+      if (process.env[key]) childEnv[key] = process.env[key]!;
+    }
+
     const child = spawn('claude', ['-p', prompt, '--output-format', 'json'], {
       timeout: 60000,
+      env: childEnv,
+      stdio: ['ignore', 'pipe', 'pipe'], // stdin closed — claude -p hangs without this
     });
 
     let stdout = '';
