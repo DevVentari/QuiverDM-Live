@@ -97,6 +97,8 @@ export const userSettingsRouter = router({
         maskedAnthropicApiKey: settings.anthropicApiKey ? maskApiKey(decrypt(settings.anthropicApiKey)) : null,
         maskedHuggingfaceToken: settings.huggingfaceToken ? maskApiKey(decrypt(settings.huggingfaceToken)) : null,
         maskedDndBeyondCobaltCookie: settings.dndBeyondCobaltCookie ? maskApiKey(decrypt(settings.dndBeyondCobaltCookie)) : null,
+        hasGeminiApiKey: !!settings.geminiApiKey,
+        maskedGeminiApiKey: settings.geminiApiKey ? maskApiKey(decrypt(settings.geminiApiKey)) : null,
         createdAt: settings.createdAt,
         updatedAt: settings.updatedAt,
       };
@@ -106,7 +108,7 @@ export const userSettingsRouter = router({
   getDecryptedKey: protectedProcedure
     .input(
       z.object({
-        keyName: z.enum(['openaiApiKey', 'anthropicApiKey', 'huggingfaceToken', 'dndBeyondCobaltCookie']),
+        keyName: z.enum(['openaiApiKey', 'anthropicApiKey', 'huggingfaceToken', 'dndBeyondCobaltCookie', 'geminiApiKey']),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -135,6 +137,7 @@ export const userSettingsRouter = router({
         anthropicApiKey: z.string().optional(),
         huggingfaceToken: z.string().optional(),
         dndBeyondCobaltCookie: z.string().optional(),
+        geminiApiKey: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -157,6 +160,9 @@ export const userSettingsRouter = router({
           ? encrypt(keys.dndBeyondCobaltCookie)
           : null;
       }
+      if (keys.geminiApiKey !== undefined) {
+        encryptedData.geminiApiKey = keys.geminiApiKey ? encrypt(keys.geminiApiKey) : null;
+      }
 
       // Upsert settings
       const settings = await prisma.userSettings.upsert({
@@ -174,6 +180,7 @@ export const userSettingsRouter = router({
         hasAnthropicApiKey: !!settings.anthropicApiKey,
         hasHuggingfaceToken: !!settings.huggingfaceToken,
         hasDndBeyondCobaltCookie: !!settings.dndBeyondCobaltCookie,
+        hasGeminiApiKey: !!settings.geminiApiKey,
       };
     }),
 
@@ -181,7 +188,7 @@ export const userSettingsRouter = router({
   deleteApiKey: protectedProcedure
     .input(
       z.object({
-        keyName: z.enum(['openaiApiKey', 'anthropicApiKey', 'huggingfaceToken', 'dndBeyondCobaltCookie']),
+        keyName: z.enum(['openaiApiKey', 'anthropicApiKey', 'huggingfaceToken', 'dndBeyondCobaltCookie', 'geminiApiKey']),
       })
     )
     .mutation(async ({ input, ctx }) => {
