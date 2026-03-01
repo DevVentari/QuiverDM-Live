@@ -327,14 +327,15 @@ export default function PDFsPage() {
     },
   });
 
+  const getUploadUrl = trpc.homebrewPdf.getUploadUrl.useMutation();
+  const createPDF = trpc.homebrewPdf.createPDF.useMutation();
+
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      toast.error('Invalid file type', {
-        description: 'Please upload a PDF file (.pdf)',
-      });
+      toast.error('Invalid file type', { description: 'Please upload a PDF file (.pdf)' });
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
@@ -350,46 +351,46 @@ export default function PDFsPage() {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const upload = await getUploadUrl.mutateAsync({ filename: file.name, fileSize: file.size });
 
-      const res = await fetch('/api/homebrew/upload-pdf', {
-        method: 'POST',
-        body: formData,
-      });
+      if (upload.presignedUrl && upload.r2Key && upload.r2Url) {
+        // Direct browser-to-R2 upload (bypasses Vercel 4.5MB body limit)
+        const putRes = await fetch(upload.presignedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': 'application/pdf' },
+        });
+        if (!putRes.ok) throw new Error(`R2 upload failed (${putRes.status})`);
 
-      const data = await res.json();
+        const pdf = await createPDF.mutateAsync({
+          filename: file.name,
+          fileSize: file.size,
+          mimeType: 'application/pdf',
+          r2Url: upload.r2Url,
+          r2Key: upload.r2Key,
+        });
 
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Not authenticated', {
-            description: 'Please sign in to upload PDFs',
-          });
-        } else if (res.status === 429) {
-          toast.error('Upload limit reached', {
-            description: data.message || 'You have reached your monthly PDF upload limit.',
-          });
-        } else {
-          toast.error('Upload failed', {
-            description: data.message || data.error || `Server error (${res.status})`,
-          });
-        }
-        return;
-      }
-
-      toast.success('PDF uploaded', {
-        description: `Processing ${file.name}...`,
-      });
-
-      if (data.pdf?.id) {
-        router.push(`/homebrew/pdfs/${data.pdf.id}`);
+        toast.success('PDF uploaded', { description: `Processing ${file.name}...` });
+        router.push(`/homebrew/pdfs/${pdf.id}`);
       } else {
-        void pdfs.refetch();
+        // Local dev fallback: server-proxied upload
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/api/homebrew/upload-pdf', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Server error (${res.status})`);
+        toast.success('PDF uploaded', { description: `Processing ${file.name}...` });
+        if (data.pdf?.id) router.push(`/homebrew/pdfs/${data.pdf.id}`);
+        else void pdfs.refetch();
       }
-    } catch (err) {
-      toast.error('Upload failed', {
-        description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
-      });
+    } catch (err: any) {
+      if (err?.data?.code === 'TOO_MANY_REQUESTS') {
+        toast.error('Upload limit reached', { description: 'You have reached your monthly PDF upload limit.' });
+      } else {
+        toast.error('Upload failed', {
+          description: err instanceof Error ? err.message : 'Network error. Please check your connection.',
+        });
+      }
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

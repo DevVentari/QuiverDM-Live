@@ -1,10 +1,44 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import { homebrewPdfService } from '../services/homebrew-pdf.service';
 import { usageService } from '../services/usage.service';
 import { prisma } from '@/lib/prisma';
 
 export const homebrewPdfRouter = router({
+  /**
+   * Generate a presigned R2 upload URL for direct browser-to-R2 upload.
+   * Bypasses Vercel's 4.5MB serverless body limit.
+   * In local storage mode, returns null and the client falls back to the server-proxied route.
+   */
+  getUploadUrl: protectedProcedure
+    .input(
+      z.object({
+        filename: z.string(),
+        fileSize: z.number().max(50 * 1024 * 1024),
+        campaignId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (process.env.STORAGE_MODE !== 'r2') {
+        return { presignedUrl: null, r2Key: null, r2Url: null };
+      }
+
+      const canUpload = await usageService.canUploadPdf(ctx.session.user.id);
+      if (!canUpload) {
+        throw new TRPCError({ code: 'TOO_MANY_REQUESTS', message: 'Monthly PDF upload limit reached' });
+      }
+
+      const { getPresignedUploadUrl } = await import('@/lib/storage/r2');
+      const timestamp = Date.now();
+      const sanitized = input.filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const r2Key = `homebrew-pdfs/${ctx.session.user.id}/${timestamp}-${sanitized}`;
+      const presignedUrl = await getPresignedUploadUrl(r2Key, 'application/pdf', 600);
+      const r2Url = `https://${process.env.R2_BUCKET_NAME}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${r2Key}`;
+
+      return { presignedUrl, r2Key, r2Url };
+    }),
+
   /**
    * Create a PDF record after file has been uploaded to R2
    * Automatically queues the PDF for processing

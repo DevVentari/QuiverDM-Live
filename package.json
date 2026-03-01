@@ -32,6 +32,7 @@
     "worker:feedback-triage": "tsx src/lib/queue/feedback-triage-worker.ts",
     "worker:pdf:dev": "tsx watch src/lib/queue/worker.ts",
     "setup:stripe": "tsx scripts/setup-stripe.ts",
+    "setup:r2-cors": "tsx scripts/setup-r2-cors.ts",
     "check:launch": "tsx scripts/pre-launch-check.ts",
     "search:reindex": "tsx scripts/reindex-search.ts",
     "generate-invites": "tsx scripts/generate-invite-codes.ts",

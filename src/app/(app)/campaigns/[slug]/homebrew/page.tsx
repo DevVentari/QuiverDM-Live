@@ -29,6 +29,8 @@ export default function CampaignHomebrewPage() {
   }, { staleTime: 30_000 });
 
   const pdfs = trpc.homebrewPdf.getPDFs.useQuery({ campaignId }, { staleTime: 30_000 });
+  const getUploadUrl = trpc.homebrewPdf.getUploadUrl.useMutation();
+  const createPDF = trpc.homebrewPdf.createPDF.useMutation();
   const updateSharingMutation = trpc.homebrew.updateSharing.useMutation({
     onSuccess: () => {
       void utils.homebrew.getContent.invalidate({
@@ -44,9 +46,7 @@ export default function CampaignHomebrewPage() {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      toast.error('Invalid file type', {
-        description: 'Please upload a PDF file (.pdf)',
-      });
+      toast.error('Invalid file type', { description: 'Please upload a PDF file (.pdf)' });
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
@@ -62,38 +62,45 @@ export default function CampaignHomebrewPage() {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('campaignId', campaignId);
+      const upload = await getUploadUrl.mutateAsync({ filename: file.name, fileSize: file.size, campaignId });
 
-      const res = await fetch('/api/homebrew/upload-pdf', {
-        method: 'POST',
-        body: formData,
-      });
+      if (upload.presignedUrl && upload.r2Key && upload.r2Url) {
+        const putRes = await fetch(upload.presignedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 'Content-Type': 'application/pdf' },
+        });
+        if (!putRes.ok) throw new Error(`R2 upload failed (${putRes.status})`);
 
-      const data = await res.json();
+        await createPDF.mutateAsync({
+          filename: file.name,
+          fileSize: file.size,
+          mimeType: 'application/pdf',
+          r2Url: upload.r2Url,
+          r2Key: upload.r2Key,
+          campaignId,
+        });
 
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error('Not authenticated', { description: 'Please sign in to upload PDFs' });
-        } else if (res.status === 403) {
-          toast.error('Access denied', { description: 'You do not have permission to upload PDFs to this campaign' });
-        } else if (res.status === 429) {
-          toast.error('Upload limit reached', { description: data.message || 'You have reached your monthly PDF upload limit.' });
-        } else {
-          toast.error('Upload failed', { description: data.message || `Server error (${res.status})` });
-        }
-        return;
+        toast.success('PDF uploaded successfully', { description: `${file.name} is being processed` });
+        void pdfs.refetch();
+      } else {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('campaignId', campaignId);
+        const res = await fetch('/api/homebrew/upload-pdf', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Server error (${res.status})`);
+        toast.success('PDF uploaded successfully', { description: `${file.name} is being processed` });
+        void pdfs.refetch();
       }
-
-      toast.success('PDF uploaded successfully', {
-        description: `${file.name} is being processed`,
-      });
-      pdfs.refetch();
-    } catch (err) {
-      toast.error('Upload failed', {
-        description: err instanceof Error ? err.message : 'Network error.',
-      });
+    } catch (err: any) {
+      if (err?.data?.code === 'TOO_MANY_REQUESTS') {
+        toast.error('Upload limit reached', { description: 'You have reached your monthly PDF upload limit.' });
+      } else {
+        toast.error('Upload failed', {
+          description: err instanceof Error ? err.message : 'Network error.',
+        });
+      }
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
