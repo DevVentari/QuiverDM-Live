@@ -16,7 +16,8 @@ import {
 } from '@/lib/ai/obsidian-extraction';
 
 function getRedisConnection() {
-  if (process.env.REDIS_URL) return { url: process.env.REDIS_URL, maxRetriesPerRequest: null };
+  // BullMQ workers require persistent blocking connections (LMPOP/BLMOVE).
+  // Upstash serverless Redis doesn't support these — always use local Redis.
   return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6380'),
