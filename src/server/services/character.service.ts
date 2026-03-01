@@ -370,8 +370,8 @@ export class CharacterService {
       active,
       effects: Array.isArray(data.effects)
         ? (data.effects as unknown[]).filter(
-            (e): e is { name: string; description: string } =>
-              typeof (e as any)?.name === 'string' && typeof (e as any)?.description === 'string'
+            (e): e is import('@/lib/dnd-schemas').ItemEffect =>
+              typeof e === 'object' && e !== null && typeof (e as any)?.mechanic === 'string'
           )
         : [],
     });

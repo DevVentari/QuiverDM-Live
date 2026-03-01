@@ -74,7 +74,7 @@ async function applyEventToSessionState(
       where: { id: characterId },
       select: { hitPoints: true },
     });
-    const maxHp = (char?.hitPoints as any)?.maximum ?? state.currentHp + eventData.amount;
+    const maxHp = (char?.hitPoints as any)?.max ?? state.currentHp + eventData.amount;
     updates.currentHp = Math.min(maxHp, state.currentHp + (eventData.amount as number));
   } else if (eventType === 'condition_applied' && typeof eventData.condition === 'string') {
     const conditions = state.conditionsActive as string[];
