@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc';
 import { useParams } from 'next/navigation';
 import { CampaignProvider } from '@/components/campaign/campaign-context';
@@ -69,8 +70,22 @@ export default function CampaignLayout({
     >
       <div className="space-y-0 w-full max-w-[1400px]">
         {/* Campaign header */}
-        <div className="flex items-start justify-between gap-4 pb-4">
-          <div className="min-w-0">
+        <div className="relative flex items-start justify-between gap-4 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 pt-6 overflow-hidden rounded-t-lg">
+          {data.bannerUrl && (
+            <>
+              <div className="absolute inset-0">
+                <Image
+                  src={data.bannerUrl}
+                  alt=""
+                  fill
+                  className="object-cover scale-110 blur-[20px] opacity-[0.15]"
+                  aria-hidden
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+            </>
+          )}
+          <div className="relative z-10 min-w-0">
             <h1 className="font-display text-3xl font-bold tracking-wide leading-tight truncate">
               {data.name}
             </h1>
@@ -78,7 +93,7 @@ export default function CampaignLayout({
               <p className="text-muted-foreground text-sm mt-1 line-clamp-1">{data.description}</p>
             )}
           </div>
-          <span className={`shrink-0 mt-1 text-xs font-medium px-2.5 py-1 rounded-full border ${roleColor}`}>
+          <span className={`relative z-10 shrink-0 mt-1 text-xs font-medium px-2.5 py-1 rounded-full border ${roleColor}`}>
             {roleLabel}
           </span>
         </div>
