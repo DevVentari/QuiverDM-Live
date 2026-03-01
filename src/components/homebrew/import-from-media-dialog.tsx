@@ -60,7 +60,7 @@ export function ImportFromMediaDialog({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: campaigns } = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 60_000 });
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>(campaignId ?? '');
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>(campaignId ?? '__none__');
 
   function addFiles(newFiles: FileList | File[]) {
     setFiles((prev) => [...prev, ...Array.from(newFiles)].slice(0, 5));
@@ -122,7 +122,7 @@ export function ImportFromMediaDialog({
     try {
       const body = {
         items: toSave.map(({ name, type, description, properties }) => ({ name, type, description, properties })),
-        campaignId: selectedCampaignId || undefined,
+        campaignId: selectedCampaignId !== '__none__' ? selectedCampaignId : undefined,
       };
       const res = await fetch('/api/uploads/homebrew-import/save', {
         method: 'POST',
@@ -230,7 +230,7 @@ export function ImportFromMediaDialog({
                       <SelectValue placeholder="No campaign — library only" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No campaign — library only</SelectItem>
+                      <SelectItem value="__none__">No campaign — library only</SelectItem>
                       {campaigns.map((c: { id: string; name: string }) => (
                         <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                       ))}
