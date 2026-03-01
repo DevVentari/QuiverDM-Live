@@ -20,20 +20,22 @@ interface NpcPreviewProps {
   description: string;
   imageUrl: string;
   uploading: boolean;
-  onUploadClick: () => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDrop: (e: React.DragEvent<HTMLLabelElement>) => void;
   fileInputRef: React.RefObject<HTMLInputElement>;
 }
 
 function NpcPreview({
   name, faction, description, imageUrl,
-  uploading, onUploadClick, onFileChange, fileInputRef,
+  uploading, onFileChange, onDrop, fileInputRef,
 }: NpcPreviewProps) {
   return (
     <div className="glass-panel glass-grain rounded-xl overflow-hidden border border-border">
       <label
         className="block relative h-24 w-full cursor-pointer group"
-        onClick={onUploadClick}
+        onDragOver={(e) => e.preventDefault()}
+        onDragEnter={(e) => e.preventDefault()}
+        onDrop={onDrop}
       >
         <input
           ref={fileInputRef}
@@ -46,14 +48,15 @@ function NpcPreview({
           <Image src={imageUrl} alt="NPC portrait" fill className="object-cover" unoptimized />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900 flex items-center justify-center">
-            {uploading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
-            ) : (
-              <div className="text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Upload className="h-5 w-5 mx-auto text-muted-foreground/60" />
-                <p className="text-xs text-muted-foreground/60 mt-1">Upload image</p>
-              </div>
-            )}
+            <div className="text-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Upload className="h-5 w-5 mx-auto text-muted-foreground/60" />
+              <p className="text-xs text-muted-foreground/60 mt-1">Upload image</p>
+            </div>
+          </div>
+        )}
+        {uploading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <Loader2 className="h-5 w-5 animate-spin text-white/60" />
           </div>
         )}
         <div className="absolute inset-0 ring-2 ring-primary/0 group-hover:ring-primary/30 transition-all rounded-t-xl pointer-events-none" />
@@ -99,9 +102,7 @@ export default function NewNPCPage() {
     },
   });
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function uploadFile(file: File) {
     setUploading(true);
     setUploadError(null);
     try {
@@ -120,6 +121,17 @@ export default function NewNPCPage() {
     } finally {
       setUploading(false);
     }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>) {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -147,8 +159,8 @@ export default function NewNPCPage() {
           description={description}
           imageUrl={imageUrl}
           uploading={uploading}
-          onUploadClick={() => fileInputRef.current?.click()}
           onFileChange={handleFileChange}
+          onDrop={handleDrop}
           fileInputRef={fileInputRef}
         />
       }
