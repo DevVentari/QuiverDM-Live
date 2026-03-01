@@ -505,7 +505,7 @@ export const sessionsRouter = router({
 
   reviewEvent: campaignDMProcedure
     .input(z.object({ campaignId: z.string(), eventId: z.string(), action: z.enum(['confirm', 'reject']) }))
-    .mutation(({ input }) => sessionStateService.reviewEvent(input.eventId, input.action)),
+    .mutation(({ input }) => sessionStateService.reviewEvent(input.eventId, input.action, input.campaignId)),
 
   commitSessionEvents: campaignDMProcedure
     .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
