@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
 
     if (campaignId) {
       const membership = await prisma.campaignMember.findFirst({
-        where: { campaignId, userId },
+        where: { campaignId, userId, role: { in: ['OWNER', 'CO_DM', 'PLAYER'] } },
       });
       if (!membership) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[homebrew-import upload] error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Upload failed' },
+      { error: 'Upload failed' },
       { status: 500 }
     );
   }
