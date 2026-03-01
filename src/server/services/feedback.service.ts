@@ -252,6 +252,9 @@ export const feedbackService = {
       userAgent: string;
       screenshotBase64: string;
       consoleLogs: { ts: number; level: string; msg: string }[];
+      campaignId?: string;
+      campaignSlug?: string;
+      campaignName?: string;
     }
   ) {
     const dbType = data.type === 'feedback' ? 'improvement' : data.type;
@@ -267,11 +270,20 @@ export const feedbackService = {
           userAgent: data.userAgent,
           consoleLogs: data.consoleLogs,
           source: 'overlay',
+          ...(data.campaignId && {
+            campaignId: data.campaignId,
+            campaignSlug: data.campaignSlug,
+            campaignName: data.campaignName,
+          }),
         },
       },
     });
 
-    void this.postDiscordThread(feedback, userDisplayName, data);
+    void this.postDiscordThread(feedback, userDisplayName, data, {
+      campaignId: data.campaignId,
+      campaignSlug: data.campaignSlug,
+      campaignName: data.campaignName,
+    });
 
     return { id: feedback.id };
   },
@@ -283,6 +295,9 @@ export const feedbackService = {
       description: string;
       pageUrl: string;
       consoleLogs: { ts: number; level: string; msg: string }[];
+      campaignId?: string;
+      campaignSlug?: string;
+      campaignName?: string;
     }
   ): Promise<string | null> {
     const token = process.env.GITHUB_TOKEN;
@@ -301,6 +316,7 @@ export const feedbackService = {
       `**Type:** ${data.type}`,
       `**Page:** ${data.pageUrl}`,
       `**Feedback ID:** ${feedbackId}`,
+      ...(data.campaignName ? [`**Campaign:** ${data.campaignName} (\`${data.campaignSlug}\`)`] : []),
       '',
       '### Description',
       data.description,
@@ -350,13 +366,18 @@ export const feedbackService = {
       userAgent: string;
       screenshotBase64: string;
       consoleLogs: { ts: number; level: string; msg: string }[];
-    }
+    },
+    campaign?: { campaignId?: string; campaignSlug?: string; campaignName?: string }
   ) {
     const botToken = process.env.DISCORD_BOT_TOKEN;
     const channelId = process.env.DISCORD_FEEDBACK_CHANNEL_ID;
     if (!botToken || !channelId) return;
 
-    const issueUrl = await this.createGithubIssue(feedback.id, { ...data, description: feedback.description });
+    const issueUrl = await this.createGithubIssue(feedback.id, {
+      ...data,
+      description: feedback.description,
+      ...campaign,
+    });
 
     const typeColors: Record<string, number> = {
       bug: 0xff4444,
@@ -379,6 +400,9 @@ export const feedbackService = {
           value: data.consoleLogs.length > 0 ? `${data.consoleLogs.length} captured` : 'None',
           inline: true,
         },
+        ...(campaign?.campaignName
+          ? [{ name: 'Campaign', value: `${campaign.campaignName} (\`${campaign.campaignSlug}\`)`, inline: false }]
+          : []),
       ];
 
       const embed: Record<string, unknown> = {

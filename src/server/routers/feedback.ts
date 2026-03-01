@@ -151,6 +151,9 @@ export const feedbackRouter = router({
             })
           )
           .max(50),
+        campaignId: z.string().optional(),
+        campaignSlug: z.string().optional(),
+        campaignName: z.string().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
