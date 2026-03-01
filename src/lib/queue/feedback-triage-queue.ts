@@ -25,6 +25,7 @@ export interface FeedbackTriageJobData {
   description: string;
   pageUrl: string;
   consoleLogs: { ts: number; level: string; msg: string }[];
+  issueUrl?: string;
 }
 
 export const feedbackTriageQueue = new Queue<FeedbackTriageJobData>(
