@@ -1,20 +1,47 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useState } from 'react';
 import { z } from 'zod';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { CreatePageShell } from '@/components/create/create-page-shell';
 
 const createCampaignSchema = z.object({
   name: z.string().min(1, 'Campaign name is required').max(100, 'Name must be 100 characters or less'),
 });
+
+function CampaignPreview({ name, description }: { name: string; description: string }) {
+  return (
+    <div className="glass-panel glass-grain rounded-xl overflow-hidden border border-border">
+      <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
+      <div className="p-4 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-display text-base font-bold truncate">
+            {name || <span className="text-muted-foreground/40">Your Campaign</span>}
+          </h3>
+          <Badge variant="outline" className="text-xs shrink-0 text-slate-400 border-slate-500/30 bg-slate-500/10">
+            Draft
+          </Badge>
+        </div>
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {description || <span className="opacity-40">No description</span>}
+        </p>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground/50 pt-1">
+          <span>0 sessions</span>
+          <span>·</span>
+          <span>0 NPCs</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function NewCampaignPage() {
   const router = useRouter();
@@ -48,48 +75,29 @@ export default function NewCampaignPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-4">
-      <h1 className="text-2xl font-bold">Create Campaign</h1>
-      <Card className="border-muted">
-        <CardHeader>
-          <CardTitle className="text-base">Import from Obsidian</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3">
-            Already have campaign notes in Obsidian? Import your vault and QuiverDM will extract NPCs,
-            sessions, characters, and homebrew content automatically.
-          </p>
-          <Button variant="outline" asChild>
-            <Link href="/campaigns/new/import-obsidian">Import Obsidian Vault</Link>
-          </Button>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Campaign Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {create.error && (
-              <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
-                {create.error.message}
-              </div>
-            )}
+    <CreatePageShell
+      overline="Create"
+      title="New Campaign"
+      preview={<CampaignPreview name={name} description={description} />}
+    >
+      <form onSubmit={handleSubmit}>
+        <div className="glass-panel glass-grain rounded-xl p-6 space-y-6">
+          {/* Campaign Identity */}
+          <div className="space-y-4">
+            <div>
+              <p className="label-overline mb-1">Campaign Identity</p>
+              <div className="section-rule" />
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="name">Campaign Name</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
                 placeholder="Curse of Strahd"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  setErrors({});
-                }}
-                required
+                onChange={(e) => { setName(e.target.value); setErrors({}); }}
+                aria-invalid={!!errors.name}
               />
-              {errors.name && (
-                <p className="text-xs text-destructive mt-1">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -99,19 +107,31 @@ export default function NewCampaignPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
+                className="resize-none"
               />
             </div>
-            <div className="flex gap-3">
-              <Button type="submit" disabled={create.isPending}>
-                {create.isPending ? 'Creating...' : 'Create Campaign'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => router.back()}>
-                Cancel
-              </Button>
+          </div>
+
+          {create.error && (
+            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+              {create.error.message}
             </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <Button type="submit" disabled={create.isPending}>
+              {create.isPending ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</>
+              ) : (
+                'Create Campaign'
+              )}
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => router.back()}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </form>
+    </CreatePageShell>
   );
 }
