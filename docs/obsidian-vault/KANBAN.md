@@ -29,6 +29,7 @@ kanban-plugin: board
 
 ## 💡 Ideas — Not Yet Scoped
 
+- [ ] **OpenClaw — Discord Autonomous Agent** — Self-hosted always-on agent accessible via Discord. Heartbeat system for proactive tasks (deployment checks, kanban summaries, reminders). Run in Docker, no ClawHub skills (security risk). Uses Claude/Ollama as model backend. Evaluate as complement to Claude Code workflow, not replacement.
 - [ ] Foundry two-screen co-pilot — real-time event sync between Foundry and QuiverDM
 - [ ] Shared campaign journal (player-facing write access)
 - [ ] Voice-activated DM assistant (push-to-talk during session)
@@ -52,6 +53,7 @@ kanban-plugin: board
 - [x] **Foundry Sidecar Bridge MVP** — Schema, API routes, tRPC router, SSE stream, UI, foundry-module/ scaffold.
 - [x] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries).
 - [x] **Vercel Deployment (infra)** — App live at app.nerdt.au. Neon keepalive cron added to prevent 504 timeouts.
+- [x] **Autonomous Character Sheet** — Phase 1: expanded effect schema (19 mechanic types), AI extraction pipeline, effect resolver service, ResolvedStatsSummary on character sheet. Phase 2: SessionMechanicalEvent + CharacterSessionState models, session-events worker (Levenshtein fuzzy matching, confidence thresholds), live cockpit HP/conditions, DM event review queue, post-session commit to character sheets. Refs: `docs/plans/2026-03-02-autonomous-character-sheet-design.md`
 
 
 ## Feedback/Bugs
