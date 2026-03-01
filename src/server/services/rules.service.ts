@@ -80,9 +80,13 @@ export class RulesService {
       );
     } catch {
       // Ollama unavailable — fall back to Gemini
-      answer = await callGemini(
-        `You are a D&D 5e rules expert. Answer using only the provided rules text. Be concise (2-4 sentences). If the answer is not in the provided text, explicitly say so.\n\nRules text:\n${context}\n\nQuestion: ${normalizedQuestion}`
-      );
+      try {
+        answer = await callGemini(
+          `You are a D&D 5e rules expert. Answer using only the provided rules text. Be concise (2-4 sentences). If the answer is not in the provided text, explicitly say so.\n\nRules text:\n${context}\n\nQuestion: ${normalizedQuestion}`
+        );
+      } catch {
+        answer = 'Rules AI is temporarily unavailable. Please try again later.';
+      }
     }
 
     const payload: RulesLookupResult = {
