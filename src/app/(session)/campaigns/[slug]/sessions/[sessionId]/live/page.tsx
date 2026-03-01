@@ -13,7 +13,6 @@ import { NpcQuickRecall } from '@/components/cockpit/npc-quick-recall';
 import { CockpitToolbar } from '@/components/cockpit/cockpit-toolbar';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -21,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
@@ -153,13 +153,13 @@ export default function SessionCockpitPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
+            <Button
               className="bg-amber-500 hover:bg-amber-400 text-black"
               onClick={() => completeSession.mutate({ id: sessionId })}
               disabled={completeSession.isPending}
             >
               {completeSession.isPending ? 'Saving…' : 'Complete & Save'}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
