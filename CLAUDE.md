@@ -3,15 +3,8 @@
 Guidance for coding agents working in `E:\Projects\QuiverDM`.
 
 ## Project Overview
-
-QuiverDM is an AI-powered D&D session management app for closed beta.
-
-Current status:
-- Active development, approaching alpha launch
-- Frontend + backend both active (App Router pages + API routes)
-- 29 tRPC routers
-- 12+ services
-- 9 repositories
+AI-powered D&D session management app. Beta launch target: March 2026. Live at https://app.nerdt.au.
+29 tRPC routers, 12+ services, 9 repositories. App Router (pages + API routes).
 
 ## Tech Stack
 
@@ -195,6 +188,18 @@ Skills go in `.claude/skills/<name>/SKILL.md` and are immediately available.
 ## Codex Delegation
 
 Use the `codex-router` skill to decide what to delegate. Claude = architect/reviewer. Codex = pattern-following implementation.
+
+## File Placement
+
+Keep the project root clean. Use these locations:
+
+| File type | Where it goes |
+|-----------|---------------|
+| Codex handoff docs | `docs/codex-handoffs/` (gitignored, delete after shipping) |
+| Screenshots / UI captures | `docs/screenshots/` (gitignored) |
+| Implementation plans | `docs/plans/YYYY-MM-DD-<topic>-impl.md` |
+| Design docs | `docs/plans/YYYY-MM-DD-<topic>-design.md` |
+| Temp / scratch files | Delete when done — never commit to root |
 
 ## Maintenance
 
