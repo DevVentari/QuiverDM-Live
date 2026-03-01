@@ -894,6 +894,18 @@ export default function SessionDetailPage() {
               {isDM && (
                 <Button
                   size="sm"
+                  variant="outline"
+                  className="gap-1.5 border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
+                  onClick={() => window.open(`/campaigns/${slug}/sessions/${sessionId}/live`, '_blank')}
+                >
+                  <Swords className="h-3.5 w-3.5" />
+                  Launch Session
+                </Button>
+              )}
+
+              {isDM && (
+                <Button
+                  size="sm"
                   variant="ghost"
                   className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   onClick={() => setDeleteDialogOpen(true)}
