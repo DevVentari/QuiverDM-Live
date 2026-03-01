@@ -38,6 +38,43 @@ export const ConditionSchema = z.enum([
 ]);
 
 /**
+ * Item Effect Schemas
+ */
+export const EffectActivationSchema = z.enum([
+  'passive', 'concentration', 'action', 'bonus_action', 'reaction',
+]);
+
+export const ItemEffectMechanicSchema = z.object({
+  type: z.enum([
+    'advantage', 'disadvantage', 'damage_bypass',
+    'ac_bonus', 'attack_bonus', 'damage_bonus',
+    'ability_bonus', 'saving_throw_bonus', 'skill_bonus',
+    'resistance', 'immunity', 'vulnerability',
+    'spell_attack_bonus', 'save_dc_bonus',
+    'initiative_bonus', 'speed_bonus', 'max_hp_bonus',
+    'concentration_advantage', 'death_save_advantage',
+    'custom',
+  ]),
+  target: z.string().optional(),
+  value: z.union([z.number(), z.string()]).optional(),
+  condition: z.string().optional(),
+  activation: EffectActivationSchema.optional(),
+  duration: z.string().optional(),
+  uses: z.object({
+    max: z.number().int().positive(),
+    per: z.enum(['long_rest', 'short_rest', 'day']),
+  }).optional(),
+});
+
+export const ItemEffectSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  mechanic: ItemEffectMechanicSchema.optional(),
+});
+
+export type ItemEffect = z.infer<typeof ItemEffectSchema>;
+
+/**
  * Spell Schema
  */
 export const SpellSchema = z.object({
@@ -67,6 +104,7 @@ export const SpellSchema = z.object({
   }).optional(),
   attackType: z.enum(['melee', 'ranged', 'none']).optional(),
   classes: z.array(z.string()).optional(),
+  effects: z.array(ItemEffectSchema).optional(),
   source: z.string().optional(),
   imagePromptHint: z.string().optional(), // Visual description for AI image generation
 });
@@ -105,31 +143,11 @@ export const MagicItemSchema = z.object({
     currency: z.enum(['cp', 'sp', 'ep', 'gp', 'pp']),
   }).optional(),
   source: z.string().optional(),
+  effects: z.array(ItemEffectSchema).optional(),
   imagePromptHint: z.string().optional(), // Visual description for AI image generation
 });
 
 export type MagicItem = z.infer<typeof MagicItemSchema>;
-
-/**
- * Item Effect Schemas
- */
-export const ItemEffectMechanicSchema = z.object({
-  type: z.enum([
-    'advantage', 'damage_bypass', 'ac_bonus', 'attack_bonus',
-    'ability_bonus', 'resistance', 'immunity', 'custom',
-  ]),
-  target: z.string().optional(),
-  value: z.number().optional(),
-  condition: z.string().optional(),
-});
-
-export const ItemEffectSchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  mechanic: ItemEffectMechanicSchema.optional(),
-});
-
-export type ItemEffect = z.infer<typeof ItemEffectSchema>;
 
 /**
  * Monster/Creature Schema
@@ -237,6 +255,7 @@ export const FeatSchema = z.object({
     options: z.array(z.enum(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'])),
     amount: z.number().int().positive(),
   }).optional(),
+  effects: z.array(ItemEffectSchema).optional(),
   source: z.string().optional(),
   imagePromptHint: z.string().optional(),
 });

@@ -19,6 +19,7 @@ import { CombatCopiloterPanel } from '@/components/session/combat-copilot-panel'
 import { PlayerRecapPanel } from '@/components/session/player-recap-panel';
 import { AudioRecorder } from '@/components/session/audio-recorder';
 import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
+import { SessionEventsReview } from '@/components/session/SessionEventsReview';
 import { ExportToFoundryButton } from '@/components/foundry/ExportToFoundryButton';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -961,6 +962,12 @@ export default function SessionDetailPage() {
                   Recap
                 </TabsTrigger>
               )}
+              {isDM && (
+                <TabsTrigger value="events" className={TAB_CLS}>
+                  <Zap className="h-3.5 w-3.5" />
+                  Events
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* ── Prep tab (DM only) ─────────────────────────────────── */}
@@ -1153,6 +1160,13 @@ export default function SessionDetailPage() {
                     isGenerating={generatePlayerRecap.isPending}
                   />
                 )}
+              </TabsContent>
+            )}
+
+            {/* ── Events tab (DM only) ───────────────────────────────── */}
+            {isDM && (
+              <TabsContent value="events" className="mt-5">
+                <SessionEventsReview campaignId={campaignId} sessionId={sessionId} />
               </TabsContent>
             )}
 
