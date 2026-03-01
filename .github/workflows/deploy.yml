@@ -22,11 +22,11 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Deploy to Vercel (app) + nerdt server (worker)
+  # Deploy worker to nerdt server (self-hosted runner)
   # ---------------------------------------------------------------------------
   deploy:
-    name: Deploy
-    runs-on: ubuntu-latest
+    name: Deploy Worker
+    runs-on: nerdt
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     environment: ${{ github.event.inputs.environment || 'production' }}
     permissions:
@@ -34,41 +34,29 @@ jobs:
       packages: read
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u x-access-token --password-stdin
 
-      - name: Set up SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.NERDT_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          echo "${{ secrets.NERDT_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+      - name: Pull latest worker image
+        run: docker pull ghcr.io/${{ github.repository_owner }}/quiverdm-live-worker:latest
 
-      - name: Deploy worker to nerdt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          IMAGE: ghcr.io/${{ github.repository_owner }}/quiverdm-live-worker:latest
+      - name: Restart worker container
         run: |
-          ssh -i ~/.ssh/deploy_key root@192.168.1.220 "
-            echo '$GITHUB_TOKEN' | docker login ghcr.io -u x-access-token --password-stdin &&
-            docker pull $IMAGE &&
-            docker stop quiverdm-worker 2>/dev/null || true &&
-            docker rm quiverdm-worker 2>/dev/null || true &&
-            docker run -d \
-              --name quiverdm-worker \
-              --restart unless-stopped \
-              --env-file /opt/quiverdm/worker.env \
-              $IMAGE &&
-            docker image prune -f
-          "
+          docker stop quiverdm-worker 2>/dev/null || true
+          docker rm quiverdm-worker 2>/dev/null || true
+          docker run -d \
+            --name quiverdm-worker \
+            --restart unless-stopped \
+            --env-file /opt/quiverdm/worker.env \
+            ghcr.io/${{ github.repository_owner }}/quiverdm-live-worker:latest
+
+      - name: Clean up old images
+        run: docker image prune -f
 
       - name: Deployment summary
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit:** \`${{ github.event.workflow_run.head_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch:** \`${{ github.event.workflow_run.head_branch || github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **App:** Vercel (auto-deploy via git push)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Worker:** nerdt (192.168.1.220)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Worker:** nerdt (self-hosted runner)" >> $GITHUB_STEP_SUMMARY
