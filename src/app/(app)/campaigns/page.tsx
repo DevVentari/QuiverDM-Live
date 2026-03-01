@@ -48,7 +48,7 @@ export default function CampaignsPage() {
                     />
                   </div>
                 ) : (
-                  <div className="h-24 w-full bg-gradient-to-r from-purple-950 to-blue-950" />
+                  <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                 )}
                 <CardHeader>
                   <div className="flex items-center justify-between">
