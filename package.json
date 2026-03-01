@@ -27,6 +27,7 @@
     "worker:summary": "tsx src/lib/queue/ai-summary-worker.ts",
     "worker:derailment": "tsx src/lib/queue/derailment-worker.ts",
     "worker:combat-copilot": "tsx src/lib/queue/combat-copilot-worker.ts",
+    "worker:session-events": "tsx src/lib/queue/session-events-worker.ts",
     "worker:player-recap": "tsx src/lib/queue/player-recap-worker.ts",
     "worker:embeddings": "tsx src/lib/queue/embeddings-worker.ts",
     "worker:feedback-triage": "tsx src/lib/queue/feedback-triage-worker.ts",
