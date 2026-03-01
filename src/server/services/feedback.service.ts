@@ -240,4 +240,282 @@ export const feedbackService = {
       console.error('[Feedback] Failed to send Discord notification:', error);
     }
   },
+
+  async createReport(
+    userId: string,
+    userEmail: string,
+    data: {
+      type: 'bug' | 'feature' | 'feedback';
+      description: string;
+      pageUrl: string;
+      userAgent: string;
+      screenshotBase64: string;
+      consoleLogs: { ts: number; level: string; msg: string }[];
+    }
+  ) {
+    const dbType = data.type === 'feedback' ? 'improvement' : data.type;
+
+    const feedback = await prisma.feedback.create({
+      data: {
+        userId,
+        type: dbType,
+        title: `[${data.type.toUpperCase()}] ${data.pageUrl}`,
+        description: data.description,
+        metadata: {
+          pageUrl: data.pageUrl,
+          userAgent: data.userAgent,
+          consoleLogs: data.consoleLogs,
+          source: 'overlay',
+        },
+      },
+    });
+
+    void this.postDiscordThread(feedback, userEmail, data);
+
+    return { id: feedback.id };
+  },
+
+  async postDiscordThread(
+    feedback: { id: string; type: string; description: string },
+    userEmail: string,
+    data: {
+      type: string;
+      pageUrl: string;
+      userAgent: string;
+      screenshotBase64: string;
+      consoleLogs: { ts: number; level: string; msg: string }[];
+    }
+  ) {
+    const botToken = process.env.DISCORD_BOT_TOKEN;
+    const channelId = process.env.DISCORD_FEEDBACK_CHANNEL_ID;
+    if (!botToken || !channelId) return;
+
+    const typeColors: Record<string, number> = {
+      bug: 0xff4444,
+      feature: 0x5865f2,
+      feedback: 0x00c853,
+    };
+
+    const color = typeColors[data.type] ?? 0x888888;
+
+    try {
+      let screenshotUrl: string | null = null;
+      if (data.screenshotBase64 && data.screenshotBase64.length > 100) {
+        screenshotUrl = await this.uploadScreenshotToDiscord(
+          botToken,
+          channelId,
+          data.screenshotBase64
+        );
+      }
+
+      const pathname = (() => {
+        try { return new URL(data.pageUrl).pathname; } catch { return data.pageUrl; }
+      })();
+      const threadTitle = `[${data.type.toUpperCase()}] ${pathname} — ${new Date().toLocaleDateString()}`;
+
+      const threadBody: Record<string, unknown> = {
+        name: threadTitle.slice(0, 100),
+        message: {
+          embeds: [
+            {
+              title: `${data.type.charAt(0).toUpperCase() + data.type.slice(1)} Report`,
+              description: feedback.description,
+              color,
+              fields: [
+                { name: 'Page', value: data.pageUrl, inline: false },
+                { name: 'User', value: userEmail, inline: true },
+                { name: 'Feedback ID', value: feedback.id, inline: true },
+                {
+                  name: 'Console logs',
+                  value: data.consoleLogs.length > 0 ? `${data.consoleLogs.length} captured` : 'None',
+                  inline: true,
+                },
+              ],
+              timestamp: new Date().toISOString(),
+              ...(screenshotUrl ? { image: { url: screenshotUrl } } : {}),
+            },
+          ],
+        },
+      };
+
+      const threadRes = await fetch(
+        `https://discord.com/api/v10/channels/${channelId}/threads`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bot ${botToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(threadBody),
+        }
+      );
+
+      if (!threadRes.ok) {
+        console.error('[Feedback] Discord thread creation failed:', await threadRes.text());
+        return;
+      }
+
+      const thread = (await threadRes.json()) as { id: string };
+
+      if (data.consoleLogs.length > 0) {
+        const logText = data.consoleLogs
+          .slice(-20)
+          .map((l) => `[${new Date(l.ts).toISOString()}] ${l.level.toUpperCase()}: ${l.msg}`)
+          .join('\n');
+
+        await fetch(`https://discord.com/api/v10/channels/${thread.id}/messages`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bot ${botToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: `\`\`\`\n${logText.slice(0, 1900)}\n\`\`\``,
+          }),
+        });
+      }
+
+      const triage = await this.triageWithClaude(
+        data.type,
+        feedback.description,
+        data.pageUrl,
+        data.consoleLogs
+      );
+
+      if (triage) {
+        const severityColors: Record<string, number> = {
+          critical: 0xff0000,
+          high: 0xff8c00,
+          medium: 0xffd700,
+          low: 0x00c853,
+        };
+        await fetch(`https://discord.com/api/v10/channels/${thread.id}/messages`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bot ${botToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            embeds: [
+              {
+                title: `Claude Triage — ${(triage.severity ?? 'UNKNOWN').toUpperCase()} severity`,
+                color: severityColors[triage.severity ?? 'medium'] ?? 0xffd700,
+                fields: [
+                  { name: 'Likely cause', value: triage.likely_cause ?? 'Unknown', inline: false },
+                  {
+                    name: 'Affected files',
+                    value: (triage.affected_files ?? []).join('\n') || 'Unknown',
+                    inline: true,
+                  },
+                  { name: 'Suggested fix', value: triage.suggested_fix ?? 'See description', inline: false },
+                  ...(triage.reproduction_steps
+                    ? [{ name: 'Reproduction', value: triage.reproduction_steps, inline: false }]
+                    : []),
+                ],
+                footer: { text: 'Powered by Claude haiku' },
+              },
+            ],
+          }),
+        });
+      }
+    } catch (err) {
+      console.error('[Feedback] Discord post failed:', err);
+    }
+  },
+
+  async uploadScreenshotToDiscord(
+    botToken: string,
+    channelId: string,
+    base64: string
+  ): Promise<string | null> {
+    try {
+      const raw = base64.replace(/^data:image\/\w+;base64,/, '');
+      const buffer = Buffer.from(raw, 'base64');
+
+      const form = new FormData();
+      form.append(
+        'file',
+        new Blob([buffer], { type: 'image/png' }),
+        'screenshot.png'
+      );
+      form.append('payload_json', JSON.stringify({ content: '' }));
+
+      const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+        method: 'POST',
+        headers: { Authorization: `Bot ${botToken}` },
+        body: form,
+      });
+
+      if (!res.ok) return null;
+      const data = (await res.json()) as { attachments?: { url: string }[] };
+      return data.attachments?.[0]?.url ?? null;
+    } catch {
+      return null;
+    }
+  },
+
+  async triageWithClaude(
+    type: string,
+    description: string,
+    pageUrl: string,
+    consoleLogs: { ts: number; level: string; msg: string }[]
+  ): Promise<{
+    severity: string;
+    likely_cause: string;
+    affected_files: string[];
+    suggested_fix: string;
+    reproduction_steps?: string;
+  } | null> {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) return null;
+
+    try {
+      const { Anthropic } = await import('@anthropic-ai/sdk');
+      const client = new Anthropic({ apiKey });
+
+      const logSummary = consoleLogs
+        .slice(-20)
+        .map((l) => `${l.level.toUpperCase()}: ${l.msg}`)
+        .join('\n');
+
+      const message = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        system:
+          'You are a bug triage agent for QuiverDM, an AI-powered D&D session management web app built with Next.js 15, tRPC, Prisma, and PostgreSQL. Analyze the report and respond with JSON ONLY — no markdown, no explanation.',
+        messages: [
+          {
+            role: 'user',
+            content: `Type: ${type}
+Page: ${pageUrl}
+Description: ${description}
+
+Console logs (last 20):
+${logSummary || 'None'}
+
+Respond with this JSON schema:
+{
+  "severity": "low" | "medium" | "high" | "critical",
+  "likely_cause": "1-2 sentence explanation",
+  "affected_files": ["array of likely source file paths"],
+  "suggested_fix": "concrete action to fix this",
+  "reproduction_steps": "optional steps to reproduce"
+}`,
+          },
+        ],
+      });
+
+      const text = message.content[0]?.type === 'text' ? message.content[0].text : '';
+      return JSON.parse(text) as {
+        severity: string;
+        likely_cause: string;
+        affected_files: string[];
+        suggested_fix: string;
+        reproduction_steps?: string;
+      };
+    } catch (err) {
+      console.error('[Feedback] Claude triage failed:', err);
+      return null;
+    }
+  },
 };
