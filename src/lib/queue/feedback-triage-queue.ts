@@ -3,7 +3,7 @@
  * Vercel enqueues; local worker spawns `claude` and posts Discord embed.
  */
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config({ override: true });
 
 import { Queue } from 'bullmq';
 
