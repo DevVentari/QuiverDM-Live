@@ -89,6 +89,7 @@ services:
     volumes:
       - n8n_data:/home/node/.n8n
       - ./test-documents/makita-masters/transcriptions:/data/transcriptions
+      - ./scripts/qa-agents/reports:/home/node/qa-reports:ro
     depends_on:
       postgres:
         condition: service_healthy
