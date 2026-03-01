@@ -277,39 +277,41 @@ export default function DashboardPage() {
                 return (
                   <Link key={char.id} href={`/characters/${char.id}`}>
                     <Card className="glass-panel group cursor-pointer overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.05]">
-                      {char.portraitUrl ? (
-                        <div className="relative h-24 w-full overflow-hidden">
-                          <Image
-                            src={char.portraitUrl}
-                            alt={char.name}
-                            fill
-                            className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
-                      ) : (
-                        <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
-                      )}
-                      <div className="py-3 px-4">
-                        <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="text-sm truncate">{char.name}</CardTitle>
-                          {char.level && (
-                            <Badge variant="outline" className="border-white/35 bg-white/5 text-[10px] shrink-0 tabular-nums">
-                              Lvl {char.level}
-                            </Badge>
+                      <div className="flex gap-3 p-3">
+                        <div className="relative h-16 w-16 shrink-0 rounded-md overflow-hidden">
+                          {char.portraitUrl ? (
+                            <Image
+                              src={char.portraitUrl}
+                              alt={char.name}
+                              fill
+                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                          {[char.race, char.class].filter(Boolean).join(' | ') || 'No details'}
-                        </p>
-                        {hp && hpPct != null && (
-                          <div className="flex items-center gap-2 mt-2">
-                            <Heart className="h-3 w-3 text-red-500 shrink-0" />
-                            <Progress value={hpPct} className="h-1.5 flex-1" />
-                            <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                              {hp.current}/{hp.max}
-                            </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <CardTitle className="text-sm truncate">{char.name}</CardTitle>
+                            {char.level && (
+                              <Badge variant="outline" className="border-white/35 bg-white/5 text-[10px] shrink-0 tabular-nums">
+                                Lvl {char.level}
+                              </Badge>
+                            )}
                           </div>
-                        )}
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                            {[char.race, char.class].filter(Boolean).join(' | ') || 'No details'}
+                          </p>
+                          {hp && hpPct != null && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Heart className="h-3 w-3 text-red-500 shrink-0" />
+                              <Progress value={hpPct} className="h-1.5 flex-1" />
+                              <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
+                                {hp.current}/{hp.max}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </Card>
                   </Link>
