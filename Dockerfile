@@ -38,8 +38,12 @@ COPY . .
 RUN mkdir -p /app/public
 
 # Generate Prisma Client and build Next.js
-# npm run build already runs "prisma generate && next build"
 ENV NEXT_TELEMETRY_DISABLED=1
+# Dummy env vars so module imports don't crash during static analysis
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+ENV REDIS_URL="redis://localhost:6379"
+ENV NEXTAUTH_SECRET="build-secret"
+ENV NEXTAUTH_URL="http://localhost:3000"
 RUN npm run build
 
 # ---------------------------------------------------------------------------
