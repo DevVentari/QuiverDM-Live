@@ -95,7 +95,11 @@ Respond with JSON ONLY — no markdown, no explanation:
   });
 }
 
-async function postTriageEmbed(threadId: string, triage: NonNullable<Awaited<ReturnType<typeof runClaudeTriage>>>) {
+async function postTriageEmbed(
+  threadId: string,
+  triage: NonNullable<Awaited<ReturnType<typeof runClaudeTriage>>>,
+  issueUrl?: string
+) {
   const botToken = process.env.DISCORD_BOT_TOKEN;
   if (!botToken) return;
 
@@ -121,6 +125,9 @@ async function postTriageEmbed(threadId: string, triage: NonNullable<Awaited<Ret
             ...(triage.reproduction_steps
               ? [{ name: 'Reproduction', value: triage.reproduction_steps, inline: false }]
               : []),
+            ...(issueUrl
+              ? [{ name: 'GitHub Issue', value: `[View Issue](${issueUrl})`, inline: true }]
+              : []),
           ],
           footer: { text: 'Powered by Claude Code' },
         },
@@ -140,7 +147,7 @@ const worker = new Worker<FeedbackTriageJobData>(
       return;
     }
 
-    await postTriageEmbed(job.data.threadId, triage);
+    await postTriageEmbed(job.data.threadId, triage, job.data.issueUrl);
     console.log(`[feedback-triage] Posted triage embed for thread ${job.data.threadId}`);
   },
   {
