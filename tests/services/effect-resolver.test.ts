@@ -92,4 +92,34 @@ describe('resolveEffects', () => {
     expect(result.resistances).toHaveLength(0);
     expect(result.hasConcentrationAdvantage).toBe(false);
   });
+
+  it('stores dice expression as string in breakdown, does not add to numeric aggregate', () => {
+    const sources: RawEffectSource[] = [
+      {
+        sourceId: 'spell-1', sourceName: 'Bless', sourceType: 'spell',
+        active: true,
+        effects: [{ name: 'Attack', description: '+1d4', mechanic: { type: 'attack_bonus', value: '1d4', activation: 'concentration' } }],
+      },
+    ];
+    const result = resolveEffects(sources);
+    expect(result.attackBonusBreakdown).toHaveLength(1);
+    expect(result.attackBonusBreakdown[0].value).toBe('1d4');
+  });
+
+  it('deduplicates advantageOn entries from multiple sources', () => {
+    const sources: RawEffectSource[] = [
+      {
+        sourceId: 'item-1', sourceName: 'Helm of Clarity', sourceType: 'item',
+        active: true,
+        effects: [{ name: 'Perception Advantage', description: '', mechanic: { type: 'advantage', target: 'perception', activation: 'passive' } }],
+      },
+      {
+        sourceId: 'item-2', sourceName: 'Eyes of the Eagle', sourceType: 'item',
+        active: true,
+        effects: [{ name: 'Perception Advantage', description: '', mechanic: { type: 'advantage', target: 'perception', activation: 'passive' } }],
+      },
+    ];
+    const result = resolveEffects(sources);
+    expect(result.advantageOn.filter((a) => a === 'perception')).toHaveLength(1);
+  });
 });
