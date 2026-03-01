@@ -1,5 +1,6 @@
 import { generateEmbedding } from '@/lib/ai/embeddings';
 import { chatWithOllama } from '@/lib/ai/ollama';
+import { callGemini } from '@/lib/ai/gemini';
 import { redis } from '@/lib/queue/queue';
 import { prisma } from '@/lib/prisma';
 import { indexRulesSource, removeRulesIndex } from './rules-indexing.service';
@@ -61,20 +62,28 @@ export class RulesService {
     }
 
     const context = results.map((row) => row.chunkText).join('\n\n---\n\n');
-    const answer = await chatWithOllama(
-      [
-        {
-          role: 'system',
-          content:
-            'You are a D&D 5e rules expert. Answer using only the provided rules text. Be concise (2-4 sentences). If the answer is not in the provided text, explicitly say so.',
-        },
-        {
-          role: 'user',
-          content: `Rules text:\n${context}\n\nQuestion: ${normalizedQuestion}`,
-        },
-      ],
-      { temperature: 0.1 }
-    );
+    let answer: string;
+    try {
+      answer = await chatWithOllama(
+        [
+          {
+            role: 'system',
+            content:
+              'You are a D&D 5e rules expert. Answer using only the provided rules text. Be concise (2-4 sentences). If the answer is not in the provided text, explicitly say so.',
+          },
+          {
+            role: 'user',
+            content: `Rules text:\n${context}\n\nQuestion: ${normalizedQuestion}`,
+          },
+        ],
+        { temperature: 0.1 }
+      );
+    } catch {
+      // Ollama unavailable — fall back to Gemini
+      answer = await callGemini(
+        `You are a D&D 5e rules expert. Answer using only the provided rules text. Be concise (2-4 sentences). If the answer is not in the provided text, explicitly say so.\n\nRules text:\n${context}\n\nQuestion: ${normalizedQuestion}`
+      );
+    }
 
     const payload: RulesLookupResult = {
       answer,
