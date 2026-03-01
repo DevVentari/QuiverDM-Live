@@ -13,7 +13,7 @@ import { spawn } from 'child_process';
 import type { FeedbackTriageJobData } from './feedback-triage-queue';
 
 function getRedisConnection() {
-  if (process.env.REDIS_URL) return process.env.REDIS_URL;
+  if (process.env.REDIS_URL) return { url: process.env.REDIS_URL, maxRetriesPerRequest: null };
   return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6380'),
@@ -56,7 +56,7 @@ Respond with JSON ONLY — no markdown, no explanation:
   return new Promise((resolve) => {
     // Use minimal env so claude uses stored credentials rather than inheriting
     // the parent session's tokens — avoids "nested session" detection and hangs
-    const childEnv: Record<string, string> = {};
+    const childEnv: NodeJS.ProcessEnv = { NODE_ENV: process.env.NODE_ENV };
     for (const key of ['PATH', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMP', 'SystemRoot', 'COMSPEC']) {
       if (process.env[key]) childEnv[key] = process.env[key]!;
     }
