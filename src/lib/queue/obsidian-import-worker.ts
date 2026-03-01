@@ -85,7 +85,7 @@ async function processJob(data: ObsidianImportJobData) {
   fs.mkdirSync(extractDir, { recursive: true });
 
   // Safe zip extraction — prevents path traversal (zip-slip)
-  const zip = new AdmZip(zipPath);
+  const zip = new AdmZip(zipPath.replace(/\\/g, '/'));
   const entries = zip.getEntries();
   const resolvedExtractDir = path.resolve(extractDir);
   for (const entry of entries) {
@@ -180,7 +180,7 @@ async function processJob(data: ObsidianImportJobData) {
             description: extracted.description,
             faction: extracted.faction,
             role: extracted.role,
-            secrets: extracted.secrets,
+            secrets: Array.isArray(extracted.secrets) ? extracted.secrets.join('\n') : extracted.secrets,
             stats: (extracted.stats ?? {}) as Prisma.InputJsonValue,
             tags: extracted.tags ?? [],
           },
@@ -209,14 +209,8 @@ async function processJob(data: ObsidianImportJobData) {
         });
       } else if (item.category === 'session-planning' && options.sessions) {
         const extracted = await extractSession(item.markdown, 'planning', geminiKey);
-        let sessionNumber = extracted.sessionNumber;
-        if (!sessionNumber) {
-          const maxRow = await prisma.gameSession.aggregate({
-            where: { campaignId },
-            _max: { sessionNumber: true },
-          });
-          sessionNumber = (maxRow._max.sessionNumber ?? 0) + 1;
-        }
+        const maxRow = await prisma.gameSession.aggregate({ where: { campaignId }, _max: { sessionNumber: true } });
+        const sessionNumber = extracted.sessionNumber ?? (maxRow._max.sessionNumber ?? 0) + 1;
         await prisma.gameSession.create({
           data: {
             campaignId,
@@ -230,14 +224,8 @@ async function processJob(data: ObsidianImportJobData) {
         });
       } else if (item.category === 'session-completed' && options.sessions) {
         const extracted = await extractSession(item.markdown, 'completed', geminiKey);
-        let sessionNumber = extracted.sessionNumber;
-        if (!sessionNumber) {
-          const maxRow = await prisma.gameSession.aggregate({
-            where: { campaignId },
-            _max: { sessionNumber: true },
-          });
-          sessionNumber = (maxRow._max.sessionNumber ?? 0) + 1;
-        }
+        const maxRow2 = await prisma.gameSession.aggregate({ where: { campaignId }, _max: { sessionNumber: true } });
+        const sessionNumber = (maxRow2._max.sessionNumber ?? 0) + 1;
         await prisma.gameSession.create({
           data: {
             campaignId,
