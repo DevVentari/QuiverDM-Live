@@ -16,7 +16,17 @@ import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 
-const keyConfigs = [
+interface KeyConfig {
+  name: 'geminiApiKey' | 'openaiApiKey' | 'anthropicApiKey' | 'huggingfaceToken' | 'dndBeyondCobaltCookie';
+  label: string;
+  placeholder: string;
+  hasField: 'hasGeminiApiKey' | 'hasOpenaiApiKey' | 'hasAnthropicApiKey' | 'hasHuggingfaceToken' | 'hasDndBeyondCobaltCookie';
+  maskedField: 'maskedGeminiApiKey' | 'maskedOpenaiApiKey' | 'maskedAnthropicApiKey' | 'maskedHuggingfaceToken' | 'maskedDndBeyondCobaltCookie';
+  description?: string;
+  badge?: string;
+}
+
+const keyConfigs: KeyConfig[] = [
   {
     name: 'geminiApiKey' as const,
     label: 'Google Gemini API Key',
@@ -772,9 +782,9 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                   <Label>{config.label}</Label>
                   <div className="flex items-center gap-2">
-                    {(config as any).badge && (
-                      <Badge variant="secondary" className="text-xs text-emerald-400 border-emerald-500/30">
-                        {(config as any).badge}
+                    {config.badge && (
+                      <Badge variant="secondary" className="text-xs text-emerald-400">
+                        {config.badge}
                       </Badge>
                     )}
                     {hasKey && (
@@ -784,8 +794,8 @@ export default function SettingsPage() {
                     )}
                   </div>
                 </div>
-                {(config as any).description && !hasKey && (
-                  <p className="text-xs text-muted-foreground mt-1">{(config as any).description}</p>
+                {config.description && !hasKey && (
+                  <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
                 )}
                 {isEditing ? (
                   <div className="flex gap-2">
