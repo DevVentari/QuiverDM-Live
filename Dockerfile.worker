@@ -33,7 +33,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install Node.js dependencies
-RUN npm ci --omit=dev
+RUN mkdir -p public && npm ci --omit=dev
 
 # Generate Prisma client
 RUN npx prisma generate
