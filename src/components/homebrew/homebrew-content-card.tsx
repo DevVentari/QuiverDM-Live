@@ -35,49 +35,45 @@ export function HomebrewContentCard({ item, href }: HomebrewContentCardProps) {
 
   const card = (
     <Card className="group transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer overflow-hidden">
-      <div className="flex">
-        {imageUrl ? (
-          <div className="relative w-20 shrink-0">
-            <Image
-              src={imageUrl}
-              alt={item.name}
-              fill
-              className="object-cover"
-            />
-          </div>
-        ) : (
-          <div className={`flex w-20 shrink-0 items-center justify-center bg-gradient-to-b ${style.gradient}`}>
-            <TypeIcon className="h-6 w-6 text-muted-foreground" />
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-base truncate">{item.name}</CardTitle>
-              <Badge variant="outline" className={`text-xs shrink-0 ${style.color}`}>
-                {style.label}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <CardDescription className="line-clamp-2">
-              {item.data?.description || item.data?.text || 'No description'}
-            </CardDescription>
-            <div className="flex items-center gap-2 mt-2">
-              {item.sourceType && (
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <SourceIcon className="h-3 w-3" />
-                  <span>
-                    {item.sourceType === 'pdf_extraction' && item.sourcePdf
-                      ? `PDF · ${formatPdfName(item.sourcePdf.filename)}`
-                      : getSourceLabel(item.sourceType)}
-                  </span>
-                </div>
-              )}
-            </div>
-          </CardContent>
+      {imageUrl ? (
+        <div className="relative h-24 w-full">
+          <Image
+            src={imageUrl}
+            alt={item.name}
+            fill
+            className="object-cover"
+          />
         </div>
-      </div>
+      ) : (
+        <div className={`h-24 w-full flex items-center justify-center bg-gradient-to-br ${style.gradient}`}>
+          <TypeIcon className="h-8 w-8 text-muted-foreground/40" />
+        </div>
+      )}
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="text-base truncate">{item.name}</CardTitle>
+          <Badge variant="outline" className={`text-xs shrink-0 ${style.color}`}>
+            {style.label}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <CardDescription className="line-clamp-2">
+          {item.data?.description || item.data?.text || 'No description'}
+        </CardDescription>
+        <div className="flex items-center gap-2 mt-2">
+          {item.sourceType && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <SourceIcon className="h-3 w-3" />
+              <span>
+                {item.sourceType === 'pdf_extraction' && item.sourcePdf
+                  ? `PDF · ${formatPdfName(item.sourcePdf.filename)}`
+                  : getSourceLabel(item.sourceType)}
+              </span>
+            </div>
+          )}
+        </div>
+      </CardContent>
     </Card>
   );
 
