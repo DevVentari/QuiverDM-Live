@@ -3,7 +3,7 @@
 import { SessionTimer } from './session-timer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Swords, Mic, MicOff, X } from 'lucide-react';
+import { Swords, Mic, MicOff } from 'lucide-react';
 
 interface CockpitHeaderProps {
   sessionTitle: string;
@@ -11,7 +11,6 @@ interface CockpitHeaderProps {
   isRecording: boolean;
   mode: 'rp' | 'combat';
   onModeToggle: () => void;
-  onEndSession: () => void;
   onToggleRecording: () => void;
 }
 
@@ -21,7 +20,6 @@ export function CockpitHeader({
   isRecording,
   mode,
   onModeToggle,
-  onEndSession,
   onToggleRecording,
 }: CockpitHeaderProps) {
   return (
@@ -68,15 +66,6 @@ export function CockpitHeader({
         {mode === 'combat' ? 'Combat' : 'RP'}
       </button>
 
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onEndSession}
-        className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1.5"
-      >
-        <X className="h-3.5 w-3.5" />
-        End Session
-      </Button>
     </header>
   );
 }
