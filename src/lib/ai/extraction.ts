@@ -58,6 +58,27 @@ For each item found, identify its type and extract relevant data:
 
 For EVERY item, also include an "imagePromptHint" field: a concise 1-2 sentence visual description drawn from the source text, written as an image generation prompt. Focus on physical appearance, colours, materials, and atmosphere. Example: "A gnarled obsidian staff crowned with a swirling void gem, crackling with dark purple lightning." If no visual description exists in the text, generate a fitting one based on the item's name and type.
 
+For magic_items, spells, and feats, extract an "effects" array when the content grants mechanical bonuses. Each effect:
+{
+  "name": "short effect name",
+  "description": "plain English description",
+  "mechanic": {
+    "type": one of: "ac_bonus" | "attack_bonus" | "damage_bonus" | "ability_bonus" | "saving_throw_bonus" | "skill_bonus" | "resistance" | "immunity" | "vulnerability" | "advantage" | "disadvantage" | "spell_attack_bonus" | "save_dc_bonus" | "initiative_bonus" | "speed_bonus" | "max_hp_bonus" | "concentration_advantage" | "death_save_advantage" | "damage_bypass" | "custom",
+    "target": "what it applies to (e.g. dexterity, fire, stealth, constitution saving throw)",
+    "value": numeric bonus or dice string like "1d4",
+    "condition": "when it applies (e.g. while equipped, while attuned)",
+    "activation": "passive" | "concentration" | "action" | "bonus_action" | "reaction",
+    "duration": "how long it lasts (e.g. 1 minute, until long rest, permanent)"
+  }
+}
+
+Examples:
+- "Ring of Protection: +1 to AC and saving throws" → effects: [{"name":"AC Bonus","description":"+1 AC","mechanic":{"type":"ac_bonus","value":1,"activation":"passive"}},{"name":"Save Bonus","description":"+1 to saving throws","mechanic":{"type":"saving_throw_bonus","value":1,"activation":"passive"}}]
+- "Bless: targets add 1d4 to attack rolls and saving throws" → effects: [{"name":"Attack Bonus","description":"+1d4 to attacks","mechanic":{"type":"attack_bonus","value":"1d4","activation":"concentration","duration":"1 minute"}},{"name":"Save Bonus","description":"+1d4 to saves","mechanic":{"type":"saving_throw_bonus","value":"1d4","activation":"concentration","duration":"1 minute"}}]
+- "Alert feat: +5 to initiative, can't be surprised" → effects: [{"name":"Initiative","description":"+5 to initiative","mechanic":{"type":"initiative_bonus","value":5,"activation":"passive"}}]
+
+Only include effects with clear mechanical numbers or dice. Skip flavor-only text.
+
 Return a JSON array like:
 [
   {
