@@ -43,7 +43,8 @@
     "test:watch": "vitest",
     "test:playwright": "playwright test",
     "test:playwright:ui": "playwright test --ui",
-    "db:seed": "npx prisma db seed"
+    "db:seed": "npx prisma db seed",
+    "seed:qa": "npx dotenv-cli -e .env.local -- npx tsx scripts/seed-qa-accounts.ts"
   },
   "prisma": {
     "seed": "npx tsx prisma/seed.ts"
