@@ -112,7 +112,7 @@ async def run_agent(persona, semaphore: asyncio.Semaphore) -> AgentResult:
 
 
 async def main():
-    semaphore = asyncio.Semaphore(2)  # max 2 Chromium instances
+    semaphore = asyncio.Semaphore(len(PERSONAS))  # one browser per persona
     tasks = [run_agent(p, semaphore) for p in PERSONAS]
     results = await asyncio.gather(*tasks)
     report_path = write_report(list(results))
