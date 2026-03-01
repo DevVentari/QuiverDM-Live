@@ -11,7 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
 import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
-import { BookOpen, Search, FileText, Plus, Globe } from 'lucide-react';
+import { ImportFromMediaDialog } from '@/components/homebrew/import-from-media-dialog';
+import { BookOpen, Search, FileText, Plus, Globe, ImageUp } from 'lucide-react';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -28,6 +29,7 @@ export default function HomebrewPage() {
   const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
   const [createOpen, setCreateOpen] = useState(false);
   const [ddbImportOpen, setDdbImportOpen] = useState(false);
+  const [mediaImportOpen, setMediaImportOpen] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -55,6 +57,10 @@ export default function HomebrewPage() {
           <Button variant="outline" size="sm" onClick={() => setDdbImportOpen(true)}>
             <Globe className="mr-2 h-4 w-4" />
             D&amp;D Beyond
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setMediaImportOpen(true)}>
+            <ImageUp className="mr-2 h-4 w-4" />
+            Import Photo/Notes
           </Button>
           <Button asChild variant="outline" size="sm">
             <Link href="/homebrew/pdfs">
@@ -145,6 +151,11 @@ export default function HomebrewPage() {
         open={ddbImportOpen}
         onOpenChange={setDdbImportOpen}
         onImported={() => { content.refetch(); stats.refetch(); }}
+      />
+      <ImportFromMediaDialog
+        open={mediaImportOpen}
+        onOpenChange={setMediaImportOpen}
+        onSuccess={() => { content.refetch(); stats.refetch(); }}
       />
     </div>
   );
