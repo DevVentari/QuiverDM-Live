@@ -339,6 +339,8 @@ model Character {
 
   // Campaign associations
   campaignCharacters  CampaignCharacter[]
+  mechanicalEvents     SessionMechanicalEvent[]  @relation("CharacterMechanicalEvents")
+  sessionStates        CharacterSessionState[]   @relation("CharacterSessionStates")
 
   // Homebrew content links
   homebrewItems       CharacterItem[]
@@ -411,6 +413,8 @@ model GameSession {
   aiHighlights     Json? // [{type,text,timestampMs,speakerLabel}]
   shareToken       String?             @unique
   foundryEvents    FoundryEvent[]
+  mechanicalEvents     SessionMechanicalEvent[]
+  characterSessionStates CharacterSessionState[]
   // Combat Condition Co-pilot
   combatCopiloterStatus  String  @default("none") // none|pending|done|error
   combatCopiloterData    Json?   // {participants:[{name,hpChanges:[],conditions:[],concentration:[]}]}
@@ -1057,4 +1061,40 @@ model Embedding {
 
   @@index([campaignId, entityType])
   @@index([entityId])
+}
+
+model SessionMechanicalEvent {
+  id                  String      @id @default(cuid())
+  session             GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId           String
+  character           Character?  @relation("CharacterMechanicalEvents", fields: [characterId], references: [id])
+  characterId         String?
+  characterName       String?
+  transcriptSegmentId String?
+  eventType           String
+  eventData           Json        @default("{}")
+  confidence          Float       @default(1.0)
+  status              String      @default("pending")
+  createdAt           DateTime    @default(now())
+  appliedAt           DateTime?
+
+  @@index([sessionId, status])
+  @@index([characterId])
+}
+
+model CharacterSessionState {
+  id               String      @id @default(cuid())
+  session          GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId        String
+  character        Character   @relation("CharacterSessionStates", fields: [characterId], references: [id])
+  characterId      String
+  currentHp        Int
+  tempHp           Int         @default(0)
+  spellSlotsUsed   Json        @default("{}")
+  conditionsActive Json        @default("[]")
+  activeSpells     Json        @default("[]")
+  resourcesUsed    Json        @default("{}")
+  updatedAt        DateTime    @updatedAt
+
+  @@unique([sessionId, characterId])
 }
