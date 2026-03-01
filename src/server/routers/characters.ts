@@ -515,6 +515,14 @@ export const charactersRouter = router({
       characterService.getEquippedEffects(input.characterId, ctx.session.user.id)
     ),
 
+  getResolvedStats: protectedProcedure
+    .input(z.object({ characterId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const { resolveEffects } = await import('@/server/services/effect-resolver');
+      const sources = await characterService.getResolvedEffectSources(input.characterId, ctx.session.user.id);
+      return resolveEffects(sources);
+    }),
+
   /**
    * Get character with homebrew content
    */

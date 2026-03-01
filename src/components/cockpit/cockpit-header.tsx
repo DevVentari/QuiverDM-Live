@@ -1,6 +1,7 @@
 'use client';
 
 import { SessionTimer } from './session-timer';
+import { PendingEventsQueue } from './pending-events-queue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Swords, Mic, MicOff } from 'lucide-react';
@@ -12,6 +13,8 @@ interface CockpitHeaderProps {
   mode: 'rp' | 'combat';
   onModeToggle: () => void;
   onToggleRecording: () => void;
+  sessionId: string;
+  campaignId: string;
 }
 
 export function CockpitHeader({
@@ -21,6 +24,8 @@ export function CockpitHeader({
   mode,
   onModeToggle,
   onToggleRecording,
+  sessionId,
+  campaignId,
 }: CockpitHeaderProps) {
   return (
     <header className="flex h-12 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-sm shrink-0">
@@ -52,6 +57,8 @@ export function CockpitHeader({
       >
         {isRecording ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
       </button>
+
+      <PendingEventsQueue campaignId={campaignId} sessionId={sessionId} />
 
       <button
         type="button"

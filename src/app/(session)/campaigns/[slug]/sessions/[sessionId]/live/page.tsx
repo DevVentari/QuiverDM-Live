@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useLiveTranscription } from '@/hooks/useLiveTranscription';
 import { CockpitHeader } from '@/components/cockpit/cockpit-header';
@@ -27,6 +27,8 @@ export default function SessionCockpitPage() {
 
   const transcription = useLiveTranscription(sessionId);
 
+  const initStates = trpc.sessions.initCharacterSessionStates.useMutation();
+
   const toggleMode = useCallback(() => {
     setMode((m) => (m === 'rp' ? 'combat' : 'rp'));
   }, []);
@@ -38,6 +40,14 @@ export default function SessionCockpitPage() {
       await transcription.start();
     }
   }, [transcription]);
+
+  const campaignId = (campaignQuery.data as any)?.id as string | undefined;
+  useEffect(() => {
+    if (!campaignId) return;
+    initStates.mutate({ campaignId, sessionId });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaignId, sessionId]);
+
 
   if (sessionQuery.isLoading || campaignQuery.isLoading) {
     return (
@@ -75,13 +85,15 @@ export default function SessionCockpitPage() {
         mode={mode}
         onModeToggle={toggleMode}
         onToggleRecording={handleToggleRecording}
+        sessionId={sessionId}
+        campaignId={campaign.id}
       />
 
       {/* 3-column grid */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left: Party State */}
         <div className="w-60 shrink-0 border-r border-border overflow-y-auto">
-          <PartyOverviewPanel campaignId={campaign.id} />
+          <PartyOverviewPanel campaignId={campaign.id} sessionId={sessionId} />
         </div>
 
         {/* Center: RP or Combat */}
