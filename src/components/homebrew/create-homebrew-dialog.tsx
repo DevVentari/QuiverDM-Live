@@ -22,6 +22,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import type { ItemEffect } from '@/lib/dnd-schemas';
+import { EffectConfirmationPanel } from './EffectConfirmationPanel';
 
 interface CreateHomebrewDialogProps {
   open: boolean;
@@ -51,6 +53,7 @@ export function CreateHomebrewDialog({ open, onOpenChange, onCreated }: CreateHo
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [detectedEffects, setDetectedEffects] = useState<ItemEffect[]>([]);
 
   const createContent = trpc.homebrew.createContent.useMutation({
     onSuccess: () => {
@@ -70,6 +73,7 @@ export function CreateHomebrewDialog({ open, onOpenChange, onCreated }: CreateHo
     setContent('');
     setTags([]);
     setTagInput('');
+    setDetectedEffects([]);
   };
 
   const addTag = (rawTag: string) => {
@@ -106,7 +110,7 @@ export function CreateHomebrewDialog({ open, onOpenChange, onCreated }: CreateHo
       type,
       tags,
       sourceType: 'manual',
-      data: { description: content },
+      data: { description: content, effects: detectedEffects.length > 0 ? detectedEffects : undefined },
     });
   };
 
@@ -189,6 +193,8 @@ export function CreateHomebrewDialog({ open, onOpenChange, onCreated }: CreateHo
               rows={8}
             />
           </div>
+
+          <EffectConfirmationPanel effects={detectedEffects} onChange={setDetectedEffects} />
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={createContent.isPending}>
