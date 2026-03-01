@@ -33,7 +33,6 @@ import { toast } from 'sonner';
 import {
   Upload,
   Trash2,
-  CheckCircle,
   Search,
   FileText,
   RefreshCw,
@@ -727,10 +726,6 @@ export default function SessionDetailPage() {
     onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
   });
 
-  const completeSession = trpc.sessions.complete.useMutation({
-    onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
-    onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
-  });
 
   const createRecording = trpc.sessionRecordings.create.useMutation();
   const runDerailmentDetector = trpc.sessions.runDerailmentDetector.useMutation({
@@ -745,7 +740,7 @@ export default function SessionDetailPage() {
     onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
   });
   const startSession = trpc.sessions.startSession.useMutation({
-    onSuccess: () => utils.sessions.getById.invalidate({ id: sessionId }),
+    onSuccess: () => router.push(`/campaigns/${slug}/sessions/${sessionId}/live`),
     onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
   });
 
@@ -885,21 +880,13 @@ export default function SessionDetailPage() {
               )}
 
               {isDM && isActive && (
-                <Button size="sm" variant="outline" onClick={() => completeSession.mutate({ id: sessionId })}>
-                  <CheckCircle className="mr-1.5 h-3.5 w-3.5" />
-                  Complete
-                </Button>
-              )}
-
-              {isDM && (
                 <Button
                   size="sm"
-                  variant="outline"
-                  className="gap-1.5 border-amber-500/40 text-amber-400 hover:bg-amber-500/10"
-                  onClick={() => window.open(`/campaigns/${slug}/sessions/${sessionId}/live`, '_blank')}
+                  className="gap-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                  onClick={() => router.push(`/campaigns/${slug}/sessions/${sessionId}/live`)}
                 >
                   <Swords className="h-3.5 w-3.5" />
-                  Launch Session
+                  Continue Session
                 </Button>
               )}
 
