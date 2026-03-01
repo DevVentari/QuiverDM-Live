@@ -22,20 +22,24 @@ export function CharacterActiveEffects({
   abilityScores,
   armorClass,
 }: CharacterActiveEffectsProps) {
-  const { data: equippedItems, isLoading } = trpc.characters.getEquippedEffects.useQuery(
+  const { data: resolved, isLoading } = trpc.characters.getResolvedStats.useQuery(
     { characterId },
     { staleTime: 60_000 }
   );
 
-  if (isLoading || !equippedItems) return null;
+  if (isLoading || !resolved) return null;
 
-  const allEffects = equippedItems.flatMap((item) =>
-    item.effects.map((effect) => ({ ...effect, itemName: item.itemName, itemId: item.itemId }))
-  );
+  const hasAny =
+    resolved.acBonusBreakdown.length > 0 ||
+    resolved.attackBonusBreakdown.length > 0 ||
+    resolved.damageBonusBreakdown.length > 0 ||
+    resolved.resistances.length > 0 ||
+    resolved.immunities.length > 0 ||
+    resolved.initiativeBonus !== 0 ||
+    resolved.speedBonus !== 0 ||
+    resolved.advantageOn.length > 0;
 
-  if (allEffects.length === 0) return null;
-
-  const effectCount = allEffects.length;
+  if (!hasAny) return null;
 
   return (
     <Card>
@@ -43,61 +47,81 @@ export function CharacterActiveEffects({
         <CardTitle className="text-sm flex items-center gap-2">
           <Zap className="h-4 w-4 text-amber-400" />
           Active Effects
-          <Badge variant="secondary" className="text-xs ml-auto">{effectCount}</Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
-        <Accordion type="multiple">
-          {allEffects.map((effect, idx) => {
-            // Compute stat summary for ac_bonus / ability_bonus
-            let statSummary: string | null = null;
-            const mech = (effect as any).mechanic;
-            if (mech && typeof mech.value === 'number') {
-              if (mech.type === 'ac_bonus' && armorClass != null) {
-                statSummary = `AC: ${armorClass} + ${mech.value} = ${armorClass + mech.value}`;
-              } else if (mech.type === 'ability_bonus' && mech.target && abilityScores) {
-                const key = (mech.target as string).toLowerCase();
-                const base = abilityScores[key];
-                if (base != null) {
-                  statSummary = `${(mech.target as string).toUpperCase()}: ${base} + ${mech.value} = ${base + mech.value}`;
-                }
-              }
-            }
+      <CardContent className="space-y-3 pb-4">
+        {resolved.acBonusBreakdown.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">
+              AC Bonus: +{resolved.acBonus} total
+              {armorClass != null ? ` (effective ${armorClass + resolved.acBonus})` : ''}
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {resolved.acBonusBreakdown.map((e, i) => (
+                <Badge key={i} variant="secondary" className="text-xs">+{e.value} {e.source}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
 
-            return (
-              <AccordionItem key={idx} value={String(idx)} className="px-4">
-                <AccordionTrigger className="py-2.5 text-sm font-medium hover:no-underline">
-                  <span>{effect.name}</span>
-                  <span className="text-xs text-muted-foreground font-normal ml-2">
-                    {effect.itemName}
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="pb-3 text-sm text-muted-foreground">
-                  <p className="whitespace-pre-wrap">{effect.description}</p>
-                  {mech && (
-                    <div className="mt-2 flex flex-wrap gap-1.5 items-center">
-                      <Badge variant="secondary" className="text-xs capitalize">
-                        {mech.type.replace(/_/g, ' ')}
-                      </Badge>
-                      {mech.target && (
-                        <Badge variant="outline" className="text-xs">{mech.target}</Badge>
-                      )}
-                      {mech.value != null && (
-                        <Badge variant="outline" className="text-xs">+{mech.value}</Badge>
-                      )}
-                      {mech.condition && (
-                        <span className="text-xs italic text-muted-foreground">{mech.condition}</span>
-                      )}
-                      {statSummary && (
-                        <span className="text-xs font-medium text-foreground ml-1">{statSummary}</span>
-                      )}
-                    </div>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            );
-          })}
-        </Accordion>
+        {resolved.attackBonusBreakdown.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Attack Bonus</p>
+            <div className="flex flex-wrap gap-1">
+              {resolved.attackBonusBreakdown.map((e, i) => (
+                <Badge key={i} variant="secondary" className="text-xs">+{e.value} {e.source}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resolved.resistances.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Resistances</p>
+            <div className="flex flex-wrap gap-1">
+              {resolved.resistances.map((r) => (
+                <Badge key={r} variant="outline" className="text-xs capitalize">{r}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resolved.immunities.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Immunities</p>
+            <div className="flex flex-wrap gap-1">
+              {resolved.immunities.map((im) => (
+                <Badge key={im} variant="outline" className="text-xs capitalize">{im}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(resolved.initiativeBonus !== 0 || resolved.speedBonus !== 0) && (
+          <div className="flex gap-2">
+            {resolved.initiativeBonus !== 0 && (
+              <Badge variant="outline" className="text-xs">Init +{resolved.initiativeBonus}</Badge>
+            )}
+            {resolved.speedBonus !== 0 && (
+              <Badge variant="outline" className="text-xs">Speed +{resolved.speedBonus}ft</Badge>
+            )}
+          </div>
+        )}
+
+        {resolved.advantageOn.length > 0 && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Advantage On</p>
+            <div className="flex flex-wrap gap-1">
+              {resolved.advantageOn.map((a) => (
+                <Badge key={a} variant="secondary" className="text-xs capitalize">{a}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resolved.hasConcentrationAdvantage && (
+          <Badge variant="secondary" className="text-xs">Advantage: Concentration saves</Badge>
+        )}
       </CardContent>
     </Card>
   );

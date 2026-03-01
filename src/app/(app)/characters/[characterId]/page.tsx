@@ -39,6 +39,7 @@ import { CharacterHomebrewSpells } from '@/components/character/CharacterHomebre
 import { CharacterHomebrewFeats } from '@/components/character/CharacterHomebrewFeats';
 import { CharacterActiveEffects } from '@/components/character/CharacterActiveEffects';
 import { HeroStatBar } from '@/components/character/HeroStatBar';
+import { ResolvedStatsSummary } from '@/components/character/ResolvedStatsSummary';
 import { useDiceRoller } from '@/hooks/use-dice-roller';
 
 export default function CharacterDetailPage() {
@@ -250,6 +251,7 @@ export default function CharacterDetailPage() {
                 await updateChar.mutateAsync({ id: characterId, hitPoints: next });
               }}
             />
+            <ResolvedStatsSummary characterId={characterId} baseAc={data.armorClass ?? 10} />
 
           </div>
         </div>
