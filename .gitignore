@@ -93,6 +93,23 @@ docs/D&D/Recordings/
 
 # Misc temp files
 srclibqueue-worker.ts
+find-next-cache.mjs
+package-lock.backup.json
+package-lock.corrupted.json
+
+# Codex handoff docs (place in docs/codex-handoffs/ instead)
+CODEX_*.md
+docs/codex-handoffs/
+
+# Screenshots captured during development
+docs/screenshots/
+
+# Playwright MCP temp dir
+.playwright-mcp/
+
+# Local backup dirs
+.backup/
+.repair/
 
 # Git worktrees
 .worktrees/
