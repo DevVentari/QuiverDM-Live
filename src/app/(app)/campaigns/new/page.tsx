@@ -51,7 +51,7 @@ export default function NewCampaignPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const create = trpc.campaigns.create.useMutation({
-    onSuccess: (campaign: any) => {
+    onSuccess: (campaign) => {
       router.push(`/campaigns/${campaign.slug || campaign.id}`);
     },
     onError: (error) => {
@@ -119,7 +119,7 @@ export default function NewCampaignPage() {
           )}
 
           <div className="flex gap-3 pt-2">
-            <Button type="submit" disabled={create.isPending}>
+            <Button type="submit" variant="default" disabled={create.isPending}>
               {create.isPending ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</>
               ) : (
