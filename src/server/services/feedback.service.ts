@@ -299,13 +299,34 @@ export const feedbackService = {
     const color = typeColors[data.type] ?? 0x888888;
 
     try {
-      let screenshotUrl: string | null = null;
-      if (data.screenshotBase64 && data.screenshotBase64.length > 100) {
-        screenshotUrl = await this.uploadScreenshotToDiscord(
-          botToken,
-          channelId,
-          data.screenshotBase64
-        );
+      // Build multipart form for thread creation (includes screenshot attachment if present)
+      const form = new FormData();
+
+      const embedFields = [
+        { name: 'Page', value: data.pageUrl, inline: false },
+        { name: 'User', value: userEmail, inline: true },
+        { name: 'Feedback ID', value: feedback.id, inline: true },
+        {
+          name: 'Console logs',
+          value: data.consoleLogs.length > 0 ? `${data.consoleLogs.length} captured` : 'None',
+          inline: true,
+        },
+      ];
+
+      const embed: Record<string, unknown> = {
+        title: `${data.type.charAt(0).toUpperCase() + data.type.slice(1)} Report`,
+        description: feedback.description,
+        color,
+        fields: embedFields,
+        timestamp: new Date().toISOString(),
+      };
+
+      const hasScreenshot = data.screenshotBase64 && data.screenshotBase64.length > 100;
+      if (hasScreenshot) {
+        embed.image = { url: 'attachment://screenshot.png' };
+        const raw = data.screenshotBase64.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(raw, 'base64');
+        form.append('files[0]', new Blob([buffer], { type: 'image/png' }), 'screenshot.png');
       }
 
       const pathname = (() => {
@@ -313,40 +334,20 @@ export const feedbackService = {
       })();
       const threadTitle = `[${data.type.toUpperCase()}] ${pathname} — ${new Date().toLocaleDateString()}`;
 
-      const threadBody: Record<string, unknown> = {
-        name: threadTitle.slice(0, 100),
-        message: {
-          embeds: [
-            {
-              title: `${data.type.charAt(0).toUpperCase() + data.type.slice(1)} Report`,
-              description: feedback.description,
-              color,
-              fields: [
-                { name: 'Page', value: data.pageUrl, inline: false },
-                { name: 'User', value: userEmail, inline: true },
-                { name: 'Feedback ID', value: feedback.id, inline: true },
-                {
-                  name: 'Console logs',
-                  value: data.consoleLogs.length > 0 ? `${data.consoleLogs.length} captured` : 'None',
-                  inline: true,
-                },
-              ],
-              timestamp: new Date().toISOString(),
-              ...(screenshotUrl ? { image: { url: screenshotUrl } } : {}),
-            },
-          ],
-        },
-      };
+      form.append(
+        'payload_json',
+        JSON.stringify({
+          name: threadTitle.slice(0, 100),
+          message: { embeds: [embed] },
+        })
+      );
 
       const threadRes = await fetch(
         `https://discord.com/api/v10/channels/${channelId}/threads`,
         {
           method: 'POST',
-          headers: {
-            Authorization: `Bot ${botToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(threadBody),
+          headers: { Authorization: `Bot ${botToken}` },
+          body: form,
         }
       );
 
@@ -420,37 +421,6 @@ export const feedbackService = {
       }
     } catch (err) {
       console.error('[Feedback] Discord post failed:', err);
-    }
-  },
-
-  async uploadScreenshotToDiscord(
-    botToken: string,
-    channelId: string,
-    base64: string
-  ): Promise<string | null> {
-    try {
-      const raw = base64.replace(/^data:image\/\w+;base64,/, '');
-      const buffer = Buffer.from(raw, 'base64');
-
-      const form = new FormData();
-      form.append(
-        'file',
-        new Blob([buffer], { type: 'image/png' }),
-        'screenshot.png'
-      );
-      form.append('payload_json', JSON.stringify({ content: '' }));
-
-      const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
-        method: 'POST',
-        headers: { Authorization: `Bot ${botToken}` },
-        body: form,
-      });
-
-      if (!res.ok) return null;
-      const data = (await res.json()) as { attachments?: { url: string }[] };
-      return data.attachments?.[0]?.url ?? null;
-    } catch {
-      return null;
     }
   },
 
