@@ -22,40 +22,31 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Deploy worker to nerdt server (self-hosted runner)
+  # Deploy worker to nerdt server (self-hosted runner, no Docker)
   # ---------------------------------------------------------------------------
   deploy:
     name: Deploy Worker
     runs-on: nerdt
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     environment: ${{ github.event.inputs.environment || 'production' }}
-    permissions:
-      contents: read
-      packages: read
 
     steps:
-      - name: Set image name
-        id: image
-        run: echo "name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/quiverdm-live-worker:latest" >> $GITHUB_OUTPUT
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u x-access-token --password-stdin
+      - name: Install dependencies
+        run: npm ci --omit=dev
 
-      - name: Pull latest worker image
-        run: docker pull ${{ steps.image.outputs.name }}
+      - name: Generate Prisma client
+        run: npx prisma generate
 
-      - name: Restart worker container
-        run: |
-          docker stop quiverdm-worker 2>/dev/null || true
-          docker rm quiverdm-worker 2>/dev/null || true
-          docker run -d \
-            --name quiverdm-worker \
-            --restart unless-stopped \
-            --env-file /opt/quiverdm/worker.env \
-            ${{ steps.image.outputs.name }}
+      - name: Restart worker service
+        run: sudo systemctl restart quiverdm-worker
 
-      - name: Clean up old images
-        run: docker image prune -f
+      - name: Verify worker started
+        run: sleep 3 && sudo systemctl status quiverdm-worker --no-pager
 
       - name: Deployment summary
         run: |
@@ -63,4 +54,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit:** \`${{ github.event.workflow_run.head_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **App:** Vercel (auto-deploy via git push)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Worker:** nerdt (self-hosted runner) — \`${{ steps.image.outputs.name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Worker:** nerdt (self-hosted runner, systemd)" >> $GITHUB_STEP_SUMMARY
