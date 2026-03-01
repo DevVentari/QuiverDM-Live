@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState, useCallback } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useLiveTranscription } from '@/hooks/useLiveTranscription';
@@ -11,33 +11,16 @@ import { CombatPanel } from '@/components/cockpit/combat-panel';
 import { PrepReferencePanel } from '@/components/cockpit/prep-reference-panel';
 import { NpcQuickRecall } from '@/components/cockpit/npc-quick-recall';
 import { CockpitToolbar } from '@/components/cockpit/cockpit-toolbar';
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
 
 export default function SessionCockpitPage() {
   const params = useParams();
-  const router = useRouter();
   const slug = params.slug as string;
   const sessionId = params.sessionId as string;
 
   const [mode, setMode] = useState<'rp' | 'combat'>('rp');
-  const [endDialogOpen, setEndDialogOpen] = useState(false);
-
-  const completeSession = trpc.sessions.complete.useMutation({
-    onSuccess: () => router.push(`/campaigns/${slug}/sessions/${sessionId}`),
-    onError: () => router.push(`/campaigns/${slug}/sessions/${sessionId}`),
-  });
 
   const sessionQuery = trpc.sessions.getById.useQuery({ id: sessionId });
   const campaignQuery = trpc.campaigns.getBySlug.useQuery({ slug });
@@ -55,10 +38,6 @@ export default function SessionCockpitPage() {
       await transcription.start();
     }
   }, [transcription]);
-
-  const handleEndSession = useCallback(() => {
-    setEndDialogOpen(true);
-  }, []);
 
   if (sessionQuery.isLoading || campaignQuery.isLoading) {
     return (
@@ -95,7 +74,6 @@ export default function SessionCockpitPage() {
         isRecording={transcription.isRecording}
         mode={mode}
         onModeToggle={toggleMode}
-        onEndSession={handleEndSession}
         onToggleRecording={handleToggleRecording}
       />
 
@@ -142,27 +120,6 @@ export default function SessionCockpitPage() {
         mode={mode}
         onToggleMode={toggleMode}
       />
-
-      <AlertDialog open={endDialogOpen} onOpenChange={setEndDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>End Session?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will mark the session as complete and save your notes.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button
-              className="bg-amber-500 hover:bg-amber-400 text-black"
-              onClick={() => completeSession.mutate({ id: sessionId })}
-              disabled={completeSession.isPending}
-            >
-              {completeSession.isPending ? 'Saving…' : 'Complete & Save'}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
