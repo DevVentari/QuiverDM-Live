@@ -19,22 +19,33 @@ env_path = Path(__file__).parent.parent.parent / '.env.local'
 load_dotenv(env_path)
 
 from browser_use import Agent
-from langchain_anthropic import ChatAnthropic
-from pydantic import ConfigDict
+from browser_use.browser.profile import BrowserProfile
+from browser_use.llm.google import ChatGoogle
 from personas import PERSONAS
 from reporter import AgentResult, write_report
 
+# Default model: Gemini 2.0 Flash (free tier, 1500 req/day).
+# Override via QA_LLM_MODEL env var (e.g. "gemini-2.0-flash", "claude-sonnet-4-6").
+_DEFAULT_MODEL = 'gemini-2.0-flash'
 
-# browser-use 0.12.0 reads llm.provider and monkey-patches llm.ainvoke for token
-# tracking, but Pydantic rejects both on ChatAnthropic. Subclassing with extra='allow'
-# and a provider field with a default handles both issues cleanly.
-class _ChatAnthropic(ChatAnthropic):
-    model_config = ConfigDict(arbitrary_types_allowed=True, extra='allow')
-    provider: str = 'anthropic'
 
-    @property
-    def model_name(self) -> str:
-        return self.model
+def _make_llm():
+    """Build an LLM using browser-use 0.12.0's native provider classes.
+
+    browser-use 0.12.0 uses its own BaseChatModel (not LangChain) with a
+    native output_format interface. ChatGoogle wraps google-genai directly.
+    """
+    model = os.environ.get('QA_LLM_MODEL', _DEFAULT_MODEL)
+
+    if model.startswith('gemini'):
+        return ChatGoogle(model=model, api_key=os.environ['GEMINI_API_KEY'])
+
+    # Anthropic fallback via browser-use's own Anthropic class if available
+    try:
+        from browser_use.llm.anthropic import ChatAnthropic as BUAnthropic
+        return BUAnthropic(model=model, api_key=os.environ['ANTHROPIC_API_KEY'])
+    except ImportError:
+        raise ValueError(f'Unsupported model: {model}. Set QA_LLM_MODEL to a gemini-* model.')
 
 
 async def run_agent(persona, semaphore: asyncio.Semaphore) -> AgentResult:
@@ -54,10 +65,14 @@ async def run_agent(persona, semaphore: asyncio.Semaphore) -> AgentResult:
                 password=os.environ['QA_TEST_PASSWORD'],
             )
 
-            llm = _ChatAnthropic(model='claude-sonnet-4-6')
+            llm = _make_llm()
+            # Disable uBlock Origin + cookie/ClearURLs extensions — they block
+            # scripts and styles from localhost, preventing sign-in from working.
+            profile = BrowserProfile(enable_default_extensions=False)
             agent = Agent(
                 task=task,
                 llm=llm,
+                browser_profile=profile,
                 message_context=persona.message_context,
                 extend_system_message=(
                     'When you submit feedback via the overlay form, note the feedback ID '
