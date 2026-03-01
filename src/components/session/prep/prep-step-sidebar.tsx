@@ -174,10 +174,7 @@ export function PrepStepSidebar({
           className="h-px"
           style={{ background: 'linear-gradient(90deg, rgba(212,168,83,0.15), transparent)' }}
         />
-        <p
-          className="mt-3 text-[10px] font-medium tracking-[0.15em] uppercase"
-          style={{ color: 'rgba(212,168,83,0.2)' }}
-        >
+        <p className="mt-3 text-[10px] font-medium tracking-[0.15em] uppercase text-primary/20">
           Lazy DM Method
         </p>
       </div>
