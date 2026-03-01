@@ -190,6 +190,7 @@ model Campaign {
   webhooks         WebhookEndpoint[]
   foundryEvents    FoundryEvent[]
   foundryImportJobs FoundryImportJob[]
+  obsidianImports  ObsidianImportJob[]
 
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
@@ -457,6 +458,22 @@ model FoundryImportJob {
 
   @@index([campaignId, status])
   @@index([campaignId, createdAt])
+}
+
+model ObsidianImportJob {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId     String
+  status     String   @default("pending") // pending|processing|done|error
+  zipPath    String   // absolute path to temp zip file
+  options    Json     // { npcs: bool, sessions: bool, characters: bool, homebrew: bool }
+  progress   Json?    // { total: int, done: int, currentFile: string, errors: string[] }
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([campaignId])
+  @@index([userId])
 }
 
 model Encounter {
@@ -754,7 +771,7 @@ model HomebrewContent {
   dndBeyondUrl String? // D&D Beyond URL for reference
 
   // Source tracking
-  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction'
+  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import'
   sourcePdfId  String?
   sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
   imageUrl     String?
