@@ -2,10 +2,10 @@ module.exports = {
   apps: [
     {
       name: 'quiverdm-feedback-triage',
-      script: 'node_modules/.bin/tsx',
+      script: 'node_modules/tsx/dist/cli.mjs',
       args: 'src/lib/queue/feedback-triage-worker.ts',
       cwd: 'E:/Projects/QuiverDM',
-      interpreter: 'none',
+      interpreter: 'node',
       restart_delay: 5000,
       max_restarts: 10,
       min_uptime: '10s',
