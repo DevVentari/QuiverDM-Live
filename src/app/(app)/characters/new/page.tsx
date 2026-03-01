@@ -354,7 +354,6 @@ function AbilityScoresTab({
                 onChange={(e) => setScore(key, Number(e.target.value))}
                 className="w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm"
               >
-                <option value={scores[key]}>{scores[key]}</option>
                 {STANDARD_ARRAY.filter((v) => !usedValues.includes(v) || v === scores[key]).map((v) => (
                   <option key={v} value={v}>{v}</option>
                 ))}
@@ -441,7 +440,7 @@ export default function NewCharacterPage() {
   const create = trpc.characters.create.useMutation({
     onSuccess: async (data) => {
       await utils.characters.getMyCharacters.invalidate();
-      router.push(`/characters/${(data as any).id}`);
+      router.push(`/characters/${data.id}`);
     },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
