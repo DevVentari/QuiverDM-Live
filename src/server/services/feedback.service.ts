@@ -243,7 +243,7 @@ export const feedbackService = {
 
   async createReport(
     userId: string,
-    userEmail: string,
+    userDisplayName: string,
     data: {
       type: 'bug' | 'feature' | 'feedback';
       description: string;
@@ -270,14 +270,14 @@ export const feedbackService = {
       },
     });
 
-    void this.postDiscordThread(feedback, userEmail, data);
+    void this.postDiscordThread(feedback, userDisplayName, data);
 
     return { id: feedback.id };
   },
 
   async postDiscordThread(
     feedback: { id: string; type: string; description: string },
-    userEmail: string,
+    userDisplayName: string,
     data: {
       type: string;
       pageUrl: string;
@@ -304,7 +304,7 @@ export const feedbackService = {
 
       const embedFields = [
         { name: 'Page', value: data.pageUrl, inline: false },
-        { name: 'User', value: userEmail, inline: true },
+        { name: 'User', value: userDisplayName, inline: true },
         { name: 'Feedback ID', value: feedback.id, inline: true },
         {
           name: 'Console logs',
