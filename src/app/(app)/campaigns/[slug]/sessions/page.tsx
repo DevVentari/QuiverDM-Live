@@ -107,6 +107,12 @@ export default function SessionsPage() {
       )}
 
       {/* Session list */}
+      {sessions.length > 0 && !sessionsQuery.isLoading && !sessionsQuery.isError && (
+        <>
+          <p className="label-overline">Sessions</p>
+          <div className="section-rule mb-4" />
+        </>
+      )}
       {sessionsQuery.isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
@@ -149,7 +155,7 @@ export default function SessionsPage() {
                       </div>
 
                       {/* Card */}
-                      <div className="relative flex-1 min-w-0 rounded-lg border border-border bg-card hover:border-foreground/20 hover:bg-card/80 transition-all duration-150 overflow-hidden mb-1">
+                      <div className="relative flex-1 min-w-0 glass-panel rounded-lg border border-border hover:border-foreground/20 transition-all duration-150 overflow-hidden mb-1">
                         <div className={`h-1 w-full ${status.dot}`} />
                         <div className="px-4 py-3 flex items-center gap-3">
                         {/* Mobile number */}
