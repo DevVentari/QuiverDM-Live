@@ -132,6 +132,36 @@ export const feedbackRouter = router({
     }),
 
   /**
+   * Submit a rich report from the feedback overlay widget
+   */
+  createReport: protectedProcedure
+    .input(
+      z.object({
+        type: z.enum(['bug', 'feature', 'feedback']),
+        description: z.string().min(10).max(5000),
+        pageUrl: z.string().url(),
+        userAgent: z.string().max(500),
+        screenshotBase64: z.string().max(5_000_000),
+        consoleLogs: z
+          .array(
+            z.object({
+              ts: z.number(),
+              level: z.string(),
+              msg: z.string().max(500),
+            })
+          )
+          .max(50),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      return feedbackService.createReport(
+        ctx.session.user.id,
+        ctx.session.user.email ?? '',
+        input
+      );
+    }),
+
+  /**
    * Get feedback statistics (admin only)
    */
   getStats: protectedProcedure.query(async ({ ctx }) => {
