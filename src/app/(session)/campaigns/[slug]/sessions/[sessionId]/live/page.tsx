@@ -11,6 +11,16 @@ import { CombatPanel } from '@/components/cockpit/combat-panel';
 import { PrepReferencePanel } from '@/components/cockpit/prep-reference-panel';
 import { NpcQuickRecall } from '@/components/cockpit/npc-quick-recall';
 import { CockpitToolbar } from '@/components/cockpit/cockpit-toolbar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
@@ -22,6 +32,12 @@ export default function SessionCockpitPage() {
   const sessionId = params.sessionId as string;
 
   const [mode, setMode] = useState<'rp' | 'combat'>('rp');
+  const [endDialogOpen, setEndDialogOpen] = useState(false);
+
+  const completeSession = trpc.sessions.complete.useMutation({
+    onSuccess: () => router.push(`/campaigns/${slug}/sessions/${sessionId}`),
+    onError: () => router.push(`/campaigns/${slug}/sessions/${sessionId}`),
+  });
 
   const sessionQuery = trpc.sessions.getById.useQuery({ id: sessionId });
   const campaignQuery = trpc.campaigns.getBySlug.useQuery({ slug });
@@ -41,8 +57,8 @@ export default function SessionCockpitPage() {
   }, [transcription]);
 
   const handleEndSession = useCallback(() => {
-    router.push(`/campaigns/${slug}/sessions/${sessionId}`);
-  }, [router, slug, sessionId]);
+    setEndDialogOpen(true);
+  }, []);
 
   if (sessionQuery.isLoading || campaignQuery.isLoading) {
     return (
@@ -126,6 +142,27 @@ export default function SessionCockpitPage() {
         mode={mode}
         onToggleMode={toggleMode}
       />
+
+      <AlertDialog open={endDialogOpen} onOpenChange={setEndDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>End Session?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will mark the session as complete and save your notes.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-amber-500 hover:bg-amber-400 text-black"
+              onClick={() => completeSession.mutate({ id: sessionId })}
+              disabled={completeSession.isPending}
+            >
+              {completeSession.isPending ? 'Saving…' : 'Complete & Save'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
