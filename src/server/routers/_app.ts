@@ -28,6 +28,7 @@ import { webhooksRouter } from './webhooks';
 import { searchRouter } from './search';
 import { passwordResetRouter } from './password-reset';
 import { foundryRouter } from './foundry';
+import { obsidianRouter } from './obsidian';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -59,6 +60,7 @@ export const appRouter = router({
   search: searchRouter,
   passwordReset: passwordResetRouter,
   foundry: foundryRouter,
+  obsidian: obsidianRouter,
 });
 
 export type AppRouter = typeof appRouter;

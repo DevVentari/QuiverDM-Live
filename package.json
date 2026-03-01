@@ -30,6 +30,7 @@
     "worker:player-recap": "tsx src/lib/queue/player-recap-worker.ts",
     "worker:embeddings": "tsx src/lib/queue/embeddings-worker.ts",
     "worker:feedback-triage": "tsx src/lib/queue/feedback-triage-worker.ts",
+    "worker:obsidian-import": "tsx src/lib/queue/obsidian-import-worker.ts",
     "worker:pdf:dev": "tsx watch src/lib/queue/worker.ts",
     "setup:stripe": "tsx scripts/setup-stripe.ts",
     "setup:r2-cors": "tsx scripts/setup-r2-cors.ts",
@@ -77,6 +78,7 @@
     "@trpc/server": "^11.0.0-rc.628",
     "@types/three": "^0.162.0",
     "@types/ws": "^8.18.1",
+    "adm-zip": "^0.5.16",
     "assemblyai": "^4.23.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
@@ -124,6 +126,7 @@
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "@tailwindcss/typography": "^0.5.19",
+    "@types/adm-zip": "^0.5.7",
     "@types/bcryptjs": "^2.4.6",
     "@types/fluent-ffmpeg": "^2.1.28",
     "@types/form-data": "^2.2.1",

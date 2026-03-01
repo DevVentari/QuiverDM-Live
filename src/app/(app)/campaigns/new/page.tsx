@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useState } from 'react';
 import { z } from 'zod';
 import { trpc } from '@/lib/trpc';
@@ -47,8 +48,22 @@ export default function NewCampaignPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Create Campaign</h1>
+    <div className="max-w-2xl space-y-4">
+      <h1 className="text-2xl font-bold">Create Campaign</h1>
+      <Card className="border-muted">
+        <CardHeader>
+          <CardTitle className="text-base">Import from Obsidian</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Already have campaign notes in Obsidian? Import your vault and QuiverDM will extract NPCs,
+            sessions, characters, and homebrew content automatically.
+          </p>
+          <Button variant="outline" asChild>
+            <Link href="/campaigns/new/import-obsidian">Import Obsidian Vault</Link>
+          </Button>
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader>
           <CardTitle>Campaign Details</CardTitle>
