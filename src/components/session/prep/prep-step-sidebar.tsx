@@ -83,8 +83,7 @@ export function PrepStepSidebar({
       {/* Decorative header */}
       <div className="mb-6 px-2">
         <p
-          className="text-[10px] font-medium tracking-[0.25em] uppercase"
-          style={{ color: 'rgba(212,168,83,0.35)' }}
+          className="text-[10px] font-medium tracking-[0.25em] uppercase text-primary/[0.35]"
         >
           Session Prep
         </p>
@@ -115,35 +114,24 @@ export function PrepStepSidebar({
             {/* Active indicator bar */}
             {isActive && (
               <div
-                className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-0.5 rounded-full"
-                style={{ background: 'rgba(212,168,83,0.8)' }}
+                className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-0.5 rounded-full bg-primary/80"
               />
             )}
 
             {/* Step indicator */}
             <span
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-medium font-display transition-all duration-200"
+              className={cn(
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[10px] font-medium font-display transition-all duration-200',
+                isActive && 'border-primary/70 bg-primary/15 text-primary',
+                isDone && !isActive && 'border-primary/25 bg-primary/[0.06] text-primary/60',
+                !isActive && !isDone && 'border-white/[0.08] text-white/25'
+              )}
               style={{
-                borderColor: isActive
-                  ? 'rgba(212,168,83,0.7)'
-                  : isDone
-                  ? 'rgba(212,168,83,0.25)'
-                  : 'rgba(255,255,255,0.08)',
-                background: isActive
-                  ? 'rgba(212,168,83,0.15)'
-                  : isDone
-                  ? 'rgba(212,168,83,0.06)'
-                  : 'transparent',
-                color: isActive
-                  ? 'rgba(212,168,83,1)'
-                  : isDone
-                  ? 'rgba(212,168,83,0.6)'
-                  : 'rgba(255,255,255,0.25)',
                 boxShadow: isActive ? '0 0 12px rgba(212,168,83,0.15)' : 'none',
               }}
             >
               {isDone && !isActive ? (
-                <Check className="h-3 w-3" style={{ color: 'rgba(212,168,83,0.7)' }} />
+                <Check className="h-3 w-3 text-primary/70" />
               ) : (
                 numeral
               )}
@@ -152,22 +140,17 @@ export function PrepStepSidebar({
             {/* Label + hint */}
             <div className="min-w-0 flex-1">
               <div
-                className="text-sm font-medium transition-colors duration-200"
-                style={{
-                  color: isActive
-                    ? 'rgba(232,213,176,1)'
-                    : isDone
-                    ? 'rgba(232,213,176,0.55)'
-                    : 'rgba(255,255,255,0.25)',
-                }}
+                className={cn(
+                  'text-sm font-medium transition-colors duration-200',
+                  isActive && 'text-amber-100',
+                  isDone && !isActive && 'text-amber-100/55',
+                  !isActive && !isDone && 'text-white/25'
+                )}
               >
                 {label}
               </div>
               {isActive && (
-                <div
-                  className="text-[11px] mt-0.5 truncate"
-                  style={{ color: 'rgba(212,168,83,0.4)' }}
-                >
+                <div className="text-[11px] mt-0.5 truncate text-primary/40">
                   {hint}
                 </div>
               )}
@@ -175,11 +158,11 @@ export function PrepStepSidebar({
 
             {/* Icon (right side, faint) */}
             <Icon
-              className="h-3.5 w-3.5 shrink-0 transition-opacity duration-200"
-              style={{
-                color: isActive ? 'rgba(212,168,83,0.4)' : 'rgba(255,255,255,0.08)',
-                opacity: isActive || isDone ? 1 : 0.4,
-              }}
+              className={cn(
+                'h-3.5 w-3.5 shrink-0 transition-opacity duration-200',
+                isActive ? 'text-primary/40' : 'text-white/[0.08]',
+                isActive || isDone ? 'opacity-100' : 'opacity-40'
+              )}
             />
           </button>
         );
