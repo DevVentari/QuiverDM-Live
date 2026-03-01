@@ -179,7 +179,7 @@
 
   /* Landing page utilities */
   .text-gradient-amber {
-    background: linear-gradient(135deg, hsl(35 90% 70%), hsl(45 95% 65%), hsl(35 80% 55%));
+    background: linear-gradient(175deg, rgb(247 190 110) 0%, rgb(251 208 81) 50%, rgb(232 156 48) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
