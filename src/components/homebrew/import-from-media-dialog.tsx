@@ -11,6 +11,13 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Upload, Loader2, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
 interface ResultItem {
@@ -160,6 +167,7 @@ export function ImportFromMediaDialog({
                     </span>
                     <button
                       onClick={() => removeFile(i)}
+                      aria-label={`Remove ${f.name}`}
                       className="text-muted-foreground hover:text-destructive transition-colors"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -171,18 +179,18 @@ export function ImportFromMediaDialog({
 
             {!campaignId && campaigns && campaigns.length > 0 && (
               <div className="space-y-1.5">
-                <Label htmlFor="campaign-select">Add to Campaign (optional)</Label>
-                <select
-                  id="campaign-select"
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                  value={selectedCampaignId}
-                  onChange={(e) => setSelectedCampaignId(e.target.value)}
-                >
-                  <option value="">No campaign — library only</option>
-                  {campaigns.map((c: { id: string; name: string }) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <Label>Add to Campaign (optional)</Label>
+                <Select value={selectedCampaignId} onValueChange={setSelectedCampaignId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="No campaign — library only" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No campaign — library only</SelectItem>
+                    {campaigns.map((c: { id: string; name: string }) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
