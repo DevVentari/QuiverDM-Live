@@ -6,12 +6,12 @@ kanban-plugin: board
 
 ## 🔴 Now — Alpha Launch Blockers
 
-- [ ] **Vercel Deployment (infra)** — App needs to be live for friends & family alpha. Provision: Neon, Upstash, Cloudflare R2 + Tunnel, Vercel account. Refs: `docs/plans/2026-02-24-vercel-deployment.md`
 
 
 ## 🟡 Next — Post-Alpha
 
 - [ ] **Market Pricing & Position Validation** — Pricing tiers needed before paid tier opens. Not blocking alpha. Refs: `docs/obsidian-vault/10-Research/2026-02-24-deep-market-research-matrix.md`
+- [x] **Gemini API — Per-User Key** — geminiApiKey added to UserSettings (encrypted). Settings page shows "Free tier" badge with 1,000 req/day callout. Extraction pipeline uses user key with server env fallback. Refs: `docs/plans/2026-03-01-alpha-readiness-impl.md`
 
 
 ## 🟢 Later — Backlog
@@ -22,13 +22,13 @@ kanban-plugin: board
 - [ ] **Phase 4 — Autonomous Co-DM** — Real-time narrative operator inside Session Mode, powered by DM Brain. Simultaneously: observes (NPC names spoken, goals, threats, HP trends, pacing), predicts (combat drag alerts, engagement drops, escape likelihood), autonomously updates NPC behavior (goals/fear/loyalty/secrets), generates world-consistent improv content on demand, manages encounter autopilot (conditions, recharge, initiative), guards lore continuity, propagates world reactions between sessions, detects table emotional state (spotlight imbalance, boredom). Confidence-threshold UI (silent → hint → highlight → alert). Four permission levels: Manual → Assist → Auto Mechanical → Full Co-DM. Architecture: Context Stream → Decision Models → Action Generator → Session UI. Refs: `docs/obsidian-vault/20-Brainstorm/autonomous-co-dm.md`
 - [ ] **Phase 3 — Session Mode Dashboard** — Full-screen play UI: party HP/conditions/initiative panel, live scene notes with AI overlay (auto-updates from transcription), zero-friction NPC recall, combat mode (UI morphs in place — no navigation), DM panic tools (roll, generate NPC, suggest twist), real-time AI context alerts, end-session one-click pipeline (summary → journals → NPCs → timeline → prep tasks). No page switching. Everything live. Refs: `docs/obsidian-vault/20-Brainstorm/session-mode-dashboard.md`
 - [ ] **Session Continuity Graph** — Persistent NPC/quest/state graph, surfaces unresolved threads between sessions.
+- [ ] **Design Language Unification** — Amber accent system applied: grain texture on sidebar, overline labels + amber separator rules on dashboard/campaign overview, prep wizard now uses Tailwind CSS tokens (no more hardcoded rgba). Further: NPC pages, sessions list, homebrew gallery. Refs: `docs/plans/2026-03-01-alpha-readiness-impl.md`
 - [x] **Player Recap Mode** — 90-second player-safe summary generated after each session.
 - [x] **Derailment Detector** — Detects objective drift mid-session, surfaces 2-3 GM recovery options.
 
 
 ## 💡 Ideas — Not Yet Scoped
 
-- [ ] **Adopt Prep Wizard Aesthetic to Main UI** — The dark obsidian/amber candlelight palette, roman numeral sidebar, and atmospheric grain/vignette from the fullscreen prep wizard are strong. Evaluate porting to the dashboard, campaign overview, and session detail pages as an optional "immersive mode" or as the default dark theme.
 - [ ] Foundry two-screen co-pilot — real-time event sync between Foundry and QuiverDM
 - [ ] Shared campaign journal (player-facing write access)
 - [ ] Voice-activated DM assistant (push-to-talk during session)
@@ -51,6 +51,7 @@ kanban-plugin: board
 - [x] **Combat Condition Co-pilot** — Auto-track HP, concentration, conditions from transcript.
 - [x] **Foundry Sidecar Bridge MVP** — Schema, API routes, tRPC router, SSE stream, UI, foundry-module/ scaffold.
 - [x] **Foundry Import Plugin** — QuiverDM → Foundry push (NPCs, macros, journal entries).
+- [x] **Vercel Deployment (infra)** — App live at app.nerdt.au. Neon keepalive cron added to prevent 504 timeouts.
 
 
 ## Feedback/Bugs
