@@ -30,6 +30,7 @@ import { saveExtractedContent } from '../../server/repositories/homebrew-extract
 import path from 'path';
 import fs from 'fs/promises';
 import { activeJobs } from './worker-control';
+import { decrypt } from '../encryption';
 
 declare const __webpack_require__: unknown;
 
@@ -467,6 +468,20 @@ async function processPDFJob(
       level: 'success',
     });
 
+    // Fetch user's Gemini key if available (allows per-user key without server env key)
+    let userGeminiKey: string | undefined;
+    try {
+      const userSettings = await prisma.userSettings.findUnique({
+        where: { userId },
+        select: { geminiApiKey: true },
+      });
+      if (userSettings?.geminiApiKey) {
+        userGeminiKey = decrypt(userSettings.geminiApiKey);
+      }
+    } catch {
+      // Non-fatal: fall back to server env key or other providers
+    }
+
     // Only extract content if useAIExtraction is enabled (defaults to true for backwards compat)
     if (shouldExtract) {
       const extractionProvider: ExtractionProvider | undefined = options.llmProvider;
@@ -485,7 +500,11 @@ async function processPDFJob(
           extractedImages: extractedImageMetadata,
         };
 
-        const extractionResult = await extractWithFallback(extractionPayload.markdown, extractionProvider);
+        const extractionResult = await extractWithFallback(
+          extractionPayload.markdown,
+          extractionProvider,
+          userGeminiKey ? { geminiApiKey: userGeminiKey } : undefined
+        );
 
         if (extractionResult.success && extractionResult.items.length > 0) {
           console.log(`[Worker] Extracted ${extractionResult.items.length} items via ${extractionResult.provider}, saving...`);
