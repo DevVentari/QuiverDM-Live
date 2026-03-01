@@ -128,10 +128,10 @@ export function resolveEffects(sources: RawEffectSource[]): ResolvedEffects {
           result.hasDeathSaveAdvantage = true;
           break;
         case 'advantage':
-          if (m.target) result.advantageOn.push(m.target);
+          if (m.target && !result.advantageOn.includes(m.target)) result.advantageOn.push(m.target);
           break;
         case 'disadvantage':
-          if (m.target) result.disadvantageOn.push(m.target);
+          if (m.target && !result.disadvantageOn.includes(m.target)) result.disadvantageOn.push(m.target);
           break;
       }
     }
