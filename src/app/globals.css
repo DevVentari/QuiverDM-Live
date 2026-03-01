@@ -267,4 +267,41 @@
       radial-gradient(ellipse 35% 30% at 70% 70%, hsl(258 50% 40% / 0.03), transparent);
     animation: ambient-shift 12s ease-in-out infinite;
   }
+
+  /* Decorative amber separator line — matches prep wizard header decoration */
+  .section-rule::before {
+    content: '';
+    display: block;
+    height: 1px;
+    background: linear-gradient(90deg, hsl(35 80% 55% / 0.3), transparent);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Overline label style — matches prep wizard "SESSION PREP" label */
+  .label-overline {
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: hsl(35 80% 55% / 0.4);
+    line-height: 1;
+  }
+
+  /* Subtle grain texture on glass surfaces */
+  .glass-grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .glass-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.022;
+    mix-blend-mode: overlay;
+    z-index: 1;
+  }
 }
