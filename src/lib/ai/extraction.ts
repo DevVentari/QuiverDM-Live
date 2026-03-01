@@ -556,6 +556,9 @@ export async function extractWithFallback(
   userKeys?: { geminiApiKey?: string }
 ): Promise<ExtractionResult> {
   const available = getAvailableProviders();
+  if (userKeys?.geminiApiKey && !available.includes('gemini')) {
+    available.unshift('gemini');
+  }
   console.log(`[AI Extraction] Available providers: ${available.join(', ')}`);
 
   // Build fallback chain
