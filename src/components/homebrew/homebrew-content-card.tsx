@@ -34,7 +34,7 @@ export function HomebrewContentCard({ item, href }: HomebrewContentCardProps) {
   const SourceIcon = sourceIcon;
 
   const card = (
-    <Card className="group transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer overflow-hidden">
+    <Card className="glass-panel group transition-all hover:scale-[1.02] hover:shadow-md cursor-pointer overflow-hidden">
       {imageUrl ? (
         <div className="relative h-24 w-full">
           <Image
