@@ -333,6 +333,61 @@ export class CharacterService {
       return { itemName: ci.homebrew.name, itemId: ci.homebrew.id, equipped: ci.equipped, attuned: ci.attuned, effects };
     });
   }
+
+  async getResolvedEffectSources(characterId: string, userId: string): Promise<import('@/server/services/effect-resolver').RawEffectSource[]> {
+    const character = await prisma.character.findUnique({
+      where: { id: characterId },
+      select: { userId: true },
+    });
+    if (!character) throw new NotFoundError('character', characterId);
+    if (character.userId !== userId) throw ForbiddenError.forPermission('view', 'Character');
+
+    const [items, spells, feats] = await Promise.all([
+      prisma.characterItem.findMany({
+        where: { characterId, equipped: true },
+        include: { homebrew: { select: { id: true, name: true, data: true } } },
+      }),
+      prisma.characterSpell.findMany({
+        where: { characterId },
+        include: { homebrew: { select: { id: true, name: true, data: true } } },
+      }),
+      prisma.characterFeat.findMany({
+        where: { characterId },
+        include: { homebrew: { select: { id: true, name: true, data: true } } },
+      }),
+    ]);
+
+    const toSource = (
+      type: 'item' | 'spell' | 'feat',
+      id: string,
+      name: string,
+      data: Record<string, unknown>,
+      active: boolean
+    ): import('@/server/services/effect-resolver').RawEffectSource => ({
+      sourceId: id,
+      sourceName: name,
+      sourceType: type,
+      active,
+      effects: Array.isArray(data.effects)
+        ? (data.effects as unknown[]).filter(
+            (e): e is { name: string; description: string } =>
+              typeof (e as any)?.name === 'string' && typeof (e as any)?.description === 'string'
+          )
+        : [],
+    });
+
+    return [
+      ...items.map((ci) =>
+        toSource('item', ci.homebrew.id, ci.homebrew.name, ci.homebrew.data as Record<string, unknown>, ci.equipped)
+      ),
+      ...spells.map((cs) =>
+        toSource('spell', cs.homebrew.id, cs.homebrew.name, cs.homebrew.data as Record<string, unknown>, true)
+      ),
+      ...feats.map((cf) =>
+        toSource('feat', cf.homebrew.id, cf.homebrew.name, cf.homebrew.data as Record<string, unknown>, true)
+      ),
+    ];
+  }
 }
 
 export const characterService = new CharacterService();
