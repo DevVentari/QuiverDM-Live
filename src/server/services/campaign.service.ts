@@ -191,6 +191,10 @@ export class CampaignService {
 
     const updateData: Record<string, any> = { ...input };
 
+    if ('bannerUrl' in updateData) {
+      updateData.bannerUrl = updateData.bannerUrl || null;
+    }
+
     // If name is being updated, regenerate slug
     if (input.name) {
       updateData.slug = await generateUniqueSlug(input.name, async (slug) => {
