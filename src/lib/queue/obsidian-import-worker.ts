@@ -123,13 +123,14 @@ async function processJob(data: ObsidianImportJobData) {
     | 'homebrew-faction'
     | 'homebrew-race'
     | 'homebrew-rule'
+    | 'homebrew-adventure'
     | 'skip';
 
   function categorize(filePath: string): FileCategory {
     const rel = path.relative(extractDir, filePath).replace(/\\/g, '/').toLowerCase();
     if (rel.includes('player characters/') || rel.includes('player-characters/')) return 'character';
     if (rel.includes('sessions/')) return 'session-completed';
-    if (rel.includes('adventures/')) return 'session-planning';
+    if (rel.includes('adventures/')) return 'homebrew-adventure';
     const base = path.basename(filePath).toLowerCase();
     if (base === 'npcs.md') return 'npc';
     if (base === 'items.md') return 'homebrew-item';
@@ -244,6 +245,7 @@ async function processJob(data: ObsidianImportJobData) {
           'homebrew-faction': 'faction',
           'homebrew-race': 'race',
           'homebrew-rule': 'rule',
+          'homebrew-adventure': 'adventure',
         };
         const contentType = typeMap[item.category] ?? 'item';
         const extracted = await extractHomebrew(item.markdown, contentType, geminiKey);
