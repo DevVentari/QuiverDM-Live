@@ -124,7 +124,7 @@ export function NpcQuickRecall({ campaignId }: NpcQuickRecallProps) {
 
         {query.data?.length === 0 && search && (
           <p className="text-xs text-muted-foreground text-center py-3 italic">
-            No NPCs matching "{search}"
+            No NPCs matching &ldquo;{search}&rdquo;
           </p>
         )}
 

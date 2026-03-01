@@ -58,6 +58,7 @@ export function PartyMemberCard({
         {/* Portrait */}
         <div className="h-9 w-9 rounded-md overflow-hidden shrink-0 bg-muted flex items-center justify-center">
           {portraitUrl ? (
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={portraitUrl} alt={name} className="h-full w-full object-cover" />
           ) : (
             <User className="h-4 w-4 text-muted-foreground" />
