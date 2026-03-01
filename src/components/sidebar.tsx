@@ -32,7 +32,7 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        'glass-shell hidden md:flex flex-col border-r border-border transition-all duration-200',
+        'glass-shell glass-grain hidden md:flex flex-col border-r border-border transition-all duration-200',
         collapsed ? 'w-16' : 'w-60'
       )}
     >
