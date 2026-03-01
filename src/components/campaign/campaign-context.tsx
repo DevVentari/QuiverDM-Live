@@ -32,3 +32,7 @@ export function useCampaign() {
   if (!ctx) throw new Error('useCampaign must be used within CampaignProvider');
   return ctx;
 }
+
+export function useCampaignOptional() {
+  return useContext(CampaignContext);
+}

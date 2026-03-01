@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useContext } from 'react';
 import html2canvas from 'html2canvas';
 import { MessageSquare, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { trpc } from '@/lib/trpc';
 import { getConsoleLogs, type CapturedLog } from './console-log-capture';
+import { useCampaignOptional } from '@/components/campaign/campaign-context';
 
 type ReportType = 'bug' | 'feature' | 'feedback';
 
@@ -31,6 +32,7 @@ export function FeedbackWidget() {
   const [logsVisible, setLogsVisible] = useState(false);
   const [capturing, setCapturing] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const campaign = useCampaignOptional();
 
   const createReport = trpc.feedback.createReport.useMutation({
     onSuccess: () => {
@@ -70,6 +72,11 @@ export function FeedbackWidget() {
       userAgent: navigator.userAgent,
       screenshotBase64: screenshot ?? '',
       consoleLogs: logs,
+      ...(campaign && {
+        campaignId: campaign.campaignId,
+        campaignSlug: campaign.slug,
+        campaignName: campaign.name,
+      }),
     });
   }
 
