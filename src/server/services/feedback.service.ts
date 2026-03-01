@@ -5,6 +5,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { NotFoundError, ValidationError, ForbiddenError } from '../errors';
+import { addFeedbackTriageJob } from '@/lib/queue/feedback-triage-queue';
 
 export type FeedbackType = 'bug' | 'feature' | 'improvement' | 'other';
 export type FeedbackCategory =
@@ -376,122 +377,17 @@ export const feedbackService = {
         });
       }
 
-      const triage = await this.triageWithClaude(
-        data.type,
-        feedback.description,
-        data.pageUrl,
-        data.consoleLogs
-      );
-
-      if (triage) {
-        const severityColors: Record<string, number> = {
-          critical: 0xff0000,
-          high: 0xff8c00,
-          medium: 0xffd700,
-          low: 0x00c853,
-        };
-        await fetch(`https://discord.com/api/v10/channels/${thread.id}/messages`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bot ${botToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            embeds: [
-              {
-                title: `Claude Triage — ${(triage.severity ?? 'UNKNOWN').toUpperCase()} severity`,
-                color: severityColors[triage.severity ?? 'medium'] ?? 0xffd700,
-                fields: [
-                  { name: 'Likely cause', value: triage.likely_cause ?? 'Unknown', inline: false },
-                  {
-                    name: 'Affected files',
-                    value: (triage.affected_files ?? []).join('\n') || 'Unknown',
-                    inline: true,
-                  },
-                  { name: 'Suggested fix', value: triage.suggested_fix ?? 'See description', inline: false },
-                  ...(triage.reproduction_steps
-                    ? [{ name: 'Reproduction', value: triage.reproduction_steps, inline: false }]
-                    : []),
-                ],
-                footer: { text: 'Powered by Claude haiku' },
-              },
-            ],
-          }),
-        });
-      }
+      // Enqueue triage — picked up by local worker running `claude -p`
+      void addFeedbackTriageJob({
+        feedbackId: feedback.id,
+        threadId: thread.id,
+        type: data.type,
+        description: feedback.description,
+        pageUrl: data.pageUrl,
+        consoleLogs: data.consoleLogs,
+      });
     } catch (err) {
       console.error('[Feedback] Discord post failed:', err);
-    }
-  },
-
-  async triageWithClaude(
-    type: string,
-    description: string,
-    pageUrl: string,
-    consoleLogs: { ts: number; level: string; msg: string }[]
-  ): Promise<{
-    severity: string;
-    likely_cause: string;
-    affected_files: string[];
-    suggested_fix: string;
-    reproduction_steps?: string;
-  } | null> {
-    try {
-      const { spawn } = await import('child_process');
-
-      const logSummary = consoleLogs
-        .slice(-20)
-        .map((l) => `${l.level.toUpperCase()}: ${l.msg}`)
-        .join('\n');
-
-      const prompt = `You are a bug triage agent for QuiverDM, an AI-powered D&D session management web app (Next.js 15, tRPC, Prisma, PostgreSQL).
-
-Type: ${type}
-Page: ${pageUrl}
-Description: ${description}
-
-Console logs (last 20):
-${logSummary || 'None'}
-
-Respond with JSON ONLY — no markdown, no explanation:
-{
-  "severity": "low" | "medium" | "high" | "critical",
-  "likely_cause": "1-2 sentence explanation",
-  "affected_files": ["array of likely source file paths"],
-  "suggested_fix": "concrete action to fix this",
-  "reproduction_steps": "optional steps to reproduce"
-}`;
-
-      const text = await new Promise<string>((resolve, reject) => {
-        const child = spawn('claude', ['-p', prompt, '--output-format', 'json'], {
-          timeout: 30000,
-        });
-        let stdout = '';
-        let stderr = '';
-        child.stdout.on('data', (d: Buffer) => { stdout += d.toString(); });
-        child.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
-        child.on('close', (code: number) => {
-          if (code !== 0) return reject(new Error(`claude exited ${code}: ${stderr.slice(0, 200)}`));
-          try {
-            const parsed = JSON.parse(stdout) as { result?: string };
-            resolve(parsed.result ?? stdout);
-          } catch {
-            resolve(stdout);
-          }
-        });
-        child.on('error', reject);
-      });
-
-      return JSON.parse(text) as {
-        severity: string;
-        likely_cause: string;
-        affected_files: string[];
-        suggested_fix: string;
-        reproduction_steps?: string;
-      };
-    } catch (err) {
-      console.error('[Feedback] Claude triage failed:', err);
-      return null;
     }
   },
 };
