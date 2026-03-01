@@ -193,7 +193,7 @@ export default function DashboardPage() {
                       />
                     </div>
                   ) : (
-                    <div className="h-28 w-full bg-gradient-to-r from-purple-950 to-blue-950" />
+                    <div className="h-28 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                   )}
                   <CardHeader className="pb-2">
                     <div className="flex items-center justify-between gap-2">
@@ -276,46 +276,40 @@ export default function DashboardPage() {
                 const hpPct = hp?.max > 0 ? (hp.current / hp.max) * 100 : null;
                 return (
                   <Link key={char.id} href={`/characters/${char.id}`}>
-                    <Card className="glass-panel group relative isolate cursor-pointer overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.05]">
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(246,166,35,0.16),transparent_35%)] opacity-70" />
-                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-60" />
-                      <div className="relative z-10 flex">
-                        {char.portraitUrl ? (
-                          <div className="relative w-20 shrink-0 overflow-hidden">
-                            <Image
-                              src={char.portraitUrl}
-                              alt={char.name}
-                              fill
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex w-20 shrink-0 items-center justify-center bg-gradient-to-b from-purple-950 to-blue-950">
-                            <Users className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0 py-3 px-4">
-                          <div className="flex items-center justify-between gap-2">
-                            <CardTitle className="text-sm truncate">{char.name}</CardTitle>
-                            {char.level && (
-                              <Badge variant="outline" className="border-white/35 bg-white/5 text-[10px] shrink-0 tabular-nums">
-                                Lvl {char.level}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {[char.race, char.class].filter(Boolean).join(' | ') || 'No details'}
-                          </p>
-                          {hp && hpPct != null && (
-                            <div className="flex items-center gap-2 mt-2">
-                              <Heart className="h-3 w-3 text-red-500 shrink-0" />
-                              <Progress value={hpPct} className="h-1.5 flex-1" />
-                              <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                                {hp.current}/{hp.max}
-                              </span>
-                            </div>
+                    <Card className="glass-panel group cursor-pointer overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.05]">
+                      {char.portraitUrl ? (
+                        <div className="relative h-24 w-full overflow-hidden">
+                          <Image
+                            src={char.portraitUrl}
+                            alt={char.name}
+                            fill
+                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
+                      )}
+                      <div className="py-3 px-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <CardTitle className="text-sm truncate">{char.name}</CardTitle>
+                          {char.level && (
+                            <Badge variant="outline" className="border-white/35 bg-white/5 text-[10px] shrink-0 tabular-nums">
+                              Lvl {char.level}
+                            </Badge>
                           )}
                         </div>
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                          {[char.race, char.class].filter(Boolean).join(' | ') || 'No details'}
+                        </p>
+                        {hp && hpPct != null && (
+                          <div className="flex items-center gap-2 mt-2">
+                            <Heart className="h-3 w-3 text-red-500 shrink-0" />
+                            <Progress value={hpPct} className="h-1.5 flex-1" />
+                            <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
+                              {hp.current}/{hp.max}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </Card>
                   </Link>
