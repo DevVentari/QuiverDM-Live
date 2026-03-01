@@ -14,6 +14,7 @@ import { derailmentQueue } from '@/lib/queue/derailment-queue';
 import { combatCopilotQueue } from '@/lib/queue/combat-copilot-queue';
 import { playerRecapQueue } from '@/lib/queue/player-recap-queue';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
+import { sessionStateService } from '../services/session-state.service';
 
 export const sessionsRouter = router({
   /**
@@ -489,4 +490,24 @@ export const sessionsRouter = router({
       if (!session) throw new NotFoundError('session', input.sessionId);
       return session;
     }),
+
+  getCharacterSessionStates: campaignMemberProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
+    .query(({ input }) => sessionStateService.getStates(input.sessionId)),
+
+  initCharacterSessionStates: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
+    .mutation(({ input }) => sessionStateService.initForSession(input.sessionId)),
+
+  getSessionEvents: campaignMemberProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
+    .query(({ input }) => sessionStateService.getAllEvents(input.sessionId)),
+
+  reviewEvent: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), eventId: z.string(), action: z.enum(['confirm', 'reject']) }))
+    .mutation(({ input }) => sessionStateService.reviewEvent(input.eventId, input.action)),
+
+  commitSessionEvents: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
+    .mutation(({ input }) => sessionStateService.commitSessionEvents(input.sessionId)),
 });

@@ -3,17 +3,31 @@
 import { trpc } from '@/lib/trpc';
 import { PartyMemberCard } from './party-member-card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
 
 interface PartyOverviewPanelProps {
   campaignId: string;
+  sessionId: string;
 }
 
-export function PartyOverviewPanel({ campaignId }: PartyOverviewPanelProps) {
+export function PartyOverviewPanel({ campaignId, sessionId }: PartyOverviewPanelProps) {
   const query = trpc.characters.getCampaignCharacters.useQuery(
     { campaignId },
     { refetchInterval: 30_000 }
   );
+
+  const { data: sessionStates = [] } = trpc.sessions.getCharacterSessionStates.useQuery(
+    { campaignId, sessionId },
+    { refetchInterval: 15_000, enabled: !!sessionId }
+  );
+
+  const { data: allEvents = [] } = trpc.sessions.getSessionEvents.useQuery(
+    { campaignId, sessionId },
+    { refetchInterval: 15_000, enabled: !!sessionId }
+  );
+
+  const pendingCount = allEvents.filter((e) => e.status === 'pending').length;
 
   return (
     <div className="p-3 space-y-2">
@@ -22,6 +36,11 @@ export function PartyOverviewPanel({ campaignId }: PartyOverviewPanelProps) {
         <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           Party
         </span>
+        {pendingCount > 0 && (
+          <Badge className="ml-auto h-4 px-1.5 text-xs bg-amber-500 text-black">
+            {pendingCount}
+          </Badge>
+        )}
       </div>
 
       {query.isLoading && (
@@ -44,10 +63,13 @@ export function PartyOverviewPanel({ campaignId }: PartyOverviewPanelProps) {
 
       {query.data?.map((cc: any) => {
         const char = cc.character ?? cc;
+        const sessionState = sessionStates.find((s) => s.characterId === char.id);
         const hp = char.hitPoints as { current: number; max: number; temp?: number } | null | undefined;
-        const conditions = Array.isArray(cc.conditions)
-          ? (cc.conditions as string[])
-          : [];
+        const displayHp = sessionState
+          ? { current: sessionState.currentHp, max: (hp as any)?.maximum ?? (hp as any)?.max ?? sessionState.currentHp }
+          : hp;
+        const conditions = (sessionState?.conditionsActive as string[]) ??
+          (Array.isArray(cc.conditions) ? (cc.conditions as string[]) : []);
 
         return (
           <PartyMemberCard
@@ -57,7 +79,7 @@ export function PartyOverviewPanel({ campaignId }: PartyOverviewPanelProps) {
             race={char.race}
             level={char.level}
             portraitUrl={char.portraitUrl}
-            hitPoints={hp}
+            hitPoints={displayHp}
             armorClass={char.armorClass}
             conditions={conditions}
           />

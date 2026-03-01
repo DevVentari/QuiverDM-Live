@@ -34,6 +34,7 @@ import { extractAudioFromVideo } from '../ffmpeg';
 import { deleteFromLocal, extractKeyFromLocalUrl, getAbsolutePathFromKey } from '../storage/local-storage';
 import { deleteFromR2, extractKeyFromUrl } from '../storage/r2';
 import type { TranscriptionJobData, TranscriptionJobResult } from './transcription-queue';
+import { addSessionEventsJob } from './session-events-queue';
 
 const prisma = new PrismaClient();
 
@@ -202,6 +203,19 @@ async function processTranscription(
     });
 
     console.log(`[TranscriptionWorker] Transcript saved: ${transcriptId}`);
+
+    // Enqueue session events extraction
+    {
+      let campaignId = data.campaignId ?? '';
+      if (!campaignId) {
+        const sess = await prisma.gameSession.findUnique({
+          where: { id: data.sessionId },
+          select: { campaignId: true },
+        });
+        campaignId = sess?.campaignId ?? '';
+      }
+      addSessionEventsJob({ sessionId: data.sessionId, campaignId }).catch(() => undefined);
+    }
 
     // Increment usage
     try {
