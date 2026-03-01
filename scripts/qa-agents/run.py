@@ -20,8 +20,21 @@ load_dotenv(env_path)
 
 from browser_use import Agent
 from langchain_anthropic import ChatAnthropic
+from pydantic import ConfigDict
 from personas import PERSONAS
 from reporter import AgentResult, write_report
+
+
+# browser-use 0.12.0 reads llm.provider and monkey-patches llm.ainvoke for token
+# tracking, but Pydantic rejects both on ChatAnthropic. Subclassing with extra='allow'
+# and a provider field with a default handles both issues cleanly.
+class _ChatAnthropic(ChatAnthropic):
+    model_config = ConfigDict(arbitrary_types_allowed=True, extra='allow')
+    provider: str = 'anthropic'
+
+    @property
+    def model_name(self) -> str:
+        return self.model
 
 
 async def run_agent(persona, semaphore: asyncio.Semaphore) -> AgentResult:
@@ -41,7 +54,7 @@ async def run_agent(persona, semaphore: asyncio.Semaphore) -> AgentResult:
                 password=os.environ['QA_TEST_PASSWORD'],
             )
 
-            llm = ChatAnthropic(model='claude-sonnet-4-6')
+            llm = _ChatAnthropic(model='claude-sonnet-4-6')
             agent = Agent(
                 task=task,
                 llm=llm,
@@ -55,9 +68,11 @@ async def run_agent(persona, semaphore: asyncio.Semaphore) -> AgentResult:
 
             result = await agent.run(max_steps=30)
 
-            # Parse outcome from agent's final message
-            final = str(result).upper()
-            if 'SUCCESS' in final:
+            # Determine outcome using browser-use's own success tracking,
+            # with a text fallback for agents that report via final message.
+            success = result.is_successful()
+            final = (result.final_result() or '').upper()
+            if success is True or 'SUCCESS' in final:
                 outcome = 'success'
             elif 'PARTIAL' in final:
                 outcome = 'partial'
