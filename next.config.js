@@ -57,6 +57,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.dndbeyond.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ]
   },
   // Increase body size limit for video uploads
