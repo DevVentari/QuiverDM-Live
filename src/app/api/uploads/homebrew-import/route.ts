@@ -102,6 +102,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Maximum ${MAX_FILES} files allowed` }, { status: 400 });
     }
 
+    if (campaignId) {
+      const membership = await prisma.campaignMember.findFirst({
+        where: { campaignId, userId },
+      });
+      if (!membership) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     const results: Array<{ name: string; count: number; errors: string[] }> = [];
 
