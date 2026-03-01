@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Copy, KeyRound, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { trpc } from '@/lib/trpc';
@@ -35,6 +36,8 @@ export default function CampaignSettingsPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('active');
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
@@ -50,6 +53,7 @@ export default function CampaignSettingsPage() {
       setName(data.name || '');
       setDescription(data.description || '');
       setStatus(data.status || 'active');
+      setBannerUrl(data.bannerUrl ?? null);
     }
   }, [campaign.data]);
 
@@ -99,6 +103,25 @@ export default function CampaignSettingsPage() {
     return 'Pending';
   }
 
+  async function handleBannerUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBannerUploading(true);
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const res = await fetch('/api/upload/campaign-banner', { method: 'POST', body: form });
+      if (!res.ok) throw new Error('Upload failed');
+      const { url } = await res.json() as { url: string };
+      setBannerUrl(url);
+      update.mutate({ id: campaignId, bannerUrl: url });
+    } catch {
+      toast({ title: 'Upload failed', description: 'Could not upload banner image.', variant: 'destructive' });
+    } finally {
+      setBannerUploading(false);
+    }
+  }
+
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) { setNameError('Name is required'); return; }
@@ -135,6 +158,45 @@ export default function CampaignSettingsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSave} className="space-y-4">
+            {isDM && (
+              <div className="space-y-2">
+                <Label>Campaign Banner</Label>
+                {bannerUrl && (
+                  <div className="relative h-32 w-full rounded-md overflow-hidden border border-border">
+                    <Image src={bannerUrl} alt="Campaign banner" fill className="object-cover" />
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor="banner-upload"
+                    className="inline-flex items-center gap-2 cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
+                  >
+                    {bannerUploading ? 'Uploading...' : bannerUrl ? 'Change Image' : 'Upload Image'}
+                  </label>
+                  <input
+                    id="banner-upload"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={handleBannerUpload}
+                    disabled={bannerUploading}
+                  />
+                  {bannerUrl && (
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-destructive"
+                      onClick={() => {
+                        setBannerUrl(null);
+                        update.mutate({ id: campaignId, bannerUrl: '' });
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">Max 5MB — JPEG, PNG, WebP, or GIF</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <Input
