@@ -577,7 +577,7 @@ export default function NewCharacterPage() {
             <TabsContent value="race" className="p-6 m-0">
               <RaceTab
                 selectedRaceId={selectedRaceId}
-                homebrewRaces={(homebrewRaces.data as any)?.items ?? []}
+                homebrewRaces={homebrewRaces.data?.items ?? []}
                 onSelect={(race, raceName) => {
                   setSelectedRaceId(race?.id ?? raceName);
                   setSelectedRaceName(raceName);
@@ -589,7 +589,7 @@ export default function NewCharacterPage() {
             <TabsContent value="class" className="p-6 m-0">
               <ClassTab
                 selectedClassId={selectedClassId}
-                homebrewClasses={(homebrewClasses.data as any)?.items ?? []}
+                homebrewClasses={homebrewClasses.data?.items ?? []}
                 onSelect={(cls, clsName) => {
                   setSelectedClassId(cls?.id ?? clsName);
                   setSelectedClassName(clsName);
@@ -601,7 +601,7 @@ export default function NewCharacterPage() {
             <TabsContent value="background" className="p-6 m-0">
               <BackgroundTab
                 selectedBackgroundId={selectedBackgroundId}
-                homebrewBackgrounds={(homebrewBackgrounds.data as any)?.items ?? []}
+                homebrewBackgrounds={homebrewBackgrounds.data?.items ?? []}
                 onSelect={(bg, bgName) => {
                   setSelectedBackgroundId(bg?.id ?? bgName);
                   setSelectedBackgroundName(bgName);
