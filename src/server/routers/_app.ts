@@ -29,6 +29,7 @@ import { searchRouter } from './search';
 import { passwordResetRouter } from './password-reset';
 import { foundryRouter } from './foundry';
 import { obsidianRouter } from './obsidian';
+import { importHubRouter } from './import-hub';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -61,6 +62,7 @@ export const appRouter = router({
   passwordReset: passwordResetRouter,
   foundry: foundryRouter,
   obsidian: obsidianRouter,
+  importHub: importHubRouter,
 });
 
 export type AppRouter = typeof appRouter;
