@@ -1,6 +1,7 @@
 ﻿"""Dispatch Codex to fix a simple qa-failure issue."""
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -94,6 +95,9 @@ def dispatch_codex_fix(issue: dict, scenario_id: str) -> dict:
 
     On worktree creation failure (branch exists): use existing worktree or increment suffix.
     """
+    if not shutil.which('codex'):
+        return {'success': False, 'worktree': '', 'branch': '', 'stdout': '', 'stderr': 'codex not installed'}
+
     worktree, branch = _prepare_worktree(scenario_id)
     generate_handoff(issue, worktree)
 
