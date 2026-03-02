@@ -7,11 +7,11 @@ async function navToEncounters(page: Parameters<typeof signInAsTestUser>[0]) {
   const campaignLink = page.locator('a[href*="/campaigns/"]').first();
   if (await campaignLink.count() === 0) return false;
   await campaignLink.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   const encountersLink = page.getByRole('link', { name: /encounters/i });
   if (await encountersLink.count() === 0) return false;
   await encountersLink.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   return true;
 }
 
@@ -59,7 +59,7 @@ test.describe('Encounter Builder', () => {
     if (await newPlanBtn.count() === 0) { test.skip(); return; }
 
     await newPlanBtn.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState('domcontentloaded');
 
     // Submit without filling name
     const submitBtn = page.getByRole('button', { name: /create|save|add/i }).last();
@@ -72,7 +72,7 @@ test.describe('Encounter Builder', () => {
     const ok = await navToEncounters(page);
     if (!ok) { test.skip(); return; }
 
-    const plans = page.locator('a[href*="/encounters/"]').or(page.locator('[class*="card"]'));
+    const plans = page.locator('a[href*="/encounters/"]');
     if (await plans.count() === 0) { test.skip(); return; }
 
     // Difficulty badge should be present (Easy, Medium, Hard, Deadly)
@@ -89,7 +89,7 @@ test.describe('Encounter Builder', () => {
     if (await planLink.count() === 0) { test.skip(); return; }
 
     await planLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(/encounters\/.+/);
     await expect(page.getByText(/error|500/i)).toHaveCount(0);
