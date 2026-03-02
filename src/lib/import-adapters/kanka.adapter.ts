@@ -8,8 +8,8 @@ const ENTITY_TYPE_MAP: Record<string, HomebrewContentType> = {
   items: 'item',
   journals: 'rule',
   races: 'race',
-  organisations: 'location',
-  families: 'character',
+  organisations: 'rule',
+  families: 'rule',
   notes: 'rule',
 }
 
@@ -31,9 +31,9 @@ async function fetchEntityType(token: string, campaignId: string, entityType: st
         title: entity.name,
         type: ENTITY_TYPE_MAP[entityType],
         data: {
+          ...entity,
           name: entity.name,
           description: entity.entry_parsed ?? entity.entry ?? '',
-          ...entity,
         },
         sourceId: String(entity.id),
         sourceUrl: entity.url,

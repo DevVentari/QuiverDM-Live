@@ -1,4 +1,9 @@
 import type { ImportAdapter, NormalizedDocument } from './types'
+
+const VALID_TYPES = new Set([
+  'item', 'creature', 'spell', 'location', 'subclass', 'feat',
+  'rule', 'race', 'class', 'background', 'character',
+])
 import { storage } from '@/lib/storage'
 import JSZip from 'jszip'
 import matter from 'gray-matter'
@@ -23,7 +28,7 @@ export const obsidianAdapter: ImportAdapter = {
       docs.push({
         title: frontmatter.title ?? name,
         markdown: `# ${frontmatter.title ?? name}\n\n${markdown}`,
-        type: frontmatter.type ?? undefined,
+        type: VALID_TYPES.has(frontmatter.type) ? frontmatter.type : undefined,
         tags: Array.isArray(frontmatter.tags) ? frontmatter.tags : [],
         sourceId: filename,
       })

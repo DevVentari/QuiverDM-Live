@@ -32,7 +32,7 @@ async function getBlocksAsMarkdown(blockId: string, token: string): Promise<stri
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}`, 'Notion-Version': NOTION_VERSION },
     })
-    if (!res.ok) break
+    if (!res.ok) throw new Error(`Failed to fetch Notion blocks for ${blockId}: ${res.status}`)
     const data = await res.json()
     for (const block of data.results ?? []) {
       lines.push(blockToMarkdown(block))

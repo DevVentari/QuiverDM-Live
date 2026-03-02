@@ -24,7 +24,7 @@ async function fetchViaAPI(token: string, worldSlug: string): Promise<Normalized
       `https://www.worldanvil.com/api/aragorn/world/${worldSlug}/articles?page=${page}`,
       { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
     )
-    if (!res.ok) break
+    if (!res.ok) throw new Error(`World Anvil API error (${res.status}) for world ${worldSlug}`)
     const data = await res.json()
     const articles = data.articles ?? data.data ?? []
     if (articles.length === 0) break
