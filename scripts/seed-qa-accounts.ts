@@ -13,9 +13,9 @@ if (!QA_TEST_PASSWORD) {
 }
 
 const personas = [
-  { name: 'New DM Nora',   email: process.env.QA_NORA_EMAIL ?? 'nora@test.local', onboardingCompleted: false },
-  { name: 'Power DM Dana', email: process.env.QA_DANA_EMAIL ?? 'dana@test.local', onboardingCompleted: true  },
-  { name: 'Veteran Vic',   email: process.env.QA_VIC_EMAIL  ?? 'vic@test.local',  onboardingCompleted: true  },
+  { name: 'New DM Nora',   email: process.env.QA_NORA_EMAIL ?? 'nora@test.local', onboardingCompleted: false, resetCampaigns: true  },
+  { name: 'Power DM Dana', email: process.env.QA_DANA_EMAIL ?? 'dana@test.local', onboardingCompleted: true,  resetCampaigns: false },
+  { name: 'Veteran Vic',   email: process.env.QA_VIC_EMAIL  ?? 'vic@test.local',  onboardingCompleted: true,  resetCampaigns: false },
 ];
 
 async function main() {
@@ -26,7 +26,16 @@ async function main() {
   for (const persona of personas) {
     const existing = await prisma.user.findUnique({ where: { email: persona.email } });
     if (existing) {
-      console.log(`[skip] ${persona.email} already exists`);
+      if (persona.resetCampaigns) {
+        await prisma.campaign.deleteMany({ where: { userId: existing.id } });
+        await prisma.userUsage.updateMany({
+          where: { userId: existing.id },
+          data: { campaignsOwned: 0 },
+        });
+        console.log(`[reset] ${persona.email} campaigns cleared`);
+      } else {
+        console.log(`[skip] ${persona.email} already exists`);
+      }
       continue;
     }
 
