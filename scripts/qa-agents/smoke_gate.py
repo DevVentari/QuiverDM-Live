@@ -41,13 +41,20 @@ def run_smoke_gate(env_override: dict | None = None) -> SmokeResult:
     if 'QA_APP_URL' in env and 'BASE_URL' not in env:
         env['BASE_URL'] = env['QA_APP_URL']
     npx = 'npx.cmd' if sys.platform == 'win32' else 'npx'
-    result = subprocess.run(
-        [npx, 'playwright', 'test', 'tests/smoke.spec.ts', '--reporter=json'],
-        cwd=str(PROJECT_ROOT),
-        capture_output=True,
-        text=True,
-        env=env,
-    )
+    try:
+        result = subprocess.run(
+            [npx, 'playwright', 'test', 'tests/smoke.spec.ts', '--reporter=json'],
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=120,
+        )
+    except subprocess.TimeoutExpired:
+        return SmokeResult(
+            passed=0, failed=1,
+            failures=[{'title': 'smoke-timeout', 'error': 'Playwright smoke gate timed out after 120s'}],
+        )
 
     try:
         data = json.loads(result.stdout)
