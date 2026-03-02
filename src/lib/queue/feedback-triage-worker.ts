@@ -57,7 +57,7 @@ Respond with JSON ONLY — no markdown, no explanation:
     // Use minimal env so claude uses stored credentials rather than inheriting
     // the parent session's tokens — avoids "nested session" detection and hangs
     const childEnv: NodeJS.ProcessEnv = { NODE_ENV: process.env.NODE_ENV };
-    for (const key of ['PATH', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMP', 'SystemRoot', 'COMSPEC']) {
+    for (const key of ['PATH', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMP', 'SystemRoot', 'COMSPEC', 'ANTHROPIC_API_KEY']) {
       if (process.env[key]) childEnv[key] = process.env[key]!;
     }
 
