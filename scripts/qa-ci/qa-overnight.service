@@ -1,0 +1,17 @@
+[Unit]
+Description=QuiverDM QA Overnight Orchestrator
+After=network-online.target qa-regression.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/quiverdm/scripts/qa-ci
+EnvironmentFile=/opt/quiverdm/.env.qa
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/root/.local/bin/uv run python -u overnight.py --local
+StandardOutput=journal
+StandardError=journal
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target
