@@ -1,47 +1,31 @@
-"""
-Scenario: Veteran Vic creates an NPC with a full stat block in his existing campaign.
-
-Steps the agent attempts:
-1. Sign in as Vic
-2. Navigate to "Vic's Test Campaign"
-3. Go to the NPCs section of the campaign
-4. Create a new NPC — fill name, CR, HP, AC, stats
-5. Check that D&D 5e defaults/options are correct
-6. Save and verify the NPC appears in the list
-7. Report any D&D inaccuracies or missing fields via feedback overlay
-"""
+"""Scenario: Create a full NPC stat block and verify all fields."""
 
 TASK = """
-You are testing the QuiverDM web app at {app_url}.
+You are a QA agent testing the QuiverDM web app at {app_url}. Move fast. Do not use the feedback overlay.
 
-Your goal: create a new NPC with a complete stat block inside an existing campaign, like an experienced DM preparing for a session.
+GOAL: Create an NPC with a complete D&D 5e stat block and verify correctness.
 
-Steps:
-1. Go to {app_url}/auth/signin
-2. Sign in with email={email} and password={password}
-3. Find "Vic's Test Campaign" in your dashboard or campaigns list and open it
-4. Look for an NPCs section (sidebar, tab, or menu item)
-5. Create a new NPC with these details:
-   - Name: Theron the Bandit Captain
-   - Challenge Rating: 2
-   - HP: 65
-   - AC: 15
-   - Strength: 16, Dexterity: 15, Constitution: 16, Intelligence: 14, Wisdom: 11, Charisma: 14
-   - Type: Humanoid
+1. Go to {app_url}/auth/signin — sign in: email={email}, password={password}
+2. Open any campaign from your dashboard (or navigate to /campaigns)
+3. Go to NPCs section of the campaign
+4. Click "New NPC"
+5. Fill ALL available fields:
+   - Name: Kira the Shadow Witch
+   - CR: 5
+   - HP: 78, AC: 14
+   - STR 10, DEX 17, CON 14, INT 16, WIS 12, CHA 18
+   - Type: Humanoid, Alignment: Neutral Evil
+   - Speed: 30ft
+   - Fill any Description or Notes field with: "A cunning spellcaster who trades secrets"
 6. Save the NPC
-7. Verify it appears in the NPC list
+7. Open the saved NPC detail page — verify all fields saved correctly
+8. Check: are ability modifiers shown auto-calculated? (DEX 17 = +3, CHA 18 = +4)
+9. Navigate back to NPC list — verify Kira appears
 
-Pay attention to:
-- Are all standard 5e stat block fields present?
-- Are CR options correct (not just integers — includes 0, 1/8, 1/4, 1/2)?
-- Are ability score modifiers calculated automatically?
-- Is anything a D&D player would expect missing or wrong?
+REPORT at the end:
+- SUCCESS: all fields present, saved correctly, modifiers calculated
+- PARTIAL: created but some fields missing or wrong
+- FAILED: could not create NPC
 
-When you encounter problems:
-1. Look for the feedback button in the bottom-right corner
-2. Click it, select Bug or Feature, fill description:
-   [QA-AGENT] Persona: Vic | Scenario: create_npc | Step: <what you were doing> | Issue: <what went wrong>
-3. Submit and continue
-
-At the end, report: SUCCESS (NPC created with full stat block), PARTIAL (created but missing fields), or FAILED.
+Note any fields you expected but were absent (saving throws, skills, senses, languages, etc).
 """

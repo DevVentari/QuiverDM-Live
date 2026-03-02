@@ -1,50 +1,30 @@
-"""
-Scenario: Campaign Carl does a deep audit of campaign overview and navigation.
-
-Persona: Campaign Carl (uses Nora's account)
-Flow: Sign in → campaign overview → verify all sections → navigate each tab →
-      check empty states vs data → verify sidebar navigation
-"""
+"""Scenario: Deep campaign audit — all pages, navigation, empty states, settings."""
 
 TASK = """
-You are testing the QuiverDM web app at {app_url}.
+You are a QA agent testing the QuiverDM web app at {app_url}. Move fast. Do not use the feedback overlay.
 
-Your goal: do a thorough walkthrough of a campaign's overview and all its navigation sections.
+GOAL: Systematically audit every section of a campaign for broken pages, missing navigation, and bad empty states.
 
-Steps:
-1. Go to {app_url}/auth/signin
-2. Sign in with email={email} and password={password}
-3. Open any available campaign from the dashboard
-4. On the campaign overview page, check that these sections render (even if empty):
-   - Sessions list or count
-   - NPCs list or count
-   - Characters list or count
-   - Encounters (if present)
-   - Recent activity or summary
-5. Navigate to each major section using the sidebar or tabs:
-   a. Sessions — verify list loads (empty state or entries)
-   b. NPCs — verify list loads
-   c. Characters — verify list loads
-   d. Homebrew or library (if accessible from campaign)
-   e. Campaign settings or overview
-6. For each section, check:
-   - Does the page load without errors?
-   - Is there a clear empty state message if no data?
-   - Does the "Create New" button exist where expected?
-7. Test sidebar navigation — click between sections and verify each loads correctly
-8. Go back to the campaign overview and verify it still loads
+1. Go to {app_url}/auth/signin — sign in: email={email}, password={password}
+2. Navigate to the campaign overview page
+3. For EACH of the following sections, navigate there and note: loads OK / error / blank:
+   a. Sessions list
+   b. NPCs list
+   c. Characters list
+   d. Encounters (if present)
+   e. Homebrew / Library (campaign-level)
+   f. Campaign Settings or Edit page
+   g. Members / Players page
+4. For each empty section, check: is there a clear empty state message and a "Create" CTA?
+5. Go to dashboard — verify all campaigns listed, click between them
+6. Check the user settings page (/settings or profile) — does it load? List what settings are available
+7. Navigate to /dashboard, /campaigns — verify no 404s or auth loops
+8. Try browser back button after navigating deep — does it work without breaking state?
 
-Pay attention to:
-- Any sections that fail to load or show errors
-- Missing "Create New" buttons or unclear how to add content
-- Navigation items that lead to 404 or broken pages
-- Inconsistent layouts between sections
+REPORT:
+- SUCCESS: all sections load, empty states clear, navigation works
+- PARTIAL: most work but some sections blank or errored
+- FAILED: major navigation breakdown
 
-When you encounter problems:
-1. Look for the feedback button in the bottom-right corner
-2. Click it, select Bug or Feature, fill:
-   [QA-AGENT] Persona: Carl | Scenario: campaign_deep | Step: <what you were doing> | Issue: <what went wrong>
-3. Submit and continue
-
-At the end, report: SUCCESS (all sections rendered and navigable), PARTIAL (some sections had issues), or FAILED.
+For each broken page, include the URL and error message. Include a full list of all URLs visited.
 """

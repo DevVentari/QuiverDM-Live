@@ -1,34 +1,24 @@
-"""
-Scenario: Power DM Dana uploads a PDF homebrew source.
-
-Steps the agent attempts:
-1. Sign in as Dana
-2. Navigate to homebrew section (top nav or sidebar)
-3. Find the "Upload PDF" or "Add Source" option
-4. Upload a test PDF (use a small public domain PDF if available, or note missing file)
-5. Wait for processing and verify the source appears
-6. Report friction at any step via feedback overlay
-"""
+"""Scenario: Navigate homebrew library, attempt PDF upload, explore all homebrew tabs."""
 
 TASK = """
-You are testing the QuiverDM web app at {app_url}.
+You are a QA agent testing the QuiverDM web app at {app_url}. Move fast. Do not use the feedback overlay.
 
-Your goal: upload a PDF as a homebrew source, like a DM would when importing a rulebook or supplement.
+GOAL: Explore the full homebrew section including PDF upload workflow.
 
-Steps:
-1. Go to {app_url}/auth/signin
-2. Sign in with email={email} and password={password}
-3. Navigate to the Homebrew section (look in the sidebar or top navigation)
-4. Look for an option to upload or import a PDF
-5. If a file picker appears, note that you cannot actually select a file in this test — report if the upload workflow is clear and usable
-6. Check if there is visual feedback about what file types/sizes are accepted
-7. Navigate to any homebrew library or list view and note if it is easy to find
+1. Go to {app_url}/auth/signin — sign in: email={email}, password={password}
+2. Navigate to Homebrew (sidebar or /homebrew)
+3. Note what tabs/sections exist — list them all
+4. Find PDF upload: look for "Upload PDF", "Add Source", "Import", or similar
+5. Click the upload trigger — verify a file picker or upload UI appears
+6. Check: are accepted file types shown? Is there a size limit shown? Does the UI explain what happens after upload?
+7. Navigate to /homebrew/pdfs — verify page loads and shows any existing PDFs (or clear empty state)
+8. Go back to main homebrew list — click any existing item if present, verify detail page loads
+9. Check the homebrew create flow: find "New" or "Create" button, verify form opens with correct fields
 
-When you encounter any problem — button doesn't work, page is confusing, error appears, upload progress is unclear:
-1. Look for the feedback button in the bottom-right corner
-2. Click it, select Bug or Feature, fill description:
-   [QA-AGENT] Persona: Dana | Scenario: upload_pdf | Step: <what you were doing> | Issue: <what went wrong>
-3. Submit and continue
+REPORT at the end:
+- SUCCESS: found PDF upload, all homebrew pages load, no broken routes
+- PARTIAL: found it but some pages had errors
+- FAILED: could not find homebrew or upload was broken
 
-At the end, report: SUCCESS (found and understood upload flow), PARTIAL (found it but something was unclear), or FAILED (could not find it).
+List every URL visited and any errors.
 """

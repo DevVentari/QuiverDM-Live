@@ -1,36 +1,21 @@
-"""
-Scenario: New DM Nora creates her first campaign.
-
-Steps the agent attempts:
-1. Navigate to sign-in page and log in as Nora
-2. Complete onboarding flow (welcome → profile → create first campaign)
-3. If onboarding is skipped/broken, navigate to /dashboard and click "New Campaign"
-4. Fill in campaign name and submit
-5. Verify the campaign page loads
-6. If friction encountered at any step, use the feedback overlay to report it
-"""
+"""Scenario: Create a campaign and verify overview page loads."""
 
 TASK = """
-You are testing the QuiverDM web app at {app_url}.
+You are a QA agent testing the QuiverDM web app at {app_url}. Move fast. Do not use the feedback overlay.
 
-Your goal: create your first D&D campaign as a brand new user.
+GOAL: Create a campaign and verify it loads correctly.
 
-Steps:
-1. Go to {app_url}/auth/signin
-2. Sign in with email={email} and password={password}
-3. Complete any onboarding steps that appear (welcome screen, profile setup, campaign creation wizard)
-4. If you land on a dashboard with no campaigns, click "New Campaign" or equivalent button
-5. Fill in a campaign name: "Nora's First Adventure"
-6. Submit and confirm the campaign was created (you should see a campaign page or dashboard with the campaign listed)
+1. Go to {app_url}/auth/signin — sign in: email={email}, password={password}
+2. On the dashboard, click "New Campaign" (or navigate to /campaigns/new)
+3. Fill: Name="QA Campaign Alpha", System="D&D 5e" (or closest option), click Create
+4. Verify you land on the campaign overview page (URL contains /campaigns/)
+5. Check: sidebar navigation visible, at least 3 sections (Sessions, NPCs, Characters or similar)
+6. Click each sidebar item — confirm each page loads without error
 
-When you encounter any problem — button doesn't work, page is confusing, error appears, something is slow:
-1. Look for the feedback button in the bottom-right corner of the page (a small icon or "Feedback" label)
-2. Click it to open the feedback form
-3. Select type: Bug (for errors/broken things) or Feature (for missing/unclear things)
-4. Fill description: [QA-AGENT] Persona: Nora | Scenario: create_campaign | Step: <what you were doing> | Issue: <what went wrong>
-5. Submit the feedback form
-6. Then continue trying to complete the scenario
+REPORT at the end:
+- SUCCESS: campaign created, overview loads, all sidebar items navigate correctly
+- PARTIAL: created but some sections had errors or missing content
+- FAILED: could not create or overview broken
 
-Report any friction you encounter, even if you eventually work around it.
-At the end, report your final outcome: SUCCESS (campaign created), PARTIAL (got partway), or FAILED (could not proceed).
+List every page/URL you visited and any errors you saw (console errors, 404s, blank panels).
 """

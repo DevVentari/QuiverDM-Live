@@ -109,7 +109,7 @@ def _run_agents(tier: str, dry_run: bool) -> dict:
     print(f'[overnight] Running QA agents (tier={tier})')
     env = {**os.environ}
     result = subprocess.run(
-        [sys.executable, '-m', 'uv', 'run', 'python', 'run.py', '--tier', tier],
+        ['uv', 'run', 'python', 'run.py', '--tier', tier],
         cwd=str(QA_AGENTS_DIR),
         capture_output=False,
         text=True,
@@ -143,7 +143,7 @@ def _start_fix_dispatcher(dry_run: bool) -> subprocess.Popen | None:
     print('[overnight] Starting fix_dispatcher --no-idle-check --once-per-issue')
     try:
         proc = subprocess.Popen(
-            [sys.executable, '-m', 'uv', 'run', 'python', 'fix_dispatcher.py',
+            ['uv', 'run', 'python', 'fix_dispatcher.py',
              '--no-idle-check', '--once-per-issue'],
             cwd=str(SCRIPT_DIR),
             stdin=subprocess.DEVNULL,
@@ -387,7 +387,7 @@ def main() -> None:
     }
     dashboard.post_final_summary(final_report)
 
-    print(f'[overnight] Run complete. Pass rate: {start_pass_rate:.0%} → {end_pass_rate:.0%}')
+    print(f'[overnight] Run complete. Pass rate: {start_pass_rate:.0%} -> {end_pass_rate:.0%}')
     print(f'[overnight] Fixed: {issues_fixed} | Escalated: {issues_escalated} | Open: {issues_found}')
 
     # Cleanup

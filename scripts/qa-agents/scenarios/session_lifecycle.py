@@ -1,41 +1,30 @@
-"""
-Scenario: Session Sam runs through the full session lifecycle.
-
-Persona: Session Sam (uses Dana's account)
-Flow: Sign in → campaign → create session → fill prep wizard → start session →
-      verify cockpit loads → end session → verify redirect to session detail
-"""
+"""Scenario: Full session lifecycle — create, prep, launch cockpit, end."""
 
 TASK = """
-You are testing the QuiverDM web app at {app_url}.
+You are a QA agent testing the QuiverDM web app at {app_url}. Move fast. Do not use the feedback overlay.
 
-Your goal: run a complete session lifecycle — from creating a session through to ending it.
+GOAL: Run a complete session lifecycle.
 
-Steps:
-1. Go to {app_url}/auth/signin
-2. Sign in with email={email} and password={password}
-3. Open "Dana's Test Campaign" from the dashboard
-4. Navigate to the Sessions section
-5. Create a new session named "Test Session — Lifecycle"
-6. In the session detail page, find and open the Prep Wizard
-7. Fill in at least:
-   - Strong Start: "The party arrives at the ruined castle"
-   - Scene 1: "Encounter with the bandits in the courtyard"
-   - Secret 1: "The captain is actually an undercover city guard"
-8. Save the prep wizard
-9. Click "Launch Session" (or equivalent) to open the session cockpit
-10. In the cockpit, verify these panels load:
-    - A timer (running or paused)
-    - A party overview panel (even if empty)
-    - A notes panel
-11. End the session using the end session button or toolbar
-12. Verify you are redirected back to the session detail page (not the cockpit)
+1. Go to {app_url}/auth/signin — sign in: email={email}, password={password}
+2. Open any campaign from the dashboard
+3. Go to Sessions — click "New Session"
+4. Fill: Name="QA Session Live", date=today or any date — save
+5. On the session detail page, find and open the Prep Wizard
+6. Fill:
+   - Strong Start: "The party wakes to find the inn on fire"
+   - Scene 1: "Chase the arsonist through the market"
+   - Secret: "The innkeeper set the fire for the insurance"
+   - Save or advance through all steps
+7. Back on session detail, find "Launch Session" or "Start" — click it
+8. Verify the cockpit loads (new tab or full screen) — check: timer visible, notes panel visible, party panel visible
+9. In the cockpit, type a note in the live notes area if available
+10. End the session using the end/finish button
+11. Verify redirect back to session detail or dashboard
 
-When you encounter any problem — button missing, page errors, panel not loading:
-1. Look for the feedback button in the bottom-right corner
-2. Click it, select Bug, fill:
-   [QA-AGENT] Persona: Sam | Scenario: session_lifecycle | Step: <what you were doing> | Issue: <what went wrong>
-3. Submit and continue
+REPORT:
+- SUCCESS: full lifecycle worked, cockpit loaded all panels
+- PARTIAL: most steps worked but some panel/step was broken
+- FAILED: could not complete session flow
 
-At the end, report: SUCCESS (full lifecycle completed), PARTIAL (got partway), or FAILED.
+List every URL and any errors/missing panels.
 """

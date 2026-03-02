@@ -1,40 +1,28 @@
-"""
-Scenario: Homebrew Holly creates a homebrew entry in the library.
-
-Persona: Homebrew Holly (uses Vic's account)
-Flow: Sign in → homebrew → create new → fill details → save → verify in library → view detail
-"""
+"""Scenario: Create homebrew entries of different types and verify library."""
 
 TASK = """
-You are testing the QuiverDM web app at {app_url}.
+You are a QA agent testing the QuiverDM web app at {app_url}. Move fast. Do not use the feedback overlay.
 
-Your goal: create a new homebrew entry and verify it appears correctly in the library.
+GOAL: Create multiple homebrew entries and verify the library displays them.
 
-Steps:
-1. Go to {app_url}/auth/signin
-2. Sign in with email={email} and password={password}
-3. Navigate to the Homebrew section (look in the sidebar or main navigation)
-4. Click "New" or "Create" or "Add Homebrew" to create a new entry
-5. Fill in:
-   - Name: Shadow Drake
-   - Type: Monster (or closest available category)
-   - Description: A small draconic creature that lives in shadowy places. It can turn invisible for short periods and has darkvision of 120ft.
-6. Save the homebrew entry
-7. Verify it appears in the homebrew library list
-8. Open the detail page for Shadow Drake
-9. Verify the name and description render correctly on the detail page
+1. Go to {app_url}/auth/signin — sign in: email={email}, password={password}
+2. Navigate to Homebrew
+3. Create entry 1 — Monster:
+   - Name: Thornback Beetle, Type: Monster
+   - Description: A giant beetle with spines that fire as ranged attacks. AC 16, HP 52, CR 3.
+   - Save and verify it appears in library
+4. Navigate back to Homebrew, create entry 2 — Spell (if type available):
+   - Name: Shadow Bolt, Type: Spell (or closest)
+   - Description: 2nd level necromancy. Deals 3d8 necrotic damage, 60ft range.
+   - Save and verify it appears
+5. Open the detail page for Thornback Beetle — verify content renders, no blank panels
+6. Use any search or filter feature in the library — search for "Thorn" — verify result
+7. Check if there are tabs or categories in the homebrew library — list them all
 
-Pay attention to:
-- Is the homebrew library easy to find?
-- Are there clear type/category options?
-- Does the saved content display correctly on the detail page?
-- Any missing fields or broken UI?
+REPORT:
+- SUCCESS: both entries created, library shows them, detail pages render, search works
+- PARTIAL: created but library/search had issues
+- FAILED: could not create entries
 
-When you encounter problems:
-1. Look for the feedback button in the bottom-right corner
-2. Click it, select Bug or Feature, fill:
-   [QA-AGENT] Persona: Holly | Scenario: homebrew_create | Step: <what you were doing> | Issue: <what went wrong>
-3. Submit and continue
-
-At the end, report: SUCCESS (homebrew created and visible), PARTIAL (created but display issues), or FAILED.
+Note any missing type options, broken detail rendering, or search failures.
 """
