@@ -39,8 +39,17 @@ def _run_git(args: list[str], cwd: Path | None = None) -> subprocess.CompletedPr
         cwd=cwd or REPO_ROOT,
         capture_output=True,
         text=True,
+        encoding='utf-8',
+        errors='replace',
         stdin=subprocess.DEVNULL,
     )
+
+
+def _slugify(s: str) -> str:
+    import re
+    s = s.lower()
+    s = re.sub(r'[^a-z0-9]+', '-', s)
+    return s.strip('-')
 
 
 def _find_existing_worktree_for_branch(branch: str) -> Path | None:
@@ -70,11 +79,12 @@ def _prepare_worktree(scenario_id: str) -> tuple[Path, str]:
     base_dir = REPO_ROOT / ".worktrees" / "fix"
     base_dir.mkdir(parents=True, exist_ok=True)
 
+    slug = _slugify(scenario_id)
     suffix = 0
     while True:
         suffix_token = "" if suffix == 0 else f"-{suffix + 1}"
-        branch = f"fix/qa-{scenario_id}{suffix_token}"
-        worktree = base_dir / f"{scenario_id}{suffix_token}"
+        branch = f"fix/qa-{slug}{suffix_token}"
+        worktree = base_dir / f"{slug}{suffix_token}"
 
         if worktree.exists() and (worktree / ".git").exists():
             return worktree, branch
@@ -139,6 +149,7 @@ def dispatch_claude_fix(issue: dict, scenario_id: str, handoff_path: Path) -> di
             "json",
             "--model",
             "claude-sonnet-4-6",
+            "--dangerously-skip-permissions",
             prompt,
         ],
         cwd=worktree,
@@ -146,6 +157,8 @@ def dispatch_claude_fix(issue: dict, scenario_id: str, handoff_path: Path) -> di
         stdin=subprocess.DEVNULL,
         capture_output=True,
         text=True,
+        encoding='utf-8',
+        errors='replace',
         timeout=900,
     )
 
