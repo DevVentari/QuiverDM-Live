@@ -15,7 +15,9 @@ import argparse
 import importlib
 import json
 import os
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
@@ -99,8 +101,18 @@ def main():
         persona, task = a
         return run_claude_agent(persona, task, run_id, screenshot_dir)
 
-    # Run agents sequentially — concurrent claude processes corrupt ~/.claude.json
-    results: list[AgentResult] = [run_one(t) for t in tasks]
+    # Run agents in parallel — each gets an isolated HOME so ~/.claude.json won't corrupt
+    _MAX_CONCURRENT = 3
+    _sem = threading.Semaphore(_MAX_CONCURRENT)
+
+    def run_one_gated(a):
+        with _sem:
+            return run_one(a)
+
+    print(f'[run] Running {len(tasks)} agents (max {_MAX_CONCURRENT} concurrent)')
+    with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+        futures = {executor.submit(run_one_gated, t): t for t in tasks}
+        results: list[AgentResult] = [f.result() for f in as_completed(futures)]
 
     # ── Stage 3: Report + notify ─────────────────────────────────────────────
     report_path = write_report(results, reports_dir)
