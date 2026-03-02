@@ -66,6 +66,9 @@ kanban-plugin: board
 - [x] Browser tab title always reads "Dashboard" regardless of current page (fixed bb55778)
 - [ ] PDF upload page shows no file size/type limits before upload (Dana, 2026-03-02)
 - [ ] NPC form missing D&D 5e stat block fields — no CR, HP, AC, ability scores, actions (Vic, 2026-03-02)
+- [ ] Feedback widget screenshot shows "No screenshot" — html2canvas capture failing silently (Dana, 2026-03-02)
+- [ ] campaigns.create returns HTTP 429 for tier-limit errors instead of semantic code (Nora, 2026-03-02)
+- [ ] favicon.ico returns 404 (Nora, 2026-03-02)
 
 
 
