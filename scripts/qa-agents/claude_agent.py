@@ -4,7 +4,9 @@ The agent navigates the app, investigates failures, and returns structured JSON.
 """
 import json
 import os
+import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
@@ -61,25 +63,40 @@ def run_claude_agent(
 
     env = {k: v for k, v in os.environ.items() if k not in _STRIP_ENV_KEYS}
 
-    print(f'[claude_agent] Starting: {persona.name}')
-    start = time.monotonic()
-
+    # Isolate ~/.claude.json per agent so concurrent processes don't corrupt each other
+    real_home = Path.home()
+    tmp_home = Path(tempfile.mkdtemp(prefix=f'qa-{persona.name.lower().replace(" ", "-")}-'))
     try:
-        result = subprocess.run(
-            ['claude', '-p', prompt, '--output-format', 'json'],
-            capture_output=True,
-            text=True,
-            stdin=subprocess.DEVNULL,
-            env=env,
-            timeout=600,
-        )
-    except subprocess.TimeoutExpired:
-        duration = round(time.monotonic() - start, 1)
-        return AgentResult(
-            persona=persona.name, scenario=persona.scenario, outcome='failed',
-            friction_points=0, feedback_ids=[], error='Timeout after 600s',
-            duration_seconds=duration,
-        )
+        src_json = real_home / '.claude.json'
+        if src_json.exists():
+            shutil.copy2(src_json, tmp_home / '.claude.json')
+        src_dir = real_home / '.claude'
+        if src_dir.exists():
+            shutil.copytree(src_dir, tmp_home / '.claude', dirs_exist_ok=True)
+        env['HOME'] = str(tmp_home)
+        env['USERPROFILE'] = str(tmp_home)
+
+        print(f'[claude_agent] Starting: {persona.name}')
+        start = time.monotonic()
+
+        try:
+            result = subprocess.run(
+                ['claude', '-p', prompt, '--output-format', 'json'],
+                capture_output=True,
+                text=True,
+                stdin=subprocess.DEVNULL,
+                env=env,
+                timeout=600,
+            )
+        except subprocess.TimeoutExpired:
+            duration = round(time.monotonic() - start, 1)
+            return AgentResult(
+                persona=persona.name, scenario=persona.scenario, outcome='failed',
+                friction_points=0, feedback_ids=[], error='Timeout after 600s',
+                duration_seconds=duration,
+            )
+    finally:
+        shutil.rmtree(tmp_home, ignore_errors=True)
 
     duration = round(time.monotonic() - start, 1)
 
