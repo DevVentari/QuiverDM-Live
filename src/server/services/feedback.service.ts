@@ -288,6 +288,27 @@ export const feedbackService = {
     return { id: feedback.id };
   },
 
+  async ensureGithubLabel(token: string, repo: string, name: string, color: string, description: string) {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${repo}/labels`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, color, description }),
+      });
+      // 422 = already exists — that's fine
+      if (!res.ok && res.status !== 422) {
+        console.warn(`[Feedback] Could not ensure label "${name}": ${res.status}`);
+      }
+    } catch {
+      // Non-critical — issue creation will still succeed if label already exists
+    }
+  },
+
   async createGithubIssue(
     feedbackId: string,
     data: {
@@ -301,10 +322,10 @@ export const feedbackService = {
     }
   ): Promise<string | null> {
     const token = process.env.GITHUB_TOKEN;
-    const repo = process.env.GITHUB_FEEDBACK_REPO;
-    if (!token || !repo) return null;
+    const repo = process.env.GITHUB_FEEDBACK_REPO ?? 'DevVentari/QuiverDM-Live';
+    if (!token) return null;
 
-    const prefix = data.type === 'bug' ? '[Bug]' : data.type === 'feature' ? '[Feature]' : '[Feedback]';
+    const prefix = data.type === 'bug' ? '[user-bug]' : data.type === 'feature' ? '[user-feature]' : '[user-feedback]';
     const title = `${prefix} ${data.description.slice(0, 72)}${data.description.length > 72 ? '...' : ''}`;
 
     const logLines = data.consoleLogs
@@ -313,6 +334,7 @@ export const feedbackService = {
       .join('\n');
 
     const body = [
+      `**Source:** In-app feedback overlay`,
       `**Type:** ${data.type}`,
       `**Page:** ${data.pageUrl}`,
       `**Feedback ID:** ${feedbackId}`,
@@ -323,10 +345,11 @@ export const feedbackService = {
       ...(logLines ? ['', '### Console Logs (last 5)', '```', logLines, '```'] : []),
     ].join('\n');
 
-    const label =
-      data.type === 'bug' ? 'bug' :
-      data.type === 'feature' ? 'feature-request' :
-      undefined;
+    const labels = ['source/user-feedback'];
+    if (data.type === 'bug') labels.push('bug');
+    else if (data.type === 'feature') labels.push('feature-request');
+
+    await this.ensureGithubLabel(token, repo, 'source/user-feedback', '0075ca', 'Issue submitted via in-app feedback overlay');
 
     try {
       const res = await fetch(`https://api.github.com/repos/${repo}/issues`, {
@@ -337,11 +360,7 @@ export const feedbackService = {
           'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title,
-          body,
-          labels: label ? [label] : [],
-        }),
+        body: JSON.stringify({ title, body, labels }),
       });
 
       if (!res.ok) {

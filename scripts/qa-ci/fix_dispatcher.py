@@ -150,20 +150,23 @@ def _load_issue_api():
     try:
         import github_issues  # type: ignore
     except Exception:
-        return (
-            lambda: [],
-            lambda: [],
-        )
+        return lambda: [], lambda: [], lambda: [], lambda: []
 
     get_failures = getattr(github_issues, "get_open_qa_failure_issues", None)
     get_exploratory = getattr(github_issues, "get_open_exploratory_trigger_issues", None)
+    get_user_feedback = getattr(github_issues, "get_open_user_feedback_issues", None)
+    get_qa_agent = getattr(github_issues, "get_open_qa_agent_issues", None)
 
     if not callable(get_failures):
         get_failures = lambda: []
     if not callable(get_exploratory):
         get_exploratory = lambda: []
+    if not callable(get_user_feedback):
+        get_user_feedback = lambda: []
+    if not callable(get_qa_agent):
+        get_qa_agent = lambda: []
 
-    return get_failures, get_exploratory
+    return get_failures, get_exploratory, get_user_feedback, get_qa_agent
 
 
 def main():
@@ -189,7 +192,7 @@ def main():
     parser.add_argument("--no-idle-check", action="store_true", help="Skip idle detection.")
     args = parser.parse_args()
 
-    get_open_qa_failure_issues, get_open_exploratory_trigger_issues = _load_issue_api()
+    get_open_qa_failure_issues, get_open_exploratory_trigger_issues, get_open_user_feedback_issues, get_open_qa_agent_issues = _load_issue_api()
     processed_issue_numbers: set[int] = set()
 
     while True:
@@ -202,11 +205,25 @@ def main():
             if isinstance(number, int):
                 processed_issue_numbers.add(number)
 
-        failures = get_open_qa_failure_issues() or []
-        should_process_failures = args.no_idle_check or is_idle()
+        # Collect all fixable issues from all three signal sources (deduped by number)
+        all_fixable: list[dict] = []
+        seen_numbers: set[int] = set()
+        for issue in (
+            get_open_qa_failure_issues() or []
+        ) + (
+            get_open_user_feedback_issues() or []
+        ) + (
+            get_open_qa_agent_issues() or []
+        ):
+            number = issue.get("number")
+            if isinstance(number, int) and number not in seen_numbers:
+                seen_numbers.add(number)
+                all_fixable.append(issue)
 
-        if should_process_failures:
-            for issue in failures:
+        should_process = args.no_idle_check or is_idle()
+
+        if should_process:
+            for issue in all_fixable:
                 number = issue.get("number")
                 if isinstance(number, int) and number in processed_issue_numbers:
                     continue

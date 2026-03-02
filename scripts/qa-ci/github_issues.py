@@ -8,6 +8,9 @@ from pathlib import Path
 GITHUB_REPO = 'DevVentari/QuiverDM-Live'
 QA_FAILURE_LABEL = 'qa-failure'
 QA_EXPLORATORY_LABEL = 'qa-exploratory'
+SOURCE_QA_SPEC_LABEL = 'source/qa-spec'
+SOURCE_USER_FEEDBACK_LABEL = 'source/user-feedback'
+SOURCE_QA_AGENT_LABEL = 'source/qa-agent'
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 
@@ -29,6 +32,7 @@ def ensure_label(label: str, color: str, description: str) -> None:
 def create_failure_issue(scenario_id: str, spec_file: str, cycle: int, error: str | None) -> int | None:
     ensure_label(QA_FAILURE_LABEL, 'e11d48', 'Automated QA regression failure')
     ensure_label('bug', 'd73a4a', '')
+    ensure_label(SOURCE_QA_SPEC_LABEL, '0075ca', 'Issue from automated Playwright spec runner')
 
     title = f'[qa-failure] {scenario_id} — 3 consecutive failures (cycle {cycle})'
     error_section = f'\n\n## Last Error\n```\n{error[:1000]}\n```' if error else ''
@@ -47,7 +51,7 @@ def create_failure_issue(scenario_id: str, spec_file: str, cycle: int, error: st
 
     proc = _gh('issue', 'create', '--repo', GITHUB_REPO,
                '--title', title, '--body', body,
-               '--label', 'bug', '--label', QA_FAILURE_LABEL)
+               '--label', 'bug', '--label', QA_FAILURE_LABEL, '--label', SOURCE_QA_SPEC_LABEL)
     if proc.returncode != 0:
         print(f'[github_issues] Failed to create issue: {proc.stderr[:200]}')
         return None
@@ -81,6 +85,30 @@ def get_open_exploratory_trigger_issues() -> list[dict]:
     proc = _gh('issue', 'list', '--repo', GITHUB_REPO,
                '--label', QA_EXPLORATORY_LABEL, '--state', 'open',
                '--json', 'number,title,body,createdAt', '--limit', '5')
+    if proc.returncode != 0:
+        return []
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+
+
+def get_open_user_feedback_issues() -> list[dict]:
+    proc = _gh('issue', 'list', '--repo', GITHUB_REPO,
+               '--label', SOURCE_USER_FEEDBACK_LABEL, '--state', 'open',
+               '--json', 'number,title,body,createdAt', '--limit', '20')
+    if proc.returncode != 0:
+        return []
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return []
+
+
+def get_open_qa_agent_issues() -> list[dict]:
+    proc = _gh('issue', 'list', '--repo', GITHUB_REPO,
+               '--label', SOURCE_QA_AGENT_LABEL, '--state', 'open',
+               '--json', 'number,title,body,createdAt', '--limit', '20')
     if proc.returncode != 0:
         return []
     try:

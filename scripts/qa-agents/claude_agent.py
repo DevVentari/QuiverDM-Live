@@ -40,10 +40,11 @@ WORKFLOW:
 5. Take a final screenshot before reporting your outcome
 
 At the very end of your response, output ONLY this JSON on its own line (no trailing text):
-{{"outcome": "success", "findings": "describe what worked and what failed with root causes", "friction_points": 0, "urls_visited": ["url1", "url2"]}}
+{{"outcome": "success", "findings": "describe what worked and what failed with root causes", "friction_points": 0, "urls_visited": ["url1", "url2"], "feedback_ids": ["fb-id-1"]}}
 
 Where outcome is one of: "success" | "partial" | "failed"
 Where friction_points is count of UX issues or bugs found
+Where feedback_ids are IDs returned by the in-app feedback overlay if you submitted any bug reports (empty array if none)
 """
 
 
@@ -114,7 +115,7 @@ def run_claude_agent(
         scenario=persona.scenario,
         outcome=outcome,
         friction_points=inner.get('friction_points', 0),
-        feedback_ids=[],
+        feedback_ids=inner.get('feedback_ids', []),
         error=None,
         duration_seconds=duration,
         findings=inner.get('findings', ''),
