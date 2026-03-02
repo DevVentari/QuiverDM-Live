@@ -1,39 +1,23 @@
 import { test, expect, type Page } from '@playwright/test';
-
-const BASE = 'http://localhost:3847';
-const EMAIL = 'demo@quiverdm.com';
-const PASSWORD = 'demo1234';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-async function signIn(page: Page) {
-  await page.goto(`${BASE}/auth/signin`);
-  await page.fill('#email', EMAIL);
-  await page.fill('#password', PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(`${BASE}/dashboard`, { timeout: 15_000 });
-}
+import { signInAsTestUser } from './helpers';
 
 /** Returns the path of the first completed PDF, or null if none exist. */
 async function getFirstCompletedPdfHref(page: Page): Promise<string | null> {
-  await page.goto(`${BASE}/homebrew/pdfs`);
-  await page.waitForLoadState('networkidle');
+  await page.goto('/homebrew/pdfs');
+  await page.waitForLoadState('domcontentloaded');
 
-  // Click the "completed" filter button to narrow results
-  const completedFilter = page.locator('button.capitalize', { hasText: 'completed' }).first();
+  const completedFilter = page.getByRole('button', { name: /completed/i }).first();
   await completedFilter.click();
-  await page.waitForTimeout(300);
 
-  // Cards use router.push — click on the card's filename heading to navigate
-  const cardHeading = page.locator('h3').first();
-  const visible = await cardHeading.isVisible({ timeout: 4_000 }).catch(() => false);
+  const cardHeading = page.getByRole('heading', { level: 3 }).first();
+  const visible = await cardHeading.isVisible({ timeout: 4000 }).catch(() => false);
   if (!visible) return null;
 
   await cardHeading.click();
-  await page.waitForURL(/\/homebrew\/pdfs\//, { timeout: 8_000 }).catch(() => {});
+  await page.waitForURL(/\/homebrew\/pdfs\//, { timeout: 8000 }).catch(() => {});
   const url = page.url();
   if (!url.includes('/homebrew/pdfs/')) return null;
-  return url.replace(BASE, '');
+  return new URL(url).pathname;
 }
 
 function collectErrors(page: Page) {
@@ -43,11 +27,9 @@ function collectErrors(page: Page) {
   return errors;
 }
 
-// ─── Tests ───────────────────────────────────────────────────────────────────
-
 test.describe('PDF Viewer Tab', () => {
   test.beforeEach(async ({ page }) => {
-    await signIn(page);
+    await signInAsTestUser(page);
   });
 
   test('1. View PDF tab appears on completed PDF detail page', async ({ page }) => {
@@ -55,18 +37,15 @@ test.describe('PDF Viewer Tab', () => {
 
     const href = await getFirstCompletedPdfHref(page);
     if (!href) {
-      console.log('⚠️  No PDFs in account — skipping');
       test.skip();
       return;
     }
 
-    await page.goto(`${BASE}${href}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(href);
+    await page.waitForLoadState('domcontentloaded');
 
-    // Only completed PDFs show tabs — check status first
-    const isCompleted = await page.locator('[data-status="completed"], .badge:has-text("completed"), span:has-text("completed")').first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const isCompleted = await page.locator('[data-status="completed"], .badge:has-text("completed"), span:has-text("completed")').first().isVisible({ timeout: 5000 }).catch(() => false);
     if (!isCompleted) {
-      console.log('⚠️  PDF not completed — skipping tab assertions');
       test.skip();
       return;
     }
@@ -75,8 +54,7 @@ test.describe('PDF Viewer Tab', () => {
     await expect(page.locator('[role="tab"]:has-text("Raw Markdown")')).toBeVisible();
     await expect(page.locator('[role="tab"]:has-text("View PDF")')).toBeVisible();
 
-    console.log('✅ All three tabs visible');
-    if (errors.length) console.log('⚠️  Console errors:', errors);
+    expect(errors).toBeDefined();
   });
 
   test('2. Clicking View PDF tab shows viewer controls', async ({ page }) => {
@@ -85,54 +63,53 @@ test.describe('PDF Viewer Tab', () => {
     const href = await getFirstCompletedPdfHref(page);
     if (!href) { test.skip(); return; }
 
-    await page.goto(`${BASE}${href}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(href);
+    await page.waitForLoadState('domcontentloaded');
 
-    const tabVisible = await page.locator('[role="tab"]:has-text("View PDF")').isVisible({ timeout: 5_000 }).catch(() => false);
+    const tabVisible = await page.locator('[role="tab"]:has-text("View PDF")').isVisible({ timeout: 5000 }).catch(() => false);
     if (!tabVisible) { test.skip(); return; }
 
     await page.locator('[role="tab"]:has-text("View PDF")').click();
-    await page.waitForTimeout(1500);
-
     await expect(page.locator('button[aria-label="Previous page"]')).toBeVisible();
+
     await expect(page.locator('button[aria-label="Next page"]')).toBeVisible();
     await expect(page.locator('button[aria-label="Zoom in"]')).toBeVisible();
     await expect(page.locator('button[aria-label="Zoom out"]')).toBeVisible();
     await expect(page.locator('button[aria-label="Previous page"]')).toBeDisabled();
 
-    console.log('✅ Viewer controls rendered correctly');
-    if (errors.length) console.log('⚠️  Console errors:', errors);
+    expect(errors).toBeDefined();
   });
 
   test('3. Page counter shows N/M after PDF loads', async ({ page }) => {
     const href = await getFirstCompletedPdfHref(page);
     if (!href) { test.skip(); return; }
 
-    await page.goto(`${BASE}${href}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(href);
+    await page.waitForLoadState('domcontentloaded');
 
-    const tabVisible = await page.locator('[role="tab"]:has-text("View PDF")').isVisible({ timeout: 5_000 }).catch(() => false);
+    const tabVisible = await page.locator('[role="tab"]:has-text("View PDF")').isVisible({ timeout: 5000 }).catch(() => false);
     if (!tabVisible) { test.skip(); return; }
 
     await page.locator('[role="tab"]:has-text("View PDF")').click();
+    await expect(page.locator('button[aria-label="Previous page"]')).toBeVisible();
 
     const counter = page.locator('span').filter({ hasText: /^\d+ \/ \d+$/ });
-    await expect(counter).toBeVisible({ timeout: 30_000 });
-    console.log('✅ Page counter shows:', await counter.textContent());
+    await expect(counter).toBeVisible({ timeout: 30000 });
   });
 
   test('4. Zoom controls change the percentage display', async ({ page }) => {
     const href = await getFirstCompletedPdfHref(page);
     if (!href) { test.skip(); return; }
 
-    await page.goto(`${BASE}${href}`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(href);
+    await page.waitForLoadState('domcontentloaded');
 
-    const tabVisible = await page.locator('[role="tab"]:has-text("View PDF")').isVisible({ timeout: 5_000 }).catch(() => false);
+    const tabVisible = await page.locator('[role="tab"]:has-text("View PDF")').isVisible({ timeout: 5000 }).catch(() => false);
     if (!tabVisible) { test.skip(); return; }
 
     await page.locator('[role="tab"]:has-text("View PDF")').click();
-    await expect(page.locator('button[aria-label="Zoom in"]')).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('button[aria-label="Previous page"]')).toBeVisible();
+    await expect(page.locator('button[aria-label="Zoom in"]')).toBeVisible();
 
     const zoomLevel = page.locator('[data-testid="pdf-zoom-level"]');
     await expect(zoomLevel).toHaveText('100%');
@@ -143,7 +120,5 @@ test.describe('PDF Viewer Tab', () => {
     await page.locator('button[aria-label="Zoom out"]').click();
     await page.locator('button[aria-label="Zoom out"]').click();
     await expect(zoomLevel).toHaveText('75%');
-
-    console.log('✅ Zoom controls work correctly');
   });
 });

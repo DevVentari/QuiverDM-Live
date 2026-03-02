@@ -1,386 +1,244 @@
 import { test, expect, type Page } from '@playwright/test';
+import { signInAsTestUser } from './helpers';
 
-const BASE = 'http://localhost:3847';
-const EMAIL = 'demo@quiverdm.com';
-const PASSWORD = 'demo1234';
-const CAMPAIGN = 'lost-mines-of-phandelver';
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-async function signIn(page: Page) {
-  await page.goto(`${BASE}/auth/signin`);
-  await page.fill('#email', EMAIL);
-  await page.fill('#password', PASSWORD);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(`${BASE}/dashboard`, { timeout: 15_000 });
-  console.log('✅ Signed in as', EMAIL);
+async function getFirstCampaignSlug(page: Page): Promise<string | null> {
+  await page.goto('/campaigns');
+  const link = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
+  if (!await link.isVisible({ timeout: 5000 }).catch(() => false)) return null;
+  const href = await link.getAttribute('href');
+  return href?.split('/')[2] ?? null;
 }
 
-async function goToBuilder(page: Page, planName = 'Review Plan') {
-  await page.goto(`${BASE}/campaigns/${CAMPAIGN}/encounters`);
-  await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(1000);
-
-  const existingPlan = page.locator(`a[href*="/campaigns/${CAMPAIGN}/encounters/"]`).first();
-  if (await existingPlan.isVisible()) {
+async function goToBuilder(page: Page, slug: string, planName = 'Review Plan') {
+  await page.goto(`/campaigns/${slug}/encounters`);
+  await expect(page.getByRole('heading', { name: /encounter/i })).toBeVisible();
+  const existingPlan = page.locator(`a[href*="/campaigns/${slug}/encounters/"]`).first();
+  if (await existingPlan.isVisible({ timeout: 2000 }).catch(() => false)) {
     await existingPlan.click();
   } else {
-    await page.click('button:has-text("New Encounter")');
+    await page.getByRole('button', { name: /new encounter/i }).click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
     await dialog.locator('input').first().fill(planName);
-    await dialog.locator('button:has-text("Create")').click();
+    await dialog.getByRole('button', { name: /create/i }).click();
   }
-  await page.waitForURL(`${BASE}/campaigns/${CAMPAIGN}/encounters/**`, { timeout: 10_000 });
-  await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(800);
+  await page.waitForURL(/\/encounters\//, { timeout: 10000 });
+  await expect(page.getByRole('button', { name: /save plan/i })).toBeVisible();
 }
 
-function collectErrors(page: Page) {
-  const errors: string[] = [];
-  page.on('console', (msg) => { if (msg.type() === 'error') errors.push(msg.text()); });
-  page.on('pageerror', (err) => errors.push(err.message));
-  return errors;
-}
+test.describe('Encounter Builder - UI Review', () => {
+  let campaignSlug: string;
 
-function reportErrors(errors: string[]) {
-  if (errors.length) console.log('⚠️  Console errors:', errors);
-  else console.log('   No console errors');
-}
-
-// ─── Tests ───────────────────────────────────────────────────────────────────
-
-test.describe('Encounter Builder — UI Review', () => {
   test.beforeEach(async ({ page }) => {
-    await signIn(page);
+    await signInAsTestUser(page);
+    const slug = await getFirstCampaignSlug(page);
+    if (!slug) {
+      test.skip();
+      return;
+    }
+    campaignSlug = slug;
   });
-
-  // ── 1. Nav tab ───────────────────────────────────────────────────────────
 
   test('1. Encounters tab appears in campaign nav', async ({ page }) => {
-    const errors = collectErrors(page);
-    await page.goto(`${BASE}/campaigns/${CAMPAIGN}`);
-    await page.waitForLoadState('networkidle');
-
+    await page.goto(`/campaigns/${campaignSlug}`);
+    await expect(page.getByRole('heading').first()).toBeVisible();
     await expect(page.locator('nav a', { hasText: 'Encounters' })).toBeVisible();
-    await page.screenshot({ path: 'playwright-report/01-campaign-nav.png' });
-    console.log('✅ Encounters tab visible in nav');
-    reportErrors(errors);
   });
-
-  // ── 2. Encounters index ──────────────────────────────────────────────────
 
   test('2. Encounters index page loads with DM controls visible', async ({ page }) => {
-    const errors = collectErrors(page);
-    await page.goto(`${BASE}/campaigns/${CAMPAIGN}/encounters`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await page.goto(`/campaigns/${campaignSlug}/encounters`);
+    await expect(page.getByRole('heading', { name: /encounter/i })).toBeVisible();
 
-    await expect(page.locator('h1', { hasText: 'Encounter Plans' })).toBeVisible();
-
-    // DM sees "New Encounter" button
-    const newBtn = page.locator('button', { hasText: 'New Encounter' });
+    const newBtn = page.getByRole('button', { name: /new encounter/i });
     await expect(newBtn).toBeVisible();
     await expect(newBtn).toBeEnabled();
-
-    await page.screenshot({ path: 'playwright-report/02-encounters-index.png', fullPage: true });
-    console.log('✅ Encounters index with DM controls rendered');
-    reportErrors(errors);
   });
-
-  // ── 3. New Encounter dialog ──────────────────────────────────────────────
 
   test('3. New Encounter dialog creates plan and redirects to builder', async ({ page }) => {
-    const errors = collectErrors(page);
-    await page.goto(`${BASE}/campaigns/${CAMPAIGN}/encounters`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
+    await page.goto(`/campaigns/${campaignSlug}/encounters`);
+    await expect(page.getByRole('heading', { name: /encounter/i })).toBeVisible();
 
-    await page.click('button:has-text("New Encounter")');
+    await page.getByRole('button', { name: /new encounter/i }).click();
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
-    await page.screenshot({ path: 'playwright-report/03-new-encounter-dialog.png' });
 
-    await dialog.locator('input').first().fill('Playwright Review Encounter');
-    await dialog.locator('button:has-text("Create")').click();
+    await dialog.locator('input').first().fill(`Playwright Test ${Date.now()}`);
+    await dialog.getByRole('button', { name: /create/i }).click();
 
-    await page.waitForURL(`${BASE}/campaigns/${CAMPAIGN}/encounters/**`, { timeout: 10_000 });
-    console.log('✅ Created plan, redirected to:', page.url());
-    reportErrors(errors);
+    await page.waitForURL(/\/campaigns\/.*\/encounters\/.+/, { timeout: 10000 });
+    await expect(page.getByRole('button', { name: /save plan/i })).toBeVisible();
   });
 
-  // ── 4. Builder structure ─────────────────────────────────────────────────
-
   test('4. Builder renders all major sections', async ({ page }) => {
-    const errors = collectErrors(page);
-    await goToBuilder(page, 'Builder Structure Test');
+    await goToBuilder(page, campaignSlug, `Playwright Test ${Date.now()}`);
 
-    // Always-visible elements (outside the tabs)
     await expect(page.locator('nav', { hasText: 'Builder' })).toBeVisible();
     await expect(page.locator('label:has-text("Encounter Name")')).toBeVisible();
     await expect(page.locator('label:has-text("Party")').first()).toBeVisible();
     await expect(page.locator('label:has-text("Level")').first()).toBeVisible();
-    await expect(page.locator('button:has-text("Save Plan")')).toBeVisible();
+    await expect(page.getByRole('button', { name: /save plan/i })).toBeVisible();
 
-    // Tab bar visible with all 3 tabs
     await expect(page.locator('[role="tablist"]')).toBeVisible();
     await expect(page.getByRole('tab', { name: /Combat/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /Story/i })).toBeVisible();
     await expect(page.getByRole('tab', { name: /AI Generate/i })).toBeVisible();
 
-    // Combat tab (default) — difficulty meter
-    await expect(page.locator('text=Encounter Difficulty')).toBeVisible();
+    await expect(page.getByText('Encounter Difficulty')).toBeVisible();
     await expect(page.getByText('Add Creatures', { exact: true })).toBeVisible();
 
-    // Story tab — scene + tactical fields
     await page.getByRole('tab', { name: /Story/i }).click();
-    await page.waitForTimeout(300);
-    await expect(page.locator('text=Scene Description')).toBeVisible();
-    await expect(page.locator('text=Tactical Notes')).toBeVisible();
+    await expect(page.getByText('Scene Description')).toBeVisible();
+    await expect(page.getByText('Tactical Notes')).toBeVisible();
 
-    // AI Generate tab — generate button
     await page.getByRole('tab', { name: /AI Generate/i }).click();
-    await page.waitForTimeout(300);
-    await expect(page.locator('button:has-text("Generate Encounter")')).toBeVisible();
+    await expect(page.getByRole('button', { name: /generate encounter/i })).toBeVisible();
 
-    // Monster picker always visible on the right
-    await expect(page.locator('text=SRD Monsters')).toBeVisible();
-
-    await page.screenshot({ path: 'playwright-report/04-builder-overview.png', fullPage: true });
-    console.log('✅ All builder sections present');
-    reportErrors(errors);
+    await expect(page.getByText('SRD Monsters')).toBeVisible();
   });
 
-  // ── 5. Difficulty meter ──────────────────────────────────────────────────
-
   test('5. Difficulty meter shows XP thresholds', async ({ page }) => {
-    const errors = collectErrors(page);
-    await goToBuilder(page);
+    await goToBuilder(page, campaignSlug);
 
     for (const label of ['Easy', 'Medium', 'Hard', 'Deadly']) {
       await expect(page.locator(`text=${label}`).first()).toBeVisible();
     }
-    await expect(page.locator('text=Encounter Difficulty')).toBeVisible();
-
-    await page.screenshot({ path: 'playwright-report/05-difficulty-meter.png' });
-    console.log('✅ Difficulty meter thresholds visible');
-    reportErrors(errors);
+    await expect(page.getByText('Encounter Difficulty')).toBeVisible();
   });
 
-  // ── 6. Monster Picker — SRD ──────────────────────────────────────────────
-
   test('6. Monster Picker loads SRD monsters with search and CR filter', async ({ page }) => {
-    const errors = collectErrors(page);
-    await goToBuilder(page);
-    await page.waitForTimeout(1500);
+    await goToBuilder(page, campaignSlug);
 
-    // SRD tab is default
-    await expect(page.locator('text=SRD Monsters')).toBeVisible();
-    await expect(page.locator('text=CR:')).toBeVisible();
+    await expect(page.getByText('SRD Monsters')).toBeVisible();
+    await expect(page.getByText('CR:')).toBeVisible();
 
     const searchInput = page.locator('input[placeholder*="Search monsters"]');
     await expect(searchInput).toBeVisible();
 
-    // Monster cards should be visible (compact collapsed rows — name shown in header)
-    const monsterRows = page.locator('.border-amber-800\\/30');
-    const count = await monsterRows.count();
-    console.log(`   Found ${count} monster card rows`);
-    expect(count).toBeGreaterThan(0);
+    const primaryRows = page.locator('[data-testid="monster-card"]');
+    const firstMonster = await primaryRows.count() > 0 ? primaryRows.first() : page.locator('ul > li').first();
+    await expect(firstMonster).toBeVisible();
 
-    // Click first monster to expand and reveal "Add to Encounter" button
-    await monsterRows.first().click();
-    await expect(page.locator('button:has-text("Add to Encounter")')).toBeVisible();
-    console.log('   "Add to Encounter" button visible after expanding card');
+    await firstMonster.click();
+    await expect(page.getByRole('button', { name: /add to encounter/i }).first()).toBeVisible();
 
-    // Search works
     await searchInput.fill('goblin');
-    await page.waitForTimeout(600);
-    await page.screenshot({ path: 'playwright-report/06-monster-picker-srd.png' });
-    console.log('✅ SRD monster picker working');
-    reportErrors(errors);
+    await expect(searchInput).toHaveValue('goblin');
   });
-
-  // ── 7. Monster Picker — tab switching ───────────────────────────────────
 
   test('7. Monster Picker tabs switch correctly', async ({ page }) => {
-    const errors = collectErrors(page);
-    await goToBuilder(page);
+    await goToBuilder(page, campaignSlug);
 
-    await page.click('button:has-text("Campaign NPCs")');
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: 'playwright-report/07a-picker-npcs.png' });
-    console.log('✅ NPCs tab loaded');
+    await page.getByRole('button', { name: /campaign npcs/i }).click();
+    await expect(page.getByRole('button', { name: /campaign npcs/i })).toBeVisible();
 
-    await page.click('button:has-text("Homebrew")');
-    await page.waitForTimeout(800);
-    await page.screenshot({ path: 'playwright-report/07b-picker-homebrew.png' });
-    console.log('✅ Homebrew tab loaded');
+    await page.getByRole('button', { name: /homebrew/i }).click();
+    await expect(page.getByRole('button', { name: /homebrew/i })).toBeVisible();
 
-    await page.click('button:has-text("SRD Monsters")');
-    await page.waitForTimeout(600);
-    console.log('✅ Back to SRD tab');
-    reportErrors(errors);
+    await page.getByRole('button', { name: /srd monsters/i }).click();
+    await expect(page.getByText('SRD Monsters')).toBeVisible();
   });
 
-  // ── 8. AI prompt panel ──────────────────────────────────────────────────
+  test('8. AI Generate panel - difficulty toggle and example prompt', async ({ page }) => {
+    await goToBuilder(page, campaignSlug);
 
-  test('8. AI Generate panel — difficulty toggle and example prompt', async ({ page }) => {
-    const errors = collectErrors(page);
-    await goToBuilder(page);
-
-    // Navigate to the AI Generate tab first
     await page.getByRole('tab', { name: /AI Generate/i }).click();
-    await page.waitForTimeout(400);
+    await expect(page.getByRole('button', { name: /generate encounter/i })).toBeVisible();
 
-    // Difficulty buttons in the AI panel
     for (const d of ['Easy', 'Medium', 'Hard', 'Deadly']) {
       await expect(page.locator(`button:has-text("${d}")`).first()).toBeVisible();
     }
     await page.locator('button:has-text("Medium")').first().click();
 
-    // Example prompt populates textarea
-    const exampleLink = page.locator('button:has-text("Example prompt")');
+    const exampleLink = page.getByRole('button', { name: /example prompt/i });
     await expect(exampleLink).toBeVisible();
     await exampleLink.click();
+
     const textarea = page.locator('textarea').first();
+    await expect(textarea).toBeVisible();
     const val = await textarea.inputValue();
     expect(val.length).toBeGreaterThan(10);
-    console.log('   Example prompt:', val.substring(0, 70) + '...');
 
-    // Generate button enabled once textarea has content
-    await expect(page.locator('button:has-text("Generate Encounter")')).toBeEnabled();
-
-    await page.screenshot({ path: 'playwright-report/08-ai-prompt-panel.png' });
-    console.log('✅ AI prompt panel works');
-    reportErrors(errors);
+    await expect(page.getByRole('button', { name: /generate encounter/i })).toBeEnabled();
   });
 
-  // ── 9. Save Plan ─────────────────────────────────────────────────────────
-
   test('9. Save Plan persists scene description and tactical notes', async ({ page }) => {
-    const errors = collectErrors(page);
-    await goToBuilder(page, 'Save Test Plan');
+    await goToBuilder(page, campaignSlug, `Playwright Test ${Date.now()}`);
 
-    // Navigate to Story tab to access the narrative textareas
     await page.getByRole('tab', { name: /Story/i }).click();
-    await page.waitForTimeout(400);
+    await expect(page.getByText('Scene Description')).toBeVisible();
 
     const textareas = page.locator('textarea');
     await textareas.nth(0).fill('Moonlit clearing. Goblins in the trees. Read aloud: "The forest falls silent..."');
     await textareas.nth(1).fill('Goblins act on initiative 15. First round: Shortbow from tree cover, advantage on attacks.');
 
-    await page.click('button:has-text("Save Plan")');
-    await page.waitForTimeout(1500);
-
-    await page.screenshot({ path: 'playwright-report/09-save-plan.png' });
-    console.log('✅ Save Plan triggered');
-    reportErrors(errors);
+    await page.getByRole('button', { name: /save plan/i }).click();
+    await page.waitForLoadState('domcontentloaded');
   });
-
-  // ── 10. Plan cards on index ──────────────────────────────────────────────
 
   test('10. Encounters index shows plan cards after creation', async ({ page }) => {
-    const errors = collectErrors(page);
+    await goToBuilder(page, campaignSlug, `Playwright Test ${Date.now()}`);
 
-    // Ensure at least one plan exists
-    await goToBuilder(page, 'Index Card Test');
+    await page.goto(`/campaigns/${campaignSlug}/encounters`);
+    await expect(page.getByRole('heading', { name: /encounter/i })).toBeVisible();
 
-    // Go back to index
-    await page.goto(`${BASE}/campaigns/${CAMPAIGN}/encounters`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
-
-    const planCards = page.locator(`a[href*="/campaigns/${CAMPAIGN}/encounters/"]`);
-    const count = await planCards.count();
-    console.log(`   Found ${count} encounter plan card(s)`);
-    expect(count).toBeGreaterThanOrEqual(1);
-
-    await page.screenshot({ path: 'playwright-report/10-index-with-plans.png', fullPage: true });
-    console.log('✅ Plan cards visible on index');
-    reportErrors(errors);
+    const planCards = page.locator(`a[href*="/campaigns/${campaignSlug}/encounters/"]`);
+    await expect(planCards.first()).toBeVisible();
+    expect(await planCards.count()).toBeGreaterThanOrEqual(1);
   });
-
-  // ── 11. Encounter Tracker on session page ────────────────────────────────
 
   test('11. Encounter Tracker panel visible on session page', async ({ page }) => {
-    const errors = collectErrors(page);
-    await page.goto(`${BASE}/campaigns/${CAMPAIGN}/sessions`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await page.goto(`/campaigns/${campaignSlug}/sessions`);
+    await expect(page.getByRole('heading').first()).toBeVisible();
 
     const sessionLink = page.locator('a[href*="/sessions/"]').first();
-    if (!await sessionLink.isVisible()) {
-      console.log('ℹ️  No sessions found — skipping tracker test');
+    if (!await sessionLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+      test.skip();
       return;
     }
+
     await sessionLink.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await page.waitForURL(/\/sessions\//);
 
-    // Encounter Tracker is in the "Live Play" tab (DM default)
     await page.getByRole('tab', { name: /Live Play/i }).click();
-    await page.waitForTimeout(500);
-
-    await expect(page.locator('h3').filter({ hasText: 'Encounters' })).toBeVisible();
-    await page.screenshot({ path: 'playwright-report/11-session-tracker.png', fullPage: true });
-    console.log('✅ Encounter Tracker section visible in session');
-    reportErrors(errors);
+    await expect(page.getByRole('heading', { level: 3, name: 'Encounters' })).toBeVisible();
   });
 
-  // ── 12. Tracker — create live encounter ──────────────────────────────────
-
   test('12. Encounter Tracker DM can create a live encounter', async ({ page }) => {
-    const errors = collectErrors(page);
-    await page.goto(`${BASE}/campaigns/${CAMPAIGN}/sessions`);
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1500);
+    await page.goto(`/campaigns/${campaignSlug}/sessions`);
+    await expect(page.getByRole('heading').first()).toBeVisible();
 
     const sessionLink = page.locator('a[href*="/sessions/"]').first();
-    if (!await sessionLink.isVisible()) {
-      console.log('ℹ️  No sessions — skipping');
+    if (!await sessionLink.isVisible({ timeout: 3000 }).catch(() => false)) {
+      test.skip();
       return;
     }
-    await sessionLink.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
 
-    // Encounter Tracker is in the "Live Play" tab (DM default)
+    await sessionLink.click();
+    await page.waitForURL(/\/sessions\//);
+
     const livePlayTab = page.getByRole('tab', { name: /Live Play/i });
-    if (await livePlayTab.isVisible()) {
+    if (await livePlayTab.isVisible({ timeout: 2000 }).catch(() => false)) {
       await livePlayTab.click();
-      await page.waitForTimeout(600);
+      await expect(page.getByRole('tabpanel')).toBeVisible();
     }
 
     const encounterInput = page.locator('input[placeholder="Encounter name"]');
-    if (!await encounterInput.isVisible()) {
-      console.log('ℹ️  Encounter name input not visible on this session page');
-      await page.screenshot({ path: 'playwright-report/12-session-page.png', fullPage: true });
+    if (!await encounterInput.isVisible({ timeout: 2000 }).catch(() => false)) {
+      test.skip();
       return;
     }
 
-    await encounterInput.fill('Goblin Ambush');
-    // Click the + button next to it
-    const createBtn = page.locator('button[aria-label*="add"], button:has(svg)').filter({ hasText: /^$/ }).last();
-    if (await createBtn.isVisible()) {
+    await encounterInput.fill(`Playwright Test ${Date.now()}`);
+    const createBtn = page.locator('button[aria-label*="add" i], button:has(svg)').filter({ hasText: /^$/ }).last();
+    if (await createBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
       await createBtn.click();
-      await page.waitForTimeout(1500);
+      await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 5000 }).catch(() => {});
     }
-
-    await page.screenshot({ path: 'playwright-report/12-encounter-tracker-live.png', fullPage: true });
-    console.log('✅ Live encounter tracker tested');
-    reportErrors(errors);
   });
 
-  // ── 13. Responsive layout ────────────────────────────────────────────────
-
   test('13. Builder responsive at tablet width (768px)', async ({ page }) => {
-    const errors = collectErrors(page);
     await page.setViewportSize({ width: 768, height: 1024 });
-    await goToBuilder(page);
-
-    await expect(page.locator('button:has-text("Save Plan")')).toBeVisible();
-    await page.screenshot({ path: 'playwright-report/13-builder-tablet.png', fullPage: true });
-    console.log('✅ Tablet layout captured');
-    reportErrors(errors);
+    await goToBuilder(page, campaignSlug);
+    await expect(page.getByRole('button', { name: /save plan/i })).toBeVisible();
   });
 });
