@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
+import { track, EVENTS } from '@/lib/analytics';
 
 interface LiveTranscriptSegment {
   text: string;
@@ -227,6 +228,7 @@ export function useLiveTranscription(sessionId: string): UseLiveTranscriptionRet
       }, 1000);
 
       setIsRecording(true);
+      track(EVENTS.TRANSCRIPTION_STARTED, { session_id: sessionId });
     } catch (err) {
       cleanup();
       const msg = err instanceof Error ? err.message : 'Failed to start live transcription';

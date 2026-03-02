@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useState, useCallback, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
+import { track, EVENTS } from '@/lib/analytics';
 import { useLiveTranscription } from '@/hooks/useLiveTranscription';
 import { CockpitHeader } from '@/components/cockpit/cockpit-header';
 import { PartyOverviewPanel } from '@/components/cockpit/party-overview-panel';
@@ -47,6 +48,10 @@ export default function SessionCockpitPage() {
     initStates.mutate({ campaignId, sessionId });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaignId, sessionId]);
+
+  useEffect(() => {
+    track(EVENTS.SESSION_STARTED, { session_id: sessionId });
+  }, [sessionId]);
 
 
   if (sessionQuery.isLoading || campaignQuery.isLoading) {
