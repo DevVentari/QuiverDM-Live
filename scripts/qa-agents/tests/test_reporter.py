@@ -1,5 +1,4 @@
 import json
-from dataclasses import field
 from pathlib import Path
 import tempfile
 from reporter import AgentResult, write_report
