@@ -75,13 +75,15 @@ def run_claude_agent(
             shutil.copytree(src_dir, tmp_home / '.claude', dirs_exist_ok=True)
         env['HOME'] = str(tmp_home)
         env['USERPROFILE'] = str(tmp_home)
+        env['CI'] = 'true'
 
         print(f'[claude_agent] Starting: {persona.name}')
         start = time.monotonic()
 
         try:
             result = subprocess.run(
-                ['claude', '-p', prompt, '--output-format', 'json'],
+                ['claude', '-p', prompt, '--output-format', 'json',
+                 '--dangerously-skip-permissions'],
                 capture_output=True,
                 text=True,
                 stdin=subprocess.DEVNULL,
