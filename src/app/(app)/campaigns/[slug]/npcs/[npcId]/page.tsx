@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { Trash2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -95,7 +94,8 @@ export default function NPCDetailPage() {
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Image</h2>
+        <p className="label-overline">IMAGE</p>
+        <div className="section-rule mb-4" />
         <ImageGallery
           entityType="npc"
           entityId={data.id}
@@ -107,7 +107,7 @@ export default function NPCDetailPage() {
       </div>
 
       {data.description && (
-        <Card>
+        <Card className="glass-panel">
           <CardHeader>
             <CardTitle className="text-sm">Description</CardTitle>
           </CardHeader>
@@ -118,7 +118,7 @@ export default function NPCDetailPage() {
       )}
 
       {isDM && data.secrets && (
-        <Card className="border-foreground/30">
+        <Card className="glass-panel border-amber-500/30">
           <CardHeader>
             <CardTitle className="text-sm text-foreground">DM Secrets</CardTitle>
           </CardHeader>
@@ -130,8 +130,9 @@ export default function NPCDetailPage() {
 
       {stats && (
         <>
-          <Separator />
-          <Card>
+          <p className="label-overline">STAT BLOCK</p>
+          <div className="section-rule mb-4" />
+          <Card className="glass-panel">
             <CardHeader>
               <CardTitle className="text-sm">Stat Block</CardTitle>
             </CardHeader>
