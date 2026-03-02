@@ -14,6 +14,7 @@ const { serverTrack } = await import('@/lib/analytics.server');
 
 describe('serverTrack', () => {
   beforeEach(() => {
+    process.env.NEXT_PUBLIC_POSTHOG_KEY = 'phc_test';
     mockCapture.mockClear();
     mockShutdown.mockClear();
   });
@@ -25,6 +26,9 @@ describe('serverTrack', () => {
       event: 'campaign_created',
       properties: { campaign_id: 'abc' },
     });
+    // shutdown must be called after capture
+    expect(mockCapture.mock.invocationCallOrder[0])
+      .toBeLessThan(mockShutdown.mock.invocationCallOrder[0]);
   });
 
   it('calls shutdown after capture', async () => {
