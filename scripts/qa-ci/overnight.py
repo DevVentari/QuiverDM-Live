@@ -54,10 +54,20 @@ LXC_STATE_PATH = '/opt/quiverdm/scripts/qa-ci/scenario_state.json'
 
 # ── LXC helpers ──────────────────────────────────────────────────────────────
 
-def _lxc_is_reachable(dry_run: bool) -> bool:
+def _lxc_is_reachable(dry_run: bool, local: bool = False) -> bool:
     if dry_run:
         print('[overnight] DRY RUN: LXC reachability check skipped')
         return True
+    if local:
+        try:
+            result = subprocess.run(
+                ['systemctl', 'is-active', 'qa-regression'],
+                capture_output=True, text=True, timeout=5, stdin=subprocess.DEVNULL,
+            )
+            return result.stdout.strip() == 'active'
+        except Exception as e:
+            print(f'[overnight] Local systemctl check failed: {e}')
+            return Path(LXC_STATE_PATH).exists()
     try:
         result = subprocess.run(
             ['ssh', '-o', 'ConnectTimeout=5', '-o', 'BatchMode=yes',
@@ -73,9 +83,15 @@ def _lxc_is_reachable(dry_run: bool) -> bool:
         return False
 
 
-def _read_lxc_state(dry_run: bool) -> dict:
+def _read_lxc_state(dry_run: bool, local: bool = False) -> dict:
     if dry_run:
         return {'_dry_run': True}
+    if local:
+        try:
+            return json.loads(Path(LXC_STATE_PATH).read_text())
+        except Exception as e:
+            print(f'[overnight] Failed to read local state: {e}')
+            return {}
     try:
         result = subprocess.run(
             ['ssh', '-o', 'ConnectTimeout=5', '-o', 'BatchMode=yes',
@@ -240,11 +256,14 @@ def main() -> None:
                         help='Run until N consecutive all-pass agent cycles (no time limit)')
     parser.add_argument('--fix-dispatcher-pid', type=int, default=None,
                         help='PID of already-running fix_dispatcher (skip launch)')
+    parser.add_argument('--local', action='store_true',
+                        help='Read regression state locally (use when running on LXC 402)')
     args = parser.parse_args()
 
     run_start = time.time()
     total_duration = args.duration
     until_clean: int | None = args.until_clean
+    local: bool = args.local
 
     if until_clean is not None:
         print(f'[overnight] Mode: until-clean (N={until_clean}) — no time limit')
@@ -254,7 +273,7 @@ def main() -> None:
     # ── Phase 1: Setup ────────────────────────────────────────────────────────
     print('[overnight] === Phase 1: Setup ===')
 
-    lxc_ok = _lxc_is_reachable(args.dry_run)
+    lxc_ok = _lxc_is_reachable(args.dry_run, local)
     if not lxc_ok:
         print('[overnight] WARNING: LXC 402 unreachable — will skip regression state checks')
 
@@ -278,7 +297,7 @@ def main() -> None:
     agents_total = agent_result['total']
     print(f'[overnight] Baseline agents: {agents_pass}/{agents_total} passing')
 
-    lxc_state = _read_lxc_state(args.dry_run) if lxc_ok else {}
+    lxc_state = _read_lxc_state(args.dry_run, local) if lxc_ok else {}
     specs_pass, specs_total = _calc_pass_rate(lxc_state)
 
     issues = _get_open_issues(args.dry_run)
@@ -322,7 +341,7 @@ def main() -> None:
         # Dashboard update
         if now - last_dashboard_update >= DASHBOARD_INTERVAL:
             if lxc_ok:
-                lxc_state = _read_lxc_state(args.dry_run)
+                lxc_state = _read_lxc_state(args.dry_run, local)
                 specs_pass, specs_total = _calc_pass_rate(lxc_state)
 
             issues = _get_open_issues(args.dry_run)
@@ -406,7 +425,7 @@ def main() -> None:
     agents_total = final_agent_result['total']
 
     if lxc_ok:
-        lxc_state = _read_lxc_state(args.dry_run)
+        lxc_state = _read_lxc_state(args.dry_run, local)
         specs_pass, specs_total = _calc_pass_rate(lxc_state)
 
     final_issues = _get_open_issues(args.dry_run)
