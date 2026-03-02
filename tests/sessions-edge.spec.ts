@@ -8,11 +8,11 @@ async function navToSessions(page: Parameters<typeof signInAsTestUser>[0]) {
   if (await campaignLink.count() === 0) return null;
   const href = await campaignLink.getAttribute('href');
   await campaignLink.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   const sessionsLink = page.getByRole('link', { name: /sessions/i });
   if (await sessionsLink.count() === 0) return null;
   await sessionsLink.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   return href;
 }
 
@@ -49,7 +49,7 @@ test.describe('Sessions — Edge Cases', () => {
     if (await newBtn.count() === 0) { test.skip(); return; }
 
     await newBtn.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState('domcontentloaded');
 
     // Submit without filling the title
     const submitBtn = page.getByRole('button', { name: /create|save|submit/i }).last();
@@ -71,7 +71,7 @@ test.describe('Sessions — Edge Cases', () => {
     if (await newBtn.count() === 0) { test.skip(); return; }
 
     await newBtn.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState('domcontentloaded');
 
     const titleInput = page.getByRole('textbox').first()
       .or(page.getByLabel(/title|name/i).first());
@@ -95,7 +95,7 @@ test.describe('Sessions — Edge Cases', () => {
     if (await plannedBtn.count() === 0) { test.skip(); return; }
 
     await plannedBtn.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Page should not error after filtering
     await expect(page.getByText(/error|500/i)).toHaveCount(0);
@@ -109,11 +109,11 @@ test.describe('Sessions — Edge Cases', () => {
     const campaignLink = page.locator('a[href*="/campaigns/"]').first();
     if (await campaignLink.count() === 0) { test.skip(); return; }
     await campaignLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const sessionsLink = page.getByRole('link', { name: /sessions/i });
     if (await sessionsLink.count() === 0) { test.skip(); return; }
     await sessionsLink.click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Look for any share link that leads to /share/session/
     const shareLink = page.locator('a[href*="/share/session/"]').first();
@@ -125,7 +125,7 @@ test.describe('Sessions — Edge Cases', () => {
     // Open share URL in a new context (unauthenticated)
     const newPage = await page.context().newPage();
     await newPage.goto(shareHref);
-    await newPage.waitForLoadState('networkidle');
+    await newPage.waitForLoadState('domcontentloaded');
 
     // Public share page should render — not redirect to auth
     await expect(newPage.getByText(/error|500/i)).toHaveCount(0);
