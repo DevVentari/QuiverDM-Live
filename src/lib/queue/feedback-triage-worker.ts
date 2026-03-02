@@ -95,6 +95,55 @@ Respond with JSON ONLY — no markdown, no explanation:
   });
 }
 
+async function findRelatedIssues(
+  token: string,
+  affectedFiles: string[]
+): Promise<Array<{ number: number; title: string; url: string }>> {
+  if (!affectedFiles.length) return [];
+  const repo = process.env.GITHUB_FEEDBACK_REPO ?? 'DevVentari/QuiverDM-Live';
+  const filename = affectedFiles[0].split('/').pop() ?? '';
+  if (!filename) return [];
+
+  try {
+    const q = encodeURIComponent(`repo:${repo} is:issue is:open ${filename}`);
+    const res = await fetch(`https://api.github.com/search/issues?q=${q}&per_page=5`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as { items: Array<{ number: number; title: string; html_url: string }> };
+    return data.items.map((i) => ({ number: i.number, title: i.title, url: i.html_url }));
+  } catch {
+    return [];
+  }
+}
+
+async function addCrossReferenceComment(token: string, issueUrl: string, related: Array<{ number: number; url: string }>) {
+  const match = issueUrl.match(/issues\/(\d+)$/);
+  if (!match) return;
+  const repo = process.env.GITHUB_FEEDBACK_REPO ?? 'DevVentari/QuiverDM-Live';
+  const seeAlso = related.map((i) => `[#${i.number}](${i.url})`).join(', ');
+  const body = `**See also:** ${seeAlso}\n\n_Cross-referenced by triage — same files affected._`;
+
+  try {
+    await fetch(`https://api.github.com/repos/${repo}/issues/${match[1]}/comments`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ body }),
+    });
+  } catch (err) {
+    console.error('[feedback-triage] Cross-reference comment failed:', err);
+  }
+}
+
 async function postTriageEmbed(
   threadId: string,
   triage: NonNullable<Awaited<ReturnType<typeof runClaudeTriage>>>,
@@ -149,6 +198,17 @@ const worker = new Worker<FeedbackTriageJobData>(
 
     await postTriageEmbed(job.data.threadId, triage, job.data.issueUrl);
     console.log(`[feedback-triage] Posted triage embed for thread ${job.data.threadId}`);
+
+    const token = process.env.GITHUB_TOKEN;
+    if (token && job.data.issueUrl && triage.affected_files.length > 0) {
+      const currentNumber = job.data.issueUrl.match(/issues\/(\d+)$/)?.[1];
+      const related = await findRelatedIssues(token, triage.affected_files);
+      const filtered = related.filter((i) => String(i.number) !== currentNumber);
+      if (filtered.length > 0) {
+        await addCrossReferenceComment(token, job.data.issueUrl, filtered);
+        console.log(`[feedback-triage] Cross-referenced ${filtered.length} related issue(s)`);
+      }
+    }
   },
   {
     connection: getRedisConnection() as any,

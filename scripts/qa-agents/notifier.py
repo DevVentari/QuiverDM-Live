@@ -17,6 +17,7 @@ from reporter import AgentResult
 DISCORD_API = 'https://discord.com/api/v10'
 GITHUB_REPO = 'DevVentari/QuiverDM-Live'
 QA_LABEL = 'qa-failure'
+QA_AGENT_LABEL = 'source/qa-agent'
 
 _OUTCOME_EMOJI = {'success': '🟢', 'partial': '🟡', 'failed': '🔴'}
 
@@ -147,14 +148,24 @@ def _ensure_qa_label() -> None:
     )
 
 
+def _ensure_qa_agent_label() -> None:
+    subprocess.run(
+        ['gh', 'label', 'create', QA_AGENT_LABEL, '--repo', GITHUB_REPO,
+         '--color', '7057ff', '--description', 'Issue found by QA browser agent', '--force'],
+        capture_output=True, stdin=subprocess.DEVNULL,
+    )
+
+
 def _create_github_issue(result: AgentResult, run_id: str) -> None:
-    title = f'[QA] {result.persona} — {result.scenario} failed'
+    title = f'[qa-agent] {result.persona} — {result.scenario} failed'
     if check_issue_exists(title):
         print(f'[notifier] Issue already open: {title}')
         return
 
     _ensure_qa_label()
+    _ensure_qa_agent_label()
     body_lines = [
+        f'**Source:** QA browser agent',
         f'**Run:** `{run_id}`',
         f'**Persona:** {result.persona}',
         f'**Scenario:** `{result.scenario}`',
@@ -173,7 +184,7 @@ def _create_github_issue(result: AgentResult, run_id: str) -> None:
         r = subprocess.run(
             ['gh', 'issue', 'create', '--repo', GITHUB_REPO,
              '--title', title, '--body', body,
-             '--label', 'bug', '--label', QA_LABEL],
+             '--label', 'bug', '--label', QA_LABEL, '--label', QA_AGENT_LABEL],
             capture_output=True, text=True, stdin=subprocess.DEVNULL,
         )
         if r.returncode == 0:
