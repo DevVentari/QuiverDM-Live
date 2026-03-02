@@ -31,11 +31,11 @@ def post_state_change(scenario_id: str, new_status: str, detail: str | None = No
     content = f'{scenario_id} -> {new_status}'
     if detail:
         content += f'\n{detail}'
-    _post_message(content)
+    _post_thread(f'QA {scenario_id} {new_status}', content)
 
 
 def post_error(message: str) -> None:
-    _post_message(f'[QA-CI ERROR] {message}')
+    _post_thread('QA-CI Error', f'[QA-CI ERROR] {message}')
 
 
 def _post_thread(title: str, content: str) -> str | None:
