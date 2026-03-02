@@ -114,6 +114,12 @@ docs/screenshots/
 # Git worktrees
 .worktrees/
 
+# QA CI runtime state (homelab-local)
+scripts/qa-ci/scenario_state.json
+scripts/qa-ci/reports/
+scripts/qa-ci/.venv/
+scripts/qa-ci/uv.lock
+
 # Logs
 logs
 *.log
