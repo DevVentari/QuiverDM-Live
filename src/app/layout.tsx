@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Cinzel, Bricolage_Grotesque } from 'next/font/google';
 import { Providers } from './providers';
+import { PostHogPageView } from '@/components/analytics/posthog-page-view';
 import './globals.css';
 
 const bricolage = Bricolage_Grotesque({
@@ -29,7 +31,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${bricolage.variable} ${cinzel.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Suspense fallback={null}>
+            <PostHogPageView />
+          </Suspense>
+          {children}
+        </Providers>
       </body>
     </html>
   );
