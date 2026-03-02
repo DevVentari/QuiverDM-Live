@@ -96,7 +96,7 @@ def run_claude_agent(
         inner_raw = outer.get('result', '')
         last_line = inner_raw.strip().split('\n')[-1]
         inner = json.loads(last_line)
-    except (json.JSONDecodeError, KeyError) as e:
+    except json.JSONDecodeError as e:
         inner = {
             'outcome': 'failed',
             'findings': f'JSON parse error: {e}. Raw tail: {result.stdout[-300:]}',
