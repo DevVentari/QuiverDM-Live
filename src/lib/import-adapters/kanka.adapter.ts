@@ -23,7 +23,7 @@ async function fetchEntityType(token: string, campaignId: string, entityType: st
     const res: Response = await fetch(url, {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     })
-    if (!res.ok) break
+    if (!res.ok) throw new Error(`Kanka API error (${res.status}) for ${entityType} in campaign ${campaignId}`)
     const data: any = await res.json()
 
     for (const entity of data.data ?? []) {
