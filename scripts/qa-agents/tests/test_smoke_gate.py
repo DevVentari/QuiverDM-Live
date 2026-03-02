@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch, MagicMock
 from smoke_gate import run_smoke_gate, SmokeResult
 
@@ -37,3 +38,24 @@ def test_smoke_gate_json_crash():
     assert result.failed == 1
     assert result.ok is False
     assert result.failures[0]['title'] == 'playwright-crash'
+
+
+def test_smoke_gate_nested_describe():
+    """Failures inside describe() blocks are collected."""
+    mock_output = json.dumps({
+        "stats": {"expected": 2, "unexpected": 1, "flaky": 0, "skipped": 0},
+        "suites": [{
+            "specs": [],
+            "suites": [{
+                "specs": [{"ok": False, "title": "nested test", "tests": [
+                    {"results": [{"status": "failed", "error": {"message": "inner error"}}]}
+                ]}]
+            }]
+        }],
+        "errors": []
+    })
+    with patch('smoke_gate.subprocess.run') as mock_run:
+        mock_run.return_value = MagicMock(returncode=1, stdout=mock_output, stderr='')
+        result = run_smoke_gate()
+    assert result.failed == 1
+    assert result.failures[0]['title'] == 'nested test'
