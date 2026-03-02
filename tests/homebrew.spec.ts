@@ -3,7 +3,7 @@ import { signInAsTestUser } from './helpers/auth';
 
 async function openFirstCampaignHomebrew(page: Page): Promise<boolean> {
   await page.goto('/campaigns');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Exclude the "New Campaign" create link; find actual campaign card links only.
   const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
@@ -13,14 +13,14 @@ async function openFirstCampaignHomebrew(page: Page): Promise<boolean> {
   if (!href) return false;
   // Navigate directly to campaign homebrew to avoid strict mode on shared sidebar nav.
   await page.goto(`${href}/homebrew`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   if (!page.url().includes('/homebrew')) return false;
   return true;
 }
 
 async function createManualHomebrew(page: Page, name: string, description: string) {
   await page.goto('/homebrew');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   await page.getByRole('button', { name: /^create$/i }).click();
   await page.getByLabel(/name/i).fill(name);
@@ -32,7 +32,7 @@ async function createManualHomebrew(page: Page, name: string, description: strin
 
 async function openFirstCampaignByRole(page: Page, role: 'Player' | 'Dungeon Master'): Promise<boolean> {
   await page.goto('/campaigns');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   const hrefs = await page.locator('a[href^="/campaigns/"]').evaluateAll((links) => {
     const result = new Set<string>();
@@ -48,7 +48,7 @@ async function openFirstCampaignByRole(page: Page, role: 'Player' | 'Dungeon Mas
 
   for (const href of hrefs) {
     await page.goto(href);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Use exact match (^...$) to avoid matching e.g. "Invite Player" when checking for "Player" role.
     if (await page.getByText(new RegExp(`^${role}$`, 'i')).count()) {
@@ -120,7 +120,7 @@ test.describe('Homebrew', () => {
     const slug = page.url().match(/\/campaigns\/([^/]+)/)?.[1];
     if (!slug) { test.skip(); return; }
     await page.goto(`/campaigns/${slug}/homebrew`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Edge case: DM-only actions should be hidden from players.
     await expect(page.getByRole('button', { name: /add from library|create/i })).toHaveCount(0);
@@ -133,7 +133,7 @@ test.describe('Homebrew', () => {
     await createManualHomebrew(page, name, 'Disposable item for delete coverage.');
 
     await page.getByRole('link', { name: name }).click();
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const deleteButton = page.getByRole('button', { name: /delete/i });
     if ((await deleteButton.count()) === 0) {
@@ -147,7 +147,7 @@ test.describe('Homebrew', () => {
     await page.getByRole('dialog').getByRole('button', { name: /delete|confirm/i }).click();
 
     await page.goto('/homebrew');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.getByText(name)).toHaveCount(0);
   });
 
@@ -195,13 +195,13 @@ test.describe('Homebrew', () => {
     await signInAsTestUser(page);
 
     await page.goto('/homebrew');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     if ((await page.locator('a[href*="/homebrew/"]').count()) === 0) {
       const name = `E2E Detail ${Date.now()}`;
       await createManualHomebrew(page, name, 'Detail navigation fallback item.');
       await page.goto('/homebrew');
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
 
     const itemLink = page.locator('a[href*="/homebrew/"]').first();
@@ -214,9 +214,10 @@ test.describe('Homebrew', () => {
     const href = await itemLink.getAttribute('href');
     if (!href) { test.skip(); return; }
     await page.goto(href);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(/\/homebrew\/[a-zA-Z0-9_-]+/);
     await expect(page.getByRole('heading').or(page.getByText(/content not found|failed to load/i)).first()).toBeVisible();
   });
 });
+
