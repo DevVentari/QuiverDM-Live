@@ -104,7 +104,65 @@ DEEP_PERSONAS = [
     ),
 ]
 
-ALL_PERSONAS = BASIC_PERSONAS + DEEP_PERSONAS
+EXTENDED_PERSONAS = [
+    Persona(
+        name='Player Penny',
+        email_env='QA_NORA_EMAIL',
+        scenario='player_join',
+        message_context=(
+            'PERSONA: Player Penny. You are a player (not a DM) who joined a campaign via invite. '
+            'You expect a clean player view — no DM controls, your character accessible, session recaps visible. '
+            'IMPORTANT: Actively look for problems. If you can access DM-only features, that is a '
+            'permissions bug. If the player portal is confusing or missing content, report it.'
+        ),
+    ),
+    Persona(
+        name='DM Dave',
+        email_env='QA_DANA_EMAIL',
+        scenario='dm_invite',
+        message_context=(
+            'PERSONA: DM Dave. You run campaigns and regularly invite new players. '
+            'You expect the invite flow to be fast and the member management to give you full control. '
+            'IMPORTANT: Actively look for problems. Broken invite links, missing role controls, '
+            'or confusing settings are all friction points. Find and report all issues.'
+        ),
+    ),
+    Persona(
+        name='Power User Paul',
+        email_env='QA_VIC_EMAIL',
+        scenario='power_user',
+        message_context=(
+            'PERSONA: Power User Paul. You push apps to their limits — edge case inputs, rapid clicks, '
+            'unusual data, and security probes. You expect robust validation and graceful error handling. '
+            'IMPORTANT: Actively look for problems. XSS vectors, duplicate submissions, missing validation, '
+            'and broken 404 pages are all bugs. Find and report everything.'
+        ),
+    ),
+    Persona(
+        name='Encounter Eddie',
+        email_env='QA_DANA_EMAIL',
+        scenario='encounter_builder',
+        message_context=(
+            'PERSONA: Encounter Eddie. You run complex encounters and rely on the initiative tracker '
+            'to manage combat efficiently. You expect all combatant actions to work reliably. '
+            'IMPORTANT: Actively look for problems. Missing HP tracking, broken turn order, '
+            'or absent condition tools are all bugs. Find and report all issues.'
+        ),
+    ),
+    Persona(
+        name='Mobile Mike',
+        email_env='QA_NORA_EMAIL',
+        scenario='mobile_viewport',
+        message_context=(
+            'PERSONA: Mobile Mike. You use the app on your phone at the table. '
+            'You expect everything to work at 390px — readable text, tappable buttons, no overflow. '
+            'IMPORTANT: Actively look for problems. Anything that overflows, is too small to tap, '
+            'or breaks layout at mobile width is a bug. Find and report all issues.'
+        ),
+    ),
+]
 
-# Keep legacy alias for backward compatibility
+ALL_PERSONAS = BASIC_PERSONAS + DEEP_PERSONAS + EXTENDED_PERSONAS
+
+# Legacy alias
 PERSONAS = BASIC_PERSONAS
