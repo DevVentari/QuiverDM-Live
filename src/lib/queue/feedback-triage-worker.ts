@@ -13,7 +13,7 @@ import { spawn } from 'child_process';
 import type { FeedbackTriageJobData } from './feedback-triage-queue';
 
 function getRedisConnection() {
-  if (process.env.REDIS_URL) return { url: process.env.REDIS_URL, maxRetriesPerRequest: null };
+  if (process.env.REDIS_URL) return process.env.REDIS_URL;
   return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6380'),
