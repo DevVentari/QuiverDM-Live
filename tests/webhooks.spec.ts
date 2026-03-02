@@ -4,7 +4,7 @@ import { signInAsTestUser } from './helpers/auth';
 async function navToSettings(page: Parameters<typeof signInAsTestUser>[0]) {
   await signInAsTestUser(page);
   await page.goto('/campaigns');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   // Exclude the "New Campaign" create link; find actual campaign card links only.
   const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
   if (await campaignLink.count() === 0) return false;
@@ -12,7 +12,7 @@ async function navToSettings(page: Parameters<typeof signInAsTestUser>[0]) {
   if (!href) return false;
   // Navigate directly to campaign settings to avoid click-navigation race conditions.
   await page.goto(`${href}/settings`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   return true;
 }
 
@@ -77,7 +77,7 @@ test.describe('Webhooks', () => {
     if (isDisabled) { test.skip(); return; }
 
     await addWebhookBtn.click();
-    await page.waitForTimeout(300);
+    await page.waitForLoadState('domcontentloaded');
 
     // Submit with empty URL
     const submitBtn = page.getByRole('button', { name: /save|add|create/i }).last();
@@ -101,7 +101,7 @@ test.describe('Webhooks', () => {
     if (await saveBtn.count() === 0) { test.skip(); return; }
     await saveBtn.click();
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.getByText(/error|500/i)).toHaveCount(0);
   });
 
