@@ -26,6 +26,9 @@ export default function CampaignLayout({
       utils.sessions.getAll.prefetch({ campaignId });
       utils.members.getAll.prefetch({ campaignId });
     }
+    if ((campaign.data as any)?.name) {
+      document.title = `${(campaign.data as any).name} | QuiverDM`;
+    }
   }, [campaign.data, utils]);
 
   if (campaign.isLoading) {
