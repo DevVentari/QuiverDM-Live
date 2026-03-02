@@ -11,7 +11,7 @@ from pathlib import Path
 from personas import Persona
 from reporter import AgentResult
 
-_STRIP_ENV_KEYS = {'CLAUDECODE', 'CLAUDE_CODE_ENTRYPOINT', 'CLAUDE_CODE_SESSION_ACCESS_TOKEN'}
+_STRIP_ENV_KEYS = {'CLAUDECODE', 'CLAUDE_CODE_ENTRYPOINT', 'CLAUDE_CODE_SESSION_ACCESS_TOKEN', 'ANTHROPIC_API_KEY'}
 
 
 def build_agent_prompt(persona: Persona, scenario_task: str, screenshot_path: str) -> str:
