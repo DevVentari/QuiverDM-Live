@@ -207,7 +207,8 @@ def _get_open_issues(dry_run: bool) -> list[dict]:
 def _count_fix_attempts(issue: dict) -> int:
     """Count how many fix PRs have been commented on an issue."""
     body = issue.get('body', '') or ''
-    comments_count = issue.get('comments', 0)
+    comments = issue.get('comments', [])
+    comments_count = len(comments) if isinstance(comments, list) else int(comments or 0)
     fix_mentions = body.lower().count('fix pr') + body.lower().count('fix attempt')
     return fix_mentions + max(0, comments_count - 1)
 
