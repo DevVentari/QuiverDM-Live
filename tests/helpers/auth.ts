@@ -10,5 +10,5 @@ export async function signInAsTestUser(page: Page, email?: string, password?: st
   await page.getByLabel(/email/i).fill(e);
   await page.getByLabel(/password/i).fill(p);
   await page.getByRole('button', { name: /sign in/i }).click();
-  await page.waitForURL(url => !url.includes('/auth/'), { timeout: 15000 });
+  await page.waitForURL(/dashboard|onboarding|campaigns|characters|homebrew|settings|members/, { timeout: 15000 });
 }
