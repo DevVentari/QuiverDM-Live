@@ -2,10 +2,13 @@
 Fix dispatcher - runs on host PC, polls GitHub for qa-failure issues.
 
 Usage:
-  uv run python fix_dispatcher.py [--once] [--no-idle-check]
+  uv run python fix_dispatcher.py [--once] [--no-idle-check] [--once-per-issue]
 
 --once: process one issue and exit (for testing)
 --no-idle-check: skip idle detection (for testing/CI)
+--once-per-issue: each issue is attempted exactly once per run; failed fixes
+                  are tracked in /tmp/qa-overnight-processed.json and commented
+                  on the GH issue with the attempt count
 
 Idle detection: Windows only via ctypes.windll.user32.GetLastInputInfo
 Idle threshold: 5 minutes (300 seconds)
@@ -14,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import json
 import platform
 import subprocess
 import sys
@@ -111,6 +115,41 @@ def _parse_scenario_id_from_title(title: str) -> str:
     return remainder or "unknown-scenario"
 
 
+OVERNIGHT_PROCESSED_FILE = Path('/tmp/qa-overnight-processed.json')
+
+
+def _load_overnight_processed() -> dict[int, int]:
+    """Load {issue_number: attempt_count} from temp file."""
+    if OVERNIGHT_PROCESSED_FILE.exists():
+        try:
+            data = json.loads(OVERNIGHT_PROCESSED_FILE.read_text())
+            return {int(k): int(v) for k, v in data.items()}
+        except Exception:
+            pass
+    return {}
+
+
+def _save_overnight_processed(processed: dict[int, int]) -> None:
+    try:
+        OVERNIGHT_PROCESSED_FILE.write_text(json.dumps({str(k): v for k, v in processed.items()}))
+    except Exception as e:
+        print(f'[fix_dispatcher] Failed to save processed file: {e}')
+
+
+def _comment_fix_attempt(number: int, attempt: int, success: bool) -> None:
+    status = 'succeeded' if success else 'failed'
+    comment = f'[fix-dispatcher] Fix attempt {attempt} {status}.'
+    if not success:
+        comment += f' Attempt count: {attempt}. If >= 2 attempts fail, this will be escalated.'
+    try:
+        subprocess.run(
+            ['gh', 'issue', 'comment', str(number), '--repo', GITHUB_REPO, '--body', comment],
+            capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=30,
+        )
+    except Exception as e:
+        print(f'[fix_dispatcher] Failed to comment on issue #{number}: {e}')
+
+
 def process_exploratory_trigger(issue: dict) -> None:
     """
     Run scripts/qa-agents/run.py for exploratory agents.
@@ -190,10 +229,15 @@ def main():
     parser = argparse.ArgumentParser(description="Dispatch qa-failure fixes via Codex or Claude.")
     parser.add_argument("--once", action="store_true", help="Process one poll cycle and exit.")
     parser.add_argument("--no-idle-check", action="store_true", help="Skip idle detection.")
+    parser.add_argument("--once-per-issue", action="store_true",
+                        help="Attempt each issue exactly once; track in /tmp/qa-overnight-processed.json.")
     args = parser.parse_args()
 
     get_open_qa_failure_issues, get_open_exploratory_trigger_issues, get_open_user_feedback_issues, get_open_qa_agent_issues = _load_issue_api()
     processed_issue_numbers: set[int] = set()
+
+    # Load persistent processed map for --once-per-issue mode
+    overnight_processed: dict[int, int] = _load_overnight_processed() if args.once_per_issue else {}
 
     while True:
         exploratory_issues = get_open_exploratory_trigger_issues() or []
@@ -228,6 +272,10 @@ def main():
                 if isinstance(number, int) and number in processed_issue_numbers:
                     continue
 
+                # --once-per-issue: skip issues already processed in this overnight run
+                if args.once_per_issue and isinstance(number, int) and number in overnight_processed:
+                    continue
+
                 title = issue.get("title") or ""
                 scenario_id = _parse_scenario_id_from_title(title)
 
@@ -240,7 +288,9 @@ def main():
                 else:
                     result = dispatch_codex_fix(issue, scenario_id)
 
-                if result.get("success"):
+                fix_succeeded = result.get("success", False)
+
+                if fix_succeeded:
                     pr_url = create_fix_pr(
                         Path(result["worktree"]),
                         str(result["branch"]),
@@ -249,6 +299,14 @@ def main():
                     )
                     if pr_url and isinstance(number, int):
                         comment_pr_on_issue(number, pr_url)
+
+                # --once-per-issue: track attempt + comment on failure
+                if args.once_per_issue and isinstance(number, int):
+                    attempt = overnight_processed.get(number, 0) + 1
+                    overnight_processed[number] = attempt
+                    _save_overnight_processed(overnight_processed)
+                    if args.no_idle_check and not fix_succeeded:
+                        _comment_fix_attempt(number, attempt, success=False)
 
                 if isinstance(number, int):
                     processed_issue_numbers.add(number)

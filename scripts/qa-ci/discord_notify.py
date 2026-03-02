@@ -72,3 +72,21 @@ def _post_message(content: str) -> bool:
     except Exception as e:
         print(f'[discord_notify] Message post failed: {e}')
         return False
+
+
+def post_to_thread(thread_id: str, content: str) -> bool:
+    """Post a message into an existing thread by thread_id."""
+    if not thread_id:
+        return False
+    try:
+        r = httpx.post(
+            f'{DISCORD_API}/channels/{thread_id}/messages',
+            headers=_headers(),
+            json={'content': content[:2000]},
+            timeout=15,
+        )
+        r.raise_for_status()
+        return True
+    except Exception as e:
+        print(f'[discord_notify] Thread message post failed: {e}')
+        return False
