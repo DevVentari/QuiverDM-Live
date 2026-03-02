@@ -95,8 +95,9 @@ def dispatch_codex_fix(issue: dict, scenario_id: str) -> dict:
 
     On worktree creation failure (branch exists): use existing worktree or increment suffix.
     """
-    if not shutil.which('codex'):
-        return {'success': False, 'worktree': '', 'branch': '', 'stdout': '', 'stderr': 'codex not installed'}
+    codex_path = shutil.which('codex')
+    if not codex_path or Path(codex_path).suffix.lower() in ('.cmd', '.bat'):
+        return {'success': False, 'worktree': '', 'branch': '', 'stdout': '', 'stderr': 'codex not available'}
 
     worktree, branch = _prepare_worktree(scenario_id)
     generate_handoff(issue, worktree)
