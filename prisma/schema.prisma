@@ -77,6 +77,8 @@ model User {
   characters      Character[]       // Player-owned characters
   homebrewContent HomebrewContent[]
   homebrewPDFs    HomebrewPDF[]
+  importJobs        ImportJob[]
+  sourceCredentials SourceCredential[]
   settings        UserSettings?
 
   createdAt       DateTime          @default(now())
@@ -192,6 +194,7 @@ model Campaign {
   foundryEvents    FoundryEvent[]
   foundryImportJobs FoundryImportJob[]
   obsidianImports  ObsidianImportJob[]
+  importJobs       ImportJob[]
 
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
@@ -776,7 +779,9 @@ model HomebrewContent {
   dndBeyondUrl String? // D&D Beyond URL for reference
 
   // Source tracking
-  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import', 'media_import'
+  sourceType       String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import', 'media_import'
+  sourceExternalId String?
+  sourceJobId      String?
   sourcePdfId  String?
   sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
   imageUrl     String?
@@ -799,7 +804,41 @@ model HomebrewContent {
   @@index([sourceType])
   @@index([sourcePdfId])
   @@index([userId, type])
+  @@index([sourceExternalId])
   @@index([userId, createdAt(sort: Desc)])
+}
+
+model ImportJob {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  source     String
+  status     String    @default("pending")
+  progress   Int       @default(0)
+  total      Int       @default(0)
+  error      String?
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model SourceCredential {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    String
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, source])
+  @@index([userId])
 }
 
 // Join table: Character has many Items (from Homebrew)
