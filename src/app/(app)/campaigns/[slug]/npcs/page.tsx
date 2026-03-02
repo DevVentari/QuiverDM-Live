@@ -57,6 +57,9 @@ export default function NPCsPage() {
         </div>
       )}
 
+      <p className="label-overline">Characters</p>
+      <div className="section-rule mb-4" />
+
       {npcs.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
@@ -71,7 +74,7 @@ export default function NPCsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(npcs.data as any[]).map((npc) => (
             <Link key={npc.id} href={`/campaigns/${slug}/npcs/${npc.id}`}>
-              <Card className="h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+              <Card className="glass-panel h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
                 {npc.imageUrl ? (
                   <div className="relative h-24 w-full">
                     <Image src={npc.imageUrl} alt={npc.name} fill className="object-cover" />
