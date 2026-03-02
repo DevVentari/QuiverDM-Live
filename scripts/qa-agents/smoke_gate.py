@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -37,8 +38,9 @@ def _collect_failures(suites: list) -> list[dict]:
 def run_smoke_gate(env_override: dict | None = None) -> SmokeResult:
     """Run tests/smoke.spec.ts via npx playwright. Returns structured result."""
     env = {**os.environ, **(env_override or {})}
+    npx = 'npx.cmd' if sys.platform == 'win32' else 'npx'
     result = subprocess.run(
-        ['npx', 'playwright', 'test', 'tests/smoke.spec.ts', '--reporter=json'],
+        [npx, 'playwright', 'test', 'tests/smoke.spec.ts', '--reporter=json'],
         cwd=str(PROJECT_ROOT),
         capture_output=True,
         text=True,
