@@ -18,6 +18,22 @@ class SpecResult:
     duration_ms: int
 
 
+def _extract_first_error(suites: list) -> str | None:
+    """Recursively walk Playwright JSON suite tree and return the first failure message."""
+    for suite in suites:
+        for spec in suite.get('specs', []):
+            for test in spec.get('tests', []):
+                for result in test.get('results', []):
+                    if result.get('status') in ('failed', 'timedOut'):
+                        msg = (result.get('error') or {}).get('message', '')
+                        if msg:
+                            return str(msg)
+        found = _extract_first_error(suite.get('suites', []))
+        if found:
+            return found
+    return None
+
+
 def run_spec(spec_id: str, spec_file: str) -> SpecResult:
     env = {**os.environ, 'CI': 'true'}
     try:
@@ -54,18 +70,9 @@ def run_spec(spec_id: str, spec_file: str) -> SpecResult:
         if errors:
             error = str(errors[0].get('message', ''))[:500]
         else:
-            for suite in data.get('suites', []):
-                for test in suite.get('tests', []):
-                    for result in test.get('results', []):
-                        if result.get('status') in ('failed', 'timedOut'):
-                            msg = result.get('error', {}).get('message', '')
-                            if msg:
-                                error = str(msg)[:500]
-                                break
-                    if error:
-                        break
-                if error:
-                    break
+            error = _extract_first_error(data.get('suites', []))
+            if error:
+                error = error[:500]
         if not error:
             error = (proc.stderr or 'Test failed').strip()[:500]
 
