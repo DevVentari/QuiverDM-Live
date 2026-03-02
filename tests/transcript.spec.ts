@@ -3,7 +3,7 @@ import { signInAsTestUser } from './helpers/auth';
 
 async function openFirstSessionDetail(page: Page): Promise<boolean> {
   await page.goto('/campaigns');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   // Get href directly and navigate — avoids click-navigation race with waitForLoadState.
   const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
@@ -16,7 +16,7 @@ async function openFirstSessionDetail(page: Page): Promise<boolean> {
 
   // Navigate directly to sessions to avoid strict mode on sidebar vs tab nav links.
   await page.goto(`${campaignHref}/sessions`);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
 
   const sessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {
     for (const link of links) {
@@ -33,7 +33,7 @@ async function openFirstSessionDetail(page: Page): Promise<boolean> {
   }
 
   await page.goto(sessionHref);
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   return true;
 }
 
@@ -44,7 +44,7 @@ async function openTranscriptTab(page: Page): Promise<boolean> {
   }
 
   await transcriptTab.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   return true;
 }
 

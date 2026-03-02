@@ -8,7 +8,7 @@ test.describe('Billing', () => {
 
     // Edge case: public pricing route should render without client-side crashes.
     await page.goto('/pricing');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page.getByRole('heading', { name: /pricing/i })).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(/^Free$/)).toBeVisible();
@@ -20,7 +20,7 @@ test.describe('Billing', () => {
   test('authenticated subscribed user sees Manage Subscription action', async ({ page }) => {
     await signInAsTestUser(page);
     await page.goto('/settings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const manageSubscription = page.getByRole('button', { name: /manage subscription/i });
     if ((await manageSubscription.count()) === 0) {
@@ -35,7 +35,7 @@ test.describe('Billing', () => {
   test('current plan is displayed in settings billing section', async ({ page }) => {
     await signInAsTestUser(page);
     await page.goto('/settings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Edge case: tier badge should always indicate plan context.
     await expect(page.getByText(/free plan|pro plan|team plan/i)).toBeVisible({ timeout: 10000 });
@@ -44,7 +44,7 @@ test.describe('Billing', () => {
   test('free-tier user sees upgrade CTA without redirecting to Stripe', async ({ page }) => {
     await signInAsTestUser(page);
     await page.goto('/settings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     if ((await page.getByText(/free plan/i).count()) === 0) {
       test.skip(true, 'User is not on free tier; upgrade CTA behavior is different.');
@@ -61,7 +61,7 @@ test.describe('Billing', () => {
   test('usage meters and limits are visible in settings', async ({ page }) => {
     await signInAsTestUser(page);
     await page.goto('/settings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // Edge case: usage section should surface limit tracking labels.
     await expect(page.getByText(/usage & limits/i)).toBeVisible({ timeout: 10000 });
@@ -74,7 +74,7 @@ test.describe('Billing', () => {
   test('new/free user with no subscription sees free-tier defaults', async ({ page }) => {
     await signInAsTestUser(page);
     await page.goto('/settings');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     if ((await page.getByText(/free plan/i).count()) === 0) {
       test.skip(true, 'User is not free-tier; no-subscription free defaults are not applicable.');

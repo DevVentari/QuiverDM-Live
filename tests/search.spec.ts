@@ -4,7 +4,7 @@ import { signInAsTestUser } from './helpers/auth';
 async function navToSearch(page: Parameters<typeof signInAsTestUser>[0]) {
   await signInAsTestUser(page);
   await page.goto('/campaigns');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   // Exclude the "New Campaign" create link; find actual campaign card links only.
   const campaignLink = page.locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])').first();
   if (await campaignLink.count() === 0) return false;
@@ -19,12 +19,12 @@ async function navToSearch(page: Parameters<typeof signInAsTestUser>[0]) {
     const slug = currentUrl.match(/campaigns\/([^/]+)/)?.[1];
     if (!slug) return false;
     await page.goto(`/campaigns/${slug}/search`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     if (page.url().includes('/search')) return true;
     return false;
   }
   await searchLink.click();
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   return true;
 }
 
@@ -54,7 +54,7 @@ test.describe('Narrative Search', () => {
     const searchBtn = page.getByRole('button', { name: /search/i }).first();
     if (await searchBtn.count() > 0 && !(await searchBtn.isDisabled())) {
       await searchBtn.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
 
     await expect(page.getByText(/error|500/i)).toHaveCount(0);
@@ -72,7 +72,7 @@ test.describe('Narrative Search', () => {
     const searchBtn = page.getByRole('button', { name: /search/i }).first();
     if (await searchBtn.count() > 0) await searchBtn.click();
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // XSS must not execute
     const xssExecuted = await page.evaluate(() => (window as Record<string, unknown>).__xss);
@@ -92,7 +92,7 @@ test.describe('Narrative Search', () => {
     const searchBtn = page.getByRole('button', { name: /search/i }).first();
     if (await searchBtn.count() > 0) await searchBtn.click();
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page.getByText(/error|500/i)).toHaveCount(0);
   });
 
@@ -108,7 +108,7 @@ test.describe('Narrative Search', () => {
     const searchBtn = page.getByRole('button', { name: /search/i }).first();
     if (await searchBtn.count() > 0) await searchBtn.click();
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page.getByText(/error|500/i)).toHaveCount(0);
     // Either no results message or empty state
