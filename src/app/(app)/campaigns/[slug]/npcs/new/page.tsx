@@ -93,8 +93,11 @@ export default function NewNPCPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
 
+  const utils = trpc.useUtils();
+
   const create = trpc.npcs.create.useMutation({
     onSuccess: (data) => {
+      utils.npcs.getAll.invalidate({ campaignId });
       router.push(`/campaigns/${slug}/npcs/${data.id}`);
     },
     onError: (error) => {
