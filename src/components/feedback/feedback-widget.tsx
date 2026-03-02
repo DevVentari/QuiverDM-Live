@@ -48,10 +48,13 @@ export function FeedbackWidget() {
     try {
       const canvas = await html2canvas(document.body, {
         useCORS: true,
+        allowTaint: true,
         scale: 0.5,
         ignoreElements: (el) => el === dialogRef.current,
       });
       setScreenshot(canvas.toDataURL('image/png'));
+    } catch (err) {
+      console.warn('[feedback] html2canvas failed:', err);
     } finally {
       setCapturing(false);
     }
