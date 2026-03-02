@@ -1,5 +1,5 @@
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -14,6 +14,9 @@ class AgentResult:
     feedback_ids: list[str]
     error: Optional[str]
     duration_seconds: float
+    findings: str = ''
+    urls_visited: list[str] = field(default_factory=list)
+    screenshot_path: Optional[str] = None
 
 
 def write_report(
