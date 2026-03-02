@@ -90,7 +90,7 @@ def run_claude_agent(
                 errors='replace',
                 stdin=subprocess.DEVNULL,
                 env=env,
-                timeout=600,
+                timeout=1200,
             )
         except subprocess.TimeoutExpired:
             duration = round(time.monotonic() - start, 1)
