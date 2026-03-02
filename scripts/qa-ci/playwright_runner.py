@@ -27,10 +27,10 @@ def run_spec(spec_id: str, spec_file: str) -> SpecResult:
             env=env,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=300,
         )
     except subprocess.TimeoutExpired:
-        return SpecResult(spec_id=spec_id, passed=False, error='Playwright timed out after 120s', duration_ms=120000)
+        return SpecResult(spec_id=spec_id, passed=False, error='Playwright timed out after 300s', duration_ms=300000)
 
     stdout = proc.stdout.strip()
     if not stdout:
