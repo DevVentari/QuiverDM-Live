@@ -63,8 +63,8 @@ kanban-plugin: board
 
 - [x] Character Sheets - move health speed prof init above quick actions; mobile matches; spell slot tracking; currency/equipped/attuned icons; inline shorthand for quick actions/spells; remove hero section in campaign overview.
 - [x] NPC list shows "No NPCs yet" after creation (stale 2min cache — fixed d238e05)
+- [x] Browser tab title always reads "Dashboard" regardless of current page (fixed bb55778)
 - [ ] PDF upload page shows no file size/type limits before upload (Dana, 2026-03-02)
-- [ ] Browser tab title always reads "Dashboard" regardless of current page (Dana, 2026-03-02)
 - [ ] NPC form missing D&D 5e stat block fields — no CR, HP, AC, ability scores, actions (Vic, 2026-03-02)
 
 
