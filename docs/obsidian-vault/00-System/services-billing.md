@@ -154,14 +154,16 @@ Account logins are in `C:\Users\mail\.claude\credentials.env` unless noted.
 
 ---
 
-## Analytics (Planned)
+## Analytics
 
 ### PostHog
-- **Purpose:** Product analytics — autocapture, funnels, session replay, error tracking
-- **Plan:** Free tier (to add)
+- **Purpose:** Product analytics — autocapture (clicks, page views), funnels, session replay, error tracking
+- **Plan:** Free tier
 - **Free tier limits:** 1M events/mo, 5k session recordings/mo
-- **Account:** TBD — create at https://posthog.com
-- **Notes:** Pending implementation. EU region for GDPR.
+- **Account:** Sign up at https://posthog.com — add credentials here after signup
+- **Dashboard:** https://eu.posthog.com (EU region)
+- **Env vars:** `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com`
+- **Notes:** Autocapture enabled. Page views fired manually via PostHogPageView component (App Router). User identification tied to NextAuth session. Error boundary + unhandledrejection capture client errors.
 
 ---
 
@@ -179,7 +181,7 @@ Account logins are in `C:\Users\mail\.claude\credentials.env` unless noted.
 | Gemini | Pay-per-use |
 | AssemblyAI | Pay-per-use |
 | Replicate | Pay-per-use |
-| PostHog | $0 (free tier, planned) |
+| PostHog | $0 (free tier) |
 | **Fixed overhead** | **~$0/mo at current scale** |
 
 > Update this table when any service moves off free tier.
