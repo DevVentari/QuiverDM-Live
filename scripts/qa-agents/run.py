@@ -3,12 +3,13 @@ QA Agent Orchestrator
 Pipeline: Playwright smoke gate → Claude subagents (one per persona) → report → notify.
 
 Usage:
-  uv run python run.py [--tier basic|deep|all] [--quiet]
+  uv run python run.py [--tier basic|deep|extended|all] [--quiet]
 
-  --tier basic   Run BASIC_PERSONAS only (default)
-  --tier deep    Run DEEP_PERSONAS only
-  --tier all     Run ALL_PERSONAS
-  --quiet        Skip Discord/GitHub notifications (used by overnight orchestrator)
+  --tier basic     Run BASIC_PERSONAS only (default): Nora, Dana, Vic
+  --tier deep      Run DEEP_PERSONAS only: Sam, Beth, Holly, Pete, Carl
+  --tier extended  Run EXTENDED_PERSONAS only: Penny, Dave, Paul, Eddie, Mike
+  --tier all       Run ALL_PERSONAS (13 total)
+  --quiet          Skip Discord/GitHub notifications (used by overnight orchestrator)
 """
 import argparse
 import importlib
@@ -25,13 +26,14 @@ load_dotenv(env_path)
 
 from claude_agent import run_claude_agent
 from notifier import post_run
-from personas import ALL_PERSONAS, BASIC_PERSONAS, DEEP_PERSONAS, PERSONAS
+from personas import ALL_PERSONAS, BASIC_PERSONAS, DEEP_PERSONAS, EXTENDED_PERSONAS, PERSONAS
 from reporter import AgentResult, write_report
 from smoke_gate import run_smoke_gate
 
 _TIER_MAP = {
     'basic': BASIC_PERSONAS,
     'deep': DEEP_PERSONAS,
+    'extended': EXTENDED_PERSONAS,
     'all': ALL_PERSONAS,
 }
 
@@ -54,7 +56,7 @@ def _write_and_notify(report: dict, screenshot_dir: Path) -> None:
 
 def main():
     parser = argparse.ArgumentParser(description='QA Agent Orchestrator')
-    parser.add_argument('--tier', choices=['basic', 'deep', 'all'], default='basic',
+    parser.add_argument('--tier', choices=['basic', 'deep', 'extended', 'all'], default='basic',
                         help='Persona tier to run (default: basic)')
     parser.add_argument('--quiet', action='store_true',
                         help='Skip Discord/GitHub notifications (for overnight orchestrator)')

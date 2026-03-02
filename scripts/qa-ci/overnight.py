@@ -1,5 +1,5 @@
 """
-Autonomous 6-hour QA orchestrator — runs on host PC.
+Autonomous QA orchestrator — runs on host PC.
 
 Architecture:
   - LXC 402 (192.168.1.102): regression_runner.py runs 24/7 (systemd)
@@ -8,12 +8,18 @@ Architecture:
 
 Usage:
   cd scripts/qa-ci
-  uv run python overnight.py [--dry-run] [--duration SECONDS] [--fix-dispatcher-pid PID]
+  python overnight.py [options]
 
 Options:
-  --dry-run          Skip real agent runs and SSH calls (for testing)
-  --duration SECS    Override 6-hour duration (default 21600)
-  --fix-dispatcher-pid PID  PID of already-running fix_dispatcher (skip launch)
+  --dry-run               Mock all external calls (for testing)
+  --duration SECS         Fixed run duration (default 21600 = 6h). Ignored if --until-clean set.
+  --until-clean N         Run perpetually until N consecutive all-pass agent cycles. No time limit.
+  --fix-dispatcher-pid P  PID of already-running fix_dispatcher (skip launch)
+
+Examples:
+  python overnight.py                        # 6-hour fixed run
+  python overnight.py --until-clean 3        # run until 3 clean cycles in a row
+  python overnight.py --dry-run --duration 60  # 60-second smoke test
 """
 from __future__ import annotations
 
@@ -214,16 +220,34 @@ def _build_stats(
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
+def _loop_should_continue(
+    run_start: float,
+    total_duration: int,
+    until_clean: int | None,
+    consecutive_clean: int,
+) -> bool:
+    """Return True if the main loop should keep running."""
+    if until_clean is not None:
+        return consecutive_clean < until_clean
+    return time.time() < run_start + total_duration - 1800
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description='6-hour autonomous QA orchestrator')
+    parser = argparse.ArgumentParser(description='Autonomous QA orchestrator')
     parser.add_argument('--dry-run', action='store_true', help='Mock all external calls')
-    parser.add_argument('--duration', type=int, default=TOTAL_DURATION, help='Total run duration in seconds')
+    parser.add_argument('--duration', type=int, default=TOTAL_DURATION, help='Fixed run duration in seconds')
+    parser.add_argument('--until-clean', type=int, default=None, metavar='N',
+                        help='Run until N consecutive all-pass agent cycles (no time limit)')
     parser.add_argument('--fix-dispatcher-pid', type=int, default=None,
                         help='PID of already-running fix_dispatcher (skip launch)')
     args = parser.parse_args()
 
     run_start = time.time()
     total_duration = args.duration
+    until_clean: int | None = args.until_clean
+
+    if until_clean is not None:
+        print(f'[overnight] Mode: until-clean (N={until_clean}) — no time limit')
 
     dashboard = Dashboard()
 
@@ -288,11 +312,10 @@ def main() -> None:
 
     last_dashboard_update = time.time()
     last_agent_run = time.time()
-    loop_end = run_start + total_duration - 1800  # leave 30 min for final assessment
-
     current_tier = 'deep' if deep_unlocked else 'basic'
+    consecutive_clean = 0  # for --until-clean mode
 
-    while time.time() < loop_end:
+    while _loop_should_continue(run_start, total_duration, until_clean, consecutive_clean):
         now = time.time()
         fix_proc = _ensure_fix_dispatcher(fix_proc, args.dry_run)
 
@@ -349,7 +372,30 @@ def main() -> None:
             agents_total = agent_result['total']
             last_agent_run = now
 
+            # --until-clean: track consecutive all-pass cycles
+            if until_clean is not None:
+                cycle_issues = _get_open_issues(args.dry_run)
+                is_clean = (agents_pass == agents_total and len(cycle_issues) == 0)
+                if is_clean:
+                    consecutive_clean += 1
+                    print(f'[overnight] Clean cycle {consecutive_clean}/{until_clean}')
+                    dashboard.post_phase_change(
+                        f'Clean cycle {consecutive_clean}/{until_clean}',
+                        f'All {agents_total} agents passing, 0 open issues'
+                    )
+                else:
+                    if consecutive_clean > 0:
+                        print(f'[overnight] Clean streak broken (was {consecutive_clean}) — resetting')
+                    consecutive_clean = 0
+
         time.sleep(30)
+
+    if until_clean is not None and consecutive_clean >= until_clean:
+        print(f'[overnight] Until-clean target reached ({until_clean} consecutive clean cycles) — stopping')
+        dashboard.post_phase_change(
+            f'DONE — {until_clean} consecutive clean cycles achieved',
+            'All agents passing, no open issues. Orchestrator stopping.'
+        )
 
     # ── Phase 4: Final Assessment ─────────────────────────────────────────────
     print('[overnight] === Phase 4: Final Assessment ===')
