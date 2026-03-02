@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { Cinzel, Bricolage_Grotesque } from 'next/font/google';
 import { Providers } from './providers';
 import { PostHogPageView } from '@/components/analytics/posthog-page-view';
+import { AnalyticsErrorBoundary } from '@/components/analytics/error-boundary';
 import './globals.css';
 
 const bricolage = Bricolage_Grotesque({
@@ -35,7 +36,9 @@ export default function RootLayout({
           <Suspense fallback={null}>
             <PostHogPageView />
           </Suspense>
-          {children}
+          <AnalyticsErrorBoundary>
+            {children}
+          </AnalyticsErrorBoundary>
         </Providers>
       </body>
     </html>
