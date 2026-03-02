@@ -6,11 +6,8 @@ const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
 const DANA_PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
 
-test.beforeEach(async ({ page }) => {
-  await signInAsTestUser(page, DANA_EMAIL, DANA_PASSWORD);
-});
-
 test('sign-in redirects to dashboard', async ({ page }) => {
+  await signInAsTestUser(page, DANA_EMAIL, DANA_PASSWORD);
   await expect(page).toHaveURL(/dashboard/);
 });
 
