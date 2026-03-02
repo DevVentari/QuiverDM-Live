@@ -12,7 +12,7 @@ import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
 import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
 import { ImportFromMediaDialog } from '@/components/homebrew/import-from-media-dialog';
-import { BookOpen, Search, FileText, Plus, Globe, ImageUp } from 'lucide-react';
+import { BookOpen, Search, FileText, Plus, Globe, ImageUp, FolderInput } from 'lucide-react';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -66,6 +66,12 @@ export default function HomebrewPage() {
           <Link href="/homebrew/pdfs">
             <FileText className="mr-2 h-4 w-4" />
             PDFs
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link href="/homebrew/import">
+            <FolderInput className="mr-2 h-4 w-4" />
+            Import Content
           </Link>
         </Button>
       </div>
