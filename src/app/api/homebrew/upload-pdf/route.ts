@@ -5,6 +5,7 @@ import { prisma } from '@/server/db';
 import { addPDFProcessingJob, cancelPDFProcessingJob } from '@/lib/queue/queue';
 import { usageService } from '@/server/services/usage.service';
 import { serverTrack } from '@/lib/analytics.server';
+import { EVENTS } from '@/lib/analytics-events';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
       });
 
       console.log(`[Upload PDF] Job queued successfully for PDF ${pdf.id}`);
-      void serverTrack(session.user.id, 'pdf_uploaded', {
+      void serverTrack(session.user.id, EVENTS.PDF_UPLOADED, {
         file_size_kb: Math.round(file.size / 1024),
       });
     } catch (queueError) {

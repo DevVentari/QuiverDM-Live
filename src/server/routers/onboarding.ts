@@ -46,7 +46,7 @@ export const onboardingRouter = router({
    */
   completeFirstCampaign: protectedProcedure.mutation(async ({ ctx }) => {
     const result = await onboardingService.completeFirstCampaign(ctx.session.user.id);
-    void serverTrack(ctx.session.user.id, EVENTS.ONBOARDING_COMPLETED);
+    void serverTrack(ctx.session.user.id, EVENTS.ONBOARDING_COMPLETED, { method: 'completed' });
     return result;
   }),
 
@@ -55,7 +55,7 @@ export const onboardingRouter = router({
    */
   skip: protectedProcedure.mutation(async ({ ctx }) => {
     const result = await onboardingService.skip(ctx.session.user.id);
-    void serverTrack(ctx.session.user.id, EVENTS.ONBOARDING_COMPLETED);
+    void serverTrack(ctx.session.user.id, EVENTS.ONBOARDING_COMPLETED, { method: 'skipped' });
     return result;
   }),
 
