@@ -160,8 +160,8 @@ Account logins are in `C:\Users\mail\.claude\credentials.env` unless noted.
 - **Purpose:** Product analytics — autocapture (clicks, page views), funnels, session replay, error tracking
 - **Plan:** Free tier
 - **Free tier limits:** 1M events/mo, 5k session recordings/mo
-- **Account:** Sign up at https://posthog.com — add credentials here after signup
-- **Dashboard:** https://eu.posthog.com (EU region)
+- **Account:** credentials.env → POSTHOG_EMAIL / POSTHOG_PASSWORD
+- **Dashboard:** https://eu.posthog.com/project/134241 (EU region, Project ID: 134241)
 - **Env vars:** `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com`
 - **Notes:** Autocapture enabled. Page views fired manually via PostHogPageView component (App Router). User identification tied to NextAuth session. Error boundary + unhandledrejection capture client errors.
 
