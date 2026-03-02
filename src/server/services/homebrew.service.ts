@@ -81,7 +81,7 @@ export class HomebrewService {
           const items = await homebrewRepository.findByIds(ids);
           return { items, nextCursor: undefined };
         }
-        return { items: [], nextCursor: undefined };
+        // ids.length === 0: item may not be indexed yet (async) — fall through to Postgres
       } catch {
         // MeiliSearch unavailable — fall through to Postgres
       }
