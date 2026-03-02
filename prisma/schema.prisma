@@ -806,6 +806,7 @@ model HomebrewContent {
   @@index([userId, type])
   @@index([sourceExternalId])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([sourceJobId])
 }
 
 model ImportJob {
@@ -818,7 +819,7 @@ model ImportJob {
   status     String    @default("pending")
   progress   Int       @default(0)
   total      Int       @default(0)
-  error      String?
+  error      String?   @db.Text
   metadata   Json?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
@@ -826,6 +827,7 @@ model ImportJob {
   @@index([userId])
   @@index([status])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, source])
 }
 
 model SourceCredential {
@@ -833,7 +835,7 @@ model SourceCredential {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   source    String
-  data      Json
+  data      Json     // Encrypted at application layer before write
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
