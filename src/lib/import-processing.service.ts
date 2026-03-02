@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { extractWithFallback } from '@/lib/ai/extraction'
 import type { NormalizedDocument } from './import-adapters/types'
@@ -105,7 +106,7 @@ async function saveContent(data: {
     return prisma.homebrewContent.update({
       where: { id: existing.id },
       data: {
-        data: data.data,
+        data: data.data as unknown as Prisma.InputJsonValue,
         tags: data.tags,
         sourceType: data.sourceType,
         sourceExternalId: data.sourceExternalId,
@@ -120,7 +121,7 @@ async function saveContent(data: {
       userId: data.userId,
       type: data.type,
       name: data.name,
-      data: data.data,
+      data: data.data as unknown as Prisma.InputJsonValue,
       tags: data.tags,
       sourceType: data.sourceType,
       sourceExternalId: data.sourceExternalId,

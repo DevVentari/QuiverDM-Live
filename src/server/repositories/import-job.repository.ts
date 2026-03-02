@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export async function createImportJob(data: {
@@ -14,7 +15,7 @@ export async function createImportJob(data: {
       campaignId: data.campaignId,
       source: data.source,
       status: 'pending',
-      metadata: data.metadata ?? {},
+      metadata: (data.metadata ?? {}) as unknown as Prisma.InputJsonValue,
     },
   })
 }
