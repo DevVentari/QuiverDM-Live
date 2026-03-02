@@ -1,123 +1,93 @@
 """
 QA Agent Orchestrator
-Runs all 3 persona scenarios concurrently (max 2 at a time).
-Writes a JSON summary to reports/.
+Pipeline: Playwright smoke gate → Claude subagents (one per persona) → report → notify.
 
 Usage:
   uv run python run.py
 """
-import asyncio
 import importlib
+import json
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Load .env.local from the project root (two levels up from this file)
 env_path = Path(__file__).parent.parent.parent / '.env.local'
 load_dotenv(env_path)
 
-from browser_use import Agent
-from browser_use.browser.profile import BrowserProfile
-from browser_use.llm.google import ChatGoogle
+from claude_agent import run_claude_agent
+from notifier import post_run
 from personas import PERSONAS
 from reporter import AgentResult, write_report
-
-# Default model: Gemini 2.0 Flash (free tier, 1500 req/day).
-# Override via QA_LLM_MODEL env var (e.g. "gemini-2.0-flash", "claude-sonnet-4-6").
-_DEFAULT_MODEL = 'gemini-2.0-flash'
+from smoke_gate import run_smoke_gate
 
 
-def _make_llm():
-    """Build an LLM using browser-use 0.12.0's native provider classes.
+def _load_task(persona) -> str:
+    scenario_mod = importlib.import_module(f'scenarios.{persona.scenario}')
+    return scenario_mod.TASK.format(
+        app_url=os.environ.get('QA_APP_URL', 'http://localhost:3847'),
+        email=os.environ[persona.email_env],
+        password=os.environ['QA_TEST_PASSWORD'],
+    )
 
-    browser-use 0.12.0 uses its own BaseChatModel (not LangChain) with a
-    native output_format interface. ChatGoogle wraps google-genai directly.
-    """
-    model = os.environ.get('QA_LLM_MODEL', _DEFAULT_MODEL)
 
-    if model.startswith('gemini'):
-        return ChatGoogle(model=model, api_key=os.environ['GEMINI_API_KEY'])
-
-    # Anthropic fallback via browser-use's own Anthropic class if available
+def _write_and_notify(report: dict, screenshot_dir: Path) -> None:
     try:
-        from browser_use.llm.anthropic import ChatAnthropic as BUAnthropic
-        return BUAnthropic(model=model, api_key=os.environ['ANTHROPIC_API_KEY'])
-    except ImportError:
-        raise ValueError(f'Unsupported model: {model}. Set QA_LLM_MODEL to a gemini-* model.')
+        post_run(report, screenshot_dir)
+    except Exception as e:
+        print(f'[run] Notify failed: {e}')
 
 
-async def run_agent(persona, semaphore: asyncio.Semaphore) -> AgentResult:
-    async with semaphore:
-        print(f'[run] Starting: {persona.name}')
-        start = time.monotonic()
-        feedback_ids: list[str] = []
-        friction_points = 0
-        error_msg = None
-        outcome = 'failed'
+def main():
+    run_id = datetime.now().strftime('%Y-%m-%dT%H%M')
+    reports_dir = Path(__file__).parent / 'reports'
+    screenshot_dir = reports_dir / 'screenshots'
 
-        try:
-            scenario_mod = importlib.import_module(f'scenarios.{persona.scenario}')
-            task = scenario_mod.TASK.format(
-                app_url=os.environ.get('QA_APP_URL', 'http://localhost:3847'),
-                email=os.environ[persona.email_env],
-                password=os.environ['QA_TEST_PASSWORD'],
-            )
+    # ── Stage 1: Playwright smoke gate ──────────────────────────────────────
+    print('[run] Stage 1: Playwright smoke gate')
+    smoke = run_smoke_gate(env_override={
+        'QA_DANA_EMAIL': os.environ.get('QA_DANA_EMAIL', 'dana@test.local'),
+        'QA_VIC_EMAIL': os.environ.get('QA_VIC_EMAIL', 'vic@test.local'),
+        'QA_TEST_PASSWORD': os.environ.get('QA_TEST_PASSWORD', ''),
+        'QA_APP_URL': os.environ.get('QA_APP_URL', 'http://localhost:3847'),
+    })
 
-            llm = _make_llm()
-            # Disable uBlock Origin + cookie/ClearURLs extensions — they block
-            # scripts and styles from localhost, preventing sign-in from working.
-            profile = BrowserProfile(enable_default_extensions=False)
-            agent = Agent(
-                task=task,
-                llm=llm,
-                browser_profile=profile,
-                message_context=persona.message_context,
-                extend_system_message=(
-                    'When you submit feedback via the overlay form, note the feedback ID '
-                    'if shown. Include [QA-AGENT] prefix in all feedback descriptions. '
-                    'Count each feedback submission as a friction point.'
-                ),
-            )
+    print(f'[run] Smoke: {smoke.passed} passed, {smoke.failed} failed')
 
-            result = await agent.run(max_steps=30)
+    if not smoke.ok:
+        print('[run] Smoke gate failed — skipping agents, posting alert')
+        smoke_report = {
+            'run_id': run_id,
+            'duration_seconds': 0,
+            'smoke_passed': False,
+            'smoke_failures': smoke.failures,
+            'agents': [],
+        }
+        _write_and_notify(smoke_report, screenshot_dir)
+        return
 
-            # Determine outcome using browser-use's own success tracking,
-            # with a text fallback for agents that report via final message.
-            success = result.is_successful()
-            final = (result.final_result() or '').upper()
-            if success is True or 'SUCCESS' in final:
-                outcome = 'success'
-            elif 'PARTIAL' in final:
-                outcome = 'partial'
-            else:
-                outcome = 'failed'
+    # ── Stage 2: Claude agents (parallel) ───────────────────────────────────
+    print('[run] Stage 2: Claude persona agents')
+    tasks = [(persona, _load_task(persona)) for persona in PERSONAS]
 
-        except Exception as e:
-            error_msg = type(e).__name__ + ': ' + str(e)[:200]
-            print(f'[run] Error in {persona.name}: {error_msg}')
+    def run_one(args):
+        persona, task = args
+        return run_claude_agent(persona, task, run_id, screenshot_dir)
 
-        duration = time.monotonic() - start
-        print(f'[run] Done: {persona.name} — {outcome} in {duration:.0f}s')
-        return AgentResult(
-            persona=persona.name,
-            scenario=persona.scenario,
-            outcome=outcome,
-            friction_points=friction_points,
-            feedback_ids=feedback_ids,
-            error=error_msg,
-            duration_seconds=round(duration, 1),
-        )
+    with ThreadPoolExecutor(max_workers=len(PERSONAS)) as pool:
+        results: list[AgentResult] = list(pool.map(run_one, tasks))
 
+    # ── Stage 3: Report + notify ─────────────────────────────────────────────
+    report_path = write_report(results, reports_dir)
+    report_data = json.loads(report_path.read_text())
+    report_data['smoke_passed'] = True
 
-async def main():
-    semaphore = asyncio.Semaphore(len(PERSONAS))  # one browser per persona
-    tasks = [run_agent(p, semaphore) for p in PERSONAS]
-    results = await asyncio.gather(*tasks)
-    report_path = write_report(list(results))
     print(f'[run] Report written to {report_path}')
+    _write_and_notify(report_data, screenshot_dir)
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
