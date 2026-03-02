@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { storage } from '@/lib/storage'
+import { IMPORT_SOURCES } from '@/lib/import-adapters/types'
 
 const ALLOWED_TYPES: Record<string, string> = {
   'application/zip': 'obsidian',
@@ -10,7 +11,6 @@ const ALLOWED_TYPES: Record<string, string> = {
   'text/plain': 'markdown_file',
   'application/xml': 'world_anvil',
   'text/xml': 'world_anvil',
-  'application/json': 'campfire',
 }
 
 const MAX_SIZE = 100 * 1024 * 1024
@@ -27,6 +27,14 @@ export async function POST(request: NextRequest) {
 
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   if (file.size > MAX_SIZE) return NextResponse.json({ error: 'File too large (max 100MB)' }, { status: 400 })
+
+  if (sourceHint && !IMPORT_SOURCES.includes(sourceHint as any)) {
+    return NextResponse.json({ error: `Invalid source: ${sourceHint}` }, { status: 400 })
+  }
+
+  if ((file.type === 'application/json') && !sourceHint) {
+    return NextResponse.json({ error: 'JSON files require an explicit source hint (campfire or kanka)' }, { status: 400 })
+  }
 
   const detectedSource = ALLOWED_TYPES[file.type]
   if (!detectedSource && !sourceHint) {

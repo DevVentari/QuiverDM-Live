@@ -1,8 +1,16 @@
 import { Queue, QueueEvents } from 'bullmq'
-import { getRedisConnection } from './queue'
 import type { ImportJobMetadata } from '@/lib/import-adapters/types'
 
-const redisConnection = getRedisConnection()
+function getLocalRedis() {
+  return {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6380'),
+    password: process.env.REDIS_PASSWORD,
+    maxRetriesPerRequest: null,
+    lazyConnect: true,
+  }
+}
+const redisConnection = getLocalRedis()
 
 export const importJobQueue = new Queue<ImportJobMetadata>('import-job', {
   connection: redisConnection as any,
