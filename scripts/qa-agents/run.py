@@ -51,7 +51,7 @@ def main():
         'QA_DANA_EMAIL': os.environ.get('QA_DANA_EMAIL', 'dana@test.local'),
         'QA_VIC_EMAIL': os.environ.get('QA_VIC_EMAIL', 'vic@test.local'),
         'QA_TEST_PASSWORD': os.environ.get('QA_TEST_PASSWORD', ''),
-        'QA_APP_URL': os.environ.get('QA_APP_URL', 'http://localhost:3847'),
+        'QA_APP_URL': os.environ.get('QA_APP_URL', 'https://quiverdm.com'),
     })
 
     print(f'[run] Smoke: {smoke.passed} passed, {smoke.failed} failed')

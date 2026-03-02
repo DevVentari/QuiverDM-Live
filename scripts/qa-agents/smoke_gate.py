@@ -38,6 +38,8 @@ def _collect_failures(suites: list) -> list[dict]:
 def run_smoke_gate(env_override: dict | None = None) -> SmokeResult:
     """Run tests/smoke.spec.ts via npx playwright. Returns structured result."""
     env = {**os.environ, **(env_override or {})}
+    if 'QA_APP_URL' in env and 'BASE_URL' not in env:
+        env['BASE_URL'] = env['QA_APP_URL']
     npx = 'npx.cmd' if sys.platform == 'win32' else 'npx'
     result = subprocess.run(
         [npx, 'playwright', 'test', 'tests/smoke.spec.ts', '--reporter=json'],
