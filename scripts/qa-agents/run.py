@@ -3,8 +3,14 @@ QA Agent Orchestrator
 Pipeline: Playwright smoke gate → Claude subagents (one per persona) → report → notify.
 
 Usage:
-  uv run python run.py
+  uv run python run.py [--tier basic|deep|all] [--quiet]
+
+  --tier basic   Run BASIC_PERSONAS only (default)
+  --tier deep    Run DEEP_PERSONAS only
+  --tier all     Run ALL_PERSONAS
+  --quiet        Skip Discord/GitHub notifications (used by overnight orchestrator)
 """
+import argparse
 import importlib
 import json
 import os
@@ -19,9 +25,15 @@ load_dotenv(env_path)
 
 from claude_agent import run_claude_agent
 from notifier import post_run
-from personas import PERSONAS
+from personas import ALL_PERSONAS, BASIC_PERSONAS, DEEP_PERSONAS, PERSONAS
 from reporter import AgentResult, write_report
 from smoke_gate import run_smoke_gate
+
+_TIER_MAP = {
+    'basic': BASIC_PERSONAS,
+    'deep': DEEP_PERSONAS,
+    'all': ALL_PERSONAS,
+}
 
 
 def _load_task(persona) -> str:
@@ -41,12 +53,20 @@ def _write_and_notify(report: dict, screenshot_dir: Path) -> None:
 
 
 def main():
+    parser = argparse.ArgumentParser(description='QA Agent Orchestrator')
+    parser.add_argument('--tier', choices=['basic', 'deep', 'all'], default='basic',
+                        help='Persona tier to run (default: basic)')
+    parser.add_argument('--quiet', action='store_true',
+                        help='Skip Discord/GitHub notifications (for overnight orchestrator)')
+    args = parser.parse_args()
+
+    active_personas = _TIER_MAP[args.tier]
     run_id = datetime.now().strftime('%Y-%m-%dT%H%M')
     reports_dir = Path(__file__).parent / 'reports'
     screenshot_dir = reports_dir / 'screenshots'
 
     # ── Stage 1: Playwright smoke gate ──────────────────────────────────────
-    print('[run] Stage 1: Playwright smoke gate')
+    print(f'[run] Stage 1: Playwright smoke gate (tier={args.tier}, {len(active_personas)} personas)')
     smoke = run_smoke_gate(env_override={
         'QA_DANA_EMAIL': os.environ.get('QA_DANA_EMAIL', 'dana@test.local'),
         'QA_VIC_EMAIL': os.environ.get('QA_VIC_EMAIL', 'vic@test.local'),
@@ -65,15 +85,16 @@ def main():
             'smoke_failures': smoke.failures,
             'agents': [],
         }
-        _write_and_notify(smoke_report, screenshot_dir)
+        if not args.quiet:
+            _write_and_notify(smoke_report, screenshot_dir)
         return
 
-    # ── Stage 2: Claude agents (parallel) ───────────────────────────────────
-    print('[run] Stage 2: Claude persona agents')
-    tasks = [(persona, _load_task(persona)) for persona in PERSONAS]
+    # ── Stage 2: Claude agents ───────────────────────────────────────────────
+    print(f'[run] Stage 2: Claude persona agents ({args.tier} tier)')
+    tasks = [(persona, _load_task(persona)) for persona in active_personas]
 
-    def run_one(args):
-        persona, task = args
+    def run_one(a):
+        persona, task = a
         return run_claude_agent(persona, task, run_id, screenshot_dir)
 
     # Run agents sequentially — concurrent claude processes corrupt ~/.claude.json
@@ -85,7 +106,10 @@ def main():
     report_data['smoke_passed'] = True
 
     print(f'[run] Report written to {report_path}')
-    _write_and_notify(report_data, screenshot_dir)
+    if not args.quiet:
+        _write_and_notify(report_data, screenshot_dir)
+    else:
+        print('[run] Quiet mode — skipping Discord/GitHub notifications')
 
 
 if __name__ == '__main__':

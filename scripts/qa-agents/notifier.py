@@ -50,8 +50,12 @@ def _bot_headers(token: str) -> dict:
     return {'Authorization': f'Bot {token}', 'User-Agent': 'QuiverDM-QA/1.0'}
 
 
-def post_run(report: dict, screenshot_dir: Path | None = None) -> None:
-    """Post run summary to Discord forum thread and create GitHub issues for failures."""
+def post_run(report: dict, screenshot_dir: Path | None = None, quiet: bool = False) -> None:
+    """Post run summary to Discord forum thread and create GitHub issues for failures.
+
+    quiet=True: skip Discord posting (overnight orchestrator handles Discord via dashboard).
+    GitHub issues are still created in quiet mode (failures need tracking regardless).
+    """
     token = os.environ.get('QUIVERDM_DISCORD_BOT_TOKEN', '')
     channel_id = os.environ.get('QA_DISCORD_FORUM_CHANNEL_ID', '')
 
@@ -65,14 +69,17 @@ def post_run(report: dict, screenshot_dir: Path | None = None) -> None:
     summary = build_run_summary(run_id, results, smoke_passed)
 
     thread_id = None
-    if token and channel_id:
-        thread_id = _post_discord_thread(token, channel_id, thread_title, summary)
-        if thread_id:
-            for r in results:
-                if r.outcome != 'success':
-                    _post_failure_to_thread(token, thread_id, r, screenshot_dir)
+    if not quiet:
+        if token and channel_id:
+            thread_id = _post_discord_thread(token, channel_id, thread_title, summary)
+            if thread_id:
+                for r in results:
+                    if r.outcome != 'success':
+                        _post_failure_to_thread(token, thread_id, r, screenshot_dir)
+        else:
+            print('[notifier] Discord env vars missing — skipping Discord post')
     else:
-        print('[notifier] Discord env vars missing — skipping Discord post')
+        print('[notifier] Quiet mode — skipping Discord thread (dashboard handles reporting)')
 
     for r in results:
         if r.outcome == 'failed':

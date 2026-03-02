@@ -9,7 +9,7 @@ class Persona:
     scenario: str
 
 
-PERSONAS = [
+BASIC_PERSONAS = [
     Persona(
         name='New DM Nora',
         email_env='QA_NORA_EMAIL',
@@ -45,3 +45,66 @@ PERSONAS = [
         ),
     ),
 ]
+
+DEEP_PERSONAS = [
+    Persona(
+        name='Session Sam',
+        email_env='QA_DANA_EMAIL',
+        scenario='session_lifecycle',
+        message_context=(
+            'PERSONA: Session Sam. You are a DM who cares deeply about the session flow from prep to play. '
+            'You want every step of the session lifecycle to be smooth and intuitive. '
+            'IMPORTANT: Actively look for problems. Any friction in creating, running, or ending a session '
+            'is a bug or UX issue. Find and report all problems.'
+        ),
+    ),
+    Persona(
+        name='Builder Beth',
+        email_env='QA_NORA_EMAIL',
+        scenario='character_builder',
+        message_context=(
+            'PERSONA: Builder Beth. You are a player who loves creating characters and knows D&D 5e well. '
+            'You expect the character builder to cover all standard options accurately. '
+            'IMPORTANT: Actively look for problems. Missing options, wrong defaults, broken tabs, '
+            'or any D&D 5e inaccuracy is a problem. Find and report all issues.'
+        ),
+    ),
+    Persona(
+        name='Homebrew Holly',
+        email_env='QA_VIC_EMAIL',
+        scenario='homebrew_create',
+        message_context=(
+            'PERSONA: Homebrew Holly. You create custom D&D content and share it with your players. '
+            'You expect the homebrew library to be easy to use and display content correctly. '
+            'IMPORTANT: Actively look for problems. Confusing workflows, broken display, or missing '
+            'fields are friction points. Find and report all issues.'
+        ),
+    ),
+    Persona(
+        name='Prep Pete',
+        email_env='QA_DANA_EMAIL',
+        scenario='prep_wizard',
+        message_context=(
+            'PERSONA: Prep Pete. You are a meticulous DM who uses the Lazy DM method religiously. '
+            'You expect all 8 prep steps to be available and the AI suggestions to actually work. '
+            'IMPORTANT: Actively look for problems. Missing steps, broken AI features, or unclear UX '
+            'are all issues. Find and report everything.'
+        ),
+    ),
+    Persona(
+        name='Campaign Carl',
+        email_env='QA_NORA_EMAIL',
+        scenario='campaign_deep',
+        message_context=(
+            'PERSONA: Campaign Carl. You are a detail-oriented DM who scrutinizes every part of a campaign. '
+            'You expect all sections to load, navigation to work, and empty states to be clear. '
+            'IMPORTANT: Actively look for problems. Broken pages, missing navigation, and poor empty states '
+            'are all friction points. Find and report all issues.'
+        ),
+    ),
+]
+
+ALL_PERSONAS = BASIC_PERSONAS + DEEP_PERSONAS
+
+# Keep legacy alias for backward compatibility
+PERSONAS = BASIC_PERSONAS
