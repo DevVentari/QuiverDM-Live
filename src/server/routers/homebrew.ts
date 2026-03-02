@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { homebrewService } from '../services/homebrew.service';
 import { ForbiddenError, NotFoundError } from '../errors';
 import { prisma } from '../db';
+import { serverTrack } from '@/lib/analytics.server';
+import { EVENTS } from '@/lib/analytics-events';
 
 // Homebrew content types
 export const HomebrewType = z.enum([
@@ -45,9 +47,11 @@ export const homebrewRouter = router({
         dndBeyondUrl: z.string().url().optional(),
       })
     )
-    .mutation(({ input, ctx }) =>
-      homebrewService.createContent(ctx.session.user.id, { ...input, data: input.data ?? {} })
-    ),
+    .mutation(async ({ input, ctx }) => {
+      const content = await homebrewService.createContent(ctx.session.user.id, { ...input, data: input.data ?? {} });
+      void serverTrack(ctx.session.user.id, EVENTS.HOMEBREW_CREATED, { source: input.sourceType ?? 'manual' });
+      return content;
+    }),
 
   /**
    * Get all homebrew content for the current user

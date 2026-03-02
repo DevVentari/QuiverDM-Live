@@ -8,6 +8,8 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { campaignService } from '../services/campaign.service';
+import { serverTrack } from '@/lib/analytics.server';
+import { EVENTS } from '@/lib/analytics-events';
 
 // =============================================================================
 // Input Schemas
@@ -63,9 +65,11 @@ export const campaignsRouter = router({
    */
   create: protectedProcedure
     .input(CreateCampaignSchema)
-    .mutation(({ input, ctx }) =>
-      campaignService.create(ctx.session.user.id, input)
-    ),
+    .mutation(async ({ input, ctx }) => {
+      const campaign = await campaignService.create(ctx.session.user.id, input);
+      void serverTrack(ctx.session.user.id, EVENTS.CAMPAIGN_CREATED, { campaign_id: campaign.id });
+      return campaign;
+    }),
 
   /**
    * Update campaign (requires owner access)

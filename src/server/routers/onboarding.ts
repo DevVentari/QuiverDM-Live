@@ -6,6 +6,8 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import { onboardingService } from '../services/onboarding.service';
+import { serverTrack } from '@/lib/analytics.server';
+import { EVENTS } from '@/lib/analytics-events';
 
 const onboardingStepEnum = z.enum(['welcome', 'profile', 'first_campaign', 'complete']);
 
@@ -43,14 +45,18 @@ export const onboardingRouter = router({
    * (Called automatically when user creates or joins first campaign)
    */
   completeFirstCampaign: protectedProcedure.mutation(async ({ ctx }) => {
-    return onboardingService.completeFirstCampaign(ctx.session.user.id);
+    const result = await onboardingService.completeFirstCampaign(ctx.session.user.id);
+    void serverTrack(ctx.session.user.id, EVENTS.ONBOARDING_COMPLETED);
+    return result;
   }),
 
   /**
    * Skip onboarding
    */
   skip: protectedProcedure.mutation(async ({ ctx }) => {
-    return onboardingService.skip(ctx.session.user.id);
+    const result = await onboardingService.skip(ctx.session.user.id);
+    void serverTrack(ctx.session.user.id, EVENTS.ONBOARDING_COMPLETED);
+    return result;
   }),
 
   /**
