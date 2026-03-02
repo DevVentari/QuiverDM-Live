@@ -86,6 +86,8 @@ def run_claude_agent(
                  '--dangerously-skip-permissions'],
                 capture_output=True,
                 text=True,
+                encoding='utf-8',
+                errors='replace',
                 stdin=subprocess.DEVNULL,
                 env=env,
                 timeout=600,
