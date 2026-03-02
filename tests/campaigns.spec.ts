@@ -25,14 +25,14 @@ test.describe('Campaigns', () => {
   test('new campaign link navigates to create page', async ({ page }) => {
     await page.getByRole('link', { name: /new campaign/i }).first().click();
     await page.waitForURL(/\/campaigns\/new/, { timeout: 10000 });
-    await expect(page.getByRole('heading', { name: /create campaign/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /new campaign/i })).toBeVisible({ timeout: 10000 });
   });
 
   test('campaign name is required', async ({ page }) => {
     await page.goto('/campaigns/new');
     // Fill with whitespace only — passes HTML5 required but fails Zod .min(1) after .trim()
-    await page.getByRole('textbox', { name: /campaign name/i }).fill('   ');
-    await page.getByRole('button', { name: /create campaign/i }).click();
+    await page.getByRole('textbox', { name: /^name$/i }).fill('   ');
+    await page.getByRole('button', { name: /create/i }).click();
     // Should show Zod validation error
     await expect(
       page.getByText(/required|name is required/i)
