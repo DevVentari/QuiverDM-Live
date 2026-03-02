@@ -58,6 +58,19 @@ def test_run_claude_agent_invalid_json_fallback():
     assert result.error is None  # error is in findings, not error field
 
 
+def test_run_claude_agent_sets_screenshot_path_when_file_exists():
+    inner = json.dumps({'outcome': 'success', 'findings': '', 'friction_points': 0, 'urls_visited': []})
+    outer = json.dumps({'result': inner})
+    with patch('claude_agent.subprocess.run') as mock_run:
+        mock_run.return_value = MagicMock(returncode=0, stdout=outer, stderr='')
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create the screenshot file so Path.exists() returns True
+            expected_path = Path(tmpdir) / 'run123-new-dm-nora.png'
+            expected_path.write_bytes(b'fake-png')
+            result = run_claude_agent(PERSONAS[0], 'test task', 'run123', Path(tmpdir))
+    assert result.screenshot_path == str(expected_path)
+
+
 def test_run_claude_agent_strips_session_env_vars():
     """Claude Code session vars must not be passed to the subprocess."""
     inner = json.dumps({'outcome': 'success', 'findings': '', 'friction_points': 0, 'urls_visited': []})
@@ -71,4 +84,5 @@ def test_run_claude_agent_strips_session_env_vars():
             run_claude_agent(PERSONAS[0], 'test task', 'run123', Path(tmpdir))
     called_env = mock_run.call_args.kwargs.get('env') or mock_run.call_args[1].get('env')
     assert 'CLAUDECODE' not in called_env
+    assert 'CLAUDE_CODE_ENTRYPOINT' not in called_env
     assert 'CLAUDE_CODE_SESSION_ACCESS_TOKEN' not in called_env
