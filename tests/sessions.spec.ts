@@ -5,7 +5,7 @@ const CAMPAIGN_CARD = 'a[href^="/campaigns/"]:not([href="/campaigns/new"])';
 
 async function getCampaignHref(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
   await page.goto('/campaigns');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   const link = page.locator(CAMPAIGN_CARD).first();
   if (await link.count() === 0) return null;
   return link.getAttribute('href');
@@ -18,7 +18,7 @@ test.describe('Sessions', () => {
     if (!href) { test.skip(); return; }
 
     await page.goto(`${href}/sessions`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(/sessions/);
     await expect(
@@ -34,7 +34,7 @@ test.describe('Sessions', () => {
     if (!href) { test.skip(); return; }
 
     await page.goto(`${href}/sessions`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // DM should see "New Session" link (renders as <Link>, not <button>)
     await expect(

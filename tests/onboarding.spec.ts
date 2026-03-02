@@ -16,8 +16,8 @@ test.describe('Onboarding', () => {
       test.skip();
       return;
     }
-    // Step dots should be visible
-    const stepDots = page.locator('.rounded-full');
+    // Step dots in the onboarding progress indicator.
+    const stepDots = page.locator('div.h-2\\.5.w-2\\.5.rounded-full');
     await expect(stepDots.first()).toBeVisible();
   });
 

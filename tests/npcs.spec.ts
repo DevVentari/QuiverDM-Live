@@ -5,7 +5,7 @@ const CAMPAIGN_CARD = 'a[href^="/campaigns/"]:not([href="/campaigns/new"])';
 
 async function getCampaignHref(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
   await page.goto('/campaigns');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   const link = page.locator(CAMPAIGN_CARD).first();
   if (await link.count() === 0) return null;
   return link.getAttribute('href');
@@ -18,7 +18,7 @@ test.describe('NPCs', () => {
     if (!href) { test.skip(); return; }
 
     await page.goto(`${href}/npcs`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await expect(page).toHaveURL(/npcs/);
 
     await expect(
@@ -34,7 +34,7 @@ test.describe('NPCs', () => {
     if (!href) { test.skip(); return; }
 
     await page.goto(`${href}/npcs`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     // "New NPC" is rendered as a link (Button asChild + Link)
     await expect(
