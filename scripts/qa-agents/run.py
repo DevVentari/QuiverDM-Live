@@ -9,7 +9,6 @@ import importlib
 import json
 import os
 import time
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -77,8 +76,8 @@ def main():
         persona, task = args
         return run_claude_agent(persona, task, run_id, screenshot_dir)
 
-    with ThreadPoolExecutor(max_workers=len(PERSONAS)) as pool:
-        results: list[AgentResult] = list(pool.map(run_one, tasks))
+    # Run agents sequentially — concurrent claude processes corrupt ~/.claude.json
+    results: list[AgentResult] = [run_one(t) for t in tasks]
 
     # ── Stage 3: Report + notify ─────────────────────────────────────────────
     report_path = write_report(results, reports_dir)
