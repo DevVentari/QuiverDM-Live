@@ -10,8 +10,9 @@ test('homebrew PDF list page loads', async ({ page }) => {
   await expect(page.locator('body')).not.toContainText(/something went wrong|500/i);
   // Either a PDF row, empty state, or the upload button is visible
   await expect(
-    page.getByRole('button', { name: /upload/i }).first()
-      .or(page.getByText(/no pdfs yet|pdf processing/i).first())
-      .or(page.locator('table, [role="table"]').first())
+    page.getByRole('button', { name: /upload/i })
+      .or(page.getByText(/no pdfs yet|pdf processing/i))
+      .or(page.locator('table, [role="table"]'))
+      .first()
   ).toBeVisible({ timeout: 10000 });
 });

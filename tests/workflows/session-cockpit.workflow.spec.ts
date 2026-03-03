@@ -30,10 +30,17 @@ test('session cockpit loads panels and mode toggle works', async ({ page, contex
     }
 
     // Navigate through a session card to get to the detail page
-    const sessionLink = page.locator('a[href*="/sessions/"]').first();
-    if (await sessionLink.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      const href = await sessionLink.getAttribute('href') ?? '';
-      const match = href.match(/\/sessions\/([^/?]+)/);
+    const sessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {
+      for (const link of links) {
+        const href = link.getAttribute('href');
+        if (href && /\/sessions\/([a-zA-Z0-9_-]{10,})$/.test(href)) {
+          return href;
+        }
+      }
+      return null;
+    });
+    if (sessionHref) {
+      const match = sessionHref.match(/\/sessions\/([a-zA-Z0-9_-]{10,})$/);
       sessionId = match?.[1] ?? '';
     }
 
@@ -51,12 +58,9 @@ test('session cockpit loads panels and mode toggle works', async ({ page, contex
   await checkpoint(testInfo, 'navigate-to-session-detail', async () => {
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions/${sessionId}`);
     await page.waitForLoadState('networkidle', { timeout: 15_000 });
-    // Session detail should have either "Start Session" or "Continue Session"
-    const pageIndicator = page
-      .getByRole('button', { name: /start session/i })
-      .or(page.getByRole('button', { name: /continue session/i }))
-      .or(page.getByRole('link', { name: /continue prep/i }));
-    await expect(pageIndicator.first()).toBeVisible({ timeout: 15_000 });
+    // Just verify the session page loaded — action buttons only appear for planning/active sessions
+    await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
   }, 20_000);
 
   await checkpoint(testInfo, 'launch-cockpit', async () => {
@@ -102,7 +106,7 @@ test('session cockpit loads panels and mode toggle works', async ({ page, contex
 
   await checkpoint(testInfo, 'cockpit-mode-toggle-visible', async () => {
     // Mode toggle button shows "RP" or "Combat" text with the swords icon
-    const modeBtn = page.getByRole('button', { name: /^(rp|combat)$/i });
+    const modeBtn = page.getByRole('button', { name: /^(rp|combat)$/i }).first();
     await expect(modeBtn).toBeVisible({ timeout: 10_000 });
   }, 10_000);
 
@@ -119,20 +123,17 @@ test('session cockpit loads panels and mode toggle works', async ({ page, contex
   }, 10_000);
 
   await checkpoint(testInfo, 'switch-to-combat-mode', async () => {
-    const modeBtn = page.getByRole('button', { name: /^(rp|combat)$/i });
-    const currentMode = await modeBtn.textContent().catch(() => 'rp');
-    if (/rp/i.test(currentMode ?? '')) {
-      await modeBtn.click();
-      // After clicking, mode should show "Combat"
-      await expect(page.getByRole('button', { name: /combat/i })).toBeVisible({ timeout: 10_000 });
-    }
+    const combatBtn = page.getByRole('button', { name: /^combat$/i }).first();
+    await expect(combatBtn).toBeVisible({ timeout: 10_000 });
+    await combatBtn.click();
+    await expect(page.getByRole('button', { name: /^rp$/i }).first()).toBeVisible({ timeout: 10_000 });
   }, 10_000);
 
   await checkpoint(testInfo, 'switch-back-to-rp-mode', async () => {
-    const modeBtn = page.getByRole('button', { name: /combat/i });
+    const modeBtn = page.getByRole('button', { name: /^rp$/i }).first();
     if (await modeBtn.isVisible().catch(() => false)) {
       await modeBtn.click();
-      await expect(page.getByRole('button', { name: /^rp$/i })).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByRole('button', { name: /^combat$/i }).first()).toBeVisible({ timeout: 10_000 });
     }
   }, 10_000);
 

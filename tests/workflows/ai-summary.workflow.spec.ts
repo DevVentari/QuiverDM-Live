@@ -35,7 +35,11 @@ test('AI summaries page loads and session summary panel renders', async ({ page 
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
       // Should now be on the session detail page
       await expect(page).toHaveURL(new RegExp(`/campaigns/${CAMPAIGN_SLUG}/sessions/`));
-      // AI Summary card should be visible
+      // AI Summary lives in Recap tab — click it first
+      const recapTab = page.getByRole('tab', { name: /recap/i });
+      if (await recapTab.isVisible({ timeout: 10_000 }).catch(() => false)) {
+        await recapTab.click();
+      }
       await expect(page.getByText(/ai summary/i)).toBeVisible({ timeout: 15_000 });
     }
   }, 25_000);
@@ -49,7 +53,15 @@ test('AI summaries page loads and session summary panel renders', async ({ page 
   await checkpoint(testInfo, 'find-completed-session', async () => {
     // Look for a completed session badge or any session to click
     const completedBadge = page.getByText(/completed/i).first();
-    const anySessionLink = page.locator('a[href*="/sessions/"]').first();
+    const anySessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {
+      for (const link of links) {
+        const href = link.getAttribute('href');
+        if (href && /\/campaigns\/[^/]+\/sessions\/([a-zA-Z0-9_-]{10,})$/.test(href)) {
+          return href;
+        }
+      }
+      return null;
+    });
 
     const hasCompleted = await completedBadge.isVisible().catch(() => false);
 
@@ -57,23 +69,37 @@ test('AI summaries page loads and session summary panel renders', async ({ page 
       // Click the parent link of the completed badge
       const sessionRow = page.locator('a[href*="/sessions/"]').filter({ has: page.getByText(/completed/i) }).first();
       if (await sessionRow.isVisible().catch(() => false)) {
-        await sessionRow.click();
+        const href = await sessionRow.getAttribute('href');
+        if (href && /\/campaigns\/[^/]+\/sessions\/([a-zA-Z0-9_-]{10,})$/.test(href)) {
+          await page.goto(href);
+        } else if (anySessionHref) {
+          await page.goto(anySessionHref as string);
+        } else {
+          return;
+        }
+      } else if (anySessionHref) {
+        await page.goto(anySessionHref as string);
       } else {
-        await anySessionLink.click();
+        return;
       }
-    } else if (await anySessionLink.isVisible().catch(() => false)) {
-      await anySessionLink.click();
+    } else if (anySessionHref) {
+      await page.goto(anySessionHref as string);
     } else {
       // No sessions yet — skip the session detail checks gracefully
       return;
     }
 
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await page.waitForLoadState('domcontentloaded');
     await expect(page).toHaveURL(new RegExp(`/campaigns/${CAMPAIGN_SLUG}/sessions/`));
   }, 20_000);
 
   await checkpoint(testInfo, 'summary-panel-renders', async () => {
-    // The SummaryPanel card should be present on any session detail page
+    // SummaryPanel lives in the Recap tab — wait for it and click
+    const recapTab = page.getByRole('tab', { name: /recap/i });
+    await expect(recapTab).toBeVisible({ timeout: 15_000 });
+    await recapTab.click();
+    await expect(page.getByRole('tabpanel')).toBeVisible({ timeout: 5_000 });
+    // The SummaryPanel card should be present in the Recap tab
     await expect(page.getByText(/ai summary/i)).toBeVisible({ timeout: 15_000 });
     // It either shows "No summary yet", "Generating summary...", or actual summary content
     const states = page

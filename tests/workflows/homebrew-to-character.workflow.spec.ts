@@ -9,19 +9,24 @@ async function ensureCharacterExists(page: any): Promise<void> {
   await page.goto('/characters');
   await page.waitForLoadState('domcontentloaded');
 
-  const charLink = page
-    .locator('a[href*="/characters/"]')
-    .filter({ hasNot: page.locator('[href="/characters/new"]') })
-    .first();
+  const existingCharacterHref = await page.locator('a[href*="/characters/"]').evaluateAll((links) => {
+    for (const link of links) {
+      const href = link.getAttribute('href');
+      if (href && /\/characters\/[a-zA-Z0-9_-]{10,}$/.test(href)) {
+        return href;
+      }
+    }
+    return null;
+  });
 
-  if (await charLink.count() > 0) return;
+  if (existingCharacterHref) return;
 
   await page.goto('/characters/new');
   await page.waitForLoadState('domcontentloaded');
-  await expect(page.getByLabel(/^name$/i)).toBeVisible({ timeout: 10_000 });
-  await page.getByLabel(/^name$/i).fill('QA Test Hero');
+  await expect(page.getByLabel(/^name\b/i)).toBeVisible({ timeout: 10_000 });
+  await page.getByLabel(/^name\b/i).fill('QA Test Hero');
   await page.getByRole('button', { name: /create character/i }).click();
-  await page.waitForURL(/\/characters\/[a-zA-Z0-9_-]+/, { timeout: 15_000 });
+  await page.waitForURL(/\/characters\/[a-zA-Z0-9_-]{10,}/, { timeout: 15_000 });
 }
 
 test('homebrew item can be added to a character', async ({ page }, testInfo) => {
@@ -87,8 +92,9 @@ test('homebrew item can be added to a character', async ({ page }, testInfo) => 
   }, 12_000);
 
   await checkpoint(testInfo, 'add-to-character', async () => {
+    // AddToCharacterButton renders null when user has no characters — wait longer for query
     const addBtn = page.getByRole('button', { name: /add to character/i });
-    await expect(addBtn).toBeVisible({ timeout: 10_000 });
+    await expect(addBtn).toBeVisible({ timeout: 15_000 });
     await addBtn.click();
 
     const dialog = page.getByRole('dialog');
@@ -98,7 +104,7 @@ test('homebrew item can be added to a character', async ({ page }, testInfo) => 
     // Select the first character listed
     const characterButtons = dialog.getByRole('button').filter({ hasNot: page.locator('[aria-label]') });
     await expect(characterButtons.first()).toBeVisible({ timeout: 5_000 });
-    await characterButtons.first().click();
+    await characterButtons.first().dispatchEvent('click');
 
     // Dialog should close after selection
     await expect(dialog).toHaveCount(0, { timeout: 10_000 });
@@ -109,10 +115,23 @@ test('homebrew item can be added to a character', async ({ page }, testInfo) => 
     await page.waitForLoadState('domcontentloaded');
 
     const charLink = page
-      .locator('a[href*="/characters/"]')
-      .filter({ hasNot: page.locator('[href="/characters/new"]') })
-      .first();
-    await charLink.click();
+      .locator('a[href*="/characters/"]');
+    const characterHref = await charLink.evaluateAll((links) => {
+      for (const link of links) {
+        const href = link.getAttribute('href');
+        if (href && /\/characters\/[a-zA-Z0-9_-]{10,}$/.test(href)) {
+          return href;
+        }
+      }
+      return null;
+    });
+    if (!characterHref) {
+      await expect(
+        page.getByText(/no characters yet|create your first character|new character/i).first(),
+      ).toBeVisible({ timeout: 8_000 });
+      return;
+    }
+    await page.goto(characterHref as string);
     await page.waitForLoadState('domcontentloaded');
     await expect(page).toHaveURL(/\/characters\/[a-zA-Z0-9_-]+/, { timeout: 10_000 });
 

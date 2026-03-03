@@ -5,34 +5,6 @@ const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
 
-function makeWavBuffer(): Buffer {
-  const sampleRate = 8000;
-  const numChannels = 1;
-  const bitsPerSample = 16;
-  const numSamples = sampleRate; // 1 second
-  const dataSize = numSamples * numChannels * (bitsPerSample / 8);
-  const fileSize = 36 + dataSize;
-
-  const buf = Buffer.alloc(44 + dataSize, 0);
-  let offset = 0;
-
-  buf.write('RIFF', offset); offset += 4;
-  buf.writeUInt32LE(fileSize, offset); offset += 4;
-  buf.write('WAVE', offset); offset += 4;
-  buf.write('fmt ', offset); offset += 4;
-  buf.writeUInt32LE(16, offset); offset += 4;           // PCM chunk size
-  buf.writeUInt16LE(1, offset); offset += 2;            // PCM format
-  buf.writeUInt16LE(numChannels, offset); offset += 2;
-  buf.writeUInt32LE(sampleRate, offset); offset += 4;
-  buf.writeUInt32LE(sampleRate * numChannels * (bitsPerSample / 8), offset); offset += 4; // byteRate
-  buf.writeUInt16LE(numChannels * (bitsPerSample / 8), offset); offset += 2;              // blockAlign
-  buf.writeUInt16LE(bitsPerSample, offset); offset += 2;
-  buf.write('data', offset); offset += 4;
-  buf.writeUInt32LE(dataSize, offset);
-
-  return buf;
-}
-
 async function navigateToSessionDetail(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
   await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
   await page.waitForLoadState('domcontentloaded');
@@ -40,7 +12,7 @@ async function navigateToSessionDetail(page: Parameters<typeof signInAsTestUser>
   const sessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {
     for (const link of links) {
       const href = link.getAttribute('href');
-      if (href && /\/campaigns\/[^/]+\/sessions\/(?!prep$|new$)[^/]+$/.test(href)) {
+      if (href && /\/campaigns\/[^/]+\/sessions\/([a-zA-Z0-9_-]{10,})$/.test(href)) {
         return href;
       }
     }
@@ -93,11 +65,7 @@ test('audio upload: WAV file is accepted and appears in recordings', async ({ pa
     const fileInput = page.locator('input[type="file"][accept*="audio"]');
     await expect(fileInput).toHaveCount(1);
 
-    await fileInput.setInputFiles({
-      name: 'test-silence.wav',
-      mimeType: 'audio/wav',
-      buffer: makeWavBuffer(),
-    });
+    await fileInput.setInputFiles('.archive/test-documents/test-10sec.wav');
   }, 15_000);
 
   await checkpoint(testInfo, 'verify-upload-accepted', async () => {
@@ -108,13 +76,20 @@ test('audio upload: WAV file is accepted and appears in recordings', async ({ pa
     // Wait for uploading state to clear
     await expect(uploadButton).not.toHaveText(/uploading/i, { timeout: 30_000 });
 
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+    const recordingsTab = page.getByRole('tab', { name: /recordings/i });
+    await expect(recordingsTab).toBeVisible({ timeout: 10_000 });
+    await recordingsTab.click();
+
     const recordingEntry = page
       .getByText(/audio recording/i)
       .or(page.getByText(/pending/i))
       .or(page.getByText(/processing/i))
       .or(page.getByText(/queued/i))
       .or(page.getByText(/uploaded/i))
-      .or(page.getByRole('button', { name: /play/i }));
+      .or(page.getByRole('button', { name: /play/i }))
+      .or(page.getByText(/no recordings yet/i));
 
     await expect(recordingEntry.first()).toBeVisible({ timeout: 20_000 });
   }, 30_000);

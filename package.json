@@ -45,6 +45,9 @@
     "test:playwright": "playwright test",
     "test:playwright:smoke": "playwright test tests/smoke --reporter=list",
     "test:playwright:workflows": "playwright test tests/workflows --reporter=list",
+    "test:playwright:ui-checks": "playwright test tests/ui/layout-integrity.ui.spec.ts tests/ui/accessibility.ui.spec.ts --reporter=list",
+    "test:playwright:visual": "playwright test tests/ui/visual-regression.ui.spec.ts --reporter=list",
+    "test:playwright:visual:update": "playwright test tests/ui/visual-regression.ui.spec.ts --update-snapshots --reporter=list",
     "test:playwright:ui": "playwright test --ui",
     "qa:cycle": "tsx scripts/qa-playwright-cycle.ts",
     "db:seed": "npx prisma db seed",
@@ -132,6 +135,7 @@
     "zustand": "^5.0.1"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.56.1",
     "@tailwindcss/typography": "^0.5.19",
     "@types/adm-zip": "^0.5.7",

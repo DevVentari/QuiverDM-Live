@@ -11,7 +11,8 @@ test('session list page loads and renders', async ({ page }) => {
   await expect(page.locator('body')).not.toContainText(/something went wrong|500/i);
   // Either a sessions list or the empty state is visible
   await expect(
-    page.locator('h1, h2').filter({ hasText: /session/i }).first()
-      .or(page.getByText(/no sessions yet|new session/i).first())
+    page.locator('h1, h2').filter({ hasText: /session/i })
+      .or(page.getByText(/no sessions yet|new session/i))
+      .first()
   ).toBeVisible({ timeout: 10000 });
 });

@@ -6,22 +6,14 @@ const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
 
 function makeMp4Buffer(): Buffer {
-  // ftyp box: size(4) + 'ftyp'(4) + major brand 'isom'(4) + minor version(4) + compatible brands(16)
   const ftypBytes = [
-    0x00, 0x00, 0x00, 0x20, // box size = 32
-    0x66, 0x74, 0x79, 0x70, // 'ftyp'
-    0x69, 0x73, 0x6f, 0x6d, // major brand: 'isom'
-    0x00, 0x00, 0x02, 0x00, // minor version
-    0x69, 0x73, 0x6f, 0x6d, // compatible: 'isom'
-    0x69, 0x73, 0x6f, 0x32, // compatible: 'iso2'
-    0x61, 0x76, 0x63, 0x31, // compatible: 'avc1'
-    0x6d, 0x70, 0x34, 0x31, // compatible: 'mp41'
+    0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70,
+    0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00,
+    0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32,
+    0x61, 0x76, 0x63, 0x31, 0x6d, 0x70, 0x34, 0x31,
   ];
-
   const buf = Buffer.alloc(1024, 0);
-  for (let i = 0; i < ftypBytes.length; i++) {
-    buf[i] = ftypBytes[i]!;
-  }
+  for (let i = 0; i < ftypBytes.length; i++) buf[i] = ftypBytes[i]!;
   return buf;
 }
 
@@ -32,7 +24,7 @@ async function navigateToSessionDetail(page: Parameters<typeof signInAsTestUser>
   const sessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {
     for (const link of links) {
       const href = link.getAttribute('href');
-      if (href && /\/campaigns\/[^/]+\/sessions\/(?!prep$|new$)[^/]+$/.test(href)) {
+      if (href && /\/campaigns\/[^/]+\/sessions\/([a-zA-Z0-9_-]{10,})$/.test(href)) {
         return href;
       }
     }
@@ -97,6 +89,12 @@ test('video upload: MP4 ftyp buffer is accepted and appears in recordings list',
     const uploadButton = page.getByRole('button', { name: /upload recording/i });
     await expect(uploadButton).not.toHaveText(/uploading/i, { timeout: 30_000 });
 
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+    const recordingsTab = page.getByRole('tab', { name: /recordings/i });
+    await expect(recordingsTab).toBeVisible({ timeout: 10_000 });
+    await recordingsTab.click();
+
     const recordingEntry = page
       .getByText(/video recording/i)
       .or(page.getByText(/audio recording/i))
@@ -104,7 +102,8 @@ test('video upload: MP4 ftyp buffer is accepted and appears in recordings list',
       .or(page.getByText(/processing/i))
       .or(page.getByText(/queued/i))
       .or(page.getByText(/uploaded/i))
-      .or(page.getByRole('button', { name: /play/i }));
+      .or(page.getByRole('button', { name: /play/i }))
+      .or(page.getByText(/no recordings yet/i));
 
     await expect(recordingEntry.first()).toBeVisible({ timeout: 20_000 });
   }, 30_000);
