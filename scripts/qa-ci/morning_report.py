@@ -28,6 +28,14 @@ DISCORD_API = 'https://discord.com/api/v10'
 ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
 
 
+def get_github_repo() -> str:
+    return (
+        os.environ.get('QA_GITHUB_REPO')
+        or os.environ.get('GITHUB_FEEDBACK_REPO')
+        or 'DevVentari/QuiverDM-Live'
+    )
+
+
 def _load_regression_state() -> dict:
     if not STATE_FILE.exists():
         return {}
@@ -48,8 +56,9 @@ def _load_agent_report() -> dict | None:
 
 def _get_open_issues() -> list[dict]:
     try:
+        repo = get_github_repo()
         proc = subprocess.run(
-            ['gh', 'issue', 'list', '--repo', 'DevVentari/QuiverDM-Live',
+            ['gh', 'issue', 'list', '--repo', repo,
              '--state', 'open', '--json', 'number,title,labels', '--limit', '20'],
             capture_output=True, text=True, timeout=30,
         )
@@ -61,26 +70,45 @@ def _get_open_issues() -> list[dict]:
 
 
 def _summarise_state(state: dict) -> dict:
-    specs = state.get('specs', {})
+    specs = state.get('specs')
+    if not isinstance(specs, dict):
+        specs = state.get('scenarios', {})
     active = [s for s, d in specs.items() if d.get('status') == 'active']
     failing = [s for s, d in specs.items() if d.get('status') in ('failing', 'paused')]
     return {
         'total': len(specs),
         'active': len(active),
         'failing': failing,
-        'cycles': state.get('cycles_completed', 0),
+        'cycles': state.get('cycles_completed', state.get('cycle_count', 0)),
     }
 
 
 def _summarise_agents(report: dict | None) -> str:
     if not report:
         return 'No agent run on record yet.'
-    ts = report.get('timestamp', '')[:16].replace('T', ' ')
-    results = report.get('results', [])
-    successes = sum(1 for r in results if r.get('success'))
-    issues = sum(len(r.get('issues_found', [])) for r in results)
+
+    # Current schema from scripts/qa-agents/reporter.py:
+    # { run_id, duration_seconds, agents:[{ outcome, friction_points, ...}] }
+    run_id = report.get('run_id')
+    if isinstance(run_id, str) and run_id:
+        ts = run_id[:16].replace('T', ' ')
+    else:
+        ts = str(report.get('timestamp', ''))[:16].replace('T', ' ')
+
+    agents = report.get('agents')
+    if isinstance(agents, list):
+        successes = sum(1 for a in agents if isinstance(a, dict) and a.get('outcome') == 'success')
+        issues = sum(int((a.get('friction_points') or 0)) for a in agents if isinstance(a, dict))
+        total = len(agents)
+    else:
+        # Backward compatibility for older report format: { results:[{success, issues_found}] }
+        results = report.get('results', [])
+        successes = sum(1 for r in results if isinstance(r, dict) and r.get('success'))
+        issues = sum(len(r.get('issues_found', [])) for r in results if isinstance(r, dict))
+        total = len(results)
+
     return (
-        f"Last run {ts}: {successes}/{len(results)} personas succeeded, "
+        f"Last run {ts}: {successes}/{total} personas succeeded, "
         f"{issues} issue(s) found."
     )
 

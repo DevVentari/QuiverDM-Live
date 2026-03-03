@@ -15,9 +15,16 @@ import httpx
 from reporter import AgentResult
 
 DISCORD_API = 'https://discord.com/api/v10'
-GITHUB_REPO = 'DevVentari/QuiverDM-Live'
 QA_LABEL = 'qa-failure'
 QA_AGENT_LABEL = 'source/qa-agent'
+
+
+def get_github_repo() -> str:
+    return (
+        os.environ.get('QA_GITHUB_REPO')
+        or os.environ.get('GITHUB_FEEDBACK_REPO')
+        or 'DevVentari/quiverdm-feedback'
+    )
 
 _OUTCOME_EMOJI = {'success': '🟢', 'partial': '🟡', 'failed': '🔴'}
 
@@ -134,7 +141,7 @@ def _post_failure_to_thread(token: str, thread_id: str, result: AgentResult, scr
 def check_issue_exists(title: str) -> bool:
     """Return True if an open GitHub issue with this title already exists."""
     result = subprocess.run(
-        ['gh', 'issue', 'list', '--repo', GITHUB_REPO, '--state', 'open',
+        ['gh', 'issue', 'list', '--repo', get_github_repo(), '--state', 'open',
          '--search', title, '--json', 'title,number,state', '--limit', '5'],
         capture_output=True, text=True, stdin=subprocess.DEVNULL,
     )
@@ -149,7 +156,7 @@ def check_issue_exists(title: str) -> bool:
 
 def _ensure_qa_label() -> None:
     subprocess.run(
-        ['gh', 'label', 'create', QA_LABEL, '--repo', GITHUB_REPO,
+        ['gh', 'label', 'create', QA_LABEL, '--repo', get_github_repo(),
          '--color', 'e11d48', '--description', 'Automated QA agent failure', '--force'],
         capture_output=True, stdin=subprocess.DEVNULL,
     )
@@ -157,7 +164,7 @@ def _ensure_qa_label() -> None:
 
 def _ensure_qa_agent_label() -> None:
     subprocess.run(
-        ['gh', 'label', 'create', QA_AGENT_LABEL, '--repo', GITHUB_REPO,
+        ['gh', 'label', 'create', QA_AGENT_LABEL, '--repo', get_github_repo(),
          '--color', '7057ff', '--description', 'Issue found by QA browser agent', '--force'],
         capture_output=True, stdin=subprocess.DEVNULL,
     )
@@ -189,7 +196,7 @@ def _create_github_issue(result: AgentResult, run_id: str) -> None:
     body = '\n'.join(body_lines)
     try:
         r = subprocess.run(
-            ['gh', 'issue', 'create', '--repo', GITHUB_REPO,
+            ['gh', 'issue', 'create', '--repo', get_github_repo(),
              '--title', title, '--body', body,
              '--label', 'bug', '--label', QA_LABEL, '--label', QA_AGENT_LABEL],
             capture_output=True, text=True, stdin=subprocess.DEVNULL,

@@ -425,7 +425,7 @@ export default function PDFsPage() {
             </p>
           </div>
 
-          <div>
+          <div className="flex flex-col items-end gap-1.5">
             <input
               ref={fileInputRef}
               type="file"
@@ -441,6 +441,7 @@ export default function PDFsPage() {
               )}
               {uploading ? 'Uploading...' : 'Upload PDF'}
             </Button>
+            <p className="text-xs text-muted-foreground">PDF only · Max 50 MB</p>
           </div>
         </div>
       </div>

@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import ctypes
 import json
+import os
 import platform
 import subprocess
 import sys
@@ -37,7 +38,14 @@ from pr_creator import comment_pr_on_issue, create_fix_pr
 IDLE_THRESHOLD_SECONDS = 300
 POLL_INTERVAL_SECONDS = 60
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-GITHUB_REPO = "DevVentari/QuiverDM-Live"
+
+
+def get_github_repo() -> str:
+    return (
+        os.environ.get('QA_GITHUB_REPO')
+        or os.environ.get('GITHUB_FEEDBACK_REPO')
+        or 'DevVentari/QuiverDM-Live'
+    )
 
 
 class LASTINPUTINFO(ctypes.Structure):
@@ -143,7 +151,7 @@ def _comment_fix_attempt(number: int, attempt: int, success: bool) -> None:
         comment += f' Attempt count: {attempt}. If >= 2 attempts fail, this will be escalated.'
     try:
         subprocess.run(
-            ['gh', 'issue', 'comment', str(number), '--repo', GITHUB_REPO, '--body', comment],
+            ['gh', 'issue', 'comment', str(number), '--repo', get_github_repo(), '--body', comment],
             capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=30,
         )
     except Exception as e:
@@ -167,6 +175,7 @@ def process_exploratory_trigger(issue: dict) -> None:
 
     issue_number = issue.get("number")
     if issue_number is not None:
+        repo = get_github_repo()
         subprocess.run(
             [
                 "gh",
@@ -174,7 +183,7 @@ def process_exploratory_trigger(issue: dict) -> None:
                 "close",
                 str(issue_number),
                 "--repo",
-                GITHUB_REPO,
+                repo,
                 "--comment",
                 "Exploratory agent run triggered and completed.",
             ],

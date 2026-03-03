@@ -1,10 +1,17 @@
 ﻿"""Push fix branch and create a GitHub PR."""
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 
-GITHUB_REPO = "DevVentari/QuiverDM-Live"
+
+def get_github_repo() -> str:
+    return (
+        os.environ.get('QA_GITHUB_REPO')
+        or os.environ.get('GITHUB_FEEDBACK_REPO')
+        or 'DevVentari/QuiverDM-Live'
+    )
 
 
 def _run(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
@@ -53,7 +60,7 @@ def create_fix_pr(worktree_path: Path, branch: str, issue_number: int, scenario_
             "pr",
             "create",
             "--repo",
-            GITHUB_REPO,
+            get_github_repo(),
             "--title",
             f"fix(qa): {scenario_id}",
             "--body",
@@ -85,7 +92,7 @@ def comment_pr_on_issue(issue_number: int, pr_url: str) -> None:
             "comment",
             str(issue_number),
             "--repo",
-            GITHUB_REPO,
+            get_github_repo(),
             "--body",
             f"Fix PR opened: {pr_url}",
         ],

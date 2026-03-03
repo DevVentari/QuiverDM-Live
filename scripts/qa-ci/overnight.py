@@ -52,6 +52,14 @@ LXC_HOST = 'root@192.168.1.102'
 LXC_STATE_PATH = '/opt/quiverdm/scripts/qa-ci/scenario_state.json'
 
 
+def get_github_repo() -> str:
+    return (
+        os.environ.get('QA_GITHUB_REPO')
+        or os.environ.get('GITHUB_FEEDBACK_REPO')
+        or 'DevVentari/QuiverDM-Live'
+    )
+
+
 # ── LXC helpers ──────────────────────────────────────────────────────────────
 
 def _lxc_is_reachable(dry_run: bool, local: bool = False) -> bool:
@@ -191,8 +199,9 @@ def _get_open_issues(dry_run: bool) -> list[dict]:
     if dry_run:
         return []
     try:
+        repo = get_github_repo()
         result = subprocess.run(
-            ['gh', 'issue', 'list', '--repo', 'DevVentari/QuiverDM-Live',
+            ['gh', 'issue', 'list', '--repo', repo,
              '--label', 'qa-failure', '--state', 'open',
              '--json', 'number,title,url,comments,body', '--limit', '50'],
             capture_output=True, text=True, timeout=30, stdin=subprocess.DEVNULL,
