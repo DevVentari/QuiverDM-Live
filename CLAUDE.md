@@ -166,6 +166,23 @@ OLLAMA_BASE_URL=
 - `scripts/stripe-webhook-local.sh` forwards Stripe events during local testing.
 - `npm run check:launch` performs DB/Redis/env/Stripe/invite readiness checks.
 
+## Definition of Done
+
+A feature is not shipped until it has a workflow spec.
+
+- New feature → write `tests/workflows/<feature>.workflow.spec.ts` before or alongside the PR
+- New user journey → implement or update the relevant `tests/personas/*.persona.spec.ts`
+- Run `npm run qa:cycle` and it must pass before merging to main
+- No `test.fixme` on new tests — stubs must be implemented before the feature is considered done
+
+**Persona specs are the acceptance gate.** When all 6 personas pass, QuiverDM is ready for that tier of users:
+- `new-dm` (Nora) — onboarding, first campaign, first NPC
+- `veteran-dm` (Vic) — rapid prep, full stat block NPC, session surfaces
+- `power-dm` (Dana) — PDF upload, homebrew create/link, character sheet tabs
+- `player-join` — invite accept, character access, campaign surfaces
+- `mobile-dm` — critical flows on phone viewport
+- `error-resilience` — API failures surface clean errors, not crashes
+
 ## Task Tracking
 
 Kanban board lives at `docs/obsidian-vault/KANBAN.md` (Obsidian Kanban plugin format).
