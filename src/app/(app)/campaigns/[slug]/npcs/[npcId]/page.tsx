@@ -134,9 +134,9 @@ export default function NPCDetailPage() {
           <div className="section-rule mb-4" />
           <Card className="glass-panel">
             <CardContent className="pt-6">
-              {(stats.creatureType || stats.cr) && (
+              {(stats.creatureType || stats.cr || stats.alignment) && (
                 <p className="text-sm text-muted-foreground mb-4">
-                  {[stats.creatureType, stats.cr ? `CR ${stats.cr}` : null]
+                  {[stats.creatureType, stats.alignment, stats.cr ? `CR ${stats.cr}` : null]
                     .filter(Boolean)
                     .join(' · ')}
                 </p>
@@ -153,6 +153,24 @@ export default function NPCDetailPage() {
                 )}
                 {stats.speed && (
                   <p><span className="font-semibold">Speed</span> {stats.speed}</p>
+                )}
+                {stats.savingThrows && (
+                  <p><span className="font-semibold">Saving Throws</span> {stats.savingThrows}</p>
+                )}
+                {stats.skills && (
+                  <p><span className="font-semibold">Skills</span> {stats.skills}</p>
+                )}
+                {stats.senses && (
+                  <p><span className="font-semibold">Senses</span> {stats.senses}</p>
+                )}
+                {stats.languages && (
+                  <p><span className="font-semibold">Languages</span> {stats.languages}</p>
+                )}
+                {stats.damageResistances && (
+                  <p><span className="font-semibold">Damage Resistances</span> {stats.damageResistances}</p>
+                )}
+                {stats.damageImmunities && (
+                  <p><span className="font-semibold">Damage Immunities</span> {stats.damageImmunities}</p>
                 )}
               </div>
               {stats.abilityScores && (
