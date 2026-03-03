@@ -36,12 +36,22 @@ interface StatBlockSectionProps {
   speed: string; setSpeed: (v: string) => void;
   abilityScores: AbilityScores; setAbilityScore: (key: typeof ABILITY_KEYS[number], val: string) => void;
   actions: string; setActions: (v: string) => void;
+  alignment: string; setAlignment: (v: string) => void;
+  savingThrows: string; setSavingThrows: (v: string) => void;
+  skills: string; setSkills: (v: string) => void;
+  senses: string; setSenses: (v: string) => void;
+  languages: string; setLanguages: (v: string) => void;
+  damageResistances: string; setDamageResistances: (v: string) => void;
+  damageImmunities: string; setDamageImmunities: (v: string) => void;
 }
 
 function StatBlockSection({
   cr, setCr, hp, setHp, ac, setAc,
   creatureType, setCreatureType, speed, setSpeed,
   abilityScores, setAbilityScore, actions, setActions,
+  alignment, setAlignment, savingThrows, setSavingThrows,
+  skills, setSkills, senses, setSenses, languages, setLanguages,
+  damageResistances, setDamageResistances, damageImmunities, setDamageImmunities,
 }: StatBlockSectionProps) {
   const [open, setOpen] = useState(false);
   return (
@@ -138,6 +148,75 @@ function StatBlockSection({
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="alignment">Alignment</Label>
+            <Input
+              id="alignment"
+              placeholder="Neutral Evil"
+              value={alignment}
+              onChange={(e) => setAlignment(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="savingThrows">Saving Throws</Label>
+              <Input
+                id="savingThrows"
+                placeholder="Dex +5, Wis +3"
+                value={savingThrows}
+                onChange={(e) => setSavingThrows(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="skills">Skills</Label>
+              <Input
+                id="skills"
+                placeholder="Perception +5, Stealth +7"
+                value={skills}
+                onChange={(e) => setSkills(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="senses">Senses</Label>
+              <Input
+                id="senses"
+                placeholder="Darkvision 60 ft., passive Perception 15"
+                value={senses}
+                onChange={(e) => setSenses(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="languages">Languages</Label>
+              <Input
+                id="languages"
+                placeholder="Common, Elvish"
+                value={languages}
+                onChange={(e) => setLanguages(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="damageResistances">Damage Resistances</Label>
+              <Input
+                id="damageResistances"
+                placeholder="Cold, Fire, Lightning"
+                value={damageResistances}
+                onChange={(e) => setDamageResistances(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="damageImmunities">Damage Immunities</Label>
+              <Input
+                id="damageImmunities"
+                placeholder="Poison, Psychic"
+                value={damageImmunities}
+                onChange={(e) => setDamageImmunities(e.target.value)}
+              />
             </div>
           </div>
           <div className="space-y-2">
@@ -245,6 +324,13 @@ export default function NewNPCPage() {
     str: '', dex: '', con: '', int: '', wis: '', cha: '',
   });
   const [actions, setActions] = useState('');
+  const [alignment, setAlignment] = useState('');
+  const [savingThrows, setSavingThrows] = useState('');
+  const [skills, setSkills] = useState('');
+  const [senses, setSenses] = useState('');
+  const [languages, setLanguages] = useState('');
+  const [damageResistances, setDamageResistances] = useState('');
+  const [damageImmunities, setDamageImmunities] = useState('');
 
   function setAbilityScore(key: typeof ABILITY_KEYS[number], val: string) {
     setAbilityScores((prev) => ({ ...prev, [key]: val }));
@@ -252,6 +338,7 @@ export default function NewNPCPage() {
 
   function buildStats() {
     const hasAnyStatBlock = cr || hp || ac || creatureType || speed || actions ||
+      alignment || savingThrows || skills || senses || languages || damageResistances || damageImmunities ||
       ABILITY_KEYS.some((k) => abilityScores[k]);
     if (!hasAnyStatBlock) return undefined;
     const scores: Partial<Record<typeof ABILITY_KEYS[number], number>> = {};
@@ -267,6 +354,13 @@ export default function NewNPCPage() {
       speed: speed || undefined,
       abilityScores: Object.keys(scores).length > 0 ? scores : undefined,
       actions: actions || undefined,
+      alignment: alignment || undefined,
+      savingThrows: savingThrows || undefined,
+      skills: skills || undefined,
+      senses: senses || undefined,
+      languages: languages || undefined,
+      damageResistances: damageResistances || undefined,
+      damageImmunities: damageImmunities || undefined,
     };
   }
 
@@ -428,6 +522,13 @@ export default function NewNPCPage() {
             speed={speed} setSpeed={setSpeed}
             abilityScores={abilityScores} setAbilityScore={setAbilityScore}
             actions={actions} setActions={setActions}
+            alignment={alignment} setAlignment={setAlignment}
+            savingThrows={savingThrows} setSavingThrows={setSavingThrows}
+            skills={skills} setSkills={setSkills}
+            senses={senses} setSenses={setSenses}
+            languages={languages} setLanguages={setLanguages}
+            damageResistances={damageResistances} setDamageResistances={setDamageResistances}
+            damageImmunities={damageImmunities} setDamageImmunities={setDamageImmunities}
           />
 
           {uploadError && (
