@@ -16,7 +16,6 @@ import importlib
 import json
 import os
 import threading
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
@@ -28,7 +27,7 @@ load_dotenv(env_path)
 
 from claude_agent import run_claude_agent
 from notifier import post_run
-from personas import ALL_PERSONAS, BASIC_PERSONAS, DEEP_PERSONAS, EXTENDED_PERSONAS, PERSONAS
+from personas import ALL_PERSONAS, BASIC_PERSONAS, DEEP_PERSONAS, EXTENDED_PERSONAS
 from reporter import AgentResult, write_report
 from smoke_gate import run_smoke_gate
 
@@ -40,10 +39,24 @@ _TIER_MAP = {
 }
 
 
+def _default_app_url() -> str:
+    explicit = os.environ.get('QA_APP_URL')
+    if explicit:
+        return explicit
+
+    vercel_url = os.environ.get('VERCEL_PROJECT_PRODUCTION_URL', '').strip()
+    if vercel_url:
+        if vercel_url.startswith('http://') or vercel_url.startswith('https://'):
+            return vercel_url
+        return f'https://{vercel_url}'
+
+    return 'https://quiverdm.com'
+
+
 def _load_task(persona) -> str:
     scenario_mod = importlib.import_module(f'scenarios.{persona.scenario}')
     return scenario_mod.TASK.format(
-        app_url=os.environ.get('QA_APP_URL', 'http://localhost:3847'),
+        app_url=_default_app_url(),
         email=os.environ[persona.email_env],
         password=os.environ['QA_TEST_PASSWORD'],
     )
@@ -56,10 +69,26 @@ def _write_and_notify(report: dict, screenshot_dir: Path) -> None:
         print(f'[run] Notify failed: {e}')
 
 
+def _write_raw_report(report: dict, reports_dir: Path) -> Path:
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    run_id = report.get('run_id') or datetime.now().strftime('%Y-%m-%dT%H%M')
+    timestamped = reports_dir / f'{run_id}.json'
+    payload = json.dumps(report, indent=2)
+    timestamped.write_text(payload)
+    (reports_dir / 'latest.json').write_text(payload)
+    return timestamped
+
+
 def main():
     parser = argparse.ArgumentParser(description='QA Agent Orchestrator')
     parser.add_argument('--tier', choices=['basic', 'deep', 'extended', 'all'], default='basic',
                         help='Persona tier to run (default: basic)')
+    parser.add_argument(
+        '--agent-cli',
+        choices=['claude', 'codex', 'auto'],
+        default=os.environ.get('QA_AGENT_CLI', 'codex'),
+        help='Terminal agent backend for persona runs (default: codex)',
+    )
     parser.add_argument('--quiet', action='store_true',
                         help='Skip Discord/GitHub notifications (for overnight orchestrator)')
     args = parser.parse_args()
@@ -75,13 +104,13 @@ def main():
         'QA_DANA_EMAIL': os.environ.get('QA_DANA_EMAIL', 'dana@test.local'),
         'QA_VIC_EMAIL': os.environ.get('QA_VIC_EMAIL', 'vic@test.local'),
         'QA_TEST_PASSWORD': os.environ.get('QA_TEST_PASSWORD', ''),
-        'QA_APP_URL': os.environ.get('QA_APP_URL', 'https://quiverdm.com'),
+        'QA_APP_URL': _default_app_url(),
     })
 
     print(f'[run] Smoke: {smoke.passed} passed, {smoke.failed} failed')
 
     if not smoke.ok:
-        print('[run] Smoke gate failed — skipping agents, posting alert')
+        print('[run] Smoke gate failed - skipping agents, posting alert')
         smoke_report = {
             'run_id': run_id,
             'duration_seconds': 0,
@@ -89,17 +118,18 @@ def main():
             'smoke_failures': smoke.failures,
             'agents': [],
         }
+        report_path = _write_raw_report(smoke_report, reports_dir)
+        print(f'[run] Report written to {report_path}')
         if not args.quiet:
             _write_and_notify(smoke_report, screenshot_dir)
         return
-
     # ── Stage 2: Claude agents ───────────────────────────────────────────────
-    print(f'[run] Stage 2: Claude persona agents ({args.tier} tier)')
+    print(f'[run] Stage 2: Persona agents via {args.agent_cli} ({args.tier} tier)')
     tasks = [(persona, _load_task(persona)) for persona in active_personas]
 
     def run_one(a):
         persona, task = a
-        return run_claude_agent(persona, task, run_id, screenshot_dir)
+        return run_claude_agent(persona, task, run_id, screenshot_dir, agent_cli=args.agent_cli)
 
     # Run agents in parallel — each gets an isolated HOME so ~/.claude.json won't corrupt
     _MAX_CONCURRENT = 3
@@ -128,3 +158,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

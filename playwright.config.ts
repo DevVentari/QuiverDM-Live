@@ -1,5 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3847';
+const USE_LOCAL_WEB_SERVER =
+  !process.env.CI && /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(BASE_URL);
+
 export default defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.ts',
@@ -11,7 +15,7 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'html',
 
   use: {
-    baseURL: process.env.BASE_URL ?? 'http://localhost:3847',
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -24,12 +28,14 @@ export default defineConfig({
     },
   ],
 
-  ...(process.env.CI ? {} : {
-    webServer: {
-      command: 'npm run dev',
-      url: 'http://localhost:3847',
-      reuseExistingServer: true,
-      timeout: 120000,
-    },
-  }),
+  ...(USE_LOCAL_WEB_SERVER
+    ? {
+        webServer: {
+          command: 'npm run dev',
+          url: 'http://localhost:3847',
+          reuseExistingServer: true,
+          timeout: 120000,
+        },
+      }
+    : {}),
 });

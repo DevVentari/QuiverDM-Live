@@ -2,16 +2,25 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 
-GITHUB_REPO = 'DevVentari/QuiverDM-Live'
 QA_FAILURE_LABEL = 'qa-failure'
 QA_EXPLORATORY_LABEL = 'qa-exploratory'
 SOURCE_QA_SPEC_LABEL = 'source/qa-spec'
 SOURCE_USER_FEEDBACK_LABEL = 'source/user-feedback'
 SOURCE_QA_AGENT_LABEL = 'source/qa-agent'
 REPO_ROOT = Path(__file__).parent.parent.parent
+
+
+def get_github_repo() -> str:
+    # Priority: explicit QA repo, then feedback repo, then legacy default.
+    return (
+        os.environ.get('QA_GITHUB_REPO')
+        or os.environ.get('GITHUB_FEEDBACK_REPO')
+        or 'DevVentari/QuiverDM-Live'
+    )
 
 
 def _gh(*args: str) -> subprocess.CompletedProcess[str]:
@@ -25,7 +34,7 @@ def _gh(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def ensure_label(label: str, color: str, description: str) -> None:
-    _gh('label', 'create', label, '--repo', GITHUB_REPO,
+    _gh('label', 'create', label, '--repo', get_github_repo(),
         '--color', color, '--description', description, '--force')
 
 
@@ -49,7 +58,7 @@ def create_failure_issue(scenario_id: str, spec_file: str, cycle: int, error: st
         '4. Verify: `npx tsc --noEmit`\n'
     )
 
-    proc = _gh('issue', 'create', '--repo', GITHUB_REPO,
+    proc = _gh('issue', 'create', '--repo', get_github_repo(),
                '--title', title, '--body', body,
                '--label', 'bug', '--label', QA_FAILURE_LABEL, '--label', SOURCE_QA_SPEC_LABEL)
     if proc.returncode != 0:
@@ -64,13 +73,14 @@ def create_failure_issue(scenario_id: str, spec_file: str, cycle: int, error: st
 
 
 def close_issue(issue_number: int, comment: str) -> bool:
-    _gh('issue', 'comment', str(issue_number), '--repo', GITHUB_REPO, '--body', comment)
-    proc = _gh('issue', 'close', str(issue_number), '--repo', GITHUB_REPO)
+    repo = get_github_repo()
+    _gh('issue', 'comment', str(issue_number), '--repo', repo, '--body', comment)
+    proc = _gh('issue', 'close', str(issue_number), '--repo', repo)
     return proc.returncode == 0
 
 
 def get_open_qa_failure_issues() -> list[dict]:
-    proc = _gh('issue', 'list', '--repo', GITHUB_REPO,
+    proc = _gh('issue', 'list', '--repo', get_github_repo(),
                '--label', QA_FAILURE_LABEL, '--state', 'open',
                '--json', 'number,title,body,createdAt', '--limit', '20')
     if proc.returncode != 0:
@@ -82,7 +92,7 @@ def get_open_qa_failure_issues() -> list[dict]:
 
 
 def get_open_exploratory_trigger_issues() -> list[dict]:
-    proc = _gh('issue', 'list', '--repo', GITHUB_REPO,
+    proc = _gh('issue', 'list', '--repo', get_github_repo(),
                '--label', QA_EXPLORATORY_LABEL, '--state', 'open',
                '--json', 'number,title,body,createdAt', '--limit', '5')
     if proc.returncode != 0:
@@ -94,7 +104,7 @@ def get_open_exploratory_trigger_issues() -> list[dict]:
 
 
 def get_open_user_feedback_issues() -> list[dict]:
-    proc = _gh('issue', 'list', '--repo', GITHUB_REPO,
+    proc = _gh('issue', 'list', '--repo', get_github_repo(),
                '--label', SOURCE_USER_FEEDBACK_LABEL, '--state', 'open',
                '--json', 'number,title,body,createdAt', '--limit', '20')
     if proc.returncode != 0:
@@ -106,7 +116,7 @@ def get_open_user_feedback_issues() -> list[dict]:
 
 
 def get_open_qa_agent_issues() -> list[dict]:
-    proc = _gh('issue', 'list', '--repo', GITHUB_REPO,
+    proc = _gh('issue', 'list', '--repo', get_github_repo(),
                '--label', SOURCE_QA_AGENT_LABEL, '--state', 'open',
                '--json', 'number,title,body,createdAt', '--limit', '20')
     if proc.returncode != 0:
@@ -122,7 +132,7 @@ def create_exploratory_trigger_issue(cycle: int) -> int | None:
 
     title = f'[QA-Exploratory] Trigger cycle {cycle}'
     body = f'Trigger exploratory browser agents for cycle {cycle}.\n\nFix dispatcher will pick this up and run `scripts/qa-agents/run.py`.'
-    proc = _gh('issue', 'create', '--repo', GITHUB_REPO,
+    proc = _gh('issue', 'create', '--repo', get_github_repo(),
                '--title', title, '--body', body,
                '--label', QA_EXPLORATORY_LABEL)
     if proc.returncode != 0:

@@ -38,12 +38,26 @@ def _collect_failures(suites: list) -> list[dict]:
 def run_smoke_gate(env_override: dict | None = None) -> SmokeResult:
     """Run tests/smoke.spec.ts via npx playwright. Returns structured result."""
     env = {**os.environ, **(env_override or {})}
+    required_env = {
+        'QA_TEST_PASSWORD': env.get('QA_TEST_PASSWORD', '').strip(),
+        'QA_VIC_EMAIL': env.get('QA_VIC_EMAIL', '').strip(),
+    }
+    missing = [k for k, v in required_env.items() if not v]
+    if missing:
+        return SmokeResult(
+            passed=0,
+            failed=1,
+            failures=[{
+                'title': 'smoke-config-missing-env',
+                'error': f'Missing required env vars for smoke gate: {", ".join(missing)}',
+            }],
+        )
     if 'QA_APP_URL' in env and 'BASE_URL' not in env:
         env['BASE_URL'] = env['QA_APP_URL']
     npx = 'npx.cmd' if sys.platform == 'win32' else 'npx'
     try:
         result = subprocess.run(
-            [npx, 'playwright', 'test', 'tests/smoke.spec.ts', '--reporter=json'],
+            [npx, 'playwright', 'test', 'tests/smoke', '--reporter=json'],
             cwd=str(PROJECT_ROOT),
             capture_output=True,
             text=True,
