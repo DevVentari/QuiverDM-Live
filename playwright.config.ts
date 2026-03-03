@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+config({ path: '.env.local', override: false });
 
-const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3847';
+const BASE_URL = process.env.BASE_URL ?? process.env.QA_APP_URL ?? 'http://localhost:3847';
 const USE_LOCAL_WEB_SERVER =
   !process.env.CI && /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(BASE_URL);
 
