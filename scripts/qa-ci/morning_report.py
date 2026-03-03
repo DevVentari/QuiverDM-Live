@@ -15,25 +15,23 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 
 import httpx
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+import db_failures
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 STATE_FILE = Path(__file__).parent / 'scenario_state.json'
 AGENT_REPORT = REPO_ROOT / 'scripts' / 'qa-agents' / 'reports' / 'latest.json'
 DISCORD_API = 'https://discord.com/api/v10'
 ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
-
-
-def get_github_repo() -> str:
-    return (
-        os.environ.get('QA_GITHUB_REPO')
-        or os.environ.get('GITHUB_FEEDBACK_REPO')
-        or 'DevVentari/QuiverDM-Live'
-    )
 
 
 def _load_regression_state() -> dict:
@@ -54,19 +52,11 @@ def _load_agent_report() -> dict | None:
         return None
 
 
-def _get_open_issues() -> list[dict]:
+def _get_open_failures() -> list[dict]:
     try:
-        repo = get_github_repo()
-        proc = subprocess.run(
-            ['gh', 'issue', 'list', '--repo', repo,
-             '--state', 'open', '--json', 'number,title,labels', '--limit', '20'],
-            capture_output=True, text=True, timeout=30,
-        )
-        if proc.returncode == 0:
-            return json.loads(proc.stdout or '[]')
+        return db_failures.get_open_failures() or []
     except Exception:
-        pass
-    return []
+        return []
 
 
 def _summarise_state(state: dict) -> dict:
@@ -113,7 +103,7 @@ def _summarise_agents(report: dict | None) -> str:
     )
 
 
-def _generate_claude(state_summary: dict, agent_summary: str, issues: list[dict]) -> str | None:
+def _generate_claude(state_summary: dict, agent_summary: str, failures: list[dict]) -> str | None:
     api_key = os.environ.get('ANTHROPIC_API_KEY', '')
     if not api_key:
         return None
@@ -123,8 +113,8 @@ def _generate_claude(state_summary: dict, agent_summary: str, issues: list[dict]
         if state_summary['failing']
         else 'none failing'
     )
-    issue_str = (
-        ', '.join(i['title'] for i in issues[:4]) if issues else 'none'
+    failure_str = (
+        ', '.join(f.get('scenarioId', '') for f in failures[:4]) if failures else 'none'
     )
     prompt = (
         f"Write a brief morning QA briefing for Blake, developer of QuiverDM "
@@ -132,7 +122,7 @@ def _generate_claude(state_summary: dict, agent_summary: str, issues: list[dict]
         f"Regression runner: {state_summary['active']}/{state_summary['total']} specs active, "
         f"{failing_str}, {state_summary['cycles']} cycles run.\n"
         f"Browser agents: {agent_summary}\n"
-        f"Open GitHub issues: {len(issues)} ({issue_str})\n\n"
+        f"Open failures: {len(failures)} ({failure_str})\n\n"
         "3-4 sentences max. Direct and specific. No emojis, no headers. "
         "Plain text that reads naturally in Discord. Address Blake directly."
     )
@@ -159,7 +149,7 @@ def _generate_claude(state_summary: dict, agent_summary: str, issues: list[dict]
     return None
 
 
-def _generate_template(state_summary: dict, agent_summary: str, issues: list[dict]) -> str:
+def _generate_template(state_summary: dict, agent_summary: str, failures: list[dict]) -> str:
     day = datetime.now().strftime('%A %d %B')
     parts = [f"Morning Blake — QA report for {day}."]
     if state_summary['failing']:
@@ -173,11 +163,11 @@ def _generate_template(state_summary: dict, agent_summary: str, issues: list[dic
             f"after {state_summary['cycles']} cycles overnight."
         )
     parts.append(f"Browser agents: {agent_summary}")
-    if issues:
-        titles = ', '.join(i['title'] for i in issues[:3])
-        parts.append(f"Open issues: {len(issues)} — {titles}.")
+    if failures:
+        scenario_ids = ', '.join(f.get('scenarioId', '') for f in failures[:3])
+        parts.append(f"Open failures: {len(failures)} — {scenario_ids}.")
     else:
-        parts.append("No open issues.")
+        parts.append("No open failures.")
     return ' '.join(parts)
 
 
@@ -217,14 +207,14 @@ def main() -> None:
 
     state = _load_regression_state()
     agent_report = _load_agent_report()
-    issues = _get_open_issues()
+    failures = _get_open_failures()
 
     state_summary = _summarise_state(state)
     agent_summary = _summarise_agents(agent_report)
 
-    message = _generate_claude(state_summary, agent_summary, issues)
+    message = _generate_claude(state_summary, agent_summary, failures)
     if not message:
-        message = _generate_template(state_summary, agent_summary, issues)
+        message = _generate_template(state_summary, agent_summary, failures)
 
     print(message)
     success = _post_to_discord(message)

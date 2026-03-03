@@ -1099,3 +1099,19 @@ model CharacterSessionState {
 
   @@unique([sessionId, characterId])
 }
+
+model QaFailure {
+  id          String   @id @default(cuid())
+  scenarioId  String
+  specFile    String
+  cycle       Int
+  lastError   String   @db.Text
+  status      String   @default("open")
+  fixAttempts Int      @default(0)
+  branch      String?
+  prUrl       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+}

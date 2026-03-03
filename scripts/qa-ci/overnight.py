@@ -39,6 +39,7 @@ QA_AGENTS_DIR = REPO_ROOT / 'scripts' / 'qa-agents'
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import db_failures
 from discord_dashboard import Dashboard
 
 # ── Constants ────────────────────────────────────────────────────────────────
@@ -50,14 +51,6 @@ FULL_THRESHOLD = 0.95           # 95% → run all scenarios
 ESCALATION_LIMIT = 2            # 2 failed fix attempts → escalate
 LXC_HOST = 'root@192.168.1.102'
 LXC_STATE_PATH = '/opt/quiverdm/scripts/qa-ci/scenario_state.json'
-
-
-def get_github_repo() -> str:
-    return (
-        os.environ.get('QA_GITHUB_REPO')
-        or os.environ.get('GITHUB_FEEDBACK_REPO')
-        or 'DevVentari/QuiverDM-Live'
-    )
 
 
 # ── LXC helpers ──────────────────────────────────────────────────────────────
@@ -193,33 +186,20 @@ def _ensure_fix_dispatcher(proc: subprocess.Popen | None, dry_run: bool) -> subp
     return proc
 
 
-# ── GitHub issue helpers ──────────────────────────────────────────────────────
+# ── DB failure helpers ────────────────────────────────────────────────────────
 
-def _get_open_issues(dry_run: bool) -> list[dict]:
+def _get_open_failures(dry_run: bool) -> list[dict]:
     if dry_run:
         return []
     try:
-        repo = get_github_repo()
-        result = subprocess.run(
-            ['gh', 'issue', 'list', '--repo', repo,
-             '--label', 'qa-failure', '--state', 'open',
-             '--json', 'number,title,url,comments,body', '--limit', '50'],
-            capture_output=True, text=True, timeout=30, stdin=subprocess.DEVNULL,
-        )
-        if result.returncode == 0:
-            return json.loads(result.stdout) or []
+        return db_failures.get_open_failures() or []
     except Exception as e:
-        print(f'[overnight] Failed to list GH issues: {e}')
+        print(f'[overnight] Failed to get open failures: {e}')
     return []
 
 
-def _count_fix_attempts(issue: dict) -> int:
-    """Count how many fix PRs have been commented on an issue."""
-    body = issue.get('body', '') or ''
-    comments = issue.get('comments', [])
-    comments_count = len(comments) if isinstance(comments, list) else int(comments or 0)
-    fix_mentions = body.lower().count('fix pr') + body.lower().count('fix attempt')
-    return fix_mentions + max(0, comments_count - 1)
+def _count_fix_attempts(failure: dict) -> int:
+    return int(failure.get('fixAttempts') or 0)
 
 
 # ── Stats builder ─────────────────────────────────────────────────────────────
@@ -310,18 +290,18 @@ def main() -> None:
     lxc_state = _read_lxc_state(args.dry_run, local) if lxc_ok else {}
     specs_pass, specs_total = _calc_pass_rate(lxc_state)
 
-    issues = _get_open_issues(args.dry_run)
-    issues_found = len(issues)
+    failures = _get_open_failures(args.dry_run)
+    issues_found = len(failures)
     issues_fixed = 0
     issues_escalated = 0
-    escalated_set: set[int] = set()
+    escalated_set: set[str] = set()
     pass_rate_history: list[float] = []
 
     start_pass_rate = specs_pass / specs_total if specs_total else 0.0
     pass_rate_history.append(start_pass_rate)
 
     print(f'[overnight] Baseline: specs {specs_pass}/{specs_total} ({start_pass_rate:.0%}), '
-          f'issues open: {issues_found}')
+          f'failures open: {issues_found}')
 
     if start_pass_rate >= FULL_THRESHOLD:
         print('[overnight] All specs already passing — will go straight to deep testing')
@@ -354,19 +334,19 @@ def main() -> None:
                 lxc_state = _read_lxc_state(args.dry_run, local)
                 specs_pass, specs_total = _calc_pass_rate(lxc_state)
 
-            issues = _get_open_issues(args.dry_run)
+            failures = _get_open_failures(args.dry_run)
 
             # Check for escalations
-            for issue in issues:
-                num = issue.get('number')
-                if num and num not in escalated_set:
-                    attempts = _count_fix_attempts(issue)
+            for failure in failures:
+                fid = str(failure.get('id') or '')
+                if fid and fid not in escalated_set:
+                    attempts = _count_fix_attempts(failure)
                     if attempts >= ESCALATION_LIMIT:
-                        escalated_set.add(num)
+                        escalated_set.add(fid)
                         issues_escalated += 1
                         dashboard.post_escalation(
-                            issue.get('title', 'Unknown'),
-                            issue.get('url', ''),
+                            failure.get('scenarioId', 'Unknown'),
+                            '',
                             f'Fix attempts: {attempts}',
                         )
 
@@ -385,7 +365,7 @@ def main() -> None:
                 current_tier = 'all'
 
             prev_open = issues_found
-            issues_found = len(issues)
+            issues_found = len(failures)
             if issues_found < prev_open:
                 issues_fixed += prev_open - issues_found
 
@@ -403,14 +383,14 @@ def main() -> None:
 
             # --until-clean: track consecutive all-pass cycles
             if until_clean is not None:
-                cycle_issues = _get_open_issues(args.dry_run)
-                is_clean = (agents_pass == agents_total and len(cycle_issues) == 0)
+                cycle_failures = _get_open_failures(args.dry_run)
+                is_clean = (agents_pass == agents_total and len(cycle_failures) == 0)
                 if is_clean:
                     consecutive_clean += 1
                     print(f'[overnight] Clean cycle {consecutive_clean}/{until_clean}')
                     dashboard.post_phase_change(
                         f'Clean cycle {consecutive_clean}/{until_clean}',
-                        f'All {agents_total} agents passing, 0 open issues'
+                        f'All {agents_total} agents passing, 0 open failures'
                     )
                 else:
                     if consecutive_clean > 0:
@@ -438,8 +418,8 @@ def main() -> None:
         lxc_state = _read_lxc_state(args.dry_run, local)
         specs_pass, specs_total = _calc_pass_rate(lxc_state)
 
-    final_issues = _get_open_issues(args.dry_run)
-    issues_found = len(final_issues)
+    final_failures = _get_open_failures(args.dry_run)
+    issues_found = len(final_failures)
 
     # ── Phase 5: Summary ──────────────────────────────────────────────────────
     print('[overnight] === Phase 5: Summary ===')
@@ -458,7 +438,7 @@ def main() -> None:
         'issues_fixed': issues_fixed,
         'issues_escalated': issues_escalated,
         'deep_results': deep_results,
-        'open_issues': [i.get('title', '') for i in final_issues[:10]],
+        'open_issues': [f.get('scenarioId', '') for f in final_failures[:10]],
     }
     dashboard.post_final_summary(final_report)
 
