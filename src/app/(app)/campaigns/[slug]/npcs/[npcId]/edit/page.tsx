@@ -51,6 +51,7 @@ export default function EditNPCPage() {
   const [hp, setHp] = useState('');
   const [ac, setAc] = useState('');
   const [creatureType, setCreatureType] = useState('');
+  const [size, setSize] = useState('');
   const [speed, setSpeed] = useState('');
   const [abilityScores, setAbilityScores] = useState<AbilityScores>({
     str: '', dex: '', con: '', int: '', wis: '', cha: '',
@@ -63,14 +64,20 @@ export default function EditNPCPage() {
   const [languages, setLanguages] = useState('');
   const [damageResistances, setDamageResistances] = useState('');
   const [damageImmunities, setDamageImmunities] = useState('');
+  const [conditionImmunities, setConditionImmunities] = useState('');
+  const [damageVulnerabilities, setDamageVulnerabilities] = useState('');
+  const [traits, setTraits] = useState('');
+  const [reactions, setReactions] = useState('');
+  const [legendaryActions, setLegendaryActions] = useState('');
 
   function setAbilityScore(key: typeof ABILITY_KEYS[number], val: string) {
     setAbilityScores((prev) => ({ ...prev, [key]: val }));
   }
 
   function buildStats() {
-    const hasAnyStatBlock = cr || hp || ac || creatureType || speed || actions ||
+    const hasAnyStatBlock = cr || hp || ac || creatureType || size || speed || actions ||
       alignment || savingThrows || skills || senses || languages || damageResistances || damageImmunities ||
+      conditionImmunities || damageVulnerabilities || traits || reactions || legendaryActions ||
       ABILITY_KEYS.some((k) => abilityScores[k]);
     if (!hasAnyStatBlock) return undefined;
     const scores: Partial<Record<typeof ABILITY_KEYS[number], number>> = {};
@@ -83,6 +90,7 @@ export default function EditNPCPage() {
       hitPoints: hp ? parseInt(hp, 10) : undefined,
       armorClass: ac ? parseInt(ac, 10) : undefined,
       creatureType: creatureType || undefined,
+      size: size || undefined,
       speed: speed || undefined,
       abilityScores: Object.keys(scores).length > 0 ? scores : undefined,
       actions: actions || undefined,
@@ -93,6 +101,11 @@ export default function EditNPCPage() {
       languages: languages || undefined,
       damageResistances: damageResistances || undefined,
       damageImmunities: damageImmunities || undefined,
+      conditionImmunities: conditionImmunities || undefined,
+      damageVulnerabilities: damageVulnerabilities || undefined,
+      traits: traits || undefined,
+      reactions: reactions || undefined,
+      legendaryActions: legendaryActions || undefined,
     };
   }
 
@@ -120,6 +133,12 @@ export default function EditNPCPage() {
       setLanguages(s.languages ?? '');
       setDamageResistances(s.damageResistances ?? '');
       setDamageImmunities(s.damageImmunities ?? '');
+      setConditionImmunities(s.conditionImmunities ?? '');
+      setDamageVulnerabilities(s.damageVulnerabilities ?? '');
+      setSize(s.size ?? '');
+      setTraits(s.traits ?? '');
+      setReactions(s.reactions ?? '');
+      setLegendaryActions(s.legendaryActions ?? '');
       const ab = s.abilityScores ?? {};
       setAbilityScores({
         str: ab.str != null ? String(ab.str) : '',
@@ -300,7 +319,7 @@ export default function EditNPCPage() {
               <div className="h-px bg-border" />
               {statBlockOpen && (
                 <div className="space-y-4 pt-1">
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
                       <Label htmlFor="creatureType">Creature Type</Label>
                       <Input
@@ -309,6 +328,23 @@ export default function EditNPCPage() {
                         value={creatureType}
                         onChange={(e) => setCreatureType(e.target.value)}
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="size">Size</Label>
+                      <select
+                        id="size"
+                        value={size}
+                        onChange={(e) => setSize(e.target.value)}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      >
+                        <option value="">— Select size —</option>
+                        <option value="Tiny">Tiny</option>
+                        <option value="Small">Small</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
+                        <option value="Huge">Huge</option>
+                        <option value="Gargantuan">Gargantuan</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="cr">Challenge Rating (CR)</Label>
@@ -446,6 +482,56 @@ export default function EditNPCPage() {
                         onChange={(e) => setDamageImmunities(e.target.value)}
                       />
                     </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="conditionImmunities">Condition Immunities</Label>
+                      <Input
+                        id="conditionImmunities"
+                        placeholder="Charmed, Frightened, Poisoned"
+                        value={conditionImmunities}
+                        onChange={(e) => setConditionImmunities(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="damageVulnerabilities">Damage Vulnerabilities</Label>
+                      <Input
+                        id="damageVulnerabilities"
+                        placeholder="Fire, Radiant"
+                        value={damageVulnerabilities}
+                        onChange={(e) => setDamageVulnerabilities(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="traits">Traits / Special Abilities</Label>
+                    <Textarea
+                      id="traits"
+                      placeholder="Spellcasting. The mage is a 9th-level spellcaster..."
+                      value={traits}
+                      onChange={(e) => setTraits(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reactions">Reactions</Label>
+                    <Textarea
+                      id="reactions"
+                      placeholder="Parry. The knight adds 2 to its AC against one melee attack..."
+                      value={reactions}
+                      onChange={(e) => setReactions(e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="legendaryActions">Legendary Actions</Label>
+                    <Textarea
+                      id="legendaryActions"
+                      placeholder="3 legendary actions. Can only be used at the end of another creature's turn..."
+                      value={legendaryActions}
+                      onChange={(e) => setLegendaryActions(e.target.value)}
+                      rows={3}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="actions">Actions</Label>

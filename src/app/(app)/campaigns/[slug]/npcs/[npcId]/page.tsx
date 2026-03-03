@@ -134,9 +134,9 @@ export default function NPCDetailPage() {
           <div className="section-rule mb-4" />
           <Card className="glass-panel">
             <CardContent className="pt-6">
-              {(stats.creatureType || stats.cr || stats.alignment) && (
+              {(stats.size || stats.creatureType || stats.cr || stats.alignment) && (
                 <p className="text-sm text-muted-foreground mb-4">
-                  {[stats.creatureType, stats.alignment, stats.cr ? `CR ${stats.cr}` : null]
+                  {[stats.size, stats.creatureType, stats.alignment, stats.cr ? `CR ${stats.cr}` : null]
                     .filter(Boolean)
                     .join(' · ')}
                 </p>
@@ -172,6 +172,12 @@ export default function NPCDetailPage() {
                 {stats.damageImmunities && (
                   <p><span className="font-semibold">Damage Immunities</span> {stats.damageImmunities}</p>
                 )}
+                {stats.conditionImmunities && (
+                  <p><span className="font-semibold">Condition Immunities</span> {stats.conditionImmunities}</p>
+                )}
+                {stats.damageVulnerabilities && (
+                  <p><span className="font-semibold">Damage Vulnerabilities</span> {stats.damageVulnerabilities}</p>
+                )}
               </div>
               {stats.abilityScores && (
                 <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm border-t border-b border-border py-3 mb-4">
@@ -193,10 +199,28 @@ export default function NPCDetailPage() {
                   })}
                 </div>
               )}
+              {stats.traits && (
+                <div className="mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Traits</p>
+                  <p className="text-sm whitespace-pre-wrap">{stats.traits}</p>
+                </div>
+              )}
               {stats.actions && (
-                <div>
+                <div className="mb-3">
                   <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Actions</p>
                   <p className="text-sm whitespace-pre-wrap">{stats.actions}</p>
+                </div>
+              )}
+              {stats.reactions && (
+                <div className="mb-3">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Reactions</p>
+                  <p className="text-sm whitespace-pre-wrap">{stats.reactions}</p>
+                </div>
+              )}
+              {stats.legendaryActions && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Legendary Actions</p>
+                  <p className="text-sm whitespace-pre-wrap">{stats.legendaryActions}</p>
                 </div>
               )}
             </CardContent>

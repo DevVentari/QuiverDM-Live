@@ -239,11 +239,16 @@ export function ImportFromMediaDialog({
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <Button onClick={handleExtract} disabled={files.length === 0}>
-                  Extract {files.length > 0 ? `${files.length} file${files.length > 1 ? 's' : ''}` : ''}
-                </Button>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Button onClick={handleExtract} disabled={files.length === 0}>
+                    Extract {files.length > 0 ? `${files.length} file${files.length > 1 ? 's' : ''}` : ''}
+                  </Button>
+                  <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                </div>
+                {files.length === 0 && (
+                  <p className="text-xs text-muted-foreground">Upload files above to enable extraction.</p>
+                )}
               </div>
             </div>
           )}
