@@ -5,24 +5,107 @@ const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
 
-test.fixme('veteran-dm happy path: rapid campaign navigation and advanced npc creation', async ({ page }, testInfo) => {
+test('veteran-dm happy path: rapid campaign navigation and advanced npc creation', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
   }, 12_000);
 
-  // TODO: hop across campaigns/npcs/sessions quickly and assert page readiness.
-  // TODO: create advanced NPC with full stat block.
-  // TODO: verify key sections render on detail page.
-  await page.goto(`/campaigns/${CAMPAIGN_SLUG}`);
-  await expect(page).toHaveURL(new RegExp(`/campaigns/${CAMPAIGN_SLUG}`));
+  await checkpoint(testInfo, 'rapid-navigation', async () => {
+    const noError = /404|not found|something went wrong/i;
+
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await expect(page.getByText(/vic.s test campaign/i).or(page.getByText(/vics test campaign/i)).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('body')).not.toContainText(noError);
+
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    const sessionsOk = page.getByRole('heading', { name: /sessions/i })
+      .or(page.getByText(/no sessions/i))
+      .or(page.getByText(/plan your first/i))
+      .or(page.locator('a[href*="/sessions/"]').first());
+    await expect(sessionsOk.first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('body')).not.toContainText(noError);
+
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/npcs`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    const npcsOk = page.getByRole('heading', { name: /npcs/i })
+      .or(page.getByText(/no npcs/i))
+      .or(page.getByText(/create your first/i))
+      .or(page.getByRole('link', { name: /new npc/i }));
+    await expect(npcsOk.first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('body')).not.toContainText(noError);
+
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/summaries`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    const summariesOk = page.getByRole('heading', { name: /ai recaps/i })
+      .or(page.getByRole('heading', { name: /recaps/i }))
+      .or(page.getByRole('heading', { name: /summaries/i }))
+      .or(page.getByText(/no recaps/i))
+      .or(page.getByText(/no sessions/i));
+    await expect(summariesOk.first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('body')).not.toContainText(noError);
+  }, 20_000);
+
+  const npcName = `QA Veteran NPC ${Date.now()}`;
+
+  await checkpoint(testInfo, 'create-stat-block-npc', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/npcs/new`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+
+    await page.getByLabel(/^name$/i).fill(npcName);
+
+    // Stat block section is collapsed by default — click to open it
+    await page.getByRole('button', { name: /d&d 5e stat block/i }).click();
+
+    await page.locator('#cr').fill('5');
+    await page.locator('#hp').fill('52');
+    await page.locator('#ac').fill('15');
+
+    await page.getByRole('button', { name: /create npc/i }).click();
+
+    await page.waitForURL((url) => url.pathname.includes('/npcs/') && !url.pathname.endsWith('/new'), { timeout: 20_000 });
+  }, 25_000);
+
+  await checkpoint(testInfo, 'npc-detail-renders', async () => {
+    const url = page.url();
+    expect(url).toMatch(/\/npcs\//);
+    expect(url).not.toMatch(/\/new/);
+
+    await expect(page.getByText(npcName)).toBeVisible({ timeout: 10_000 });
+
+    const statVisible = page.getByText('5').or(page.getByText('52')).or(page.getByText('15')).first();
+    await expect(statVisible).toBeVisible({ timeout: 10_000 });
+
+    await expect(page.locator('body')).not.toContainText(/something went wrong|error loading|failed to load/i);
+  }, 10_000);
 });
 
-test.fixme('veteran-dm failure path: blocked action surfaces clear actionable error', async ({ page }, testInfo) => {
-  await checkpoint(testInfo, 'open-advanced-flow', async () => {
+test('veteran-dm failure path: blocked action surfaces clear actionable error', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
-    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
   }, 12_000);
 
-  // TODO: induce invalid/blocked state and assert useful remediation text.
-  await expect(page.getByRole('heading').first()).toContainText(/session/i);
+  await checkpoint(testInfo, 'invalid-submit', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/npcs/new`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+
+    // Submit without filling name
+    await page.getByRole('button', { name: /create npc/i }).click();
+
+    // Validation error should appear — either aria-invalid on name field or destructive text
+    const validationErr = page.locator('[aria-invalid="true"]#name')
+      .or(page.locator('.text-destructive').filter({ hasText: /required|name/i }));
+    await expect(validationErr.first()).toBeVisible({ timeout: 8_000 });
+
+    // URL must still be /new — form blocked the submission
+    expect(page.url()).toMatch(/\/new$/);
+  }, 10_000);
+
+  await checkpoint(testInfo, 'error-visible', async () => {
+    const errEl = page.locator('.text-destructive').filter({ hasText: /required|name/i }).first();
+    await expect(errEl).toBeVisible({ timeout: 5_000 });
+
+    await expect(page.locator('body')).not.toContainText(/500|something went wrong/i);
+  }, 5_000);
 });
