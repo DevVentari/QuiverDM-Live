@@ -5,7 +5,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email';
-import { ForbiddenError, NotFoundError, RateLimitedError } from '../errors';
+import { ForbiddenError, NotFoundError } from '../errors';
 
 export type UserTier = 'free' | 'pro' | 'team';
 
@@ -238,7 +238,7 @@ export const usageService = {
   async incrementPdfUploads(userId: string) {
     const canUpload = await this.canUploadPdf(userId);
     if (!canUpload) {
-      throw new RateLimitedError(
+      throw new ForbiddenError(
         'PDF upload limit reached for your tier. Upgrade to Pro for more uploads.'
       );
     }
@@ -261,7 +261,7 @@ export const usageService = {
   async incrementTranscription(userId: string, durationSeconds: number) {
     const canTranscribe = await this.canTranscribe(userId, durationSeconds);
     if (!canTranscribe) {
-      throw new RateLimitedError(
+      throw new ForbiddenError(
         'Transcription limit reached for your tier. Upgrade to Pro for more minutes.'
       );
     }
@@ -284,7 +284,7 @@ export const usageService = {
   async incrementSessionUploads(userId: string) {
     const canUpload = await this.canUploadSession(userId);
     if (!canUpload) {
-      throw new RateLimitedError(
+      throw new ForbiddenError(
         'Session upload limit reached for your tier. Upgrade to Pro for more session uploads.'
       );
     }
@@ -307,7 +307,7 @@ export const usageService = {
   async incrementAiRecaps(userId: string) {
     const canGenerate = await this.canGenerateRecap(userId);
     if (!canGenerate) {
-      throw new RateLimitedError(
+      throw new ForbiddenError(
         'AI recap limit reached for your tier. Upgrade to Pro for more recaps.'
       );
     }
@@ -330,7 +330,7 @@ export const usageService = {
   async incrementSemanticSearches(userId: string) {
     const canSearch = await this.canSearch(userId);
     if (!canSearch) {
-      throw new RateLimitedError(
+      throw new ForbiddenError(
         'Semantic search limit reached for your tier. Upgrade to Pro for more searches.'
       );
     }
@@ -353,7 +353,7 @@ export const usageService = {
   async incrementImageGenerations(userId: string) {
     const canGenerate = await this.canGenerateImage(userId);
     if (!canGenerate) {
-      throw new RateLimitedError(
+      throw new ForbiddenError(
         'Image generation limit reached for your tier. Upgrade to Pro for more images.'
       );
     }
