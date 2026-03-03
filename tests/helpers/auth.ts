@@ -10,5 +10,17 @@ export async function signInAsTestUser(page: Page, email?: string, password?: st
   await page.getByLabel(/email/i).fill(e);
   await page.getByLabel(/password/i).fill(p);
   await page.getByRole('button', { name: /sign in/i }).click();
-  await page.waitForURL(/dashboard|onboarding|campaigns|characters|homebrew|settings|members/, { timeout: 15000 });
+  try {
+    await page.waitForURL(/dashboard|onboarding|campaigns|characters|homebrew|settings|members/, {
+      timeout: 15000,
+    });
+  } catch {
+    const alertText = await page
+      .locator('[role="alert"], .text-destructive')
+      .first()
+      .textContent()
+      .catch(() => null);
+    const details = alertText?.trim() || 'No auth error banner found.';
+    throw new Error(`Sign-in did not redirect for ${e}. URL=${page.url()}. ${details}`);
+  }
 }
