@@ -73,6 +73,25 @@ def run_claude_agent(
         src_dir = real_home / '.claude'
         if src_dir.exists():
             shutil.copytree(src_dir, tmp_home / '.claude', dirs_exist_ok=True)
+
+        # Give each agent its own Playwright browser profile so concurrent runs
+        # don't share cookies, sessions, or conflict on the same Chrome profile dir.
+        claude_json_path = tmp_home / '.claude.json'
+        if claude_json_path.exists():
+            try:
+                config = json.loads(claude_json_path.read_text(encoding='utf-8'))
+                pw = config.get('mcpServers', {}).get('playwright', {})
+                if pw and pw.get('type') == 'stdio':
+                    args = list(pw.get('args', []))
+                    profile_dir = str(tmp_home / 'pw-profile')
+                    if '--user-data-dir' not in args:
+                        args.extend(['--user-data-dir', profile_dir])
+                    pw['args'] = args
+                    config['mcpServers']['playwright'] = pw
+                    claude_json_path.write_text(json.dumps(config), encoding='utf-8')
+            except Exception:
+                pass
+
         env['HOME'] = str(tmp_home)
         env['USERPROFILE'] = str(tmp_home)
         env['CI'] = 'true'
@@ -96,7 +115,7 @@ def run_claude_agent(
             duration = round(time.monotonic() - start, 1)
             return AgentResult(
                 persona=persona.name, scenario=persona.scenario, outcome='failed',
-                friction_points=0, feedback_ids=[], error='Timeout after 600s',
+                friction_points=0, feedback_ids=[], error='Timeout after 1200s',
                 duration_seconds=duration,
             )
     finally:
