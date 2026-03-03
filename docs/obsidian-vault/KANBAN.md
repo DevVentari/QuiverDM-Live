@@ -22,7 +22,7 @@ kanban-plugin: board
 - [ ] **Phase 4 — Autonomous Co-DM** — Real-time narrative operator inside Session Mode, powered by DM Brain. Simultaneously: observes (NPC names spoken, goals, threats, HP trends, pacing), predicts (combat drag alerts, engagement drops, escape likelihood), autonomously updates NPC behavior (goals/fear/loyalty/secrets), generates world-consistent improv content on demand, manages encounter autopilot (conditions, recharge, initiative), guards lore continuity, propagates world reactions between sessions, detects table emotional state (spotlight imbalance, boredom). Confidence-threshold UI (silent → hint → highlight → alert). Four permission levels: Manual → Assist → Auto Mechanical → Full Co-DM. Architecture: Context Stream → Decision Models → Action Generator → Session UI. Refs: `docs/obsidian-vault/20-Brainstorm/autonomous-co-dm.md`
 - [ ] **Phase 3 — Session Mode Dashboard** — Full-screen play UI: party HP/conditions/initiative panel, live scene notes with AI overlay (auto-updates from transcription), zero-friction NPC recall, combat mode (UI morphs in place — no navigation), DM panic tools (roll, generate NPC, suggest twist), real-time AI context alerts, end-session one-click pipeline (summary → journals → NPCs → timeline → prep tasks). No page switching. Everything live. Refs: `docs/obsidian-vault/20-Brainstorm/session-mode-dashboard.md`
 - [ ] **Session Continuity Graph** — Persistent NPC/quest/state graph, surfaces unresolved threads between sessions.
-- [x] **Design Language Unification** — Amber accent system applied: grain texture on sidebar, overline labels + amber separator rules on dashboard/campaign overview, prep wizard uses Tailwind tokens. Create pages redesigned (campaign/session/NPC/character). Remaining: NPC detail/list pages, sessions list, homebrew gallery. Refs: `docs/plans/2026-03-01-alpha-readiness-impl.md`
+- [x] **Design Language Unification** — Amber accent system fully applied across all pages: sidebar grain, overline labels + amber separator rules on dashboard/campaign overview/NPC/sessions/homebrew, glass-panel cards throughout, prep wizard uses Tailwind tokens. All create pages redesigned.
 - [x] **Player Recap Mode** — 90-second player-safe summary generated after each session.
 - [x] **Derailment Detector** — Detects objective drift mid-session, surfaces 2-3 GM recovery options.
 
@@ -64,11 +64,11 @@ kanban-plugin: board
 - [x] Character Sheets - move health speed prof init above quick actions; mobile matches; spell slot tracking; currency/equipped/attuned icons; inline shorthand for quick actions/spells; remove hero section in campaign overview.
 - [x] NPC list shows "No NPCs yet" after creation (stale 2min cache — fixed d238e05)
 - [x] Browser tab title always reads "Dashboard" regardless of current page (fixed bb55778)
-- [ ] PDF upload page shows no file size/type limits before upload (Dana, 2026-03-02)
-- [ ] NPC form missing D&D 5e stat block fields — no CR, HP, AC, ability scores, actions (Vic, 2026-03-02)
-- [ ] Feedback widget screenshot shows "No screenshot" — html2canvas capture failing silently (Dana, 2026-03-02)
-- [ ] campaigns.create returns HTTP 429 for tier-limit errors instead of semantic code (Nora, 2026-03-02)
-- [ ] favicon.ico returns 404 (Nora, 2026-03-02)
+- [x] PDF upload page shows no file size/type limits before upload (Dana, 2026-03-02)
+- [x] NPC form missing D&D 5e stat block fields — no CR, HP, AC, ability scores, actions (Vic, 2026-03-02)
+- [x] Feedback widget screenshot shows "No screenshot" — html2canvas capture failing silently (Dana, 2026-03-02)
+- [x] campaigns.create returns HTTP 429 for tier-limit errors instead of semantic code (Nora, 2026-03-02)
+- [x] favicon.ico returns 404 (Nora, 2026-03-02)
 
 
 
