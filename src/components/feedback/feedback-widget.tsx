@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useContext } from 'react';
+import { useState, useContext } from 'react';
 import html2canvas from 'html2canvas';
 import { MessageSquare, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,6 @@ export function FeedbackWidget() {
   const [logs, setLogs] = useState<CapturedLog[]>([]);
   const [logsVisible, setLogsVisible] = useState(false);
   const [capturing, setCapturing] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const campaign = useCampaignOptional();
 
   const createReport = trpc.feedback.createReport.useMutation({
@@ -50,7 +49,15 @@ export function FeedbackWidget() {
         useCORS: true,
         allowTaint: true,
         scale: 0.5,
-        ignoreElements: (el) => el === dialogRef.current,
+        logging: false,
+        imageTimeout: 2000,
+        onclone: (_doc, element) => {
+          element.querySelectorAll('img').forEach((img) => {
+            if (img.src && !img.src.startsWith(window.location.origin) && !img.src.startsWith('data:')) {
+              img.remove();
+            }
+          });
+        },
       });
       setScreenshot(canvas.toDataURL('image/png'));
     } catch (err) {
@@ -60,10 +67,10 @@ export function FeedbackWidget() {
     }
   }
 
-  function handleOpen() {
+  async function handleOpen() {
     setLogs(getConsoleLogs());
+    await captureScreen();
     setOpen(true);
-    setTimeout(captureScreen, 100);
   }
 
   function handleSubmit() {
@@ -95,7 +102,7 @@ export function FeedbackWidget() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent ref={dialogRef} className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Report an issue</DialogTitle>
           </DialogHeader>
