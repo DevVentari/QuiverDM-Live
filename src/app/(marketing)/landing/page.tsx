@@ -11,9 +11,5 @@ export const metadata: Metadata = {
 
 export default async function LandingPage() {
   const session = await auth();
-  if (session?.user) {
-    redirect('/dashboard');
-  }
-
-  return <LandingClient />;
+  redirect(session?.user ? '/dashboard' : '/auth/signin');
 }
