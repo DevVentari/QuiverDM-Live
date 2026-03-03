@@ -120,6 +120,21 @@ scripts/qa-ci/reports/
 scripts/qa-ci/.venv/
 scripts/qa-ci/uv.lock
 
+# QA agents — debug/scratch scripts (not part of committed agent code)
+scripts/qa-agents/debug_*
+scripts/qa-agents/run_nora_*
+scripts/qa-agents/run_vic_*
+scripts/qa-agents/qa_nora_*
+scripts/qa-agents/qa_dana_*
+scripts/qa-agents/nora_*
+scripts/qa-agents/vic_*
+scripts/qa-agents/cdp_qa_test.py
+scripts/qa-agents/Microsoft/
+scripts/qa-agents/reports/
+scripts/qa-agents/*.ps1
+scripts/qa-agents/.venv/
+scripts/qa-agents/uv.lock
+
 # Logs
 logs
 *.log
