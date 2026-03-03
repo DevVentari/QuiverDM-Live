@@ -26,7 +26,8 @@ const CAMPAIGN_ROUTES = [
   { path: `/campaigns/${CAMPAIGN_SLUG}/settings`, label: 'campaign-settings' },
 ];
 
-const ERROR_PATTERN = /404|not found|internal server error|application error|something went wrong/i;
+// \b404\b avoids matching "404" inside timestamps or item names (e.g. "E2E-1772437422404")
+const ERROR_PATTERN = /\b404\b|not found|internal server error|application error|something went wrong/i;
 
 test('all navigation links resolve without error', async ({ page }) => {
   await signInAsTestUser(page, VIC_EMAIL, QA_TEST_PASSWORD);
@@ -34,8 +35,10 @@ test('all navigation links resolve without error', async ({ page }) => {
   for (const route of [...TOP_LEVEL_ROUTES, ...CAMPAIGN_ROUTES]) {
     await test.step(route.label, async () => {
       await page.goto(route.path);
-      await page.waitForLoadState('networkidle', { timeout: 10000 });
-      const body = await page.textContent('body');
+      await page.waitForLoadState('domcontentloaded');
+      await expect(page.locator('main')).toBeVisible({ timeout: 10000 });
+      // Use innerText (rendered text only) to avoid matching RSC script payloads
+      const body = await page.evaluate(() => document.body.innerText);
       expect(body, `Route ${route.path} returned an error page`).not.toMatch(ERROR_PATTERN);
       expect(body?.trim().length, `Route ${route.path} returned an empty body`).toBeGreaterThan(0);
     });

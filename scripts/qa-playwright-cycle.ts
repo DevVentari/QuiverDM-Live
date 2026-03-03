@@ -1,6 +1,8 @@
 import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
+import { config } from 'dotenv';
+config({ path: '.env.local', override: false });
 
 type PhaseName = 'smoke' | 'workflows';
 
@@ -69,7 +71,10 @@ type PhaseResult = {
 };
 
 function extractJson(stdout: string): PlaywrightJson | null {
-  const start = stdout.indexOf('{');
+  // Skip any prefix lines (e.g. dotenv tip output containing inline braces)
+  // and find the actual JSON object that starts on its own line.
+  const newlineStart = stdout.indexOf('\n{');
+  const start = newlineStart !== -1 ? newlineStart + 1 : stdout.indexOf('{');
   const end = stdout.lastIndexOf('}');
   if (start === -1 || end === -1 || end <= start) return null;
   try {

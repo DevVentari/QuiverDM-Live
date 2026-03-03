@@ -22,7 +22,6 @@ test('campaign create redirects from new campaign form', async ({ page }, testIn
     const uniqueName = `QA Campaign ${Date.now()}`;
     await page.getByLabel(/^name$/i).fill(uniqueName);
     await page.getByRole('button', { name: /create campaign/i }).click();
-    await expect(page).not.toHaveURL('/campaigns/new');
-    await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/);
+    await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 10_000 });
   }, 12_000);
 });

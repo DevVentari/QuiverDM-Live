@@ -70,8 +70,8 @@ test('session prep wizard loads and navigates all 8 steps', async ({ page }, tes
 
   await checkpoint(testInfo, 'step-7-loose-threads', async () => {
     await expect(page.getByRole('heading', { name: /loose threads/i })).toBeVisible({ timeout: 10_000 });
-    // On the final step, Next becomes Complete Prep
-    await expect(page.getByRole('button', { name: /complete prep/i })).toBeVisible({ timeout: 5_000 });
+    // On the final step, Next becomes Complete Prep (may appear in header + step area)
+    await expect(page.getByRole('button', { name: /complete prep/i }).first()).toBeVisible({ timeout: 5_000 });
   }, 10_000);
 
   await checkpoint(testInfo, 'auto-save-indicator', async () => {
