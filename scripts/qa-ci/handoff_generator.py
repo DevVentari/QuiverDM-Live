@@ -62,19 +62,15 @@ def parse_scenario_from_issue(body: str) -> dict:
 
 def generate_handoff(issue: dict, worktree_path: Path) -> Path:
     """
-    issue: dict with keys: number, title, body, createdAt
+    issue: dict with keys: id, scenarioId, specFile, lastError, fixAttempts, createdAt
     worktree_path: Path to git worktree
 
-    Parse issue body to extract: scenario_id, spec_file, last_error
     Write handoff doc to worktree_path / 'CODEX_FIX_HANDOFF.md'
     Return path to handoff doc.
     """
-    issue_body = issue.get("body") or ""
-    parsed = parse_scenario_from_issue(issue_body)
-
-    scenario_id = parsed.get("scenario_id") or "unknown-scenario"
-    spec_file = parsed.get("spec_file") or "tests/unknown.spec.ts"
-    last_error = parsed.get("last_error") or "No error details were provided in the issue body."
+    scenario_id = issue.get("scenarioId") or "unknown-scenario"
+    spec_file = issue.get("specFile") or "tests/unknown.spec.ts"
+    last_error = issue.get("lastError") or "No error details were provided."
 
     worktree_path.mkdir(parents=True, exist_ok=True)
     handoff_path = worktree_path / "CODEX_FIX_HANDOFF.md"

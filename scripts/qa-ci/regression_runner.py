@@ -72,8 +72,8 @@ def main() -> None:
     args = _parse_args()
     dry_run = args.dry_run
 
+    import db_failures
     from discord_notify import post_cycle_summary, post_error, post_state_change
-    from github_issues import close_issue, create_exploratory_trigger_issue, create_failure_issue
     from playwright_runner import run_spec
     from scenario_state import StateManager
 
@@ -92,8 +92,7 @@ def main() -> None:
     while True:
         try:
             _run_cycle(state, dry_run, post_state_change, post_error, post_cycle_summary,
-                       create_failure_issue, close_issue, create_exploratory_trigger_issue,
-                       run_spec)
+                       db_failures, run_spec)
         except KeyboardInterrupt:
             print('[runner] Interrupted — saving state')
             state.save()
@@ -112,8 +111,7 @@ def main() -> None:
 
 
 def _run_cycle(state, dry_run, post_state_change, post_error, post_cycle_summary,
-               create_failure_issue, close_issue, create_exploratory_trigger_issue,
-               run_spec):
+               db_failures, run_spec):
     from scenario_state import StateManager
 
     if state.target_reached():
@@ -147,10 +145,10 @@ def _run_cycle(state, dry_run, post_state_change, post_error, post_cycle_summary
             scenario_state.record_pass()
             print(f'[runner]   {scenario_id}: PASS')
             if was_retrying:
-                issue_num = scenario_state.github_issue_number
+                failure_id = scenario_state.github_issue_number
                 state.resume_from_issue(scenario_id)
-                if not dry_run and issue_num:
-                    close_issue(issue_num, f'{scenario_id} recovered after retry — closing.')
+                if not dry_run and failure_id:
+                    db_failures.close_failure(failure_id, f'{scenario_id} recovered after retry — closing.')
                     post_state_change(scenario_id, 'RECOVERED')
                 print(f'[runner]   {scenario_id}: RECOVERED')
         else:
@@ -158,8 +156,8 @@ def _run_cycle(state, dry_run, post_state_change, post_error, post_cycle_summary
             newly_paused = scenario_state.record_fail(result.error or 'unknown error')
             if newly_paused:
                 if not dry_run:
-                    issue_num = create_failure_issue(scenario_id, spec_file, cycle, result.error)
-                    state.pause_with_dependents(scenario_id, issue_num)
+                    failure_id = db_failures.create_failure(scenario_id, spec_file, cycle, result.error)
+                    state.pause_with_dependents(scenario_id, failure_id)
                     post_state_change(scenario_id, 'PAUSED', (result.error or '')[:200])
                 else:
                     state.pause_with_dependents(scenario_id, None)
@@ -191,7 +189,7 @@ def _run_cycle(state, dry_run, post_state_change, post_error, post_cycle_summary
 
     # Exploratory trigger every 10th cycle
     if not dry_run and state.cycle_count % 10 == 0:
-        create_exploratory_trigger_issue(state.cycle_count)
+        post_error(f'Exploratory trigger: cycle {state.cycle_count}')
 
 
 if __name__ == '__main__':

@@ -1,14 +1,13 @@
 ﻿"""
-Fix dispatcher - runs on host PC, polls GitHub for qa-failure issues.
+Fix dispatcher - runs on host PC, polls DB failures for qa-failure records.
 
 Usage:
   uv run python fix_dispatcher.py [--once] [--no-idle-check] [--once-per-issue]
 
---once: process one issue and exit (for testing)
+--once: process one failure and exit (for testing)
 --no-idle-check: skip idle detection (for testing/CI)
---once-per-issue: each issue is attempted exactly once per run; failed fixes
-                  are tracked in /tmp/qa-overnight-processed.json and commented
-                  on the GH issue with the attempt count
+--once-per-issue: each failure is attempted exactly once per run; tracked
+                  in /tmp/qa-overnight-processed.json
 
 Idle detection: Windows only via ctypes.windll.user32.GetLastInputInfo
 Idle threshold: 5 minutes (300 seconds)
@@ -30,22 +29,16 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import db_failures
 from fix_claude import dispatch_claude_fix
 from fix_codex import dispatch_codex_fix
+from github_issues import get_open_exploratory_trigger_issues
 from handoff_generator import generate_handoff
-from pr_creator import comment_pr_on_issue, create_fix_pr
+from pr_creator import create_fix_pr
 
 IDLE_THRESHOLD_SECONDS = 300
 POLL_INTERVAL_SECONDS = 60
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-
-
-def get_github_repo() -> str:
-    return (
-        os.environ.get('QA_GITHUB_REPO')
-        or os.environ.get('GITHUB_FEEDBACK_REPO')
-        or 'DevVentari/QuiverDM-Live'
-    )
 
 
 class LASTINPUTINFO(ctypes.Structure):
@@ -82,11 +75,11 @@ def is_idle() -> bool:
 
 def classify_issue(issue: dict) -> str:
     """
-    Return 'simple' or 'complex' based on issue body/title heuristics.
+    Return 'simple' or 'complex' based on failure heuristics.
     """
-    title = (issue.get("title") or "").lower()
-    body = (issue.get("body") or "").lower()
-    combined = f"{title}\n{body}"
+    scenario_id = (issue.get("scenarioId") or "").lower()
+    last_error = (issue.get("lastError") or "").lower()
+    combined = f"{scenario_id}\n{last_error}"
 
     simple_terms = ["timeouterror", "selector", "typeerror", "tobevisible", "tohavetext"]
     complex_terms = ["auth", "billing", "401", "403", "race condition", "members"]
@@ -94,11 +87,11 @@ def classify_issue(issue: dict) -> str:
     if any(term in combined for term in complex_terms):
         return "complex"
 
-    file_mentions = [line for line in body.splitlines() if "tests/" in line or "src/" in line]
+    file_mentions = [line for line in last_error.splitlines() if "tests/" in line or "src/" in line]
     if len(file_mentions) > 1:
         return "complex"
 
-    if "timeout" in title or "selector" in title:
+    if "timeout" in scenario_id or "selector" in scenario_id:
         return "simple"
 
     if any(term in combined for term in simple_terms):
@@ -107,62 +100,31 @@ def classify_issue(issue: dict) -> str:
     return "simple"
 
 
-def _parse_scenario_id_from_title(title: str) -> str:
-    marker = "]"
-    if marker in title:
-        remainder = title.split(marker, 1)[1].strip()
-    else:
-        remainder = title.strip()
-
-    for sep in (" - ", " -", "- ", " - ", " - ", ":"):
-        if sep in remainder:
-            candidate = remainder.split(sep, 1)[0].strip()
-            if candidate:
-                return candidate
-
-    return remainder or "unknown-scenario"
-
-
 OVERNIGHT_PROCESSED_FILE = Path('/tmp/qa-overnight-processed.json')
 
 
-def _load_overnight_processed() -> dict[int, int]:
-    """Load {issue_number: attempt_count} from temp file."""
+def _load_overnight_processed() -> dict[str, int]:
+    """Load {failure_id: attempt_count} from temp file."""
     if OVERNIGHT_PROCESSED_FILE.exists():
         try:
             data = json.loads(OVERNIGHT_PROCESSED_FILE.read_text())
-            return {int(k): int(v) for k, v in data.items()}
+            return {str(k): int(v) for k, v in data.items()}
         except Exception:
             pass
     return {}
 
 
-def _save_overnight_processed(processed: dict[int, int]) -> None:
+def _save_overnight_processed(processed: dict[str, int]) -> None:
     try:
-        OVERNIGHT_PROCESSED_FILE.write_text(json.dumps({str(k): v for k, v in processed.items()}))
+        OVERNIGHT_PROCESSED_FILE.write_text(json.dumps(processed))
     except Exception as e:
         print(f'[fix_dispatcher] Failed to save processed file: {e}')
-
-
-def _comment_fix_attempt(number: int, attempt: int, success: bool) -> None:
-    status = 'succeeded' if success else 'failed'
-    comment = f'[fix-dispatcher] Fix attempt {attempt} {status}.'
-    if not success:
-        comment += f' Attempt count: {attempt}. If >= 2 attempts fail, this will be escalated.'
-    try:
-        subprocess.run(
-            ['gh', 'issue', 'comment', str(number), '--repo', get_github_repo(), '--body', comment],
-            capture_output=True, text=True, stdin=subprocess.DEVNULL, timeout=30,
-        )
-    except Exception as e:
-        print(f'[fix_dispatcher] Failed to comment on issue #{number}: {e}')
 
 
 def process_exploratory_trigger(issue: dict) -> None:
     """
     Run scripts/qa-agents/run.py for exploratory agents.
     Then close the trigger issue.
-    Import and call from scripts/qa-agents/run.py or subprocess it.
     """
     run_script = REPO_ROOT / "scripts" / "qa-agents" / "run.py"
     subprocess.run(
@@ -175,7 +137,6 @@ def process_exploratory_trigger(issue: dict) -> None:
 
     issue_number = issue.get("number")
     if issue_number is not None:
-        repo = get_github_repo()
         subprocess.run(
             [
                 "gh",
@@ -183,7 +144,7 @@ def process_exploratory_trigger(issue: dict) -> None:
                 "close",
                 str(issue_number),
                 "--repo",
-                repo,
+                os.environ.get('QA_GITHUB_REPO') or os.environ.get('GITHUB_FEEDBACK_REPO') or 'DevVentari/QuiverDM-Live',
                 "--comment",
                 "Exploratory agent run triggered and completed.",
             ],
@@ -194,108 +155,77 @@ def process_exploratory_trigger(issue: dict) -> None:
         )
 
 
-def _load_issue_api():
+def _load_exploratory_api():
     try:
-        import github_issues  # type: ignore
+        get_exploratory = get_open_exploratory_trigger_issues
     except Exception:
-        return lambda: [], lambda: [], lambda: [], lambda: []
-
-    get_failures = getattr(github_issues, "get_open_qa_failure_issues", None)
-    get_exploratory = getattr(github_issues, "get_open_exploratory_trigger_issues", None)
-    get_user_feedback = getattr(github_issues, "get_open_user_feedback_issues", None)
-    get_qa_agent = getattr(github_issues, "get_open_qa_agent_issues", None)
-
-    if not callable(get_failures):
-        get_failures = lambda: []
-    if not callable(get_exploratory):
         get_exploratory = lambda: []
-    if not callable(get_user_feedback):
-        get_user_feedback = lambda: []
-    if not callable(get_qa_agent):
-        get_qa_agent = lambda: []
-
-    return get_failures, get_exploratory, get_user_feedback, get_qa_agent
+    return get_exploratory
 
 
 def main():
     """
     Loop:
-    1. Import github_issues (add scripts/qa-ci to sys.path)
-    2. Poll get_open_qa_failure_issues()
-    3. Also poll get_open_exploratory_trigger_issues()
-    4. For exploratory triggers: run regardless of idle
-    5. For qa-failure issues: skip if not idle (unless --no-idle-check)
-    6. For each unprocessed failure issue:
-       a. Parse scenario_id from issue title: [qa-failure] <scenario_id> - ...
-       b. Generate handoff doc
-       c. Classify issue
-       d. Dispatch fix (codex or claude)
-       e. If dispatch success: create PR, comment on issue
-    7. Sleep POLL_INTERVAL_SECONDS (skip if --once)
+    1. Poll get_open_exploratory_trigger_issues() from GH
+    2. Poll db_failures.get_open_failures() for qa failures
+    3. For exploratory triggers: run regardless of idle
+    4. For qa failures: skip if not idle (unless --no-idle-check)
+    5. For each unprocessed failure:
+       a. Generate handoff doc
+       b. Classify failure
+       c. Dispatch fix (codex or claude)
+       d. If dispatch success: create PR, update fix attempt in DB
+    6. Sleep POLL_INTERVAL_SECONDS (skip if --once)
 
-    Track processed issues in memory set to avoid reprocessing in same session.
+    Track processed failure ids in memory set to avoid reprocessing in same session.
     """
     parser = argparse.ArgumentParser(description="Dispatch qa-failure fixes via Codex or Claude.")
     parser.add_argument("--once", action="store_true", help="Process one poll cycle and exit.")
     parser.add_argument("--no-idle-check", action="store_true", help="Skip idle detection.")
     parser.add_argument("--once-per-issue", action="store_true",
-                        help="Attempt each issue exactly once; track in /tmp/qa-overnight-processed.json.")
+                        help="Attempt each failure exactly once; track in /tmp/qa-overnight-processed.json.")
     args = parser.parse_args()
 
-    get_open_qa_failure_issues, get_open_exploratory_trigger_issues, get_open_user_feedback_issues, get_open_qa_agent_issues = _load_issue_api()
-    processed_issue_numbers: set[int] = set()
+    get_open_exploratory_trigger_issues = _load_exploratory_api()
+    processed_ids: set[str] = set()
 
     # Load persistent processed map for --once-per-issue mode
-    overnight_processed: dict[int, int] = _load_overnight_processed() if args.once_per_issue else {}
+    overnight_processed: dict[str, int] = _load_overnight_processed() if args.once_per_issue else {}
 
     while True:
         exploratory_issues = get_open_exploratory_trigger_issues() or []
         for issue in exploratory_issues:
             number = issue.get("number")
-            if isinstance(number, int) and number in processed_issue_numbers:
+            key = str(number) if number is not None else None
+            if key and key in processed_ids:
                 continue
             process_exploratory_trigger(issue)
-            if isinstance(number, int):
-                processed_issue_numbers.add(number)
+            if key:
+                processed_ids.add(key)
 
-        # Collect all fixable issues from all three signal sources (deduped by number)
-        all_fixable: list[dict] = []
-        seen_numbers: set[int] = set()
-        for issue in (
-            get_open_qa_failure_issues() or []
-        ) + (
-            get_open_user_feedback_issues() or []
-        ) + (
-            get_open_qa_agent_issues() or []
-        ):
-            number = issue.get("number")
-            if isinstance(number, int) and number not in seen_numbers:
-                seen_numbers.add(number)
-                all_fixable.append(issue)
+        all_fixable: list[dict] = db_failures.get_open_failures() or []
 
         should_process = args.no_idle_check or is_idle()
 
         if should_process:
-            for issue in all_fixable:
-                number = issue.get("number")
-                if isinstance(number, int) and number in processed_issue_numbers:
+            for failure in all_fixable:
+                failure_id = str(failure.get("id") or "")
+                if not failure_id or failure_id in processed_ids:
                     continue
 
-                # --once-per-issue: skip issues already processed in this overnight run
-                if args.once_per_issue and isinstance(number, int) and number in overnight_processed:
+                if args.once_per_issue and failure_id in overnight_processed:
                     continue
 
-                title = issue.get("title") or ""
-                scenario_id = _parse_scenario_id_from_title(title)
+                scenario_id = failure.get("scenarioId") or "unknown-scenario"
 
                 handoff_base = REPO_ROOT / ".worktrees" / "fix" / "_handoffs" / scenario_id
-                handoff_path = generate_handoff(issue, handoff_base)
+                handoff_path = generate_handoff(failure, handoff_base)
 
-                classification = classify_issue(issue)
+                classification = classify_issue(failure)
                 if classification == "complex":
-                    result = dispatch_claude_fix(issue, scenario_id, handoff_path)
+                    result = dispatch_claude_fix(failure, scenario_id, handoff_path)
                 else:
-                    result = dispatch_codex_fix(issue, scenario_id)
+                    result = dispatch_codex_fix(failure, scenario_id)
 
                 fix_succeeded = result.get("success", False)
 
@@ -303,22 +233,18 @@ def main():
                     pr_url = create_fix_pr(
                         Path(result["worktree"]),
                         str(result["branch"]),
-                        int(number) if isinstance(number, int) else -1,
+                        -1,
                         scenario_id,
                     )
-                    if pr_url and isinstance(number, int):
-                        comment_pr_on_issue(number, pr_url)
+                    if pr_url:
+                        db_failures.update_fix_attempt(failure_id, pr_url=pr_url)
 
-                # --once-per-issue: track attempt + comment on failure
-                if args.once_per_issue and isinstance(number, int):
-                    attempt = overnight_processed.get(number, 0) + 1
-                    overnight_processed[number] = attempt
+                if args.once_per_issue:
+                    attempt = overnight_processed.get(failure_id, 0) + 1
+                    overnight_processed[failure_id] = attempt
                     _save_overnight_processed(overnight_processed)
-                    if args.no_idle_check and not fix_succeeded:
-                        _comment_fix_attempt(number, attempt, success=False)
 
-                if isinstance(number, int):
-                    processed_issue_numbers.add(number)
+                processed_ids.add(failure_id)
 
         if args.once:
             break
