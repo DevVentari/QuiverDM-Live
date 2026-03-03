@@ -50,6 +50,7 @@ export const npcsRouter = router({
         faction: z.string().max(255).optional(),
         secrets: z.string().max(10000).optional(),
         imageUrl: z.string().max(2048).optional(),
+        stats: z.any().optional(),
       })
     )
     .mutation(({ input, ctx }) => {

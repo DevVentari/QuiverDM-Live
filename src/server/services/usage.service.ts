@@ -5,7 +5,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email';
-import { NotFoundError, RateLimitedError } from '../errors';
+import { ForbiddenError, NotFoundError, RateLimitedError } from '../errors';
 
 export type UserTier = 'free' | 'pro' | 'team';
 
@@ -110,7 +110,7 @@ export const usageService = {
       tier,
       transcription: limitStat(usage.transcriptionSeconds, usage.transcriptionLimit),
       pdfUploads: limitStat(usage.pdfUploads, usage.pdfUploadLimit),
-      campaigns: limitStat(usage.campaignsOwned, usage.campaignLimit),
+      campaigns: limitStat(usage.campaignsOwned, TIER_LIMITS[tier].campaigns),
       sessionUploads: limitStat(usage.sessionUploads, usage.sessionUploadLimit),
       aiRecaps: limitStat(usage.aiRecaps, usage.aiRecapLimit),
       semanticSearches: limitStat(usage.semanticSearches, usage.semanticSearchLimit),
@@ -129,8 +129,10 @@ export const usageService = {
       await this.resetUsagePeriod(userId);
       return true;
     }
-    if (usage.campaignLimit === -1) return true;
-    return usage.campaignsOwned < usage.campaignLimit;
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
+    const limit = TIER_LIMITS[(user?.tier as UserTier) || 'free'].campaigns;
+    if (limit === -1) return true;
+    return usage.campaignsOwned < limit;
   },
 
   /**
@@ -216,7 +218,7 @@ export const usageService = {
   async incrementCampaigns(userId: string) {
     const canCreate = await this.canCreateCampaign(userId);
     if (!canCreate) {
-      throw new RateLimitedError(
+      throw new ForbiddenError(
         'Campaign limit reached for your tier. Upgrade to Pro for unlimited campaigns.'
       );
     }

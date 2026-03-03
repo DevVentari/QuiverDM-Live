@@ -133,42 +133,53 @@ export default function NPCDetailPage() {
           <p className="label-overline">STAT BLOCK</p>
           <div className="section-rule mb-4" />
           <Card className="glass-panel">
-            <CardHeader>
-              <CardTitle className="text-sm">Stat Block</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm">
-                {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => {
-                  const key = ability.toLowerCase();
-                  const score = stats.abilityScores?.[key] ?? stats[key] ?? '—';
-                  const mod = typeof score === 'number' ? Math.floor((score - 10) / 2) : 0;
-                  return (
-                    <div key={ability}>
-                      <div className="font-semibold text-xs text-muted-foreground">
-                        {ability}
-                      </div>
-                      <div className="text-lg font-bold">{score}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {typeof score === 'number' ? `(${mod >= 0 ? '+' : ''}${mod})` : ''}
-                      </div>
-                    </div>
-                  );
-                })}
+            <CardContent className="pt-6">
+              {(stats.creatureType || stats.cr) && (
+                <p className="text-sm text-muted-foreground mb-4">
+                  {[stats.creatureType, stats.cr ? `CR ${stats.cr}` : null]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm mb-4">
+                {stats.armorClass != null && (
+                  <p><span className="font-semibold">AC</span> {stats.armorClass}</p>
+                )}
+                {stats.hitPoints != null && (
+                  <p>
+                    <span className="font-semibold">HP</span>{' '}
+                    {typeof stats.hitPoints === 'object' ? stats.hitPoints.max : stats.hitPoints}
+                  </p>
+                )}
+                {stats.speed && (
+                  <p><span className="font-semibold">Speed</span> {stats.speed}</p>
+                )}
               </div>
-              {stats.armorClass && (
-                <p className="mt-4 text-sm">
-                  <span className="font-semibold">AC:</span> {stats.armorClass}
-                </p>
+              {stats.abilityScores && (
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm border-t border-b border-border py-3 mb-4">
+                  {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => {
+                    const key = ability.toLowerCase();
+                    const score = stats.abilityScores?.[key] ?? stats[key] ?? '—';
+                    const mod = typeof score === 'number' ? Math.floor((score - 10) / 2) : 0;
+                    return (
+                      <div key={ability}>
+                        <div className="font-semibold text-xs text-muted-foreground">
+                          {ability}
+                        </div>
+                        <div className="text-lg font-bold">{score}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {typeof score === 'number' ? `(${mod >= 0 ? '+' : ''}${mod})` : ''}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-              {stats.hitPoints && (
-                <p className="text-sm">
-                  <span className="font-semibold">HP:</span> {typeof stats.hitPoints === 'object' ? stats.hitPoints.max : stats.hitPoints}
-                </p>
-              )}
-              {stats.speed && (
-                <p className="text-sm">
-                  <span className="font-semibold">Speed:</span> {stats.speed}
-                </p>
+              {stats.actions && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Actions</p>
+                  <p className="text-sm whitespace-pre-wrap">{stats.actions}</p>
+                </div>
               )}
             </CardContent>
           </Card>
