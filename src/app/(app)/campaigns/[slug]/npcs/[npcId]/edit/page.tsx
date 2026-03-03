@@ -12,8 +12,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ChevronDown, ChevronRight, Swords } from 'lucide-react';
 import Link from 'next/link';
+
+const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
+const ABILITY_LABELS: Record<typeof ABILITY_KEYS[number], string> = {
+  str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA',
+};
+
+type AbilityScores = Record<typeof ABILITY_KEYS[number], string>;
+
+function abilityModifier(score: string): string {
+  const n = parseInt(score, 10);
+  if (isNaN(n)) return '';
+  const mod = Math.floor((n - 10) / 2);
+  return mod >= 0 ? `+${mod}` : `${mod}`;
+}
 
 export default function EditNPCPage() {
   const params = useParams();
@@ -32,6 +46,41 @@ export default function EditNPCPage() {
   const [uploading, setUploading] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
+  const [statBlockOpen, setStatBlockOpen] = useState(false);
+  const [cr, setCr] = useState('');
+  const [hp, setHp] = useState('');
+  const [ac, setAc] = useState('');
+  const [creatureType, setCreatureType] = useState('');
+  const [speed, setSpeed] = useState('');
+  const [abilityScores, setAbilityScores] = useState<AbilityScores>({
+    str: '', dex: '', con: '', int: '', wis: '', cha: '',
+  });
+  const [actions, setActions] = useState('');
+
+  function setAbilityScore(key: typeof ABILITY_KEYS[number], val: string) {
+    setAbilityScores((prev) => ({ ...prev, [key]: val }));
+  }
+
+  function buildStats() {
+    const hasAnyStatBlock = cr || hp || ac || creatureType || speed || actions ||
+      ABILITY_KEYS.some((k) => abilityScores[k]);
+    if (!hasAnyStatBlock) return undefined;
+    const scores: Partial<Record<typeof ABILITY_KEYS[number], number>> = {};
+    for (const k of ABILITY_KEYS) {
+      const n = parseInt(abilityScores[k], 10);
+      if (!isNaN(n)) scores[k] = n;
+    }
+    return {
+      cr: cr || undefined,
+      hitPoints: hp ? parseInt(hp, 10) : undefined,
+      armorClass: ac ? parseInt(ac, 10) : undefined,
+      creatureType: creatureType || undefined,
+      speed: speed || undefined,
+      abilityScores: Object.keys(scores).length > 0 ? scores : undefined,
+      actions: actions || undefined,
+    };
+  }
+
   useEffect(() => {
     if (!npc.data) return;
     const data = npc.data as any;
@@ -40,6 +89,25 @@ export default function EditNPCPage() {
     setFaction(data.faction || '');
     setSecrets(data.secrets || '');
     setImageUrl(data.imageUrl || '');
+    const s = data.stats as any;
+    if (s) {
+      setStatBlockOpen(true);
+      setCr(s.cr ?? '');
+      setHp(s.hitPoints != null ? String(s.hitPoints) : '');
+      setAc(s.armorClass != null ? String(s.armorClass) : '');
+      setCreatureType(s.creatureType ?? '');
+      setSpeed(s.speed ?? '');
+      setActions(s.actions ?? '');
+      const ab = s.abilityScores ?? {};
+      setAbilityScores({
+        str: ab.str != null ? String(ab.str) : '',
+        dex: ab.dex != null ? String(ab.dex) : '',
+        con: ab.con != null ? String(ab.con) : '',
+        int: ab.int != null ? String(ab.int) : '',
+        wis: ab.wis != null ? String(ab.wis) : '',
+        cha: ab.cha != null ? String(ab.cha) : '',
+      });
+    }
   }, [npc.data]);
 
   const update = trpc.npcs.update.useMutation({
@@ -97,6 +165,7 @@ export default function EditNPCPage() {
       faction: faction || undefined,
       secrets: secrets || undefined,
       imageUrl: imageUrl || undefined,
+      stats: buildStats(),
     });
   }
 
@@ -189,6 +258,118 @@ export default function EditNPCPage() {
                 )}
               </div>
             </div>
+            {/* D&D 5e Stat Block */}
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                className="flex items-center gap-2 w-full text-left"
+                onClick={() => setStatBlockOpen((v) => !v)}
+              >
+                <Swords className="h-3.5 w-3.5 text-muted-foreground" />
+                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[0.65rem]">
+                  D&D 5e Stat Block
+                </span>
+                {statBlockOpen ? (
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+                ) : (
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+                )}
+              </button>
+              <div className="h-px bg-border" />
+              {statBlockOpen && (
+                <div className="space-y-4 pt-1">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="creatureType">Creature Type</Label>
+                      <Input
+                        id="creatureType"
+                        placeholder="Humanoid, Undead, Dragon..."
+                        value={creatureType}
+                        onChange={(e) => setCreatureType(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="cr">Challenge Rating (CR)</Label>
+                      <Input
+                        id="cr"
+                        placeholder="1/4, 1, 5, 20..."
+                        value={cr}
+                        onChange={(e) => setCr(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="hp">Hit Points</Label>
+                      <Input
+                        id="hp"
+                        type="number"
+                        min={0}
+                        placeholder="45"
+                        value={hp}
+                        onChange={(e) => setHp(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ac">Armor Class</Label>
+                      <Input
+                        id="ac"
+                        type="number"
+                        min={0}
+                        placeholder="13"
+                        value={ac}
+                        onChange={(e) => setAc(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="speed">Speed</Label>
+                      <Input
+                        id="speed"
+                        placeholder="30 ft."
+                        value={speed}
+                        onChange={(e) => setSpeed(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-3">Ability Scores</p>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                      {ABILITY_KEYS.map((key) => (
+                        <div key={key} className="space-y-1 text-center">
+                          <Label htmlFor={`ability-${key}`} className="text-xs font-semibold">
+                            {ABILITY_LABELS[key]}
+                          </Label>
+                          <Input
+                            id={`ability-${key}`}
+                            type="number"
+                            min={1}
+                            max={30}
+                            placeholder="10"
+                            value={abilityScores[key]}
+                            onChange={(e) => setAbilityScore(key, e.target.value)}
+                            className="text-center px-1"
+                          />
+                          <p className="text-xs text-muted-foreground h-4">
+                            {abilityModifier(abilityScores[key])}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="actions">Actions</Label>
+                    <Textarea
+                      id="actions"
+                      placeholder="Multiattack. The creature makes two attacks..."
+                      value={actions}
+                      onChange={(e) => setActions(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-3">
               <Button type="submit" disabled={update.isPending}>
                 <Save className="mr-2 h-4 w-4" />

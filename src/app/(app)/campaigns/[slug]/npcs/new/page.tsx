@@ -11,8 +11,151 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Upload, Lock } from 'lucide-react';
+import { Loader2, Upload, Lock, ChevronDown, ChevronRight, Swords } from 'lucide-react';
 import { CreatePageShell } from '@/components/create/create-page-shell';
+
+const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
+const ABILITY_LABELS: Record<typeof ABILITY_KEYS[number], string> = {
+  str: 'STR', dex: 'DEX', con: 'CON', int: 'INT', wis: 'WIS', cha: 'CHA',
+};
+
+type AbilityScores = Record<typeof ABILITY_KEYS[number], string>;
+
+function abilityModifier(score: string): string {
+  const n = parseInt(score, 10);
+  if (isNaN(n)) return '';
+  const mod = Math.floor((n - 10) / 2);
+  return mod >= 0 ? `+${mod}` : `${mod}`;
+}
+
+interface StatBlockSectionProps {
+  cr: string; setCr: (v: string) => void;
+  hp: string; setHp: (v: string) => void;
+  ac: string; setAc: (v: string) => void;
+  creatureType: string; setCreatureType: (v: string) => void;
+  speed: string; setSpeed: (v: string) => void;
+  abilityScores: AbilityScores; setAbilityScore: (key: typeof ABILITY_KEYS[number], val: string) => void;
+  actions: string; setActions: (v: string) => void;
+}
+
+function StatBlockSection({
+  cr, setCr, hp, setHp, ac, setAc,
+  creatureType, setCreatureType, speed, setSpeed,
+  abilityScores, setAbilityScore, actions, setActions,
+}: StatBlockSectionProps) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="space-y-4">
+      <button
+        type="button"
+        className="flex items-center gap-2 w-full text-left"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <Swords className="h-3 w-3 text-muted-foreground" />
+        <p className="label-overline mb-0">D&D 5e Stat Block</p>
+        {open ? (
+          <ChevronDown className="h-3 w-3 text-muted-foreground ml-auto" />
+        ) : (
+          <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto" />
+        )}
+      </button>
+      <div className="section-rule" />
+      {open && (
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="creatureType">Creature Type</Label>
+              <Input
+                id="creatureType"
+                placeholder="Humanoid, Undead, Dragon..."
+                value={creatureType}
+                onChange={(e) => setCreatureType(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cr">Challenge Rating (CR)</Label>
+              <Input
+                id="cr"
+                placeholder="1/4, 1, 5, 20..."
+                value={cr}
+                onChange={(e) => setCr(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="hp">Hit Points</Label>
+              <Input
+                id="hp"
+                type="number"
+                min={0}
+                placeholder="45"
+                value={hp}
+                onChange={(e) => setHp(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ac">Armor Class</Label>
+              <Input
+                id="ac"
+                type="number"
+                min={0}
+                placeholder="13"
+                value={ac}
+                onChange={(e) => setAc(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="speed">Speed</Label>
+              <Input
+                id="speed"
+                placeholder="30 ft."
+                value={speed}
+                onChange={(e) => setSpeed(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-3">Ability Scores</p>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              {ABILITY_KEYS.map((key) => (
+                <div key={key} className="space-y-1 text-center">
+                  <Label htmlFor={`ability-${key}`} className="text-xs font-semibold">
+                    {ABILITY_LABELS[key]}
+                  </Label>
+                  <Input
+                    id={`ability-${key}`}
+                    type="number"
+                    min={1}
+                    max={30}
+                    placeholder="10"
+                    value={abilityScores[key]}
+                    onChange={(e) => setAbilityScore(key, e.target.value)}
+                    className="text-center px-1"
+                  />
+                  <p className="text-xs text-muted-foreground h-4">
+                    {abilityModifier(abilityScores[key])}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="actions">Actions</Label>
+            <Textarea
+              id="actions"
+              placeholder="Multiattack. The creature makes two attacks...&#10;&#10;Longsword. Melee Weapon Attack: +5 to hit..."
+              value={actions}
+              onChange={(e) => setActions(e.target.value)}
+              rows={4}
+              className="resize-none"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface NpcPreviewProps {
   name: string;
@@ -93,6 +236,40 @@ export default function NewNPCPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
 
+  const [cr, setCr] = useState('');
+  const [hp, setHp] = useState('');
+  const [ac, setAc] = useState('');
+  const [creatureType, setCreatureType] = useState('');
+  const [speed, setSpeed] = useState('');
+  const [abilityScores, setAbilityScores] = useState<AbilityScores>({
+    str: '', dex: '', con: '', int: '', wis: '', cha: '',
+  });
+  const [actions, setActions] = useState('');
+
+  function setAbilityScore(key: typeof ABILITY_KEYS[number], val: string) {
+    setAbilityScores((prev) => ({ ...prev, [key]: val }));
+  }
+
+  function buildStats() {
+    const hasAnyStatBlock = cr || hp || ac || creatureType || speed || actions ||
+      ABILITY_KEYS.some((k) => abilityScores[k]);
+    if (!hasAnyStatBlock) return undefined;
+    const scores: Partial<Record<typeof ABILITY_KEYS[number], number>> = {};
+    for (const k of ABILITY_KEYS) {
+      const n = parseInt(abilityScores[k], 10);
+      if (!isNaN(n)) scores[k] = n;
+    }
+    return {
+      cr: cr || undefined,
+      hitPoints: hp ? parseInt(hp, 10) : undefined,
+      armorClass: ac ? parseInt(ac, 10) : undefined,
+      creatureType: creatureType || undefined,
+      speed: speed || undefined,
+      abilityScores: Object.keys(scores).length > 0 ? scores : undefined,
+      actions: actions || undefined,
+    };
+  }
+
   const utils = trpc.useUtils();
 
   const create = trpc.npcs.create.useMutation({
@@ -148,6 +325,7 @@ export default function NewNPCPage() {
       faction: faction || undefined,
       secrets: secrets || undefined,
       imageUrl: imageUrl || undefined,
+      stats: buildStats(),
     });
   }
 
@@ -240,6 +418,17 @@ export default function NewNPCPage() {
               />
             </div>
           </div>
+
+          {/* Stat Block */}
+          <StatBlockSection
+            cr={cr} setCr={setCr}
+            hp={hp} setHp={setHp}
+            ac={ac} setAc={setAc}
+            creatureType={creatureType} setCreatureType={setCreatureType}
+            speed={speed} setSpeed={setSpeed}
+            abilityScores={abilityScores} setAbilityScore={setAbilityScore}
+            actions={actions} setActions={setActions}
+          />
 
           {uploadError && (
             <p className="text-xs text-destructive">{uploadError}</p>
