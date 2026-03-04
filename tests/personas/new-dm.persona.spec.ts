@@ -55,7 +55,7 @@ test('new-dm happy path: onboarding to first campaign and first npc', async ({ p
     await page.getByRole('button', { name: /create campaign/i }).click();
 
     await page.waitForURL(url => {
-      return /\/campaigns\//.test(url) && !url.includes('/new');
+      return /\/campaigns\//.test(url.href) && !url.href.includes('/new');
     }, { timeout: 12000 });
 
     const currentUrl = page.url();
@@ -92,7 +92,7 @@ test('new-dm happy path: onboarding to first campaign and first npc', async ({ p
     await page.getByRole('button', { name: /create npc|save|submit/i }).click();
 
     await page.waitForURL(url => {
-      return /\/npcs\//.test(url) && !url.includes('/new');
+      return /\/npcs\//.test(url.href) && !url.href.includes('/new');
     }, { timeout: 15000 });
   }, 20_000);
 
