@@ -17,7 +17,6 @@ function getRedisConnection(): Record<string, unknown> {
       username: url.username !== 'default' ? url.username : undefined,
       maxRetriesPerRequest: null,
       lazyConnect: true,
-      enableOfflineQueue: false,
       ...(useTls ? { tls: {} } : {}),
     };
   }
