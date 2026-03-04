@@ -9,21 +9,28 @@ import Redis from 'ioredis';
 
 // Redis connection configuration
 // Supports both Upstash (via REDIS_URL) and traditional Redis (via REDIS_HOST/PORT)
-export function getRedisConnection() {
+export function getRedisConnection(): Record<string, unknown> {
   if (process.env.REDIS_URL) {
-    // Upstash or Redis connection string format
-    return process.env.REDIS_URL;
-  } else {
-    // Traditional host/port format (for local development)
+    const url = new URL(process.env.REDIS_URL);
+    const useTls = url.protocol === 'rediss:';
     return {
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6380'),
-      password: process.env.REDIS_PASSWORD,
+      host: url.hostname,
+      port: parseInt(url.port || (useTls ? '6380' : '6379')),
+      password: url.password || undefined,
+      username: url.username !== 'default' ? url.username : undefined,
       maxRetriesPerRequest: null, // Required for BullMQ
-      // Don't try to connect during build time
       lazyConnect: true,
+      enableOfflineQueue: false,
+      ...(useTls ? { tls: {} } : {}),
     };
   }
+  return {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6380'),
+    password: process.env.REDIS_PASSWORD,
+    maxRetriesPerRequest: null, // Required for BullMQ
+    lazyConnect: true,
+  };
 }
 
 const redisConnection = getRedisConnection();
@@ -32,12 +39,7 @@ const redisConnection = getRedisConnection();
 // Wrap in try/catch to handle connection errors gracefully
 let redisInstance: Redis | null = null;
 try {
-  // TypeScript needs explicit handling for string vs object
-  if (typeof redisConnection === 'string') {
-    redisInstance = new Redis(redisConnection);
-  } else {
-    redisInstance = new Redis(redisConnection);
-  }
+  redisInstance = new Redis(redisConnection as any);
   redisInstance.on('error', (err) => {
     console.warn('[Redis] Connection error (non-fatal):', err.message);
   });

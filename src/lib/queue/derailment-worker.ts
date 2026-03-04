@@ -11,8 +11,21 @@ import { prisma } from '../prisma';
 import { chatWithOllama } from '../ai/ollama';
 import type { DerailmentJobData, DerailmentJobResult } from './derailment-queue';
 
-function getRedisConnection() {
-  if (process.env.REDIS_URL) return process.env.REDIS_URL;
+function getRedisConnection(): Record<string, unknown> {
+  if (process.env.REDIS_URL) {
+    const url = new URL(process.env.REDIS_URL);
+    const useTls = url.protocol === 'rediss:';
+    return {
+      host: url.hostname,
+      port: parseInt(url.port || (useTls ? '6380' : '6379')),
+      password: url.password || undefined,
+      username: url.username !== 'default' ? url.username : undefined,
+      maxRetriesPerRequest: null,
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      ...(useTls ? { tls: {} } : {}),
+    };
+  }
   return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6380'),
