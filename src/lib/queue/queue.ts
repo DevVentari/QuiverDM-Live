@@ -19,8 +19,6 @@ export function getRedisConnection(): Record<string, unknown> {
       password: url.password || undefined,
       username: url.username !== 'default' ? url.username : undefined,
       maxRetriesPerRequest: null, // Required for BullMQ
-      lazyConnect: true,
-      enableOfflineQueue: false,
       ...(useTls ? { tls: {} } : {}),
     };
   }
