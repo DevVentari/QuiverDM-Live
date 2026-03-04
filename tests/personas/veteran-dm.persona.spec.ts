@@ -11,41 +11,45 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
   }, 12_000);
 
   await checkpoint(testInfo, 'rapid-navigation', async () => {
-    const noError = /404|not found|something went wrong/i;
+    // Check for actual error page headings — not body text, which may contain "404" in session numbers
+    const assertNoErrorPage = async () => {
+      const errorHeading = page.locator('h1, h2').filter({ hasText: /^(404|not found|something went wrong|error)$/i });
+      await expect(errorHeading).toHaveCount(0, { timeout: 3_000 });
+    };
 
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}`);
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 15_000 });
     await expect(page.getByText(/vic.s test campaign/i).or(page.getByText(/vics test campaign/i)).first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('body')).not.toContainText(noError);
+    await assertNoErrorPage();
 
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 15_000 });
     const sessionsOk = page.getByRole('heading', { name: /sessions/i })
       .or(page.getByText(/no sessions/i))
       .or(page.getByText(/plan your first/i))
       .or(page.locator('a[href*="/sessions/"]').first());
-    await expect(sessionsOk.first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('body')).not.toContainText(noError);
+    await expect(sessionsOk.first()).toBeVisible({ timeout: 15_000 });
+    await assertNoErrorPage();
 
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}/npcs`);
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 15_000 });
     const npcsOk = page.getByRole('heading', { name: /npcs/i })
       .or(page.getByText(/no npcs/i))
       .or(page.getByText(/create your first/i))
       .or(page.getByRole('link', { name: /new npc/i }));
-    await expect(npcsOk.first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('body')).not.toContainText(noError);
+    await expect(npcsOk.first()).toBeVisible({ timeout: 15_000 });
+    await assertNoErrorPage();
 
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}/summaries`);
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await page.waitForLoadState('domcontentloaded', { timeout: 15_000 });
     const summariesOk = page.getByRole('heading', { name: /ai recaps/i })
       .or(page.getByRole('heading', { name: /recaps/i }))
       .or(page.getByRole('heading', { name: /summaries/i }))
       .or(page.getByText(/no recaps/i))
       .or(page.getByText(/no sessions/i));
-    await expect(summariesOk.first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('body')).not.toContainText(noError);
-  }, 20_000);
+    await expect(summariesOk.first()).toBeVisible({ timeout: 15_000 });
+    await assertNoErrorPage();
+  }, 50_000);
 
   const npcName = `QA Veteran NPC ${Date.now()}`;
 

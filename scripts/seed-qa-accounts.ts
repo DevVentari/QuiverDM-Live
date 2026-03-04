@@ -13,9 +13,10 @@ if (!QA_TEST_PASSWORD) {
 }
 
 const personas = [
-  { name: 'New DM Nora',   email: process.env.QA_NORA_EMAIL ?? 'nora@test.local', onboardingCompleted: false },
-  { name: 'Power DM Dana', email: process.env.QA_DANA_EMAIL ?? 'dana@test.local', onboardingCompleted: true  },
-  { name: 'Veteran Vic',   email: process.env.QA_VIC_EMAIL  ?? 'vic@test.local',  onboardingCompleted: true  },
+  { name: 'New DM Nora',   email: process.env.QA_NORA_EMAIL   ?? 'nora@test.local',   onboardingCompleted: false },
+  { name: 'Power DM Dana', email: process.env.QA_DANA_EMAIL   ?? 'dana@test.local',   onboardingCompleted: true  },
+  { name: 'Veteran Vic',   email: process.env.QA_VIC_EMAIL    ?? 'vic@test.local',    onboardingCompleted: true  },
+  { name: 'Player Pat',    email: process.env.QA_PLAYER_EMAIL ?? 'player@test.local', onboardingCompleted: true  },
 ];
 
 async function main() {
@@ -65,8 +66,9 @@ async function main() {
     console.log(`[created] ${persona.email} (id: ${user.id})`);
   }
 
-  // Seed Vic's test campaign (needs a campaign to run NPC scenario)
+  // Seed Vic's test campaign (needs a campaign to run NPC + player-join scenarios)
   const vic = await prisma.user.findUnique({ where: { email: personas[2].email } });
+  const PLAYER_INVITE_CODE = process.env.QA_PLAYER_INVITE_CODE ?? 'qa-player-invite-2026';
   if (vic) {
     const existing = await prisma.campaign.findFirst({ where: { userId: vic.id, name: "Vic's Test Campaign" } });
     if (!existing) {
@@ -75,6 +77,7 @@ async function main() {
           name: "Vic's Test Campaign",
           slug: 'vics-test-campaign',
           userId: vic.id,
+          inviteCode: PLAYER_INVITE_CODE,
           members: {
             create: {
               userId: vic.id,
@@ -83,9 +86,18 @@ async function main() {
           },
         },
       });
-      console.log(`[created] Vic's Test Campaign (id: ${campaign.id})`);
+      console.log(`[created] Vic's Test Campaign (id: ${campaign.id}, inviteCode: ${PLAYER_INVITE_CODE})`);
     } else {
-      console.log(`[skip] Vic's Test Campaign already exists`);
+      // Ensure the invite code is set (idempotent update)
+      if (!existing.inviteCode) {
+        await prisma.campaign.update({
+          where: { id: existing.id },
+          data: { inviteCode: PLAYER_INVITE_CODE },
+        });
+        console.log(`[updated] Vic's Test Campaign — inviteCode set to ${PLAYER_INVITE_CODE}`);
+      } else {
+        console.log(`[skip] Vic's Test Campaign already exists (inviteCode: ${existing.inviteCode})`);
+      }
     }
   }
 
