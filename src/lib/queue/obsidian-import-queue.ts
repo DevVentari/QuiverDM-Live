@@ -2,18 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config({ override: true });
 
 import { Queue } from 'bullmq';
-
-function getRedisConnection() {
-  // BullMQ workers require persistent blocking connections (LMPOP/BLMOVE).
-  // Upstash serverless Redis doesn't support these — always use local Redis.
-  return {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6380'),
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-    lazyConnect: true,
-  };
-}
+import { getRedisConnection } from './queue';
 
 export interface ObsidianImportJobData {
   jobId: string;

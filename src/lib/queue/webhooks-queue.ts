@@ -1,17 +1,5 @@
 import { Queue } from 'bullmq';
-
-function getRedisConnection() {
-  if (process.env.REDIS_URL) {
-    return process.env.REDIS_URL;
-  }
-  return {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6380'),
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-    lazyConnect: true,
-  };
-}
+import { getRedisConnection } from './queue';
 
 export interface WebhookDeliveryData {
   endpointId: string;

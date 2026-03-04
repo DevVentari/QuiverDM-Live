@@ -6,20 +6,7 @@
  */
 
 import { Queue, QueueEvents } from 'bullmq';
-
-// Reuse the Redis connection helper from the PDF queue
-function getRedisConnection() {
-  if (process.env.REDIS_URL) {
-    return process.env.REDIS_URL;
-  }
-  return {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6380'),
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-    lazyConnect: true,
-  };
-}
+import { getRedisConnection } from './queue';
 
 const redisConnection = getRedisConnection();
 
