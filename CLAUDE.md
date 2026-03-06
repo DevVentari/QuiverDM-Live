@@ -218,6 +218,41 @@ Keep the project root clean. Use these locations:
 | Design docs | `docs/plans/YYYY-MM-DD-<topic>-design.md` |
 | Temp / scratch files | Delete when done — never commit to root |
 
+## Design System
+
+### Vibe
+- Dark, atmospheric, immersive — this is a D&D tool, not a SaaS dashboard
+- Inspiration: Baldur's Gate 3 character sheets, D&D Beyond but with more depth and atmosphere
+- Color mood: Deep indigo-blacks, warm amber/gold primary, parchment-toned accents
+- Feel: Like opening an ancient tome in a candlelit room
+
+### Typography
+- Display: Use a distinctive serif or display font for headings — never Inter/Arial/Roboto for display text
+- Body: System font stack or a clean sans-serif — readability is critical for long stat blocks
+- Mono: JetBrains Mono for dice rolls, stat values, and code-like content
+
+### Colors
+- All colors via CSS variables in `globals.css` — never hardcode hex values
+- Primary: warm amber/gold (oklch 0.65 0.16 55) — used for CTAs, active states, important highlights
+- Background: deep indigo-black with layered card surfaces for depth
+- Cards use subtle transparency (oklch with alpha) for glass-like depth
+- Destructive: muted red, not alarming — D&D is about adventure, not enterprise warnings
+
+### Components
+- ALWAYS use shadcn/ui components from `src/components/ui/`
+- Use the shadcn MCP server to verify correct props and patterns
+- Animations via Framer Motion for page transitions, card reveals, dice rolls
+- Minimum touch target: 44x44px (mobile DMs at the table)
+- Dark mode is the default and primary experience
+
+### Anti-Patterns
+- No generic "AI slop" aesthetic — be distinctive and creative
+- No bright white backgrounds — dark mode is king
+- No flat, single-color cards — use layered shadows and subtle borders for depth
+- No cookie-cutter layouts — asymmetry and negative space are tools, use them
+- No purple gradients on white — this isn't a startup landing page
+- Research how BG3, D&D Beyond, and Roll20 handle specific UI patterns before building
+
 ## Maintenance
 
 Keep this file synced with architecture changes (router count, scripts, and deployment-critical flows).

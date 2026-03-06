@@ -1,0 +1,37 @@
+FROM node:20-slim
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN pip install --no-cache-dir pdfplumber==0.11.0 PyPDF2
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY prisma ./prisma/
+
+RUN mkdir -p public && npm ci --omit=dev
+
+RUN npx prisma generate
+
+COPY src ./src/
+COPY tsconfig.json ./
+
+RUN mkdir -p /app/temp /app/local-storage /app/logs
+
+COPY deploy/hetzner/start-workers.sh ./start-workers.sh
+RUN chmod +x start-workers.sh
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD ls /proc/1/status > /dev/null || exit 1
+
+CMD ["./start-workers.sh"]
