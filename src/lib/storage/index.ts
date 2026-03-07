@@ -113,11 +113,13 @@ class R2StorageProvider implements StorageProvider {
 
   async upload(key: string, data: Buffer, contentType?: string): Promise<string> {
     const r2 = await this.getR2Module();
-    return r2.uploadToR2({
+    await r2.uploadToR2({
       key,
       body: data,
       contentType,
     });
+    // Return a path that our /api/storage route can serve via presigned URL
+    return `/api/storage/${key}`;
   }
 
   async download(key: string): Promise<Buffer> {

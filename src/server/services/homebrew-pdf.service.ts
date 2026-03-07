@@ -95,7 +95,9 @@ export class HomebrewPdfService {
     }
 
     try {
-      const r2Key = pdf.r2Url.split('/').pop() || pdf.filename;
+      const r2Key = pdf.r2Url.startsWith('http')
+        ? extractKeyFromUrl(pdf.r2Url)
+        : pdf.r2Url.replace(/^\/api\/files\//, '');
 
       await addPDFProcessingJob({
         pdfId: pdf.id,
