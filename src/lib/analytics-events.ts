@@ -5,6 +5,7 @@ export const EVENTS = {
   TRANSCRIPTION_STARTED: 'transcription_started',
   HOMEBREW_CREATED: 'homebrew_created',
   ONBOARDING_COMPLETED: 'onboarding_completed',
+  NPC_CREATED: 'npc_created',
 } as const;
 
 export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
