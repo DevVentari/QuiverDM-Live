@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadToLocal, generateLocalFileKey } from '@/lib/storage/local-storage';
+import { storage, generateFileKey } from '@/lib/storage';
 import { auth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -27,25 +27,18 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fileKey = generateLocalFileKey(
+    const fileKey = generateFileKey(
       session.user.id,
-      'global',
+      null,
       file.name,
       'campaign-banners'
     );
 
-    const url = await uploadToLocal({
-      key: fileKey,
-      body: buffer,
-      contentType: file.type,
-      metadata: { originalFilename: file.name, uploadedAt: new Date().toISOString() },
-    });
+    const url = await storage.upload(fileKey, buffer, file.type);
 
-    return NextResponse.json({ url, key: fileKey, storage: 'local' });
+    return NextResponse.json({ url, key: fileKey });
   } catch (error) {
     console.error('Error uploading campaign banner:', error);
     return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
   }
 }
-
-export const config = { api: { bodyParser: false } };

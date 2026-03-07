@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { uploadToLocal, generateLocalFileKey } from '@/lib/storage/local-storage';
+import { storage, generateFileKey } from '@/lib/storage';
 import { auth } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -26,23 +26,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 5MB.' }, { status: 400 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const fileKey = generateFileKey(userId, null, file.name, 'character-portraits');
+    const url = await storage.upload(fileKey, buffer, file.type);
 
-    const fileKey = generateLocalFileKey(userId, 'global', file.name, 'character-portraits');
-
-    const url = await uploadToLocal({
-      key: fileKey,
-      body: buffer,
-      contentType: file.type,
-      metadata: { originalFilename: file.name, uploadedAt: new Date().toISOString() },
-    });
-
-    return NextResponse.json({ url, key: fileKey, storage: 'local' });
+    return NextResponse.json({ url, key: fileKey });
   } catch (error) {
     console.error('Error uploading character portrait:', error);
     return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
   }
 }
-
-export const config = { api: { bodyParser: false } };
