@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import NextLink from 'next/link';
 import { useState, useRef } from 'react';
 import { z } from 'zod';
 import { trpc } from '@/lib/trpc';
@@ -342,13 +343,13 @@ export default function NewCampaignPage() {
                   />
                 </div>
 
-                <a
+                <NextLink
                   href="/campaigns/new/import-obsidian"
                   className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Link className="h-3.5 w-3.5" />
                   Or import from an Obsidian vault
-                </a>
+                </NextLink>
               </div>
             )}
           </div>
