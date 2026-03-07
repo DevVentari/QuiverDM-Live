@@ -22,10 +22,11 @@ concurrency:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Deploy worker to nerdt server (self-hosted runner, no Docker)
+  # Deploy workers to Hetzner VPS (Docker)
+  # Workers run as Docker containers alongside Docling on 204.168.157.125
   # ---------------------------------------------------------------------------
   deploy:
-    name: Deploy Worker
+    name: Deploy Workers (Hetzner)
     runs-on: nerdt
     if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     environment: ${{ github.event.inputs.environment || 'production' }}
@@ -36,17 +37,26 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Install dependencies
-        run: npm ci --omit=dev
+      - name: Sync source to Hetzner
+        run: |
+          rsync -az --delete \
+            --include='src/***' \
+            --include='prisma/***' \
+            --include='deploy/***' \
+            --include='package.json' \
+            --include='package-lock.json' \
+            --include='tsconfig.json' \
+            --exclude='*' \
+            ./ root@204.168.157.125:/opt/quiverdm/
 
-      - name: Generate Prisma client
-        run: npx prisma generate
+      - name: Rebuild and restart workers
+        run: |
+          ssh root@204.168.157.125 'cd /opt/quiverdm && docker compose build workers && docker compose up -d --force-recreate workers'
 
-      - name: Restart worker service
-        run: sudo systemctl restart quiverdm-worker
-
-      - name: Verify worker started
-        run: sleep 3 && sudo systemctl status quiverdm-worker --no-pager
+      - name: Verify workers started
+        run: |
+          sleep 5
+          ssh root@204.168.157.125 'docker ps --filter name=quiverdm-workers --format "{{.Status}}"'
 
       - name: Deployment summary
         run: |
@@ -54,4 +64,4 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit:** \`${{ github.event.workflow_run.head_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **App:** Vercel (auto-deploy via git push)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Worker:** nerdt (self-hosted runner, systemd)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Workers:** Hetzner VPS Docker (204.168.157.125)" >> $GITHUB_STEP_SUMMARY
