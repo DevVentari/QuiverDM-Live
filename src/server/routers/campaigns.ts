@@ -19,6 +19,18 @@ const CreateCampaignSchema = z.object({
   name: z.string().min(1, 'Campaign name is required'),
   description: z.string().optional(),
   bannerUrl: z.string().optional(),
+  settings: z.object({
+    gameSystem: z.string().optional(),
+    settingName: z.string().optional(),
+    playerCount: z.number().min(1).max(20).optional(),
+    startingLevel: z.number().min(1).max(20).optional(),
+    schedule: z.object({
+      day: z.string().optional(),
+      time: z.string().optional(),
+      frequency: z.string().optional(),
+    }).optional(),
+    houseRules: z.string().optional(),
+  }).optional(),
 });
 
 const UpdateCampaignSchema = z.object({

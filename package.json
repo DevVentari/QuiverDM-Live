@@ -62,6 +62,7 @@
     "@aws-sdk/client-s3": "^3.927.0",
     "@aws-sdk/s3-request-presigner": "^3.927.0",
     "@browserbasehq/sdk": "^2.6.0",
+    "@fal-ai/serverless-client": "^0.15.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^5.22.0",

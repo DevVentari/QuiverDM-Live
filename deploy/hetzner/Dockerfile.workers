@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     build-essential \
     curl \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 ENV VIRTUAL_ENV=/opt/venv
