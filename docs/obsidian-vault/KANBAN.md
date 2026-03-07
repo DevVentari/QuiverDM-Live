@@ -29,11 +29,14 @@ kanban-plugin: board
 
 ## 💡 Ideas — Not Yet Scoped
 
+- [ ] **API Billing Tracker** — Standalone dashboard (n8n + Postgres + web UI) that polls billing APIs across all projects (QuiverDM, Websites, SmartDrifter, nerdt infra) daily and aggregates spend. Hosted on LXC 402/603. Refs: `docs/plans/2026-03-04-api-billing-tracker-design.md`
 - [ ] **OpenClaw — Discord Autonomous Agent** — Self-hosted always-on agent accessible via Discord. Heartbeat system for proactive tasks (deployment checks, kanban summaries, reminders). Run in Docker, no ClawHub skills (security risk). Uses Claude/Ollama as model backend. Evaluate as complement to Claude Code workflow, not replacement.
 - [ ] Foundry two-screen co-pilot — real-time event sync between Foundry and QuiverDM
 - [ ] Shared campaign journal (player-facing write access)
 - [ ] Voice-activated DM assistant (push-to-talk during session)
 - [ ] Encounter replay / timeline scrubbing from transcript
+- [ ] **Salad GPU Farm for AI Workflows** — Evaluate SaladCloud distributed GPU cloud for batch AI workloads (extraction, embeddings, summaries). RTX 4090 at $0.16/hr, RTX 3060 at $0.06/hr, no egress fees. Spin up on demand for heavy jobs, fall back to local GTX 1080 or CPU. Compare cost vs local GPU vs Gemini API for extraction pipeline. Batch priority tier for cost-sensitive non-real-time work.
+- [ ] **Workflow Analytics Dashboard** — Metrics and monitoring across all QuiverDM workflows: PDF processing (Docling vs pdfplumber, success/fail rates, conversion times), AI extraction (provider usage, token spend, extraction quality), transcription jobs, session summaries, webhook delivery, worker health. Surface trends, error rates, and cost per operation. Could integrate with API Billing Tracker or standalone admin page.
 
 
 ## ✅ Done
