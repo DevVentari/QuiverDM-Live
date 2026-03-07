@@ -428,12 +428,17 @@ export function extractImages(result: unknown): DoclingImage[] {
 }
 
 export async function isDoclingAvailable(): Promise<boolean> {
-  try {
-    const response = await fetch(`${DOCLING_URL}/health`, {
-      signal: AbortSignal.timeout(5_000),
-    });
-    return response.ok;
-  } catch {
-    return false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch(`${DOCLING_URL}/health`, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (response.ok) return true;
+    } catch {
+      // retry
+    }
+    if (attempt < 2) await new Promise(r => setTimeout(r, 2_000));
   }
+  console.warn(`[Docling] Health check failed after 3 attempts (URL: ${DOCLING_URL})`);
+  return false;
 }
