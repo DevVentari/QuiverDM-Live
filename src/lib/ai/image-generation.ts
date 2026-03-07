@@ -1,10 +1,11 @@
 /**
  * Image Generation Abstraction Layer
  *
- * Provider fallback chain: ComfyUI (local) -> Replicate SDXL -> DALL-E 3
+ * Provider fallback chain: ComfyUI (local) -> fal.ai Flux Dev -> Replicate SDXL -> DALL-E 3
  */
 import OpenAI from 'openai';
 import Replicate from 'replicate';
+import * as fal from '@fal-ai/serverless-client';
 import { storage } from '../storage';
 import { isComfyUIAvailable, queueComfyUIPrompt, waitForComfyUIResult } from './comfyui';
 
@@ -21,7 +22,7 @@ export interface ImageGenerationRequest {
 
 export interface ImageGenerationResult {
   url: string;
-  provider: 'comfyui' | 'replicate' | 'dalle';
+  provider: 'comfyui' | 'fal' | 'replicate' | 'dalle';
   metadata: {
     prompt: string;
     generationTimeMs: number;
@@ -90,6 +91,45 @@ async function generateWithComfyUI(request: ImageGenerationRequest): Promise<Ima
     url,
     provider: 'comfyui',
     metadata: { prompt, generationTimeMs: Date.now() - start, model, seed, width: 1024, height: 1024, cfg: 7, steps: 20 },
+  };
+}
+
+async function generateWithFal(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
+  const start = Date.now();
+  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
+
+  fal.config({ credentials: process.env.FAL_KEY! });
+
+  const result = await fal.subscribe('fal-ai/flux/dev', {
+    input: {
+      prompt,
+      image_size: 'square_hd',
+      num_inference_steps: 28,
+      guidance_scale: 3.5,
+    },
+  }) as { images: Array<{ url: string; width: number; height: number }> };
+
+  const imageUrl = result.images[0]?.url;
+  if (!imageUrl) throw new Error('fal.ai returned no image');
+
+  const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(60_000) });
+  if (!imgRes.ok) throw new Error(`Failed to fetch fal.ai image: ${imgRes.status}`);
+  const buffer = Buffer.from(await imgRes.arrayBuffer());
+
+  const entityId = resolveEntityId(request);
+  const key = storageKey(request.userId, entityId);
+  const url = await storage.upload(key, buffer, 'image/png');
+
+  return {
+    url,
+    provider: 'fal',
+    metadata: {
+      prompt,
+      generationTimeMs: Date.now() - start,
+      model: 'flux-dev',
+      width: result.images[0]?.width ?? 1024,
+      height: result.images[0]?.height ?? 1024,
+    },
   };
 }
 
@@ -163,7 +203,7 @@ async function generateWithDALLE(request: ImageGenerationRequest): Promise<Image
 
 /**
  * Generate an image using the best available provider.
- * Tries: ComfyUI -> Replicate -> DALL-E
+ * Tries: ComfyUI -> fal.ai -> Replicate -> DALL-E
  */
 export async function generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const providers: Array<{
@@ -175,6 +215,11 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
       name: 'comfyui',
       enabled: process.env.COMFYUI_ENABLED === 'true' || !!process.env.COMFYUI_URL,
       fn: () => generateWithComfyUI(request),
+    },
+    {
+      name: 'fal',
+      enabled: !!process.env.FAL_KEY,
+      fn: () => generateWithFal(request),
     },
     {
       name: 'replicate',

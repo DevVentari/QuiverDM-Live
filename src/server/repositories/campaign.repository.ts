@@ -177,6 +177,7 @@ export async function create(data: {
   description?: string;
   bannerUrl?: string;
   userId: string;
+  settings?: Prisma.InputJsonValue;
 }) {
   return prisma.$transaction(async (tx) => {
     const campaign = await tx.campaign.create({
@@ -187,6 +188,7 @@ export async function create(data: {
         bannerUrl: data.bannerUrl,
         userId: data.userId,
         status: 'active',
+        ...(data.settings && { settings: data.settings }),
       },
     });
 

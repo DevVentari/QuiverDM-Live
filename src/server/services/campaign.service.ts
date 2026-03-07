@@ -21,6 +21,18 @@ export interface CreateCampaignInput {
   name: string;
   description?: string;
   bannerUrl?: string;
+  settings?: {
+    gameSystem?: string;
+    settingName?: string;
+    playerCount?: number;
+    startingLevel?: number;
+    schedule?: {
+      day?: string;
+      time?: string;
+      frequency?: string;
+    };
+    houseRules?: string;
+  };
 }
 
 export interface UpdateCampaignInput {
@@ -173,6 +185,7 @@ export class CampaignService {
         description: input.description,
         bannerUrl: input.bannerUrl,
         userId,
+        settings: input.settings ?? undefined,
       });
 
       return campaign;

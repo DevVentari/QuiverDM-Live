@@ -6,6 +6,8 @@ import { deleteFromLocal, extractKeyFromLocalUrl } from '@/lib/storage/local-sto
 import { deleteFromR2, extractKeyFromUrl } from '@/lib/storage/r2';
 import { authz } from '../services/authorization.service';
 import { usageService } from '../services/usage.service';
+import { addTranscriptionJob } from '@/lib/queue/transcription-queue';
+import { createTranscriptionJob } from '@/lib/transcription/progress';
 
 export const sessionRecordingsRouter = router({
   /**
@@ -23,7 +25,7 @@ export const sessionRecordingsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
-      await authz.session(input.sessionId, userId).verify();
+      const access = await authz.session(input.sessionId, userId).verify();
       await usageService.incrementSessionUploads(userId);
       const recording = await prisma.sessionRecording.create({
         data: {
@@ -34,6 +36,29 @@ export const sessionRecordingsRouter = router({
           durationSeconds: input.durationSeconds,
           processingStatus: 'queued',
         },
+      });
+
+      const jobId = await createTranscriptionJob({
+        sessionId: input.sessionId,
+        recordingId: recording.id,
+        filePath: input.url,
+        modelSize: 'medium',
+        language: undefined,
+        useGPU: false,
+        useSpeakers: true,
+      });
+
+      await addTranscriptionJob({
+        jobId,
+        sessionId: input.sessionId,
+        recordingId: recording.id,
+        userId,
+        audioUrl: input.url,
+        isVideo: input.type === 'video',
+        speakerLabels: true,
+        deleteOriginalFile: true,
+        fileUrl: input.url,
+        campaignId: access.resource.campaignId,
       });
 
       return recording;

@@ -1,6 +1,8 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { npcService } from '../services/npc.service';
+import { serverTrack } from '@/lib/analytics.server';
+import { EVENTS } from '@/lib/analytics-events';
 
 const npcNameSchema = z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or fewer');
 const npcDescriptionSchema = z.string().max(10000, 'Description must be 10000 characters or fewer');
@@ -53,9 +55,11 @@ export const npcsRouter = router({
         stats: z.any().optional(),
       })
     )
-    .mutation(({ input, ctx }) => {
+    .mutation(async ({ input, ctx }) => {
       const { campaignId, ...data } = input;
-      return npcService.create(campaignId, ctx.session.user.id, data);
+      const npc = await npcService.create(campaignId, ctx.session.user.id, data);
+      void serverTrack(ctx.session.user.id, EVENTS.NPC_CREATED, { campaign_id: campaignId });
+      return npc;
     }),
 
   /**
