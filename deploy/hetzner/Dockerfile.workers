@@ -25,6 +25,7 @@ RUN mkdir -p public && npm ci --omit=dev
 RUN npx prisma generate
 
 COPY src ./src/
+COPY scripts ./scripts/
 COPY tsconfig.json ./
 
 RUN mkdir -p /app/temp /app/local-storage /app/logs
