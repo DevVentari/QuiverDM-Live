@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PDFProcessingProgress } from '@/components/PDFProcessingProgress';
+import { Progress } from '@/components/ui/progress';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { getTypeStyle } from '@/lib/homebrew-utils';
 import { AlertCircle, ArrowLeft, BookOpen, FileText, Loader2, RefreshCw, Sparkles } from 'lucide-react';
@@ -41,8 +42,33 @@ export default function PDFDetailPage() {
     { staleTime: 30_000, enabled: !!data && data.processingStatus === 'completed' }
   );
 
+  const utils = trpc.useUtils();
+  const extractionStatus = trpc.homebrewPdf.getJobStatus.useQuery(
+    { pdfId },
+    {
+      enabled: data?.processingStatus === 'completed',
+      refetchInterval: (query) => {
+        const pdf = (query.state.data as any)?.pdf;
+        return pdf?.aiExtractionStatus === 'processing' ? 2000 : false;
+      },
+      refetchIntervalInBackground: false,
+    }
+  );
+
+  const extractionPdf = (extractionStatus.data as any)?.pdf;
+  const isExtracting = extractionPdf?.aiExtractionStatus === 'processing';
+  const extractionProgress = extractionPdf?.aiExtractionProgress as {
+    chunk: number;
+    totalChunks: number;
+    itemsFound: number;
+    byType: Record<string, number>;
+  } | null | undefined;
+
   const extractMutation = trpc.homebrewPdf.extractContent.useMutation({
-    onSuccess: () => extractedContent.refetch(),
+    onSuccess: () => {
+      void extractedContent.refetch();
+      void extractionStatus.refetch();
+    },
   });
 
   const reprocessMutation = trpc.homebrewPdf.processPDF.useMutation({
@@ -179,6 +205,26 @@ export default function PDFDetailPage() {
                   <HomebrewContentCard key={item.id} item={item} href={`/homebrew/${item.id}`} />
                 ))}
               </div>
+            ) : isExtracting ? (
+              <Card>
+                <CardContent className="py-12 text-center space-y-4">
+                  <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-500" />
+                  <p className="text-sm font-medium">Extracting D&D content…</p>
+                  {extractionProgress && extractionProgress.totalChunks > 0 ? (
+                    <div className="mx-auto max-w-xs space-y-2">
+                      <Progress
+                        value={Math.round((extractionProgress.chunk / extractionProgress.totalChunks) * 100)}
+                        className="h-2"
+                        indicatorClassName="bg-amber-500"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Chunk {extractionProgress.chunk} of {extractionProgress.totalChunks}
+                        {extractionProgress.itemsFound > 0 ? ` • ${extractionProgress.itemsFound} items found so far` : ''}
+                      </p>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
