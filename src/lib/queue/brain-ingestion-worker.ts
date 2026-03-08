@@ -8,29 +8,7 @@ import { chatWithAI } from '../ai/chat';
 import { buildBrainExtractionPrompt, parseBrainExtractionResponse } from '../ai/brain-extraction';
 import { brainRepository } from '../../server/repositories/brain.repository';
 import type { BrainIngestionJobData, BrainIngestionJobResult } from './brain-ingestion-queue';
-
-function getRedisConnection(): Record<string, unknown> {
-  if (process.env.REDIS_URL) {
-    const url = new URL(process.env.REDIS_URL);
-    const useTls = url.protocol === 'rediss:';
-    return {
-      host: url.hostname,
-      port: parseInt(url.port || (useTls ? '6380' : '6379')),
-      password: url.password || undefined,
-      username: url.username !== 'default' ? url.username : undefined,
-      maxRetriesPerRequest: null,
-      lazyConnect: true,
-      ...(useTls ? { tls: {} } : {}),
-    };
-  }
-  return {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6380'),
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-    lazyConnect: true,
-  };
-}
+import { getRedisConnection } from './queue';
 
 const ENTITY_TYPE_MAP: Record<string, WorldEntityType> = {
   NPC: WorldEntityType.NPC,
@@ -142,8 +120,9 @@ async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<Br
     }
   }
 
+  const worldState = await brainRepository.getOrCreateState(data.campaignId);
+
   if (extracted.newHooks.length > 0) {
-    const worldState = await brainRepository.getOrCreateState(data.campaignId);
     const existingHooks = Array.isArray(worldState.hooks) ? worldState.hooks as Array<Record<string, unknown>> : [];
 
     const newHooks = extracted.newHooks.map(hook => ({
@@ -169,14 +148,13 @@ async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<Br
 
   const shifts = extracted.pressureShifts;
   if (Object.values(shifts).some(v => v !== 0 && v !== undefined)) {
-    const state = await brainRepository.getOrCreateState(data.campaignId);
     const clamp = (v: number) => Math.max(0, Math.min(1, v));
     await brainRepository.updateState(data.campaignId, {
-      pressurePolitical: clamp(state.pressurePolitical + (shifts.political ?? 0)),
-      pressureSupernatural: clamp(state.pressureSupernatural + (shifts.supernatural ?? 0)),
-      pressureEconomic: clamp(state.pressureEconomic + (shifts.economic ?? 0)),
-      pressureCosmic: clamp(state.pressureCosmic + (shifts.cosmic ?? 0)),
-      pressureSocial: clamp(state.pressureSocial + (shifts.social ?? 0)),
+      pressurePolitical: clamp(worldState.pressurePolitical + (shifts.political ?? 0)),
+      pressureSupernatural: clamp(worldState.pressureSupernatural + (shifts.supernatural ?? 0)),
+      pressureEconomic: clamp(worldState.pressureEconomic + (shifts.economic ?? 0)),
+      pressureCosmic: clamp(worldState.pressureCosmic + (shifts.cosmic ?? 0)),
+      pressureSocial: clamp(worldState.pressureSocial + (shifts.social ?? 0)),
     });
 
     await brainRepository.logChange({
