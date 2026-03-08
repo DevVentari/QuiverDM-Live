@@ -426,11 +426,9 @@ async function extractWithOllamaProvider(markdown: string): Promise<ExtractionRe
     return { success: false, items: [], provider: 'ollama', error: 'No recognized D&D sections found in markdown' };
   }
 
-  // Probe: run first batch only — if 0 items extracted, the section parser
-  // has likely misclassified this document (e.g. chapter headings). Bail fast
-  // so cloud providers can handle it with the raw-chunk approach.
-  const probeBatch = sections.slice(0, 3);
-  const probeResult = await extractBatch(probeBatch, { batchSize: 3 });
+  // Probe: run 1 section with 1 retry — fast check to see if Ollama can extract
+  // valid items from this document. Chapter headings / unusual formats fail fast.
+  const probeResult = await extractBatch(sections.slice(0, 1), { batchSize: 1, maxRetries: 1 });
   if (probeResult.items.length === 0) {
     return {
       success: false,
@@ -441,7 +439,7 @@ async function extractWithOllamaProvider(markdown: string): Promise<ExtractionRe
   }
 
   // Probe succeeded — process remaining sections
-  const remaining = sections.slice(3);
+  const remaining = sections.slice(1);
   const batchResult = remaining.length > 0
     ? await extractBatch(remaining, { batchSize: 3 })
     : { items: [], errors: [], metadata: { totalSections: 0, successfulExtractions: 0, failedExtractions: 0, processingTime: 0 } };
