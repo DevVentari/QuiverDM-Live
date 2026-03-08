@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,6 +62,14 @@ export default function PDFDetailPage() {
     itemsFound: number;
     byType: Record<string, number>;
   } | null | undefined;
+
+  const wasExtracting = useRef(false);
+  useEffect(() => {
+    if (wasExtracting.current && !isExtracting && extractionPdf?.aiExtractionStatus === 'done') {
+      void extractedContent.refetch();
+    }
+    wasExtracting.current = isExtracting;
+  }, [isExtracting, extractionPdf?.aiExtractionStatus]);
 
   const extractMutation = trpc.homebrewPdf.extractContent.useMutation({
     onSuccess: () => {
@@ -222,6 +230,29 @@ export default function PDFDetailPage() {
                       </p>
                     </div>
                   ) : null}
+                </CardContent>
+              </Card>
+            ) : extractionPdf?.aiExtractionStatus === 'done' ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Sparkles className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+                  <p className="mb-2 text-muted-foreground">
+                    No extractable D&D content was found in this PDF.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => extractMutation.mutate({ pdfId })}
+                    disabled={extractMutation.isPending}
+                  >
+                    {extractMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    Try Again
+                  </Button>
                 </CardContent>
               </Card>
             ) : (
