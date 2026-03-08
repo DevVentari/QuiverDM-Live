@@ -7,11 +7,11 @@ test.describe('Character Builder', () => {
     await page.goto('/characters/new');
     await page.waitForLoadState('domcontentloaded');
 
-    await expect(page.getByRole('button', { name: /^details$/i })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByRole('button', { name: /^race/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^class/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^background/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /^scores$/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /details/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('tab', { name: /race/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /class/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /background/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /scores/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /create character/i })).toBeVisible();
   });
 
@@ -23,13 +23,13 @@ test.describe('Character Builder', () => {
     const name = `E2E Builder ${Date.now()}`;
     await page.getByLabel(/^name\b/i).fill(name);
 
-    await page.getByRole('button', { name: /^race/i }).click();
+    await page.getByRole('tab', { name: /race/i }).click();
     await page.getByRole('button', { name: /^human$/i }).first().click();
 
-    await page.getByRole('button', { name: /^class/i }).click();
+    await page.getByRole('tab', { name: /class/i }).click();
     await page.getByRole('button', { name: /^fighter$/i }).first().click();
 
-    await page.getByRole('button', { name: /^background/i }).click();
+    await page.getByRole('tab', { name: /background/i }).click();
     await page.getByRole('button', { name: /^acolyte$/i }).first().click();
 
     await expect(page.getByText(name).first()).toBeVisible({ timeout: 5000 });
@@ -46,7 +46,7 @@ test.describe('Character Builder', () => {
     const characterName = `E2E Character ${Date.now()}`;
     await page.getByLabel(/^name\b/i).fill(characterName);
 
-    await page.getByRole('button', { name: /^scores$/i }).click();
+    await page.getByRole('tab', { name: /scores/i }).click();
     await page.getByRole('button', { name: /point buy/i }).click();
     await expect(page.getByText(/points remaining:\s*27\s*\/\s*27/i)).toBeVisible({ timeout: 5000 });
 

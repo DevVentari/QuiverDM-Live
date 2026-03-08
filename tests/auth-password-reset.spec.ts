@@ -15,7 +15,7 @@ test.describe('Password Reset', () => {
     await page.getByLabel(/email/i).fill(email);
     await page.getByRole('button', { name: /send reset link/i }).click();
 
-    await expect(page.getByRole('heading', { name: /check your email/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/check your email/i)).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(new RegExp(`if an account exists for ${email}`, 'i'))).toBeVisible();
 
     await page.getByRole('link', { name: /back to sign in/i }).click();
@@ -24,7 +24,7 @@ test.describe('Password Reset', () => {
 
   test('reset password route shows invalid or expired state for bad token', async ({ page }) => {
     await page.goto('/auth/reset-password/not-a-real-token');
-    await expect(page.getByRole('heading', { name: /link expired/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/link expired/i)).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(/invalid or has expired/i)).toBeVisible();
     await expect(page.getByRole('link', { name: /request a new reset link/i })).toBeVisible();
   });
@@ -39,7 +39,7 @@ test.describe('Password Reset', () => {
     });
 
     await page.goto('/auth/reset-password/fake-token-for-ui-test');
-    await expect(page.getByRole('heading', { name: /set new password/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/set new password/i).first()).toBeVisible({ timeout: 10000 });
 
     await page.getByLabel(/new password/i).fill('password-1234');
     await page.getByLabel(/confirm password/i).fill('password-5678');

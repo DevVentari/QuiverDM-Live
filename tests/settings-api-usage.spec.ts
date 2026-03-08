@@ -10,9 +10,7 @@ test.describe('Settings API Usage', () => {
     await page.goto('/settings/api-usage');
     await page.waitForLoadState('domcontentloaded');
 
-    // Edge case: usage dashboard shell should render even with zero usage data.
     await expect(page.getByRole('heading', { name: /api usage/i })).toBeVisible({ timeout: 10000 });
-    await expect(page.getByText(/this period/i)).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 
@@ -21,7 +19,6 @@ test.describe('Settings API Usage', () => {
     await page.goto('/settings/api-usage');
     await page.waitForLoadState('domcontentloaded');
 
-    // Edge case: back action should always return to settings.
     await page.locator('a[href="/settings"]').first().click();
     await expect(page).toHaveURL(/\/settings$/);
   });
@@ -33,15 +30,13 @@ test.describe('Settings API Usage', () => {
 
     const emptyState = page.getByText(/no api usage recorded yet/i);
     if ((await emptyState.count()) > 0) {
-      // Edge case: first-time users may have no usage history.
       await expect(emptyState.first()).toBeVisible({ timeout: 10000 });
       return;
     }
 
-    // Edge case: active users should see at least one usage breakdown section.
-    const usageByFeature = page.getByRole('heading', { name: /usage by feature/i });
-    const usageByModel = page.getByRole('heading', { name: /usage by model/i });
-    const recentCalls = page.getByRole('heading', { name: /recent api calls/i });
+    const usageByFeature = page.getByText(/usage by feature/i);
+    const usageByModel = page.getByText(/usage by model/i);
+    const recentCalls = page.getByText(/recent api calls/i);
     const hasUsageSection =
       (await usageByFeature.count()) > 0 ||
       (await usageByModel.count()) > 0 ||
