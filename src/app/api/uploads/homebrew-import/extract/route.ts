@@ -44,14 +44,14 @@ function parseExtracted(text: string): ExtractedItem[] {
   }
 }
 
-async function extractFromText(text: string, userKey?: string): Promise<ExtractedItem[]> {
+async function extractFromText(text: string, userKey?: string, userId?: string): Promise<ExtractedItem[]> {
   const prompt = `${HOMEBREW_EXTRACTION_PROMPT}\n\nContent:\n${text.slice(0, 8000)}`;
-  const raw = await callGemini(prompt, userKey);
+  const raw = await callGemini(prompt, userKey, userId ? { userId, feature: 'extraction' } : undefined);
   return parseExtracted(raw);
 }
 
-async function extractFromImage(base64Data: string, mimeType: string, userKey?: string): Promise<ExtractedItem[]> {
-  const raw = await callGeminiVision(HOMEBREW_EXTRACTION_PROMPT, [{ mimeType, base64Data }], userKey);
+async function extractFromImage(base64Data: string, mimeType: string, userKey?: string, userId?: string): Promise<ExtractedItem[]> {
+  const raw = await callGeminiVision(HOMEBREW_EXTRACTION_PROMPT, [{ mimeType, base64Data }], userKey, userId ? { userId, feature: 'extraction' } : undefined);
   return parseExtracted(raw);
 }
 
@@ -101,12 +101,12 @@ export async function POST(request: NextRequest) {
         let items: ExtractedItem[];
 
         if (IMAGE_TYPES.includes(file.type)) {
-          items = await extractFromImage(buffer.toString('base64'), file.type, userGeminiKey);
+          items = await extractFromImage(buffer.toString('base64'), file.type, userGeminiKey, userId);
         } else if (file.type === 'application/pdf') {
           const markdown = await pdfToMarkdown(buffer);
-          items = await extractFromText(markdown, userGeminiKey);
+          items = await extractFromText(markdown, userGeminiKey, userId);
         } else {
-          items = await extractFromText(buffer.toString('utf-8'), userGeminiKey);
+          items = await extractFromText(buffer.toString('utf-8'), userGeminiKey, userId);
         }
 
         fileResults.push({ fileName: file.name, items });

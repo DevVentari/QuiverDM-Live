@@ -158,7 +158,7 @@ export async function processJob(data: ObsidianImportJobData) {
 
     try {
       if (item.category === 'npc' && options.npcs) {
-        const extracted = await extractNpc(item.markdown, geminiKey);
+        const extracted = await extractNpc(item.markdown, geminiKey, userId);
         await prisma.nPC.create({
           data: {
             campaignId,
@@ -172,7 +172,7 @@ export async function processJob(data: ObsidianImportJobData) {
           },
         });
       } else if (item.category === 'character' && options.characters) {
-        const extracted = await extractCharacter(item.markdown, geminiKey);
+        const extracted = await extractCharacter(item.markdown, geminiKey, userId);
         const char = await prisma.character.create({
           data: {
             userId,
@@ -194,7 +194,7 @@ export async function processJob(data: ObsidianImportJobData) {
           data: { campaignId, characterId: char.id, status: 'ACTIVE' },
         });
       } else if (item.category === 'session-planning' && options.sessions) {
-        const extracted = await extractSession(item.markdown, 'planning', geminiKey);
+        const extracted = await extractSession(item.markdown, 'planning', geminiKey, userId);
         const maxRow = await prisma.gameSession.aggregate({ where: { campaignId }, _max: { sessionNumber: true } });
         const sessionNumber = extracted.sessionNumber ?? (maxRow._max.sessionNumber ?? 0) + 1;
         await prisma.gameSession.create({
@@ -209,7 +209,7 @@ export async function processJob(data: ObsidianImportJobData) {
           },
         });
       } else if (item.category === 'session-completed' && options.sessions) {
-        const extracted = await extractSession(item.markdown, 'completed', geminiKey);
+        const extracted = await extractSession(item.markdown, 'completed', geminiKey, userId);
         const maxRow2 = await prisma.gameSession.aggregate({ where: { campaignId }, _max: { sessionNumber: true } });
         const sessionNumber = (maxRow2._max.sessionNumber ?? 0) + 1;
         await prisma.gameSession.create({
@@ -232,7 +232,7 @@ export async function processJob(data: ObsidianImportJobData) {
           'homebrew-adventure': 'adventure',
         };
         const contentType = typeMap[item.category] ?? 'item';
-        const extracted = await extractHomebrew(item.markdown, contentType, geminiKey);
+        const extracted = await extractHomebrew(item.markdown, contentType, geminiKey, userId);
         const content = await prisma.homebrewContent.create({
           data: {
             userId,
