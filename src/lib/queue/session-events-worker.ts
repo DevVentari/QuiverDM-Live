@@ -3,7 +3,7 @@ dotenv.config({ path: '.env.local', override: true });
 
 import { Worker } from 'bullmq';
 import { prisma } from '@/lib/prisma';
-import { chatWithOllama } from '@/lib/ai/ollama';
+import { chatWithAI } from '@/lib/ai/chat';
 import { sessionEventsQueue } from './session-events-queue';
 import {
   SESSION_EVENT_EXTRACTION_PROMPT,
@@ -140,7 +140,7 @@ async function processSessionEventsJob(
     select: { id: true, name: true },
   });
 
-  const content = await chatWithOllama(
+  const content = await chatWithAI(
     [{ role: 'user', content: SESSION_EVENT_EXTRACTION_PROMPT + transcriptText }],
     { temperature: 0.1 }
   );
