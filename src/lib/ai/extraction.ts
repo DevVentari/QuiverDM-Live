@@ -13,7 +13,7 @@ import { isOllamaAvailable } from './ollama';
 import { parseMarkdown } from '../markdown-parser';
 import { extractBatch } from './ollama-extraction';
 
-export type ExtractionProvider = 'gemini' | 'anthropic' | 'openai' | 'ollama';
+export type ExtractionProvider = 'gemini' | 'anthropic' | 'openai' | 'groq' | 'ollama';
 
 export interface ExtractedContent {
   type: 'magic_item' | 'spell' | 'creature' | 'feat' | 'race' | 'background' | 'class_feature';
@@ -324,6 +324,46 @@ async function extractWithAnthropic(markdown: string, signal?: AbortSignal): Pro
   return { success: true, items, tokensUsed, tokensIn, tokensOut, model: 'claude-sonnet-4-20250514', provider: 'anthropic' };
 }
 
+async function extractWithGroq(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return { success: false, items: [], provider: 'groq', error: 'GROQ_API_KEY not configured' };
+  }
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      temperature: 0.1,
+      max_tokens: 8192,
+      messages: [{ role: 'user', content: EXTRACTION_PROMPT + markdown }],
+    }),
+    signal,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Groq API error: ${response.status} - ${errorText}`);
+  }
+
+  const result = await response.json();
+  const textResponse = result.choices?.[0]?.message?.content;
+  const tokensIn = result.usage?.prompt_tokens || 0;
+  const tokensOut = result.usage?.completion_tokens || 0;
+  const tokensUsed = result.usage?.total_tokens || 0;
+
+  if (!textResponse) throw new Error('No text in Groq response');
+
+  const items = parseJsonResponse(textResponse);
+  console.log(`[Groq] Extracted ${items.length} items, tokens used: ${tokensUsed}`);
+
+  return { success: true, items, tokensUsed, tokensIn, tokensOut, model: 'llama-3.3-70b-versatile', provider: 'groq' };
+}
+
 async function extractWithOpenAI(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -547,6 +587,9 @@ export async function extractContent(
         case 'openai':
           result = await extractWithOpenAI(chunks[i], signal);
           break;
+        case 'groq':
+          result = await extractWithGroq(chunks[i], signal);
+          break;
         case 'gemini':
         default:
           result = await extractWithGemini(chunks[i], signal, userKeys?.geminiApiKey);
@@ -627,18 +670,13 @@ export async function extractWithFallback(
     // Put preferred first, then remaining available providers
     chain = [preferredProvider, ...available.filter((p) => p !== preferredProvider)];
   } else {
-    // Auto-select: check if Ollama is good for this document
+    // Auto-select: Ollama first (free, local, no rate limits) → cloud fallback
     const ollamaAvailable = available.includes('ollama') && await isOllamaAvailable();
-    const parsed = parseMarkdown(markdown);
-    const sectionCount = parsed.sections.filter((s) => s.type !== 'unknown').length;
-    const useOllamaFirst = ollamaAvailable && sectionCount > 0 && sectionCount <= 20;
 
-    if (useOllamaFirst) {
+    if (ollamaAvailable) {
       chain = ['ollama', ...available.filter((p) => p !== 'ollama')];
     } else {
-      // Cloud first, ollama last
       chain = available.filter((p) => p !== 'ollama');
-      if (ollamaAvailable) chain.push('ollama');
     }
   }
 
@@ -700,6 +738,7 @@ export function getAvailableProviders(): ExtractionProvider[] {
 
   if (process.env.GEMINI_API_KEY) providers.push('gemini');
   if (process.env.ANTHROPIC_API_KEY) providers.push('anthropic');
+  if (process.env.GROQ_API_KEY) providers.push('groq');
   if (process.env.OPENAI_API_KEY) providers.push('openai');
   // Ollama is always listed — availability is checked at runtime
   providers.push('ollama');

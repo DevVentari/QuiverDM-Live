@@ -16,6 +16,19 @@ interface ChatOptions {
   temperature?: number;
 }
 
+async function tryGroq(messages: ChatMessage[], temperature: number): Promise<string> {
+  if (!process.env.GROQ_API_KEY) throw new Error('No Groq key');
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+    body: JSON.stringify({ model: 'llama-3.3-70b-versatile', messages, temperature, max_tokens: 4096 }),
+    signal: AbortSignal.timeout(60_000),
+  });
+  if (!res.ok) throw new Error(`Groq error ${res.status}: ${await res.text()}`);
+  const json = await res.json();
+  return json.choices?.[0]?.message?.content ?? '';
+}
+
 async function tryOpenAI(messages: ChatMessage[], temperature: number): Promise<string> {
   if (!process.env.OPENAI_API_KEY) throw new Error('No OpenAI key');
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -49,6 +62,7 @@ export async function chatWithAI(
 ): Promise<string> {
   const temperature = options.temperature ?? 0.1;
   const providers: Array<[string, () => Promise<string>]> = [
+    ['groq', () => tryGroq(messages, temperature)],
     ['openai', () => tryOpenAI(messages, temperature)],
     ['gemini', () => tryGemini(messages, temperature)],
     ['ollama', () => tryOllama(messages, temperature)],
