@@ -1,5 +1,10 @@
 import { callGemini } from './gemini';
 
+interface ExtractionOpts {
+  userGeminiKey?: string;
+  userId?: string;
+}
+
 function parseJson<T>(text: string, fallback: T): T {
   const match = text.match(/```json\n?([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
   try {
@@ -19,7 +24,7 @@ export interface ExtractedNpc {
   tags: string[];
 }
 
-export async function extractNpc(markdown: string, userGeminiKey?: string): Promise<ExtractedNpc> {
+export async function extractNpc(markdown: string, userGeminiKey?: string, userId?: string): Promise<ExtractedNpc> {
   const prompt = `Extract this D&D NPC from the markdown. Return ONLY valid JSON with these fields:
 {
   "name": "string",
@@ -34,7 +39,7 @@ export async function extractNpc(markdown: string, userGeminiKey?: string): Prom
 Markdown:
 ${markdown.slice(0, 3000)}`;
 
-  const raw = await callGemini(prompt, userGeminiKey);
+  const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
   return parseJson<ExtractedNpc>(raw, {
     name: 'Unknown NPC',
     description: markdown.slice(0, 500),
@@ -57,7 +62,7 @@ export interface ExtractedCharacter {
   flaws?: string;
 }
 
-export async function extractCharacter(markdown: string, userGeminiKey?: string): Promise<ExtractedCharacter> {
+export async function extractCharacter(markdown: string, userGeminiKey?: string, userId?: string): Promise<ExtractedCharacter> {
   const prompt = `Extract this D&D player character from the markdown. Return ONLY valid JSON:
 {
   "name": "string",
@@ -77,7 +82,7 @@ export async function extractCharacter(markdown: string, userGeminiKey?: string)
 Markdown:
 ${markdown.slice(0, 3000)}`;
 
-  const raw = await callGemini(prompt, userGeminiKey);
+  const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
   return parseJson<ExtractedCharacter>(raw, {
     name: 'Unknown Character',
     level: 1,
@@ -95,7 +100,8 @@ export interface ExtractedSession {
 export async function extractSession(
   markdown: string,
   mode: 'planning' | 'completed',
-  userGeminiKey?: string
+  userGeminiKey?: string,
+  userId?: string
 ): Promise<ExtractedSession> {
   if (mode === 'planning') {
     const prompt = `Extract this D&D session prep document. Return ONLY valid JSON:
@@ -118,7 +124,7 @@ export async function extractSession(
 Markdown:
 ${markdown.slice(0, 4000)}`;
 
-    const raw = await callGemini(prompt, userGeminiKey);
+    const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
     return parseJson<ExtractedSession>(raw, { title: 'Untitled Session' });
   } else {
     const prompt = `Extract this D&D session notes document. Return ONLY valid JSON:
@@ -132,7 +138,7 @@ ${markdown.slice(0, 4000)}`;
 Markdown:
 ${markdown.slice(0, 4000)}`;
 
-    const raw = await callGemini(prompt, userGeminiKey);
+    const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
     return parseJson<ExtractedSession>(raw, { title: 'Untitled Session' });
   }
 }
@@ -146,7 +152,8 @@ export interface ExtractedHomebrew {
 export async function extractHomebrew(
   markdown: string,
   contentType: string,
-  userGeminiKey?: string
+  userGeminiKey?: string,
+  userId?: string
 ): Promise<ExtractedHomebrew> {
   const prompt = `Extract this D&D ${contentType} from the markdown. Return ONLY valid JSON:
 {
@@ -158,7 +165,7 @@ export async function extractHomebrew(
 Markdown:
 ${markdown.slice(0, 3000)}`;
 
-  const raw = await callGemini(prompt, userGeminiKey);
+  const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
   return parseJson<ExtractedHomebrew>(raw, {
     name: 'Untitled',
     description: markdown.slice(0, 500),

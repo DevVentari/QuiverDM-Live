@@ -132,10 +132,16 @@ class EmailService {
     percentage: number;
     periodEnd: Date;
   }): Promise<void> {
-    const adminEmails = process.env.ADMIN_EMAILS?.split(',')
-      .map((e) => e.trim())
-      .filter(Boolean);
-    if (!adminEmails?.length) return;
+    const { prisma } = await import('@/lib/prisma');
+    const { PlatformRole } = await import('@prisma/client');
+
+    const admins = await prisma.user.findMany({
+      where: { platformRole: { in: [PlatformRole.WARDEN, PlatformRole.MYTHKEEPER] } },
+      select: { email: true },
+    });
+
+    const adminEmails = admins.map(a => a.email).filter(Boolean) as string[];
+    if (!adminEmails.length) return;
 
     const subject = `[QuiverDM] Usage alert: ${params.limitFamily} at ${Math.round(params.percentage)}%`;
     const html = `

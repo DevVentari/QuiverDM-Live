@@ -11,10 +11,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
+import { RoleBadge } from '@/components/ui/role-badge';
+import { PlanBadge } from '@/components/ui/plan-badge';
+import { PlatformRole } from '@prisma/client';
+import { hasMinimumRole } from '@/lib/platform';
 
 interface KeyConfig {
   name: 'geminiApiKey' | 'openaiApiKey' | 'anthropicApiKey' | 'huggingfaceToken' | 'dndBeyondCobaltCookie';
@@ -100,23 +104,6 @@ function getTextColor(percentage: number): string {
   return 'text-muted-foreground';
 }
 
-/**
- * Format tier name for display.
- */
-function formatTier(tier: string): string {
-  return tier.charAt(0).toUpperCase() + tier.slice(1);
-}
-
-/**
- * Get badge variant based on tier.
- */
-function getTierBadgeVariant(tier: string): 'default' | 'secondary' | 'outline' {
-  switch (tier) {
-    case 'pro': return 'default';
-    case 'team': return 'default';
-    default: return 'secondary';
-  }
-}
 
 function getSubscriptionBadgeVariant(
   status: string | null | undefined
@@ -316,9 +303,7 @@ export default function SettingsPage() {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Badge variant={getTierBadgeVariant(usage.data.tier)}>
-                    {formatTier(usage.data.tier)} Plan
-                  </Badge>
+                  <PlanBadge tier={usage.data.tier} />
                   {usage.data.tier === 'free' && (
                     <Button
                       size="sm"
@@ -642,7 +627,12 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Profile</CardTitle>
+          <div className="flex items-center gap-3">
+            <CardTitle>Profile</CardTitle>
+            {profile.data?.platformRole && (
+              <RoleBadge role={profile.data.platformRole as PlatformRole} />
+            )}
+          </div>
           <CardDescription>Your public display information</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -765,11 +755,21 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>API Keys</CardTitle>
-          <CardDescription>
-            Configure API keys for AI extraction and integrations.
-            Keys are encrypted at rest.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>API Keys</CardTitle>
+              <CardDescription>
+                Configure API keys for AI extraction and integrations.
+                Keys are encrypted at rest.
+              </CardDescription>
+            </div>
+            <Link href="/settings/api-usage">
+              <Button variant="outline" size="sm">
+                <Zap className="h-4 w-4 mr-1" />
+                View API Usage
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {keyConfigs.map((config) => {
@@ -874,33 +874,35 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Admin</CardTitle>
-          <CardDescription>
-            Administrative tools and settings
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors">
-            <div className="flex items-center gap-3">
-              <Ticket className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <div className="font-medium">Beta Invite Codes</div>
-                <div className="text-sm text-muted-foreground">
-                  Generate and manage closed beta invite codes
+      {profile.data?.platformRole && hasMinimumRole(profile.data.platformRole as PlatformRole, PlatformRole.WARDEN) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin</CardTitle>
+            <CardDescription>
+              Administrative tools and settings
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors">
+              <div className="flex items-center gap-3">
+                <Ticket className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="font-medium">Admin Panel</div>
+                  <div className="text-sm text-muted-foreground">
+                    Manage users, usage, and platform settings
+                  </div>
                 </div>
               </div>
+              <Link href="/admin/users">
+                <Button variant="outline" size="sm">
+                  Open
+                  <ExternalLink className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
             </div>
-            <Link href="/admin/invites">
-              <Button variant="outline" size="sm">
-                Manage
-                <ExternalLink className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="border-destructive/30">
         <CardHeader>
