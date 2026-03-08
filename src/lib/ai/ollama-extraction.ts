@@ -47,7 +47,7 @@ export interface OllamaExtractionOptions {
   onProgress?: (current: number, total: number, section: string) => void;
 }
 
-const DEFAULT_MODEL = 'qwen2.5:14b';
+const DEFAULT_MODEL = process.env.OLLAMA_MODEL || 'qwen2.5:7b';
 const DEFAULT_TEMPERATURE = 0.1;
 const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_BATCH_SIZE = 3;

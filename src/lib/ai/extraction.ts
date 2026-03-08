@@ -426,10 +426,33 @@ async function extractWithOllamaProvider(markdown: string): Promise<ExtractionRe
     return { success: false, items: [], provider: 'ollama', error: 'No recognized D&D sections found in markdown' };
   }
 
-  const batchResult = await extractBatch(sections, { batchSize: 3 });
+  // Probe: run first batch only — if 0 items extracted, the section parser
+  // has likely misclassified this document (e.g. chapter headings). Bail fast
+  // so cloud providers can handle it with the raw-chunk approach.
+  const probeBatch = sections.slice(0, 3);
+  const probeResult = await extractBatch(probeBatch, { batchSize: 3 });
+  if (probeResult.items.length === 0) {
+    return {
+      success: false,
+      items: [],
+      provider: 'ollama',
+      error: 'Probe batch produced no valid items — document structure not compatible with section-based extraction',
+    };
+  }
+
+  // Probe succeeded — process remaining sections
+  const remaining = sections.slice(3);
+  const batchResult = remaining.length > 0
+    ? await extractBatch(remaining, { batchSize: 3 })
+    : { items: [], errors: [], metadata: { totalSections: 0, successfulExtractions: 0, failedExtractions: 0, processingTime: 0 } };
+
+  // Merge probe + main results
+  const mergedItems = [...probeResult.items, ...batchResult.items];
+  const mergedErrors = [...probeResult.errors, ...batchResult.errors];
+  const fullBatchResult = { items: mergedItems, errors: mergedErrors };
 
   // Convert HomebrewContent items to ExtractedContent format
-  const items: ExtractedContent[] = batchResult.items.map((item) => ({
+  const items: ExtractedContent[] = fullBatchResult.items.map((item) => ({
     type: item.type as ExtractedContent['type'],
     name: (item.data as any).name || 'Unnamed',
     data: item.data as Record<string, unknown>,
@@ -438,11 +461,11 @@ async function extractWithOllamaProvider(markdown: string): Promise<ExtractionRe
   console.log(`[Ollama] Extracted ${items.length} items from ${sections.length} sections`);
 
   return {
-    success: items.length > 0 || batchResult.errors.length === 0,
+    success: items.length > 0 || fullBatchResult.errors.length === 0,
     items,
     provider: 'ollama',
-    error: batchResult.errors.length > 0
-      ? batchResult.errors.map((e) => `${e.section}: ${e.error}`).join('; ')
+    error: fullBatchResult.errors.length > 0
+      ? fullBatchResult.errors.map((e) => `${e.section}: ${e.error}`).join('; ')
       : undefined,
   };
 }
