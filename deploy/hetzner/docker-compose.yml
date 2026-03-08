@@ -12,7 +12,12 @@ services:
       - TORCH_DEVICE=cpu
       - OMP_NUM_THREADS=2
       - MKL_NUM_THREADS=2
+    volumes:
+      - marker-models:/root/.cache/datalab
     deploy:
       resources:
         limits:
           memory: 3584M
+
+volumes:
+  marker-models:
