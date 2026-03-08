@@ -1,16 +1,8 @@
-import { Metadata } from 'next';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-
-export const metadata: Metadata = {
-  title: 'Admin - QuiverDM',
-  description: 'Administrative dashboard',
-};
-
-const adminEmails = (process.env.ADMIN_EMAILS ?? '')
-  .split(',')
-  .map((email) => email.trim().toLowerCase())
-  .filter(Boolean);
+import { prisma } from '@/lib/prisma';
+import { PlatformRole } from '@prisma/client';
+import { hasMinimumRole } from '@/lib/platform';
 
 export default async function AdminLayout({
   children,
@@ -18,9 +10,17 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-  const email = session?.user?.email?.toLowerCase() ?? '';
 
-  if (!adminEmails.includes(email)) {
+  if (!session?.user?.id) {
+    redirect('/auth/signin');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { platformRole: true },
+  });
+
+  if (!user || !hasMinimumRole(user.platformRole, PlatformRole.WARDEN)) {
     redirect('/dashboard');
   }
 
