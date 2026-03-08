@@ -259,11 +259,11 @@ test('7. Transcription completes within 5 minutes', async ({ page }) => {
   await navigateToSessionRecordings(page, sessionUrl!);
   await page.waitForTimeout(3_000);
 
+  // shadcn Badge renders as <div> — use getByText with exact match to find status badges
+  const findStatus = (text: string) => page.getByText(text, { exact: true });
+
   // Check if already completed
-  const completedBadge = page.locator('span, [class*="badge"]').filter({
-    hasText: /^completed$/i,
-  });
-  if (await completedBadge.count() > 0) {
+  if (await findStatus('completed').count() > 0) {
     console.log('Transcription already completed');
     await takeDebugScreenshot(page, 'tx-07-already-done');
     return;
@@ -287,9 +287,7 @@ test('7. Transcription completes within 5 minutes', async ({ page }) => {
       await page.waitForTimeout(1_000);
     }
 
-    const done = await page.locator('span, [class*="badge"]').filter({
-      hasText: /^(completed|failed)$/i,
-    }).count();
+    const done = (await findStatus('completed').count()) + (await findStatus('failed').count());
 
     if (done > 0) break;
 
@@ -299,8 +297,8 @@ test('7. Transcription completes within 5 minutes', async ({ page }) => {
     }
   }
 
-  const failed = await page.locator('span, [class*="badge"]').filter({ hasText: /^failed$/i }).count();
-  const completed = await page.locator('span, [class*="badge"]').filter({ hasText: /^completed$/i }).count();
+  const failed = await findStatus('failed').count();
+  const completed = await findStatus('completed').count();
 
   await takeDebugScreenshot(page, 'tx-07-final');
 
@@ -329,11 +327,13 @@ test('8. Transcript text content is visible', async ({ page }) => {
     await page.waitForTimeout(2_000);
   }
 
-  // Should show transcript text or segments
-  const transcriptContent = page.locator('[class*="transcript"], [class*="segment"], [class*="prose"]').first();
-  const noTranscript = page.getByText(/no transcript|upload a recording|record your session/i).first();
+  // Transcript viewer renders a search input + badge count when transcripts exist,
+  // or empty state text when none.
+  const transcriptContent = page.getByPlaceholder(/search transcript/i)
+    .or(page.getByText(/\d+ transcripts?/i).first());
+  const noTranscript = page.getByText(/no transcripts?|upload a recording|record your session/i).first();
 
-  await expect(transcriptContent.or(noTranscript)).toBeVisible({ timeout: 10_000 });
+  await expect(transcriptContent.or(noTranscript).first()).toBeVisible({ timeout: 10_000 });
   await takeDebugScreenshot(page, 'tx-08-transcript-content');
 });
 
