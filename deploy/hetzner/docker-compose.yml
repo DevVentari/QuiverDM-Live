@@ -17,7 +17,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3584M
+          memory: 9216M
 
 volumes:
   marker-models:
