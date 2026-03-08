@@ -250,8 +250,8 @@ function buildMarkerCommand(
   }
 
   if (options.useGPU === false) {
-    // Force CPU mode
-    command = `set TORCH_DEVICE=cpu && ${command}`;
+    // Force CPU mode — also disable multiprocessing to reduce peak memory
+    command += ' --disable_multiprocessing';
   }
 
   return command;
@@ -782,6 +782,10 @@ function buildMarkerArgs(
 
   if (options.forceOCR) {
     args.push('--force_ocr');
+  }
+
+  if (options.useGPU === false) {
+    args.push('--disable_multiprocessing');
   }
 
   return args;

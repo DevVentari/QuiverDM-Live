@@ -324,8 +324,10 @@ async function processPDFJob(
           };
           console.log(`[Worker] Marker succeeded (${markerResult.metadata.pages} pages, ${markerResult.metadata.processingTime}s)`);
         } catch (error) {
-          const msg = error instanceof Error ? error.message : String(error);
-          console.error(`[Worker] Marker conversion failed: ${msg}`);
+          const markerErr = error as any;
+          const msg = markerErr?.message || markerErr?.code || String(error);
+          const stderr = markerErr?.stderr ? ` | stderr: ${String(markerErr.stderr).slice(0, 200)}` : '';
+          console.error(`[Worker] Marker conversion failed: ${msg}${stderr}`);
           await updateJobProgress(job, pdfId, startTime, {
             progress: 53,
             currentStep: 'converting',
