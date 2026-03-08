@@ -349,11 +349,20 @@ export class HomebrewPdfService {
       });
     }
 
+    if (pdf.aiExtractionStatus === 'processing') {
+      throw new TRPCError({
+        code: 'CONFLICT',
+        message: 'Extraction is already in progress for this PDF',
+      });
+    }
+
     // Mark extraction as in-progress
     await homebrewPdfRepository.update(pdfId, {
       aiExtractionStatus: 'processing',
       aiExtractionProgress: { chunk: 0, totalChunks: 0, itemsFound: 0, byType: {} },
     });
+
+    let lastChunkCount = { chunk: 0, totalChunks: 0 };
 
     const onChunkProgress = async (
       chunk: number,
@@ -361,12 +370,14 @@ export class HomebrewPdfService {
       itemsFound: number,
       byType: Record<string, number>
     ) => {
+      lastChunkCount = { chunk, totalChunks };
       try {
         await homebrewPdfRepository.update(pdfId, {
           aiExtractionProgress: { chunk, totalChunks, itemsFound, byType },
         });
       } catch {
         // Don't abort extraction if a progress write fails
+        console.warn(`[extractContent] Failed to write progress for chunk ${chunk}/${totalChunks}`);
       }
     };
 
@@ -418,8 +429,8 @@ export class HomebrewPdfService {
       await homebrewPdfRepository.update(pdfId, {
         aiExtractionStatus: 'done',
         aiExtractionProgress: {
-          chunk: extractionResult.items.length > 0 ? 1 : 0,
-          totalChunks: 1,
+          chunk: lastChunkCount.chunk,
+          totalChunks: lastChunkCount.totalChunks,
           itemsFound: saveResult.saved,
           byType,
         },
