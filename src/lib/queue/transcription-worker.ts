@@ -33,6 +33,7 @@ import { saveTranscript } from '../transcription/db';
 import { extractAudioFromVideo } from '../ffmpeg';
 import { deleteFromLocal, extractKeyFromLocalUrl, getAbsolutePathFromKey } from '../storage/local-storage';
 import { deleteFromR2, extractKeyFromUrl } from '../storage/r2';
+import { getSignedUrl } from '../storage';
 import type { TranscriptionJobData, TranscriptionJobResult } from './transcription-queue';
 import { addSessionEventsJob } from './session-events-queue';
 
@@ -77,19 +78,25 @@ function sleep(ms: number) {
 // Helper: Resolve audio path
 // ---------------------------------------------------------------------------
 
-function resolveFilePath(filePath: string): string {
-  // Handle /api/storage/... URLs → extract key and resolve to absolute path
+async function resolveAudioUrl(filePath: string): Promise<string> {
+  // R2 storage path → generate signed URL (AssemblyAI fetches it directly)
   if (filePath.startsWith('/api/storage/')) {
     const key = filePath.replace(/^\/api\/storage\//, '');
+    if (process.env.STORAGE_MODE === 'r2' || process.env.R2_BUCKET_NAME) {
+      return await getSignedUrl(key, 3600);
+    }
     return getAbsolutePathFromKey(key);
   }
   // Handle storage keys like session-recordings/...
   if (filePath.startsWith('session-recordings/') || filePath.startsWith('files/')) {
+    if (process.env.STORAGE_MODE === 'r2' || process.env.R2_BUCKET_NAME) {
+      return await getSignedUrl(filePath, 3600);
+    }
     return getAbsolutePathFromKey(filePath);
   }
-  // If it's a bare key with no path separators
-  if (!filePath.includes('\\') && !filePath.includes('/')) {
-    return getAbsolutePathFromKey(filePath);
+  // Already an https URL — pass through
+  if (filePath.startsWith('https://') || filePath.startsWith('http://')) {
+    return filePath;
   }
   return filePath;
 }
@@ -120,7 +127,7 @@ async function processTranscription(
   const tracker = new TranscriptionProgressTracker(data.jobId, 1);
   await tracker.startProcessing();
 
-  let audioFilePath = resolveFilePath(data.audioUrl);
+  let audioFilePath = await resolveAudioUrl(data.audioUrl);
   let tempDir: string | null = null;
 
   try {

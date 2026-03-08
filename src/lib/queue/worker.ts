@@ -23,6 +23,7 @@ import { PrismaClient } from '@prisma/client';
 import { convertPdfWithPdfplumber } from '../pdf/pdfplumber-fallback';
 import { convertWithDocling, isDoclingAvailable } from '../pdf/docling';
 import { convertWithLlamaParse, isLlamaParseConfigured } from '../pdf/llamaparse';
+import { convertPdfToMarkdown, testMarkerInstallation } from '../pdf/marker';
 
 import { getSignedUrl, storage } from '../storage';
 import type { PDFProcessingJobData, PDFProcessingJobResult } from './queue';
@@ -252,7 +253,7 @@ async function processPDFJob(
     } else {
       console.log(`[Worker] AI content extraction disabled`);
     }
-    // Convert PDF to Markdown — cascade: LlamaParse → Docling → pdfplumber
+    // Convert PDF to Markdown — cascade: LlamaParse → Marker → Docling → pdfplumber
     let markdown = '';
     let pdfMetadata: Record<string, unknown> = {};
     let doclingImages: Array<{ data: string; pageNumber: number; format: string; filename: string }> = [];
@@ -292,30 +293,69 @@ async function processPDFJob(
         await updateJobProgress(job, pdfId, startTime, {
           progress: 48,
           currentStep: 'converting',
-          currentSubStep: 'LlamaParse failed, trying Docling',
+          currentSubStep: 'LlamaParse failed, trying Marker',
           log: `LlamaParse failed: ${msg}`,
           level: 'warning',
         });
       }
     }
 
-    // Tier 2: Docling (self-hosted — handles images, good quality)
+    // Tier 2: Marker (self-hosted — best RAG quality, CPU/GPU)
+    if (!markdown) {
+      const markerAvailable = await testMarkerInstallation();
+      if (markerAvailable) {
+        console.log('[Worker] Converting PDF with Marker...');
+        await updateJobProgress(job, pdfId, startTime, {
+          progress: 50,
+          currentStep: 'converting',
+          currentSubStep: 'Converting PDF to markdown with Marker',
+          log: 'Starting Marker conversion',
+          level: 'info',
+        });
+
+        try {
+          const markerResult = await convertPdfToMarkdown(tempPdfPath, {
+            useGPU: false,
+          });
+          markdown = markerResult.markdown;
+          pdfMetadata = {
+            ...markerResult.metadata,
+            provider: 'marker',
+          };
+          console.log(`[Worker] Marker succeeded (${markerResult.metadata.pages} pages, ${markerResult.metadata.processingTime}s)`);
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          console.error(`[Worker] Marker conversion failed: ${msg}`);
+          await updateJobProgress(job, pdfId, startTime, {
+            progress: 53,
+            currentStep: 'converting',
+            currentSubStep: 'Marker failed, trying Docling',
+            log: `Marker failed: ${msg}`,
+            level: 'warning',
+          });
+        }
+      } else {
+        console.warn('[Worker] Marker not installed');
+      }
+    }
+
+    // Tier 3: Docling (self-hosted — handles images, good quality)
     if (!markdown) {
       const doclingAvailable = await isDoclingAvailable();
       if (doclingAvailable) {
         console.log('[Worker] Converting PDF with Docling...');
         await updateJobProgress(job, pdfId, startTime, {
-          progress: 50,
+          progress: 55,
           currentStep: 'converting',
           currentSubStep: 'Converting PDF to markdown with Docling',
-          log: isLlamaParseConfigured() ? 'Falling back to Docling' : 'Starting Docling conversion',
+          log: 'Falling back to Docling',
           level: 'info',
         });
 
         try {
-          let lastReportedDoclingProgress = 50;
+          let lastReportedDoclingProgress = 55;
           const doclingResult = await convertWithDocling(tempPdfPath, (percent) => {
-            const jobPercent = 45 + Math.round(percent * 0.25);
+            const jobPercent = 50 + Math.round(percent * 0.20);
             if (jobPercent >= lastReportedDoclingProgress + 2) {
               lastReportedDoclingProgress = jobPercent;
               void updateJobProgress(job, pdfId, startTime, {
@@ -337,11 +377,11 @@ async function processPDFJob(
       }
     }
 
-    // Tier 3: pdfplumber (local Python — basic but always works)
+    // Tier 4: pdfplumber (local Python — basic but always works)
     if (!markdown) {
       console.warn('[Worker] Using pdfplumber fallback');
       await updateJobProgress(job, pdfId, startTime, {
-        progress: 55,
+        progress: 60,
         currentStep: 'converting',
         currentSubStep: 'Falling back to pdfplumber conversion',
         log: 'Using pdfplumber fallback converter',
