@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
@@ -765,11 +765,21 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>API Keys</CardTitle>
-          <CardDescription>
-            Configure API keys for AI extraction and integrations.
-            Keys are encrypted at rest.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>API Keys</CardTitle>
+              <CardDescription>
+                Configure API keys for AI extraction and integrations.
+                Keys are encrypted at rest.
+              </CardDescription>
+            </div>
+            <Link href="/settings/api-usage">
+              <Button variant="outline" size="sm">
+                <Zap className="h-4 w-4 mr-1" />
+                View API Usage
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {keyConfigs.map((config) => {
