@@ -4,9 +4,8 @@
  */
 
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, wardenProcedure } from '../trpc';
 import { feedbackService } from '../services/feedback.service';
-import { ForbiddenError } from '../errors';
 
 const feedbackTypeEnum = z.enum(['bug', 'feature', 'improvement', 'other']);
 const feedbackCategoryEnum = z.enum([
@@ -23,26 +22,6 @@ const feedbackStatusEnum = z.enum([
   'resolved',
   'wont_fix',
 ]);
-
-/**
- * Check if user is admin via ADMIN_EMAILS environment variable.
- * Throws ForbiddenError if the user's email is not in the list.
- */
-function requireAdmin(userEmail: string | null | undefined) {
-  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-
-  if (adminEmails.length === 0) {
-    // No ADMIN_EMAILS configured — lock down to prevent accidental exposure
-    throw ForbiddenError.forPermission('manage', 'feedback');
-  }
-
-  if (!userEmail || !adminEmails.includes(userEmail.toLowerCase())) {
-    throw ForbiddenError.forPermission('manage', 'feedback');
-  }
-}
 
 export const feedbackRouter = router({
   /**
@@ -95,7 +74,7 @@ export const feedbackRouter = router({
   /**
    * Get all feedback (admin only)
    */
-  getAll: protectedProcedure
+  getAll: wardenProcedure
     .input(
       z.object({
         type: feedbackTypeEnum.optional(),
@@ -104,16 +83,14 @@ export const feedbackRouter = router({
         limit: z.number().min(1).max(500).optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      requireAdmin(ctx.session.user.email);
-
+    .query(async ({ input }) => {
       return feedbackService.getAll(input);
     }),
 
   /**
    * Update feedback status (admin only)
    */
-  updateStatus: protectedProcedure
+  updateStatus: wardenProcedure
     .input(
       z.object({
         feedbackId: z.string(),
@@ -121,9 +98,7 @@ export const feedbackRouter = router({
         adminNotes: z.string().optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      requireAdmin(ctx.session.user.email);
-
+    .mutation(async ({ input }) => {
       return feedbackService.updateStatus(
         input.feedbackId,
         input.status,
@@ -167,9 +142,7 @@ export const feedbackRouter = router({
   /**
    * Get feedback statistics (admin only)
    */
-  getStats: protectedProcedure.query(async ({ ctx }) => {
-    requireAdmin(ctx.session.user.email);
-
+  getStats: wardenProcedure.query(async () => {
     return feedbackService.getStats();
   }),
 });

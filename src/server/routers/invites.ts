@@ -4,30 +4,10 @@
  */
 
 import { z } from 'zod';
-import { router, protectedProcedure, publicProcedure } from '../trpc';
+import { router, protectedProcedure, publicProcedure, wardenProcedure } from '../trpc';
 import { inviteService } from '../services/invite.service';
-import { ForbiddenError, BadRequestError } from '../errors';
+import { BadRequestError } from '../errors';
 import { emailService } from '@/lib/email';
-
-/**
- * Check if user is admin via ADMIN_EMAILS env var
- */
-async function requireAdmin(userId: string) {
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
-
-  if (adminEmails.length === 0) {
-    throw new ForbiddenError('No admin emails configured. Set ADMIN_EMAILS env var.');
-  }
-
-  const user = await import('@/lib/prisma').then(m => m.prisma.user.findUnique({
-    where: { id: userId },
-    select: { email: true },
-  }));
-
-  if (!user?.email || !adminEmails.includes(user.email.toLowerCase())) {
-    throw ForbiddenError.forPermission('manage', 'invite codes');
-  }
-}
 
 export const invitesRouter = router({
   /**
@@ -62,7 +42,7 @@ export const invitesRouter = router({
   /**
    * Generate new invite codes (admin only)
    */
-  generate: protectedProcedure
+  generate: wardenProcedure
     .input(
       z.object({
         count: z.number().min(1).max(1000),
@@ -70,9 +50,7 @@ export const invitesRouter = router({
         emails: z.array(z.string().email()).max(1000).optional(),
       })
     )
-    .mutation(async ({ input, ctx }) => {
-      await requireAdmin(ctx.session.user.id);
-
+    .mutation(async ({ input }) => {
       if (input.emails && input.emails.length > input.count) {
         throw new BadRequestError('Number of emails cannot exceed generated code count');
       }
@@ -113,48 +91,40 @@ export const invitesRouter = router({
   /**
    * Get invite code statistics (admin only)
    */
-  getStats: protectedProcedure.query(async ({ ctx }) => {
-    await requireAdmin(ctx.session.user.id);
-
+  getStats: wardenProcedure.query(async () => {
     return inviteService.getStats();
   }),
 
   /**
    * Get all invite codes (admin only)
    */
-  getAll: protectedProcedure
+  getAll: wardenProcedure
     .input(
       z.object({
         limit: z.number().min(1).max(1000).optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      await requireAdmin(ctx.session.user.id);
-
+    .query(async ({ input }) => {
       return inviteService.getAllCodes(input.limit);
     }),
 
   /**
    * Get unused invite codes (admin only)
    */
-  getUnused: protectedProcedure
+  getUnused: wardenProcedure
     .input(
       z.object({
         limit: z.number().min(1).max(1000).optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      await requireAdmin(ctx.session.user.id);
-
+    .query(async ({ input }) => {
       return inviteService.getUnusedCodes(input.limit);
     }),
 
   /**
    * Clean up expired invite codes (admin only)
    */
-  cleanupExpired: protectedProcedure.mutation(async ({ ctx }) => {
-    await requireAdmin(ctx.session.user.id);
-
+  cleanupExpired: wardenProcedure.mutation(async () => {
     const deletedCount = await inviteService.cleanupExpired();
     return { deletedCount };
   }),
