@@ -24,13 +24,13 @@ test.describe('Character Builder', () => {
     await page.getByLabel(/^name\b/i).fill(name);
 
     await page.getByRole('tab', { name: /race/i }).click();
-    await page.getByRole('button', { name: /^human$/i }).first().click();
+    await page.getByRole('button', { name: /human/i }).first().click();
 
     await page.getByRole('tab', { name: /class/i }).click();
-    await page.getByRole('button', { name: /^fighter$/i }).first().click();
+    await page.getByRole('button', { name: /fighter/i }).first().click();
 
     await page.getByRole('tab', { name: /background/i }).click();
-    await page.getByRole('button', { name: /^acolyte$/i }).first().click();
+    await page.getByRole('button', { name: /acolyte/i }).first().click();
 
     await expect(page.getByText(name).first()).toBeVisible({ timeout: 5000 });
     await expect(page.getByText(/human/i).first()).toBeVisible();
