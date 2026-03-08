@@ -61,6 +61,10 @@ model User {
   onboardingStep      String?       // Current step: 'welcome', 'profile', 'first_campaign', 'complete'
   inviteCodeUsed      String?       // Which beta invite code was used
 
+  // Platform role (replaces env-based ADMIN_EMAILS)
+  platformRole        PlatformRole  @default(ADVENTURER)
+  suspended           Boolean       @default(false)
+
   // Subscription and usage limits
   tier                String        @default("free") // free, pro, team
   stripeCustomerId    String?       @unique // Stripe customer ID for billing
@@ -78,6 +82,7 @@ model User {
   homebrewContent HomebrewContent[]
   homebrewPDFs    HomebrewPDF[]
   settings        UserSettings?
+  apiUsageLogs    ApiUsageLog[]
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -137,6 +142,13 @@ model InviteCode {
 // ============================================================================
 // Multi-User Collaboration Enums
 // ============================================================================
+
+enum PlatformRole {
+  ADVENTURER      // Regular user
+  DUNGEON_MASTER  // Trusted creator, expanded limits
+  WARDEN          // Moderator, can manage users/content
+  MYTHKEEPER      // Full platform admin
+}
 
 enum CampaignRole {
   OWNER     // Full control, can delete campaign
@@ -977,6 +989,25 @@ model UserUsage {
 
   @@index([userId])
   @@index([periodEnd])
+}
+
+model ApiUsageLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String   // gemini, openai, anthropic, ollama
+  model         String   // gemini-2.5-flash-lite, gpt-4o-mini, etc.
+  feature       String   // extraction, recap, search, image_gen, encounter_gen, rules_qa, obsidian_import
+  tokensIn      Int      @default(0)
+  tokensOut     Int      @default(0)
+  estimatedCost Float    @default(0)
+  requestCount  Int      @default(1)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, provider, createdAt])
+  @@index([userId, feature, createdAt])
 }
 
 model ImageGenerationJob {

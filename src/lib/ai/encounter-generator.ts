@@ -6,6 +6,7 @@
  */
 
 import { isOllamaAvailable, chatWithOllama } from './ollama';
+import { logApiUsage } from './usage-logger';
 import { getXpBudget, getCrRangeForDifficulty, xpForCr } from '../dnd5e/encounter-calculator';
 import { getMonstersByCrRange, type SrdMonster } from '../srd/monsters';
 
@@ -28,6 +29,7 @@ export interface EncounterGenerationRequest {
   difficulty: EncounterDifficulty;
   campaignNpcs?: Array<{ id: string; name: string; cr?: string; stats?: Record<string, unknown> }>;
   homebrewCreatures?: Array<{ id: string; name: string; data?: Record<string, unknown> }>;
+  userId?: string;
 }
 
 export interface EncounterGenerationResult {
@@ -149,12 +151,13 @@ function parseEncounterResponse(text: string): Omit<EncounterGenerationResult, '
   }
 }
 
-async function callGemini(prompt: string, systemPrompt: string): Promise<string> {
+async function callGemini(prompt: string, systemPrompt: string, userId?: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
+  const GEMINI_MODEL = 'gemini-2.5-flash-lite';
   const GEMINI_API_URL =
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent';
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
   const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
     method: 'POST',
@@ -169,12 +172,26 @@ async function callGemini(prompt: string, systemPrompt: string): Promise<string>
 
   if (!response.ok) throw new Error(`Gemini error: ${response.status}`);
   const data = await response.json();
+
+  if (userId) {
+    void logApiUsage({
+      userId,
+      provider: 'gemini',
+      model: GEMINI_MODEL,
+      feature: 'encounter_gen',
+      tokensIn: data.usageMetadata?.promptTokenCount || 0,
+      tokensOut: data.usageMetadata?.candidatesTokenCount || 0,
+    });
+  }
+
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
-async function callAnthropic(prompt: string, systemPrompt: string): Promise<string> {
+async function callAnthropic(prompt: string, systemPrompt: string, userId?: string): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY not configured');
+
+  const ANTHROPIC_MODEL = 'claude-haiku-4-5-20251001';
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -184,7 +201,7 @@ async function callAnthropic(prompt: string, systemPrompt: string): Promise<stri
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
+      model: ANTHROPIC_MODEL,
       max_tokens: 2048,
       system: systemPrompt,
       messages: [{ role: 'user', content: prompt }],
@@ -193,12 +210,26 @@ async function callAnthropic(prompt: string, systemPrompt: string): Promise<stri
 
   if (!response.ok) throw new Error(`Anthropic error: ${response.status}`);
   const data = await response.json();
+
+  if (userId) {
+    void logApiUsage({
+      userId,
+      provider: 'anthropic',
+      model: ANTHROPIC_MODEL,
+      feature: 'encounter_gen',
+      tokensIn: data.usage?.input_tokens || 0,
+      tokensOut: data.usage?.output_tokens || 0,
+    });
+  }
+
   return data.content?.[0]?.text ?? '';
 }
 
-async function callOpenAI(prompt: string, systemPrompt: string): Promise<string> {
+async function callOpenAI(prompt: string, systemPrompt: string, userId?: string): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('OPENAI_API_KEY not configured');
+
+  const OPENAI_MODEL = 'gpt-4o-mini';
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -207,7 +238,7 @@ async function callOpenAI(prompt: string, systemPrompt: string): Promise<string>
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: OPENAI_MODEL,
       max_tokens: 2048,
       temperature: 0.7,
       messages: [
@@ -219,6 +250,18 @@ async function callOpenAI(prompt: string, systemPrompt: string): Promise<string>
 
   if (!response.ok) throw new Error(`OpenAI error: ${response.status}`);
   const data = await response.json();
+
+  if (userId) {
+    void logApiUsage({
+      userId,
+      provider: 'openai',
+      model: OPENAI_MODEL,
+      feature: 'encounter_gen',
+      tokensIn: data.usage?.prompt_tokens || 0,
+      tokensOut: data.usage?.completion_tokens || 0,
+    });
+  }
+
   return data.choices?.[0]?.message?.content ?? '';
 }
 
@@ -245,11 +288,11 @@ function getAvailableProviders(): Provider[] {
   return providers;
 }
 
-async function callProvider(provider: Provider, prompt: string, systemPrompt: string): Promise<string> {
+async function callProvider(provider: Provider, prompt: string, systemPrompt: string, userId?: string): Promise<string> {
   switch (provider) {
-    case 'gemini':    return callGemini(prompt, systemPrompt);
-    case 'anthropic': return callAnthropic(prompt, systemPrompt);
-    case 'openai':    return callOpenAI(prompt, systemPrompt);
+    case 'gemini':    return callGemini(prompt, systemPrompt, userId);
+    case 'anthropic': return callAnthropic(prompt, systemPrompt, userId);
+    case 'openai':    return callOpenAI(prompt, systemPrompt, userId);
     case 'ollama':    return callOllama(prompt, systemPrompt);
   }
 }
@@ -271,7 +314,7 @@ export async function generateEncounter(
 
   for (const provider of providers) {
     try {
-      const raw = await callProvider(provider, request.userPrompt, systemPrompt);
+      const raw = await callProvider(provider, request.userPrompt, systemPrompt, request.userId);
       const parsed = parseEncounterResponse(raw);
 
       if (parsed && parsed.creatures.length > 0) {

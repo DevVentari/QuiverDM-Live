@@ -349,7 +349,7 @@ export class HomebrewPdfService {
       });
     }
 
-    const extractionResult = await extractWithFallback(pdf.markdownContent);
+    const extractionResult = await extractWithFallback(pdf.markdownContent, undefined, undefined, userId);
 
     if (!extractionResult.success) {
       throw new TRPCError({

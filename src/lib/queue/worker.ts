@@ -13,6 +13,7 @@ console.log('[Worker] VERSION CHECK: queue-worker.ts loaded at', new Date().toIS
 
 // Log API key status (without revealing keys)
 console.log('[Worker] Environment check:');
+console.log(`  LLAMA_CLOUD_API_KEY: ${process.env.LLAMA_CLOUD_API_KEY ? '✅ Set' : '❌ Not set'}`);
 console.log(`  GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Not set'}`);
 console.log(`  ANTHROPIC_API_KEY: ${process.env.ANTHROPIC_API_KEY ? '✅ Set' : '❌ Not set'}`);
 console.log(`  OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? '✅ Set' : '❌ Not set'}`);
@@ -21,6 +22,8 @@ import { Worker, Job } from 'bullmq';
 import { PrismaClient } from '@prisma/client';
 import { convertPdfWithPdfplumber } from '../pdf/pdfplumber-fallback';
 import { convertWithDocling, isDoclingAvailable } from '../pdf/docling';
+import { convertWithLlamaParse, isLlamaParseConfigured } from '../pdf/llamaparse';
+import { convertPdfToMarkdown, testMarkerInstallation } from '../pdf/marker';
 
 import { getSignedUrl, storage } from '../storage';
 import type { PDFProcessingJobData, PDFProcessingJobResult } from './queue';
@@ -250,59 +253,139 @@ async function processPDFJob(
     } else {
       console.log(`[Worker] AI content extraction disabled`);
     }
-    // Convert PDF to Markdown using Docling REST API
-    console.log('[Worker] Converting PDF to Markdown with Docling...');
-    await updateJobProgress(job, pdfId, startTime, {
-      progress: 45,
-      currentStep: 'converting',
-      currentSubStep: 'Converting PDF to markdown with Docling',
-      log: 'Starting markdown conversion',
-      level: 'info',
-    });
-
+    // Convert PDF to Markdown — cascade: LlamaParse → Marker → Docling → pdfplumber
     let markdown = '';
     let pdfMetadata: Record<string, unknown> = {};
     let doclingImages: Array<{ data: string; pageNumber: number; format: string; filename: string }> = [];
     let extractedImageMetadata: ExtractedImageMetadata[] = [];
     let imageExtractionStatus: 'completed' | 'partial' | 'failed' = 'completed';
 
-    const doclingAvailable = await isDoclingAvailable();
+    // Tier 1: LlamaParse (cloud API — fast, scalable)
+    if (!markdown && isLlamaParseConfigured()) {
+      console.log('[Worker] Converting PDF with LlamaParse...');
+      await updateJobProgress(job, pdfId, startTime, {
+        progress: 45,
+        currentStep: 'converting',
+        currentSubStep: 'Converting PDF to markdown with LlamaParse',
+        log: 'Starting LlamaParse conversion',
+        level: 'info',
+      });
 
-    if (doclingAvailable) {
       try {
-        let lastReportedDoclingProgress = 45;
-        const doclingResult = await convertWithDocling(tempPdfPath, (percent) => {
-          // Map Docling progress (0-100) to overall job progress (40-70),
-          // leaving room for image processing (72-80) and markdown analysis (85).
+        let lastReportedProgress = 45;
+        const llamaResult = await convertWithLlamaParse(tempPdfPath, (percent) => {
           const jobPercent = 40 + Math.round(percent * 0.30);
-          if (jobPercent >= lastReportedDoclingProgress + 2) {
-            lastReportedDoclingProgress = jobPercent;
+          if (jobPercent >= lastReportedProgress + 2) {
+            lastReportedProgress = jobPercent;
             void updateJobProgress(job, pdfId, startTime, {
               progress: jobPercent,
               currentStep: 'converting',
-              currentSubStep: `Docling conversion ${percent}%`,
+              currentSubStep: `LlamaParse conversion ${percent}%`,
             });
           }
         });
-        markdown = doclingResult.markdown;
-        pdfMetadata = doclingResult.metadata;
-        doclingImages = Array.isArray(doclingResult.images) ? doclingResult.images : [];
+        markdown = llamaResult.markdown;
+        pdfMetadata = llamaResult.metadata;
+        console.log(`[Worker] LlamaParse succeeded (${llamaResult.metadata.pages} pages, ${llamaResult.metadata.processingTimeMs}ms)`);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        console.error(`[Worker] Docling conversion failed (falling back to pdfplumber): ${msg}`);
+        console.error(`[Worker] LlamaParse failed: ${msg}`);
+        await updateJobProgress(job, pdfId, startTime, {
+          progress: 48,
+          currentStep: 'converting',
+          currentSubStep: 'LlamaParse failed, trying Marker',
+          log: `LlamaParse failed: ${msg}`,
+          level: 'warning',
+        });
       }
-    } else {
-      console.warn('[Worker] Docling not available, using pdfplumber fallback');
     }
 
-    // Fallback to pdfplumber if Docling failed or unavailable
+    // Tier 2: Marker (self-hosted — best RAG quality, CPU/GPU)
     if (!markdown) {
+      const markerAvailable = await testMarkerInstallation();
+      if (markerAvailable) {
+        console.log('[Worker] Converting PDF with Marker...');
+        await updateJobProgress(job, pdfId, startTime, {
+          progress: 50,
+          currentStep: 'converting',
+          currentSubStep: 'Converting PDF to markdown with Marker',
+          log: 'Starting Marker conversion',
+          level: 'info',
+        });
+
+        try {
+          const markerResult = await convertPdfToMarkdown(tempPdfPath, {
+            useGPU: false,
+          });
+          markdown = markerResult.markdown;
+          pdfMetadata = {
+            ...markerResult.metadata,
+            provider: 'marker',
+          };
+          console.log(`[Worker] Marker succeeded (${markerResult.metadata.pages} pages, ${markerResult.metadata.processingTime}s)`);
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          console.error(`[Worker] Marker conversion failed: ${msg}`);
+          await updateJobProgress(job, pdfId, startTime, {
+            progress: 53,
+            currentStep: 'converting',
+            currentSubStep: 'Marker failed, trying Docling',
+            log: `Marker failed: ${msg}`,
+            level: 'warning',
+          });
+        }
+      } else {
+        console.warn('[Worker] Marker not installed');
+      }
+    }
+
+    // Tier 3: Docling (self-hosted — handles images, good quality)
+    if (!markdown) {
+      const doclingAvailable = await isDoclingAvailable();
+      if (doclingAvailable) {
+        console.log('[Worker] Converting PDF with Docling...');
+        await updateJobProgress(job, pdfId, startTime, {
+          progress: 55,
+          currentStep: 'converting',
+          currentSubStep: 'Converting PDF to markdown with Docling',
+          log: 'Falling back to Docling',
+          level: 'info',
+        });
+
+        try {
+          let lastReportedDoclingProgress = 55;
+          const doclingResult = await convertWithDocling(tempPdfPath, (percent) => {
+            const jobPercent = 50 + Math.round(percent * 0.20);
+            if (jobPercent >= lastReportedDoclingProgress + 2) {
+              lastReportedDoclingProgress = jobPercent;
+              void updateJobProgress(job, pdfId, startTime, {
+                progress: jobPercent,
+                currentStep: 'converting',
+                currentSubStep: `Docling conversion ${percent}%`,
+              });
+            }
+          });
+          markdown = doclingResult.markdown;
+          pdfMetadata = doclingResult.metadata;
+          doclingImages = Array.isArray(doclingResult.images) ? doclingResult.images : [];
+        } catch (error) {
+          const msg = error instanceof Error ? error.message : String(error);
+          console.error(`[Worker] Docling conversion failed: ${msg}`);
+        }
+      } else {
+        console.warn('[Worker] Docling not available');
+      }
+    }
+
+    // Tier 4: pdfplumber (local Python — basic but always works)
+    if (!markdown) {
+      console.warn('[Worker] Using pdfplumber fallback');
       await updateJobProgress(job, pdfId, startTime, {
-        progress: 50,
+        progress: 60,
         currentStep: 'converting',
         currentSubStep: 'Falling back to pdfplumber conversion',
-        log: 'Docling unavailable, using fallback converter',
-        level: 'info',
+        log: 'Using pdfplumber fallback converter',
+        level: 'warning',
       });
 
       const fallbackResult = await convertPdfWithPdfplumber(tempPdfPath);
@@ -503,7 +586,8 @@ async function processPDFJob(
         const extractionResult = await extractWithFallback(
           extractionPayload.markdown,
           extractionProvider,
-          userGeminiKey ? { geminiApiKey: userGeminiKey } : undefined
+          userGeminiKey ? { geminiApiKey: userGeminiKey } : undefined,
+          userId
         );
 
         if (extractionResult.success && extractionResult.items.length > 0) {

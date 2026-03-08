@@ -9,7 +9,7 @@ export const userSettingsRouter = router({
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const user = await prisma.user.findUnique({
       where: { id: ctx.session.user.id },
-      select: { name: true, displayName: true, bio: true, email: true, image: true },
+      select: { name: true, displayName: true, bio: true, email: true, image: true, platformRole: true },
     });
     return user;
   }),

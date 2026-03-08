@@ -2,7 +2,9 @@ import { initTRPC, TRPCError } from '@trpc/server';
 import { auth } from '@/lib/auth';
 import superjson from 'superjson';
 import { z } from 'zod';
-import { CampaignRole } from '@prisma/client';
+import { CampaignRole, PlatformRole } from '@prisma/client';
+import { hasMinimumRole } from '@/lib/platform';
+import { prisma } from '@/lib/prisma';
 import {
   verifyCampaignMembership,
   verifyCampaignRole,
@@ -52,6 +54,46 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
     ctx: {
       // Ensure session.user is non-nullable
       session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
+// =============================================================================
+// PLATFORM ROLE PROCEDURES
+// =============================================================================
+
+export const wardenProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const user = await prisma.user.findUnique({
+    where: { id: ctx.session.user.id },
+    select: { platformRole: true },
+  });
+
+  if (!user || !hasMinimumRole(user.platformRole, PlatformRole.WARDEN)) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Requires Warden or higher role' });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      platformRole: user.platformRole,
+    },
+  });
+});
+
+export const mythkeeperProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const user = await prisma.user.findUnique({
+    where: { id: ctx.session.user.id },
+    select: { platformRole: true },
+  });
+
+  if (!user || user.platformRole !== PlatformRole.MYTHKEEPER) {
+    throw new TRPCError({ code: 'FORBIDDEN', message: 'Requires Mythkeeper role' });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      platformRole: user.platformRole,
     },
   });
 });

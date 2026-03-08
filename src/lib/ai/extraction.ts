@@ -25,6 +25,9 @@ export interface ExtractionResult {
   success: boolean;
   items: ExtractedContent[];
   tokensUsed?: number;
+  tokensIn?: number;
+  tokensOut?: number;
+  model?: string;
   provider: ExtractionProvider;
   error?: string;
 }
@@ -256,6 +259,8 @@ async function extractWithGemini(markdown: string, signal?: AbortSignal, apiKey?
 
   const result = await response.json();
   const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+  const tokensIn = result.usageMetadata?.promptTokenCount || 0;
+  const tokensOut = result.usageMetadata?.candidatesTokenCount || 0;
   const tokensUsed = result.usageMetadata?.totalTokenCount || 0;
 
   if (!textResponse) {
@@ -265,7 +270,7 @@ async function extractWithGemini(markdown: string, signal?: AbortSignal, apiKey?
   const items = parseJsonResponse(textResponse);
   console.log(`[Gemini] Extracted ${items.length} items, tokens used: ${tokensUsed}`);
 
-  return { success: true, items, tokensUsed, provider: 'gemini' };
+  return { success: true, items, tokensUsed, tokensIn, tokensOut, model: 'gemini-2.5-flash-lite', provider: 'gemini' };
 }
 
 async function extractWithAnthropic(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
@@ -297,7 +302,9 @@ async function extractWithAnthropic(markdown: string, signal?: AbortSignal): Pro
 
   const result = await response.json();
   const textResponse = result.content?.[0]?.text;
-  const tokensUsed = (result.usage?.input_tokens || 0) + (result.usage?.output_tokens || 0);
+  const tokensIn = result.usage?.input_tokens || 0;
+  const tokensOut = result.usage?.output_tokens || 0;
+  const tokensUsed = tokensIn + tokensOut;
 
   if (!textResponse) {
     throw new Error('No text in Anthropic response');
@@ -306,7 +313,7 @@ async function extractWithAnthropic(markdown: string, signal?: AbortSignal): Pro
   const items = parseJsonResponse(textResponse);
   console.log(`[Anthropic] Extracted ${items.length} items, tokens used: ${tokensUsed}`);
 
-  return { success: true, items, tokensUsed, provider: 'anthropic' };
+  return { success: true, items, tokensUsed, tokensIn, tokensOut, model: 'claude-sonnet-4-20250514', provider: 'anthropic' };
 }
 
 async function extractWithOpenAI(markdown: string, signal?: AbortSignal): Promise<ExtractionResult> {
@@ -337,6 +344,8 @@ async function extractWithOpenAI(markdown: string, signal?: AbortSignal): Promis
 
   const result = await response.json();
   const textResponse = result.choices?.[0]?.message?.content;
+  const tokensIn = result.usage?.prompt_tokens || 0;
+  const tokensOut = result.usage?.completion_tokens || 0;
   const tokensUsed = result.usage?.total_tokens || 0;
 
   if (!textResponse) {
@@ -346,7 +355,7 @@ async function extractWithOpenAI(markdown: string, signal?: AbortSignal): Promis
   const items = parseJsonResponse(textResponse);
   console.log(`[OpenAI] Extracted ${items.length} items, tokens used: ${tokensUsed}`);
 
-  return { success: true, items, tokensUsed, provider: 'openai' };
+  return { success: true, items, tokensUsed, tokensIn, tokensOut, model: 'gpt-4o-mini', provider: 'openai' };
 }
 
 /**
@@ -496,7 +505,8 @@ function chunkMarkdown(markdown: string, maxChunkSize: number = 25000): string[]
 export async function extractContent(
   markdown: string,
   provider: ExtractionProvider = 'gemini',
-  userKeys?: { geminiApiKey?: string }
+  userKeys?: { geminiApiKey?: string },
+  userId?: string
 ): Promise<ExtractionResult> {
   console.log(`[AI Extraction] Starting extraction with ${provider}...`);
   console.log(`[AI Extraction] Markdown length: ${markdown.length} characters`);
@@ -511,6 +521,8 @@ export async function extractContent(
 
   const allItems: ExtractedContent[] = [];
   let totalTokens = 0;
+  let totalTokensIn = 0;
+  let totalTokensOut = 0;
   const errors: string[] = [];
 
   try {
@@ -536,6 +548,8 @@ export async function extractContent(
       if (result.success) {
         allItems.push(...result.items);
         totalTokens += result.tokensUsed || 0;
+        totalTokensIn += result.tokensIn || 0;
+        totalTokensOut += result.tokensOut || 0;
         console.log(`[AI Extraction] Chunk ${i + 1}: Found ${result.items.length} items`);
       } else {
         errors.push(`Chunk ${i + 1}: ${result.error}`);
@@ -545,10 +559,25 @@ export async function extractContent(
 
     console.log(`[AI Extraction] Extracted ${allItems.length} total items with ${provider}`);
 
+    if (userId && totalTokens > 0) {
+      const { logApiUsage } = await import('./usage-logger');
+      const modelName = provider === 'gemini' ? 'gemini-2.5-flash-lite' : provider === 'anthropic' ? 'claude-sonnet-4-20250514' : 'gpt-4o-mini';
+      void logApiUsage({
+        userId,
+        provider,
+        model: modelName,
+        feature: 'extraction',
+        tokensIn: totalTokensIn,
+        tokensOut: totalTokensOut,
+      });
+    }
+
     return {
       success: allItems.length > 0 || errors.length === 0,
       items: allItems,
       tokensUsed: totalTokens,
+      tokensIn: totalTokensIn,
+      tokensOut: totalTokensOut,
       provider,
       error: errors.length > 0 ? errors.join('; ') : undefined,
     };
@@ -574,7 +603,8 @@ export async function extractContent(
 export async function extractWithFallback(
   markdown: string,
   preferredProvider?: ExtractionProvider,
-  userKeys?: { geminiApiKey?: string }
+  userKeys?: { geminiApiKey?: string },
+  userId?: string
 ): Promise<ExtractionResult> {
   const available = getAvailableProviders();
   if (userKeys?.geminiApiKey && !available.includes('gemini')) {
@@ -618,7 +648,7 @@ export async function extractWithFallback(
   for (const provider of chain) {
     try {
       console.log(`[AI Extraction] Trying provider: ${provider}`);
-      const result = await extractContent(markdown, provider, userKeys);
+      const result = await extractContent(markdown, provider, userKeys, userId);
 
       if (result.success) {
         return result;

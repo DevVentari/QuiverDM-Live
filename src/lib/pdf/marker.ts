@@ -382,8 +382,8 @@ function parseMarkerOutput(
  */
 export async function testMarkerInstallation(): Promise<boolean> {
   try {
-    const { stdout } = await execAsync('marker_single --version');
-    console.log('[Marker] Installed version:', stdout.trim());
+    // marker_single doesn't support --version; use --help which exits 0
+    await execAsync('marker_single --help');
     return true;
   } catch (error) {
     console.error('[Marker] Not installed or not in PATH');

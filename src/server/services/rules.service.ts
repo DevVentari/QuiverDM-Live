@@ -27,7 +27,7 @@ function getSourceFromMetadata(metadata: unknown): string {
 }
 
 export class RulesService {
-  async lookup(question: string, limit = 5): Promise<RulesLookupResult> {
+  async lookup(question: string, limit = 5, userId?: string): Promise<RulesLookupResult> {
     const normalizedQuestion = question.trim();
     const cacheKey = `rules:${Buffer.from(normalizedQuestion).toString('base64url').slice(0, 64)}`;
 
@@ -82,7 +82,9 @@ export class RulesService {
       // Ollama unavailable — fall back to Gemini
       try {
         answer = await callGemini(
-          `You are a D&D 5e rules expert. Answer using only the provided rules text. Be concise (2-4 sentences). If the answer is not in the provided text, explicitly say so.\n\nRules text:\n${context}\n\nQuestion: ${normalizedQuestion}`
+          `You are a D&D 5e rules expert. Answer using only the provided rules text. Be concise (2-4 sentences). If the answer is not in the provided text, explicitly say so.\n\nRules text:\n${context}\n\nQuestion: ${normalizedQuestion}`,
+          undefined,
+          userId ? { userId, feature: 'rules_qa' } : undefined
         );
       } catch {
         answer = 'Rules AI is temporarily unavailable. Please try again later.';
