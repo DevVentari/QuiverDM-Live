@@ -150,6 +150,42 @@ enum PlatformRole {
   MYTHKEEPER      // Full platform admin
 }
 
+enum WorldEntityType {
+  NPC
+  PC
+  FACTION
+  LOCATION
+  ITEM
+  EVENT
+  ARC
+  THREAT
+  SECRET
+  CUSTOM
+}
+
+enum WorldEntityStatus {
+  active
+  dormant
+  destroyed
+  resolved
+}
+
+enum WorldStateChangeType {
+  property_update
+  status_change
+  relationship_change
+  hook_created
+  hook_resolved
+  pressure_shift
+}
+
+enum WorldStateChangeSource {
+  ingestion
+  inference
+  manual
+  dm_edit
+}
+
 enum CampaignRole {
   OWNER     // Full control, can delete campaign
   CO_DM     // Almost full control, cannot delete or transfer
@@ -204,6 +240,10 @@ model Campaign {
   foundryEvents    FoundryEvent[]
   foundryImportJobs FoundryImportJob[]
   obsidianImports  ObsidianImportJob[]
+  worldEntities    WorldEntity[]
+  worldRelationships WorldRelationship[]
+  worldStateChanges  WorldStateChange[]
+  worldState         WorldState?
 
   createdAt        DateTime                    @default(now())
   updatedAt        DateTime                    @updatedAt
@@ -437,6 +477,7 @@ model GameSession {
   // Derailment Detector
   derailmentStatus       String  @default("none") // none|pending|done|error
   derailmentData         Json?   // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
+  worldStateChanges WorldStateChange[]
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
@@ -1149,4 +1190,94 @@ model QaFailure {
   updatedAt   DateTime @updatedAt
 
   @@index([status, createdAt])
+}
+
+// ============================================================================
+// DM Brain — World State Tracking
+// ============================================================================
+
+model WorldEntity {
+  id              String            @id @default(cuid())
+  campaignId      String
+  campaign        Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type            WorldEntityType
+  name            String
+  aliases         String[]
+  description     String?           @db.Text
+  properties      Json              @default("{}")
+  status          WorldEntityStatus @default(active)
+  sourceType      String?
+  sourceId        String?
+  firstSeenSessionId String?
+  lastSeenSessionId  String?
+  confidence      Float             @default(1.0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  fromRelationships WorldRelationship[] @relation("RelationshipFrom")
+  toRelationships   WorldRelationship[] @relation("RelationshipTo")
+  stateChanges      WorldStateChange[]
+
+  @@unique([campaignId, name, type])
+  @@index([campaignId, type])
+  @@index([campaignId, status])
+  @@index([sourceType, sourceId])
+}
+
+model WorldRelationship {
+  id           String      @id @default(cuid())
+  campaignId   String
+  campaign     Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  fromEntityId String
+  toEntityId   String
+  fromEntity   WorldEntity @relation("RelationshipFrom", fields: [fromEntityId], references: [id], onDelete: Cascade)
+  toEntity     WorldEntity @relation("RelationshipTo", fields: [toEntityId], references: [id], onDelete: Cascade)
+  type         String
+  strength     Float       @default(0.5)
+  description  String?
+  history      Json        @default("[]")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@unique([fromEntityId, toEntityId, type])
+  @@index([campaignId])
+  @@index([fromEntityId])
+  @@index([toEntityId])
+}
+
+model WorldStateChange {
+  id            String                 @id @default(cuid())
+  campaignId    String
+  campaign      Campaign               @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entityId      String?
+  entity        WorldEntity?           @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  sessionId     String?
+  session       GameSession?           @relation(fields: [sessionId], references: [id])
+  changeType    WorldStateChangeType
+  previousValue Json?
+  newValue      Json
+  triggerText   String?                @db.Text
+  source        WorldStateChangeSource
+  createdAt     DateTime               @default(now())
+
+  @@index([campaignId, createdAt])
+  @@index([entityId])
+  @@index([sessionId])
+}
+
+model WorldState {
+  id                    String    @id @default(cuid())
+  campaignId            String    @unique
+  campaign              Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  pressurePolitical     Float     @default(0.0)
+  pressureSupernatural  Float     @default(0.0)
+  pressureEconomic      Float     @default(0.0)
+  pressureCosmic        Float     @default(0.0)
+  pressureSocial        Float     @default(0.0)
+  hooks                 Json      @default("[]")
+  threats               Json      @default("[]")
+  lastIngestedSessionId String?
+  lastInferenceAt       DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
