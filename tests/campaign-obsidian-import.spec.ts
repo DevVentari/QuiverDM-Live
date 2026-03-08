@@ -16,8 +16,7 @@ test.describe('Obsidian Import', () => {
     ).toBeVisible({ timeout: 10000 });
 
     await expect(
-      page.getByText(/obsidian vault/i).first()
-        .or(page.getByText(/upload/i).first())
+      page.locator('h1, h2, h3').filter({ hasText: /obsidian|import/i }).first()
     ).toBeVisible();
 
     expect(pageErrors).toEqual([]);
