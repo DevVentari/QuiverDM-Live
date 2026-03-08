@@ -124,9 +124,11 @@ export async function saveExtractedContent(
   const images = extractedImages ?? [];
 
   try {
-    await client.$transaction(async (tx) => {
-      for (const item of items) {
-        try {
+    // Use individual saves (no single transaction) to avoid Prisma's 5s timeout
+    // on large extractions with hundreds of items.
+    const tx = client;
+    for (const item of items) {
+      try {
           const contentType = TYPE_MAP[item.type] || item.type;
           const searchText = `${item.name} ${JSON.stringify(item.data)}`.toLowerCase();
 
@@ -202,13 +204,11 @@ export async function saveExtractedContent(
           console.error(`[Extraction] ${errorMsg}`);
           errors.push(errorMsg);
         }
-      }
-    });
+    }
   } catch (error) {
-    const errorMsg = `Transaction failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+    const errorMsg = `Save loop failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
     console.error(`[Extraction] ${errorMsg}`);
     errors.push(errorMsg);
-    saved = 0;
   }
 
   return { saved, errors };
