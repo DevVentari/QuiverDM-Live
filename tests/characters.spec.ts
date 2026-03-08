@@ -119,7 +119,10 @@ test.describe('Characters', () => {
     await page.goto('/characters');
     await page.waitForLoadState('domcontentloaded');
 
-    const characterLink = page.locator('a[href*="/characters/"]').first();
+    const characterLink = page
+      .locator('a[href*="/characters/"]')
+      .filter({ hasNot: page.locator('[href="/characters/new"]') })
+      .first();
     if ((await characterLink.count()) === 0) {
       test.skip(true, 'No characters exist for detail-page coverage.');
       return;
@@ -130,7 +133,11 @@ test.describe('Characters', () => {
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(/\/characters\/[a-zA-Z0-9_-]+/);
-    await expect(page.getByText(/armor class|level|overview/i)).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByText(/armor class/i)
+        .or(page.getByText(/level/i))
+        .or(page.getByRole('tab', { name: /overview/i }))
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('player role cannot access DM-only character controls in campaign view', async ({ page }) => {

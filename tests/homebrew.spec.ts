@@ -183,9 +183,9 @@ test.describe('Homebrew', () => {
     const name = `E2E Search ${Date.now()}`;
     await createManualHomebrew(page, name, 'Search coverage entry.');
 
-    const searchInput = page.getByRole('textbox', { name: /search/i })
-      .or(page.locator('input[placeholder*="Search" i]'));
-    await searchInput.first().fill(name);
+    const searchInput = page.locator('input[placeholder*="Search" i]').first();
+    await expect(searchInput).toBeVisible({ timeout: 10000 });
+    await searchInput.fill(name);
 
     // Edge case: filter should match the exact created item.
     await expect(page.getByText(name)).toBeVisible({ timeout: 10000 });

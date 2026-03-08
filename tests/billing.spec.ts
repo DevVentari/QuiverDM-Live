@@ -37,8 +37,8 @@ test.describe('Billing', () => {
     await page.goto('/settings');
     await page.waitForLoadState('domcontentloaded');
 
-    // Edge case: tier badge should always indicate plan context.
-    await expect(page.getByText(/free plan|pro plan|team plan/i)).toBeVisible({ timeout: 10000 });
+    // Edge case: tier badge should always indicate plan context (Wanderer=free, Hero=pro, Fellowship=team).
+    await expect(page.getByText(/wanderer|hero|fellowship/i).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('free-tier user sees upgrade CTA without redirecting to Stripe', async ({ page }) => {
