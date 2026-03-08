@@ -108,6 +108,15 @@ services:
     depends_on:
       - n8n
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: quiverdm-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
   comfyui:
     image: ghcr.io/ai-dock/comfyui:latest-cuda
     container_name: quiverdm-comfyui
@@ -151,3 +160,4 @@ volumes:
   n8n_data:
   comfyui_models:
   comfyui_output:
+  qdrant_data:
