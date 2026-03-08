@@ -17,6 +17,7 @@ const TYPE_MAP: Record<string, string> = {
   race: 'race',
   background: 'background',
   class_feature: 'subclass',
+  harvesting_material: 'harvesting_material',
 };
 
 export interface ExtractedContentItem {
