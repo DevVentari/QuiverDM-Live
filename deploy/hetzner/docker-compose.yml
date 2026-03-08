@@ -19,5 +19,26 @@ services:
         limits:
           memory: 9216M
 
+  ws-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.workers
+    container_name: quiverdm-ws
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=512
+      - WS_PORT=3004
+    ports:
+      - "3004:3004"
+    command: npx tsx src/server/ws-server.ts
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(3004,'localhost',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   marker-models:
