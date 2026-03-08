@@ -12,7 +12,7 @@ test('AI summaries page loads and session summary panel renders', async ({ page 
 
   await checkpoint(testInfo, 'summaries-page-loads', async () => {
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}/summaries`);
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await page.waitForLoadState('domcontentloaded');
     // Page heading: "Session Summaries"
     await expect(page.getByRole('heading', { name: /session summaries/i })).toBeVisible({ timeout: 15_000 });
   }, 20_000);

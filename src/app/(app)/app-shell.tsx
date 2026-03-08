@@ -23,7 +23,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <header className="glass-shell flex h-14 items-center justify-between border-b border-border px-4">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8">
+                <Button variant="ghost" size="icon" className="md:hidden h-8 w-8" aria-label="Open navigation menu">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
