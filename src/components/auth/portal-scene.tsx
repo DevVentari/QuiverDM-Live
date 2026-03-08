@@ -89,9 +89,8 @@ export function PortalScene({ children }: PortalSceneProps) {
       {/* Layer 1: Background image */}
       <div
         ref={layerBgRef}
-        className="absolute inset-[-6%] bg-cover bg-center bg-no-repeat will-change-transform"
+        className="absolute inset-[-6%] will-change-transform"
         style={{
-          backgroundImage: "url('/images/login-bg.jpg')",
           background: "url('/images/login-bg.jpg') center/cover no-repeat, linear-gradient(160deg, hsl(240 15% 8%) 0%, hsl(25 20% 10%) 50%, hsl(240 10% 6%) 100%)",
         }}
       />
@@ -144,9 +143,11 @@ export function PortalScene({ children }: PortalSceneProps) {
       {/* Layer 6: Login form */}
       <div
         ref={layerFormRef}
-        className={`relative z-10 will-change-transform ${reduced ? '' : 'portal-form-float'}`}
+        className="relative z-10 will-change-transform"
       >
-        {children}
+        <div className={reduced ? '' : 'portal-form-float'}>
+          {children}
+        </div>
       </div>
     </div>
   );
