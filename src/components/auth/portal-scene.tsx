@@ -5,18 +5,18 @@ import { useReducedMotion } from 'framer-motion';
 
 // Particle data — fixed positions so no hydration mismatch
 const PARTICLES = [
-  { id: 1, left: '15%', delay: '0s', duration: '6s', size: 3, opacity: 0.5 },
-  { id: 2, left: '22%', delay: '1.2s', duration: '8s', size: 2, opacity: 0.3 },
-  { id: 3, left: '35%', delay: '0.4s', duration: '7s', size: 4, opacity: 0.6 },
-  { id: 4, left: '48%', delay: '2s', duration: '5s', size: 2, opacity: 0.4 },
-  { id: 5, left: '55%', delay: '0.8s', duration: '9s', size: 3, opacity: 0.5 },
-  { id: 6, left: '63%', delay: '1.6s', duration: '6.5s', size: 2, opacity: 0.3 },
-  { id: 7, left: '72%', delay: '0.2s', duration: '7.5s', size: 4, opacity: 0.55 },
-  { id: 8, left: '80%', delay: '2.4s', duration: '8s', size: 2, opacity: 0.35 },
-  { id: 9, left: '88%', delay: '1s', duration: '6s', size: 3, opacity: 0.45 },
-  { id: 10, left: '10%', delay: '3s', duration: '10s', size: 2, opacity: 0.3 },
-  { id: 11, left: '42%', delay: '1.8s', duration: '7s', size: 3, opacity: 0.4 },
-  { id: 12, left: '92%', delay: '0.6s', duration: '8.5s', size: 2, opacity: 0.35 },
+  { id: 1, left: '15%', delay: '0s', duration: '6s', size: 3, opacity: 0.5, xDrift: 30 },
+  { id: 2, left: '22%', delay: '1.2s', duration: '8s', size: 2, opacity: 0.3, xDrift: -20 },
+  { id: 3, left: '35%', delay: '0.4s', duration: '7s', size: 4, opacity: 0.6, xDrift: 45 },
+  { id: 4, left: '48%', delay: '2s', duration: '5s', size: 2, opacity: 0.4, xDrift: -35 },
+  { id: 5, left: '55%', delay: '0.8s', duration: '9s', size: 3, opacity: 0.5, xDrift: 25 },
+  { id: 6, left: '63%', delay: '1.6s', duration: '6.5s', size: 2, opacity: 0.3, xDrift: -40 },
+  { id: 7, left: '72%', delay: '0.2s', duration: '7.5s', size: 4, opacity: 0.55, xDrift: 50 },
+  { id: 8, left: '80%', delay: '2.4s', duration: '8s', size: 2, opacity: 0.35, xDrift: -15 },
+  { id: 9, left: '88%', delay: '1s', duration: '6s', size: 3, opacity: 0.45, xDrift: 35 },
+  { id: 10, left: '10%', delay: '3s', duration: '10s', size: 2, opacity: 0.3, xDrift: -30 },
+  { id: 11, left: '42%', delay: '1.8s', duration: '7s', size: 3, opacity: 0.4, xDrift: 20 },
+  { id: 12, left: '92%', delay: '0.6s', duration: '8.5s', size: 2, opacity: 0.35, xDrift: -45 },
 ];
 
 interface PortalSceneProps {
@@ -134,6 +134,7 @@ export function PortalScene({ children }: PortalSceneProps) {
                 animationDelay: p.delay,
                 animationDuration: p.duration,
                 background: `hsl(35 80% ${55 + Math.floor(p.id * 3) % 20}%)`,
+                ['--x-drift' as string]: `${p.xDrift}px`,
               }}
             />
           ))}

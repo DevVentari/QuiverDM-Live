@@ -383,7 +383,7 @@
     opacity: 0.6;
   }
   100% {
-    transform: translateY(-100vh) translateX(40px);
+    transform: translateY(-100vh) translateX(var(--x-drift, 40px));
     opacity: 0;
   }
 }
