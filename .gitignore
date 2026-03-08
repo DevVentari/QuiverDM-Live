@@ -64,6 +64,7 @@ playwright-report/
 test-results/
 *.png
 !public/**/*.png
+!tests/**/*-snapshots/**/*.png
 
 # Session summaries
 *_SUMMARY.md
