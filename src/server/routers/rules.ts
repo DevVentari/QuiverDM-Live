@@ -27,7 +27,7 @@ export const rulesRouter = router({
         limit: z.number().int().min(1).max(10).default(5),
       })
     )
-    .query(({ input }) => rulesService.lookup(input.question, input.limit)),
+    .query(({ input, ctx }) => rulesService.lookup(input.question, input.limit, ctx.session.user.id)),
 
   listSources: protectedProcedure.query(() => rulesService.listSources()),
 

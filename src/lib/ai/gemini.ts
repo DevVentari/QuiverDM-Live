@@ -1,9 +1,16 @@
+import { logApiUsage } from './usage-logger';
+
 const TEXT_MODEL = 'gemini-2.5-flash-lite';
 const VISION_MODEL = 'gemini-2.0-flash';
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
 const TIMEOUT_MS = 60_000;
 
-export async function callGemini(prompt: string, userKey?: string): Promise<string> {
+interface GeminiCallOpts {
+  userId?: string;
+  feature?: string;
+}
+
+export async function callGemini(prompt: string, userKey?: string, opts?: GeminiCallOpts): Promise<string> {
   const apiKey = userKey || process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('No Gemini API key available');
 
@@ -19,13 +26,26 @@ export async function callGemini(prompt: string, userKey?: string): Promise<stri
 
   if (!res.ok) throw new Error(`Gemini error ${res.status}: ${await res.text()}`);
   const json = await res.json();
+
+  if (opts?.userId) {
+    void logApiUsage({
+      userId: opts.userId,
+      provider: 'gemini',
+      model: TEXT_MODEL,
+      feature: opts.feature || 'unknown',
+      tokensIn: json.usageMetadata?.promptTokenCount || 0,
+      tokensOut: json.usageMetadata?.candidatesTokenCount || 0,
+    });
+  }
+
   return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
 
 export async function callGeminiVision(
   prompt: string,
   images: Array<{ mimeType: string; base64Data: string }>,
-  userKey?: string
+  userKey?: string,
+  opts?: GeminiCallOpts
 ): Promise<string> {
   const apiKey = userKey || process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('No Gemini API key available');
@@ -47,5 +67,17 @@ export async function callGeminiVision(
 
   if (!res.ok) throw new Error(`Gemini Vision error ${res.status}: ${await res.text()}`);
   const json = await res.json();
+
+  if (opts?.userId) {
+    void logApiUsage({
+      userId: opts.userId,
+      provider: 'gemini',
+      model: VISION_MODEL,
+      feature: opts.feature || 'unknown',
+      tokensIn: json.usageMetadata?.promptTokenCount || 0,
+      tokensOut: json.usageMetadata?.candidatesTokenCount || 0,
+    });
+  }
+
   return json.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 }
