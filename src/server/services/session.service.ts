@@ -26,6 +26,7 @@ import {
   buildLooseThreadsFromBrainPrompt,
 } from '@/lib/ai/prep-prompts';
 import { brainRepository } from '../repositories/brain.repository';
+import { WorldEntityStatus } from '@prisma/client';
 
 export class SessionService {
   async getById(sessionId: string, userId: string) {
@@ -270,7 +271,7 @@ export class SessionService {
     try {
       const [worldState, entities, relationships] = await Promise.all([
         brainRepository.getOrCreateState(campaignId),
-        brainRepository.findEntities(campaignId, { status: 'active' as any, limit: 50 }),
+        brainRepository.findEntities(campaignId, { status: WorldEntityStatus.active, limit: 50 }),
         brainRepository.findRelationships(campaignId),
       ]);
 
