@@ -38,8 +38,8 @@ const EXTRACTION_PROMPT = `You are a D&D 5e content parser. Extract all homebrew
 
 For each item found, identify its type and extract relevant data:
 
-1. **magic_item**: weapons, armor, wondrous items, potions, rings, etc.
-   - name, type (weapon/armor/potion/ring/wondrous item/etc), rarity, requiresAttunement, description, properties
+1. **magic_item**: weapons, armor, wondrous items, potions, rings, crafted items, etc.
+   - name, itemType (weapon/armor/potion/ring/wondrous item/etc), rarity, requiresAttunement, description, properties
 
 2. **spell**: magical spells
    - name, level (0 for cantrip), school, castingTime, range, components, duration, description, higherLevels
@@ -58,6 +58,10 @@ For each item found, identify its type and extract relevant data:
 
 7. **class_feature**: class or subclass features
    - name, className, level, description
+
+8. **harvesting_material**: raw materials harvested from creatures (rows in harvest/loot tables). Use this for any table row with DC, item name, description, value, weight, and optional crafting columns.
+   - name, sourceCreature (the monster this is harvested from — look at the section heading above the table), dc (number), quantity (e.g. "1", "3 vials", "small pouch"), description, value (e.g. "8 sp", "20 gp"), weight (e.g. "0.1 lb", "-"), crafting (what it can be crafted into, or null)
+   - imagePromptHint: a visual description of the raw material itself (texture, colour, appearance)
 
 For EVERY item, also include an "imagePromptHint" field: a concise 1-2 sentence visual description drawn from the source text, written as an image generation prompt. Focus on physical appearance, colours, materials, and atmosphere. Example: "A gnarled obsidian staff crowned with a swirling void gem, crackling with dark purple lightning." If no visual description exists in the text, generate a fitting one based on the item's name and type.
 
@@ -97,20 +101,24 @@ Return a JSON array like:
     }
   },
   {
-    "type": "creature",
-    "name": "Vhle-Zotha",
+    "type": "harvesting_material",
+    "name": "Aboleth Mucus",
     "data": {
-      "size": "large",
-      "type": "aberration",
-      "challengeRating": 9,
-      "imagePromptHint": "A towering shadow-wreathed figure with writhing tendrils, hollow glowing eyes, and tattered robes that dissolve into darkness at the edges."
+      "sourceCreature": "Aboleth",
+      "dc": 15,
+      "quantity": "3 vials",
+      "description": "A thick, viscous mucus secreted by the aboleth. Can be used as a contact poison.",
+      "value": "20 gp",
+      "weight": "0.5 lb",
+      "crafting": "Potion of Water Breathing",
+      "imagePromptHint": "Three small glass vials filled with a thick, translucent blue-grey slime, faintly luminescent."
     }
   }
 ]
 
 IMPORTANT:
 - Return ONLY the JSON array, no markdown code blocks, no explanation
-- Extract ALL items found in the text
+- Extract ALL items found in the text — for harvest tables, extract EVERY row as a harvesting_material
 - Be thorough - don't miss any content
 - Use the exact type strings specified above
 - Always include imagePromptHint in the data object
@@ -645,6 +653,8 @@ export async function extractWithFallback(
 
   console.log(`[AI Extraction] Fallback chain: ${chain.join(' → ')}`);
 
+  let bestPartial: ExtractionResult | null = null;
+
   for (const provider of chain) {
     try {
       console.log(`[AI Extraction] Trying provider: ${provider}`);
@@ -654,14 +664,24 @@ export async function extractWithFallback(
         return result;
       }
 
-      // Provider returned unsuccessful but didn't throw — log and try next
-      console.warn(`[AI Extraction] ${provider} failed: ${result.error}`);
+      // Provider returned partial results (e.g. timed out mid-chunk) — keep best so far
+      if (result.items.length > 0 && (!bestPartial || result.items.length > bestPartial.items.length)) {
+        bestPartial = result;
+        console.warn(`[AI Extraction] ${provider} failed mid-way but extracted ${result.items.length} items — keeping as partial`);
+      } else {
+        console.warn(`[AI Extraction] ${provider} failed: ${result.error}`);
+      }
     } catch (error) {
       console.warn(
         `[AI Extraction] ${provider} threw error:`,
         error instanceof Error ? error.message : String(error)
       );
     }
+  }
+
+  if (bestPartial && bestPartial.items.length > 0) {
+    console.warn(`[AI Extraction] All providers exhausted — returning best partial result (${bestPartial.items.length} items)`);
+    return { ...bestPartial, success: true, error: `Partial extraction: ${bestPartial.error}` };
   }
 
   return {
