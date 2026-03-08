@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { PlatformRole } from '@prisma/client';
 import { hasMinimumRole } from '@/lib/platform';
+import { AdminNav } from '@/components/admin/admin-nav';
 
 export default async function AdminLayout({
   children,
@@ -26,7 +27,12 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      {children}
+      <div className="flex">
+        <AdminNav role={user.platformRole} />
+        <main className="flex-1 p-6 lg:p-8">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
