@@ -177,7 +177,7 @@ function PDFListCard({
     >
       <CardHeader className="flex flex-row items-start gap-4 p-5">
         <div className="shrink-0">
-          {isActive ? (
+          {isActive && pdf.processingStatus !== 'completed' ? (
             <CircularProgress value={progress} size={68} strokeWidth={6}>
               <FileText className="h-5 w-5 text-primary" />
             </CircularProgress>
@@ -203,7 +203,7 @@ function PDFListCard({
         </Badge>
       </CardHeader>
 
-      {isActive ? (
+      {isActive && pdf.processingStatus !== 'completed' ? (
         <CardContent className="space-y-2 px-5 pb-4 pt-0">
           <Progress value={progress} className="h-2" indicatorClassName="bg-blue-500" />
           <p className="text-xs text-muted-foreground">
@@ -338,7 +338,10 @@ export default function PDFsPage() {
         // Poll while loading or while any item is still processing
         if (!items) return 2000;
         const hasProcessing = items.some(
-          (p: any) => p.processingStatus === 'pending' || p.processingStatus === 'processing'
+          (p: any) =>
+            p.processingStatus === 'pending' ||
+            p.processingStatus === 'processing' ||
+            p.aiExtractionStatus === 'processing'
         );
         return hasProcessing ? 2000 : false;
       },
