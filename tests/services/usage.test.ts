@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { RateLimitedError } from '@/server/errors';
+import { ForbiddenError, RateLimitedError } from '@/server/errors';
 
 const prismaMock = vi.hoisted(() => ({
   userUsage: {
@@ -20,8 +20,9 @@ vi.mock('@/lib/prisma', () => ({
 import { TIER_LIMITS, usageService } from '@/server/services/usage.service';
 
 function buildUsage(overrides: Record<string, unknown> = {}) {
-  const now = new Date('2026-02-01T00:00:00.000Z');
-  const periodEnd = new Date('2026-03-01T00:00:00.000Z');
+  const now = new Date();
+  const periodEnd = new Date(now);
+  periodEnd.setDate(periodEnd.getDate() + 30);
 
   return {
     userId: 'user-1',
@@ -59,13 +60,13 @@ describe('usageService', () => {
     await expect(usageService.canTranscribe('user-1', 100)).resolves.toBe(true);
   });
 
-  it('enforces transcription cap one over (throws RateLimitedError)', async () => {
+  it('enforces transcription cap one over (throws ForbiddenError)', async () => {
     prismaMock.userUsage.findUnique.mockResolvedValue(
       buildUsage({ transcriptionSeconds: 7200, transcriptionLimit: 7200 })
     );
 
     await expect(usageService.incrementTranscription('user-1', 1)).rejects.toBeInstanceOf(
-      RateLimitedError
+      ForbiddenError
     );
   });
 
@@ -73,6 +74,10 @@ describe('usageService', () => {
     prismaMock.userUsage.findUnique
       .mockResolvedValueOnce(buildUsage({ userId: 'free-user', campaignsOwned: 1, campaignLimit: TIER_LIMITS.free.campaigns }))
       .mockResolvedValueOnce(buildUsage({ userId: 'pro-user', campaignsOwned: 1, campaignLimit: TIER_LIMITS.pro.campaigns }));
+
+    prismaMock.user.findUnique
+      .mockResolvedValueOnce({ tier: 'free' })
+      .mockResolvedValueOnce({ tier: 'pro' });
 
     await expect(usageService.canCreateCampaign('free-user')).resolves.toBe(false);
     await expect(usageService.canCreateCampaign('pro-user')).resolves.toBe(true);
