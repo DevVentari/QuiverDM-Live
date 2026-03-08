@@ -40,5 +40,20 @@ services:
       retries: 3
       start_period: 10s
 
+  ollama:
+    image: ollama/ollama
+    container_name: quiverdm-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+    deploy:
+      resources:
+        limits:
+          memory: 5120M
+
 volumes:
   marker-models:
+  ollama-models:
