@@ -42,7 +42,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ entityI
     { enabled: isDM, staleTime: 30_000 }
   );
   const timelineQuery = trpc.brain.timeline.useQuery(
-    { campaignId, limit: 20 },
+    { campaignId, entityId, limit: 20 },
     { enabled: isDM, staleTime: 30_000 }
   );
 
@@ -82,10 +82,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ entityI
   const entity = entityQuery.data;
   const relationships = relationshipsQuery.data ?? [];
 
-  // Filter timeline to only changes for this entity
-  const entityTimeline = (timelineQuery.data ?? []).filter(
-    (entry) => entry.entityId === entityId
-  );
+  const entityTimeline = timelineQuery.data ?? [];
 
   const properties = entity?.properties as Record<string, unknown> | null | undefined;
 

@@ -126,9 +126,9 @@ export const brainRouter = router({
   }),
 
   timeline: protectedProcedure
-    .input(z.object({ campaignId: z.string().min(1), limit: z.number().int().min(1).max(200).optional() }))
+    .input(z.object({ campaignId: z.string().min(1), limit: z.number().int().min(1).max(200).optional(), entityId: z.string().optional() }))
     .query(({ input, ctx }) =>
-      brainService.getTimeline(input.campaignId, ctx.session.user.id, input.limit)
+      brainService.getTimeline(input.campaignId, ctx.session.user.id, input.limit, input.entityId)
     ),
 
   seedFromExisting: protectedProcedure
