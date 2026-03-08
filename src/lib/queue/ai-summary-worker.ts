@@ -8,7 +8,7 @@ dotenv.config({ path: '.env.local', override: true });
 import { Worker } from 'bullmq';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
-import { chatWithOllama } from '../ai/ollama';
+import { chatWithAI } from '../ai/chat';
 import type {
   AiSummaryJobData,
   AiSummaryJobResult,
@@ -110,7 +110,7 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
   });
 
   const userPrompt = `Session ${data.sessionNumber}: "${data.sessionTitle}"\n\nTranscript:\n${data.transcriptText.slice(0, 12000)}`;
-  const content = await chatWithOllama(
+  const content = await chatWithAI(
     [
       { role: 'system', content: SUMMARY_SYSTEM_PROMPT },
       { role: 'user', content: userPrompt },
