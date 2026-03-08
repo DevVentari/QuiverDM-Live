@@ -305,3 +305,103 @@
     z-index: 1;
   }
 }
+
+/* ─── Portal Login Scene ────────────────────────────────────────────────── */
+
+.portal-fog {
+  background: radial-gradient(
+    ellipse 60% 55% at 50% 55%,
+    hsl(35 40% 20% / 0.18) 0%,
+    hsl(240 20% 8% / 0.45) 60%,
+    transparent 100%
+  );
+  animation: fog-breathe 8s ease-in-out infinite;
+}
+
+@keyframes fog-breathe {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* Portal ring — oval arch shape */
+.portal-ring {
+  position: relative;
+  width: 380px;
+  height: 500px;
+  border-radius: 50%;
+  animation: portal-pulse 3s ease-in-out infinite;
+}
+
+.portal-ring::before {
+  content: '';
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    0 0 60px 20px hsl(35 80% 55% / 0.15),
+    0 0 120px 40px hsl(35 80% 55% / 0.08),
+    0 0 200px 80px hsl(35 60% 40% / 0.05);
+  animation: portal-glow-outer 3s ease-in-out infinite;
+}
+
+.portal-ring-inner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid hsl(35 80% 55% / 0.55);
+  box-shadow:
+    inset 0 0 30px hsl(35 80% 55% / 0.12),
+    0 0 20px hsl(35 80% 55% / 0.3),
+    0 0 40px hsl(35 80% 55% / 0.15);
+}
+
+@keyframes portal-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+}
+
+@keyframes portal-glow-outer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Floating ember particles */
+.portal-particle {
+  animation: ember-rise linear infinite;
+}
+
+@keyframes ember-rise {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(40px);
+    opacity: 0;
+  }
+}
+
+/* Login form float */
+.portal-form-float {
+  animation: portal-float 4s ease-in-out infinite;
+}
+
+@keyframes portal-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
+}
+
+/* Responsive portal ring */
+@media (max-width: 480px) {
+  .portal-ring {
+    width: 300px;
+    height: 400px;
+  }
+}
