@@ -135,7 +135,7 @@ test.describe('Characters', () => {
     await expect(page).toHaveURL(/\/characters\/[a-zA-Z0-9_-]+/);
     await expect(
       page.getByText(/armor class/i)
-        .or(page.getByText(/level/i))
+        .or(page.getByText(/level \d/i))
         .or(page.getByRole('tab', { name: /overview/i }))
     ).toBeVisible({ timeout: 10000 });
   });
