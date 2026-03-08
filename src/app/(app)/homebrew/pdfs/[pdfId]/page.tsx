@@ -14,8 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { getTypeStyle } from '@/lib/homebrew-utils';
 import { AlertCircle, ArrowLeft, BookOpen, FileText, Loader2, RefreshCw, Sparkles } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { MarkdownWithTOC } from '@/components/homebrew/markdown-with-toc';
 import dynamic from 'next/dynamic';
 const PDFViewer = dynamic(
   () => import('@/components/homebrew/pdf-viewer').then((m) => m.PDFViewer),
@@ -281,13 +280,8 @@ export default function PDFDetailPage() {
           <TabsContent value="markdown" className="mt-4">
             {data.markdownContent ? (
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Markdown Content</CardTitle>
-                </CardHeader>
-                <CardContent className="prose prose-sm max-w-none">
-                  <ReactMarkdown skipHtml remarkPlugins={[remarkGfm]}>
-                    {data.markdownContent}
-                  </ReactMarkdown>
+                <CardContent className="px-6 py-6">
+                  <MarkdownWithTOC markdown={data.markdownContent} />
                 </CardContent>
               </Card>
             ) : (
