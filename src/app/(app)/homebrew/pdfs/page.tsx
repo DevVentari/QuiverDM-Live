@@ -52,6 +52,13 @@ type PdfItem = {
   createdAt: string;
   processingStatus: string;
   errorMessage?: string | null;
+  aiExtractionStatus?: string | null;
+  aiExtractionProgress?: {
+    chunk: number;
+    totalChunks: number;
+    itemsFound: number;
+    byType: Record<string, number>;
+  } | null;
 };
 
 function formatFileSize(bytes?: number) {
@@ -143,7 +150,8 @@ function PDFListCard({
   onReprocess: (pdfId: string) => void;
 }) {
   const router = useRouter();
-  const isActive = pdf.processingStatus === 'pending' || pdf.processingStatus === 'processing';
+  const isExtracting = pdf.aiExtractionStatus === 'processing';
+  const isActive = pdf.processingStatus === 'pending' || pdf.processingStatus === 'processing' || isExtracting;
   const statusInfo = getStatusStyles(pdf.processingStatus || 'pending');
 
   const statusQuery = trpc.homebrewPdf.getJobStatus.useQuery(
@@ -201,6 +209,37 @@ function PDFListCard({
           <p className="text-xs text-muted-foreground">
             {currentStage}
             {estimated ? ` • ${estimated}` : ''}
+          </p>
+        </CardContent>
+      ) : null}
+
+      {isExtracting ? (
+        <CardContent className="space-y-2 px-5 pb-2 pt-0">
+          <Progress
+            value={
+              pdf.aiExtractionProgress?.totalChunks
+                ? Math.round((pdf.aiExtractionProgress.chunk / pdf.aiExtractionProgress.totalChunks) * 100)
+                : 0
+            }
+            className="h-1.5"
+            indicatorClassName="bg-amber-500"
+          />
+          <p className="text-xs text-muted-foreground">
+            Extracting content… chunk {pdf.aiExtractionProgress?.chunk ?? 0} of {pdf.aiExtractionProgress?.totalChunks ?? '?'}
+            {pdf.aiExtractionProgress?.itemsFound ? ` • ${pdf.aiExtractionProgress.itemsFound} items found` : ''}
+          </p>
+        </CardContent>
+      ) : null}
+
+      {pdf.aiExtractionStatus === 'done' && pdf.aiExtractionProgress?.itemsFound ? (
+        <CardContent className="px-5 pb-3 pt-0">
+          <p className="text-xs text-muted-foreground">
+            {pdf.aiExtractionProgress.itemsFound} items extracted
+            {Object.keys(pdf.aiExtractionProgress.byType ?? {}).length > 0
+              ? ' · ' + Object.entries(pdf.aiExtractionProgress.byType)
+                  .map(([type, count]) => `${count} ${type}`)
+                  .join(' · ')
+              : ''}
           </p>
         </CardContent>
       ) : null}
