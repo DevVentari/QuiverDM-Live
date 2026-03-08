@@ -575,7 +575,8 @@ export async function extractContent(
   markdown: string,
   provider: ExtractionProvider = 'gemini',
   userKeys?: { geminiApiKey?: string },
-  userId?: string
+  userId?: string,
+  onChunkProgress?: (chunk: number, totalChunks: number, itemsFound: number, byType: Record<string, number>) => Promise<void>
 ): Promise<ExtractionResult> {
   console.log(`[AI Extraction] Starting extraction with ${provider}...`);
   console.log(`[AI Extraction] Markdown length: ${markdown.length} characters`);
@@ -623,6 +624,13 @@ export async function extractContent(
         totalTokensIn += result.tokensIn || 0;
         totalTokensOut += result.tokensOut || 0;
         console.log(`[AI Extraction] Chunk ${i + 1}: Found ${result.items.length} items`);
+        if (onChunkProgress) {
+          const byType: Record<string, number> = {};
+          for (const item of allItems) {
+            byType[item.type] = (byType[item.type] || 0) + 1;
+          }
+          await onChunkProgress(i + 1, chunks.length, allItems.length, byType);
+        }
       } else {
         errors.push(`Chunk ${i + 1}: ${result.error}`);
         console.warn(`[AI Extraction] Chunk ${i + 1} failed: ${result.error}`);
@@ -676,7 +684,8 @@ export async function extractWithFallback(
   markdown: string,
   preferredProvider?: ExtractionProvider,
   userKeys?: { geminiApiKey?: string },
-  userId?: string
+  userId?: string,
+  onChunkProgress?: (chunk: number, totalChunks: number, itemsFound: number, byType: Record<string, number>) => Promise<void>
 ): Promise<ExtractionResult> {
   const available = getAvailableProviders();
   if (userKeys?.geminiApiKey && !available.includes('gemini')) {
@@ -717,7 +726,7 @@ export async function extractWithFallback(
   for (const provider of chain) {
     try {
       console.log(`[AI Extraction] Trying provider: ${provider}`);
-      const result = await extractContent(markdown, provider, userKeys, userId);
+      const result = await extractContent(markdown, provider, userKeys, userId, onChunkProgress);
 
       if (result.success) {
         return result;
