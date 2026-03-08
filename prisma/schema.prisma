@@ -78,6 +78,7 @@ model User {
   homebrewContent HomebrewContent[]
   homebrewPDFs    HomebrewPDF[]
   settings        UserSettings?
+  apiUsageLogs    ApiUsageLog[]
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -977,6 +978,25 @@ model UserUsage {
 
   @@index([userId])
   @@index([periodEnd])
+}
+
+model ApiUsageLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider      String   // gemini, openai, anthropic, ollama
+  model         String   // gemini-2.5-flash-lite, gpt-4o-mini, etc.
+  feature       String   // extraction, recap, search, image_gen, encounter_gen, rules_qa, obsidian_import
+  tokensIn      Int      @default(0)
+  tokensOut     Int      @default(0)
+  estimatedCost Float    @default(0)
+  requestCount  Int      @default(1)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, provider, createdAt])
+  @@index([userId, feature, createdAt])
 }
 
 model ImageGenerationJob {
