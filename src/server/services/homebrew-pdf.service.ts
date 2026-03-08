@@ -349,50 +349,104 @@ export class HomebrewPdfService {
       });
     }
 
-    const extractionResult = await extractWithFallback(pdf.markdownContent, undefined, undefined, userId);
-
-    if (!extractionResult.success) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: extractionResult.error || 'Extraction failed',
-      });
-    }
-
-    if (extractionResult.items.length === 0) {
-      return {
-        success: true,
-        message: 'No extractable content found in the PDF',
-        itemsExtracted: 0,
-        tokensUsed: extractionResult.tokensUsed,
-      };
-    }
-
-    const saveResult = await saveExtractedContent(
-      extractionResult.items,
-      userId,
-      pdfId,
-      pdf.campaignId,
-      prisma
-    );
-
-    const currentMetadata = (pdf.markerMetadata as Record<string, unknown>) || {};
+    // Mark extraction as in-progress
     await homebrewPdfRepository.update(pdfId, {
-      markerMetadata: {
-        ...currentMetadata,
-        extractionTokensUsed: extractionResult.tokensUsed,
-        itemsExtracted: saveResult.saved,
-        extractionErrors: saveResult.errors.length,
-        lastExtractionAt: new Date().toISOString(),
-      },
+      aiExtractionStatus: 'processing',
+      aiExtractionProgress: { chunk: 0, totalChunks: 0, itemsFound: 0, byType: {} },
     });
 
-    return {
-      success: true,
-      message: `Successfully extracted ${saveResult.saved} items`,
-      itemsExtracted: saveResult.saved,
-      tokensUsed: extractionResult.tokensUsed,
-      errors: saveResult.errors,
+    const onChunkProgress = async (
+      chunk: number,
+      totalChunks: number,
+      itemsFound: number,
+      byType: Record<string, number>
+    ) => {
+      try {
+        await homebrewPdfRepository.update(pdfId, {
+          aiExtractionProgress: { chunk, totalChunks, itemsFound, byType },
+        });
+      } catch {
+        // Don't abort extraction if a progress write fails
+      }
     };
+
+    try {
+      const extractionResult = await extractWithFallback(
+        pdf.markdownContent,
+        undefined,
+        undefined,
+        userId,
+        onChunkProgress
+      );
+
+      if (!extractionResult.success) {
+        await homebrewPdfRepository.update(pdfId, { aiExtractionStatus: 'error' });
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: extractionResult.error || 'Extraction failed',
+        });
+      }
+
+      if (extractionResult.items.length === 0) {
+        await homebrewPdfRepository.update(pdfId, {
+          aiExtractionStatus: 'done',
+          aiExtractionProgress: { chunk: 0, totalChunks: 0, itemsFound: 0, byType: {} },
+        });
+        return {
+          success: true,
+          message: 'No extractable content found in the PDF',
+          itemsExtracted: 0,
+          tokensUsed: extractionResult.tokensUsed,
+        };
+      }
+
+      const saveResult = await saveExtractedContent(
+        extractionResult.items,
+        userId,
+        pdfId,
+        pdf.campaignId,
+        prisma
+      );
+
+      // Build final byType breakdown
+      const byType: Record<string, number> = {};
+      for (const item of extractionResult.items) {
+        byType[item.type] = (byType[item.type] || 0) + 1;
+      }
+
+      const currentMetadata = (pdf.markerMetadata as Record<string, unknown>) || {};
+      await homebrewPdfRepository.update(pdfId, {
+        aiExtractionStatus: 'done',
+        aiExtractionProgress: {
+          chunk: extractionResult.items.length > 0 ? 1 : 0,
+          totalChunks: 1,
+          itemsFound: saveResult.saved,
+          byType,
+        },
+        markerMetadata: {
+          ...currentMetadata,
+          extractionTokensUsed: extractionResult.tokensUsed,
+          itemsExtracted: saveResult.saved,
+          extractionErrors: saveResult.errors.length,
+          lastExtractionAt: new Date().toISOString(),
+        },
+      });
+
+      return {
+        success: true,
+        message: `Successfully extracted ${saveResult.saved} items`,
+        itemsExtracted: saveResult.saved,
+        tokensUsed: extractionResult.tokensUsed,
+        errors: saveResult.errors,
+      };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      await homebrewPdfRepository.update(pdfId, { aiExtractionStatus: 'error' });
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: error instanceof Error ? error.message : 'Extraction failed',
+      });
+    }
   }
 }
 
