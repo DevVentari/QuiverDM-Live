@@ -121,13 +121,13 @@ async function processPDFJob(
   activeJobs.set(pdfId, {});
 
   try {
-    // Check if PDF still exists (may have been deleted before processing started)
-    const pdfExists = await prisma.homebrewPDF.findUnique({
+    // Check if PDF still exists and whether conversion already completed (retry safety)
+    const existingPdf = await prisma.homebrewPDF.findUnique({
       where: { id: pdfId },
-      select: { id: true },
+      select: { id: true, markdownContent: true, processingStatus: true },
     });
 
-    if (!pdfExists) {
+    if (!existingPdf) {
       console.log(`[Worker] PDF ${pdfId} no longer exists - skipping processing`);
       activeJobs.delete(pdfId);
       jobLogs.delete(pdfId);
@@ -137,6 +137,9 @@ async function processPDFJob(
         processingTime: 0,
       };
     }
+
+    // If markdown already exists (from a previous stalled attempt), skip straight to extraction
+    const existingMarkdown = existingPdf.markdownContent ?? null;
 
     // Update status to processing
     await prisma.homebrewPDF.update({
@@ -254,7 +257,11 @@ async function processPDFJob(
       console.log(`[Worker] AI content extraction disabled`);
     }
     // Convert PDF to Markdown — cascade: LlamaParse → Marker → Docling → pdfplumber
-    let markdown = '';
+    // On retry after stall, skip conversion if markdown was already saved to DB
+    let markdown = existingMarkdown || '';
+    if (existingMarkdown) {
+      console.log(`[Worker] Skipping conversion — markdown already exists (${existingMarkdown.length} chars), resuming extraction`);
+    }
     let pdfMetadata: Record<string, unknown> = {};
     let doclingImages: Array<{ data: string; pageNumber: number; format: string; filename: string }> = [];
     let extractedImageMetadata: ExtractedImageMetadata[] = [];
@@ -286,7 +293,8 @@ async function processPDFJob(
         });
         markdown = llamaResult.markdown;
         pdfMetadata = llamaResult.metadata;
-        console.log(`[Worker] LlamaParse succeeded (${llamaResult.metadata.pages} pages, ${llamaResult.metadata.processingTimeMs}ms)`);
+        doclingImages = llamaResult.images;
+        console.log(`[Worker] LlamaParse succeeded (${llamaResult.metadata.pages} pages, ${llamaResult.images.length} images, ${llamaResult.metadata.processingTimeMs}ms)`);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
         console.error(`[Worker] LlamaParse failed: ${msg}`);
@@ -820,8 +828,8 @@ export function startPDFWorker(concurrency: number = 2) {
         max: concurrency, // Maximum concurrent jobs
         duration: 1000, // Per second
       },
-      lockDuration: 600000, // 10 minutes - PDF processing can take 3+ min per page
-      stalledInterval: 300000, // Check for stalled jobs every 5 minutes
+      lockDuration: 1800000, // 30 minutes — extraction of large PDFs (28 chunks) takes 8-10 min
+      stalledInterval: 600000, // Check for stalled jobs every 10 minutes
       maxStalledCount: 1, // Only retry once if stalled
     }
   );

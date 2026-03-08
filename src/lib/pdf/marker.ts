@@ -250,7 +250,6 @@ function buildMarkerCommand(
   }
 
   if (options.useGPU === false) {
-    // Force CPU mode — also disable multiprocessing to reduce peak memory
     command += ' --disable_multiprocessing';
   }
 
@@ -551,14 +550,6 @@ export function startPdfToMarkdownConversion(
             ...process.env,
             PYTHONUNBUFFERED: '1',
             PYTHONIOENCODING: 'utf-8',
-            // Memory management for PyTorch/CUDA (RTX 4070 SUPER = 12GB VRAM)
-            PYTORCH_CUDA_ALLOC_CONF: 'max_split_size_mb:1024,garbage_collection_threshold:0.8',
-            TORCH_DEVICE: 'cuda', // Enable GPU acceleration
-            // Optimize for GPU processing
-            OMP_NUM_THREADS: '4',
-            MKL_NUM_THREADS: '4',
-            // CUDA optimization
-            CUDA_LAUNCH_BLOCKING: '0', // Async kernel launches for performance
           },
         });
 

@@ -2,10 +2,18 @@ import fs from 'fs';
 import path from 'path';
 
 const LLAMA_CLOUD_API_KEY = process.env.LLAMA_CLOUD_API_KEY;
-const LLAMA_CLOUD_BASE_URL = 'https://api.cloud.llamaindex.ai/v1';
+const LLAMA_CLOUD_BASE_URL = 'https://api.cloud.llamaindex.ai/api';
+
+export interface LlamaParseImage {
+  data: string;       // base64-encoded
+  pageNumber: number;
+  format: string;     // 'png' | 'jpg' etc
+  filename: string;
+}
 
 export interface LlamaParseResult {
   markdown: string;
+  images: LlamaParseImage[];
   metadata: {
     pages: number;
     processingTimeMs: number;
@@ -99,7 +107,7 @@ export async function convertWithLlamaParse(
   // Step 3: Get markdown result
   const resultRes = await fetch(`${LLAMA_CLOUD_BASE_URL}/parsing/job/${jobId}/result/markdown`, {
     headers: { 'Authorization': `Bearer ${LLAMA_CLOUD_API_KEY}` },
-    signal: AbortSignal.timeout(30_000),
+    signal: AbortSignal.timeout(120_000),
   });
 
   if (!resultRes.ok) {
@@ -114,10 +122,17 @@ export async function convertWithLlamaParse(
     throw new Error('LlamaParse returned empty markdown');
   }
 
+  onProgress?.(90);
+
+  // Fetch images
+  const images = await fetchLlamaParseImages(jobId);
+  console.log(`[LlamaParse] Fetched ${images.length} images`);
+
   onProgress?.(100);
 
   return {
     markdown,
+    images,
     metadata: {
       pages: resultData.pages ?? 0,
       processingTimeMs: Date.now() - startTime,
@@ -125,4 +140,45 @@ export async function convertWithLlamaParse(
       jobId,
     },
   };
+}
+
+async function fetchLlamaParseImages(jobId: string): Promise<LlamaParseImage[]> {
+  const listRes = await fetch(`${LLAMA_CLOUD_BASE_URL}/parsing/job/${jobId}/result/images`, {
+    headers: { 'Authorization': `Bearer ${LLAMA_CLOUD_API_KEY}` },
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!listRes.ok) return [];
+
+  const listData = await listRes.json() as { images?: Array<{ name: string }> };
+  const imageNames = listData.images?.map((i) => i.name) ?? [];
+  if (imageNames.length === 0) return [];
+
+  const results: LlamaParseImage[] = [];
+
+  for (const name of imageNames) {
+    try {
+      const imgRes = await fetch(`${LLAMA_CLOUD_BASE_URL}/parsing/job/${jobId}/result/images/${name}`, {
+        headers: { 'Authorization': `Bearer ${LLAMA_CLOUD_API_KEY}` },
+        signal: AbortSignal.timeout(30_000),
+      });
+
+      if (!imgRes.ok) continue;
+
+      const buffer = await imgRes.arrayBuffer();
+      const data = Buffer.from(buffer).toString('base64');
+
+      // Parse page number from name e.g. "page_1_1.png", "1_image_0.png"
+      const pageMatch = name.match(/(\d+)/);
+      const pageNumber = pageMatch ? parseInt(pageMatch[1]) : 1;
+
+      const ext = path.extname(name).replace('.', '') || 'png';
+
+      results.push({ data, pageNumber, format: ext, filename: name });
+    } catch {
+      // Skip failed images — non-fatal
+    }
+  }
+
+  return results;
 }
