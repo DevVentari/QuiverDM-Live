@@ -62,10 +62,10 @@ function getFeatureConfig(feature: string) {
 }
 
 export default function ApiUsagePage() {
-  const summary = trpc.apiUsage.getSummary.useQuery();
-  const byFeature = trpc.apiUsage.getByFeature.useQuery();
-  const byModel = trpc.apiUsage.getByModel.useQuery();
-  const recentCalls = trpc.apiUsage.getRecentCalls.useQuery();
+  const summary = trpc.apiUsage.getSummary.useQuery(undefined, { refetchInterval: 30_000 });
+  const byFeature = trpc.apiUsage.getByFeature.useQuery(undefined, { refetchInterval: 30_000 });
+  const byModel = trpc.apiUsage.getByModel.useQuery(undefined, { refetchInterval: 30_000 });
+  const recentCalls = trpc.apiUsage.getRecentCalls.useQuery(undefined, { refetchInterval: 30_000 });
 
   const isLoading = summary.isLoading || byFeature.isLoading || byModel.isLoading || recentCalls.isLoading;
 
