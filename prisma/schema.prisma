@@ -902,6 +902,10 @@ model HomebrewPDF {
   extractedImages     Int       @default(0) // Count of extracted images
   imageExtractionStatus String  @default("pending") // pending, processing, completed, failed
 
+  // AI extraction progress
+  aiExtractionStatus    String?   // null | 'processing' | 'done' | 'error'
+  aiExtractionProgress  Json?     // { chunk: number, totalChunks: number, itemsFound: number, byType: Record<string,number> }
+
   // Processing status
   processingStatus    String    @default("pending") // pending, processing, completed, failed
   errorMessage        String?   @db.Text
