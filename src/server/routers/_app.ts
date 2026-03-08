@@ -30,6 +30,7 @@ import { passwordResetRouter } from './password-reset';
 import { foundryRouter } from './foundry';
 import { obsidianRouter } from './obsidian';
 import { apiUsageRouter } from './api-usage';
+import { adminUsersRouter } from './admin-users';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -63,6 +64,7 @@ export const appRouter = router({
   foundry: foundryRouter,
   obsidian: obsidianRouter,
   apiUsage: apiUsageRouter,
+  adminUsers: adminUsersRouter,
 });
 
 export type AppRouter = typeof appRouter;

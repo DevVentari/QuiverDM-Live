@@ -63,6 +63,7 @@ model User {
 
   // Platform role (replaces env-based ADMIN_EMAILS)
   platformRole        PlatformRole  @default(ADVENTURER)
+  suspended           Boolean       @default(false)
 
   // Subscription and usage limits
   tier                String        @default("free") // free, pro, team
