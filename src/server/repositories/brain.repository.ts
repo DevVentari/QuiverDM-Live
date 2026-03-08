@@ -107,6 +107,10 @@ export const brainRepository = {
     });
   },
 
+  async findRelationshipById(id: string) {
+    return prisma.worldRelationship.findUnique({ where: { id } });
+  },
+
   async deleteRelationship(id: string) {
     return prisma.worldRelationship.delete({ where: { id } });
   },
