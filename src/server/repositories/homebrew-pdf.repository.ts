@@ -116,6 +116,8 @@ export async function update(
     markerMetadata?: any;
     errorMessage?: string | null;
     processingEndedAt?: Date;
+    aiExtractionStatus?: string | null;
+    aiExtractionProgress?: any;
   }
 ) {
   return prisma.homebrewPDF.update({
