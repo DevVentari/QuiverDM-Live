@@ -1,13 +1,13 @@
-import { TRPCError } from '@trpc/server';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
 import { brainRepository } from '../repositories/brain.repository';
 import { authz } from './authorization.service';
+import { ForbiddenError, NotFoundError } from '../errors';
 
 export class BrainService {
   private async requireDM(campaignId: string, userId: string) {
     const access = await authz.campaign(campaignId, userId).verify();
     if (!access.isDM) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'DM access required' });
+      throw ForbiddenError.forPermission('manage', 'DM Brain');
     }
     return access;
   }
@@ -21,7 +21,7 @@ export class BrainService {
     await this.requireDM(campaignId, userId);
     const entity = await brainRepository.findEntityById(entityId);
     if (!entity || entity.campaignId !== campaignId) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Entity not found' });
+      throw new NotFoundError('world entity', entityId);
     }
     return entity;
   }
@@ -43,7 +43,7 @@ export class BrainService {
     await this.requireDM(campaignId, userId);
     const existing = await brainRepository.findEntityById(entityId);
     if (!existing || existing.campaignId !== campaignId) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Entity not found' });
+      throw new NotFoundError('world entity', entityId);
     }
     const updated = await brainRepository.updateEntity(entityId, data);
     await brainRepository.logChange({
@@ -61,7 +61,7 @@ export class BrainService {
     await this.requireDM(campaignId, userId);
     const existing = await brainRepository.findEntityById(entityId);
     if (!existing || existing.campaignId !== campaignId) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Entity not found' });
+      throw new NotFoundError('world entity', entityId);
     }
     return brainRepository.deleteEntity(entityId);
   }
@@ -78,6 +78,10 @@ export class BrainService {
 
   async deleteRelationship(relationshipId: string, campaignId: string, userId: string) {
     await this.requireDM(campaignId, userId);
+    const existing = await brainRepository.findRelationshipById(relationshipId);
+    if (!existing || existing.campaignId !== campaignId) {
+      throw new NotFoundError('world relationship', relationshipId);
+    }
     return brainRepository.deleteRelationship(relationshipId);
   }
 
