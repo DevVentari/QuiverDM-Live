@@ -42,7 +42,6 @@ export default function PDFDetailPage() {
     { staleTime: 30_000, enabled: !!data && data.processingStatus === 'completed' }
   );
 
-  const utils = trpc.useUtils();
   const extractionStatus = trpc.homebrewPdf.getJobStatus.useQuery(
     { pdfId },
     {
