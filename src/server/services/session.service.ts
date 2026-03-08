@@ -23,7 +23,9 @@ import {
   buildScenesPrompt,
   buildSecretsPrompt,
   buildLooseThreadsPrompt,
+  buildLooseThreadsFromBrainPrompt,
 } from '@/lib/ai/prep-prompts';
+import { brainRepository } from '../repositories/brain.repository';
 
 export class SessionService {
   async getById(sessionId: string, userId: string) {
@@ -253,7 +255,68 @@ export class SessionService {
       motivation: npc.description,
     }));
 
-    return { characters: charactersForPrep, npcs: npcsForPrep, recentSessions, homebrew: homebrewLinks };
+    const ctx: {
+      characters: typeof charactersForPrep;
+      npcs: typeof npcsForPrep;
+      recentSessions: typeof recentSessions;
+      homebrew: typeof homebrewLinks;
+      brainHooks?: Array<{ text: string; urgency: 'low' | 'medium' | 'high' }>;
+      brainThreats?: Array<{ name: string; urgency: number }>;
+      npcMotivations?: Array<{ name: string; motivation?: string; fear?: string; loyalty?: string }>;
+      factionTensions?: Array<{ factionA: string; factionB: string; type: string; strength: number }>;
+    } = { characters: charactersForPrep, npcs: npcsForPrep, recentSessions, homebrew: homebrewLinks };
+
+    // Enrich with Brain context if available
+    try {
+      const [worldState, entities, relationships] = await Promise.all([
+        brainRepository.getOrCreateState(campaignId),
+        brainRepository.findEntities(campaignId, { status: 'active' as any, limit: 50 }),
+        brainRepository.findRelationships(campaignId),
+      ]);
+
+      const hooks = Array.isArray(worldState.hooks)
+        ? (worldState.hooks as Array<{ text: string; urgency: string; status?: string }>)
+            .filter(h => h.status !== 'resolved')
+            .sort((a, b) => {
+              const order = { high: 0, medium: 1, low: 2 };
+              return (order[a.urgency as keyof typeof order] ?? 1) - (order[b.urgency as keyof typeof order] ?? 1);
+            })
+            .slice(0, 8)
+        : [];
+
+      const threats = Array.isArray(worldState.threats)
+        ? (worldState.threats as Array<{ name: string; urgency: number }>).slice(0, 5)
+        : [];
+
+      const npcEntities = entities.filter(e => e.type === 'NPC');
+      const npcMotivations = npcEntities
+        .filter(e => {
+          const p = e.properties as Record<string, unknown>;
+          return p.motivation || p.fear;
+        })
+        .map(e => {
+          const p = e.properties as Record<string, string>;
+          return { name: e.name, motivation: p.motivation, fear: p.fear, loyalty: p.loyalty };
+        });
+
+      const factionRelationships = relationships
+        .filter(r => r.fromEntity?.type === 'FACTION' && r.toEntity?.type === 'FACTION')
+        .map(r => ({
+          factionA: r.fromEntity.name,
+          factionB: r.toEntity.name,
+          type: r.type,
+          strength: r.strength,
+        }));
+
+      ctx.brainHooks = hooks.map(h => ({ text: h.text, urgency: h.urgency as 'low' | 'medium' | 'high' }));
+      ctx.brainThreats = threats;
+      ctx.npcMotivations = npcMotivations;
+      ctx.factionTensions = factionRelationships;
+    } catch {
+      // Brain not yet seeded — non-fatal, prep continues without it
+    }
+
+    return ctx;
   }
 
   /**
@@ -287,6 +350,8 @@ export class SessionService {
       recentRecap,
       characters: ctx.characters.map((c) => ({ name: c.name, class: c.class ?? undefined })),
       knownNpcs: ctx.npcs.map((n) => ({ name: n.name, role: n.role ?? undefined })),
+      brainHooks: ctx.brainHooks,
+      brainThreats: ctx.brainThreats,
     });
 
     const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.8 });
@@ -327,6 +392,7 @@ export class SessionService {
         recentRecap,
         characters: ctx.characters.map((c) => ({ name: c.name, class: c.class ?? undefined })),
         knownNpcs: ctx.npcs.map((n) => ({ name: n.name, role: n.role ?? undefined })),
+        factionTensions: ctx.factionTensions,
       },
       strongStart
     );
@@ -368,6 +434,7 @@ export class SessionService {
       recentRecap,
       characters: ctx.characters.map((c) => ({ name: c.name, class: c.class ?? undefined })),
       knownNpcs: ctx.npcs.map((n) => ({ name: n.name, role: n.role ?? undefined })),
+      npcMotivations: ctx.npcMotivations,
     });
 
     const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.8 });
@@ -392,6 +459,31 @@ export class SessionService {
       throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Ollama is not available' });
     }
 
+    // Use Brain hooks if available, otherwise fall back to scanning session recaps
+    let prompt: string;
+    try {
+      const worldState = await brainRepository.getOrCreateState(session.campaignId);
+      const brainHooks = Array.isArray(worldState.hooks)
+        ? (worldState.hooks as Array<{ text: string; urgency: string; status?: string }>)
+            .filter(h => h.status !== 'resolved')
+            .sort((a, b) => {
+              const order = { high: 0, medium: 1, low: 2 };
+              return (order[a.urgency as keyof typeof order] ?? 1) - (order[b.urgency as keyof typeof order] ?? 1);
+            })
+        : [];
+
+      if (brainHooks.length > 0) {
+        prompt = buildLooseThreadsFromBrainPrompt(
+          brainHooks.map(h => ({ text: h.text, urgency: h.urgency as 'low' | 'medium' | 'high' }))
+        );
+        const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.6 });
+        const parsed = JSON.parse(raw) as { looseThreads?: unknown[] };
+        return { looseThreads: parsed.looseThreads ?? [] };
+      }
+    } catch {
+      // Brain unavailable — fall through to recap-based detection
+    }
+
     const recentSessions = await sessionRepository.findRecentByCampaignId(session.campaignId, 5);
 
     const recapsWithText = recentSessions
@@ -407,7 +499,7 @@ export class SessionService {
       return { looseThreads: [] };
     }
 
-    const prompt = buildLooseThreadsPrompt(recapsWithText);
+    prompt = buildLooseThreadsPrompt(recapsWithText);
     const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.6 });
     const parsed = JSON.parse(raw) as { looseThreads?: unknown[] };
     return { looseThreads: parsed.looseThreads ?? [] };
