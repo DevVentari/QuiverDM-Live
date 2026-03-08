@@ -244,7 +244,9 @@ export class HomebrewExtractionService {
 
     const result = await extractContent(
       pdf.markdownContent!,
-      provider as ExtractionProvider
+      provider as ExtractionProvider,
+      undefined,
+      userId
     );
 
     if (!result.success) {
