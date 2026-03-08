@@ -110,9 +110,9 @@ export class BrainService {
     return updated;
   }
 
-  async getTimeline(campaignId: string, userId: string, limit?: number) {
+  async getTimeline(campaignId: string, userId: string, limit?: number, entityId?: string) {
     await this.requireDM(campaignId, userId);
-    return brainRepository.getTimeline(campaignId, limit);
+    return brainRepository.getTimeline(campaignId, limit, entityId);
   }
 
   async seedFromExisting(campaignId: string, userId: string) {

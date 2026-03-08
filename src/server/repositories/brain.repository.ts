@@ -165,9 +165,9 @@ export const brainRepository = {
     });
   },
 
-  async getTimeline(campaignId: string, limit = 50) {
+  async getTimeline(campaignId: string, limit = 50, entityId?: string) {
     return prisma.worldStateChange.findMany({
-      where: { campaignId },
+      where: { campaignId, ...(entityId ? { entityId } : {}) },
       include: { entity: true },
       orderBy: { createdAt: 'desc' },
       take: limit,
