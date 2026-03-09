@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
 import { useDiceRoller } from '@/hooks/use-dice-roller';
 import { ModeSwitcher } from './mode-switcher';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Dices, X, Users, Zap } from 'lucide-react';
 import { GenerateNpcDialog } from './generate-npc-dialog';
 import { SuggestTwistDialog } from './suggest-twist-dialog';
-import { toast } from 'sonner';
+import { PipelineProgressDialog } from './pipeline-progress-dialog';
 
 const QUICK_ROLLS = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100'];
 
@@ -85,53 +84,6 @@ function DiceRollerDialog({ open, onClose }: { open: boolean; onClose: () => voi
   );
 }
 
-function EndSessionDialog({
-  open,
-  onClose,
-  sessionId,
-  slug,
-}: {
-  open: boolean;
-  onClose: () => void;
-  sessionId: string;
-  slug: string;
-}) {
-  const utils = trpc.useUtils();
-
-  const completeSession = trpc.sessions.complete.useMutation({
-    onSuccess: () => {
-      void utils.sessions.getById.invalidate({ id: sessionId });
-      toast.success('Session completed — summary pipeline started');
-      window.location.href = `/campaigns/${slug}/sessions/${sessionId}`;
-    },
-    onError: (e) => toast.error(e.message),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>End Session?</DialogTitle>
-        </DialogHeader>
-        <p className="text-sm text-muted-foreground">
-          This will mark the session as complete and trigger the AI summary pipeline (session summary, player recap, derailment analysis).
-        </p>
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
-            Keep Playing
-          </Button>
-          <Button
-            onClick={() => completeSession.mutate({ id: sessionId })}
-            disabled={completeSession.isPending}
-            className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
-          >
-            {completeSession.isPending ? 'Ending…' : 'End Session'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 export function CockpitToolbar({ sessionId, slug, campaignId, mode, onToggleMode }: CockpitToolbarProps) {
   const [diceOpen, setDiceOpen] = useState(false);
@@ -188,10 +140,11 @@ export function CockpitToolbar({ sessionId, slug, campaignId, mode, onToggleMode
       </div>
 
       <DiceRollerDialog open={diceOpen} onClose={() => setDiceOpen(false)} />
-      <EndSessionDialog
+      <PipelineProgressDialog
         open={endOpen}
         onClose={() => setEndOpen(false)}
         sessionId={sessionId}
+        campaignId={campaignId}
         slug={slug}
       />
       <GenerateNpcDialog
