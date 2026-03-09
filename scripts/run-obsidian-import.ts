@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ override: true });
+dotenv.config(); // don't override env vars passed on the command line
 
 import AdmZip from 'adm-zip';
 import path from 'path';
@@ -10,7 +10,7 @@ import { generateUniqueSlug } from '@/lib/utils/slugify';
 import { processJob } from '@/lib/queue/obsidian-import-process';
 
 const VAULT_PATH = 'G:/My Drive/Notebooks/Dungeons and Dragons/Campaigns/Tales from The Bonfire Keep';
-const USER_ID = 'cmm7a8ejk0001l8ubnk8m6cks';
+const USER_ID = 'cmm4mgdtr0001gjr7jn3fb00c';
 const CAMPAIGN_NAME = 'Tales from The Bonfire Keep';
 // Set to an existing campaign ID to reuse it instead of creating a new one
 const EXISTING_CAMPAIGN_ID: string | null = null;

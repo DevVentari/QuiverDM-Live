@@ -20,6 +20,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <OnboardingCheck>
       <NavigationProgress />
       {/* Atmospheric layers */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/images/app-bg.jpg')",
+          filter: 'brightness(0.32) saturate(0.75)',
+          zIndex: -3,
+        }}
+        aria-hidden="true"
+      />
       <VideoBackground />
       <div className="app-ambient-glow" />
       <div className="flex h-screen overflow-hidden app-grain app-vignette">

@@ -127,6 +127,8 @@ export async function processJob(data: ObsidianImportJobData) {
 
   type WorkItem = { category: FileCategory; label: string; markdown: string };
   const workItems: WorkItem[] = [];
+  // Deduplicate H2-split items by category+name within this import run
+  const seen = new Set<string>();
 
   for (const filePath of allFiles) {
     const category = categorize(filePath);
@@ -142,6 +144,9 @@ export async function processJob(data: ObsidianImportJobData) {
       const blocks = splitOnH2(content);
       for (const block of blocks) {
         const name = block.split('\n')[0].replace(/^##\s*/, '').trim();
+        const key = `${category}:${name.toLowerCase()}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
         workItems.push({ category, label: name, markdown: block });
       }
     } else {

@@ -105,16 +105,7 @@
 
   body {
     @apply bg-background text-foreground;
-    background-image:
-      /* Warm amber glow from upper-left (candlelight) */
-      radial-gradient(ellipse 60% 50% at 25% -10%, hsl(35 70% 15% / 0.7), transparent),
-      /* Cool purple glow from upper-right (mystical) */
-      radial-gradient(ellipse 50% 45% at 75% -5%, hsl(258 40% 12% / 0.6), transparent),
-      /* Faint amber warmth from bottom-center */
-      radial-gradient(ellipse 70% 40% at 50% 110%, hsl(35 50% 10% / 0.4), transparent),
-      /* Base near-black */
-      linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
-    background-attachment: fixed;
+    background-color: hsl(240 10% 4%);
   }
 }
 
@@ -315,4 +306,16 @@
 @keyframes auth-glow-breathe {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+.auth-scene input,
+.auth-scene select {
+  background-color: hsl(240 10% 8% / 0.5);
+  backdrop-filter: blur(8px);
+  border-color: hsl(240 20% 85% / 0.12);
+}
+
+.auth-scene label,
+.auth-scene .text-muted-foreground {
+  text-shadow: 0 1px 4px hsl(0 0% 0% / 0.6);
 }
