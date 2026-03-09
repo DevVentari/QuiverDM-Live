@@ -10,9 +10,12 @@ import { FeedbackWidget } from '@/components/feedback/feedback-widget';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
+import { CampaignVoiceShell } from '@/components/voice/campaign-voice-shell';
+import { VoiceButton } from '@/components/voice/voice-button';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
+    <CampaignVoiceShell>
     <OnboardingCheck>
       <NavigationProgress />
       {/* Atmospheric layers */}
@@ -35,7 +38,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </SheetContent>
             </Sheet>
             <div className="flex-1" />
-            <UserMenu />
+            <div className="flex items-center gap-2">
+              <VoiceButton />
+              <UserMenu />
+            </div>
           </header>
           <main className="flex-1 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1400px] p-6">
@@ -47,5 +53,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <ConsoleLogCapture />
       <FeedbackWidget />
     </OnboardingCheck>
+    </CampaignVoiceShell>
   );
 }
