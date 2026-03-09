@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { brainService } from '../services/brain.service';
+import { answerBrainQuery } from '@/lib/voice/brain-query';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
 
 const entityTypeSchema = z.nativeEnum(WorldEntityType);
@@ -135,5 +136,11 @@ export const brainRouter = router({
     .input(z.object({ campaignId: z.string().min(1) }))
     .mutation(({ input, ctx }) =>
       brainService.seedFromExisting(input.campaignId, ctx.session.user.id)
+    ),
+
+  voiceQuery: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), query: z.string().min(1).max(500) }))
+    .mutation(({ input, ctx: _ctx }) =>
+      answerBrainQuery(input.query, input.campaignId)
     ),
 });

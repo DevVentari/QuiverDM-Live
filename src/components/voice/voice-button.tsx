@@ -1,13 +1,24 @@
 'use client';
 
-import { Mic, MicOff } from 'lucide-react';
+import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useVoice } from './voice-provider';
 import { cn } from '@/lib/utils';
 
 export function VoiceButton() {
-  const { isListening, lastTranscript, lastResponse, startListening, stopListening } = useVoice();
-  const hasResponse = !!lastResponse && !isListening;
+  const { status, lastTranscript, lastResponse, startListening, stopListening } = useVoice();
+
+  const isListening = status === 'listening';
+  const isProcessing = status === 'processing';
+  const hasResponse = status === 'result' && !!lastResponse;
+
+  function handleClick() {
+    if (isListening) {
+      stopListening();
+    } else if (!isProcessing) {
+      startListening();
+    }
+  }
 
   return (
     <div className="relative">
@@ -16,13 +27,18 @@ export function VoiceButton() {
         size="icon"
         className={cn(
           'h-8 w-8 rounded-full transition-all',
-          isListening && 'bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/50 animate-pulse'
+          isListening && 'bg-amber-500/20 text-amber-500 ring-1 ring-amber-500/50 animate-pulse',
+          isProcessing && 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/30',
+          hasResponse && 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
         )}
-        onClick={isListening ? stopListening : startListening}
+        onClick={handleClick}
+        disabled={isProcessing}
         title={isListening ? 'Stop listening' : 'Ask DM Brain (voice)'}
       >
         {isListening ? (
           <MicOff className="h-4 w-4" />
+        ) : isProcessing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
           <Mic className="h-4 w-4" />
         )}
