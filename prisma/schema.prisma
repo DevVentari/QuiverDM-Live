@@ -46,77 +46,77 @@ model Session {
 }
 
 model User {
-  id              String            @id @default(cuid())
-  name            String?
-  email           String?           @unique
-  emailVerified   DateTime?
-  image           String?
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
 
   // Profile fields for collaboration
-  displayName     String?           // Public display name
-  bio             String?           @db.Text // Creator/player bio
+  displayName String? // Public display name
+  bio         String? @db.Text // Creator/player bio
 
   // Onboarding tracking
-  onboardingCompleted Boolean       @default(false)
-  onboardingStep      String?       // Current step: 'welcome', 'profile', 'first_campaign', 'complete'
-  inviteCodeUsed      String?       // Which beta invite code was used
+  onboardingCompleted Boolean @default(false)
+  onboardingStep      String? // Current step: 'welcome', 'profile', 'first_campaign', 'complete'
+  inviteCodeUsed      String? // Which beta invite code was used
 
   // Platform role (replaces env-based ADMIN_EMAILS)
-  platformRole        PlatformRole  @default(ADVENTURER)
-  suspended           Boolean       @default(false)
+  platformRole PlatformRole @default(ADVENTURER)
+  suspended    Boolean      @default(false)
 
   // Subscription and usage limits
-  tier                String        @default("free") // free, pro, team
-  stripeCustomerId    String?       @unique // Stripe customer ID for billing
-  stripeSubscriptionId String?      @unique // Stripe subscription ID
-  subscriptionStatus  String?       // active, canceled, past_due, etc.
-  subscriptionEndsAt  DateTime?     // When current subscription ends
+  tier                 String    @default("free") // free, pro, team
+  stripeCustomerId     String?   @unique // Stripe customer ID for billing
+  stripeSubscriptionId String?   @unique // Stripe subscription ID
+  subscriptionStatus   String? // active, canceled, past_due, etc.
+  subscriptionEndsAt   DateTime? // When current subscription ends
 
   // Relations
   usage               UserUsage?
-  accounts        Account[]
-  sessions        Session[]
-  campaigns       Campaign[]        // Campaigns user owns (legacy, kept for migration)
+  accounts            Account[]
+  sessions            Session[]
+  campaigns           Campaign[] // Campaigns user owns (legacy, kept for migration)
   campaignMemberships CampaignMember[] // Campaigns user is a member of
-  characters      Character[]       // Player-owned characters
-  homebrewContent HomebrewContent[]
-  homebrewPDFs    HomebrewPDF[]
-  settings        UserSettings?
-  apiUsageLogs    ApiUsageLog[]
+  characters          Character[] // Player-owned characters
+  homebrewContent     HomebrewContent[]
+  homebrewPDFs        HomebrewPDF[]
+  settings            UserSettings?
+  apiUsageLogs        ApiUsageLog[]
 
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   userId    String
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([token])
   @@index([userId])
 }
 
 model UserSettings {
-  id                      String   @id @default(cuid())
-  userId                  String   @unique
-  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Encrypted API keys
-  openaiApiKey            String?  @db.Text // Encrypted
-  anthropicApiKey         String?  @db.Text // Encrypted
-  huggingfaceToken        String?  @db.Text // Encrypted
-  dndBeyondCobaltCookie   String?  @db.Text // Encrypted
-  geminiApiKey            String?  @db.Text // Encrypted
+  openaiApiKey          String? @db.Text // Encrypted
+  anthropicApiKey       String? @db.Text // Encrypted
+  huggingfaceToken      String? @db.Text // Encrypted
+  dndBeyondCobaltCookie String? @db.Text // Encrypted
+  geminiApiKey          String? @db.Text // Encrypted
 
   // Display preferences
-  videoBackground         Boolean  @default(true)
+  videoBackground Boolean @default(true)
 
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
 }
@@ -133,7 +133,7 @@ model VerificationToken {
 model InviteCode {
   id        String    @id @default(cuid())
   code      String    @unique // The actual invite code
-  usedBy    String?   // User ID who used this code
+  usedBy    String? // User ID who used this code
   usedAt    DateTime? // When it was used
   createdAt DateTime  @default(now())
   expiresAt DateTime? // Optional expiration
@@ -147,24 +147,24 @@ model InviteCode {
 // ============================================================================
 
 enum PlatformRole {
-  ADVENTURER      // Regular user
-  DUNGEON_MASTER  // Trusted creator, expanded limits
-  WARDEN          // Moderator, can manage users/content
-  MYTHKEEPER      // Full platform admin
+  ADVENTURER // Regular user
+  DUNGEON_MASTER // Trusted creator, expanded limits
+  WARDEN // Moderator, can manage users/content
+  MYTHKEEPER // Full platform admin
 }
 
 enum CampaignRole {
-  OWNER     // Full control, can delete campaign
-  CO_DM     // Almost full control, cannot delete or transfer
-  PLAYER    // Manage own character, view shared content
+  OWNER // Full control, can delete campaign
+  CO_DM // Almost full control, cannot delete or transfer
+  PLAYER // Manage own character, view shared content
   SPECTATOR // Read-only access to shared content
 }
 
 enum ContentVisibility {
-  PRIVATE   // Only creator can see
-  CAMPAIGN  // Visible to campaign members
-  PUBLIC    // Visible to all users
-  UNLISTED  // Anyone with link can view
+  PRIVATE // Only creator can see
+  CAMPAIGN // Visible to campaign members
+  PUBLIC // Visible to all users
+  UNLISTED // Anyone with link can view
 }
 
 // ============================================================================
@@ -172,44 +172,44 @@ enum ContentVisibility {
 // ============================================================================
 
 model Campaign {
-  id               String                      @id @default(cuid())
-  name             String
-  slug             String                      @unique // URL-friendly slug generated from name
-  description      String?                     @db.Text
-  bannerUrl        String?
-  status           String                      @default("active") // active, paused, completed
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique // URL-friendly slug generated from name
+  description String? @db.Text
+  bannerUrl   String?
+  status      String  @default("active") // active, paused, completed
 
   // Legacy owner field (kept for backward compatibility during migration)
-  userId           String
-  user             User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Multi-user collaboration
-  members          CampaignMember[]            // All campaign members with roles
-  invites          CampaignInvite[]            // Pending invites
-  inviteCode       String?                     @unique // Quick join code
-  isPublic         Boolean                     @default(false) // Discoverable in search
+  members    CampaignMember[] // All campaign members with roles
+  invites    CampaignInvite[] // Pending invites
+  inviteCode String?          @unique // Quick join code
+  isPublic   Boolean          @default(false) // Discoverable in search
 
   // Campaign settings (JSON for flexibility)
-  settings         Json?                       // { allowPlayerNotes, shareRecaps, etc. }
-  foundryApiKey    String?                     @unique // bcrypt hash of campaign-scoped Foundry API key
+  settings             Json? // { allowPlayerNotes, shareRecaps, etc. }
+  foundryApiKey        String? @unique // bcrypt hash of campaign-scoped Foundry API key
   foundryModuleVersion String?
 
   // Content relations
-  gameSessions     GameSession[]
-  npcs             NPC[]
-  glossary         Json?                       // Campaign-specific glossary for transcription
-  homebrewContent  CampaignHomebrewContent[]   // Many-to-many with homebrew
-  homebrewPDFs     HomebrewPDF[]               // Campaign-specific PDFs
-  players          Player[]                    // Legacy player records (will migrate to Character)
-  characters       CampaignCharacter[]         // Characters in this campaign
-  encounterPlans   EncounterPlan[]             // Pre-session encounter designs
-  webhooks         WebhookEndpoint[]
-  foundryEvents    FoundryEvent[]
+  gameSessions      GameSession[]
+  npcs              NPC[]
+  glossary          Json? // Campaign-specific glossary for transcription
+  homebrewContent   CampaignHomebrewContent[] // Many-to-many with homebrew
+  homebrewPDFs      HomebrewPDF[] // Campaign-specific PDFs
+  players           Player[] // Legacy player records (will migrate to Character)
+  characters        CampaignCharacter[] // Characters in this campaign
+  encounterPlans    EncounterPlan[] // Pre-session encounter designs
+  webhooks          WebhookEndpoint[]
+  foundryEvents     FoundryEvent[]
   foundryImportJobs FoundryImportJob[]
-  obsidianImports  ObsidianImportJob[]
+  obsidianImports   ObsidianImportJob[]
 
-  createdAt        DateTime                    @default(now())
-  updatedAt        DateTime                    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -234,20 +234,20 @@ model WebhookEndpoint {
 
 // Campaign membership - who belongs to a campaign and their role
 model CampaignMember {
-  id          String       @id @default(cuid())
-  campaignId  String
-  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  userId      String
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role        CampaignRole @default(PLAYER)
-  joinedAt    DateTime     @default(now())
-  invitedBy   String?      // userId who invited them
+  id         String       @id @default(cuid())
+  campaignId String
+  campaign   Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       CampaignRole @default(PLAYER)
+  joinedAt   DateTime     @default(now())
+  invitedBy  String? // userId who invited them
 
   // Granular permission overrides (beyond role defaults)
-  canViewNPCSecrets    Boolean @default(false)
-  canEditNPCs          Boolean @default(false)
-  canManageSessions    Boolean @default(false)
-  canInviteMembers     Boolean @default(false)
+  canViewNPCSecrets Boolean @default(false)
+  canEditNPCs       Boolean @default(false)
+  canManageSessions Boolean @default(false)
+  canInviteMembers  Boolean @default(false)
 
   @@unique([campaignId, userId])
   @@index([campaignId])
@@ -257,23 +257,23 @@ model CampaignMember {
 
 // Campaign invites - pending invitations
 model CampaignInvite {
-  id          String       @id @default(cuid())
-  campaignId  String
-  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   // Invite can be via code OR direct email
-  code        String?      @unique // Random code for link sharing
-  email       String?               // Direct email invitation
+  code  String? @unique // Random code for link sharing
+  email String? // Direct email invitation
 
-  role        CampaignRole @default(PLAYER) // Role they'll receive on join
-  createdBy   String                // userId who created the invite
-  message     String?      @db.Text // Optional invite message
+  role      CampaignRole @default(PLAYER) // Role they'll receive on join
+  createdBy String // userId who created the invite
+  message   String?      @db.Text // Optional invite message
 
-  expiresAt   DateTime?            // Optional expiration
-  usedAt      DateTime?            // When invite was accepted
-  usedBy      String?              // userId who accepted
+  expiresAt DateTime? // Optional expiration
+  usedAt    DateTime? // When invite was accepted
+  usedBy    String? // userId who accepted
 
-  createdAt   DateTime     @default(now())
+  createdAt DateTime @default(now())
 
   @@index([campaignId])
   @@index([code])
@@ -286,85 +286,85 @@ model CampaignInvite {
 
 // Character status in a campaign
 enum CharacterStatus {
-  PENDING   // Awaiting DM approval
-  ACTIVE    // Currently playing
-  RETIRED   // Voluntarily retired
-  DECEASED  // Character died
-  REMOVED   // Removed by DM
+  PENDING // Awaiting DM approval
+  ACTIVE // Currently playing
+  RETIRED // Voluntarily retired
+  DECEASED // Character died
+  REMOVED // Removed by DM
 }
 
 model Character {
-  id              String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Ownership - Characters are owned by users (players)
-  userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Portability - Can this character be used in multiple campaigns?
-  isPortable      Boolean   @default(true)
+  isPortable Boolean @default(true)
 
   // Core identity
-  name            String
-  race            String?
-  class           String?
-  subclass        String?
-  level           Int       @default(1)
-  background      String?
+  name       String
+  race       String?
+  class      String?
+  subclass   String?
+  level      Int     @default(1)
+  background String?
 
   // Visuals
-  portraitUrl     String?
+  portraitUrl String?
 
   // Core stats (structured for easy access)
-  abilityScores   Json?     // { str: 10, dex: 14, con: 12, int: 8, wis: 15, cha: 13 }
-  hitPoints       Json?     // { current: 25, max: 30, temp: 0 }
-  armorClass      Int?
-  speed           Int?      @default(30)
-  proficiencyBonus Int?     @default(2)
+  abilityScores    Json? // { str: 10, dex: 14, con: 12, int: 8, wis: 15, cha: 13 }
+  hitPoints        Json? // { current: 25, max: 30, temp: 0 }
+  armorClass       Int?
+  speed            Int?  @default(30)
+  proficiencyBonus Int?  @default(2)
 
   // Character details
-  features        Json?     // Class/race features, abilities
-  proficiencies   Json?     // Skills, tools, weapons, armor, saves
-  inventory       Json?     // Equipment and items
-  spellcasting    Json?     // Spellcasting info, prepared spells, slots
-  currency        Json?     // { cp: 0, sp: 0, ep: 0, gp: 100, pp: 0 }
+  features      Json? // Class/race features, abilities
+  proficiencies Json? // Skills, tools, weapons, armor, saves
+  inventory     Json? // Equipment and items
+  spellcasting  Json? // Spellcasting info, prepared spells, slots
+  currency      Json? // { cp: 0, sp: 0, ep: 0, gp: 100, pp: 0 }
 
   // Backstory and notes
-  backstory       String?   @db.Text
+  backstory         String? @db.Text
   personalityTraits String? @db.Text
-  ideals          String?   @db.Text
-  bonds           String?   @db.Text
-  flaws           String?   @db.Text
-  notes           String?   @db.Text  // Player's private notes
+  ideals            String? @db.Text
+  bonds             String? @db.Text
+  flaws             String? @db.Text
+  notes             String? @db.Text // Player's private notes
 
   // Additional D&D 5e data (JSON for flexibility)
-  languages       Json?     // ["Common", "Elvish"]
-  senses          Json?     // { darkvision: 60, passivePerception: 14 }
-  resistances     Json?     // { damage: ["fire"], conditions: ["charmed"] }
-  hitDice         Json?     // [{ die: "d10", total: 5, used: 2 }]
-  savingThrows    Json?     // { strength: { proficient: true }, ... }
-  classes         Json?     // [{ name: "Fighter", subclass: "Champion", level: 5 }]
-  appearance      Json?     // { height, weight, eyes, skin, hair }
+  languages    Json? // ["Common", "Elvish"]
+  senses       Json? // { darkvision: 60, passivePerception: 14 }
+  resistances  Json? // { damage: ["fire"], conditions: ["charmed"] }
+  hitDice      Json? // [{ die: "d10", total: 5, used: 2 }]
+  savingThrows Json? // { strength: { proficient: true }, ... }
+  classes      Json? // [{ name: "Fighter", subclass: "Champion", level: 5 }]
+  appearance   Json? // { height, weight, eyes, skin, hair }
 
   // D&D Beyond sync
-  dndBeyondId     String?   @unique
-  dndBeyondUrl    String?
-  lastSyncedAt    DateTime?
+  dndBeyondId  String?   @unique
+  dndBeyondUrl String?
+  lastSyncedAt DateTime?
 
   // Full raw data (for complete D&D Beyond import preservation)
-  rawData         Json?     // Complete character data from import
+  rawData Json? // Complete character data from import
 
   // Campaign associations
-  campaignCharacters  CampaignCharacter[]
-  mechanicalEvents     SessionMechanicalEvent[]  @relation("CharacterMechanicalEvents")
-  sessionStates        CharacterSessionState[]   @relation("CharacterSessionStates")
+  campaignCharacters CampaignCharacter[]
+  mechanicalEvents   SessionMechanicalEvent[] @relation("CharacterMechanicalEvents")
+  sessionStates      CharacterSessionState[]  @relation("CharacterSessionStates")
 
   // Homebrew content links
-  homebrewItems       CharacterItem[]
-  homebrewSpells      CharacterSpell[]
-  homebrewFeats       CharacterFeat[]
+  homebrewItems  CharacterItem[]
+  homebrewSpells CharacterSpell[]
+  homebrewFeats  CharacterFeat[]
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([name])
@@ -375,27 +375,27 @@ model Character {
 // This allows the same character to be in multiple campaigns (if portable)
 // and tracks campaign-specific data like status and DM notes
 model CampaignCharacter {
-  id           String          @id @default(cuid())
+  id String @id @default(cuid())
 
-  campaignId   String
-  campaign     Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
-  characterId  String
-  character    Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
 
   // Status in this campaign
-  status       CharacterStatus @default(PENDING)
-  isActive     Boolean         @default(true)  // Currently selected character for player
+  status   CharacterStatus @default(PENDING)
+  isActive Boolean         @default(true) // Currently selected character for player
 
   // DM-only notes (not visible to player)
-  dmNotes      String?         @db.Text
+  dmNotes String? @db.Text
 
   // Campaign-specific overrides (optional)
   // E.g., if character has different level or items in this campaign
   campaignData Json?
 
-  joinedAt     DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([campaignId, characterId])
   @@index([campaignId])
@@ -404,44 +404,44 @@ model CampaignCharacter {
 }
 
 model GameSession {
-  id               String              @id @default(cuid())
+  id               String   @id @default(cuid())
   campaignId       String
-  campaign         Campaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  campaign         Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   sessionNumber    Int
-  date             DateTime            @default(now())
+  date             DateTime @default(now())
   title            String?
-  quickNotes       String?             @db.Text
-  recap            String?             @db.Text
-  status           String              @default("planning") // planning, in_progress, active, completed, cancelled
-  playerVisibility String              @default("dm-only") // dm-only|summary-only|public
+  quickNotes       String?  @db.Text
+  recap            String?  @db.Text
+  status           String   @default("planning") // planning, in_progress, active, completed, cancelled
+  playerVisibility String   @default("dm-only") // dm-only|summary-only|public
 
   // Lazy DM structured prep (8 steps)
-  prepData         Json?               // SessionPrepData blob
-  prepStatus       String              @default("none") // none | draft | complete
+  prepData   Json? // SessionPrepData blob
+  prepStatus String @default("none") // none | draft | complete
 
-  recordings       SessionRecording[]
-  transcripts      Transcript[]
-  encounters       Encounter[]
-  aiSummary        String?             @db.Text
-  aiSummaryStatus  String              @default("none") // none|pending|processing|done|error
-  aiSummaryError   String?
-  aiSummaryAt      DateTime?
-  aiHighlights     Json? // [{type,text,timestampMs,speakerLabel}]
-  shareToken       String?             @unique
-  foundryEvents    FoundryEvent[]
-  mechanicalEvents     SessionMechanicalEvent[]
+  recordings             SessionRecording[]
+  transcripts            Transcript[]
+  encounters             Encounter[]
+  aiSummary              String?                  @db.Text
+  aiSummaryStatus        String                   @default("none") // none|pending|processing|done|error
+  aiSummaryError         String?
+  aiSummaryAt            DateTime?
+  aiHighlights           Json? // [{type,text,timestampMs,speakerLabel}]
+  shareToken             String?                  @unique
+  foundryEvents          FoundryEvent[]
+  mechanicalEvents       SessionMechanicalEvent[]
   characterSessionStates CharacterSessionState[]
   // Combat Condition Co-pilot
-  combatCopiloterStatus  String  @default("none") // none|pending|done|error
-  combatCopiloterData    Json?   // {participants:[{name,hpChanges:[],conditions:[],concentration:[]}]}
+  combatCopiloterStatus  String                   @default("none") // none|pending|done|error
+  combatCopiloterData    Json? // {participants:[{name,hpChanges:[],conditions:[],concentration:[]}]}
   // Player Recap Mode
-  playerRecapStatus      String  @default("none") // none|pending|done|error
-  playerRecap            String? @db.Text
+  playerRecapStatus      String                   @default("none") // none|pending|done|error
+  playerRecap            String?                  @db.Text
   // Derailment Detector
-  derailmentStatus       String  @default("none") // none|pending|done|error
-  derailmentData         Json?   // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  derailmentStatus       String                   @default("none") // none|pending|done|error
+  derailmentData         Json? // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
 
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
@@ -468,10 +468,10 @@ model FoundryImportJob {
   campaignId  String
   campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   status      String    @default("pending") // pending|delivered|error
-  type        String    // npc|homebrew_item|homebrew_spell|session_journal
-  sourceId    String    // QuiverDM entity ID (npcId, homebrewId, sessionId)
-  sourceName  String    // Human-readable name for the UI
-  payload     Json      // Foundry document JSON (actor/item/journal) ready to create
+  type        String // npc|homebrew_item|homebrew_spell|session_journal
+  sourceId    String // QuiverDM entity ID (npcId, homebrewId, sessionId)
+  sourceName  String // Human-readable name for the UI
+  payload     Json // Foundry document JSON (actor/item/journal) ready to create
   error       String?
   createdAt   DateTime  @default(now())
   deliveredAt DateTime?
@@ -486,9 +486,9 @@ model ObsidianImportJob {
   campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   userId     String
   status     String   @default("pending") // pending|processing|done|error
-  zipPath    String   // absolute path to temp zip file
-  options    Json     // { npcs: bool, sessions: bool, characters: bool, homebrew: bool }
-  progress   Json?    // { total: int, done: int, currentFile: string, errors: string[] }
+  zipPath    String // absolute path to temp zip file
+  options    Json // { npcs: bool, sessions: bool, characters: bool, homebrew: bool }
+  progress   Json? // { total: int, done: int, currentFile: string, errors: string[] }
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -503,7 +503,7 @@ model Encounter {
   name         String
   round        Int                    @default(1)
   status       String                 @default("active") // active|complete
-  log          Json?                  // [{round, events: [{participantId, action, value}]}]
+  log          Json? // [{round, events: [{participantId, action, value}]}]
   participants EncounterParticipant[]
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
@@ -517,7 +517,7 @@ model EncounterParticipant {
   encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
   npcId       String?
   name        String
-  type        String    // pc|npc|monster
+  type        String // pc|npc|monster
   initiative  Int       @default(0)
   hp          Int
   maxHp       Int
@@ -549,58 +549,58 @@ model NPC {
 }
 
 model Player {
-  id            String   @id @default(cuid())
-  campaignId    String
-  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  name          String // Player's real name
-  characterName String
-  characterRace String?
+  id             String   @id @default(cuid())
+  campaignId     String
+  campaign       Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name           String // Player's real name
+  characterName  String
+  characterRace  String?
   characterClass String?
-  level         Int      @default(1)
-  imageUrl      String?
-  notes         String?  @db.Text
-  backstory     String?  @db.Text
+  level          Int      @default(1)
+  imageUrl       String?
+  notes          String?  @db.Text
+  backstory      String?  @db.Text
 
   // D&D Beyond integration
-  dndBeyondUrl  String?  // Public character URL for re-syncing
-  lastSyncedAt  DateTime?
+  dndBeyondUrl String? // Public character URL for re-syncing
+  lastSyncedAt DateTime?
 
   // Full character data as JSON (for flexibility)
   characterData Json? // Stores ability scores, skills, features, inventory, etc.
 
   // Structured character content
-  spells        PlayerSpell[]
-  feats         PlayerFeat[]
-  items         PlayerItem[]
+  spells PlayerSpell[]
+  feats  PlayerFeat[]
+  items  PlayerItem[]
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([campaignId])
 }
 
 // D&D 5e Spell Model (from D&D Beyond or manual entry)
 model Spell {
-  id              String        @id @default(cuid())
-  name            String
-  level           Int           // 0 for cantrips, 1-9 for spell levels
-  school          String        // Abjuration, Conjuration, etc.
-  castingTime     String        // "1 action", "1 bonus action", etc.
-  range           String        // "30 feet", "Self", etc.
-  components      String[]      // ["V", "S", "M"]
-  materialComponents String?    @db.Text // Material component description
-  duration        String        // "Instantaneous", "Concentration, up to 1 minute", etc.
-  description     String        @db.Text
-  higherLevels    String?       @db.Text // Description of casting at higher levels
-  ritual          Boolean       @default(false)
-  concentration   Boolean       @default(false)
-  classes         String[]      // Classes that can cast this spell
-  source          String        @default("PHB") // PHB, XGE, TCE, etc.
-  dndBeyondId     String?       @unique // D&D Beyond spell ID
+  id                 String   @id @default(cuid())
+  name               String
+  level              Int // 0 for cantrips, 1-9 for spell levels
+  school             String // Abjuration, Conjuration, etc.
+  castingTime        String // "1 action", "1 bonus action", etc.
+  range              String // "30 feet", "Self", etc.
+  components         String[] // ["V", "S", "M"]
+  materialComponents String?  @db.Text // Material component description
+  duration           String // "Instantaneous", "Concentration, up to 1 minute", etc.
+  description        String   @db.Text
+  higherLevels       String?  @db.Text // Description of casting at higher levels
+  ritual             Boolean  @default(false)
+  concentration      Boolean  @default(false)
+  classes            String[] // Classes that can cast this spell
+  source             String   @default("PHB") // PHB, XGE, TCE, etc.
+  dndBeyondId        String?  @unique // D&D Beyond spell ID
 
-  players         PlayerSpell[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  players   PlayerSpell[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([name])
   @@index([level])
@@ -609,14 +609,14 @@ model Spell {
 
 // Join table: Player has many Spells
 model PlayerSpell {
-  id              String   @id @default(cuid())
-  playerId        String
-  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  spellId         String
-  spell           Spell    @relation(fields: [spellId], references: [id], onDelete: Cascade)
-  prepared        Boolean  @default(false) // Is this spell prepared?
-  alwaysPrepared  Boolean  @default(false) // Always prepared (racial/class feature)
-  addedAt         DateTime @default(now())
+  id             String   @id @default(cuid())
+  playerId       String
+  player         Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  spellId        String
+  spell          Spell    @relation(fields: [spellId], references: [id], onDelete: Cascade)
+  prepared       Boolean  @default(false) // Is this spell prepared?
+  alwaysPrepared Boolean  @default(false) // Always prepared (racial/class feature)
+  addedAt        DateTime @default(now())
 
   @@unique([playerId, spellId])
   @@index([playerId])
@@ -625,28 +625,28 @@ model PlayerSpell {
 
 // D&D 5e Feat Model
 model Feat {
-  id              String       @id @default(cuid())
-  name            String
-  description     String       @db.Text
-  prerequisites   String?      @db.Text // Prerequisites for taking this feat
-  source          String       @default("PHB") // PHB, XGE, TCE, etc.
-  dndBeyondId     String?      @unique // D&D Beyond feat ID
+  id            String  @id @default(cuid())
+  name          String
+  description   String  @db.Text
+  prerequisites String? @db.Text // Prerequisites for taking this feat
+  source        String  @default("PHB") // PHB, XGE, TCE, etc.
+  dndBeyondId   String? @unique // D&D Beyond feat ID
 
-  players         PlayerFeat[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  players   PlayerFeat[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   @@index([name])
 }
 
 // Join table: Player has many Feats
 model PlayerFeat {
-  id              String   @id @default(cuid())
-  playerId        String
-  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  featId          String
-  feat            Feat     @relation(fields: [featId], references: [id], onDelete: Cascade)
-  addedAt         DateTime @default(now())
+  id       String   @id @default(cuid())
+  playerId String
+  player   Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  featId   String
+  feat     Feat     @relation(fields: [featId], references: [id], onDelete: Cascade)
+  addedAt  DateTime @default(now())
 
   @@unique([playerId, featId])
   @@index([playerId])
@@ -655,21 +655,21 @@ model PlayerFeat {
 
 // D&D 5e Item Model
 model Item {
-  id              String       @id @default(cuid())
-  name            String
-  type            String       // "Weapon", "Armor", "Potion", "Wondrous Item", etc.
-  rarity          String       @default("Common") // Common, Uncommon, Rare, Very Rare, Legendary, Artifact
-  description     String       @db.Text
-  weight          Float?       // Weight in pounds
-  cost            String?      // "50 gp", "500 gp", etc.
-  requiresAttunement Boolean   @default(false)
-  properties      String[]     // Item properties (magical, consumable, etc.)
-  source          String       @default("PHB") // PHB, DMG, XGE, etc.
-  dndBeyondId     String?      @unique // D&D Beyond item ID
+  id                 String   @id @default(cuid())
+  name               String
+  type               String // "Weapon", "Armor", "Potion", "Wondrous Item", etc.
+  rarity             String   @default("Common") // Common, Uncommon, Rare, Very Rare, Legendary, Artifact
+  description        String   @db.Text
+  weight             Float? // Weight in pounds
+  cost               String? // "50 gp", "500 gp", etc.
+  requiresAttunement Boolean  @default(false)
+  properties         String[] // Item properties (magical, consumable, etc.)
+  source             String   @default("PHB") // PHB, DMG, XGE, etc.
+  dndBeyondId        String?  @unique // D&D Beyond item ID
 
-  players         PlayerItem[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  players   PlayerItem[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 
   @@index([name])
   @@index([type])
@@ -678,16 +678,16 @@ model Item {
 
 // Join table: Player has many Items (with quantity, equipped status)
 model PlayerItem {
-  id              String   @id @default(cuid())
-  playerId        String
-  player          Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  itemId          String
-  item            Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  quantity        Int      @default(1)
-  equipped        Boolean  @default(false)
-  attuned         Boolean  @default(false)
-  notes           String?  @db.Text // Player-specific notes about the item
-  addedAt         DateTime @default(now())
+  id       String   @id @default(cuid())
+  playerId String
+  player   Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  itemId   String
+  item     Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  quantity Int      @default(1)
+  equipped Boolean  @default(false)
+  attuned  Boolean  @default(false)
+  notes    String?  @db.Text // Player-specific notes about the item
+  addedAt  DateTime @default(now())
 
   @@unique([playerId, itemId])
   @@index([playerId])
@@ -696,76 +696,76 @@ model PlayerItem {
 
 // Session Recording & Transcription Models
 model SessionRecording {
-  id               String      @id @default(cuid())
-  sessionId        String
-  session          GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  type             String // 'audio', 'video', 'pdf'
-  originalUrl      String
-  extractedAudioUrl String?    // URL of extracted audio (for videos), null if original was audio
-  fileSize         Int // in bytes
-  durationSeconds  Int? // null for PDFs
-  processingStatus String      @default("queued") // queued, processing, completed, failed
-  errorMessage     String?     @db.Text
-  originalDeleted  Boolean     @default(false) // true if original video was deleted after transcription
-  transcripts      Transcript[]
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  id                String       @id @default(cuid())
+  sessionId         String
+  session           GameSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type              String // 'audio', 'video', 'pdf'
+  originalUrl       String
+  extractedAudioUrl String? // URL of extracted audio (for videos), null if original was audio
+  fileSize          Int // in bytes
+  durationSeconds   Int? // null for PDFs
+  processingStatus  String       @default("queued") // queued, processing, completed, failed
+  errorMessage      String?      @db.Text
+  originalDeleted   Boolean      @default(false) // true if original video was deleted after transcription
+  transcripts       Transcript[]
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   @@index([sessionId])
   @@index([processingStatus])
 }
 
 model Transcript {
-  id              String            @id @default(cuid())
-  sessionId       String
-  session         GameSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  recordingId     String?
-  recording       SessionRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
-  rawText         String            @db.Text
-  correctedText   String?           @db.Text
-  speakers        Json? // Array of speaker objects
-  timestamps      Json? // Array of timestamp objects
-  glossaryMatches Json? // Matched glossary terms
-  formats         Json? // Generated formats (discord, table, web)
-  language        String?
+  id                  String            @id @default(cuid())
+  sessionId           String
+  session             GameSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recordingId         String?
+  recording           SessionRecording? @relation(fields: [recordingId], references: [id], onDelete: SetNull)
+  rawText             String            @db.Text
+  correctedText       String?           @db.Text
+  speakers            Json? // Array of speaker objects
+  timestamps          Json? // Array of timestamp objects
+  glossaryMatches     Json? // Matched glossary terms
+  formats             Json? // Generated formats (discord, table, web)
+  language            String?
   languageProbability Float?
-  durationSeconds Float?
-  hasSpeakers     Boolean           @default(false)
-  source          String            @default("upload") // 'upload' | 'live'
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  durationSeconds     Float?
+  hasSpeakers         Boolean           @default(false)
+  source              String            @default("upload") // 'upload' | 'live' | 'web_speech'
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   @@index([sessionId])
   @@index([recordingId])
 }
 
 model TranscriptionJob {
-  id                      String   @id @default(cuid())
-  sessionId               String
-  recordingId             String?
-  filePath                String
-  modelSize               String   @default("medium")
-  language                String?
-  useGPU                  Boolean  @default(true)
-  useSpeakers             Boolean  @default(false)
-  speakerNames            String[] // Array of speaker names
-  numSpeakers             Int?
-  status                  String   @default("queued") // queued, processing, completed, failed
-  progress                Int      @default(0) // 0-100
-  currentChunk            Int      @default(0)
-  totalChunks             Int      @default(0)
-  currentStep             String?  // 'extracting_audio', 'splitting_chunks', 'transcribing', 'diarizing', 'saving', 'uploading_audio', 'submitting_to_assemblyai', 'waiting_for_assemblyai', 'downloading_result'
-  currentSubStep          String?  // Detailed substep like 'loading_model', 'aligning_timestamps', 'detecting_speakers'
-  estimatedTimeRemaining  Int?     // Seconds remaining (estimated)
-  progressDetails         Json?    // Additional progress metadata (batch info, speaker count, etc.)
-  errorMessage            String?  @db.Text
-  transcriptId            String?  // Resulting transcript ID
-  assemblyaiTranscriptId  String?  // AssemblyAI transcript ID for polling
-  provider                String   @default("assemblyai") // 'assemblyai' | 'whisperx'
-  startedAt               DateTime?
-  completedAt             DateTime?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id                     String    @id @default(cuid())
+  sessionId              String
+  recordingId            String?
+  filePath               String
+  modelSize              String    @default("medium")
+  language               String?
+  useGPU                 Boolean   @default(true)
+  useSpeakers            Boolean   @default(false)
+  speakerNames           String[] // Array of speaker names
+  numSpeakers            Int?
+  status                 String    @default("queued") // queued, processing, completed, failed
+  progress               Int       @default(0) // 0-100
+  currentChunk           Int       @default(0)
+  totalChunks            Int       @default(0)
+  currentStep            String? // 'extracting_audio', 'splitting_chunks', 'transcribing', 'diarizing', 'saving', 'uploading_audio', 'submitting_to_assemblyai', 'waiting_for_assemblyai', 'downloading_result'
+  currentSubStep         String? // Detailed substep like 'loading_model', 'aligning_timestamps', 'detecting_speakers'
+  estimatedTimeRemaining Int? // Seconds remaining (estimated)
+  progressDetails        Json? // Additional progress metadata (batch info, speaker count, etc.)
+  errorMessage           String?   @db.Text
+  transcriptId           String? // Resulting transcript ID
+  assemblyaiTranscriptId String? // AssemblyAI transcript ID for polling
+  provider               String    @default("assemblyai") // 'assemblyai' | 'whisperx'
+  startedAt              DateTime?
+  completedAt            DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   @@index([sessionId])
   @@index([status])
@@ -775,37 +775,37 @@ model TranscriptionJob {
 // Homebrew Content Models
 // Note: PDF parsing removed. Content can be created manually or via D&D Beyond import.
 model HomebrewContent {
-  id           String                      @id @default(cuid())
-  userId       String // Homebrew is owned by user
-  user         User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String // Homebrew is owned by user
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type         String // 'item', 'creature', 'spell', 'location', 'subclass', 'feat', 'rule', 'race', 'class', 'background', 'character'
-  name         String
-  data         Json // Flexible data structure based on type
-  images       String[] // Array of image URLs
-  tags         String[] // For categorization
-  searchText   String                      @db.Text // Denormalized for full-text search
+  type       String // 'item', 'creature', 'spell', 'location', 'subclass', 'feat', 'rule', 'race', 'class', 'background', 'character'
+  name       String
+  data       Json // Flexible data structure based on type
+  images     String[] // Array of image URLs
+  tags       String[] // For categorization
+  searchText String   @db.Text // Denormalized for full-text search
 
   // D&D Beyond integration
   dndBeyondId  String? // D&D Beyond ID for syncing
   dndBeyondUrl String? // D&D Beyond URL for reference
 
   // Source tracking
-  sourceType   String                      @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import', 'media_import'
-  sourcePdfId  String?
-  sourcePdf    HomebrewPDF?                @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
-  imageUrl     String?
-  imageJobId   String?
-  imageMetadata Json? // Metadata for each image (source, page number, etc.)
+  sourceType           String       @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import', 'media_import'
+  sourcePdfId          String?
+  sourcePdf            HomebrewPDF? @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
+  imageUrl             String?
+  imageJobId           String?
+  imageMetadata        Json? // Metadata for each image (source, page number, etc.)
   extractionPageNumber Int? // Which PDF page this content was extracted from
 
-  campaigns    CampaignHomebrewContent[] // Many-to-many with campaigns
-  characterItems  CharacterItem[]
-  characterSpells CharacterSpell[]
-  characterFeats  CharacterFeat[]
-  sharedWithPlayers Boolean               @default(false)
-  createdAt    DateTime                    @default(now())
-  updatedAt    DateTime                    @updatedAt
+  campaigns         CampaignHomebrewContent[] // Many-to-many with campaigns
+  characterItems    CharacterItem[]
+  characterSpells   CharacterSpell[]
+  characterFeats    CharacterFeat[]
+  sharedWithPlayers Boolean                   @default(false)
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
 
   @@index([userId])
   @@index([type])
@@ -825,11 +825,11 @@ model CharacterItem {
   homebrewId  String
   homebrew    HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
 
-  quantity    Int             @default(1)
-  equipped    Boolean         @default(false)
-  attuned     Boolean         @default(false)
-  notes       String?         @db.Text
-  addedAt     DateTime        @default(now())
+  quantity Int      @default(1)
+  equipped Boolean  @default(false)
+  attuned  Boolean  @default(false)
+  notes    String?  @db.Text
+  addedAt  DateTime @default(now())
 
   @@unique([characterId, homebrewId])
   @@index([characterId])
@@ -838,15 +838,15 @@ model CharacterItem {
 
 // Join table: Character has many Spells (from Homebrew)
 model CharacterSpell {
-  id             String          @id @default(cuid())
-  characterId    String
-  character      Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
-  homebrewId     String
-  homebrew       HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
+  id          String          @id @default(cuid())
+  characterId String
+  character   Character       @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  homebrewId  String
+  homebrew    HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
 
-  prepared       Boolean         @default(false)
-  alwaysPrepared Boolean         @default(false)
-  addedAt        DateTime        @default(now())
+  prepared       Boolean  @default(false)
+  alwaysPrepared Boolean  @default(false)
+  addedAt        DateTime @default(now())
 
   @@unique([characterId, homebrewId])
   @@index([characterId])
@@ -861,7 +861,7 @@ model CharacterFeat {
   homebrewId  String
   homebrew    HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
 
-  addedAt     DateTime        @default(now())
+  addedAt DateTime @default(now())
 
   @@unique([characterId, homebrewId])
   @@index([characterId])
@@ -870,12 +870,12 @@ model CharacterFeat {
 
 // Join table for many-to-many relationship between campaigns and homebrew
 model CampaignHomebrewContent {
-  id              String          @id @default(cuid())
-  campaignId      String
-  campaign        Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  homebrewId      String
-  homebrew        HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
-  addedAt         DateTime        @default(now())
+  id         String          @id @default(cuid())
+  campaignId String
+  campaign   Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  homebrewId String
+  homebrew   HomebrewContent @relation(fields: [homebrewId], references: [id], onDelete: Cascade)
+  addedAt    DateTime        @default(now())
 
   @@unique([campaignId, homebrewId])
   @@index([campaignId])
@@ -884,30 +884,30 @@ model CampaignHomebrewContent {
 
 // Homebrew PDFs - Store and convert to markdown for AI processing
 model HomebrewPDF {
-  id                  String    @id @default(cuid())
-  userId              String
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  campaignId          String?   // Optional - PDFs can be in personal library or campaign-specific
-  campaign            Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaignId String? // Optional - PDFs can be in personal library or campaign-specific
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
   // File metadata
-  filename            String
-  fileSize            Int       // in bytes
-  mimeType            String    @default("application/pdf")
-  r2Url               String    // Cloudflare R2 storage URL for the PDF
+  filename String
+  fileSize Int // in bytes
+  mimeType String @default("application/pdf")
+  r2Url    String // Cloudflare R2 storage URL for the PDF
 
   // Marker processing
-  markdownContent     String?   @db.Text // Converted markdown (for AI processing)
-  markdownR2Url       String?   // Optional: Store markdown in R2 if very large
-  markerProcessed     Boolean   @default(false)
-  markerMetadata      Json?     // { pages, processingTime, imagesExtracted, etc. }
-  useLLM              Boolean   @default(false) // Whether to use LLM enhancement for better extraction
-  extractedImages     Int       @default(0) // Count of extracted images
+  markdownContent       String? @db.Text // Converted markdown (for AI processing)
+  markdownR2Url         String? // Optional: Store markdown in R2 if very large
+  markerProcessed       Boolean @default(false)
+  markerMetadata        Json? // { pages, processingTime, imagesExtracted, etc. }
+  useLLM                Boolean @default(false) // Whether to use LLM enhancement for better extraction
+  extractedImages       Int     @default(0) // Count of extracted images
   imageExtractionStatus String  @default("pending") // pending, processing, completed, failed
 
   // AI extraction progress
-  aiExtractionStatus    String?   // null | 'processing' | 'done' | 'error'
-  aiExtractionProgress  Json?     // { chunk: number, totalChunks: number, itemsFound: number, byType: Record<string,number> }
+  aiExtractionStatus   String? // null | 'processing' | 'done' | 'error'
+  aiExtractionProgress Json? // { chunk: number, totalChunks: number, itemsFound: number, byType: Record<string,number> }
 
   // Processing status
   processingStatus    String    @default("pending") // pending, processing, completed, failed
@@ -917,10 +917,10 @@ model HomebrewPDF {
   isRulesSource       Boolean   @default(false)
   indexedAt           DateTime?
 
-  extractedContent    HomebrewContent[]
+  extractedContent HomebrewContent[]
 
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([campaignId])
@@ -930,19 +930,19 @@ model HomebrewPDF {
 
 // Feedback system for closed beta
 model Feedback {
-  id          String   @id @default(cuid())
-  userId      String   // User who submitted feedback
-  type        String   // 'bug', 'feature', 'improvement', 'other'
-  category    String?  // 'transcription', 'pdf', 'ui', 'performance', 'other'
+  id          String    @id @default(cuid())
+  userId      String // User who submitted feedback
+  type        String // 'bug', 'feature', 'improvement', 'other'
+  category    String? // 'transcription', 'pdf', 'ui', 'performance', 'other'
   title       String
-  description String   @db.Text
-  rating      Int?     // Optional 1-5 rating
-  metadata    Json?    // Browser info, URL, etc.
-  status      String   @default("new") // new, acknowledged, in_progress, resolved, wont_fix
-  adminNotes  String?  @db.Text // Internal notes from admin
+  description String    @db.Text
+  rating      Int? // Optional 1-5 rating
+  metadata    Json? // Browser info, URL, etc.
+  status      String    @default("new") // new, acknowledged, in_progress, resolved, wont_fix
+  adminNotes  String?   @db.Text // Internal notes from admin
   resolvedAt  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([userId])
   @@index([type])
@@ -952,47 +952,47 @@ model Feedback {
 
 // Usage tracking for tier limits
 model UserUsage {
-  id                      String   @id @default(cuid())
-  userId                  String   @unique
-  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Current billing period
-  periodStart             DateTime @default(now())
-  periodEnd               DateTime // 30 days from periodStart
+  periodStart DateTime @default(now())
+  periodEnd   DateTime // 30 days from periodStart
 
   // Transcription usage (in seconds)
-  transcriptionSeconds    Int      @default(0)
-  transcriptionLimit      Int      @default(7200) // 120 minutes for free tier
+  transcriptionSeconds Int @default(0)
+  transcriptionLimit   Int @default(7200) // 120 minutes for free tier
 
   // PDF uploads
-  pdfUploads              Int      @default(0)
-  pdfUploadLimit          Int      @default(3) // 3 PDFs for free tier
+  pdfUploads     Int @default(0)
+  pdfUploadLimit Int @default(3) // 3 PDFs for free tier
 
   // Campaigns owned
-  campaignsOwned          Int      @default(0)
-  campaignLimit           Int      @default(1) // 1 campaign for free tier
+  campaignsOwned Int @default(0)
+  campaignLimit  Int @default(1) // 1 campaign for free tier
 
   // Session uploads (audio recording uploads)
-  sessionUploads          Int      @default(0)
-  sessionUploadLimit      Int      @default(4) // 4/mo for free tier
+  sessionUploads     Int @default(0)
+  sessionUploadLimit Int @default(4) // 4/mo for free tier
 
   // AI recaps (session summary generations)
-  aiRecaps                Int      @default(0)
-  aiRecapLimit            Int      @default(4) // 4/mo for free tier
+  aiRecaps     Int @default(0)
+  aiRecapLimit Int @default(4) // 4/mo for free tier
 
   // Semantic searches
-  semanticSearches        Int      @default(0)
-  semanticSearchLimit     Int      @default(50) // 50/mo for free tier
+  semanticSearches    Int @default(0)
+  semanticSearchLimit Int @default(50) // 50/mo for free tier
 
   // Image generations
-  imageGenerations        Int      @default(0)
-  imageGenerationLimit    Int      @default(5) // 5/mo for free tier
+  imageGenerations     Int @default(0)
+  imageGenerationLimit Int @default(5) // 5/mo for free tier
 
   // Last reset date (for tracking monthly resets)
-  lastResetAt             DateTime @default(now())
+  lastResetAt DateTime @default(now())
 
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([periodEnd])
@@ -1002,9 +1002,9 @@ model ApiUsageLog {
   id            String   @id @default(cuid())
   userId        String
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider      String   // gemini, openai, anthropic, ollama
-  model         String   // gemini-2.5-flash-lite, gpt-4o-mini, etc.
-  feature       String   // extraction, recap, search, image_gen, encounter_gen, rules_qa, obsidian_import
+  provider      String // gemini, openai, anthropic, ollama
+  model         String // gemini-2.5-flash-lite, gpt-4o-mini, etc.
+  feature       String // extraction, recap, search, image_gen, encounter_gen, rules_qa, obsidian_import
   tokensIn      Int      @default(0)
   tokensOut     Int      @default(0)
   estimatedCost Float    @default(0)
@@ -1026,7 +1026,7 @@ model ImageGenerationJob {
   provider     String    @default("auto") // 'comfyui', 'replicate', 'dalle', 'auto'
   status       String    @default("queued") // queued, processing, completed, failed
   progress     Int       @default(0)
-  workflowId   String?   // ComfyUI workflow/prompt ID
+  workflowId   String? // ComfyUI workflow/prompt ID
   resultUrl    String?
   errorMessage String?   @db.Text
   metadata     Json?
@@ -1045,40 +1045,40 @@ model ImageGenerationJob {
 // ============================================================================
 
 model EncounterPlan {
-  id               String                 @id @default(cuid())
-  campaignId       String
-  campaign         Campaign               @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  name             String
-  aiPrompt         String?                @db.Text   // original user prompt
-  sceneDescription String?                @db.Text   // AI-generated prose
-  tacticalNotes    String?                @db.Text   // AI DM tips
-  difficulty       String                 @default("medium") // easy|medium|hard|deadly
-  partySize        Int?
-  partyLevel       Int?
-  xpBudget              Int?                              // target XP budget
-  totalXp               Int?                              // actual raw XP of selected creatures
-  adjustedXp            Int?                              // XP after encounter multiplier
-  environmentalEffects  String?                @db.Text   // weather, terrain, lighting conditions
-  portraitUrl           String?                           // banner / portrait image URL
-  creatures             EncounterPlanCreature[]
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  id                   String                  @id @default(cuid())
+  campaignId           String
+  campaign             Campaign                @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  name                 String
+  aiPrompt             String?                 @db.Text // original user prompt
+  sceneDescription     String?                 @db.Text // AI-generated prose
+  tacticalNotes        String?                 @db.Text // AI DM tips
+  difficulty           String                  @default("medium") // easy|medium|hard|deadly
+  partySize            Int?
+  partyLevel           Int?
+  xpBudget             Int? // target XP budget
+  totalXp              Int? // actual raw XP of selected creatures
+  adjustedXp           Int? // XP after encounter multiplier
+  environmentalEffects String?                 @db.Text // weather, terrain, lighting conditions
+  portraitUrl          String? // banner / portrait image URL
+  creatures            EncounterPlanCreature[]
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
 
   @@index([campaignId])
 }
 
 model EncounterPlanCreature {
-  id          String        @id @default(cuid())
-  planId      String
-  plan        EncounterPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  name        String
-  count       Int           @default(1)
-  cr          String?                     // "1/4", "1", "10"
-  xp          Int?                        // XP per creature
-  sourceType  String                      // 'srd' | 'npc' | 'homebrew'
-  sourceId    String?                     // NPC id or HomebrewContent id
-  statBlock   Json?                       // Full stat block snapshot
-  createdAt   DateTime      @default(now())
+  id         String        @id @default(cuid())
+  planId     String
+  plan       EncounterPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  name       String
+  count      Int           @default(1)
+  cr         String? // "1/4", "1", "10"
+  xp         Int? // XP per creature
+  sourceType String // 'srd' | 'npc' | 'homebrew'
+  sourceId   String? // NPC id or HomebrewContent id
+  statBlock  Json? // Full stat block snapshot
+  createdAt  DateTime      @default(now())
 
   @@index([planId])
 }
@@ -1088,15 +1088,15 @@ model EncounterPlanCreature {
 // ============================================================================
 
 model Embedding {
-  id         String   @id @default(cuid())
+  id         String                     @id @default(cuid())
   entityType String
   entityId   String
-  chunkText  String   @db.Text
+  chunkText  String                     @db.Text
   chunkIndex Int
   vector     Unsupported("vector(768)")
   metadata   Json?
   campaignId String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime                   @default(now())
 
   @@index([campaignId, entityType])
   @@index([entityId])
