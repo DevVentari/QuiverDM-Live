@@ -14,7 +14,6 @@ export type UserTier = 'free' | 'pro' | 'team';
 export const TIER_LIMITS = {
   free: {
     campaigns: 1,
-    transcriptionSeconds: 7200,   // 120 minutes
     sessionUploads: 4,
     aiRecaps: 4,
     pdfUploads: 3,
@@ -23,7 +22,6 @@ export const TIER_LIMITS = {
   },
   pro: {
     campaigns: -1,                 // Unlimited
-    transcriptionSeconds: 72000,   // 1,200 minutes
     sessionUploads: 30,
     aiRecaps: 30,
     pdfUploads: 40,
@@ -32,7 +30,6 @@ export const TIER_LIMITS = {
   },
   team: {
     campaigns: -1,                 // Unlimited
-    transcriptionSeconds: 216000,  // 3,600 minutes
     sessionUploads: 100,
     aiRecaps: 120,
     pdfUploads: 150,
@@ -71,7 +68,6 @@ export const usageService = {
           userId,
           periodStart: now,
           periodEnd,
-          transcriptionLimit: limits.transcriptionSeconds,
           pdfUploadLimit: limits.pdfUploads,
           campaignLimit: limits.campaigns,
           sessionUploadLimit: limits.sessionUploads,
@@ -108,7 +104,6 @@ export const usageService = {
 
     return {
       tier,
-      transcription: limitStat(usage.transcriptionSeconds, usage.transcriptionLimit),
       pdfUploads: limitStat(usage.pdfUploads, usage.pdfUploadLimit),
       campaigns: limitStat(usage.campaignsOwned, TIER_LIMITS[tier].campaigns),
       sessionUploads: limitStat(usage.sessionUploads, usage.sessionUploadLimit),
@@ -146,19 +141,6 @@ export const usageService = {
     }
     if (usage.pdfUploadLimit === -1) return true;
     return usage.pdfUploads < usage.pdfUploadLimit;
-  },
-
-  /**
-   * Check if user can transcribe (has minutes remaining)
-   */
-  async canTranscribe(userId: string, durationSeconds: number): Promise<boolean> {
-    const usage = await this.getOrCreateUsage(userId);
-    if (new Date() > usage.periodEnd) {
-      await this.resetUsagePeriod(userId);
-      return true;
-    }
-    if (usage.transcriptionLimit === -1) return true;
-    return usage.transcriptionSeconds + durationSeconds <= usage.transcriptionLimit;
   },
 
   /**
@@ -253,29 +235,6 @@ export const usageService = {
       void this.checkAndAlertThreshold(
         userId, user.tier ?? 'free', 'pdfUploads',
         updated.pdfUploads, updated.pdfUploadLimit, updated.periodEnd
-      );
-    }
-    return updated;
-  },
-
-  async incrementTranscription(userId: string, durationSeconds: number) {
-    const canTranscribe = await this.canTranscribe(userId, durationSeconds);
-    if (!canTranscribe) {
-      throw new ForbiddenError(
-        'Transcription limit reached for your tier. Upgrade to Pro for more minutes.'
-      );
-    }
-    const updated = await prisma.userUsage.update({
-      where: { userId },
-      data: { transcriptionSeconds: { increment: Math.ceil(durationSeconds) } },
-    });
-
-    // Fire-and-forget threshold alert
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
-    if (user) {
-      void this.checkAndAlertThreshold(
-        userId, user.tier ?? 'free', 'transcriptionSeconds',
-        updated.transcriptionSeconds, updated.transcriptionLimit, updated.periodEnd
       );
     }
     return updated;
@@ -396,14 +355,12 @@ export const usageService = {
       data: {
         periodStart: now,
         periodEnd,
-        transcriptionSeconds: 0,
         pdfUploads: 0,
         campaignsOwned: 0,
         sessionUploads: 0,
         aiRecaps: 0,
         semanticSearches: 0,
         imageGenerations: 0,
-        transcriptionLimit: limits.transcriptionSeconds,
         pdfUploadLimit: limits.pdfUploads,
         campaignLimit: limits.campaigns,
         sessionUploadLimit: limits.sessionUploads,
@@ -427,7 +384,6 @@ export const usageService = {
     return prisma.userUsage.update({
       where: { userId },
       data: {
-        transcriptionLimit: limits.transcriptionSeconds,
         pdfUploadLimit: limits.pdfUploads,
         campaignLimit: limits.campaigns,
         sessionUploadLimit: limits.sessionUploads,

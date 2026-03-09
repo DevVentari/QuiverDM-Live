@@ -234,14 +234,6 @@ async function processTranscription(
       addSessionEventsJob({ sessionId: data.sessionId, campaignId }).catch(() => undefined);
     }
 
-    // Increment usage
-    try {
-      const { usageService } = await import('../../server/services/usage.service');
-      await usageService.incrementTranscription(data.userId, result.duration);
-    } catch (err) {
-      console.warn('[TranscriptionWorker] Failed to increment usage:', err);
-    }
-
     // 8. Delete original file if requested
     if (data.deleteOriginalFile && data.fileUrl) {
       try {
