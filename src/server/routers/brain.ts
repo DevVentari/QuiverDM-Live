@@ -3,6 +3,9 @@ import { z } from 'zod';
 import { brainService } from '../services/brain.service';
 import { answerBrainQuery } from '@/lib/voice/brain-query';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
+import { redis } from '@/lib/queue/queue';
+import { coDMQueue } from '@/lib/queue/co-dm-queue';
+import type { CoDMSuggestion } from '@/lib/co-dm/types';
 
 const entityTypeSchema = z.nativeEnum(WorldEntityType);
 const entityStatusSchema = z.nativeEnum(WorldEntityStatus);
@@ -157,6 +160,63 @@ export const brainRouter = router({
     .mutation(({ input, ctx }) =>
       brainService.seedFromExisting(input.campaignId, ctx.session.user.id)
     ),
+
+  coDM: router({
+    suggestions: protectedProcedure
+      .input(z.object({ sessionId: z.string().min(1) }))
+      .query(async ({ input }) => {
+        if (!redis) return [] as CoDMSuggestion[];
+        const raw = await redis.get(`co-dm:${input.sessionId}:suggestions`);
+        if (!raw) return [] as CoDMSuggestion[];
+        const suggestions = JSON.parse(raw) as CoDMSuggestion[];
+        return suggestions.filter((s) => !s.dismissed);
+      }),
+
+    dismiss: protectedProcedure
+      .input(z.object({ sessionId: z.string().min(1), suggestionId: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        if (!redis) return { success: false };
+        const key = `co-dm:${input.sessionId}:suggestions`;
+        const raw = await redis.get(key);
+        if (!raw) return { success: false };
+        const suggestions = JSON.parse(raw) as CoDMSuggestion[];
+        const updated = suggestions.map((s) =>
+          s.id === input.suggestionId ? { ...s, dismissed: true } : s
+        );
+        const ttl = await redis.ttl(key);
+        await redis.set(key, JSON.stringify(updated), 'EX', ttl > 0 ? ttl : 3600);
+        return { success: true };
+      }),
+
+    submitChunk: protectedProcedure
+      .input(z.object({
+        sessionId: z.string().min(1),
+        campaignId: z.string().min(1),
+        transcriptChunk: z.string().min(1),
+        chunkIndex: z.number().int().min(0),
+      }))
+      .mutation(async ({ input }) => {
+        const job = await coDMQueue.add(
+          `co-dm-chunk-${input.sessionId}-${input.chunkIndex}`,
+          input
+        );
+        return { jobId: job.id };
+      }),
+
+    prepSuggestions: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1) }))
+      .query(async ({ input }) => {
+        if (!redis) return null;
+        const raw = await redis.get(`co-dm:prep:${input.campaignId}`);
+        if (!raw) return null;
+        return JSON.parse(raw) as {
+          npcMotivationUpdates: Array<{ entityName: string; motivation: string }>;
+          factionShifts: Array<{ factionName: string; shift: string }>;
+          nextSessionFocus: string[];
+          generatedAt: string;
+        };
+      }),
+  }),
 
   voiceQuery: protectedProcedure
     .input(z.object({ campaignId: z.string().min(1), query: z.string().min(1).max(500) }))
