@@ -99,6 +99,7 @@ export const userSettingsRouter = router({
         maskedDndBeyondCobaltCookie: settings.dndBeyondCobaltCookie ? (() => { try { return maskApiKey(decrypt(settings.dndBeyondCobaltCookie!)); } catch { return null; } })() : null,
         hasGeminiApiKey: !!settings.geminiApiKey,
         maskedGeminiApiKey: settings.geminiApiKey ? (() => { try { return maskApiKey(decrypt(settings.geminiApiKey!)); } catch { return null; } })() : null,
+        videoBackground: settings.videoBackground,
         createdAt: settings.createdAt,
         updatedAt: settings.updatedAt,
       };
@@ -182,6 +183,23 @@ export const userSettingsRouter = router({
         hasDndBeyondCobaltCookie: !!settings.dndBeyondCobaltCookie,
         hasGeminiApiKey: !!settings.geminiApiKey,
       };
+    }),
+
+  // Update display preferences
+  updatePreferences: protectedProcedure
+    .input(
+      z.object({
+        videoBackground: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      await prisma.userSettings.upsert({
+        where: { userId },
+        create: { userId, ...input },
+        update: input,
+      });
+      return { success: true };
     }),
 
   // Delete specific API key

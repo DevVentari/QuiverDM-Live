@@ -10,19 +10,24 @@ import { generateUniqueSlug } from '@/lib/utils/slugify';
 import { processJob } from '@/lib/queue/obsidian-import-process';
 
 const VAULT_PATH = 'G:/My Drive/Notebooks/Dungeons and Dragons/Campaigns/Tales from The Bonfire Keep';
-const USER_ID = 'cmm4mgdtr0001gjr7jn3fb00c';
-const CAMPAIGN_NAME = 'Tales from The Bonfire Keep (v2)';
+const USER_ID = 'cmm7a8ejk0001l8ubnk8m6cks';
+const CAMPAIGN_NAME = 'Tales from The Bonfire Keep';
+// Set to an existing campaign ID to reuse it instead of creating a new one
+const EXISTING_CAMPAIGN_ID: string | null = null;
 
 async function main() {
   console.log('[obsidian-import] Zipping vault...');
 
   const zip = new AdmZip();
 
+  const SKIP_DIRS = new Set(['Adventures', '.obsidian', '.trash', '.kiro']);
+
   function addDir(dirPath: string, zipBase: string) {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
       if (entry.isDirectory()) {
+        if (SKIP_DIRS.has(entry.name)) continue;
         addDir(fullPath, path.join(zipBase, entry.name));
       } else if (entry.name.endsWith('.md')) {
         zip.addFile(
@@ -39,23 +44,25 @@ async function main() {
   zip.writeZip(zipPath);
   console.log(`[obsidian-import] ZIP written to ${zipPath}`);
 
-  const slug = await generateUniqueSlug(CAMPAIGN_NAME, async (s) => {
-    const existing = await prisma.campaign.findFirst({ where: { slug: s } });
-    return !!existing;
-  });
-
-  const campaign = await prisma.campaign.create({
-    data: {
-      name: CAMPAIGN_NAME,
-      slug,
-      userId: USER_ID,
-      status: 'active',
-    },
-  });
-  await prisma.campaignMember.create({
-    data: { campaignId: campaign.id, userId: USER_ID, role: 'OWNER', canViewNPCSecrets: true },
-  });
-  console.log(`[obsidian-import] Campaign created: ${campaign.id} (${slug})`);
+  let campaign: { id: string; slug: string };
+  if (EXISTING_CAMPAIGN_ID) {
+    const found = await prisma.campaign.findUnique({ where: { id: EXISTING_CAMPAIGN_ID } });
+    if (!found) throw new Error(`Campaign ${EXISTING_CAMPAIGN_ID} not found`);
+    campaign = found;
+    console.log(`[obsidian-import] Using existing campaign: ${campaign.id} (${campaign.slug})`);
+  } else {
+    const slug = await generateUniqueSlug(CAMPAIGN_NAME, async (s) => {
+      const existing = await prisma.campaign.findFirst({ where: { slug: s } });
+      return !!existing;
+    });
+    campaign = await prisma.campaign.create({
+      data: { name: CAMPAIGN_NAME, slug, userId: USER_ID, status: 'active' },
+    });
+    await prisma.campaignMember.create({
+      data: { campaignId: campaign.id, userId: USER_ID, role: 'OWNER', canViewNPCSecrets: true },
+    });
+    console.log(`[obsidian-import] Campaign created: ${campaign.id} (${campaign.slug})`);
+  }
 
   const job = await prisma.obsidianImportJob.create({
     data: {
@@ -87,7 +94,7 @@ async function main() {
     console.log('  First 5 errors:');
     (progress.errors as string[]).slice(0, 5).forEach((e) => console.log(`    - ${e}`));
   }
-  console.log(`\n  Campaign: /campaigns/${slug}`);
+  console.log(`\n  Campaign: /campaigns/${campaign.slug}`);
 
   await prisma.$disconnect();
 }
