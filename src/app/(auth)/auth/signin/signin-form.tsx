@@ -42,7 +42,7 @@ export function SignInForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-sm glass-panel border-border/30 shadow-2xl shadow-black/50">
       <CardHeader className="text-center">
         <Link href="/" className="font-display text-2xl font-bold text-foreground mb-2 block">
           QuiverDM
