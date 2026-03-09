@@ -19,6 +19,7 @@ export interface AiSummaryJobData {
   sessionId: string;
   userId: string;
   transcriptText: string;
+  transcriptSource?: string; // 'upload' | 'live' | 'web_speech'
   sessionTitle: string;
   sessionNumber: number;
 }
