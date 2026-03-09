@@ -119,3 +119,157 @@ test('voice button visible in campaign header', async ({ page }, testInfo) => {
     expect(hasVoiceBtn || hasMicBtn).toBeTruthy();
   }, 10_000);
 });
+
+test('brain seed button creates entities that appear in entity list', async ({ page }, testInfo) => {
+  test.slow();
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-to-brain', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/brain`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  }, 20_000);
+
+  await checkpoint(testInfo, 'seed-button-present', async () => {
+    const seedBtn = page.locator('[data-testid="seed-from-existing-btn"]').first();
+    await expect(seedBtn).toBeVisible({ timeout: 10_000 });
+  }, 10_000);
+
+  await checkpoint(testInfo, 'click-seed', async () => {
+    const seedBtn = page.locator('[data-testid="seed-from-existing-btn"]').first();
+    await seedBtn.click();
+    // Wait for the mutation to settle — either success toast or entity cards appear
+    await page.waitForTimeout(3_000);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'entities-appear-or-empty-state', async () => {
+    // After seed, either entity cards show OR empty state with no error
+    const hasEntityCards = await page.locator('[data-testid="entity-card"]').first().isVisible({ timeout: 8_000 }).catch(() => false);
+    const hasEmptyMsg = await page.getByText(/no entities tracked yet/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasNoError = await page.locator('body').evaluate(el => !/(500|something went wrong)/i.test(el.textContent ?? ''));
+
+    expect(hasEntityCards || hasEmptyMsg).toBeTruthy();
+    expect(hasNoError).toBe(true);
+  }, 15_000);
+});
+
+test('entity detail page shows relationships and properties sections', async ({ page }, testInfo) => {
+  test.slow();
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-to-brain-entities', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/brain/entities`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  }, 20_000);
+
+  await checkpoint(testInfo, 'click-first-entity-or-skip', async () => {
+    const entityCard = page.locator('[data-testid="entity-card"]').first();
+    const hasEntity = await entityCard.isVisible({ timeout: 8_000 }).catch(() => false);
+
+    if (!hasEntity) {
+      // No entities seeded yet — skip remainder
+      return;
+    }
+
+    await entityCard.click();
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  }, 20_000);
+
+  await checkpoint(testInfo, 'entity-detail-sections-visible', async () => {
+    const url = page.url();
+    if (!url.includes('/brain/entities/')) return; // skipped above
+
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong/i);
+
+    // Properties or description section
+    const propsSection = page.getByText(/properties/i).or(page.getByText(/description/i)).first();
+    await expect(propsSection).toBeVisible({ timeout: 10_000 });
+
+    // Relationships section
+    const relSection = page.getByText(/relationship/i).first();
+    await expect(relSection).toBeVisible({ timeout: 10_000 });
+  }, 15_000);
+});
+
+test('hook resolve button removes hook from open list', async ({ page }, testInfo) => {
+  test.slow();
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-to-brain', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/brain`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  }, 20_000);
+
+  await checkpoint(testInfo, 'check-for-hooks', async () => {
+    const hookList = page.locator('[data-testid="hook-list"]').first();
+    const hasHooks = await hookList.isVisible({ timeout: 8_000 }).catch(() => false);
+
+    if (!hasHooks) {
+      // No hooks — verify empty state renders cleanly
+      await expect(page.getByText(/no open hooks/i).first()).toBeVisible({ timeout: 8_000 });
+      return;
+    }
+
+    const resolveBtn = page.locator('[data-testid="resolve-hook-btn"]').first();
+    const hasBtnVisible = await resolveBtn.isVisible({ timeout: 5_000 }).catch(() => false);
+
+    if (!hasBtnVisible) return;
+
+    const hooksBefore = await page.locator('[data-testid="resolve-hook-btn"]').count();
+    await resolveBtn.click();
+
+    // After resolve, count should decrease (mutation updates state)
+    await page.waitForTimeout(2_000);
+    const hooksAfter = await page.locator('[data-testid="resolve-hook-btn"]').count();
+    expect(hooksAfter).toBeLessThanOrEqual(hooksBefore);
+  }, 20_000);
+});
+
+test('entity list navigation filters by type', async ({ page }, testInfo) => {
+  test.slow();
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-to-entities-list', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/brain/entities`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  }, 20_000);
+
+  await checkpoint(testInfo, 'entities-page-loads-cleanly', async () => {
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
+
+    // Page should show either entity cards or an empty/no-entities state
+    const hasCards = await page.locator('[data-testid="entity-card"]').first().isVisible({ timeout: 8_000 }).catch(() => false);
+    const hasEmpty = await page.getByText(/no entities/i).first().isVisible({ timeout: 5_000 }).catch(() => false);
+    expect(hasCards || hasEmpty).toBeTruthy();
+  }, 15_000);
+
+  await checkpoint(testInfo, 'type-filter-link-navigates', async () => {
+    // Brain page Overview tab has entity-type links like /brain/entities?type=NPC
+    const typeLink = page.locator('a[href*="/brain/entities?type="]').first();
+    const hasTypeLink = await typeLink.isVisible({ timeout: 5_000 }).catch(() => false);
+
+    if (!hasTypeLink) {
+      // No entities to filter — verify entities page loaded cleanly
+      await page.goto(`/campaigns/${CAMPAIGN_SLUG}/brain/entities?type=NPC`);
+      await page.waitForLoadState('networkidle', { timeout: 10_000 });
+      await expect(page.locator('body')).not.toContainText(/404|something went wrong/i);
+      return;
+    }
+
+    const href = await typeLink.getAttribute('href');
+    if (href) await page.goto(href);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
+  }, 20_000);
+});

@@ -144,6 +144,7 @@ export default function BrainPage() {
         </div>
         {!hasEntities && (
           <Button
+            data-testid="seed-from-existing-btn"
             size="sm"
             variant="outline"
             disabled={seeding || seedMutation.isPending}
@@ -251,6 +252,7 @@ export default function BrainPage() {
                         No entities tracked yet. Seed from existing NPCs and characters to get started.
                       </p>
                       <Button
+                        data-testid="seed-from-existing-btn"
                         size="sm"
                         disabled={seedMutation.isPending}
                         onClick={() => seedMutation.mutate({ campaignId })}

@@ -40,7 +40,7 @@ export function HookList({
   }
 
   return (
-    <ul className="space-y-2">
+    <ul data-testid="hook-list" className="space-y-2">
       {openHooks.map((hook) => (
         <li
           key={hook.id}
@@ -55,6 +55,7 @@ export function HookList({
           <span className="flex-1 text-sm leading-snug">{hook.text}</span>
           {onResolve && (
             <Button
+              data-testid="resolve-hook-btn"
               variant="ghost"
               size="icon"
               className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
