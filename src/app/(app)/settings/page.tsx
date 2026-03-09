@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap, MonitorPlay } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap, MonitorPlay } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
@@ -71,18 +71,6 @@ const keyConfigs: KeyConfig[] = [
   },
 ];
 
-/**
- * Format seconds into a human-readable duration string.
- * Examples: "0 min", "45 min", "1 hr 30 min", "10 hr"
- */
-function formatDuration(seconds: number): string {
-  if (seconds <= 0) return '0 min';
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  if (hours === 0) return `${minutes} min`;
-  if (minutes === 0) return `${hours} hr`;
-  return `${hours} hr ${minutes} min`;
-}
 
 /**
  * Returns the indicator color class based on usage percentage.
@@ -435,34 +423,6 @@ export default function SettingsPage() {
                       />
                       <p className={`text-sm ${getTextColor(usage.data.campaigns.percentage)}`}>
                         {usage.data.campaigns.used} of {usage.data.campaigns.limit} used
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* Transcription Meter */}
-                <div className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Transcription</span>
-                  </div>
-                  {usage.data.transcription.limit === -1 ? (
-                    <>
-                      <Progress value={0} className="h-2" aria-label="Transcription usage" />
-                      <p className="text-sm text-muted-foreground">
-                        {formatDuration(usage.data.transcription.used)} used — Unlimited
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <Progress
-                        value={Math.min(usage.data.transcription.percentage, 100)}
-                        className="h-2"
-                        indicatorClassName={getProgressColor(usage.data.transcription.percentage)}
-                        aria-label="Transcription usage"
-                      />
-                      <p className={`text-sm ${getTextColor(usage.data.transcription.percentage)}`}>
-                        {formatDuration(usage.data.transcription.used)} of {formatDuration(usage.data.transcription.limit)} used
                       </p>
                     </>
                   )}
