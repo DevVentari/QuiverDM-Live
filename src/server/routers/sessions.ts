@@ -510,4 +510,22 @@ export const sessionsRouter = router({
   commitSessionEvents: campaignDMProcedure
     .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
     .mutation(({ input }) => sessionStateService.commitSessionEvents(input.sessionId)),
+
+  generateQuickNpc: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      hint: z.string().max(200).optional(),
+    }))
+    .mutation(({ input, ctx }) =>
+      sessionService.generateQuickNpc(input.sessionId, ctx.session.user.id, input.hint)
+    ),
+
+  suggestTwist: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      hint: z.string().max(200).optional(),
+    }))
+    .mutation(({ input, ctx }) =>
+      sessionService.suggestTwist(input.sessionId, ctx.session.user.id, input.hint)
+    ),
 });

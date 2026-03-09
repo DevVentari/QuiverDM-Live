@@ -10,7 +10,7 @@ import { sessionRepository } from '../repositories/session.repository';
 import { authz } from './authorization.service';
 import { prisma } from '../db';
 import { generateWithOllama, isOllamaAvailable } from '@/lib/ai/ollama';
-import { BadRequestError, NotFoundError } from '../errors';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../errors';
 import { webhookService } from './webhook.service';
 import { usageService } from './usage.service';
 import {
@@ -607,6 +607,75 @@ export class SessionService {
     });
 
     return recap;
+  }
+
+  async generateQuickNpc(sessionId: string, userId: string, hint?: string): Promise<{
+    name: string;
+    role: string;
+    trait: string;
+    secret: string;
+    voiceQuirk: string;
+  }> {
+    const access = await authz.session(sessionId, userId).verify();
+    if (!access.isDM) throw ForbiddenError.forPermission('manage', 'session');
+
+    const session = await sessionRepository.findById(sessionId);
+    if (!session) throw new NotFoundError('session', sessionId);
+
+    const prompt = `Generate a quick D&D NPC for an active session.
+Campaign: ${session.campaign?.name ?? 'Unknown'}
+${hint ? `DM hint: ${hint}` : ''}
+
+Respond ONLY with valid JSON:
+{
+  "name": "Full Name",
+  "role": "Brief role (e.g. 'tavern keeper', 'city guard')",
+  "trait": "One distinctive personality trait",
+  "secret": "One secret they're hiding",
+  "voiceQuirk": "How they speak (e.g. 'speaks in rhymes', 'overly formal')"
+}`;
+
+    const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.9 });
+    let text = raw.trim();
+    if (text.startsWith('```')) text = text.replace(/^```json?\s*/i, '').replace(/\s*```$/, '');
+    const parsed = JSON.parse(text) as Record<string, string>;
+    return {
+      name: String(parsed.name ?? 'Unknown'),
+      role: String(parsed.role ?? ''),
+      trait: String(parsed.trait ?? ''),
+      secret: String(parsed.secret ?? ''),
+      voiceQuirk: String(parsed.voiceQuirk ?? ''),
+    };
+  }
+
+  async suggestTwist(sessionId: string, userId: string, hint?: string): Promise<{ twists: string[] }> {
+    const access = await authz.session(sessionId, userId).verify();
+    if (!access.isDM) throw ForbiddenError.forPermission('manage', 'session');
+
+    const session = await sessionRepository.findById(sessionId);
+    if (!session) throw new NotFoundError('session', sessionId);
+
+    const notes = (session.quickNotes ?? '').slice(-300);
+    const prompt = `You are a D&D Dungeon Master assistant. Suggest 3 short plot twists or complications for an active session.
+Campaign: ${session.campaign?.name ?? 'Unknown'}
+Recent notes: ${notes || '(none)'}
+${hint ? `DM request: ${hint}` : ''}
+
+Respond ONLY with valid JSON:
+{
+  "twists": [
+    "Twist 1 (one sentence)",
+    "Twist 2 (one sentence)",
+    "Twist 3 (one sentence)"
+  ]
+}`;
+
+    const raw = await generateWithOllama(prompt, { format: 'json', temperature: 0.9 });
+    let text = raw.trim();
+    if (text.startsWith('```')) text = text.replace(/^```json?\s*/i, '').replace(/\s*```$/, '');
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    const twists = Array.isArray(parsed.twists) ? parsed.twists.map(String) : [];
+    return { twists: twists.slice(0, 3) };
   }
 }
 
