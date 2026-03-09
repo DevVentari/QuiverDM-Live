@@ -81,7 +81,7 @@ export function CampaignVoiceShell({ children }: { children: ReactNode }) {
       setSearch(transcript);
       entitiesQuery.refetch();
     });
-  }, [campaignId, entitiesQuery]);
+  }, [campaignId, entitiesQuery.refetch]);
 
   return (
     <VoiceProvider onQuery={handleBrainQuery}>

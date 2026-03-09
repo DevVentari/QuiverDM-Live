@@ -196,3 +196,13 @@ worker.on('failed', (job, err) => {
 });
 
 console.log('[brain-ingestion] Worker started');
+
+async function shutdown() {
+  console.log('[brain-ingestion] Shutting down...');
+  await worker.close();
+  await prisma.$disconnect();
+  process.exit(0);
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
