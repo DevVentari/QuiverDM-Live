@@ -11,6 +11,7 @@ import { LiveNotesPanel } from '@/components/cockpit/live-notes-panel';
 import { CombatPanel } from '@/components/cockpit/combat-panel';
 import { PrepReferencePanel } from '@/components/cockpit/prep-reference-panel';
 import { NpcQuickRecall } from '@/components/cockpit/npc-quick-recall';
+import { BrainCockpitPanel } from '@/components/cockpit/brain-cockpit-panel';
 import { CockpitToolbar } from '@/components/cockpit/cockpit-toolbar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -120,12 +121,16 @@ export default function SessionCockpitPage() {
             <TabsList className="shrink-0 w-full rounded-none border-b border-border bg-transparent h-10">
               <TabsTrigger value="prep" className="flex-1 text-xs">Prep</TabsTrigger>
               <TabsTrigger value="npcs" className="flex-1 text-xs">NPCs</TabsTrigger>
+              <TabsTrigger value="brain" className="flex-1 text-xs">Brain</TabsTrigger>
             </TabsList>
             <TabsContent value="prep" className="flex-1 overflow-y-auto m-0 p-3">
               <PrepReferencePanel prepData={prepData} />
             </TabsContent>
             <TabsContent value="npcs" className="flex-1 overflow-y-auto m-0 p-3">
               <NpcQuickRecall campaignId={campaign.id} />
+            </TabsContent>
+            <TabsContent value="brain" className="flex-1 overflow-y-auto m-0 p-3">
+              <BrainCockpitPanel campaignId={campaign.id} />
             </TabsContent>
           </Tabs>
         </div>
