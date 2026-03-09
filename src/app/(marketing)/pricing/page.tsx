@@ -28,7 +28,7 @@ const tiers = [
   },
   {
     name: 'Pro',
-    price: '$9/mo',
+    price: '$9.99/mo',
     description: 'For active DMs running multiple sessions every month.',
     cta: 'Start Pro',
     href: '/auth/signup',
@@ -43,7 +43,7 @@ const tiers = [
   },
   {
     name: 'Team',
-    price: '$19/mo',
+    price: '$14.99/mo',
     description: 'For groups and power users with heavier content usage.',
     cta: 'Start Team',
     href: '/auth/signup',

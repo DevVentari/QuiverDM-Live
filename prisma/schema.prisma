@@ -112,6 +112,9 @@ model UserSettings {
   dndBeyondCobaltCookie   String?  @db.Text // Encrypted
   geminiApiKey            String?  @db.Text // Encrypted
 
+  // Display preferences
+  videoBackground         Boolean  @default(true)
+
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 

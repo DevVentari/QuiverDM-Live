@@ -11,13 +11,13 @@ const PLANS: PlanConfig[] = [
   {
     productName: 'QuiverDM Pro',
     description: 'Unlimited campaigns, 10 hrs transcription, 50 PDF uploads',
-    amount: 900,
+    amount: 999,
     envKey: 'STRIPE_PRO_PRICE_ID',
   },
   {
     productName: 'QuiverDM Team',
     description: 'Unlimited campaigns, 30 hrs transcription, 200 PDF uploads',
-    amount: 1900,
+    amount: 1499,
     envKey: 'STRIPE_TEAM_PRICE_ID',
   },
 ];

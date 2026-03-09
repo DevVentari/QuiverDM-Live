@@ -1,9 +1,4 @@
-import { callGemini } from './gemini';
-
-interface ExtractionOpts {
-  userGeminiKey?: string;
-  userId?: string;
-}
+import { chatWithAI } from './chat';
 
 function parseJson<T>(text: string, fallback: T): T {
   const match = text.match(/```json\n?([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
@@ -39,7 +34,7 @@ export async function extractNpc(markdown: string, userGeminiKey?: string, userI
 Markdown:
 ${markdown.slice(0, 3000)}`;
 
-  const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
+  const raw = await chatWithAI([{ role: 'user', content: prompt }]);
   return parseJson<ExtractedNpc>(raw, {
     name: 'Unknown NPC',
     description: markdown.slice(0, 500),
@@ -82,7 +77,7 @@ export async function extractCharacter(markdown: string, userGeminiKey?: string,
 Markdown:
 ${markdown.slice(0, 3000)}`;
 
-  const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
+  const raw = await chatWithAI([{ role: 'user', content: prompt }]);
   return parseJson<ExtractedCharacter>(raw, {
     name: 'Unknown Character',
     level: 1,
@@ -124,7 +119,7 @@ export async function extractSession(
 Markdown:
 ${markdown.slice(0, 4000)}`;
 
-    const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
+    const raw = await chatWithAI([{ role: 'user', content: prompt }]);
     return parseJson<ExtractedSession>(raw, { title: 'Untitled Session' });
   } else {
     const prompt = `Extract this D&D session notes document. Return ONLY valid JSON:
@@ -138,7 +133,7 @@ ${markdown.slice(0, 4000)}`;
 Markdown:
 ${markdown.slice(0, 4000)}`;
 
-    const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
+    const raw = await chatWithAI([{ role: 'user', content: prompt }]);
     return parseJson<ExtractedSession>(raw, { title: 'Untitled Session' });
   }
 }
@@ -165,7 +160,7 @@ export async function extractHomebrew(
 Markdown:
 ${markdown.slice(0, 3000)}`;
 
-  const raw = await callGemini(prompt, userGeminiKey, userId ? { userId, feature: 'obsidian_import' } : undefined);
+  const raw = await chatWithAI([{ role: 'user', content: prompt }]);
   return parseJson<ExtractedHomebrew>(raw, {
     name: 'Untitled',
     description: markdown.slice(0, 500),
