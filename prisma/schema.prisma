@@ -249,6 +249,8 @@ model Campaign {
   worldStateChanges  WorldStateChange[]
   worldState         WorldState?
   sessionEntityAppearances SessionEntityAppearance[]
+  worldActors              WorldActor[]
+  worldSimulationEvents    WorldSimulationEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1225,6 +1227,7 @@ model WorldEntity {
   toRelationships   WorldRelationship[] @relation("RelationshipTo")
   stateChanges      WorldStateChange[]
   sessionAppearances SessionEntityAppearance[]
+  worldActor        WorldActor?
 
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
@@ -1306,4 +1309,41 @@ model SessionEntityAppearance {
   @@index([campaignId])
   @@index([entityId])
   @@index([sessionId])
+}
+
+// ============================================================================
+// World Simulation — Autonomous Story Worlds
+// ============================================================================
+
+model WorldActor {
+  id            String    @id @default(cuid())
+  entityId      String    @unique
+  campaignId    String
+  goals         Json      @default("[]")
+  urgency       Float     @default(0.5)
+  resources     Json      @default("{}")
+  riskTolerance Float     @default(0.5)
+  lastTickAt    DateTime?
+
+  entity   WorldEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  campaign Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  events   WorldSimulationEvent[]
+
+  @@index([campaignId])
+}
+
+model WorldSimulationEvent {
+  id          String    @id @default(cuid())
+  campaignId  String
+  actorId     String?
+  type        String
+  description String
+  causalChain Json      @default("[]")
+  createdAt   DateTime  @default(now())
+
+  campaign Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  actor    WorldActor? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId])
+  @@index([campaignId, createdAt])
 }

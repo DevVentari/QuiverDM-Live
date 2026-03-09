@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { brainService } from '../services/brain.service';
+import { worldSimulationService } from '../services/world-simulation.service';
 import { answerBrainQuery } from '@/lib/voice/brain-query';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
 import { redis } from '@/lib/queue/queue';
@@ -223,4 +224,38 @@ export const brainRouter = router({
     .mutation(({ input, ctx: _ctx }) =>
       answerBrainQuery(input.query, input.campaignId)
     ),
+
+  worldSimulation: router({
+    sessionSeed: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1) }))
+      .query(({ input, ctx }) => worldSimulationService.getSessionSeed(input.campaignId, ctx.session.user.id)),
+
+    actors: router({
+      list: protectedProcedure
+        .input(z.object({ campaignId: z.string().min(1) }))
+        .query(({ input, ctx }) => worldSimulationService.listActors(input.campaignId, ctx.session.user.id)),
+
+      upsert: protectedProcedure
+        .input(z.object({
+          campaignId: z.string().min(1),
+          entityId: z.string().min(1),
+          goals: z.array(z.string()).optional(),
+          urgency: z.number().min(0).max(1).optional(),
+          resources: z.record(z.unknown()).optional(),
+          riskTolerance: z.number().min(0).max(1).optional(),
+        }))
+        .mutation(({ input, ctx }) => {
+          const { campaignId, entityId, ...data } = input;
+          return worldSimulationService.upsertActor(campaignId, entityId, ctx.session.user.id, data);
+        }),
+
+      delete: protectedProcedure
+        .input(z.object({ campaignId: z.string().min(1), actorId: z.string().min(1) }))
+        .mutation(({ input, ctx }) => worldSimulationService.deleteActor(input.campaignId, input.actorId, ctx.session.user.id)),
+    }),
+
+    runTick: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1) }))
+      .mutation(({ input, ctx }) => worldSimulationService.runWorldTick(input.campaignId, ctx.session.user.id)),
+  }),
 });
