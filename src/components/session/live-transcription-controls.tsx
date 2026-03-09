@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertCircle, Mic, Radio, Square } from 'lucide-react';
-import { DmHintsPanel } from './DmHintsPanel';
 
 interface LiveTranscriptionControlsProps {
   sessionId: string;
@@ -31,37 +30,17 @@ export function LiveTranscriptionControls({
   onTranscriptSaved,
 }: LiveTranscriptionControlsProps) {
   const {
-    isConnected,
     isRecording,
     currentText,
     segments,
     error,
     durationSeconds,
-    dmHints,
     start,
     stop,
   } = useLiveTranscription(sessionId);
 
   const [starting, setStarting] = useState(false);
   const [stopping, setStopping] = useState(false);
-  const [dismissedHintIndices, setDismissedHintIndices] = useState<Set<number>>(new Set());
-
-  const visibleHints = dmHints.filter((_, idx) => !dismissedHintIndices.has(idx));
-
-  function handleDismissHint(index: number) {
-    // Map visible index back to dmHints index
-    let dmIdx = 0;
-    let visible = 0;
-    for (let i = 0; i < dmHints.length; i++) {
-      if (!dismissedHintIndices.has(i)) {
-        if (visible === index) { dmIdx = i; break; }
-        visible++;
-      }
-    }
-    setDismissedHintIndices((prev) => new Set([...prev, dmIdx]));
-  }
-
-  const isLive = isRecording;
 
   async function handleStart() {
     setStarting(true);
@@ -89,14 +68,13 @@ export function LiveTranscriptionControls({
   }
 
   return (
-    <>
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm flex items-center gap-2">
             <Radio className="h-4 w-4" />
             Live Transcription
-            {isLive && (
+            {isRecording && (
               <Badge variant="destructive" className="text-[10px] animate-pulse">
                 LIVE
               </Badge>
@@ -152,7 +130,7 @@ export function LiveTranscriptionControls({
           </div>
         )}
 
-        {!isLive && !isRecording && segments.length === 0 && (
+        {!isRecording && segments.length === 0 && (
           <p className="text-sm text-muted-foreground">
             {isDM
               ? 'Start live transcription to capture your session in real time.'
@@ -173,7 +151,6 @@ export function LiveTranscriptionControls({
                   <span className="text-foreground/90">{seg.text}</span>
                 </div>
               ))}
-              {/* Partial (non-final) text */}
               {currentText && (
                 <div className="flex gap-2 text-muted-foreground italic">
                   <span>{currentText}</span>
@@ -182,16 +159,7 @@ export function LiveTranscriptionControls({
             </div>
           </ScrollArea>
         )}
-
-        {isRecording && !isConnected && (
-          <p className="text-xs text-amber-500 mt-2">Reconnecting...</p>
-        )}
       </CardContent>
     </Card>
-
-    {isDM && isRecording && (
-      <DmHintsPanel hints={visibleHints} onDismiss={handleDismissHint} />
-    )}
-  </>
   );
 }
