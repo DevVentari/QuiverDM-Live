@@ -15,6 +15,7 @@ import { EntityGraph } from '@/components/brain/entity-graph';
 import { SessionTimeline } from '@/components/brain/session-timeline';
 import { ContinuityWarnings } from '@/components/brain/continuity-warnings';
 import { Brain, ChevronRight, Sprout } from 'lucide-react';
+import { SessionSeedCard } from '@/components/brain/session-seed';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { WorldEntityType } from '@prisma/client';
@@ -179,6 +180,8 @@ export default function BrainPage() {
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Left column — pressures + hooks */}
             <div className="space-y-6 lg:col-span-2">
+              {/* Session Seed — Major Developments */}
+              <SessionSeedCard campaignId={campaignId} />
               {/* Pressure Gauges */}
               <Card className="glass-panel">
                 <CardHeader className="pb-3">
