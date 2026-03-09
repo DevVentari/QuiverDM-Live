@@ -1,7 +1,5 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
-import { randomUUID } from 'crypto';
-import Redis from 'ioredis';
 import {
   createTranscriptionJob,
   getTranscriptionProgress,
@@ -75,9 +73,6 @@ export const sessionTranscriptionRouter = router({
       return { success: true, jobId };
     }),
 
-  /**
-   * Get transcription progress by job ID
-   */
   getTranscriptionProgress: protectedProcedure
     .input(
       z.object({
@@ -86,6 +81,7 @@ export const sessionTranscriptionRouter = router({
     )
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
+      void userId;
       const progress = await getTranscriptionProgress(input.jobId);
       if (!progress) {
         throw new Error('Transcription job not found');
@@ -93,9 +89,6 @@ export const sessionTranscriptionRouter = router({
       return progress;
     }),
 
-  /**
-   * Get all transcription jobs for a session
-   */
   getSessionTranscriptionJobs: protectedProcedure
     .input(
       z.object({
@@ -108,83 +101,46 @@ export const sessionTranscriptionRouter = router({
       return await getTranscriptionProgressBySessionId(input.sessionId);
     }),
 
-  startLiveTranscription: protectedProcedure
+  saveWebSpeechTranscript: protectedProcedure
     .input(
       z.object({
         sessionId: z.string(),
-        sampleRate: z.number().default(16000),
+        segments: z.array(
+          z.object({
+            text: z.string(),
+            timestamp: z.number(),
+          })
+        ),
+        durationSeconds: z.number().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user.id;
       const access = await authz.session(input.sessionId, userId).verify();
       if (!access.isDM) {
-        throw new ForbiddenError('Only DMs can start live transcription');
+        throw new ForbiddenError('Only DMs can save transcripts');
       }
 
-      const session = await prisma.gameSession.findUnique({
-        where: { id: input.sessionId },
-        select: { campaignId: true },
+      const rawText = input.segments.map((s) => s.text).join(' ');
+      if (!rawText.trim()) {
+        return { transcriptId: null };
+      }
+
+      const transcript = await prisma.transcript.create({
+        data: {
+          sessionId: input.sessionId,
+          rawText,
+          source: 'web_speech',
+          durationSeconds: input.durationSeconds ?? null,
+          hasSpeakers: false,
+          timestamps: input.segments.map((s, i) => ({
+            index: i,
+            text: s.text,
+            timestamp: s.timestamp,
+          })),
+        },
       });
 
-      if (!session) {
-        throw new NotFoundError('session', input.sessionId);
-      }
-
-      const token = randomUUID();
-      const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
-
-      try {
-        await redis.setex(
-          `live-session-token:${token}`,
-          60,
-          JSON.stringify({
-            userId,
-            sessionId: input.sessionId,
-            campaignId: session.campaignId,
-            sampleRate: input.sampleRate,
-          })
-        );
-      } finally {
-        await redis.quit();
-      }
-
-      const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3004';
-      return { wsUrl, token };
-    }),
-
-  stopLiveTranscription: protectedProcedure
-    .input(z.object({ sessionId: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await authz.session(input.sessionId, userId).verify();
-
-      const { liveSessionManager } = (await import('@/lib/transcription/live-session-manager')) as {
-        liveSessionManager: {
-          stopLiveSession: (sessionId: string) => Promise<string | null | undefined>;
-        };
-      };
-
-      const transcriptId = await liveSessionManager.stopLiveSession(input.sessionId);
-      return { transcriptId: transcriptId ?? null };
-    }),
-
-  getLiveTranscriptionStatus: protectedProcedure
-    .input(z.object({ sessionId: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const userId = ctx.session.user.id;
-      await authz.session(input.sessionId, userId).verify();
-
-      const { liveSessionManager } = (await import('@/lib/transcription/live-session-manager')) as {
-        liveSessionManager: {
-          isSessionLive: (sessionId: string) => boolean;
-          getSessionInfo: (sessionId: string) => unknown;
-        };
-      };
-
-      const isLive = liveSessionManager.isSessionLive(input.sessionId);
-      const info = isLive ? liveSessionManager.getSessionInfo(input.sessionId) : null;
-
-      return { isLive, sessionId: input.sessionId, info };
+      return { transcriptId: transcript.id };
     }),
 });

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useLiveTranscription } from '@/hooks/useLiveTranscription';
-import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -62,13 +61,7 @@ export function LiveTranscriptionControls({
     setDismissedHintIndices((prev) => new Set([...prev, dmIdx]));
   }
 
-  // Check if session already has a live transcription going
-  const liveStatus = trpc.sessionTranscription.getLiveTranscriptionStatus.useQuery(
-    { sessionId },
-    { staleTime: 5000 }
-  );
-
-  const isLive = liveStatus.data?.isLive || isRecording;
+  const isLive = isRecording;
 
   async function handleStart() {
     setStarting(true);
