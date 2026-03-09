@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { SignInForm } from './signin-form';
 import { Suspense } from 'react';
+import { PortalScene } from '@/components/auth/portal-scene';
 
 export const metadata: Metadata = {
   title: 'Sign In — QuiverDM',
@@ -9,8 +10,10 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   return (
-    <Suspense>
-      <SignInForm />
-    </Suspense>
+    <PortalScene>
+      <Suspense>
+        <SignInForm />
+      </Suspense>
+    </PortalScene>
   );
 }
