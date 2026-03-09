@@ -14,6 +14,7 @@ import type {
   AiSummaryJobResult,
   AiHighlight,
 } from './ai-summary-queue';
+import { addBrainIngestionJob } from './brain-ingestion-queue';
 
 function getRedisConnection(): Record<string, unknown> {
   if (process.env.REDIS_URL) {
@@ -130,6 +131,21 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
       aiSummaryError: null,
     },
   });
+
+  const session = await prisma.gameSession.findUnique({
+    where: { id: data.sessionId },
+    select: { campaignId: true },
+  });
+  if (session?.campaignId) {
+    await addBrainIngestionJob({
+      sessionId: data.sessionId,
+      campaignId: session.campaignId,
+      summary: parsed.summary,
+      highlights: parsed.highlights,
+    }).catch(err => {
+      console.warn('[ai-summary] Failed to queue brain ingestion:', err);
+    });
+  }
 
   return { success: true, summary: parsed.summary, highlights: parsed.highlights };
 }

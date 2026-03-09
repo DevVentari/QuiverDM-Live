@@ -14,11 +14,12 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGallery } from '@/components/homebrew/image-gallery';
 import { ExportToFoundryButton } from '@/components/foundry/ExportToFoundryButton';
+import { NpcWorldState } from '@/components/brain/npc-world-state';
 
 export default function NPCDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { slug, isDM } = useCampaign();
+  const { campaignId, slug, isDM } = useCampaign();
   const npcId = params.npcId as string;
 
   const { toast } = useToast();
@@ -126,6 +127,15 @@ export default function NPCDetailPage() {
             <p className="text-sm whitespace-pre-wrap">{data.secrets}</p>
           </CardContent>
         </Card>
+      )}
+
+      {isDM && (
+        <NpcWorldState
+          npcId={npcId}
+          campaignId={campaignId}
+          slug={slug}
+          isDM={isDM}
+        />
       )}
 
       {stats && (

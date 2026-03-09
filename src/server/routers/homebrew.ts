@@ -5,6 +5,8 @@ import { ForbiddenError, NotFoundError } from '../errors';
 import { prisma } from '../db';
 import { serverTrack } from '@/lib/analytics.server';
 import { EVENTS } from '@/lib/analytics-events';
+import { WorldEntityType } from '@prisma/client';
+import { brainRepository } from '../repositories/brain.repository';
 
 // Homebrew content types
 export const HomebrewType = z.enum([
@@ -50,6 +52,23 @@ export const homebrewRouter = router({
     .mutation(async ({ input, ctx }) => {
       const content = await homebrewService.createContent(ctx.session.user.id, { ...input, data: input.data ?? {} });
       void serverTrack(ctx.session.user.id, EVENTS.HOMEBREW_CREATED, { source: input.sourceType ?? 'manual' });
+
+      const BRAIN_SEEDABLE_TYPES: Record<string, WorldEntityType> = {
+        creature: WorldEntityType.NPC,
+        location: WorldEntityType.LOCATION,
+        item: WorldEntityType.ITEM,
+      };
+
+      if (input.addToCampaignId && input.type in BRAIN_SEEDABLE_TYPES) {
+        brainRepository.upsertEntity(input.addToCampaignId, {
+          type: BRAIN_SEEDABLE_TYPES[input.type]!,
+          name: input.name,
+          description: typeof input.data?.description === 'string' ? input.data.description : undefined,
+          sourceType: 'Homebrew',
+          sourceId: content.id,
+        }).catch((err) => console.warn('[brain] Homebrew auto-seed failed:', err));
+      }
+
       return content;
     }),
 

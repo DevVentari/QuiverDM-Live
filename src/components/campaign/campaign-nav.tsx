@@ -15,19 +15,21 @@ import {
   Swords,
   UserCog,
   Settings2,
+  Brain,
 } from 'lucide-react';
 
 const tabs = [
-  { label: 'Overview',   href: '',           icon: LayoutDashboard },
-  { label: 'Sessions',   href: '/sessions',  icon: ScrollText },
-  { label: 'Summaries',  href: '/summaries', icon: Sparkles },
-  { label: 'NPCs',       href: '/npcs',      icon: Ghost },
-  { label: 'Players',    href: '/players',   icon: Users },
-  { label: 'Search',     href: '/search',    icon: Search },
-  { label: 'Homebrew',   href: '/homebrew',  icon: BookOpen },
-  { label: 'Encounters', href: '/encounters',icon: Swords },
-  { label: 'Members',    href: '/members',   icon: UserCog },
-  { label: 'Settings',   href: '/settings',  icon: Settings2 },
+  { label: 'Overview',   href: '',           icon: LayoutDashboard, dmOnly: false },
+  { label: 'Sessions',   href: '/sessions',  icon: ScrollText,      dmOnly: false },
+  { label: 'Summaries',  href: '/summaries', icon: Sparkles,        dmOnly: false },
+  { label: 'NPCs',       href: '/npcs',      icon: Ghost,           dmOnly: false },
+  { label: 'Players',    href: '/players',   icon: Users,           dmOnly: false },
+  { label: 'Search',     href: '/search',    icon: Search,          dmOnly: false },
+  { label: 'Homebrew',   href: '/homebrew',  icon: BookOpen,        dmOnly: false },
+  { label: 'Encounters', href: '/encounters',icon: Swords,          dmOnly: false },
+  { label: 'DM Brain',   href: '/brain',     icon: Brain,           dmOnly: true },
+  { label: 'Members',    href: '/members',   icon: UserCog,         dmOnly: true },
+  { label: 'Settings',   href: '/settings',  icon: Settings2,       dmOnly: true },
 ];
 
 export function CampaignNav() {
@@ -36,11 +38,7 @@ export function CampaignNav() {
   const base = `/campaigns/${slug}`;
 
   const visibleTabs = tabs.filter((tab) => {
-    // Visibility rules:
-    // - /members and /settings are DM-only (campaign management)
-    // - /players is visible to all roles (party overview â€” intentionally public within campaign)
-    // - All other tabs are visible to all roles
-    if (tab.href === '/members' || tab.href === '/settings') return isDM;
+    if (tab.dmOnly) return isDM;
     return true;
   });
 

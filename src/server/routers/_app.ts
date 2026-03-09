@@ -32,6 +32,7 @@ import { obsidianRouter } from './obsidian';
 import { apiUsageRouter } from './api-usage';
 import { adminUsersRouter } from './admin-users';
 import { adminApiUsageRouter } from './admin-api-usage';
+import { brainRouter } from './brain';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -67,6 +68,7 @@ export const appRouter = router({
   apiUsage: apiUsageRouter,
   adminUsers: adminUsersRouter,
   adminApiUsage: adminApiUsageRouter,
+  brain: brainRouter,
 });
 
 export type AppRouter = typeof appRouter;
