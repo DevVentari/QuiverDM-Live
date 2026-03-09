@@ -134,6 +134,7 @@ export default function SessionCockpitPage() {
       <CockpitToolbar
         sessionId={sessionId}
         slug={slug}
+        campaignId={campaign.id}
         mode={mode}
         onToggleMode={toggleMode}
       />

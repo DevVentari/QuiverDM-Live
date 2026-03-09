@@ -13,7 +13,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Dices, X } from 'lucide-react';
+import { Dices, X, Users, Zap } from 'lucide-react';
+import { GenerateNpcDialog } from './generate-npc-dialog';
+import { SuggestTwistDialog } from './suggest-twist-dialog';
 import { toast } from 'sonner';
 
 const QUICK_ROLLS = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100'];
@@ -21,6 +23,7 @@ const QUICK_ROLLS = ['1d4', '1d6', '1d8', '1d10', '1d12', '1d20', '1d100'];
 interface CockpitToolbarProps {
   sessionId: string;
   slug: string;
+  campaignId: string;
   mode: 'rp' | 'combat';
   onToggleMode: () => void;
 }
@@ -130,9 +133,11 @@ function EndSessionDialog({
   );
 }
 
-export function CockpitToolbar({ sessionId, slug, mode, onToggleMode }: CockpitToolbarProps) {
+export function CockpitToolbar({ sessionId, slug, campaignId, mode, onToggleMode }: CockpitToolbarProps) {
   const [diceOpen, setDiceOpen] = useState(false);
   const [endOpen, setEndOpen] = useState(false);
+  const [npcOpen, setNpcOpen] = useState(false);
+  const [twistOpen, setTwistOpen] = useState(false);
 
   return (
     <>
@@ -154,6 +159,26 @@ export function CockpitToolbar({ sessionId, slug, mode, onToggleMode }: CockpitT
         <Button
           size="sm"
           variant="ghost"
+          className="h-8 gap-1.5 text-xs"
+          onClick={() => setNpcOpen(true)}
+        >
+          <Users className="h-3.5 w-3.5" />
+          NPC
+        </Button>
+
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 gap-1.5 text-xs"
+          onClick={() => setTwistOpen(true)}
+        >
+          <Zap className="h-3.5 w-3.5" />
+          Twist
+        </Button>
+
+        <Button
+          size="sm"
+          variant="ghost"
           className="h-8 gap-1.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={() => setEndOpen(true)}
         >
@@ -168,6 +193,17 @@ export function CockpitToolbar({ sessionId, slug, mode, onToggleMode }: CockpitT
         onClose={() => setEndOpen(false)}
         sessionId={sessionId}
         slug={slug}
+      />
+      <GenerateNpcDialog
+        open={npcOpen}
+        onClose={() => setNpcOpen(false)}
+        sessionId={sessionId}
+        campaignId={campaignId}
+      />
+      <SuggestTwistDialog
+        open={twistOpen}
+        onClose={() => setTwistOpen(false)}
+        sessionId={sessionId}
       />
     </>
   );
