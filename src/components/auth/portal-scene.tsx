@@ -86,14 +86,25 @@ export function PortalScene({ children }: PortalSceneProps) {
       ref={containerRef}
       className="portal-scene relative min-h-screen w-full overflow-hidden flex items-center justify-center dark"
     >
-      {/* Layer 1: Background image */}
+      {/* Layer 1: Background video (looped) */}
       <div
         ref={layerBgRef}
-        className="absolute inset-[-6%] will-change-transform"
-        style={{
-          background: "url('/images/login-bg.jpg') center/cover no-repeat, linear-gradient(160deg, hsl(240 15% 8%) 0%, hsl(25 20% 10%) 50%, hsl(240 10% 6%) 100%)",
-        }}
-      />
+        className="absolute inset-[-6%] will-change-transform overflow-hidden"
+      >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/images/login-bg.jpg"
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/video/login-bg.webm" type="video/webm" />
+          <source src="/video/login-bg.mp4" type="video/mp4" />
+        </video>
+        {/* Fallback gradient if video fails */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, hsl(240 15% 8%) 0%, hsl(25 20% 10%) 50%, hsl(240 10% 6%) 100%)' }} />
+      </div>
 
       {/* Layer 2: Atmospheric fog */}
       <div
