@@ -27,7 +27,7 @@ export function BrainCockpitPanel({ campaignId }: BrainCockpitPanelProps) {
   const [submittedQuery, setSubmittedQuery] = useState('');
 
   const stateQuery = trpc.brain.state.get.useQuery({ campaignId });
-  const entitiesQuery = trpc.brain.entities.list.useQuery({ campaignId, limit: 8 } as any);
+  const entitiesQuery = trpc.brain.entities.list.useQuery({ campaignId });
   const searchQuery = trpc.brain.entities.list.useQuery(
     { campaignId, search: submittedQuery },
     { enabled: submittedQuery.length > 0 }
