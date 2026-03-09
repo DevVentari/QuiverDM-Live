@@ -108,9 +108,9 @@ export const sessionTranscriptionRouter = router({
         segments: z.array(
           z.object({
             text: z.string(),
-            timestamp: z.number(),
+            timestamp: z.number().finite().nonnegative(),
           })
-        ),
+        ).max(5000),
         durationSeconds: z.number().optional(),
       })
     )
