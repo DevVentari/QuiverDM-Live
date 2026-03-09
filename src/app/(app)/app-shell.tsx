@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { NavigationProgress } from '@/components/navigation-progress';
 import { ConsoleLogCapture } from '@/components/feedback/console-log-capture';
 import { FeedbackWidget } from '@/components/feedback/feedback-widget';
+import { VideoBackground } from '@/components/video-background';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
@@ -16,6 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <OnboardingCheck>
       <NavigationProgress />
       {/* Atmospheric layers */}
+      <VideoBackground />
       <div className="app-ambient-glow" />
       <div className="flex h-screen overflow-hidden app-grain app-vignette">
         <Sidebar />
@@ -38,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <UserMenu />
           </header>
           <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1400px] p-6">
+            <div className="mx-auto w-full max-w-[1400px] p-4 sm:p-6">
               <ErrorBoundary>{children}</ErrorBoundary>
             </div>
           </main>

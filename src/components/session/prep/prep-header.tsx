@@ -58,18 +58,16 @@ export function PrepHeader({
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
         className={cn(
-          'h-8 max-w-xs border-0 bg-transparent px-1 font-display text-base font-semibold focus-visible:ring-0 focus-visible:ring-offset-0',
+          'h-8 min-w-0 flex-1 border-0 bg-transparent px-1 font-display text-base font-semibold focus-visible:ring-0 focus-visible:ring-offset-0',
           isFullscreen && 'text-amber-100/90 placeholder:text-amber-900/50'
         )}
         placeholder="Session title..."
       />
 
-      <div className="flex-1" />
-
-      {/* Save status */}
+      {/* Save status — hidden on mobile to save space */}
       <span
         className={cn(
-          'flex items-center gap-1.5 text-xs',
+          'hidden sm:flex items-center gap-1.5 text-xs shrink-0',
           isFullscreen ? 'text-amber-200/30' : 'text-muted-foreground'
         )}
       >
@@ -105,14 +103,14 @@ export function PrepHeader({
           onClick={onComplete}
           disabled={isCompleting}
           className={cn(
-            'gap-1.5',
+            'shrink-0 gap-1.5',
             isFullscreen
               ? 'bg-amber-600 hover:bg-amber-500 text-black font-semibold shadow-[0_0_16px_rgba(212,168,83,0.25)]'
               : ''
           )}
         >
           <CheckCircle2 className="h-3.5 w-3.5" />
-          {isCompleting ? 'Saving...' : 'Complete Prep'}
+          <span className="hidden sm:inline">{isCompleting ? 'Saving...' : 'Complete Prep'}</span>
         </Button>
       ) : (
         <Badge

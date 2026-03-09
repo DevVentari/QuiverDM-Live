@@ -70,7 +70,7 @@ export default function DashboardPage() {
     <div className="dashboard-bg space-y-6 max-w-6xl overflow-hidden rounded-2xl border border-white/5 p-4 sm:p-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
         <Button asChild>
           <Link href="/campaigns/new">
             <Plus className="mr-2 h-4 w-4" />

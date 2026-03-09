@@ -50,7 +50,7 @@ export default function HomebrewPage() {
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
       <p className="label-overline">Homebrew Library</p>
       <div className="section-rule mb-4" />
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />Create
         </Button>

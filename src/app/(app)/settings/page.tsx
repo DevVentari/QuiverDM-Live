@@ -11,10 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, Clock, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap, MonitorPlay } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
 import { RoleBadge } from '@/components/ui/role-badge';
 import { PlanBadge } from '@/components/ui/plan-badge';
 import { PlatformRole } from '@prisma/client';
@@ -172,6 +173,10 @@ export default function SettingsPage() {
   });
 
   const deleteKey = trpc.userSettings.deleteApiKey.useMutation({
+    onSuccess: () => utils.userSettings.getSettings.invalidate(),
+  });
+
+  const updatePreferences = trpc.userSettings.updatePreferences.useMutation({
     onSuccess: () => utils.userSettings.getSettings.invalidate(),
   });
 
@@ -798,7 +803,7 @@ export default function SettingsPage() {
                   <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
                 )}
                 {isEditing ? (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Input
                       type="text"
                       placeholder={config.placeholder}
@@ -903,6 +908,31 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>Display and visual preferences</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <MonitorPlay className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <div className="font-medium text-sm">Animated Background</div>
+                <div className="text-xs text-muted-foreground">
+                  Looping dungeon video behind the app. Disabled on mobile and when reduced motion is preferred.
+                </div>
+              </div>
+            </div>
+            <Switch
+              checked={settings.data?.videoBackground ?? true}
+              onCheckedChange={(checked) => updatePreferences.mutate({ videoBackground: checked })}
+              disabled={updatePreferences.isPending}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-destructive/30">
         <CardHeader>
