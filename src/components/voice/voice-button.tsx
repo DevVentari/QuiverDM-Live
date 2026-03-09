@@ -30,7 +30,7 @@ export function VoiceButton() {
       {hasResponse && (
         <div className="absolute top-10 right-0 z-50 w-72 rounded-lg border border-amber-500/30 bg-card p-3 text-xs shadow-xl space-y-2">
           {lastTranscript && (
-            <p className="text-muted-foreground italic">"{lastTranscript}"</p>
+            <p className="text-muted-foreground italic">&ldquo;{lastTranscript}&rdquo;</p>
           )}
           {lastResponse && (
             <p className="leading-relaxed">{lastResponse}</p>
