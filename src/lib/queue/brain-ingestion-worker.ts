@@ -30,7 +30,7 @@ const STATUS_MAP: Record<string, WorldEntityStatus> = {
   resolved: WorldEntityStatus.resolved,
 };
 
-async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<BrainIngestionJobResult> {
+export async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<BrainIngestionJobResult> {
   const result: BrainIngestionJobResult = {
     success: false,
     entitiesCreated: 0,

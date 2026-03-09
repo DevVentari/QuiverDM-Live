@@ -85,6 +85,50 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
   }, 10_000);
 });
 
+test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 12_000);
+
+  await checkpoint(testInfo, 'navigate-to-brain', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/brain`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  }, 20_000);
+
+  await checkpoint(testInfo, 'brain-accessible-as-dm', async () => {
+    // DM Brain must be accessible — no 404, no "DM only" locked state for Vic
+    await expect(page.getByText(/DM Brain/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
+    await expect(page.locator('body')).not.toContainText(/only accessible to dungeon masters/i);
+  }, 10_000);
+
+  await checkpoint(testInfo, 'brain-overview-tab-content', async () => {
+    // Overview tab is default — World Pressure and Open Hooks sections should render
+    await expect(page.getByText(/World Pressure/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/Open Hooks/i).first()).toBeVisible({ timeout: 10_000 });
+  }, 10_000);
+
+  await checkpoint(testInfo, 'seed-button-or-entities-present', async () => {
+    // Either seed button (no entities yet) or entity cards (already seeded) must be visible
+    const hasSeedBtn = await page.locator('[data-testid="seed-from-existing-btn"]').first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasEntityCards = await page.locator('[data-testid="entity-card"]').first().isVisible({ timeout: 5_000 }).catch(() => false);
+    expect(hasSeedBtn || hasEntityCards).toBeTruthy();
+  }, 10_000);
+
+  await checkpoint(testInfo, 'brain-tabs-navigable', async () => {
+    // All 4 tabs (Overview, Graph, Timeline, Warnings) must be present
+    await expect(page.getByRole('tab', { name: /overview/i }).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('tab', { name: /graph/i }).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('tab', { name: /timeline/i }).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('tab', { name: /warnings/i }).first()).toBeVisible({ timeout: 5_000 });
+
+    // Click Graph tab — must not crash
+    await page.getByRole('tab', { name: /graph/i }).first().click();
+    await page.waitForTimeout(1_000);
+    await expect(page.locator('body')).not.toContainText(/something went wrong|internal server error/i);
+  }, 15_000);
+});
+
 test('veteran-dm failure path: blocked action surfaces clear actionable error', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);

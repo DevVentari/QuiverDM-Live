@@ -36,7 +36,7 @@ const typeColors: Record<string, string> = {
 export function EntityCard({ entity, href }: { entity: Entity; href: string }) {
   return (
     <Link href={href}>
-      <div className="glass-panel group flex flex-col gap-1.5 rounded-lg border border-border/50 bg-card/40 p-3 transition-colors hover:border-foreground/30 cursor-pointer">
+      <div data-testid="entity-card" className="glass-panel group flex flex-col gap-1.5 rounded-lg border border-border/50 bg-card/40 p-3 transition-colors hover:border-foreground/30 cursor-pointer">
         <div className="flex items-center gap-2 min-w-0">
           <span
             className={cn(
