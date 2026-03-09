@@ -592,6 +592,10 @@ export class SessionService {
       throw new BadRequestError('No transcript available to summarize');
     }
 
+    const transcriptSource = session.transcripts.some((t) => t.source === 'web_speech')
+      ? 'web_speech'
+      : (session.transcripts[0]?.source ?? 'upload');
+
     await usageService.incrementAiRecaps(userId);
 
     await sessionRepository.updateSummaryStatus(sessionId, {
@@ -604,6 +608,7 @@ export class SessionService {
       sessionId,
       userId,
       transcriptText,
+      transcriptSource,
       sessionTitle: session.title || `Session ${session.sessionNumber}`,
       sessionNumber: session.sessionNumber,
     });

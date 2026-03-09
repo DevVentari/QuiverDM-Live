@@ -39,7 +39,7 @@ function getRedisConnection(): Record<string, unknown> {
   };
 }
 
-const SUMMARY_SYSTEM_PROMPT = `You are a D&D session scribe. Given a session transcript, produce:
+const SUMMARY_BASE_PROMPT = `You are a D&D session scribe. Given a session transcript, produce:
 1. A markdown summary (3-5 paragraphs) covering key events, decisions, and story beats.
 2. An array of highlight moments tagged by type.
 
@@ -50,6 +50,17 @@ Respond ONLY with valid JSON in this exact shape:
     { "type": "decision|npc_change|cliffhanger|combat|loot", "text": "<1-2 sentence description>", "speakerLabel": "<optional speaker name>" }
   ]
 }`;
+
+const WEB_SPEECH_ADDENDUM = `
+
+IMPORTANT: This transcript was captured via browser speech recognition. It likely contains transcription errors, run-on sentences, missing punctuation, and gaps where audio was lost. Speaker attribution is not available — do not attempt to identify or label who said what. Focus on narrative events, key decisions, NPC interactions, and combat outcomes. Be tolerant of proper noun errors (character names, location names, spell names may be phonetically garbled). Do not include a speakerLabel field in any highlight.`;
+
+function getSummarySystemPrompt(transcriptSource?: string): string {
+  if (transcriptSource === 'web_speech') {
+    return SUMMARY_BASE_PROMPT + WEB_SPEECH_ADDENDUM;
+  }
+  return SUMMARY_BASE_PROMPT;
+}
 
 function parseSummaryResponse(raw: string): {
   summary: string;
@@ -113,7 +124,7 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
   const userPrompt = `Session ${data.sessionNumber}: "${data.sessionTitle}"\n\nTranscript:\n${data.transcriptText.slice(0, 12000)}`;
   const content = await chatWithAI(
     [
-      { role: 'system', content: SUMMARY_SYSTEM_PROMPT },
+      { role: 'system', content: getSummarySystemPrompt(data.transcriptSource) },
       { role: 'user', content: userPrompt },
     ],
     { temperature: 0.2 }

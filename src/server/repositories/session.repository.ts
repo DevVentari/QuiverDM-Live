@@ -38,7 +38,9 @@ export async function findByCampaignId(campaignId: string) {
         select: {
           id: true,
           rawText: true,
+          correctedText: true,
           hasSpeakers: true,
+          source: true,
         },
       },
     },
