@@ -28,6 +28,14 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'mobile-chromium',
+      use: {
+        // Spread iPhone 14 viewport/touch/UA but use Chromium (WebKit may not be installed)
+        ...(() => { const { defaultBrowserType: _, ...rest } = devices['iPhone 14']; return rest; })(),
+      },
+      testMatch: 'tests/mobile/**/*.spec.ts',
+    },
   ],
 
   ...(USE_LOCAL_WEB_SERVER
