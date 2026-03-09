@@ -852,18 +852,18 @@ export default function SessionDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
 
           {/* Content */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between gap-4">
+          <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground mb-1">
                 Session {data.sessionNumber ?? 1}
                 {data.createdAt && ` · ${format(new Date(data.createdAt), 'MMMM d, yyyy')}`}
               </p>
-              <h1 className="font-display text-3xl font-bold text-foreground truncate leading-tight">
+              <h1 className="font-display text-xl sm:text-3xl font-bold text-foreground truncate leading-tight">
                 {data.title || `Session ${data.sessionNumber ?? 1}`}
               </h1>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <Badge variant="outline" className={getStatusClass(sessionStatus)}>
                 {STATUS_LABELS[sessionStatus] ?? sessionStatus.replace(/_/g, ' ')}
               </Badge>
@@ -927,7 +927,7 @@ export default function SessionDetailPage() {
           <Tabs defaultValue={defaultTab} className="w-full">
 
             {/* Tab bar */}
-            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent overflow-x-auto scrollbar-hide">
               {/* Prep tab (DM only) */}
               {isDM && (
                 <TabsTrigger value="prep" className={TAB_CLS}>

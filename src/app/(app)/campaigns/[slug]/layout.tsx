@@ -89,7 +89,7 @@ export default function CampaignLayout({
             </>
           )}
           <div className="relative z-10 min-w-0">
-            <h1 className="font-display text-3xl font-bold tracking-wide leading-tight truncate">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-wide leading-tight truncate">
               {data.name}
             </h1>
             {data.description && (

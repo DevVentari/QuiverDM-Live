@@ -71,7 +71,7 @@ export default function SessionsPage() {
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
       >
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-wide">Sessions</h1>
+          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Sessions</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
             {allSessions.length} {allSessions.length === 1 ? 'session' : 'sessions'} recorded
           </p>
@@ -200,7 +200,7 @@ export default function SessionsPage() {
                               </span>
                             )}
                             {session.quickNotes && (
-                              <span className="text-xs text-muted-foreground/70 truncate max-w-[220px]">
+                              <span className="text-xs text-muted-foreground/70 truncate max-w-[140px] sm:max-w-[220px]">
                                 {session.quickNotes}
                               </span>
                             )}

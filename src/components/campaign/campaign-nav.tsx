@@ -63,7 +63,7 @@ export function CampaignNav() {
               key={tab.href}
               href={href}
               className={cn(
-                'group relative flex flex-1 items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium whitespace-nowrap transition-all duration-150 select-none outline-none min-w-0',
+                'group relative flex shrink-0 items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium whitespace-nowrap transition-all duration-150 select-none outline-none',
                 isActive
                   ? 'text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
