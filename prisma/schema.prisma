@@ -248,6 +248,7 @@ model Campaign {
   worldRelationships WorldRelationship[]
   worldStateChanges  WorldStateChange[]
   worldState         WorldState?
+  sessionEntityAppearances SessionEntityAppearance[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -483,6 +484,7 @@ model GameSession {
   derailmentStatus       String                   @default("none") // none|pending|done|error
   derailmentData         Json? // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
   worldStateChanges      WorldStateChange[]
+  entityAppearances      SessionEntityAppearance[]
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
 
@@ -1222,6 +1224,7 @@ model WorldEntity {
   fromRelationships WorldRelationship[] @relation("RelationshipFrom")
   toRelationships   WorldRelationship[] @relation("RelationshipTo")
   stateChanges      WorldStateChange[]
+  sessionAppearances SessionEntityAppearance[]
 
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
@@ -1285,4 +1288,22 @@ model WorldState {
   lastInferenceAt       DateTime?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+}
+
+model SessionEntityAppearance {
+  id         String      @id @default(cuid())
+  sessionId  String
+  entityId   String
+  campaignId String
+  role       String?
+  createdAt  DateTime    @default(now())
+
+  session  GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  entity   WorldEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  campaign Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, entityId])
+  @@index([campaignId])
+  @@index([entityId])
+  @@index([sessionId])
 }

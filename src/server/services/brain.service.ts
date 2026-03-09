@@ -115,6 +115,88 @@ export class BrainService {
     return brainRepository.getTimeline(campaignId, limit, entityId);
   }
 
+  async getEntitySessionHistory(entityId: string, campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+    return brainRepository.getEntitySessionHistory(entityId);
+  }
+
+  async getSessionEntities(sessionId: string, campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+    return brainRepository.getSessionEntities(sessionId);
+  }
+
+  async getContinuityWarnings(campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+
+    const changes = await brainRepository.getTimeline(campaignId, 500);
+    const entities = await brainRepository.findEntities(campaignId, { limit: 500 });
+    const entityMap = new Map(entities.map(e => [e.id, e]));
+
+    const warnings: Array<{ type: 'destroyed_referenced' | 'contradictory_update'; entityId: string; entityName: string; description: string }> = [];
+
+    const destroyedAt = new Map<string, Date>();
+    for (const change of [...changes].reverse()) {
+      if (!change.entityId) continue;
+      const newVal = change.newValue as Record<string, unknown>;
+      if (newVal?.status === 'destroyed' || newVal?.status === WorldEntityStatus.destroyed) {
+        destroyedAt.set(change.entityId, change.createdAt);
+      }
+    }
+
+    for (const change of changes) {
+      if (!change.entityId) continue;
+      const destroyedTime = destroyedAt.get(change.entityId);
+      if (!destroyedTime) continue;
+      if (change.createdAt > destroyedTime) {
+        const entity = entityMap.get(change.entityId);
+        if (!entity) continue;
+        const alreadyWarned = warnings.some(w => w.entityId === change.entityId && w.type === 'destroyed_referenced');
+        if (!alreadyWarned) {
+          warnings.push({
+            type: 'destroyed_referenced',
+            entityId: change.entityId,
+            entityName: entity.name,
+            description: `Entity "${entity.name}" was referenced after being destroyed.`,
+          });
+        }
+      }
+    }
+
+    const entityPropertyHistory = new Map<string, Array<{ value: unknown; createdAt: Date }>>();
+    for (const change of [...changes].reverse()) {
+      if (!change.entityId || change.changeType !== 'property_update') continue;
+      const entries = entityPropertyHistory.get(change.entityId) ?? [];
+      entries.push({ value: change.newValue, createdAt: change.createdAt });
+      entityPropertyHistory.set(change.entityId, entries);
+    }
+
+    for (const [entityId, history] of entityPropertyHistory) {
+      if (history.length < 2) continue;
+      const entity = entityMap.get(entityId);
+      if (!entity) continue;
+      for (let i = 1; i < history.length; i++) {
+        const prev = history[i - 1].value as Record<string, unknown>;
+        const curr = history[i].value as Record<string, unknown>;
+        const prevStatus = prev?.status;
+        const currStatus = curr?.status;
+        if (prevStatus && currStatus && prevStatus !== currStatus &&
+            prevStatus === WorldEntityStatus.destroyed && currStatus === WorldEntityStatus.active) {
+          const alreadyWarned = warnings.some(w => w.entityId === entityId && w.type === 'contradictory_update');
+          if (!alreadyWarned) {
+            warnings.push({
+              type: 'contradictory_update',
+              entityId,
+              entityName: entity.name,
+              description: `Entity "${entity.name}" was marked active after destruction.`,
+            });
+          }
+        }
+      }
+    }
+
+    return warnings;
+  }
+
   async seedFromExisting(campaignId: string, userId: string) {
     await this.requireDM(campaignId, userId);
 
