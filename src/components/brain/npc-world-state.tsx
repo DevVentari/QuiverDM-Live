@@ -15,7 +15,6 @@ import { cn } from '@/lib/utils';
 
 type Props = {
   npcId: string;
-  npcName?: string;
   campaignId: string;
   slug: string;
   isDM: boolean;
