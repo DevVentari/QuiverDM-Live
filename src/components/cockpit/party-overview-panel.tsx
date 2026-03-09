@@ -2,6 +2,7 @@
 
 import { trpc } from '@/lib/trpc';
 import { PartyMemberCard } from './party-member-card';
+import { InitiativeTracker } from './initiative-tracker';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Users } from 'lucide-react';
@@ -85,6 +86,10 @@ export function PartyOverviewPanel({ campaignId, sessionId }: PartyOverviewPanel
           />
         );
       })}
+
+      <InitiativeTracker
+        characterNames={(query.data ?? []).map((cc: any) => (cc.character ?? cc).name)}
+      />
     </div>
   );
 }
