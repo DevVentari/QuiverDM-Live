@@ -54,6 +54,7 @@ export const brainRepository = {
         lastSeenSessionId: data.lastSeenSessionId,
         confidence: data.confidence,
         updatedAt: new Date(),
+        // firstSeenSessionId is intentionally excluded — never overwrite on update
       },
     });
   },
@@ -185,6 +186,44 @@ export const brainRepository = {
     return prisma.campaignCharacter.findMany({
       where: { campaignId },
       include: { character: { select: { id: true, name: true, class: true, background: true } } },
+    });
+  },
+
+  async appendRelationshipHistory(relId: string, entry: { sessionId: string; description: string; timestamp: Date }) {
+    const rel = await prisma.worldRelationship.findUnique({ where: { id: relId }, select: { history: true } });
+    if (!rel) return;
+    const history = Array.isArray(rel.history) ? rel.history as Array<Record<string, unknown>> : [];
+    return prisma.worldRelationship.update({
+      where: { id: relId },
+      data: { history: [...history, { sessionId: entry.sessionId, description: entry.description, timestamp: entry.timestamp.toISOString() }] as Prisma.InputJsonValue },
+    });
+  },
+
+  async recordAppearance(data: { sessionId: string; entityId: string; campaignId: string; role?: string }) {
+    return prisma.sessionEntityAppearance.upsert({
+      where: { sessionId_entityId: { sessionId: data.sessionId, entityId: data.entityId } },
+      create: { sessionId: data.sessionId, entityId: data.entityId, campaignId: data.campaignId, role: data.role },
+      update: { role: data.role },
+    });
+  },
+
+  async getEntitySessionHistory(entityId: string) {
+    return prisma.sessionEntityAppearance.findMany({
+      where: { entityId },
+      include: {
+        session: { select: { id: true, sessionNumber: true, title: true, date: true } },
+      },
+      orderBy: { session: { date: 'asc' } },
+    });
+  },
+
+  async getSessionEntities(sessionId: string) {
+    return prisma.sessionEntityAppearance.findMany({
+      where: { sessionId },
+      include: {
+        entity: true,
+      },
+      orderBy: { createdAt: 'asc' },
     });
   },
 };

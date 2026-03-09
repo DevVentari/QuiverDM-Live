@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { brainService } from '../services/brain.service';
+import { answerBrainQuery } from '@/lib/voice/brain-query';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
 import { redis } from '@/lib/queue/queue';
 import { coDMQueue } from '@/lib/queue/co-dm-queue';
@@ -71,6 +72,12 @@ export const brainRouter = router({
       .mutation(({ input, ctx }) =>
         brainService.deleteEntity(input.entityId, input.campaignId, ctx.session.user.id)
       ),
+
+    sessionHistory: protectedProcedure
+      .input(z.object({ entityId: z.string().min(1), campaignId: z.string().min(1) }))
+      .query(({ input, ctx }) =>
+        brainService.getEntitySessionHistory(input.entityId, input.campaignId, ctx.session.user.id)
+      ),
   }),
 
   relationships: router({
@@ -132,6 +139,20 @@ export const brainRouter = router({
     .input(z.object({ campaignId: z.string().min(1), limit: z.number().int().min(1).max(200).optional(), entityId: z.string().optional() }))
     .query(({ input, ctx }) =>
       brainService.getTimeline(input.campaignId, ctx.session.user.id, input.limit, input.entityId)
+    ),
+
+  sessions: router({
+    entities: protectedProcedure
+      .input(z.object({ sessionId: z.string().min(1), campaignId: z.string().min(1) }))
+      .query(({ input, ctx }) =>
+        brainService.getSessionEntities(input.sessionId, input.campaignId, ctx.session.user.id)
+      ),
+  }),
+
+  continuityWarnings: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .query(({ input, ctx }) =>
+      brainService.getContinuityWarnings(input.campaignId, ctx.session.user.id)
     ),
 
   seedFromExisting: protectedProcedure
@@ -196,4 +217,10 @@ export const brainRouter = router({
         };
       }),
   }),
+
+  voiceQuery: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), query: z.string().min(1).max(500) }))
+    .mutation(({ input, ctx: _ctx }) =>
+      answerBrainQuery(input.query, input.campaignId)
+    ),
 });
