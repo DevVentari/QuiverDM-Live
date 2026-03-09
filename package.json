@@ -33,6 +33,7 @@
     "worker:feedback-triage": "tsx src/lib/queue/feedback-triage-worker.ts",
     "worker:obsidian-import": "tsx src/lib/queue/obsidian-import-worker.ts",
     "worker:brain-ingestion": "tsx src/lib/queue/brain-ingestion-worker.ts",
+    "worker:brain-inference": "tsx src/lib/queue/brain-inference-worker.ts",
     "worker:all": "trap 'kill 0' SIGINT SIGTERM EXIT; npm run worker:pdf & npm run worker:transcription & npm run worker:summary & npm run worker:embeddings & npm run worker:image & npm run worker:webhooks & npm run worker:feedback-triage & npm run worker:player-recap & npm run worker:derailment & npm run worker:session-events & npm run worker:combat-copilot & npm run worker:obsidian-import & npm run worker:brain-ingestion & wait",
     "worker:pdf:dev": "tsx watch src/lib/queue/worker.ts",
     "setup:stripe": "tsx scripts/setup-stripe.ts",
