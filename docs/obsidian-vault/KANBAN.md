@@ -6,7 +6,7 @@ kanban-plugin: board
 
 ## 🔴 Now — Alpha Launch Blockers
 
-- [ ] **E2E — DM Brain** — Three-layer test coverage. (1) Playwright `brain.workflow.spec.ts`: extend with seed→entities-appear flow, entity detail page (relationships + properties sections), hook resolve removes from list, entity list navigation — add `data-testid` attrs to EntityCard/HookList/seed button. (2) Vitest integration test `tests/services/brain-ingestion.test.ts`: call `processBrainIngestionJob` directly with mocked `chatWithAI` returning deterministic JSON, assert entities/hooks created in DB. (3) `veteran-dm.persona.spec.ts`: add brain-seeded-and-accessible checkpoint. Session Cockpit E2E tabled — cockpit deprioritised. Persona: veteran-dm (Vic) primary.
+- [x] **E2E — DM Brain** — Three-layer test coverage. (1) Playwright `brain.workflow.spec.ts`: extend with seed→entities-appear flow, entity detail page (relationships + properties sections), hook resolve removes from list, entity list navigation — add `data-testid` attrs to EntityCard/HookList/seed button. (2) Vitest integration test `tests/services/brain-ingestion.test.ts`: call `processBrainIngestionJob` directly with mocked `chatWithAI` returning deterministic JSON, assert entities/hooks created in DB. (3) `veteran-dm.persona.spec.ts`: add brain-seeded-and-accessible checkpoint. Session Cockpit E2E tabled — cockpit deprioritised. Persona: veteran-dm (Vic) primary.
 
 
 ## 🟡 Next — Post-Alpha
