@@ -44,6 +44,8 @@ export function useLiveTranscription(sessionId: string): UseLiveTranscriptionRet
   const segmentsRef = useRef<LiveTranscriptSegment[]>([]);
 
   const saveMutation = trpc.sessionTranscription.saveWebSpeechTranscript.useMutation();
+  const saveMutateRef = useRef(saveMutation.mutateAsync);
+  saveMutateRef.current = saveMutation.mutateAsync;
 
   useEffect(() => {
     return () => {
@@ -152,7 +154,7 @@ export function useLiveTranscription(sessionId: string): UseLiveTranscriptionRet
     if (captured.length === 0) return { transcriptId: null };
 
     try {
-      const result = await saveMutation.mutateAsync({
+      const result = await saveMutateRef.current({
         sessionId,
         segments: captured.map((s) => ({ text: s.text, timestamp: s.timestamp })),
         durationSeconds: Math.floor((Date.now() - startTimeRef.current) / 1000),
@@ -163,7 +165,7 @@ export function useLiveTranscription(sessionId: string): UseLiveTranscriptionRet
       setError(msg);
       return { transcriptId: null };
     }
-  }, [sessionId, saveMutation]);
+  }, [sessionId]);
 
   return {
     isConnected: isRecording,
