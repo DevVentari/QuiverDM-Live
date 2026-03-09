@@ -5,6 +5,9 @@ import { prisma } from '../prisma';
 import { WorldEntityType, WorldStateChangeType, WorldStateChangeSource } from '@prisma/client';
 import { brainRepository } from '../../server/repositories/brain.repository';
 
+const STRESS_DRIFT_THRESHOLD = 0.15;
+const STRESS_HISTORY_WINDOW = 5;
+
 type HookUrgency = 'low' | 'medium' | 'high';
 
 interface Hook {
@@ -12,7 +15,7 @@ interface Hook {
   text: string;
   urgency: HookUrgency;
   status?: string;
-  age?: number;
+  ageInSessions?: number;
 }
 
 function ageToUrgency(age: number): HookUrgency {
@@ -28,8 +31,8 @@ async function processCampaign(campaignId: string) {
 
   const agedHooks = hooks.map((hook) => {
     if (hook.status === 'resolved') return hook;
-    const newAge = (hook.age ?? 0) + 1;
-    return { ...hook, age: newAge, urgency: ageToUrgency(newAge) };
+    const newAge = (hook.ageInSessions ?? 0) + 1;
+    return { ...hook, ageInSessions: newAge, urgency: ageToUrgency(newAge) };
   });
 
   const npcEntities = await brainRepository.findEntities(campaignId, {
@@ -44,7 +47,7 @@ async function processCampaign(campaignId: string) {
         changeType: WorldStateChangeType.property_update,
       },
       orderBy: { createdAt: 'desc' },
-      take: 5,
+      take: STRESS_HISTORY_WINDOW,
     });
 
     const stressChanges = recentChanges.filter((c) => {
@@ -70,7 +73,7 @@ async function processCampaign(campaignId: string) {
 
       if (first !== null && last !== null) {
         const delta = last - first;
-        if (Math.abs(delta) > 0.15) {
+        if (Math.abs(delta) > STRESS_DRIFT_THRESHOLD) {
           const direction = delta > 0 ? 'rising' : 'falling';
           await brainRepository.logChange({
             campaignId,
@@ -108,11 +111,12 @@ async function main() {
     }
   }
 
-  await prisma.$disconnect();
   console.log('[brain-inference] Complete');
 }
 
-main().catch((err) => {
-  console.error('[brain-inference] Fatal:', err);
-  process.exit(1);
-});
+main()
+  .finally(() => prisma.$disconnect())
+  .catch((err) => {
+    console.error('[brain-inference] Fatal error:', err);
+    process.exit(1);
+  });
