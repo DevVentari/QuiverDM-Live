@@ -59,7 +59,7 @@ async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<Br
     const entityType = ENTITY_TYPE_MAP[entity.type];
     if (!entityType) continue;
     try {
-      await brainRepository.upsertEntity(data.campaignId, {
+      const upserted = await brainRepository.upsertEntity(data.campaignId, {
         type: entityType,
         name: entity.name,
         description: entity.description,
@@ -68,6 +68,17 @@ async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<Br
         lastSeenSessionId: data.sessionId,
         firstSeenSessionId: data.sessionId,
         confidence: 0.8,
+      });
+
+      await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: upserted.id, campaignId: data.campaignId });
+
+      await brainRepository.logChange({
+        campaignId: data.campaignId,
+        entityId: upserted.id,
+        sessionId: data.sessionId,
+        changeType: 'property_update',
+        newValue: { name: entity.name, type: entityType, status: entity.status },
+        source: 'ingestion',
       });
 
       const key = `${entity.name}:${entityType}`;
@@ -92,6 +103,18 @@ async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<Br
         status: update.status ? STATUS_MAP[update.status] : undefined,
         lastSeenSessionId: data.sessionId,
       });
+
+      await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: existing.id, campaignId: data.campaignId });
+
+      await brainRepository.logChange({
+        campaignId: data.campaignId,
+        entityId: existing.id,
+        sessionId: data.sessionId,
+        changeType: 'property_update',
+        newValue: { name: update.name, status: update.status, properties: update.properties },
+        source: 'ingestion',
+      });
+
       result.entitiesUpdated++;
     } catch (e) {
       console.warn(`[brain-ingestion] Failed to update entity ${update.name}:`, e);
@@ -106,7 +129,7 @@ async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<Br
     const to = entityByName.get(rel.toEntityName.toLowerCase());
     if (!from || !to) continue;
     try {
-      await brainRepository.upsertRelationship({
+      const upsertedRel = await brainRepository.upsertRelationship({
         campaignId: data.campaignId,
         fromEntityId: from.id,
         toEntityId: to.id,
@@ -114,6 +137,13 @@ async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<Br
         strength: rel.strength,
         description: rel.description,
       });
+      if (rel.description) {
+        await brainRepository.appendRelationshipHistory(upsertedRel.id, {
+          sessionId: data.sessionId,
+          description: rel.description,
+          timestamp: new Date(),
+        });
+      }
       result.relationshipsUpserted++;
     } catch (e) {
       console.warn(`[brain-ingestion] Failed to upsert relationship ${rel.fromEntityName}->${rel.toEntityName}:`, e);

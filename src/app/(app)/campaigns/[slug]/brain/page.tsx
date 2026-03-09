@@ -7,9 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PressureGauges } from '@/components/brain/pressure-gauges';
 import { HookList } from '@/components/brain/hook-list';
 import { EntityCard } from '@/components/brain/entity-card';
+import { EntityGraph } from '@/components/brain/entity-graph';
+import { SessionTimeline } from '@/components/brain/session-timeline';
+import { ContinuityWarnings } from '@/components/brain/continuity-warnings';
 import { Brain, ChevronRight, Sprout } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -44,6 +48,19 @@ export default function BrainPage() {
     { campaignId, limit: 10 },
     { enabled: isDM, staleTime: 60_000 }
   );
+  const relationshipsQuery = trpc.brain.relationships.list.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 60_000 }
+  );
+  const warningsQuery = trpc.brain.continuityWarnings.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 120_000 }
+  );
+
+  const sessionsQuery = trpc.sessions.getAll.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 60_000 }
+  );
 
   const seedMutation = trpc.brain.seedFromExisting.useMutation({
     onSuccess: (result) => {
@@ -69,6 +86,8 @@ export default function BrainPage() {
   const state = stateQuery.data;
   const entities = entitiesQuery.data ?? [];
   const timeline = timelineQuery.data ?? [];
+  const relationships = relationshipsQuery.data ?? [];
+  const warnings = warningsQuery.data ?? [];
 
   const hooks: Array<{ id: string; text: string; urgency: 'low' | 'medium' | 'high'; status?: string }> =
     Array.isArray((state as { hooks?: unknown })?.hooks) ? (state as { hooks: unknown[] }).hooks as Array<{ id: string; text: string; urgency: 'low' | 'medium' | 'high'; status?: string }> : [];
@@ -88,6 +107,28 @@ export default function BrainPage() {
     );
     stateUpdateMutation.mutate({ campaignId, hooks: updatedHooks });
   }
+
+  const rawSessions = (sessionsQuery.data ?? []) as Array<{ id: string; sessionNumber: number; title?: string | null; date: Date | string }>;
+  const sessionList = rawSessions.map(s => ({
+    id: s.id,
+    sessionNumber: s.sessionNumber,
+    title: s.title ?? null,
+    date: new Date(s.date),
+  }));
+
+  const appearanceData = entities.flatMap(entity => {
+    const firstSeen = entity.firstSeenSessionId
+      ? sessionList.find(s => s.id === entity.firstSeenSessionId)
+      : undefined;
+    const lastSeen = entity.lastSeenSessionId && entity.lastSeenSessionId !== entity.firstSeenSessionId
+      ? sessionList.find(s => s.id === entity.lastSeenSessionId)
+      : undefined;
+
+    const result = [];
+    if (firstSeen) result.push({ session: firstSeen, entity });
+    if (lastSeen) result.push({ session: lastSeen, entity });
+    return result;
+  });
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
@@ -118,177 +159,257 @@ export default function BrainPage() {
 
       <div className="section-rule" />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left column — pressures + hooks */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* Pressure Gauges */}
+      <Tabs defaultValue="overview">
+        <TabsList className="mb-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="graph">Graph</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="warnings">
+            Warnings
+            {warnings.length > 0 && (
+              <span className="ml-1.5 rounded-full bg-destructive/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+                {warnings.length}
+              </span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview">
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Left column — pressures + hooks */}
+            <div className="space-y-6 lg:col-span-2">
+              {/* Pressure Gauges */}
+              <Card className="glass-panel">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    World Pressure
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {stateQuery.isLoading ? (
+                    <div className="space-y-3">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Skeleton key={i} className="h-5 w-full rounded" />
+                      ))}
+                    </div>
+                  ) : stateQuery.isError ? (
+                    <p className="text-sm text-muted-foreground">Failed to load world state.</p>
+                  ) : state ? (
+                    <PressureGauges state={state} />
+                  ) : null}
+                </CardContent>
+              </Card>
+
+              {/* Open Hooks */}
+              <Card className="glass-panel">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Open Hooks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {stateQuery.isLoading ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <Skeleton key={i} className="h-10 w-full rounded" />
+                      ))}
+                    </div>
+                  ) : (
+                    <HookList hooks={hooks.slice(0, 5)} onResolve={handleResolveHook} />
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Entities */}
+              <Card className="glass-panel">
+                <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Entities
+                  </CardTitle>
+                  <Link
+                    href={`/campaigns/${slug}/brain/entities`}
+                    className="flex items-center gap-1 text-xs text-primary hover:underline"
+                  >
+                    View all
+                    <ChevronRight className="h-3 w-3" />
+                  </Link>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {entitiesQuery.isLoading ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {[1, 2, 3, 4].map((i) => (
+                        <Skeleton key={i} className="h-16 rounded-lg" />
+                      ))}
+                    </div>
+                  ) : !hasEntities ? (
+                    <div className="py-8 text-center">
+                      <p className="text-sm text-muted-foreground mb-4">
+                        No entities tracked yet. Seed from existing NPCs and characters to get started.
+                      </p>
+                      <Button
+                        size="sm"
+                        disabled={seedMutation.isPending}
+                        onClick={() => seedMutation.mutate({ campaignId })}
+                      >
+                        <Sprout className="mr-2 h-4 w-4" />
+                        Seed from Existing
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {recentEntities.map((entity) => (
+                        <EntityCard
+                          key={entity.id}
+                          entity={entity}
+                          href={`/campaigns/${slug}/brain/entities/${entity.id}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right column — stats + timeline */}
+            <div className="space-y-6">
+              {/* Entity counts */}
+              <Card className="glass-panel">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Entity Counts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {entitiesQuery.isLoading ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3, 4].map((i) => (
+                        <Skeleton key={i} className="h-5 w-full rounded" />
+                      ))}
+                    </div>
+                  ) : Object.keys(typeCounts).length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">No entities yet.</p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {Object.entries(typeCounts).map(([type, count]) => (
+                        <li key={type} className="flex items-center justify-between">
+                          <Link
+                            href={`/campaigns/${slug}/brain/entities?type=${type}`}
+                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            {TYPE_LABELS[type] ?? type}
+                          </Link>
+                          <span className="text-sm font-mono tabular-nums text-foreground">{count}</span>
+                        </li>
+                      ))}
+                      <Separator className="my-1" />
+                      <li className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Total</span>
+                        <span className="text-sm font-mono tabular-nums">{entities.length}</span>
+                      </li>
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Recent Timeline */}
+              <Card className="glass-panel">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Recent Changes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {timelineQuery.isLoading ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Skeleton key={i} className="h-8 w-full rounded" />
+                      ))}
+                    </div>
+                  ) : timeline.length === 0 ? (
+                    <p className="text-sm text-muted-foreground italic">No changes recorded yet.</p>
+                  ) : (
+                    <ul className="space-y-3">
+                      {timeline.map((entry) => (
+                        <li key={entry.id} className="flex flex-col gap-0.5">
+                          <span className="text-xs font-medium capitalize">
+                            {entry.changeType.replace(/_/g, ' ')}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {entry.source} &middot;{' '}
+                            {new Date(entry.createdAt).toLocaleDateString()}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Graph Tab */}
+        <TabsContent value="graph">
           <Card className="glass-panel">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                World Pressure
+                Entity Relationship Graph
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {stateQuery.isLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-5 w-full rounded" />
-                  ))}
-                </div>
-              ) : stateQuery.isError ? (
-                <p className="text-sm text-muted-foreground">Failed to load world state.</p>
-              ) : state ? (
-                <PressureGauges state={state} />
-              ) : null}
+              {entitiesQuery.isLoading || relationshipsQuery.isLoading ? (
+                <Skeleton className="h-[500px] w-full rounded-lg" />
+              ) : (
+                <EntityGraph entities={entities} relationships={relationships} />
+              )}
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Open Hooks */}
+        {/* Timeline Tab */}
+        <TabsContent value="timeline">
           <Card className="glass-panel">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Open Hooks
+                Entity Appearances by Session
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {stateQuery.isLoading ? (
+              {entitiesQuery.isLoading || sessionsQuery.isLoading ? (
+                <Skeleton className="h-40 w-full rounded" />
+              ) : (
+                <SessionTimeline
+                  appearances={appearanceData}
+                  sessions={sessionList}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Warnings Tab */}
+        <TabsContent value="warnings">
+          <Card className="glass-panel">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Continuity Warnings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {warningsQuery.isLoading ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-10 w-full rounded" />
+                    <Skeleton key={i} className="h-16 w-full rounded" />
                   ))}
                 </div>
               ) : (
-                <HookList hooks={hooks.slice(0, 5)} onResolve={handleResolveHook} />
+                <ContinuityWarnings warnings={warnings} campaignSlug={slug} />
               )}
             </CardContent>
           </Card>
-
-          {/* Recent Entities */}
-          <Card className="glass-panel">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Entities
-              </CardTitle>
-              <Link
-                href={`/campaigns/${slug}/brain/entities`}
-                className="flex items-center gap-1 text-xs text-primary hover:underline"
-              >
-                View all
-                <ChevronRight className="h-3 w-3" />
-              </Link>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {entitiesQuery.isLoading ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} className="h-16 rounded-lg" />
-                  ))}
-                </div>
-              ) : !hasEntities ? (
-                <div className="py-8 text-center">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    No entities tracked yet. Seed from existing NPCs and characters to get started.
-                  </p>
-                  <Button
-                    size="sm"
-                    disabled={seedMutation.isPending}
-                    onClick={() => seedMutation.mutate({ campaignId })}
-                  >
-                    <Sprout className="mr-2 h-4 w-4" />
-                    Seed from Existing
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {recentEntities.map((entity) => (
-                    <EntityCard
-                      key={entity.id}
-                      entity={entity}
-                      href={`/campaigns/${slug}/brain/entities/${entity.id}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right column — stats + timeline */}
-        <div className="space-y-6">
-          {/* Entity counts */}
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Entity Counts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {entitiesQuery.isLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} className="h-5 w-full rounded" />
-                  ))}
-                </div>
-              ) : Object.keys(typeCounts).length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">No entities yet.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {Object.entries(typeCounts).map(([type, count]) => (
-                    <li key={type} className="flex items-center justify-between">
-                      <Link
-                        href={`/campaigns/${slug}/brain/entities?type=${type}`}
-                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        {TYPE_LABELS[type] ?? type}
-                      </Link>
-                      <span className="text-sm font-mono tabular-nums text-foreground">{count}</span>
-                    </li>
-                  ))}
-                  <Separator className="my-1" />
-                  <li className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Total</span>
-                    <span className="text-sm font-mono tabular-nums">{entities.length}</span>
-                  </li>
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Timeline */}
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Recent Changes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {timelineQuery.isLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-8 w-full rounded" />
-                  ))}
-                </div>
-              ) : timeline.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">No changes recorded yet.</p>
-              ) : (
-                <ul className="space-y-3">
-                  {timeline.map((entry) => (
-                    <li key={entry.id} className="flex flex-col gap-0.5">
-                      <span className="text-xs font-medium capitalize">
-                        {entry.changeType.replace(/_/g, ' ')}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {entry.source} &middot;{' '}
-                        {new Date(entry.createdAt).toLocaleDateString()}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
