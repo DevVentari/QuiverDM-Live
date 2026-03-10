@@ -745,13 +745,26 @@ export default function SessionDetailPage() {
     onError: (error) => uiToast({ title: 'Error', description: error.message, variant: 'destructive' }),
   });
 
+  function resolveContentType(file: File): string {
+    if (file.type) return file.type;
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const map: Record<string, string> = {
+      mp4: 'video/mp4', mov: 'video/quicktime', mkv: 'video/webm',
+      avi: 'video/x-msvideo', webm: 'video/webm',
+      mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/x-m4a',
+      aac: 'audio/aac', ogg: 'audio/ogg', flac: 'audio/flac',
+    };
+    return map[ext ?? ''] ?? 'video/mp4';
+  }
+
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      const type = file.type.startsWith('video/') ? 'video' : 'audio';
+      const contentTypeResolved = resolveContentType(file);
+      const type = contentTypeResolved.startsWith('video/') ? 'video' : 'audio';
       let recordingUrl: string;
 
       if (process.env.NEXT_PUBLIC_STORAGE_MODE === 'r2') {
@@ -759,11 +772,11 @@ export default function SessionDetailPage() {
         const res = await fetch('/api/recordings/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId, filename: file.name, contentType: file.type, fileSize: file.size }),
+          body: JSON.stringify({ sessionId, filename: file.name, contentType: contentTypeResolved, fileSize: file.size }),
         });
         if (!res.ok) throw new Error(`Upload failed: ${res.statusText}`);
         const { uploadUrl, key } = (await res.json()) as { uploadUrl: string; key: string };
-        const r2Res = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+        const r2Res = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': contentTypeResolved }, body: file });
         if (!r2Res.ok) throw new Error('Upload to storage failed');
         recordingUrl = `/api/storage/${key}`;
       } else {
