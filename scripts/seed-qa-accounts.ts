@@ -39,6 +39,7 @@ async function main() {
           emailVerified: now,
           onboardingCompleted: persona.onboardingCompleted,
           onboardingStep: persona.onboardingCompleted ? 'complete' : 'welcome',
+          tier: 'pro', // Pro tier for QA: no campaign/upload limits
         },
       });
 
