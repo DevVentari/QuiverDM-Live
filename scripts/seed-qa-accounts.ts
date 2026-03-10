@@ -13,7 +13,7 @@ if (!QA_TEST_PASSWORD) {
 }
 
 const personas = [
-  { name: 'New DM Nora',   email: process.env.QA_NORA_EMAIL   ?? 'nora@test.local',   onboardingCompleted: false },
+  { name: 'New DM Nora',   email: process.env.QA_NORA_EMAIL   ?? 'nora@test.local',   onboardingCompleted: true  },
   { name: 'Power DM Dana', email: process.env.QA_DANA_EMAIL   ?? 'dana@test.local',   onboardingCompleted: true  },
   { name: 'Veteran Vic',   email: process.env.QA_VIC_EMAIL    ?? 'vic@test.local',    onboardingCompleted: true  },
   { name: 'Player Pat',    email: process.env.QA_PLAYER_EMAIL ?? 'player@test.local', onboardingCompleted: true  },
