@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { Sparkles, Calendar } from 'lucide-react';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { trpc } from '@/lib/trpc';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 type SessionSummaryListItem = {
@@ -48,20 +47,20 @@ export default function SummariesPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {withSummaries.map((session) => (
           <Link key={session.id} href={`/campaigns/${slug}/sessions/${session.id}`}>
-            <Card className="h-full hover:border-primary transition-colors cursor-pointer">
-              <CardHeader className="pb-2">
+            <div className="stone-card h-full hover:border-primary transition-colors cursor-pointer">
+              <div className="stone-card-header pb-2">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-sm font-medium">
+                  <span className="stone-card-title text-sm font-medium">
                     Session {session.sessionNumber}
                     {session.title ? `: ${session.title}` : ''}
-                  </CardTitle>
+                  </span>
                   <Badge variant="outline" className="text-xs shrink-0 ml-2">
                     <Calendar className="h-3 w-3 mr-1" />
                     {format(new Date(session.date), 'MMM d')}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="stone-card-body">
                 <div className="prose prose-sm max-w-none dark:prose-invert line-clamp-6 text-sm text-muted-foreground">
                   <ReactMarkdown>
                     {session.aiSummary
@@ -69,8 +68,8 @@ export default function SummariesPage() {
                       : 'No summary text available.'}
                   </ReactMarkdown>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </Link>
         ))}
       </div>

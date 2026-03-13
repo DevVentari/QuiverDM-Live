@@ -14,6 +14,8 @@ export interface ChatMessage {
 
 interface ChatOptions {
   temperature?: number;
+  userGeminiKey?: string;
+  userId?: string;
 }
 
 async function tryGroq(messages: ChatMessage[], temperature: number): Promise<string> {
@@ -61,12 +63,30 @@ export async function chatWithAI(
   options: ChatOptions = {}
 ): Promise<string> {
   const temperature = options.temperature ?? 0.1;
-  const providers: Array<[string, () => Promise<string>]> = [
-    ['groq', () => tryGroq(messages, temperature)],
-    ['openai', () => tryOpenAI(messages, temperature)],
-    ['gemini', () => tryGemini(messages, temperature)],
-    ['ollama', () => tryOllama(messages, temperature)],
-  ];
+  const { userGeminiKey, userId } = options;
+
+  async function tryGeminiWithUserKey(): Promise<string> {
+    const key = userGeminiKey || process.env.GEMINI_API_KEY;
+    if (!key) throw new Error('No Gemini key');
+    const prompt = messages
+      .map((m) => (m.role === 'system' ? `Instructions: ${m.content}` : m.content))
+      .join('\n\n');
+    return callGemini(prompt, userGeminiKey, { userId });
+  }
+
+  const providers: Array<[string, () => Promise<string>]> = userGeminiKey
+    ? [
+        ['gemini-user', tryGeminiWithUserKey],
+        ['groq', () => tryGroq(messages, temperature)],
+        ['openai', () => tryOpenAI(messages, temperature)],
+        ['ollama', () => tryOllama(messages, temperature)],
+      ]
+    : [
+        ['groq', () => tryGroq(messages, temperature)],
+        ['openai', () => tryOpenAI(messages, temperature)],
+        ['gemini', () => tryGemini(messages, temperature)],
+        ['ollama', () => tryOllama(messages, temperature)],
+      ];
 
   const errors: string[] = [];
   for (const [name, fn] of providers) {

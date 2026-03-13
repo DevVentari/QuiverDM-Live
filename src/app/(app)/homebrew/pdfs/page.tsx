@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -171,11 +171,11 @@ function PDFListCard({
   const StatusIcon = statusInfo.icon;
 
   return (
-    <Card
-      className="group cursor-pointer overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+    <div
+      className="stone-card group cursor-pointer overflow-hidden border transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
       onClick={() => router.push(`/homebrew/pdfs/${pdf.id}`)}
     >
-      <CardHeader className="flex flex-row items-start gap-4 p-5">
+      <div className="stone-card-header flex flex-row items-start gap-4 p-5">
         <div className="shrink-0">
           {isActive && pdf.processingStatus !== 'completed' ? (
             <CircularProgress value={progress} size={68} strokeWidth={6}>
@@ -201,20 +201,20 @@ function PDFListCard({
           <StatusIcon className={cn('h-3.5 w-3.5', pdf.processingStatus === 'processing' && 'animate-spin')} />
           {statusInfo.label}
         </Badge>
-      </CardHeader>
+      </div>
 
       {isActive && pdf.processingStatus !== 'completed' ? (
-        <CardContent className="space-y-2 px-5 pb-4 pt-0">
+        <div className="stone-card-body space-y-2 px-5 pb-4 pt-0">
           <Progress value={progress} className="h-2" indicatorClassName="bg-blue-500" />
           <p className="text-xs text-muted-foreground">
             {currentStage}
             {estimated ? ` • ${estimated}` : ''}
           </p>
-        </CardContent>
+        </div>
       ) : null}
 
       {isExtracting ? (
-        <CardContent className="space-y-2 px-5 pb-2 pt-0">
+        <div className="stone-card-body space-y-2 px-5 pb-2 pt-0">
           <Progress
             value={
               pdf.aiExtractionProgress?.totalChunks
@@ -228,11 +228,11 @@ function PDFListCard({
             Extracting content… chunk {pdf.aiExtractionProgress?.chunk ?? 0} of {pdf.aiExtractionProgress?.totalChunks ?? '?'}
             {pdf.aiExtractionProgress?.itemsFound ? ` • ${pdf.aiExtractionProgress.itemsFound} items found` : ''}
           </p>
-        </CardContent>
+        </div>
       ) : null}
 
       {pdf.aiExtractionStatus === 'done' && pdf.aiExtractionProgress?.itemsFound ? (
-        <CardContent className="px-5 pb-3 pt-0">
+        <div className="stone-card-body px-5 pb-3 pt-0">
           <p className="text-xs text-muted-foreground">
             {pdf.aiExtractionProgress.itemsFound} items extracted
             {Object.keys(pdf.aiExtractionProgress.byType ?? {}).length > 0
@@ -241,10 +241,10 @@ function PDFListCard({
                   .join(' · ')
               : ''}
           </p>
-        </CardContent>
+        </div>
       ) : null}
 
-      <CardFooter className="flex gap-2 border-t bg-muted/20 px-5 py-3 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+      <div className="flex gap-2 border-t bg-muted/20 px-5 py-3 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
         <Button
           size="sm"
           variant="outline"
@@ -314,8 +314,8 @@ function PDFListCard({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -545,8 +545,8 @@ export default function PDFsPage() {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center py-14 text-center">
+        <div className="stone-card border-dashed">
+          <div className="stone-card-body flex flex-col items-center py-14 text-center">
             <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
             <h2 className="text-lg font-semibold">No PDFs found</h2>
             <p className="mt-1 max-w-md text-sm text-muted-foreground">
@@ -556,8 +556,8 @@ export default function PDFsPage() {
               <Upload className="h-4 w-4" />
               Upload PDF
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       <p className="text-xs text-muted-foreground">

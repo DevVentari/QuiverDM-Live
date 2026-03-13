@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -187,7 +187,7 @@ export default function CharactersPage() {
       ) : characters.data && characters.data.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(characters.data as any[]).map((char) => (
-            <Card key={char.id} className="h-full overflow-hidden">
+            <div key={char.id} className="stone-card h-full overflow-hidden">
               {char.portraitUrl ? (
                 <div className="relative h-24 w-full">
                   <Image
@@ -200,16 +200,16 @@ export default function CharactersPage() {
               ) : (
                 <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
               )}
-              <CardHeader className="space-y-2">
+              <div className="stone-card-header space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base leading-tight">
+                  <span className="stone-card-title text-base leading-tight">
                     <Link
                       href={`/characters/${char.id}`}
                       className="hover:underline underline-offset-2"
                     >
                       {char.name}
                     </Link>
-                  </CardTitle>
+                  </span>
                   {char.dndBeyondId && (
                     <Button
                       size="sm"
@@ -226,13 +226,13 @@ export default function CharactersPage() {
                     </Button>
                   )}
                 </div>
-                <CardDescription>
+                <p className="text-sm text-muted-foreground">
                   {[char.race, char.class, char.level && `Level ${char.level}`]
                     .filter(Boolean)
                     .join(' | ') || 'No details'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+                </p>
+              </div>
+              <div className="stone-card-body">
                 {char.backstory ? (
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {char.backstory}
@@ -240,13 +240,13 @@ export default function CharactersPage() {
                 ) : (
                   <p className="text-sm text-muted-foreground">No backstory added yet.</p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="stone-card">
+          <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
             <Sword className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No characters yet</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm">
@@ -257,8 +257,8 @@ export default function CharactersPage() {
                 New Character
               </Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

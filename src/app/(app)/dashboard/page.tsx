@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -82,33 +81,33 @@ export default function DashboardPage() {
       {/* Quick Stats */}
       {!campaigns.isLoading && !characters.isLoading && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Card className="glass-panel">
-            <CardContent className="p-3 flex items-center gap-3">
+          <div className="stone-card glass-panel">
+            <div className="stone-card-body p-3 flex items-center gap-3">
               <Swords className="h-5 w-5 text-primary shrink-0" />
               <div>
                 <div className="text-2xl font-bold tabular-nums leading-tight">{campaignCount}</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Campaigns</div>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="glass-panel">
-            <CardContent className="p-3 flex items-center gap-3">
+            </div>
+          </div>
+          <div className="stone-card glass-panel">
+            <div className="stone-card-body p-3 flex items-center gap-3">
               <Users className="h-5 w-5 text-primary shrink-0" />
               <div>
                 <div className="text-2xl font-bold tabular-nums leading-tight">{characterCount}</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Characters</div>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="glass-panel">
-            <CardContent className="p-3 flex items-center gap-3">
+            </div>
+          </div>
+          <div className="stone-card glass-panel">
+            <div className="stone-card-body p-3 flex items-center gap-3">
               <BookOpen className="h-5 w-5 text-primary shrink-0" />
               <div>
                 <div className="text-2xl font-bold tabular-nums leading-tight">{homebrewItems.length}</div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Homebrew</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
@@ -119,8 +118,8 @@ export default function DashboardPage() {
         <div className="space-y-2">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Pending Invites</h2>
           {invites.data.map((invite: any) => (
-            <Card key={invite.id} className="glass-panel border-primary/30">
-              <CardContent className="flex items-center justify-between py-3 px-4">
+            <div key={invite.id} className="stone-card glass-panel border-primary/30">
+              <div className="stone-card-body flex items-center justify-between py-3 px-4">
                 <div>
                   <p className="font-medium text-sm">{invite.campaign?.name || 'Campaign'}</p>
                   <p className="text-xs text-muted-foreground">
@@ -146,8 +145,8 @@ export default function DashboardPage() {
                     Decline
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -171,9 +170,9 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : campaigns.isError ? (
-          <Card className="glass-panel p-8 text-center">
+          <div className="stone-card glass-panel p-8 text-center">
             <p className="text-sm text-muted-foreground">Failed to load campaigns. Please refresh.</p>
-          </Card>
+          </div>
         ) : campaigns.data && campaigns.data.length > 0 ? (
           <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent -mx-1 px-1">
             {campaigns.data.map((campaign: any) => (
@@ -182,7 +181,7 @@ export default function DashboardPage() {
                 href={`/campaigns/${campaign.slug || campaign.id}`}
                 className="shrink-0 w-[280px] sm:w-[320px] snap-start"
               >
-                <Card className="glass-panel h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+                <div className="stone-card overflow-hidden hover:border-amber-700/40 transition-colors cursor-pointer glass-panel h-full">
                   {campaign.bannerUrl ? (
                     <div className="relative h-28 w-full">
                       <Image
@@ -195,20 +194,20 @@ export default function DashboardPage() {
                   ) : (
                     <div className="h-28 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                   )}
-                  <CardHeader className="pb-2">
+                  <div className="stone-card-header pb-2">
                     <div className="flex items-center justify-between gap-2">
-                      <CardTitle className="text-sm truncate">{campaign.name}</CardTitle>
+                      <span className="stone-card-title text-sm truncate">{campaign.name}</span>
                       {campaign.role && (
                         <Badge variant="secondary" className="text-[10px] shrink-0">
                           {campaign.role}
                         </Badge>
                       )}
                     </div>
-                    <CardDescription className="line-clamp-1 text-xs">
+                    <p className="text-sm text-muted-foreground line-clamp-1 text-xs">
                       {campaign.description || 'No description'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-0">
+                    </p>
+                  </div>
+                  <div className="stone-card-body pt-0">
                     <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                       <span>{campaign.sessionCount} sessions</span>
                       <span>{campaign.memberCount} members</span>
@@ -222,14 +221,14 @@ export default function DashboardPage() {
                         <span>Playing: {campaign.myCharacter.name}</span>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
         ) : (
-          <Card className="glass-panel">
-            <CardContent className="flex flex-col items-center py-8 text-center">
+          <div className="stone-card glass-panel">
+            <div className="stone-card-body flex flex-col items-center py-8 text-center">
               <Swords className="h-8 w-8 text-muted-foreground mb-3" />
               <p className="text-sm text-muted-foreground mb-3">
                 No campaigns yet. Create one to get started!
@@ -240,8 +239,8 @@ export default function DashboardPage() {
                   Create Campaign
                 </Link>
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
 
@@ -266,9 +265,9 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : characters.isError ? (
-            <Card className="glass-panel p-8 text-center">
+            <div className="stone-card glass-panel p-8 text-center">
               <p className="text-sm text-muted-foreground">Failed to load characters. Please refresh.</p>
-            </Card>
+            </div>
           ) : characters.data && characters.data.length > 0 ? (
             <div className="space-y-3">
               {characters.data.map((char: any) => {
@@ -276,7 +275,7 @@ export default function DashboardPage() {
                 const hpPct = hp?.max > 0 ? (hp.current / hp.max) * 100 : null;
                 return (
                   <Link key={char.id} href={`/characters/${char.id}`}>
-                    <Card className="glass-panel group cursor-pointer overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.05]">
+                    <div className="stone-card glass-panel group cursor-pointer overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.05]">
                       <div className="flex gap-3 p-3">
                         <div className="relative h-16 w-16 shrink-0 rounded-md overflow-hidden">
                           {char.portraitUrl ? (
@@ -292,7 +291,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
-                            <CardTitle className="text-sm truncate">{char.name}</CardTitle>
+                            <span className="stone-card-title text-sm truncate">{char.name}</span>
                             {char.level && (
                               <Badge variant="outline" className="border-white/35 bg-white/5 text-[10px] shrink-0 tabular-nums">
                                 Lvl {char.level}
@@ -313,14 +312,14 @@ export default function DashboardPage() {
                           )}
                         </div>
                       </div>
-                    </Card>
+                    </div>
                   </Link>
                 );
               })}
             </div>
           ) : (
-            <Card className="glass-panel">
-              <CardContent className="flex flex-col items-center py-8 text-center">
+            <div className="stone-card glass-panel">
+              <div className="stone-card-body flex flex-col items-center py-8 text-center">
                 <Users className="h-8 w-8 text-muted-foreground mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">No characters yet</p>
                 <Button size="sm" asChild>
@@ -329,8 +328,8 @@ export default function DashboardPage() {
                     Create Character
                   </Link>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </div>
 
@@ -353,14 +352,14 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : homebrew.isError ? (
-            <Card className="glass-panel p-8 text-center">
+            <div className="stone-card glass-panel p-8 text-center">
               <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
-            </Card>
+            </div>
           ) : homebrewItems.length > 0 ? (
             <div className="space-y-2">
               {homebrewItems.slice(0, 8).map((item: any) => (
-                <Card key={item.id} className="glass-row overflow-hidden">
-                  <CardContent className="flex items-center gap-3 py-2.5 px-4 overflow-hidden">
+                <div key={item.id} className="stone-card glass-row overflow-hidden">
+                  <div className="stone-card-body flex items-center gap-3 py-2.5 px-4 overflow-hidden">
                     {item.images?.[0] ? (
                       <Image
                         src={item.images[0]}
@@ -388,8 +387,8 @@ export default function DashboardPage() {
                     >
                       {item.type}
                     </Badge>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
               {homebrewItems.length > 8 && (
                 <p className="text-xs text-muted-foreground text-center pt-1">
@@ -398,8 +397,8 @@ export default function DashboardPage() {
               )}
             </div>
           ) : (
-            <Card className="glass-panel">
-              <CardContent className="flex flex-col items-center py-8 text-center">
+            <div className="stone-card glass-panel">
+              <div className="stone-card-body flex flex-col items-center py-8 text-center">
                 <BookOpen className="h-8 w-8 text-muted-foreground mb-3" />
                 <p className="text-sm text-muted-foreground mb-3">No homebrew content yet</p>
                 <Button size="sm" variant="outline" asChild>
@@ -407,8 +406,8 @@ export default function DashboardPage() {
                     Upload PDFs
                   </Link>
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </div>
       </div>

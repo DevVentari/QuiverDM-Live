@@ -11,6 +11,26 @@ import {
   extractHomebrew,
 } from '@/lib/ai/obsidian-extraction';
 
+// Known sub-section headers within an entity block — these H2s should NOT start a new entity.
+const SECTION_HEADERS = new Set([
+  'features', 'special features', 'traits', 'racial traits',
+  'actions', 'bonus actions', 'reactions', 'legendary actions', 'lair actions', 'regional effects',
+  'roleplay information', 'roleplay', 'personality', 'background', 'history', 'lore',
+  'relationships', 'adventure hooks', 'hooks', 'faction connections', 'connections',
+  'basic information', 'geographic setting', 'cultural atmosphere', 'notable locations',
+  'notable npcs', 'factions and organizations', 'adventure opportunities',
+  'cosmic significance', 'special properties', 'gateway functions',
+  'military organization', 'magical traditions', 'imperial monarchy', 'governance',
+  'cultural structure', 'imperial treasury', 'economy', 'daily life',
+  'overview', 'description', 'summary', 'notes', 'current status', 'current crisis role',
+  'universal balance', 'divine purpose',
+]);
+
+function isEntityH2(heading: string): boolean {
+  const normalized = heading.replace(/^##\s*/, '').trim().toLowerCase();
+  return !SECTION_HEADERS.has(normalized);
+}
+
 function splitOnH2(content: string): string[] {
   const lines = content.split('\n');
   const blocks: string[] = [];
@@ -26,7 +46,7 @@ function splitOnH2(content: string): string[] {
     }
     if (inFrontmatter) continue;
 
-    if (line.startsWith('## ')) {
+    if (line.startsWith('## ') && isEntityH2(line)) {
       if (current.length > 0) blocks.push(current.join('\n').trim());
       current = [line];
     } else {
@@ -112,10 +132,20 @@ export async function processJob(data: ObsidianImportJobData) {
 
   function categorize(filePath: string): FileCategory {
     const rel = path.relative(extractDir, filePath).replace(/\\/g, '/').toLowerCase();
-    if (rel.includes('player characters/') || rel.includes('player-characters/')) return 'character';
-    if (rel.includes('sessions/')) return 'session-completed';
-    if (rel.includes('adventures/')) return 'homebrew-adventure';
     const base = path.basename(filePath).toLowerCase();
+
+    if (rel.includes('player characters/') || rel.includes('player-characters/')) return 'character';
+
+    // Sessions: named "Sessions/" folder OR numbered "Session N/" folders (e.g. "Session 5/")
+    const isInSessionFolder = rel.includes('sessions/') || /\/session \d+\//i.test(rel);
+    if (isInSessionFolder) {
+      // Only import summary files — skip discord logs, raw transcripts, and duplicates in /files/ subfolders
+      if (rel.includes('/files/')) return 'skip';
+      if (base.includes('discord') || base.includes('.raw') || base.endsWith('.txt')) return 'skip';
+      return 'session-completed';
+    }
+
+    if (rel.includes('adventures/')) return 'homebrew-adventure';
     if (base === 'npcs.md') return 'npc';
     if (base === 'items.md') return 'homebrew-item';
     if (base === 'locations.md') return 'homebrew-location';
@@ -159,10 +189,17 @@ export async function processJob(data: ObsidianImportJobData) {
     try {
       if (item.category === 'npc' && options.npcs) {
         const extracted = await extractNpc(item.markdown, geminiKey, userId);
+        const npcName = extracted.name || item.label;
+        const GARBAGE_NAMES = ['unknown npc', 'unnamed npc', 'unknown entity', 'unknown', 'unnamed', 'legendary actions', 'bonus actions', 'actions', 'features', 'background', 'roleplay information'];
+        if (GARBAGE_NAMES.includes(npcName.toLowerCase())) {
+          errors.push(`${item.label}: skipped — extracted name "${npcName}" looks like a section header, not an NPC`);
+          done++;
+          continue;
+        }
         await prisma.nPC.create({
           data: {
             campaignId,
-            name: extracted.name || item.label,
+            name: npcName,
             description: extracted.description,
             faction: extracted.faction,
             role: extracted.role,

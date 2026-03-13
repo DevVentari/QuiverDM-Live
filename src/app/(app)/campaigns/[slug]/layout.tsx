@@ -72,33 +72,49 @@ export default function CampaignLayout({
       }}
     >
       <div className="space-y-0 w-full max-w-[1400px]">
-        {/* Campaign header */}
-        <div className="relative flex items-start justify-between gap-4 pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 pt-6 overflow-hidden rounded-t-lg">
-          {data.bannerUrl && (
-            <>
-              <div className="absolute inset-0">
-                <Image
-                  src={data.bannerUrl}
-                  alt=""
-                  fill
-                  className="object-cover scale-110 blur-[20px] opacity-[0.15]"
-                  aria-hidden
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
-            </>
-          )}
-          <div className="relative z-10 min-w-0">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-wide leading-tight truncate">
+        {/* Stone Arch Split hero header */}
+        <div
+          className="relative flex overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8"
+          style={{ height: 140, borderBottom: '1px solid hsl(35 35% 18%)' }}
+        >
+          {/* Left panel — arch clip, dark bg, campaign name */}
+          <div
+            className="hero-arch-left relative flex flex-col justify-center px-6 sm:px-8 min-w-0"
+            style={{
+              flex: '0 0 65%',
+              background: 'linear-gradient(160deg, hsl(240 10% 10%), hsl(240 8% 7%))',
+              paddingRight: '3rem',
+            }}
+          >
+            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide leading-tight truncate" style={{ color: 'hsl(35 30% 88%)' }}>
               {data.name}
             </h1>
             {data.description && (
-              <p className="text-muted-foreground text-sm mt-1 line-clamp-1">{data.description}</p>
+              <p className="text-sm mt-1 line-clamp-2" style={{ color: 'hsl(35 10% 50%)' }}>{data.description}</p>
             )}
           </div>
-          <span className={`relative z-10 shrink-0 mt-1 text-xs font-medium px-2.5 py-1 rounded-full border ${roleColor}`}>
-            {roleLabel}
-          </span>
+
+          {/* Right panel — banner image or atmospheric gradient, role badge */}
+          <div className="relative flex-1 flex items-end justify-end p-4">
+            {data.bannerUrl ? (
+              <Image
+                src={data.bannerUrl}
+                alt=""
+                fill
+                className="object-cover opacity-40"
+                aria-hidden
+              />
+            ) : (
+              <div
+                className="absolute inset-0"
+                style={{ background: 'radial-gradient(ellipse 80% 80% at 80% 50%, hsl(258 40% 12% / 0.7), hsl(240 8% 6%))' }}
+              />
+            )}
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to left, transparent 30%, hsl(240 8% 7% / 0.6))' }} />
+            <span className={`relative z-10 text-xs font-medium px-2.5 py-1 rounded-full border ${roleColor}`}>
+              {roleLabel}
+            </span>
+          </div>
         </div>
 
         <CampaignNav />

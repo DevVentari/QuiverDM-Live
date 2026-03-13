@@ -243,11 +243,11 @@ model Campaign {
   foundryEvents     FoundryEvent[]
   foundryImportJobs FoundryImportJob[]
 
-  obsidianImports   ObsidianImportJob[]
-  worldEntities     WorldEntity[]
-  worldRelationships WorldRelationship[]
-  worldStateChanges  WorldStateChange[]
-  worldState         WorldState?
+  obsidianImports          ObsidianImportJob[]
+  worldEntities            WorldEntity[]
+  worldRelationships       WorldRelationship[]
+  worldStateChanges        WorldStateChange[]
+  worldState               WorldState?
   sessionEntityAppearances SessionEntityAppearance[]
   worldActors              WorldActor[]
   worldSimulationEvents    WorldSimulationEvent[]
@@ -483,12 +483,12 @@ model GameSession {
   playerRecap            String?                  @db.Text
   // Derailment Detector
 
-  derailmentStatus       String                   @default("none") // none|pending|done|error
-  derailmentData         Json? // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
-  worldStateChanges      WorldStateChange[]
-  entityAppearances      SessionEntityAppearance[]
-  createdAt              DateTime                 @default(now())
-  updatedAt              DateTime                 @updatedAt
+  derailmentStatus  String                    @default("none") // none|pending|done|error
+  derailmentData    Json? // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
+  worldStateChanges WorldStateChange[]
+  entityAppearances SessionEntityAppearance[]
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
 
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
@@ -1206,28 +1206,28 @@ model QaFailure {
 // ============================================================================
 
 model WorldEntity {
-  id              String            @id @default(cuid())
-  campaignId      String
-  campaign        Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  type            WorldEntityType
-  name            String
-  aliases         String[]
-  description     String?           @db.Text
-  properties      Json              @default("{}")
-  status          WorldEntityStatus @default(active)
-  sourceType      String?
-  sourceId        String?
+  id                 String            @id @default(cuid())
+  campaignId         String
+  campaign           Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type               WorldEntityType
+  name               String
+  aliases            String[]
+  description        String?           @db.Text
+  properties         Json              @default("{}")
+  status             WorldEntityStatus @default(active)
+  sourceType         String?
+  sourceId           String?
   firstSeenSessionId String?
   lastSeenSessionId  String?
-  confidence      Float             @default(1.0)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  confidence         Float             @default(1.0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
-  fromRelationships WorldRelationship[] @relation("RelationshipFrom")
-  toRelationships   WorldRelationship[] @relation("RelationshipTo")
-  stateChanges      WorldStateChange[]
+  fromRelationships  WorldRelationship[]       @relation("RelationshipFrom")
+  toRelationships    WorldRelationship[]       @relation("RelationshipTo")
+  stateChanges       WorldStateChange[]
   sessionAppearances SessionEntityAppearance[]
-  worldActor        WorldActor?
+  worldActor         WorldActor?
 
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
@@ -1294,12 +1294,12 @@ model WorldState {
 }
 
 model SessionEntityAppearance {
-  id         String      @id @default(cuid())
+  id         String   @id @default(cuid())
   sessionId  String
   entityId   String
   campaignId String
   role       String?
-  createdAt  DateTime    @default(now())
+  createdAt  DateTime @default(now())
 
   session  GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   entity   WorldEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
@@ -1325,21 +1325,21 @@ model WorldActor {
   riskTolerance Float     @default(0.5)
   lastTickAt    DateTime?
 
-  entity   WorldEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
-  campaign Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entity   WorldEntity            @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  campaign Campaign               @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   events   WorldSimulationEvent[]
 
   @@index([campaignId])
 }
 
 model WorldSimulationEvent {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   campaignId  String
   actorId     String?
   type        String
   description String
-  causalChain Json      @default("[]")
-  createdAt   DateTime  @default(now())
+  causalChain Json     @default("[]")
+  createdAt   DateTime @default(now())
 
   campaign Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   actor    WorldActor? @relation(fields: [actorId], references: [id], onDelete: SetNull)

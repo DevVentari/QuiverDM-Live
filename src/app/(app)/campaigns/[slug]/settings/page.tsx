@@ -12,7 +12,6 @@ import { WebhookSettings } from '@/components/campaign/webhook-settings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -153,12 +152,12 @@ export default function CampaignSettingsPage() {
 
   return (
     <div className="space-y-6 max-w-2xl px-4 sm:px-6 lg:px-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Campaign Settings</CardTitle>
-          <CardDescription>Update your campaign details</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="stone-card">
+        <div className="stone-card-header">
+          <span className="stone-card-title">Campaign Settings</span>
+          <p className="text-sm text-muted-foreground">Update your campaign details</p>
+        </div>
+        <div className="stone-card-body">
           <form onSubmit={handleSave} className="space-y-4">
             {isOwner && (
               <div className="space-y-2">
@@ -236,23 +235,23 @@ export default function CampaignSettingsPage() {
               {update.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {isDM && <WebhookSettings campaignId={campaignId} />}
 
       {isDM && foundryEnabled && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className="stone-card">
+          <div className="stone-card-header">
+            <span className="stone-card-title flex items-center gap-2">
               <KeyRound className="h-4 w-4" />
               Foundry Integration
-            </CardTitle>
-            <CardDescription>
+            </span>
+            <p className="text-sm text-muted-foreground">
               Use this API key in the QuiverDM Foundry module settings.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </p>
+          </div>
+          <div className="stone-card-body space-y-4">
             <div className="space-y-2">
               <Label>API Key</Label>
               <div className="flex items-center gap-2">
@@ -331,21 +330,21 @@ export default function CampaignSettingsPage() {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {isOwner && (
         <>
           <Separator />
-          <Card className="border-destructive/50">
-            <CardHeader>
-              <CardTitle className="text-destructive">Danger Zone</CardTitle>
-              <CardDescription>
+          <div className="stone-card border-destructive/50">
+            <div className="stone-card-header">
+              <span className="stone-card-title text-destructive">Danger Zone</span>
+              <p className="text-sm text-muted-foreground">
                 Permanently delete this campaign and all its data.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+              </p>
+            </div>
+            <div className="stone-card-body">
               <Button
                 variant="destructive"
                 className="w-full sm:w-auto"
@@ -354,8 +353,8 @@ export default function CampaignSettingsPage() {
               >
                 {deleteCampaign.isPending ? 'Deleting...' : 'Delete Campaign'}
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </>
       )}
 

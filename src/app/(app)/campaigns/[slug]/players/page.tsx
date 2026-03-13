@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -95,17 +94,17 @@ export default function PlayersPage() {
               const char = cc.character || cc;
               const player = cc.character?.user;
               return (
-                <Card key={cc.id}>
-                  <CardHeader className="pb-2">
+                <div className="stone-card" key={cc.id}>
+                  <div className="stone-card-header pb-2">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">{char.name}</CardTitle>
+                      <span className="stone-card-title">{char.name}</span>
                       <Badge variant="secondary" className="text-xs">PENDING</Badge>
                     </div>
-                    <CardDescription>
+                    <p className="text-sm text-muted-foreground">
                       {[char.race, char.class, char.level && `Level ${char.level}`].filter(Boolean).join(' · ')}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
+                    </p>
+                  </div>
+                  <div className="stone-card-body space-y-2">
                     {player && <p className="text-xs text-muted-foreground">Player: {player.displayName || player.name}</p>}
                     {isDM && (
                       <div className="flex items-center gap-2">
@@ -129,8 +128,8 @@ export default function PlayersPage() {
                         </Button>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -144,19 +143,19 @@ export default function PlayersPage() {
             const char = cc.character || cc;
             const player = cc.character?.user;
             return (
-              <Card key={cc.id}>
-                <CardHeader className="pb-2">
+              <div className="stone-card" key={cc.id}>
+                <div className="stone-card-header pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">{char.name}</CardTitle>
+                    <span className="stone-card-title">{char.name}</span>
                     <Badge variant={cc.status === 'ACTIVE' ? 'default' : 'secondary'} className="text-xs">
                       {cc.status}
                     </Badge>
                   </div>
-                  <CardDescription>
+                  <p className="text-sm text-muted-foreground">
                     {[char.race, char.class, char.level && `Level ${char.level}`].filter(Boolean).join(' · ')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
+                  </p>
+                </div>
+                <div className="stone-card-body space-y-2">
                   {player && <p className="text-xs text-muted-foreground">Player: {player.displayName || player.name}</p>}
                   {isDM && (
                     <div className="flex items-center gap-2">
@@ -190,8 +189,8 @@ export default function PlayersPage() {
                       </Button>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
