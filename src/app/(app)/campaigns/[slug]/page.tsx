@@ -31,12 +31,24 @@ export default function CampaignOverviewPage() {
     { campaignId },
     { enabled: !isDM, staleTime: 120_000 }
   );
+  const stateQuery = trpc.brain.state.get.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 60_000 }
+  );
 
   const isLoading =
     campaignQuery.isLoading || sessionsQuery.isLoading;
 
   const campaign = campaignQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
+  const pressures = stateQuery.data as any;
+  const hasPressures = isDM && pressures && ([
+    'pressurePolitical',
+    'pressureSupernatural',
+    'pressureEconomic',
+    'pressureCosmic',
+    'pressureSocial',
+  ] as const).some((key) => typeof pressures[key] === 'number' && pressures[key] > 0);
   const statStrip = (
     <div className="stone-card flex divide-x" style={{ borderColor: 'hsl(35 35% 18%)' }}>
       {[
@@ -187,6 +199,48 @@ export default function CampaignOverviewPage() {
     </div>
   );
 
+  const pressureCard = hasPressures ? (
+    <div className="stone-card">
+      <div className="stone-card-header">
+        <span className="stone-card-title">World Pressure</span>
+      </div>
+      <div className="stone-card-body space-y-2">
+        {([
+          ['Political', 'pressurePolitical'],
+          ['Supernatural', 'pressureSupernatural'],
+          ['Economic', 'pressureEconomic'],
+          ['Cosmic', 'pressureCosmic'],
+          ['Social', 'pressureSocial'],
+        ] as const).map(([label, field]) => {
+          const raw = typeof pressures[field] === 'number' ? pressures[field] : 0;
+          const value = Math.round(raw * 100);
+          if (value === 0) return null;
+          return (
+            <div key={field} className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">{label}</span>
+                <span className="text-xs font-mono text-amber-400/80">{value}%</span>
+              </div>
+              <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${value}%`,
+                    background: value > 75
+                      ? 'hsl(0 62% 50%)'
+                      : value > 50
+                      ? 'hsl(35 80% 55%)'
+                      : 'hsl(35 50% 40%)',
+                  }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div className="space-y-6">
       {statStrip}
@@ -197,6 +251,7 @@ export default function CampaignOverviewPage() {
       <div className="grid gap-6 md:grid-cols-3">
         {lastSessionCard}
         {sidePanel}
+        {pressureCard}
       </div>
     </div>
   );
