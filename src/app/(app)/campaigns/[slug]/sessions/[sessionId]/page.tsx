@@ -19,6 +19,7 @@ import { CombatCopiloterPanel } from '@/components/session/combat-copilot-panel'
 import { PlayerRecapPanel } from '@/components/session/player-recap-panel';
 import { AudioRecorder } from '@/components/session/audio-recorder';
 import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
+import { CockpitLayout, CockpitPanelHeader } from '@/components/session/cockpit-layout';
 import { SessionEventsReview } from '@/components/session/SessionEventsReview';
 import { ExportToFoundryButton } from '@/components/foundry/ExportToFoundryButton';
 import { useToast } from '@/hooks/use-toast';
@@ -848,7 +849,86 @@ export default function SessionDetailPage() {
 
   return (
     <>
-      <div className="space-y-5">
+      {/* ── Cockpit layout (lg+) ──────────────────────────────────────── */}
+      {isDM && (
+        <CockpitLayout
+          left={
+            <>
+              <CockpitPanelHeader title="Session" />
+              <div className="p-3 space-y-3 flex-1">
+                <div className="stone-card">
+                  <div className="stone-card-body text-center">
+                    <div className="stat-value">#{String(data.sessionNumber ?? 1).padStart(2, '0')}</div>
+                    <div className="stat-label">Session</div>
+                  </div>
+                </div>
+                <div className="stone-card">
+                  <div className="stone-card-body text-center">
+                    <div className="stat-value text-xs">{STATUS_LABELS[sessionStatus] ?? sessionStatus.replace(/_/g, ' ')}</div>
+                    <div className="stat-label">Status</div>
+                  </div>
+                </div>
+                {data.createdAt && (
+                  <div className="stone-card">
+                    <div className="stone-card-body text-center">
+                      <div className="stat-value text-xs">{format(new Date(data.createdAt), 'MMM d')}</div>
+                      <div className="stat-label">Date</div>
+                    </div>
+                  </div>
+                )}
+                {isPlanning && (
+                  <Button
+                    size="sm"
+                    className="w-full gap-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                    onClick={() => startSession.mutate({ id: sessionId })}
+                    disabled={startSession.isPending}
+                  >
+                    <PlayCircle className="h-3.5 w-3.5" />
+                    {startSession.isPending ? 'Starting…' : 'Start Session'}
+                  </Button>
+                )}
+                {isActive && (
+                  <Button
+                    size="sm"
+                    className="w-full gap-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                    onClick={() => router.push(`/campaigns/${slug}/sessions/${sessionId}/live`)}
+                  >
+                    <Swords className="h-3.5 w-3.5" />
+                    Continue Session
+                  </Button>
+                )}
+              </div>
+            </>
+          }
+          center={
+            <>
+              <CockpitPanelHeader title="Transcript" />
+              <div className="flex-1 overflow-y-auto p-3">
+                <TranscriptViewer sessionId={sessionId} canView={canSeeFullSessionContent} />
+              </div>
+            </>
+          }
+          right={
+            <>
+              <CockpitPanelHeader title="Combat" />
+              <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                <LoadEncounterPlanDialog campaignId={campaignId} sessionId={sessionId} />
+                <EncounterTracker sessionId={sessionId} isDM={isDM} />
+                <DerailmentPanel
+                  sessionId={sessionId}
+                  data={derailmentData}
+                  status={derailmentStatus}
+                  onAnalyze={() => runDerailmentDetector.mutate({ campaignId, sessionId })}
+                  isAnalyzing={runDerailmentDetector.isPending || derailmentStatus === 'pending'}
+                />
+              </div>
+            </>
+          }
+        />
+      )}
+
+      {/* ── Stacked layout (mobile / tablet) ─────────────────────────── */}
+      <div className="lg:hidden space-y-5">
 
         {/* ── Hero Section ──────────────────────────────────────────────── */}
         <div className="relative overflow-hidden rounded-xl h-48">
