@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -67,14 +66,14 @@ export default function NPCsPage() {
           ))}
         </div>
       ) : npcs.isError ? (
-        <Card className="p-8 text-center">
+        <div className="stone-card p-8 text-center">
           <p className="text-sm text-muted-foreground">Failed to load NPCs. Please refresh.</p>
-        </Card>
+        </div>
       ) : npcs.data && (npcs.data as any[]).length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(npcs.data as any[]).map((npc) => (
             <Link key={npc.id} href={`/campaigns/${slug}/npcs/${npc.id}`}>
-              <Card className="glass-panel h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
+              <div className="stone-card glass-panel h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
                 {npc.imageUrl ? (
                   <div className="relative h-24 w-full">
                     <Image src={npc.imageUrl} alt={npc.name} fill className="object-cover" />
@@ -82,28 +81,28 @@ export default function NPCsPage() {
                 ) : (
                   <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                 )}
-                <CardHeader className="pb-2">
+                <div className="stone-card-header pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">{npc.name}</CardTitle>
+                    <span className="stone-card-title">{npc.name}</span>
                     {npc.faction && (
                       <Badge variant="outline" className="text-xs">
                         {npc.faction}
                       </Badge>
                     )}
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="line-clamp-3">
+                </div>
+                <div className="stone-card-body">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
                     {npc.description || 'No description'}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+                  </p>
+                </div>
+              </div>
             </Link>
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="stone-card">
+          <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
             <Users className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No NPCs yet</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm">
@@ -116,8 +115,8 @@ export default function NPCsPage() {
                 </Link>
               </Button>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );

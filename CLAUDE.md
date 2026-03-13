@@ -253,6 +253,40 @@ Keep the project root clean. Use these locations:
 - No purple gradients on white — this isn't a startup landing page
 - Research how BG3, D&D Beyond, and Roll20 handle specific UI patterns before building
 
+## Design Context
+
+### Users
+Dungeon Masters running tabletop RPG sessions — managing NPCs, session prep, homebrew content, players, and campaign arcs. Context: often at the table, sometimes on mobile, always time-pressured before a session. Job to be done: walk into every session feeling like the world is alive and under control.
+
+### Brand Personality
+**Arcane, Commanding, Alive.**
+The tool feels like a living artefact — ancient intelligence, DM authority, a world that breathes. Not a productivity app that happens to handle D&D. A world-state engine that happens to have a UI.
+
+### Emotional Goals (all four, simultaneously)
+- **Prepared & confident** — everything is ready, the world is under control
+- **Excited & pulled in** — opening QuiverDM creates anticipation, like cracking a campaign book
+- **Focused & in flow** — friction disappears, the DM's mind goes straight to the story
+- **Immersed & in world** — the interface feels like part of the game world, not software on top of it
+
+### Aesthetic Direction
+- **Fonts:** Cinzel (display/headings — Roman inscribed, weight and authority), Bricolage Grotesque (body — modern, readable), JetBrains Mono (stats, dice, code)
+- **Colors:** Deep indigo-black background (`oklch(0.12 0.005 265)`), warm amber/gold primary (`oklch(0.7 0.16 55)`), semi-transparent glass cards, near-invisible borders
+- **Atmosphere:** Ambient glow layers (amber candlelight upper-left, mystical purple upper-right), grain overlays, vignette edges, breathing ambient animation
+- **Surface system:** Stone cards (dark gradient + amber-tinted borders, 3px radius), glass panels (backdrop-blur), section-rule amber lines, overline labels in Cinzel
+
+### Anti-References (never look like these)
+- **Notion / Linear** — white space, enterprise-neutral, productivity SaaS
+- **Fantasy stock art** — parchment textures, generic dragons, medieval clipart
+- **Roll20 dashboard** — grey panels, dense tables, utility-first dated UI
+- **AI startup landing page** — purple gradients, glowing orbs, Inter everywhere, LLM-product aesthetic
+
+### Design Principles
+1. **The world breathes** — static states are a failure mode. Use ambient animation, glow, and grain to make every surface feel alive.
+2. **Authority through restraint** — amber is precious. Use it for one thing per screen. Everything else defers to it.
+3. **Glass over stone** — layer transparency and depth rather than flat fills. Cards float in space; they don't sit on a page.
+4. **DM at the table** — every interaction must work at 44px minimum touch target, one hand, low light, mid-session panic.
+5. **Story, not software** — copy, labels, and empty states should feel like the world speaking, not the app explaining itself.
+
 ## Maintenance
 
 Keep this file synced with architecture changes (router count, scripts, and deployment-critical flows).

@@ -5,7 +5,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -38,16 +37,18 @@ export default function CampaignOverviewPage() {
 
   const campaign = campaignQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
-  const statPills = (
-    <div className="flex gap-3 flex-wrap">
-      <Badge variant="secondary">Campaign</Badge>
-      <Badge variant="outline">
-        {sessionsQuery.data?.length ?? 0} Session{(sessionsQuery.data?.length ?? 0) === 1 ? '' : 's'}
-      </Badge>
-      <Badge variant="outline">
-        {membersQuery.data?.length ?? 0} Member{(membersQuery.data?.length ?? 0) === 1 ? '' : 's'}
-      </Badge>
-      {campaign?.isPublic ? <Badge>Public</Badge> : <Badge variant="secondary">Private</Badge>}
+  const statStrip = (
+    <div className="stone-card flex divide-x" style={{ borderColor: 'hsl(35 35% 18%)' }}>
+      {[
+        { value: sessionsQuery.data?.length ?? 0, label: 'Sessions' },
+        { value: membersQuery.data?.length ?? 0, label: 'Members' },
+        { value: campaign?.isPublic ? 'Public' : 'Private', label: 'Visibility' },
+      ].map(({ value, label }) => (
+        <div key={label} className="stone-card-body flex-1 text-center" style={{ borderColor: 'hsl(35 35% 18%)' }}>
+          <div className="stat-value">{value}</div>
+          <div className="stat-label">{label}</div>
+        </div>
+      ))}
     </div>
   );
 
@@ -71,16 +72,16 @@ export default function CampaignOverviewPage() {
 
   // ─── Last session card ───────────────────────────────────────────────────────
   const lastSessionCard = (
-    <Card className="relative overflow-hidden md:col-span-2">
+    <div className="stone-card relative overflow-hidden md:col-span-2">
       {lastSession && (
         <span className="absolute right-4 top-2 text-8xl font-bold text-foreground/5 select-none leading-none pointer-events-none">
           #{lastSession.sessionNumber}
         </span>
       )}
-      <CardHeader>
-        <CardTitle className="text-base">Last Session</CardTitle>
-      </CardHeader>
-      <CardContent>
+      <div className="stone-card-header">
+        <span className="stone-card-title">Last Session</span>
+      </div>
+      <div className="stone-card-body">
         {lastSession ? (
           <div className="space-y-3">
             <div>
@@ -119,17 +120,17 @@ export default function CampaignOverviewPage() {
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 
   // ─── Quick actions (DM) / Members (player) ───────────────────────────────────
   const sidePanel = isDM ? (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Quick Actions</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-2">
+    <div className="stone-card">
+      <div className="stone-card-header">
+        <span className="stone-card-title">Quick Actions</span>
+      </div>
+      <div className="stone-card-body flex flex-col gap-2">
         <Button asChild variant="outline" className="justify-start gap-3 h-11">
           <Link href={`/campaigns/${slug}/sessions`}>
             <Play className="h-4 w-4" />
@@ -154,14 +155,14 @@ export default function CampaignOverviewPage() {
             Campaign Settings
           </Link>
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   ) : (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Party</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="stone-card">
+      <div className="stone-card-header">
+        <span className="stone-card-title">Party</span>
+      </div>
+      <div className="stone-card-body">
         {membersQuery.isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
@@ -182,13 +183,13 @@ export default function CampaignOverviewPage() {
         ) : (
           <p className="text-sm text-muted-foreground">No members yet.</p>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 
   return (
     <div className="space-y-6">
-      {statPills}
+      {statStrip}
       <div>
         <p className="label-overline mb-1">Session History</p>
         <div className="section-rule" />

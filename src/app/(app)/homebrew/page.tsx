@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
@@ -113,9 +113,9 @@ export default function HomebrewPage() {
           ))}
         </div>
       ) : content.isError ? (
-        <Card className="p-8 text-center">
+        <div className="stone-card p-8 text-center">
           <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
-        </Card>
+        </div>
       ) : content.data && (content.data as any).items?.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {((content.data as any).items || []).map((item: any) => (
@@ -127,8 +127,8 @@ export default function HomebrewPage() {
           ))}
         </div>
       ) : content.data ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="stone-card">
+          <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No homebrew content yet</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm">
@@ -137,8 +137,8 @@ export default function HomebrewPage() {
             <Button asChild size="sm">
               <Link href="/homebrew/pdfs">Upload PDF</Link>
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : null}
 
       <CreateHomebrewDialog

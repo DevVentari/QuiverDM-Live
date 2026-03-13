@@ -63,7 +63,7 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-white/10 text-foreground border-l-2 border-primary shadow-[inset_0_0_0_1px_hsl(240_20%_85%_/_0.14)]'
+                  ? 'bg-white/[0.08] text-foreground'
                   : 'text-muted-foreground hover:bg-white/5 hover:text-foreground',
                 collapsed && 'justify-center px-2'
               )}
@@ -94,7 +94,7 @@ export function MobileSidebar() {
             className={cn(
               'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
               isActive
-                ? 'bg-white/10 text-foreground border-l-2 border-primary shadow-[inset_0_0_0_1px_hsl(240_20%_85%_/_0.14)]'
+                ? 'bg-white/[0.08] text-foreground'
                 : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
             )}
           >

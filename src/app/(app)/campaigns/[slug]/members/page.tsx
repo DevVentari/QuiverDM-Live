@@ -3,7 +3,6 @@
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { InviteDialog } from '@/components/campaign/invite-dialog';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -88,8 +87,8 @@ export default function MembersPage() {
             .slice(0, 2);
 
           return (
-            <Card key={member.id}>
-              <CardContent className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-3">
+            <div className="stone-card" key={member.id}>
+              <div className="stone-card-body flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 py-3">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarImage src={user.image || undefined} />
@@ -146,8 +145,8 @@ export default function MembersPage() {
                     </Button>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
       </div>

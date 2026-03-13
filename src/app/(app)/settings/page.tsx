@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -286,14 +286,14 @@ export default function SettingsPage() {
       ) : usage.data ? (
         <>
           {/* Current Plan Card */}
-          <Card>
-            <CardHeader>
+          <div className="stone-card">
+            <div className="stone-card-header">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Usage &amp; Limits</CardTitle>
-                  <CardDescription>
+                  <span className="stone-card-title">Usage &amp; Limits</span>
+                  <p className="text-sm text-muted-foreground">
                     Your current plan and resource usage
-                  </CardDescription>
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <PlanBadge tier={usage.data.tier} />
@@ -314,8 +314,8 @@ export default function SettingsPage() {
                   )}
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
+            </div>
+            <div className="stone-card-body space-y-6">
               {/* Subscription Status */}
               {billingStatus.data && (
                 <div className="rounded-lg border bg-muted/50 p-3 text-sm">
@@ -579,28 +579,28 @@ export default function SettingsPage() {
                   Resets on {new Date(usage.data.periodEnd).toLocaleDateString()}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </>
       ) : usage.isError ? (
-        <Card>
-          <CardContent className="py-6">
+        <div className="stone-card">
+          <div className="stone-card-body py-6">
             <p className="text-sm text-destructive">Failed to load usage data. Please try refreshing the page.</p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : null}
 
-      <Card>
-        <CardHeader>
+      <div className="stone-card">
+        <div className="stone-card-header">
           <div className="flex items-center gap-3">
-            <CardTitle>Profile</CardTitle>
+            <span className="stone-card-title">Profile</span>
             {profile.data?.platformRole && (
               <RoleBadge role={profile.data.platformRole as PlatformRole} />
             )}
           </div>
-          <CardDescription>Your public display information</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">Your public display information</p>
+        </div>
+        <div className="stone-card-body space-y-4">
           {profile.isLoading ? (
             <div className="space-y-3">
               <Skeleton className="h-10 w-full" />
@@ -651,15 +651,15 @@ export default function SettingsPage() {
               </Button>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Password</CardTitle>
-          <CardDescription>Change your account password</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="stone-card">
+        <div className="stone-card-header">
+          <span className="stone-card-title">Password</span>
+          <p className="text-sm text-muted-foreground">Change your account password</p>
+        </div>
+        <div className="stone-card-body space-y-4">
           {passwordError && (
             <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
               {passwordError}
@@ -715,18 +715,18 @@ export default function SettingsPage() {
             {changePassword.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
             Change Password
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
+      <div className="stone-card">
+        <div className="stone-card-header">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>API Keys</CardTitle>
-              <CardDescription>
+              <span className="stone-card-title">API Keys</span>
+              <p className="text-sm text-muted-foreground">
                 Configure API keys for AI extraction and integrations.
                 Keys are encrypted at rest.
-              </CardDescription>
+              </p>
             </div>
             <Link href="/settings/api-usage">
               <Button variant="outline" size="sm">
@@ -735,8 +735,8 @@ export default function SettingsPage() {
               </Button>
             </Link>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        </div>
+        <div className="stone-card-body space-y-6">
           {keyConfigs.map((config) => {
             const hasKey = data[config.hasField];
             const masked = data[config.maskedField];
@@ -836,18 +836,18 @@ export default function SettingsPage() {
               </div>
             );
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {profile.data?.platformRole && hasMinimumRole(profile.data.platformRole as PlatformRole, PlatformRole.WARDEN) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Admin</CardTitle>
-            <CardDescription>
+        <div className="stone-card">
+          <div className="stone-card-header">
+            <span className="stone-card-title">Admin</span>
+            <p className="text-sm text-muted-foreground">
               Administrative tools and settings
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+            </p>
+          </div>
+          <div className="stone-card-body space-y-4">
             <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors">
               <div className="flex items-center gap-3">
                 <Ticket className="h-5 w-5 text-muted-foreground" />
@@ -865,16 +865,16 @@ export default function SettingsPage() {
                 </Button>
               </Link>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Display and visual preferences</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="stone-card">
+        <div className="stone-card-header">
+          <span className="stone-card-title">Appearance</span>
+          <p className="text-sm text-muted-foreground">Display and visual preferences</p>
+        </div>
+        <div className="stone-card-body">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MonitorPlay className="h-5 w-5 text-muted-foreground" />
@@ -891,17 +891,17 @@ export default function SettingsPage() {
               disabled={updatePreferences.isPending}
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card className="border-destructive/30">
-        <CardHeader>
-          <CardTitle className="text-destructive">Delete Account</CardTitle>
-          <CardDescription>
+      <div className="stone-card border-destructive/30">
+        <div className="stone-card-header">
+          <span className="stone-card-title text-destructive">Delete Account</span>
+          <p className="text-sm text-muted-foreground">
             Permanently delete your account and all campaign data. This cannot be undone.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div className="stone-card-body">
           <Button
             variant="destructive"
             size="sm"
@@ -911,8 +911,8 @@ export default function SettingsPage() {
             <Trash2 className="h-4 w-4 mr-2" />
             Delete My Account
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <ConfirmDialog
         open={cancelDialogOpen}
