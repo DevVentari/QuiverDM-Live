@@ -4,9 +4,7 @@ import Link from 'next/link';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PressureGauges } from '@/components/brain/pressure-gauges';
 import { HookList } from '@/components/brain/hook-list';
@@ -184,13 +182,11 @@ export default function BrainPage() {
               {/* Session Seed — Major Developments */}
               <SessionSeedCard campaignId={campaignId} />
               {/* Pressure Gauges */}
-              <Card className="glass-panel">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    World Pressure
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="stone-card">
+                <div className="stone-card-header">
+                  <span className="stone-card-title">World Pressure</span>
+                </div>
+                <div className="stone-card-body">
                   {stateQuery.isLoading ? (
                     <div className="space-y-3">
                       {[1, 2, 3, 4, 5].map((i) => (
@@ -202,17 +198,15 @@ export default function BrainPage() {
                   ) : state ? (
                     <PressureGauges state={state} />
                   ) : null}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Open Hooks */}
-              <Card className="glass-panel">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Open Hooks
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="stone-card">
+                <div className="stone-card-header">
+                  <span className="stone-card-title">Open Hooks</span>
+                </div>
+                <div className="stone-card-body">
                   {stateQuery.isLoading ? (
                     <div className="space-y-2">
                       {[1, 2, 3].map((i) => (
@@ -222,15 +216,13 @@ export default function BrainPage() {
                   ) : (
                     <HookList hooks={hooks.slice(0, 5)} onResolve={handleResolveHook} />
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Recent Entities */}
-              <Card className="glass-panel">
-                <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Entities
-                  </CardTitle>
+              <div className="stone-card">
+                <div className="stone-card-header">
+                  <span className="stone-card-title">Entities</span>
                   <Link
                     href={`/campaigns/${slug}/brain/entities`}
                     className="flex items-center gap-1 text-xs text-primary hover:underline"
@@ -238,8 +230,8 @@ export default function BrainPage() {
                     View all
                     <ChevronRight className="h-3 w-3" />
                   </Link>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                </div>
+                <div className="stone-card-body space-y-4">
                   {entitiesQuery.isLoading ? (
                     <div className="grid gap-3 sm:grid-cols-2">
                       {[1, 2, 3, 4].map((i) => (
@@ -272,20 +264,18 @@ export default function BrainPage() {
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
 
             {/* Right column — stats + timeline */}
             <div className="space-y-6">
               {/* Entity counts */}
-              <Card className="glass-panel">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Entity Counts
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="stone-card">
+                <div className="stone-card-header">
+                  <span className="stone-card-title">Entity Counts</span>
+                </div>
+                <div className="stone-card-body">
                   {entitiesQuery.isLoading ? (
                     <div className="space-y-2">
                       {[1, 2, 3, 4].map((i) => (
@@ -307,24 +297,22 @@ export default function BrainPage() {
                           <span className="text-sm font-mono tabular-nums text-foreground">{count}</span>
                         </li>
                       ))}
-                      <Separator className="my-1" />
+                      <div className="section-rule my-1" />
                       <li className="flex items-center justify-between">
                         <span className="text-sm font-medium">Total</span>
                         <span className="text-sm font-mono tabular-nums">{entities.length}</span>
                       </li>
                     </ul>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Recent Timeline */}
-              <Card className="glass-panel">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Recent Changes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+              <div className="stone-card">
+                <div className="stone-card-header">
+                  <span className="stone-card-title">Recent Changes</span>
+                </div>
+                <div className="stone-card-body">
                   {timelineQuery.isLoading ? (
                     <div className="space-y-2">
                       {[1, 2, 3, 4, 5].map((i) => (
@@ -348,39 +336,35 @@ export default function BrainPage() {
                       ))}
                     </ul>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
         </TabsContent>
 
         {/* Graph Tab */}
         <TabsContent value="graph">
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Entity Relationship Graph
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <span className="stone-card-title">Entity Relationship Graph</span>
+            </div>
+            <div className="stone-card-body">
               {entitiesQuery.isLoading || relationshipsQuery.isLoading ? (
                 <Skeleton className="h-[500px] w-full rounded-lg" />
               ) : (
                 <EntityGraph entities={entities} relationships={relationships} />
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Timeline Tab */}
         <TabsContent value="timeline">
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Entity Appearances by Session
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <span className="stone-card-title">Entity Appearances by Session</span>
+            </div>
+            <div className="stone-card-body">
               {entitiesQuery.isLoading || sessionsQuery.isLoading ? (
                 <Skeleton className="h-40 w-full rounded" />
               ) : (
@@ -389,19 +373,17 @@ export default function BrainPage() {
                   sessions={sessionList}
                 />
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Warnings Tab */}
         <TabsContent value="warnings">
-          <Card className="glass-panel">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                Continuity Warnings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <span className="stone-card-title">Continuity Warnings</span>
+            </div>
+            <div className="stone-card-body">
               {warningsQuery.isLoading ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
@@ -411,8 +393,8 @@ export default function BrainPage() {
               ) : (
                 <ContinuityWarnings warnings={warnings} campaignSlug={slug} />
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
