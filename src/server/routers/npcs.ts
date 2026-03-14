@@ -76,6 +76,7 @@ export const npcsRouter = router({
         secrets: z.string().max(10000).optional(),
         imageUrl: z.string().max(2048).optional(),
         stats: z.any().optional(), // JSON field for D&D stats
+        playerVisible: z.boolean().optional(),
       })
     )
     .mutation(({ input, ctx }) => {
