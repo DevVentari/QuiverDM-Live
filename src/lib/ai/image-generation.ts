@@ -1,13 +1,14 @@
 /**
  * Image Generation Abstraction Layer
  *
- * Provider fallback chain: ComfyUI (local) -> fal.ai Flux Dev -> Replicate SDXL -> DALL-E 3
+ * Provider fallback chain: ComfyUI (local) -> RunPod Serverless -> fal.ai Flux Dev -> Replicate SDXL -> DALL-E 3
  */
 import OpenAI from 'openai';
 import Replicate from 'replicate';
 import * as fal from '@fal-ai/serverless-client';
 import { storage } from '../storage';
 import { isComfyUIAvailable, queueComfyUIPrompt, waitForComfyUIResult } from './comfyui';
+import { isRunPodConfigured, queueRunPodJob, waitForRunPodResult } from './runpod-comfyui';
 
 export interface ImageGenerationRequest {
   homebrewId?: string;
@@ -22,7 +23,7 @@ export interface ImageGenerationRequest {
 
 export interface ImageGenerationResult {
   url: string;
-  provider: 'comfyui' | 'fal' | 'replicate' | 'dalle';
+  provider: 'comfyui' | 'runpod' | 'fal' | 'replicate' | 'dalle';
   metadata: {
     prompt: string;
     generationTimeMs: number;
@@ -90,6 +91,24 @@ async function generateWithComfyUI(request: ImageGenerationRequest): Promise<Ima
   return {
     url,
     provider: 'comfyui',
+    metadata: { prompt, generationTimeMs: Date.now() - start, model, seed, width: 1024, height: 1024, cfg: 7, steps: 20 },
+  };
+}
+
+async function generateWithRunPod(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
+  const start = Date.now();
+  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
+
+  const { jobId, seed } = await queueRunPodJob(prompt, NEGATIVE_PROMPT);
+  const imageBuffer = await waitForRunPodResult(jobId);
+
+  const key = storageKey(request.userId, resolveEntityId(request));
+  const url = await storage.upload(key, imageBuffer, 'image/png');
+  const model = process.env.COMFYUI_MODEL || 'sd_xl_base_1.0.safetensors';
+
+  return {
+    url,
+    provider: 'runpod',
     metadata: { prompt, generationTimeMs: Date.now() - start, model, seed, width: 1024, height: 1024, cfg: 7, steps: 20 },
   };
 }
@@ -215,6 +234,11 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
       name: 'comfyui',
       enabled: process.env.COMFYUI_ENABLED === 'true' || !!process.env.COMFYUI_URL,
       fn: () => generateWithComfyUI(request),
+    },
+    {
+      name: 'runpod',
+      enabled: isRunPodConfigured(),
+      fn: () => generateWithRunPod(request),
     },
     {
       name: 'fal',
