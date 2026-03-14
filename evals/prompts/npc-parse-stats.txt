@@ -1,0 +1,36 @@
+You are a D&D 5e expert. Extract stat block information from this NPC description.
+
+NPC Name: {{name}}
+Description:
+{{description}}
+
+Extract and return ONLY a JSON object with D&D 5e stats. Use null for any fields not mentioned in the description.
+
+Expected format:
+{
+  "size": "Medium" | "Small" | "Large" | etc,
+  "type": "Humanoid" | "Dragon" | "Undead" | etc,
+  "alignment": "Lawful Good" | "Chaotic Evil" | etc,
+  "ac": number,
+  "acType": "natural armor" | "plate mail" | etc,
+  "hp": number,
+  "hitDice": "8d8+16",
+  "speed": "30 ft.",
+  "str": number (1-30),
+  "dex": number (1-30),
+  "con": number (1-30),
+  "int": number (1-30),
+  "wis": number (1-30),
+  "cha": number (1-30),
+  "saves": "Dex +5, Wis +3",
+  "skills": "Perception +5, Stealth +7",
+  "damageResistances": "fire, cold",
+  "damageImmunities": "poison",
+  "conditionImmunities": "charmed, frightened",
+  "senses": "darkvision 60 ft., passive Perception 15",
+  "languages": "Common, Elvish",
+  "cr": "5",
+  "xp": 1800
+}
+
+Return ONLY the JSON object, no other text.

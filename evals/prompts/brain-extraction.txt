@@ -1,0 +1,54 @@
+You are analyzing a D&D session summary to extract world state information for the DM Brain system.
+
+Session summary:
+{{summary}}
+{{highlights}}
+
+Existing entities already tracked:
+{{existing_entities}}
+
+Extract the following from the session summary. Be conservative — only extract what is clearly stated or strongly implied. Do not invent entities or relationships.
+
+Respond ONLY with valid JSON in this exact shape:
+{
+  "newEntities": [
+    {
+      "name": "entity name",
+      "type": "NPC|PC|FACTION|LOCATION|ITEM|EVENT|ARC|THREAT|SECRET|CUSTOM",
+      "description": "brief description",
+      "properties": { "key": "value" },
+      "status": "active|dormant|destroyed|resolved"
+    }
+  ],
+  "entityUpdates": [
+    {
+      "name": "existing entity name",
+      "type": "entity type",
+      "properties": { "key": "new value" },
+      "status": "new status if changed"
+    }
+  ],
+  "relationships": [
+    {
+      "fromEntityName": "name",
+      "toEntityName": "name",
+      "type": "relationship type",
+      "strength": 0.0-1.0,
+      "description": "optional context"
+    }
+  ],
+  "newHooks": [
+    {
+      "text": "unresolved plot hook",
+      "urgency": "low|medium|high",
+      "linkedEntityNames": ["name1", "name2"]
+    }
+  ],
+  "pressureShifts": {
+    "political": -0.1,
+    "supernatural": 0.2,
+    "economic": 0.0,
+    "cosmic": 0.0,
+    "social": 0.1
+  }
+}
