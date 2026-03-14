@@ -17,19 +17,32 @@ export const playService = {
               take: 1,
               select: { id: true, title: true, date: true, status: true },
             },
+            characters: {
+              where: { character: { userId } },
+              take: 1,
+              include: {
+                character: { select: { name: true, class: true, level: true, portraitUrl: true } },
+              },
+            },
           },
         },
       },
       orderBy: { campaign: { updatedAt: 'desc' } },
     });
-    return memberships.map(m => ({
-      campaignId: m.campaignId,
-      name: m.campaign.name,
-      slug: m.campaign.slug,
-      bannerUrl: m.campaign.bannerUrl ?? null,
-      role: m.role,
-      nextSession: m.campaign.gameSessions[0] ?? null,
-    }));
+    return memberships.map(m => {
+      const cc = m.campaign.characters[0] ?? null;
+      return {
+        campaignId: m.campaignId,
+        name: m.campaign.name,
+        slug: m.campaign.slug,
+        bannerUrl: m.campaign.bannerUrl ?? null,
+        role: m.role,
+        nextSession: m.campaign.gameSessions[0] ?? null,
+        character: cc
+          ? { name: cc.character.name, class: cc.character.class ?? null, level: cc.character.level, portraitUrl: cc.character.portraitUrl ?? null }
+          : null,
+      };
+    });
   },
 
   async getCampaignHub(slug: string, userId: string) {
@@ -54,6 +67,13 @@ export const playService = {
             playerVisibility: true,
           },
         },
+        characters: {
+          where: { character: { userId } },
+          take: 1,
+          include: {
+            character: { select: { name: true, class: true, level: true, portraitUrl: true } },
+          },
+        },
       },
     });
     if (!campaign) throw new NotFoundError('campaign', slug);
@@ -65,6 +85,23 @@ export const playService = {
       s => s.playerVisibility !== 'dm-only'
     );
 
+    const cc = campaign.characters[0] ?? null;
+    const character = cc
+      ? { name: cc.character.name, class: cc.character.class ?? null, level: cc.character.level, portraitUrl: cc.character.portraitUrl ?? null }
+      : null;
+
+    const nextSession = await prisma.gameSession.findFirst({
+      where: {
+        campaignId: campaign.id,
+        OR: [
+          { status: 'in_progress' },
+          { status: 'planning', date: { gt: new Date() } },
+        ],
+      },
+      orderBy: { date: 'asc' },
+      select: { id: true, title: true, date: true, status: true, quickNotes: true },
+    });
+
     return {
       id: campaign.id,
       name: campaign.name,
@@ -73,6 +110,8 @@ export const playService = {
       bannerUrl: campaign.bannerUrl ?? null,
       members: campaign.members,
       sessions: activeSessions,
+      character,
+      nextSession: nextSession ?? null,
     };
   },
 
