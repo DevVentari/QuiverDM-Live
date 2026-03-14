@@ -97,9 +97,7 @@ export function Sidebar() {
   });
 
   const currentCampaign =
-    campaigns.data?.find((c) => c.slug === campaignSlug) ??
-    campaigns.data?.[0] ??
-    null;
+    campaigns.data?.find((c) => c.slug === campaignSlug) ?? null;
 
   return (
     <aside
