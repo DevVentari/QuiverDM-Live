@@ -94,7 +94,7 @@ export default function ApiUsagePage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-xl sm:text-2xl font-bold">API Usage</h1>
+        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">API Usage</h1>
         <Badge variant="secondary" className="text-sm">
           {formatCost(totalCost)} this period
         </Badge>

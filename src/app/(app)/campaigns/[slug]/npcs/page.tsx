@@ -82,24 +82,25 @@ function NPCsPageInner() {
           <div className="grid gap-4 sm:grid-cols-2">
             {npcList.map((npc) => (
               <Link key={npc.id} href={`/campaigns/${slug}/npcs/${npc.id}`}>
-                <div className="stone-card glass-panel h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden">
-                  {npc.imageUrl ? (
-                    <div className="relative h-24 w-full">
-                      <Image src={npc.imageUrl} alt={npc.name} fill className="object-cover" />
+                <div className="stone-card glass-panel h-full hover:border-foreground/50 transition-colors cursor-pointer overflow-hidden flex">
+                  {npc.imageUrl && (
+                    <div className="relative w-[30%] shrink-0 self-stretch">
+                      <Image src={npc.imageUrl} alt={npc.name} fill className="object-cover object-top" />
+                      <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[hsl(240,10%,11%)] to-transparent pointer-events-none" />
                     </div>
-                  ) : (
-                    <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                   )}
-                  <div className="stone-card-header pb-2">
-                    <span className="stone-card-title">{npc.name}</span>
-                    {npc.faction && (
-                      <Badge variant="outline" className="text-xs ml-auto">{npc.faction}</Badge>
-                    )}
-                  </div>
-                  <div className="stone-card-body">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {npc.description || 'No description'}
-                    </p>
+                  <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="stone-card-header pb-2 flex items-start justify-between gap-2">
+                      <span className="stone-card-title">{npc.name}</span>
+                      {npc.faction && (
+                        <Badge variant="outline" className="text-xs shrink-0">{npc.faction}</Badge>
+                      )}
+                    </div>
+                    <div className="stone-card-body pt-0">
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {npc.description || 'No description'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </Link>
@@ -111,25 +112,11 @@ function NPCsPageInner() {
       </div>
 
       {/* Desktop: split view (md+) */}
-      <div
-        className="hidden md:grid h-[calc(100vh-220px)] overflow-hidden"
-        style={{
-          gridTemplateColumns: '300px 1fr',
-          borderTop: '1px solid hsl(35 35% 18%)',
-          marginLeft: '-2rem',
-          marginRight: '-2rem',
-        }}
-      >
+      <div className="hidden md:grid h-[calc(100vh-220px)] overflow-hidden border-t border-[hsl(35,35%,18%)] -mx-8 grid-cols-[300px_1fr]">
         {/* Left: NPC List */}
-        <div
-          className="flex flex-col overflow-hidden"
-          style={{ borderRight: '1px solid hsl(35 35% 18%)' }}
-        >
+        <div className="flex flex-col overflow-hidden border-r border-[hsl(35,35%,18%)]">
           {/* List header */}
-          <div
-            className="flex items-center justify-between px-3 py-2.5 shrink-0"
-            style={{ borderBottom: '1px solid hsl(35 35% 18%)' }}
-          >
+          <div className="flex items-center justify-between px-3 py-2.5 shrink-0 border-b border-[hsl(35,35%,18%)]">
             <p className="label-overline">Characters</p>
             {isDM && (
               <Button asChild size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1">
@@ -142,7 +129,7 @@ function NPCsPageInner() {
           </div>
 
           {/* Search */}
-          <div className="px-3 py-2 shrink-0" style={{ borderBottom: '1px solid hsl(35 35% 18%)' }}>
+          <div className="px-3 py-2 shrink-0 border-b border-[hsl(35,35%,18%)]">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
@@ -156,10 +143,7 @@ function NPCsPageInner() {
 
           {/* Faction chips */}
           {factions.data && (factions.data as string[]).length > 0 && (
-            <div
-              className="flex gap-1.5 flex-wrap px-3 py-2 shrink-0"
-              style={{ borderBottom: '1px solid hsl(35 35% 18%)' }}
-            >
+            <div className="flex gap-1.5 flex-wrap px-3 py-2 shrink-0 border-b border-[hsl(35,35%,18%)]">
               {(factions.data as string[]).map((f) => (
                 <Badge
                   key={f}
@@ -210,10 +194,7 @@ function NPCsPageInner() {
             <NpcInspectorPanel npcId={selectedId} slug={slug} isDM={isDM} />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center px-8">
-              <div
-                className="h-16 w-16 rounded-full flex items-center justify-center mb-4"
-                style={{ background: 'hsl(240 10% 11%)' }}
-              >
+              <div className="h-16 w-16 rounded-full flex items-center justify-center mb-4 bg-[hsl(240,10%,11%)]">
                 <Users className="h-7 w-7 text-muted-foreground/40" />
               </div>
               <p className="text-sm font-medium text-muted-foreground">
