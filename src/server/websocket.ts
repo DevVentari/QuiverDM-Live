@@ -1,11 +1,13 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import Redis from 'ioredis';
 import type { TranscriptionProgress } from '@/lib/transcription/progress';
+import { prisma } from '@/lib/prisma';
 
 type LiveClientState = {
   sessionId: string;
   userId: string;
   campaignId: string;
+  role: string;
 };
 
 type JoinLiveMessage = {
@@ -25,7 +27,49 @@ type SubscribeMessage = {
   jobId: string;
 };
 
-type IncomingMessage = JoinLiveMessage | StopLiveMessage | SubscribeMessage | { type: 'ping' };
+type PlayerStateUpdateMessage = {
+  type: 'player:state:update';
+  sessionId: string;
+  campaignId: string;
+  userId: string;
+  hp: number;
+  maxHp: number;
+  tempHp: number;
+  conditions: string[];
+};
+
+type DmSpotlightPushMessage = {
+  type: 'dm:spotlight:push';
+  sessionId: string;
+  campaignId: string;
+  spotlightType: string;
+  content: unknown;
+};
+
+type DmSpotlightClearMessage = {
+  type: 'dm:spotlight:clear';
+  sessionId: string;
+  campaignId: string;
+};
+
+type DmInitiativeUpdateMessage = {
+  type: 'dm:initiative:update';
+  sessionId: string;
+  campaignId: string;
+  participants: unknown[];
+  currentTurnId: string | null;
+  round: number;
+};
+
+type IncomingMessage =
+  | JoinLiveMessage
+  | StopLiveMessage
+  | SubscribeMessage
+  | PlayerStateUpdateMessage
+  | DmSpotlightPushMessage
+  | DmSpotlightClearMessage
+  | DmInitiativeUpdateMessage
+  | { type: 'ping' };
 
 type LiveSessionTokenPayload = {
   userId: string;
@@ -52,6 +96,7 @@ let wss: WebSocketServer | null = null;
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
 const jobSubscriptions = new Map<string, Set<WebSocket>>();
 const liveClients = new Map<WebSocket, LiveClientState>();
+const sessionClients = new Map<string, Set<WebSocket>>();
 let liveSessionManagerPromise: Promise<LiveSessionManager | null> | null = null;
 
 async function getLiveSessionManager(): Promise<LiveSessionManager | null> {
@@ -117,6 +162,38 @@ function removeClientFromAllJobSubscriptions(ws: WebSocket) {
   }
 }
 
+function addSessionClient(ws: WebSocket, sessionId: string) {
+  if (!sessionClients.has(sessionId)) {
+    sessionClients.set(sessionId, new Set());
+  }
+  sessionClients.get(sessionId)!.add(ws);
+}
+
+function removeClientFromSession(ws: WebSocket, sessionId: string) {
+  const clients = sessionClients.get(sessionId);
+  if (!clients) {
+    return;
+  }
+  clients.delete(ws);
+  if (clients.size === 0) {
+    sessionClients.delete(sessionId);
+  }
+}
+
+function broadcastToSession(sessionId: string, payload: Record<string, unknown>, exclude?: WebSocket) {
+  const clients = sessionClients.get(sessionId);
+  if (!clients || clients.size === 0) {
+    return;
+  }
+
+  const serialized = JSON.stringify(payload);
+  for (const ws of clients) {
+    if (ws !== exclude && ws.readyState === WebSocket.OPEN) {
+      ws.send(serialized);
+    }
+  }
+}
+
 function broadcastToJobSubscribers(jobId: string, payload: Record<string, unknown>) {
   const subscribers = jobSubscriptions.get(jobId);
   if (!subscribers || subscribers.size === 0) {
@@ -161,6 +238,26 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
 
     await redis.del(tokenKey);
 
+    const member = await prisma.campaignMember.findFirst({
+      where: { userId: payload.userId, campaignId: payload.campaignId },
+      select: { role: true },
+    });
+
+    const role = member?.role ?? 'PLAYER';
+
+    liveClients.set(ws, {
+      sessionId,
+      userId: payload.userId,
+      campaignId: payload.campaignId,
+      role,
+    });
+    addSessionClient(ws, sessionId);
+
+    if (role === 'PLAYER' || role === 'SPECTATOR') {
+      sendJSON(ws, { type: 'live_session_joined', sessionId });
+      return;
+    }
+
     const manager = await getLiveSessionManager();
     if (!manager) {
       sendJSON(ws, {
@@ -171,12 +268,6 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
       ws.close(1011, 'Live session manager unavailable');
       return;
     }
-
-    liveClients.set(ws, {
-      sessionId,
-      userId: payload.userId,
-      campaignId: payload.campaignId,
-    });
 
     manager.subscribeToSession(sessionId, ws);
     const isAlreadyLive = manager.isSessionLive(sessionId);
@@ -270,6 +361,63 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
     return;
   }
 
+  if (message.type === 'player:state:update') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
+    broadcastToSession(clientState.sessionId, {
+      type: 'player:state:update',
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
+      userId: clientState.userId,
+      hp: message.hp,
+      maxHp: message.maxHp,
+      tempHp: message.tempHp,
+      conditions: message.conditions,
+    }, ws);
+    return;
+  }
+
+  if (message.type === 'dm:spotlight:push') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
+    if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
+    broadcastToSession(clientState.sessionId, {
+      type: 'dm:spotlight:push',
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
+      spotlightType: message.spotlightType,
+      content: message.content,
+    });
+    return;
+  }
+
+  if (message.type === 'dm:spotlight:clear') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
+    if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
+    broadcastToSession(clientState.sessionId, {
+      type: 'dm:spotlight:clear',
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
+    });
+    return;
+  }
+
+  if (message.type === 'dm:initiative:update') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
+    if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
+    broadcastToSession(clientState.sessionId, {
+      type: 'dm:initiative:update',
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
+      participants: message.participants,
+      currentTurnId: message.currentTurnId,
+      round: message.round,
+    });
+    return;
+  }
+
   if (message.type === 'ping') {
     sendJSON(ws, { type: 'pong' });
   }
@@ -277,7 +425,12 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
 
 async function handleSocketClose(ws: WebSocket) {
   removeClientFromAllJobSubscriptions(ws);
-  liveClients.delete(ws);
+
+  const state = liveClients.get(ws);
+  if (state) {
+    removeClientFromSession(ws, state.sessionId);
+    liveClients.delete(ws);
+  }
 
   const manager = await getLiveSessionManager();
   manager?.removeClient(ws);
