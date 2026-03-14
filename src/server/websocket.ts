@@ -25,7 +25,49 @@ type SubscribeMessage = {
   jobId: string;
 };
 
-type IncomingMessage = JoinLiveMessage | StopLiveMessage | SubscribeMessage | { type: 'ping' };
+type PlayerStateUpdateMessage = {
+  type: 'player:state:update';
+  sessionId: string;
+  campaignId: string;
+  userId: string;
+  hp: number;
+  maxHp: number;
+  tempHp: number;
+  conditions: string[];
+};
+
+type DmSpotlightPushMessage = {
+  type: 'dm:spotlight:push';
+  sessionId: string;
+  campaignId: string;
+  spotlightType: string;
+  content: unknown;
+};
+
+type DmSpotlightClearMessage = {
+  type: 'dm:spotlight:clear';
+  sessionId: string;
+  campaignId: string;
+};
+
+type DmInitiativeUpdateMessage = {
+  type: 'dm:initiative:update';
+  sessionId: string;
+  campaignId: string;
+  participants: unknown[];
+  currentTurnId: string | null;
+  round: number;
+};
+
+type IncomingMessage =
+  | JoinLiveMessage
+  | StopLiveMessage
+  | SubscribeMessage
+  | PlayerStateUpdateMessage
+  | DmSpotlightPushMessage
+  | DmSpotlightClearMessage
+  | DmInitiativeUpdateMessage
+  | { type: 'ping' };
 
 type LiveSessionTokenPayload = {
   userId: string;
@@ -52,6 +94,7 @@ let wss: WebSocketServer | null = null;
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
 const jobSubscriptions = new Map<string, Set<WebSocket>>();
 const liveClients = new Map<WebSocket, LiveClientState>();
+const sessionClients = new Map<string, Set<WebSocket>>();
 let liveSessionManagerPromise: Promise<LiveSessionManager | null> | null = null;
 
 async function getLiveSessionManager(): Promise<LiveSessionManager | null> {
@@ -117,6 +160,38 @@ function removeClientFromAllJobSubscriptions(ws: WebSocket) {
   }
 }
 
+function addSessionClient(ws: WebSocket, sessionId: string) {
+  if (!sessionClients.has(sessionId)) {
+    sessionClients.set(sessionId, new Set());
+  }
+  sessionClients.get(sessionId)!.add(ws);
+}
+
+function removeClientFromSession(ws: WebSocket, sessionId: string) {
+  const clients = sessionClients.get(sessionId);
+  if (!clients) {
+    return;
+  }
+  clients.delete(ws);
+  if (clients.size === 0) {
+    sessionClients.delete(sessionId);
+  }
+}
+
+function broadcastToSession(sessionId: string, payload: Record<string, unknown>, exclude?: WebSocket) {
+  const clients = sessionClients.get(sessionId);
+  if (!clients || clients.size === 0) {
+    return;
+  }
+
+  const serialized = JSON.stringify(payload);
+  for (const ws of clients) {
+    if (ws !== exclude && ws.readyState === WebSocket.OPEN) {
+      ws.send(serialized);
+    }
+  }
+}
+
 function broadcastToJobSubscribers(jobId: string, payload: Record<string, unknown>) {
   const subscribers = jobSubscriptions.get(jobId);
   if (!subscribers || subscribers.size === 0) {
@@ -177,6 +252,7 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
       userId: payload.userId,
       campaignId: payload.campaignId,
     });
+    addSessionClient(ws, sessionId);
 
     manager.subscribeToSession(sessionId, ws);
     const isAlreadyLive = manager.isSessionLive(sessionId);
@@ -270,6 +346,52 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
     return;
   }
 
+  if (message.type === 'player:state:update') {
+    broadcastToSession(message.sessionId, {
+      type: 'player:state:update',
+      sessionId: message.sessionId,
+      campaignId: message.campaignId,
+      userId: message.userId,
+      hp: message.hp,
+      maxHp: message.maxHp,
+      tempHp: message.tempHp,
+      conditions: message.conditions,
+    }, ws);
+    return;
+  }
+
+  if (message.type === 'dm:spotlight:push') {
+    broadcastToSession(message.sessionId, {
+      type: 'dm:spotlight:push',
+      sessionId: message.sessionId,
+      campaignId: message.campaignId,
+      spotlightType: message.spotlightType,
+      content: message.content,
+    });
+    return;
+  }
+
+  if (message.type === 'dm:spotlight:clear') {
+    broadcastToSession(message.sessionId, {
+      type: 'dm:spotlight:clear',
+      sessionId: message.sessionId,
+      campaignId: message.campaignId,
+    });
+    return;
+  }
+
+  if (message.type === 'dm:initiative:update') {
+    broadcastToSession(message.sessionId, {
+      type: 'dm:initiative:update',
+      sessionId: message.sessionId,
+      campaignId: message.campaignId,
+      participants: message.participants,
+      currentTurnId: message.currentTurnId,
+      round: message.round,
+    });
+    return;
+  }
+
   if (message.type === 'ping') {
     sendJSON(ws, { type: 'pong' });
   }
@@ -277,7 +399,12 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
 
 async function handleSocketClose(ws: WebSocket) {
   removeClientFromAllJobSubscriptions(ws);
-  liveClients.delete(ws);
+
+  const state = liveClients.get(ws);
+  if (state) {
+    removeClientFromSession(ws, state.sessionId);
+    liveClients.delete(ws);
+  }
 
   const manager = await getLiveSessionManager();
   manager?.removeClient(ws);
