@@ -243,6 +243,21 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
       select: { role: true },
     });
 
+    const role = member?.role ?? 'PLAYER';
+
+    liveClients.set(ws, {
+      sessionId,
+      userId: payload.userId,
+      campaignId: payload.campaignId,
+      role,
+    });
+    addSessionClient(ws, sessionId);
+
+    if (role === 'PLAYER' || role === 'SPECTATOR') {
+      sendJSON(ws, { type: 'live_session_joined', sessionId });
+      return;
+    }
+
     const manager = await getLiveSessionManager();
     if (!manager) {
       sendJSON(ws, {
@@ -253,14 +268,6 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
       ws.close(1011, 'Live session manager unavailable');
       return;
     }
-
-    liveClients.set(ws, {
-      sessionId,
-      userId: payload.userId,
-      campaignId: payload.campaignId,
-      role: member?.role ?? 'PLAYER',
-    });
-    addSessionClient(ws, sessionId);
 
     manager.subscribeToSession(sessionId, ws);
     const isAlreadyLive = manager.isSessionLive(sessionId);
