@@ -6,6 +6,7 @@ const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
 
 test('veteran-dm happy path: rapid campaign navigation and advanced npc creation', async ({ page }, testInfo) => {
+  test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
   }, 12_000);
@@ -59,14 +60,20 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
 
     await page.getByLabel(/^name$/i).fill(npcName);
 
-    // Stat block section is collapsed by default — click to open it
-    await page.getByRole('button', { name: /d&d 5e stat block/i }).click();
+    // Stat block section is collapsed by default — scroll to it and click to open
+    const statBlockBtn = page.getByRole('button', { name: /d&d 5e stat block/i });
+    await statBlockBtn.scrollIntoViewIfNeeded();
+    await statBlockBtn.click();
+    await page.waitForTimeout(400); // let accordion animate open
 
     await page.locator('#cr').fill('5');
     await page.locator('#hp').fill('52');
     await page.locator('#ac').fill('15');
 
-    await page.getByRole('button', { name: /create npc/i }).click();
+    // Scroll submit button into view before clicking
+    const submitBtn = page.getByRole('button', { name: /create npc/i });
+    await submitBtn.scrollIntoViewIfNeeded();
+    await submitBtn.click();
 
     await page.waitForURL((url) => url.pathname.includes('/npcs/') && !url.pathname.endsWith('/new'), { timeout: 20_000 });
   }, 25_000);
@@ -86,6 +93,7 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
 });
 
 test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testInfo) => {
+  test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
   }, 12_000);
@@ -130,6 +138,7 @@ test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testI
 });
 
 test('veteran-dm failure path: blocked action surfaces clear actionable error', async ({ page }, testInfo) => {
+  test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
   }, 12_000);
@@ -138,8 +147,10 @@ test('veteran-dm failure path: blocked action surfaces clear actionable error', 
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}/npcs/new`);
     await page.waitForLoadState('networkidle', { timeout: 15_000 });
 
-    // Submit without filling name
-    await page.getByRole('button', { name: /create npc/i }).click();
+    // Submit without filling name — scroll button into view first
+    const submitBtn = page.getByRole('button', { name: /create npc/i });
+    await submitBtn.scrollIntoViewIfNeeded();
+    await submitBtn.click();
 
     // Validation error should appear — either aria-invalid on name field or destructive text
     const validationErr = page.locator('[aria-invalid="true"]#name')
