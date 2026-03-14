@@ -123,6 +123,13 @@ export const playService = {
   },
 
   async getPlayerSessionState(sessionId: string, userId: string) {
+    const session = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: { campaign: { select: { members: { where: { userId }, select: { id: true } } } } },
+    });
+    if (!session) throw new NotFoundError('session', sessionId);
+    if (!session.campaign.members.length) throw ForbiddenError.forPermission('view', 'session state');
+
     return prisma.playerSessionState.findUnique({
       where: { sessionId_userId: { sessionId, userId } },
     });
@@ -133,6 +140,13 @@ export const playService = {
     userId: string,
     data: { hp: number; maxHp: number; tempHp?: number; conditions?: string[]; spellSlots?: Record<string, unknown>; hitDice?: Record<string, unknown> }
   ) {
+    const session = await prisma.gameSession.findUnique({
+      where: { id: sessionId },
+      select: { campaign: { select: { members: { where: { userId }, select: { id: true } } } } },
+    });
+    if (!session) throw new NotFoundError('session', sessionId);
+    if (!session.campaign.members.length) throw ForbiddenError.forPermission('update', 'session state');
+
     const conditions = (data.conditions ?? []) as Prisma.InputJsonValue;
     const spellSlots = (data.spellSlots ?? {}) as Prisma.InputJsonValue;
     const hitDice = (data.hitDice ?? {}) as Prisma.InputJsonValue;
