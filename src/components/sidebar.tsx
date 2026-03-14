@@ -341,6 +341,26 @@ export function Sidebar() {
 
       {/* Bottom */}
       <div className="border-t border-[hsl(35_35%_18%)] py-2">
+        {!collapsed && (
+          <div className="px-3 pb-2">
+            <div className="flex rounded-md overflow-hidden border border-white/10 text-xs">
+              <Link href="/dashboard"
+                className={cn('flex-1 px-2 py-1.5 text-center transition-colors',
+                  pathname.startsWith('/campaigns') || pathname === '/dashboard'
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'text-muted-foreground hover:bg-white/5')}>
+                DM
+              </Link>
+              <Link href="/play"
+                className={cn('flex-1 px-2 py-1.5 text-center transition-colors',
+                  pathname.startsWith('/play')
+                    ? 'bg-amber-500/20 text-amber-400'
+                    : 'text-muted-foreground hover:bg-white/5')}>
+                Player
+              </Link>
+            </div>
+          </div>
+        )}
         {inCampaign && (
           <NavItem
             href="/campaigns"
