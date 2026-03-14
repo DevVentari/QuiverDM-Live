@@ -1,11 +1,13 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import Redis from 'ioredis';
 import type { TranscriptionProgress } from '@/lib/transcription/progress';
+import { prisma } from '@/lib/prisma';
 
 type LiveClientState = {
   sessionId: string;
   userId: string;
   campaignId: string;
+  role: string;
 };
 
 type JoinLiveMessage = {
@@ -236,6 +238,11 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
 
     await redis.del(tokenKey);
 
+    const member = await prisma.campaignMember.findFirst({
+      where: { userId: payload.userId, campaignId: payload.campaignId },
+      select: { role: true },
+    });
+
     const manager = await getLiveSessionManager();
     if (!manager) {
       sendJSON(ws, {
@@ -251,6 +258,7 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
       sessionId,
       userId: payload.userId,
       campaignId: payload.campaignId,
+      role: member?.role ?? 'PLAYER',
     });
     addSessionClient(ws, sessionId);
 
@@ -347,11 +355,13 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
   }
 
   if (message.type === 'player:state:update') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
     broadcastToSession(message.sessionId, {
       type: 'player:state:update',
       sessionId: message.sessionId,
       campaignId: message.campaignId,
-      userId: message.userId,
+      userId: clientState.userId,
       hp: message.hp,
       maxHp: message.maxHp,
       tempHp: message.tempHp,
@@ -361,6 +371,9 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
   }
 
   if (message.type === 'dm:spotlight:push') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
+    if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
     broadcastToSession(message.sessionId, {
       type: 'dm:spotlight:push',
       sessionId: message.sessionId,
@@ -372,6 +385,9 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
   }
 
   if (message.type === 'dm:spotlight:clear') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
+    if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
     broadcastToSession(message.sessionId, {
       type: 'dm:spotlight:clear',
       sessionId: message.sessionId,
@@ -381,6 +397,9 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
   }
 
   if (message.type === 'dm:initiative:update') {
+    const clientState = liveClients.get(ws);
+    if (!clientState) return;
+    if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
     broadcastToSession(message.sessionId, {
       type: 'dm:initiative:update',
       sessionId: message.sessionId,
