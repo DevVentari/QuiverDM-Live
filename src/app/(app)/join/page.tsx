@@ -18,7 +18,7 @@ function JoinForm() {
 
   const acceptInvite = trpc.members.acceptInvite.useMutation({
     onSuccess: (data: any) => {
-      router.push(`/campaigns/${data.campaign?.slug || data.campaignId || '/campaigns'}`);
+      router.push(`/campaigns/${data.campaignSlug || data.campaign?.slug || '/campaigns'}`);
     },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
