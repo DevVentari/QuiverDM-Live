@@ -79,33 +79,25 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats */}
-      {!campaigns.isLoading && !characters.isLoading && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="stone-card glass-panel">
-            <div className="stone-card-body p-3 flex items-center gap-3">
-              <Swords className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <div className="text-2xl font-bold tabular-nums leading-tight">{campaignCount}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Campaigns</div>
-              </div>
+      {!campaigns.isLoading && !characters.isLoading && (campaignCount > 0 || characterCount > 0 || homebrewItems.length > 0) && (
+        <div className="stone-card glass-panel">
+          <div className="stone-card-body py-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+            <div className="flex items-center gap-2">
+              <Swords className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium tabular-nums">{campaignCount}</span>
+              <span className="text-xs text-muted-foreground">campaigns</span>
             </div>
-          </div>
-          <div className="stone-card glass-panel">
-            <div className="stone-card-body p-3 flex items-center gap-3">
-              <Users className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <div className="text-2xl font-bold tabular-nums leading-tight">{characterCount}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Characters</div>
-              </div>
+            <span className="text-border select-none hidden sm:block">·</span>
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium tabular-nums">{characterCount}</span>
+              <span className="text-xs text-muted-foreground">characters</span>
             </div>
-          </div>
-          <div className="stone-card glass-panel">
-            <div className="stone-card-body p-3 flex items-center gap-3">
-              <BookOpen className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <div className="text-2xl font-bold tabular-nums leading-tight">{homebrewItems.length}</div>
-                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Homebrew</div>
-              </div>
+            <span className="text-border select-none hidden sm:block">·</span>
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium tabular-nums">{homebrewItems.length}</span>
+              <span className="text-xs text-muted-foreground">homebrew items</span>
             </div>
           </div>
         </div>
@@ -153,10 +145,6 @@ export default function DashboardPage() {
 
       {/* Campaigns - full-width with top banners */}
       <div className="space-y-3">
-        <div>
-          <p className="label-overline mb-1">Campaigns</p>
-          <div className="section-rule" />
-        </div>
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Continue Playing</h2>
           <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
@@ -247,10 +235,6 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2 min-w-0">
         {/* Characters */}
         <div className="space-y-3">
-          <div>
-            <p className="label-overline mb-1">Characters</p>
-            <div className="section-rule" />
-          </div>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your Party</h2>
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
@@ -334,10 +318,6 @@ export default function DashboardPage() {
 
         {/* Homebrew */}
         <div className="space-y-3 min-w-0">
-          <div>
-            <p className="label-overline mb-1">Homebrew</p>
-            <div className="section-rule" />
-          </div>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Homebrew Library</h2>
             <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">

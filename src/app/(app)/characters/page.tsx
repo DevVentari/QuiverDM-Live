@@ -90,7 +90,7 @@ export default function CharactersPage() {
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">My Characters</h1>
+        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Characters</h1>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <Dialog
             open={importOpen}
@@ -140,7 +140,7 @@ export default function CharactersPage() {
                         importResult.level ? `Level ${importResult.level}` : null,
                       ]
                         .filter(Boolean)
-                        .join(' | ') || 'No details'}
+                        .join(' · ') || 'No details'}
                     </div>
                   </div>
                 )}
@@ -203,7 +203,7 @@ export default function CharactersPage() {
                       className="object-cover object-top"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-b from-purple-950/70 via-blue-950/50 to-indigo-950/80 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(240,10%,8%)] via-[hsl(240,8%,6%)] to-[hsl(35,15%,5%)] flex items-center justify-center">
                       <Users className="h-7 w-7 text-muted-foreground/30" />
                     </div>
                   )}

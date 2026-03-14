@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ export function ActiveCampaignHero({ campaign }: { campaign: DashboardCampaign }
       {campaign.bannerUrl ? (
         <Image src={campaign.bannerUrl} alt={campaign.name} fill className="object-cover" />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-indigo-950 to-blue-950" />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 80% 80% at 70% 50%, hsl(258 40% 10% / 0.8), hsl(240 8% 6%))' }} />
       )}
       <div className="absolute inset-0 bg-black/45" />
       <div className="relative z-10 p-6">
@@ -35,7 +36,7 @@ export function ActiveCampaignHero({ campaign }: { campaign: DashboardCampaign }
         </p>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <Link href={`/campaigns/${campaign.slug}/sessions`}>Resume →</Link>
+            <Link href={`/campaigns/${campaign.slug}/sessions`} className="flex items-center gap-2">Resume <ArrowRight className="h-4 w-4" /></Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href={`/campaigns/${campaign.slug}`}>Session Prep</Link>
