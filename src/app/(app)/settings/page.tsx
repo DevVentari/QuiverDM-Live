@@ -407,12 +407,9 @@ export default function SettingsPage() {
                     <span className="text-sm font-medium">Campaigns</span>
                   </div>
                   {usage.data.campaigns.limit === -1 ? (
-                    <>
-                      <Progress value={0} className="h-2" aria-label="Campaign usage" />
-                      <p className="text-sm text-muted-foreground">
-                        {usage.data.campaigns.used} used — Unlimited
-                      </p>
-                    </>
+                    <p className="text-sm text-muted-foreground">
+                      {usage.data.campaigns.used} used — <span className="text-foreground/70">Unlimited</span>
+                    </p>
                   ) : (
                     <>
                       <Progress
@@ -435,12 +432,9 @@ export default function SettingsPage() {
                     <span className="text-sm font-medium">PDF Uploads</span>
                   </div>
                   {usage.data.pdfUploads.limit === -1 ? (
-                    <>
-                      <Progress value={0} className="h-2" aria-label="PDF upload usage" />
-                      <p className="text-sm text-muted-foreground">
-                        {usage.data.pdfUploads.used} used — Unlimited
-                      </p>
-                    </>
+                    <p className="text-sm text-muted-foreground">
+                      {usage.data.pdfUploads.used} used — <span className="text-foreground/70">Unlimited</span>
+                    </p>
                   ) : (
                     <>
                       <Progress
@@ -463,12 +457,9 @@ export default function SettingsPage() {
                     <span className="text-sm font-medium">Session Uploads</span>
                   </div>
                   {usage.data.sessionUploads.limit === -1 ? (
-                    <>
-                      <Progress value={0} className="h-2" aria-label="Session upload usage" />
-                      <p className="text-sm text-muted-foreground">
-                        {usage.data.sessionUploads.used} used - Unlimited
-                      </p>
-                    </>
+                    <p className="text-sm text-muted-foreground">
+                      {usage.data.sessionUploads.used} used — <span className="text-foreground/70">Unlimited</span>
+                    </p>
                   ) : (
                     <>
                       <Progress
@@ -491,12 +482,9 @@ export default function SettingsPage() {
                     <span className="text-sm font-medium">AI Recaps</span>
                   </div>
                   {usage.data.aiRecaps.limit === -1 ? (
-                    <>
-                      <Progress value={0} className="h-2" aria-label="AI recap usage" />
-                      <p className="text-sm text-muted-foreground">
-                        {usage.data.aiRecaps.used} used - Unlimited
-                      </p>
-                    </>
+                    <p className="text-sm text-muted-foreground">
+                      {usage.data.aiRecaps.used} used — <span className="text-foreground/70">Unlimited</span>
+                    </p>
                   ) : (
                     <>
                       <Progress
@@ -519,12 +507,9 @@ export default function SettingsPage() {
                     <span className="text-sm font-medium">Semantic Searches</span>
                   </div>
                   {usage.data.semanticSearches.limit === -1 ? (
-                    <>
-                      <Progress value={0} className="h-2" aria-label="Semantic search usage" />
-                      <p className="text-sm text-muted-foreground">
-                        {usage.data.semanticSearches.used} used - Unlimited
-                      </p>
-                    </>
+                    <p className="text-sm text-muted-foreground">
+                      {usage.data.semanticSearches.used} used — <span className="text-foreground/70">Unlimited</span>
+                    </p>
                   ) : (
                     <>
                       <Progress
@@ -547,12 +532,9 @@ export default function SettingsPage() {
                     <span className="text-sm font-medium">Image Generations</span>
                   </div>
                   {usage.data.imageGenerations.limit === -1 ? (
-                    <>
-                      <Progress value={0} className="h-2" aria-label="Image generation usage" />
-                      <p className="text-sm text-muted-foreground">
-                        {usage.data.imageGenerations.used} used - Unlimited
-                      </p>
-                    </>
+                    <p className="text-sm text-muted-foreground">
+                      {usage.data.imageGenerations.used} used — <span className="text-foreground/70">Unlimited</span>
+                    </p>
                   ) : (
                     <>
                       <Progress
@@ -574,7 +556,7 @@ export default function SettingsPage() {
                 <span>
                   Billing period: {new Date(usage.data.periodStart).toLocaleDateString()} — {new Date(usage.data.periodEnd).toLocaleDateString()}
                 </span>
-                <span className="mx-2">|</span>
+                <span className="mx-2 text-muted-foreground/40">·</span>
                 <span>
                   Resets on {new Date(usage.data.periodEnd).toLocaleDateString()}
                 </span>

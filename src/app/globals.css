@@ -114,7 +114,6 @@
       radial-gradient(ellipse 70% 40% at 50% 110%, hsl(35 50% 10% / 0.4), transparent),
       /* Base near-black */
       linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
-    background-attachment: fixed;
   }
 }
 

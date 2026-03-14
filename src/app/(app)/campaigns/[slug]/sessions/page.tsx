@@ -90,29 +90,21 @@ export default function SessionsPage() {
       {allSessions.length > 0 && (
         <div className="flex gap-1.5 flex-wrap">
           {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
-            <button
+            <Button
               key={f}
+              size="sm"
+              variant={filter === f ? 'default' : 'outline'}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
-                filter === f
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 bg-transparent'
-              }`}
+              className="rounded-full h-7 px-3 text-xs"
             >
               {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
               <span className="ml-1.5 opacity-70">{counts[f]}</span>
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
       {/* Session list */}
-      {sessions.length > 0 && !sessionsQuery.isLoading && !sessionsQuery.isError && (
-        <>
-          <p className="label-overline">Sessions</p>
-          <div className="section-rule mb-4" />
-        </>
-      )}
       {sessionsQuery.isLoading ? (
         <div className="space-y-2">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-lg" />)}

@@ -48,26 +48,27 @@ export default function HomebrewPage() {
 
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
-      <p className="label-overline">Homebrew Library</p>
-      <div className="section-rule mb-4" />
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />Create
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setDdbImportOpen(true)}>
-          <Globe className="mr-2 h-4 w-4" />
-          D&amp;D Beyond
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setMediaImportOpen(true)}>
-          <ImageUp className="mr-2 h-4 w-4" />
-          Import Photo/Notes
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/homebrew/pdfs">
-            <FileText className="mr-2 h-4 w-4" />
-            PDFs
-          </Link>
-        </Button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Homebrew</h1>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />Create
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setDdbImportOpen(true)}>
+            <Globe className="mr-2 h-4 w-4" />
+            D&amp;D Beyond
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setMediaImportOpen(true)}>
+            <ImageUp className="mr-2 h-4 w-4" />
+            Import Photo/Notes
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/homebrew/pdfs">
+              <FileText className="mr-2 h-4 w-4" />
+              PDFs
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Stats badges */}

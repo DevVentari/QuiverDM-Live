@@ -29,7 +29,7 @@ export default function CampaignOverviewPage() {
   );
   const membersQuery = trpc.members.getAll.useQuery(
     { campaignId },
-    { enabled: !isDM, staleTime: 120_000 }
+    { staleTime: 120_000 }
   );
   const stateQuery = trpc.brain.state.get.useQuery(
     { campaignId },
@@ -143,14 +143,14 @@ export default function CampaignOverviewPage() {
         <span className="stone-card-title">Quick Actions</span>
       </div>
       <div className="stone-card-body flex flex-col gap-2">
-        <Button asChild variant="outline" className="justify-start gap-3 h-11">
+        <Button asChild className="justify-start gap-3 h-11">
           <Link href={`/campaigns/${slug}/sessions`}>
             <Play className="h-4 w-4" />
             Start Session
           </Link>
         </Button>
         <Button asChild variant="outline" className="justify-start gap-3 h-11">
-          <Link href={`/campaigns/${slug}/npcs`}>
+          <Link href={`/campaigns/${slug}/npcs/new`}>
             <Plus className="h-4 w-4" />
             Add NPC
           </Link>

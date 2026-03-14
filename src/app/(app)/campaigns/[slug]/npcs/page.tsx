@@ -55,7 +55,7 @@ function NPCsPageInner() {
       {/* Mobile: grid view (< md) */}
       <div className="md:hidden space-y-4 px-4 sm:px-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">NPCs</h2>
+          <h2 className="text-lg font-display font-bold tracking-wide">NPCs</h2>
           {isDM && (
             <Button asChild size="sm">
               <Link href={`/campaigns/${slug}/npcs/new`}>
