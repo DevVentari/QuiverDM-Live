@@ -14,6 +14,8 @@ prompts:
   - file://prompts/encounter-generator-system.txt
   - file://prompts/npc-parse-stats.txt
   - file://prompts/prep-strong-start.txt
+  - file://prompts/prep-scenes.txt
+  - file://prompts/prep-secrets.txt
   - file://prompts/brain-extraction.txt
   - file://prompts/homebrew-extraction.txt
 
@@ -138,13 +140,65 @@ tests:
       - type: javascript
         value: |
           const d = JSON.parse(output);
-          typeof d.strongStart === 'string' && d.strongStart.length > 80
+          typeof d.strongStart === 'string' && d.strongStart.length >= 100
       - type: llm-rubric
         value: "The strongStart is a vivid 2-4 sentence scene that drops the players into immediate action or tension, references the Dragon Cult threat or coronation, and is not a recap or slow warm-up."
     options:
       only: true
       prompts:
         - file://prompts/prep-strong-start.txt
+
+  # -------------------------------------------------------------------------
+  # Session Prep — Potential Scenes
+  # -------------------------------------------------------------------------
+  - description: "Scenes test generates 3-5 potential scenes for session"
+    vars:
+      campaign_name: "The Shattered Crown"
+      recent_recap: "Recent events: The party discovered the Dragon Cult is planning to seize the royal vault during the coronation ceremony."
+      faction_tensions: "Faction tensions:\n- Dragon Cult ↔ Royal Guard: rivalry (strength 0.9)"
+      strong_start: "Guards storm into the inn shouting about Dragon Cult assassins in the palace. The coronation is in two hours."
+      characters: |
+        - Seraphina (Paladin)
+        - Dax (Rogue)
+        - Wren (Wizard)
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          Array.isArray(d.scenes) && d.scenes.length >= 1
+      - type: llm-rubric
+        value: "Response has a scenes array with at least 1 item. Each scene has a title, description, and optional location. The scenes are distinct situations that could emerge from the strong start."
+    options:
+      only: true
+      prompts:
+        - file://prompts/prep-scenes.txt
+
+  # -------------------------------------------------------------------------
+  # Session Prep — Secrets & Clues
+  # -------------------------------------------------------------------------
+  - description: "Secrets test generates 8-10 secrets and clues for session"
+    vars:
+      campaign_name: "The Shattered Crown"
+      recent_recap: "Recent events: The party discovered the Dragon Cult is planning to seize the royal vault during the coronation ceremony."
+      characters: |
+        - Seraphina (Paladin)
+        - Dax (Rogue)
+        - Wren (Wizard)
+      known_npcs: "- Queen Elara (Monarch)\n- Lord Regent Thorne (Advisor)\n- Captain Iris (Palace Guard Commander)"
+      npc_motivations: "Known NPC motivations:\n- Lord Regent Thorne: wants the crown for himself, fears Elara's true heir will return\n- Captain Iris: wants to protect the queen, fears her guards are corrupted"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          Array.isArray(d.secretsAndClues) && d.secretsAndClues.length >= 1
+      - type: llm-rubric
+        value: "Response has a secretsAndClues array with at least 1 item. Each secret has a text field and optional linkedTo field. Secrets include NPC motivations and plot-relevant information."
+    options:
+      only: true
+      prompts:
+        - file://prompts/prep-secrets.txt
 
   # -------------------------------------------------------------------------
   # Brain Extraction: Session summary → entities + hooks

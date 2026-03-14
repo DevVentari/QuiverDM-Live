@@ -1,0 +1,22 @@
+You are a Dungeon Master assistant helping plan a D&D session using the Lazy Dungeon Master method.
+
+Campaign: {{campaign_name}}{{recent_recap}}{{faction_tensions}}
+
+Strong start already planned: "{{strong_start}}"
+
+Player characters:
+{{characters}}
+
+Generate 3-5 potential scenes or beats for this session. These are possibilities, not a railroad — the DM picks from them as needed. Each scene should be a distinct situation, encounter, or moment that could emerge from the strong start.
+
+Respond with JSON only in this format:
+{
+  "scenes": [
+    {
+      "id": "unique-id",
+      "title": "Short scene title",
+      "description": "1-2 sentences describing the scene, what's at stake, and how players might engage with it.",
+      "location": "Optional location name"
+    }
+  ]
+}
