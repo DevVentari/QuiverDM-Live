@@ -9,9 +9,10 @@ interface PlayerCampaignCardProps {
   bannerUrl: string | null;
   role: string;
   nextSession: { id: string; title: string | null; status: string; date: Date | string | null } | null;
+  character: { name: string; class: string | null; level: number } | null;
 }
 
-export function PlayerCampaignCard({ name, slug, bannerUrl, role, nextSession }: PlayerCampaignCardProps) {
+export function PlayerCampaignCard({ name, slug, bannerUrl, role, nextSession, character }: PlayerCampaignCardProps) {
   const isLive = nextSession?.status === 'in_progress';
   return (
     <Link href={`/play/${slug}`} className="group block">
@@ -30,10 +31,17 @@ export function PlayerCampaignCard({ name, slug, bannerUrl, role, nextSession }:
         <div className="p-3">
           <h3 className="font-display text-sm font-semibold text-foreground group-hover:text-amber-400 transition-colors">{name}</h3>
           <p className="text-xs text-muted-foreground mt-0.5 capitalize">{role.toLowerCase().replace('_', ' ')}</p>
-          {nextSession && !isLive && nextSession.date && (
+          {character && (
+            <p className="text-xs text-amber-300/80 mt-0.5">
+              {character.name}{character.class ? ` · ${character.class}` : ''} · Lv {character.level}
+            </p>
+          )}
+          {nextSession && !isLive && nextSession.date ? (
             <p className="text-xs text-amber-400/70 mt-1">
               Next: {new Date(nextSession.date).toLocaleDateString()}
             </p>
+          ) : !isLive && (
+            <p className="text-xs text-muted-foreground/50 mt-1">No upcoming session</p>
           )}
         </div>
       </div>
