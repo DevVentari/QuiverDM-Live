@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { trpc } from '@/lib/trpc';
 import { useParams } from 'next/navigation';
 import { CampaignProvider } from '@/components/campaign/campaign-context';
-import { CampaignNav } from '@/components/campaign/campaign-nav';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CampaignLayout({
@@ -116,8 +115,6 @@ export default function CampaignLayout({
             </span>
           </div>
         </div>
-
-        <CampaignNav />
 
         <div className="pt-6">{children}</div>
       </div>
