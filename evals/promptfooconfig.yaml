@@ -4,9 +4,10 @@
 # NOTE: Do not run this in CI without cost controls — each full run calls live APIs.
 
 providers:
-  - id: anthropic:messages:claude-haiku-4-5
-  - id: openai:chat:gpt-4o-mini
-  - id: google:gemini-1.5-flash
+  - id: anthropic:messages:claude-sonnet-4-6
+  - id: anthropic:messages:claude-opus-4-6
+  - id: openai:chat:gpt-4o
+  - id: google:gemini-1.5-pro
 
 prompts:
   - file://prompts/co-dm.txt
