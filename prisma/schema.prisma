@@ -491,9 +491,42 @@ model GameSession {
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
 
+  playerSessionStates PlayerSessionState[]
+  spotlights          SessionSpotlight[]
+
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
   @@index([date])
+}
+
+model PlayerSessionState {
+  id          String      @id @default(cuid())
+  sessionId   String
+  session     GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId      String
+  characterId String?
+  hp          Int
+  maxHp       Int
+  tempHp      Int         @default(0)
+  conditions  Json        @default("[]")
+  spellSlots  Json        @default("{}")
+  hitDice     Json        @default("{}")
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+}
+
+model SessionSpotlight {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type      String      // 'text' | 'image' | 'statblock' | 'handout'
+  content   Json
+  createdAt DateTime    @default(now())
+  clearedAt DateTime?
+
+  @@index([sessionId])
 }
 
 model FoundryEvent {
@@ -588,9 +621,10 @@ model NPC {
   imageUrl    String?
   imageJobId  String?
   stats       Json? // Flexible stats object
-  tags        String[] // For filtering
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  tags          String[] // For filtering
+  playerVisible Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([campaignId])
   @@index([name])
