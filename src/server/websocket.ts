@@ -357,10 +357,10 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
   if (message.type === 'player:state:update') {
     const clientState = liveClients.get(ws);
     if (!clientState) return;
-    broadcastToSession(message.sessionId, {
+    broadcastToSession(clientState.sessionId, {
       type: 'player:state:update',
-      sessionId: message.sessionId,
-      campaignId: message.campaignId,
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
       userId: clientState.userId,
       hp: message.hp,
       maxHp: message.maxHp,
@@ -374,10 +374,10 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
     const clientState = liveClients.get(ws);
     if (!clientState) return;
     if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
-    broadcastToSession(message.sessionId, {
+    broadcastToSession(clientState.sessionId, {
       type: 'dm:spotlight:push',
-      sessionId: message.sessionId,
-      campaignId: message.campaignId,
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
       spotlightType: message.spotlightType,
       content: message.content,
     });
@@ -388,10 +388,10 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
     const clientState = liveClients.get(ws);
     if (!clientState) return;
     if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
-    broadcastToSession(message.sessionId, {
+    broadcastToSession(clientState.sessionId, {
       type: 'dm:spotlight:clear',
-      sessionId: message.sessionId,
-      campaignId: message.campaignId,
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
     });
     return;
   }
@@ -400,10 +400,10 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
     const clientState = liveClients.get(ws);
     if (!clientState) return;
     if (clientState.role !== 'OWNER' && clientState.role !== 'CO_DM') return;
-    broadcastToSession(message.sessionId, {
+    broadcastToSession(clientState.sessionId, {
       type: 'dm:initiative:update',
-      sessionId: message.sessionId,
-      campaignId: message.campaignId,
+      sessionId: clientState.sessionId,
+      campaignId: clientState.campaignId,
       participants: message.participants,
       currentTurnId: message.currentTurnId,
       round: message.round,
