@@ -1,0 +1,200 @@
+# QuiverDM LLM Eval Suite
+# Run: promptfoo eval (set ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY first)
+# View results: promptfoo view
+# NOTE: Do not run this in CI without cost controls — each full run calls live APIs.
+
+providers:
+  - id: anthropic:messages:claude-haiku-4-5
+  - id: openai:chat:gpt-4o-mini
+  - id: google:gemini-1.5-flash
+
+prompts:
+  - file://prompts/co-dm.txt
+  - file://prompts/encounter-generator-system.txt
+  - file://prompts/npc-parse-stats.txt
+  - file://prompts/prep-strong-start.txt
+  - file://prompts/brain-extraction.txt
+  - file://prompts/homebrew-extraction.txt
+
+tests:
+  # -------------------------------------------------------------------------
+  # Co-DM: NPC consistency detection
+  # -------------------------------------------------------------------------
+  - description: "Co-DM detects NPC behaving out of character"
+    vars:
+      entities: "- Lord Harwick (NPC): A rigid, honor-bound knight who never breaks his word"
+      recent_suggestions: "None."
+      transcript: "Lord Harwick: 'Forget the oath — I'll do whatever it takes to win. Burn the village if you must.'"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const arr = JSON.parse(output);
+          Array.isArray(arr) && arr.some(s => s.type === 'npc_consistency' && s.score >= 0.5)
+      - type: llm-rubric
+        value: "The response is a JSON array. At least one entry flags NPC consistency — Lord Harwick acting against his established honor-bound trait."
+    options:
+      only: true
+      prompts:
+        - file://prompts/co-dm.txt
+
+  # -------------------------------------------------------------------------
+  # Co-DM: No false positives on normal play
+  # -------------------------------------------------------------------------
+  - description: "Co-DM returns empty array or low-score suggestions for normal dialogue"
+    vars:
+      entities: "- Mira the Innkeeper (NPC): Friendly, talkative local who knows town gossip"
+      recent_suggestions: "None."
+      transcript: "Party asks Mira about the missing merchant. She tells them she last saw him heading north three days ago, towards the old mill."
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const arr = JSON.parse(output);
+          Array.isArray(arr) && arr.every(s => s.score < 0.8)
+    options:
+      only: true
+      prompts:
+        - file://prompts/co-dm.txt
+
+  # -------------------------------------------------------------------------
+  # Encounter Generator: Hard encounter for 4 level-5 adventurers
+  # -------------------------------------------------------------------------
+  - description: "Encounter generator produces valid hard encounter for level 5 party"
+    vars:
+      party_size: "4"
+      party_level: "5"
+      difficulty: "hard"
+      xp_budget: "3500 XP (1100 easy / 1750 medium / 2500 hard / 3500 deadly)"
+      cr_range: "2–6"
+      monster_list: |
+        - Troll (CR 5, giant, 1800 XP)
+        - Owlbear (CR 3, monstrosity, 700 XP)
+        - Ogre (CR 2, giant, 450 XP)
+        - Werewolf (CR 3, humanoid, 700 XP)
+        - Green Hag (CR 3, fey, 700 XP)
+      npc_list: "None"
+      homebrew_list: "None"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          typeof d.sceneDescription === 'string' &&
+          typeof d.tacticalNotes === 'string' &&
+          Array.isArray(d.creatures) &&
+          d.creatures.length > 0 &&
+          d.creatures.every(c => ['srd','npc','homebrew','custom'].includes(c.sourceType))
+      - type: llm-rubric
+        value: "The encounter JSON has a sceneDescription (2+ sentences of atmosphere), tacticalNotes with DM tips, and a creatures array. Total XP is roughly appropriate for a hard encounter for 4 level-5 characters (around 2500 XP)."
+    options:
+      only: true
+      prompts:
+        - file://prompts/encounter-generator-system.txt
+
+  # -------------------------------------------------------------------------
+  # NPC Parse Stats: Villain with partial description
+  # -------------------------------------------------------------------------
+  - description: "NPC stat parser extracts known fields and omits unspecified ones"
+    vars:
+      name: "Shadowblade Kaelith"
+      description: |
+        A lithe, pale elf assassin clad in black leather armor. She moves with supernatural grace.
+        AC 15 (studded leather), HP 78 (12d8+24), Speed 35 ft.
+        STR 10, DEX 20, CON 14, INT 14, WIS 12, CHA 16.
+        Skills: Stealth +9, Deception +7, Perception +5.
+        Darkvision 60 ft., passive Perception 15.
+        Languages: Common, Elvish, Thieves' Cant.
+        CR 7 (2900 XP).
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const s = JSON.parse(output);
+          s.dex === 20 && s.hp === 78 && s.ac === 15 && s.cr === '7'
+      - type: llm-rubric
+        value: "The JSON correctly extracts DEX 20, HP 78, AC 15, CR 7, speed 35 ft., and the listed skills. No invented fields."
+    options:
+      only: true
+      prompts:
+        - file://prompts/npc-parse-stats.txt
+
+  # -------------------------------------------------------------------------
+  # Session Prep — Strong Start
+  # -------------------------------------------------------------------------
+  - description: "Strong start is vivid, action-oriented, and references campaign context"
+    vars:
+      campaign_name: "The Shattered Crown"
+      recent_recap: "The party discovered the Dragon Cult is planning to seize the royal vault during the coronation ceremony."
+      hooks: "- [high] The coronation is in two days and the party hasn't warned the queen yet"
+      threats: "- Dragon Cult enforcers (urgency 0.9)"
+      characters: |
+        - Seraphina (Paladin)
+        - Dax (Rogue)
+        - Wren (Wizard)
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          typeof d.strongStart === 'string' && d.strongStart.length > 80
+      - type: llm-rubric
+        value: "The strongStart is a vivid 2-4 sentence scene that drops the players into immediate action or tension, references the Dragon Cult threat or coronation, and is not a recap or slow warm-up."
+    options:
+      only: true
+      prompts:
+        - file://prompts/prep-strong-start.txt
+
+  # -------------------------------------------------------------------------
+  # Brain Extraction: Session summary → entities + hooks
+  # -------------------------------------------------------------------------
+  - description: "Brain extraction identifies new NPC and faction from session summary"
+    vars:
+      summary: |
+        The party met Councillor Maren, a nervous halfling official who secretly works for the Crimson Web faction.
+        She warned them about a plot to assassinate the Duke before the harvest festival.
+        The party agreed to investigate but did not reveal their knowledge to the Duke's guard.
+      highlights: ""
+      existing_entities: "(none yet)"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          Array.isArray(d.newEntities) &&
+          d.newEntities.some(e => e.name.toLowerCase().includes('maren')) &&
+          Array.isArray(d.newHooks) &&
+          d.newHooks.length > 0
+      - type: llm-rubric
+        value: "The JSON includes Councillor Maren as a new NPC entity, the Crimson Web as a faction, and at least one plot hook about the Duke assassination. pressureShifts values are between -1 and 1."
+    options:
+      only: true
+      prompts:
+        - file://prompts/brain-extraction.txt
+
+  # -------------------------------------------------------------------------
+  # Homebrew Extraction: Simple magic item
+  # -------------------------------------------------------------------------
+  - description: "Homebrew extractor parses a magic item from markdown"
+    vars:
+      markdown: |
+        ## Ember Cloak
+        *Wondrous item, uncommon (requires attunement)*
+
+        While wearing this cloak made of woven fire-salamander scales, you have resistance to cold damage.
+        As a bonus action, you can cause the cloak to shed bright light in a 20-foot radius and dim light for an additional 20 feet for 1 minute. Once used, this property can't be used again until the next dawn.
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const arr = JSON.parse(output);
+          Array.isArray(arr) &&
+          arr.length === 1 &&
+          arr[0].type === 'magic_item' &&
+          arr[0].name === 'Ember Cloak'
+      - type: llm-rubric
+        value: "Returns a JSON array with one magic_item entry for Ember Cloak. rarity is 'uncommon', requiresAttunement is true, description mentions cold resistance and light-shedding property. imagePromptHint is present and descriptive."
+    options:
+      only: true
+      prompts:
+        - file://prompts/homebrew-extraction.txt

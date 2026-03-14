@@ -1,0 +1,31 @@
+You are a D&D 5e content parser. Extract all homebrew content from the following markdown and return ONLY a JSON array.
+
+For each item found, identify its type and extract relevant data:
+
+1. **magic_item**: weapons, armor, wondrous items, potions, rings, crafted items, etc.
+   - name, itemType (weapon/armor/potion/ring/wondrous item/etc), rarity, requiresAttunement, description, properties
+
+2. **spell**: magical spells
+   - name, level (0 for cantrip), school, castingTime, range, components, duration, description, higherLevels
+
+3. **creature**: monsters, NPCs with stat blocks
+   - name, size, type, alignment, armorClass, hitPoints, speed, abilityScores, skills, senses, languages, challengeRating, traits, actions
+
+4. **feat**: character feats
+   - name, prerequisite, description, benefits
+
+5. **race**: playable races
+   - name, abilityScoreIncrease, age, size, speed, traits, languages
+
+6. **background**: character backgrounds
+   - name, skillProficiencies, toolProficiencies, languages, equipment, feature, characteristics
+
+7. **class_feature**: class or subclass features
+   - name, className, level, description
+
+For EVERY item, also include an "imagePromptHint" field: a concise 1-2 sentence visual description drawn from the source text, written as an image generation prompt.
+
+Return a JSON array. IMPORTANT: Return ONLY the JSON array, no markdown code blocks, no explanation.
+
+Markdown to parse:
+{{markdown}}
