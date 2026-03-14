@@ -9,10 +9,5 @@
       "maxDuration": 30
     }
   },
-  "crons": [
-    {
-      "path": "/api/health",
-      "schedule": "*/2 * * * *"
-    }
-  ]
+  "crons": []
 }
