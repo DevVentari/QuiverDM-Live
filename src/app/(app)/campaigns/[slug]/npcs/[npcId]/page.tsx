@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { Trash2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +26,11 @@ export default function NPCDetailPage() {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const npc = trpc.npcs.getById.useQuery({ id: npcId }, { staleTime: 120_000 });
+  const utils = trpc.useUtils();
+  const updateNpc = trpc.npcs.update.useMutation({
+    onSuccess: () => void utils.npcs.getById.invalidate({ id: npcId }),
+    onError: (error) => toast({ title: 'Error', description: error.message, variant: 'destructive' }),
+  });
   const deleteNpc = trpc.npcs.delete.useMutation({
     onSuccess: () => router.push(`/campaigns/${slug}/npcs`),
     onError: (error) => {
@@ -71,6 +77,13 @@ export default function NPCDetailPage() {
         </div>
         {isDM && (
           <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={data.playerVisible ?? false}
+                onCheckedChange={(val) => updateNpc.mutate({ id: npcId, playerVisible: val })}
+              />
+              <span className="text-xs text-muted-foreground">Visible to players</span>
+            </div>
             <ExportToFoundryButton
               type="npc"
               sourceId={npcId}
