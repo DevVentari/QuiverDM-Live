@@ -1,24 +1,38 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Swords,
   Users,
+  UsersRound,
   BookOpen,
   MessageSquare,
   Settings,
   PanelLeftClose,
   PanelLeft,
+  ChevronsUpDown,
+  Check,
+  CalendarDays,
+  ScrollText,
+  Brain,
+  ArrowLeft,
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 
-const mainNav = [
+const globalNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/campaigns', label: 'Campaigns', icon: Swords },
   { href: '/characters', label: 'Characters', icon: Users },
@@ -28,6 +42,25 @@ const mainNav = [
 const toolsNav = [
   { href: '/feedback', label: 'Feedback', icon: MessageSquare },
 ];
+
+function getCampaignNav(slug: string) {
+  return {
+    campaign: [
+      { href: `/campaigns/${slug}`, label: 'Overview', icon: LayoutDashboard, exact: true },
+      { href: `/campaigns/${slug}/sessions`, label: 'Sessions', icon: CalendarDays },
+      { href: `/campaigns/${slug}/summaries`, label: 'Summaries', icon: ScrollText },
+    ],
+    world: [
+      { href: `/campaigns/${slug}/npcs`, label: 'NPCs', icon: Users },
+      { href: `/campaigns/${slug}/brain`, label: 'DM Brain', icon: Brain },
+      { href: `/campaigns/${slug}/encounters`, label: 'Encounters', icon: Swords },
+    ],
+    library: [
+      { href: `/campaigns/${slug}/homebrew`, label: 'Homebrew', icon: BookOpen },
+      { href: `/campaigns/${slug}/members`, label: 'Members', icon: UsersRound },
+    ],
+  };
+}
 
 function NavItem({
   href,
@@ -75,7 +108,7 @@ function NavItem({
 }
 
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
-  if (collapsed) return <div className="h-4" />;
+  if (collapsed) return <div className="h-3" />;
   return (
     <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">
       {label}
@@ -83,21 +116,103 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
   );
 }
 
+function CampaignSwitcher({
+  currentCampaign,
+  campaigns,
+  collapsed,
+}: {
+  currentCampaign: { slug: string; name: string; sessionCount?: number | null } | null;
+  campaigns: { slug: string; name: string; sessionCount?: number | null }[];
+  collapsed: boolean;
+}) {
+  const router = useRouter();
+
+  if (collapsed) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] text-muted-foreground/60 transition-colors hover:border-[hsl(35_50%_26%)] hover:text-foreground"
+            title="Switch campaign"
+          >
+            <Swords className="h-3.5 w-3.5" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="right" align="start" className="w-52">
+          {campaigns.map((c) => (
+            <DropdownMenuItem
+              key={c.slug}
+              onClick={() => router.push(`/campaigns/${c.slug}`)}
+              className="gap-2"
+            >
+              {c.slug === currentCampaign?.slug && <Check className="h-3.5 w-3.5 text-amber-400" />}
+              {c.slug !== currentCampaign?.slug && <span className="w-3.5" />}
+              <span className="truncate">{c.name}</span>
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => router.push('/campaigns')}>
+            All campaigns
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="mx-3 mt-3 mb-1 flex w-[calc(100%-24px)] items-center justify-between gap-2 rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] px-3 py-2 text-left transition-colors hover:border-[hsl(35_50%_26%)]">
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-foreground/90 truncate">
+              {currentCampaign?.name ?? 'Select Campaign'}
+            </p>
+            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+              {currentCampaign
+                ? `${currentCampaign.sessionCount ?? 0} sessions`
+                : 'Switch campaign'}
+            </p>
+          </div>
+          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start" className="w-52">
+        {campaigns.map((c) => (
+          <DropdownMenuItem
+            key={c.slug}
+            onClick={() => router.push(`/campaigns/${c.slug}`)}
+            className="gap-2"
+          >
+            {c.slug === currentCampaign?.slug
+              ? <Check className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              : <span className="w-3.5 shrink-0" />
+            }
+            <span className="truncate">{c.name}</span>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => router.push('/campaigns')}>
+          All campaigns
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
-  // Detect current campaign slug from URL
   const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
 
-  // Load campaigns for the switcher (lightweight, long stale time)
   const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, {
     staleTime: 300_000,
-    enabled: !collapsed,
   });
 
-  const currentCampaign =
-    campaigns.data?.find((c) => c.slug === campaignSlug) ?? null;
+  const currentCampaign = campaigns.data?.find((c) => c.slug === campaignSlug) ?? null;
+  const inCampaign = !!campaignSlug;
+
+  const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
 
   return (
     <aside
@@ -154,55 +269,87 @@ export function Sidebar() {
         </Button>
       </div>
 
-      {/* Campaign switcher */}
-      {!collapsed && (
-        <Link
-          href="/campaigns"
-          className="mx-3 mt-3 mb-1 flex items-center justify-between gap-2 rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] px-3 py-2 transition-colors hover:border-[hsl(35_50%_26%)]"
-        >
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-foreground/90 truncate">
-              {currentCampaign?.name ?? 'Select Campaign'}
-            </p>
-            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-              {currentCampaign
-                ? `${currentCampaign.sessionCount ?? 0} sessions`
-                : 'Switch campaign'}
-            </p>
-          </div>
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
-        </Link>
-      )}
+      {/* Campaign switcher (always shown) */}
+      <CampaignSwitcher
+        currentCampaign={currentCampaign}
+        campaigns={campaigns.data ?? []}
+        collapsed={collapsed}
+      />
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-1">
-        <SectionLabel label="Navigate" collapsed={collapsed} />
-        {mainNav.map((item) => (
-          <NavItem
-            key={item.href}
-            {...item}
-            isActive={
-              pathname === item.href || pathname.startsWith(item.href + '/')
-            }
-            collapsed={collapsed}
-          />
-        ))}
+        {inCampaign && campaignNavSections ? (
+          <>
+            <SectionLabel label="Campaign" collapsed={collapsed} />
+            {campaignNavSections.campaign.map((item) => (
+              <NavItem
+                key={item.href}
+                {...item}
+                isActive={item.exact ? pathname === item.href : pathname.startsWith(item.href + '/')}
+                collapsed={collapsed}
+              />
+            ))}
 
-        <SectionLabel label="Tools" collapsed={collapsed} />
-        {toolsNav.map((item) => (
-          <NavItem
-            key={item.href}
-            {...item}
-            isActive={
-              pathname === item.href || pathname.startsWith(item.href + '/')
-            }
-            collapsed={collapsed}
-          />
-        ))}
+            <SectionLabel label="World" collapsed={collapsed} />
+            {campaignNavSections.world.map((item) => (
+              <NavItem
+                key={item.href}
+                {...item}
+                isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
+                collapsed={collapsed}
+              />
+            ))}
+
+            <SectionLabel label="Library" collapsed={collapsed} />
+            {campaignNavSections.library.map((item) => (
+              <NavItem
+                key={item.href}
+                {...item}
+                isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
+                collapsed={collapsed}
+              />
+            ))}
+          </>
+        ) : (
+          <>
+            <SectionLabel label="Navigate" collapsed={collapsed} />
+            {globalNav.map((item) => (
+              <NavItem
+                key={item.href}
+                {...item}
+                isActive={
+                  pathname === item.href || pathname.startsWith(item.href + '/')
+                }
+                collapsed={collapsed}
+              />
+            ))}
+
+            <SectionLabel label="Tools" collapsed={collapsed} />
+            {toolsNav.map((item) => (
+              <NavItem
+                key={item.href}
+                {...item}
+                isActive={
+                  pathname === item.href || pathname.startsWith(item.href + '/')
+                }
+                collapsed={collapsed}
+              />
+            ))}
+          </>
+        )}
       </nav>
 
-      {/* Bottom: Settings */}
+      {/* Bottom */}
       <div className="border-t border-[hsl(35_35%_18%)] py-2">
+        {inCampaign && (
+          <NavItem
+            href="/campaigns"
+            label="All Campaigns"
+            icon={ArrowLeft}
+            isActive={false}
+            collapsed={collapsed}
+          />
+        )}
         <NavItem
           href="/settings"
           label="Settings"
@@ -217,73 +364,62 @@ export function Sidebar() {
 
 export function MobileSidebar() {
   const pathname = usePathname();
+  const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
+  const inCampaign = !!campaignSlug;
+  const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
+
+  const renderLink = (item: { href: string; label: string; icon: React.ElementType }, exact = false) => {
+    const isActive = exact
+      ? pathname === item.href
+      : pathname === item.href || pathname.startsWith(item.href + '/');
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={cn(
+          'relative flex items-center gap-2.5 px-5 py-2 text-[13px] font-medium transition-colors',
+          isActive
+            ? 'text-amber-400/90 bg-amber-500/[0.07]'
+            : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+        )}
+      >
+        {isActive && (
+          <span
+            className="absolute left-0 top-0 bottom-0 w-0.5"
+            style={{
+              background: 'hsl(35 80% 55%)',
+              boxShadow: '0 0 8px hsl(35 80% 48% / 0.55)',
+            }}
+          />
+        )}
+        <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} />
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
 
   return (
     <nav className="flex flex-col py-2">
-      {/* Section label */}
-      <p className="px-5 pt-3 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">
-        Navigate
-      </p>
-      {mainNav.map((item) => {
-        const isActive =
-          pathname === item.href || pathname.startsWith(item.href + '/');
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'relative flex items-center gap-2.5 px-5 py-2 text-[13px] font-medium transition-colors',
-              isActive
-                ? 'text-amber-400/90 bg-amber-500/[0.07]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
-            )}
-          >
-            {isActive && (
-              <span
-                className="absolute left-0 top-0 bottom-0 w-0.5"
-                style={{
-                  background: 'hsl(35 80% 55%)',
-                  boxShadow: '0 0 8px hsl(35 80% 48% / 0.55)',
-                }}
-              />
-            )}
-            <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} />
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
-
-      <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">
-        Tools
-      </p>
-      {[...toolsNav, { href: '/settings', label: 'Settings', icon: Settings }].map((item) => {
-        const isActive =
-          pathname === item.href || pathname.startsWith(item.href + '/');
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'relative flex items-center gap-2.5 px-5 py-2 text-[13px] font-medium transition-colors',
-              isActive
-                ? 'text-amber-400/90 bg-amber-500/[0.07]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
-            )}
-          >
-            {isActive && (
-              <span
-                className="absolute left-0 top-0 bottom-0 w-0.5"
-                style={{
-                  background: 'hsl(35 80% 55%)',
-                  boxShadow: '0 0 8px hsl(35 80% 48% / 0.55)',
-                }}
-              />
-            )}
-            <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} />
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
+      {inCampaign && campaignNavSections ? (
+        <>
+          <p className="px-5 pt-3 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Campaign</p>
+          {campaignNavSections.campaign.map((item) => renderLink(item, item.exact))}
+          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">World</p>
+          {campaignNavSections.world.map((item) => renderLink(item))}
+          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Library</p>
+          {campaignNavSections.library.map((item) => renderLink(item))}
+          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
+          {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ArrowLeft })}
+          {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
+        </>
+      ) : (
+        <>
+          <p className="px-5 pt-3 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Navigate</p>
+          {globalNav.map((item) => renderLink(item))}
+          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Tools</p>
+          {[...toolsNav, { href: '/settings', label: 'Settings', icon: Settings }].map((item) => renderLink(item))}
+        </>
+      )}
     </nav>
   );
 }
