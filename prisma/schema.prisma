@@ -515,6 +515,7 @@ model PlayerSessionState {
 
   @@unique([sessionId, userId])
   @@index([sessionId])
+  @@index([userId])
 }
 
 model SessionSpotlight {
@@ -526,7 +527,7 @@ model SessionSpotlight {
   createdAt DateTime    @default(now())
   clearedAt DateTime?
 
-  @@index([sessionId])
+  @@index([sessionId, createdAt])
 }
 
 model FoundryEvent {
