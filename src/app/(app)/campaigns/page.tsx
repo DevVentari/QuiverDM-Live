@@ -14,7 +14,7 @@ export default function CampaignsPage() {
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold">Campaigns</h1>
+        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Campaigns</h1>
         <Button asChild>
           <Link href="/campaigns/new">
             <Plus className="mr-2 h-4 w-4" />
@@ -36,24 +36,23 @@ export default function CampaignsPage() {
               key={campaign.id}
               href={`/campaigns/${campaign.slug || campaign.id}`}
             >
-              <div className="stone-card overflow-hidden hover:border-amber-700/40 transition-colors cursor-pointer h-full">
-                {campaign.bannerUrl ? (
-                  <div className="relative h-24 w-full">
+              <div className="stone-card overflow-hidden hover:border-amber-700/40 transition-colors cursor-pointer h-full flex flex-col">
+                {campaign.bannerUrl && (
+                  <div className="relative h-24 w-full shrink-0">
                     <Image
                       src={campaign.bannerUrl}
                       alt={campaign.name}
                       fill
                       className="object-cover"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(240,10%,11%)] via-transparent to-transparent" />
                   </div>
-                ) : (
-                  <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                 )}
-                <div className="stone-card-header">
-                  <div className="flex items-center justify-between">
+                <div className="stone-card-header flex-1">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="stone-card-title">{campaign.name}</span>
                     {campaign.status && (
-                      <Badge variant="secondary" className="text-xs capitalize">
+                      <Badge variant="secondary" className="text-xs capitalize shrink-0">
                         {campaign.status}
                       </Badge>
                     )}

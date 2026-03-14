@@ -69,7 +69,7 @@ export default function DashboardPage() {
     <div className="dashboard-bg space-y-6 max-w-6xl overflow-hidden rounded-2xl border border-white/5 p-4 sm:p-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Dashboard</h1>
         <Button asChild>
           <Link href="/campaigns/new">
             <Plus className="mr-2 h-4 w-4" />
@@ -181,18 +181,17 @@ export default function DashboardPage() {
                 href={`/campaigns/${campaign.slug || campaign.id}`}
                 className="shrink-0 w-[280px] sm:w-[320px] snap-start"
               >
-                <div className="stone-card overflow-hidden hover:border-amber-700/40 transition-colors cursor-pointer glass-panel h-full">
-                  {campaign.bannerUrl ? (
-                    <div className="relative h-28 w-full">
+                <div className="stone-card overflow-hidden hover:border-amber-700/40 transition-colors cursor-pointer glass-panel h-full flex flex-col">
+                  {campaign.bannerUrl && (
+                    <div className="relative h-24 w-full shrink-0">
                       <Image
                         src={campaign.bannerUrl}
                         alt={campaign.name}
                         fill
                         className="object-cover"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[hsl(240,10%,11%)] via-transparent to-transparent" />
                     </div>
-                  ) : (
-                    <div className="h-28 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
                   )}
                   <div className="stone-card-header pb-2">
                     <div className="flex items-center justify-between gap-2">
@@ -299,7 +298,7 @@ export default function DashboardPage() {
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {[char.race, char.class].filter(Boolean).join(' | ') || 'No details'}
+                            {[char.race, char.class].filter(Boolean).join(' · ') || 'No details'}
                           </p>
                           {hp && hpPct != null && (
                             <div className="flex items-center gap-2 mt-2">

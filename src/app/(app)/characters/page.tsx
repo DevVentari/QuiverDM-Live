@@ -20,6 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { Plus, Users, Download, RefreshCw, Loader2, ExternalLink, Sword } from 'lucide-react';
+import type { MouseEvent } from 'react';
 
 export default function CharactersPage() {
   const { toast } = useToast();
@@ -89,7 +90,7 @@ export default function CharactersPage() {
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold">My Characters</h1>
+        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">My Characters</h1>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <Dialog
             open={importOpen}
@@ -187,59 +188,68 @@ export default function CharactersPage() {
       ) : characters.data && characters.data.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(characters.data as any[]).map((char) => (
-            <div key={char.id} className="stone-card h-full overflow-hidden">
-              {char.portraitUrl ? (
-                <div className="relative h-24 w-full">
-                  <Image
-                    src={char.portraitUrl}
-                    alt={char.name}
-                    fill
-                    className="object-cover"
-                  />
+            <div key={char.id} className="stone-card overflow-hidden relative group min-h-[130px]">
+              {/* Full-card link */}
+              <Link href={`/characters/${char.id}`} className="absolute inset-0 z-0" aria-label={char.name} />
+
+              <div className="flex h-full min-h-[130px]">
+                {/* Portrait panel — flush left, full height, no padding */}
+                <div className="relative w-[28%] shrink-0 self-stretch">
+                  {char.portraitUrl ? (
+                    <Image
+                      src={char.portraitUrl}
+                      alt={char.name}
+                      fill
+                      className="object-cover object-top"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-b from-purple-950/70 via-blue-950/50 to-indigo-950/80 flex items-center justify-center">
+                      <Users className="h-7 w-7 text-muted-foreground/30" />
+                    </div>
+                  )}
+                  {/* Fade right edge into card bg */}
+                  <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[hsl(240,10%,11%)] to-transparent pointer-events-none" />
                 </div>
-              ) : (
-                <div className="h-24 w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
-              )}
-              <div className="stone-card-header space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="stone-card-title text-base leading-tight">
-                    <Link
-                      href={`/characters/${char.id}`}
-                      className="hover:underline underline-offset-2"
-                    >
-                      {char.name}
-                    </Link>
-                  </span>
-                  {char.dndBeyondId && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={syncCharacter.isPending}
-                      onClick={() => syncCharacter.mutate({ characterId: char.id })}
-                      title="Sync from D&D Beyond"
-                    >
-                      {syncCharacter.isPending && syncCharacter.variables?.characterId === char.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4" />
-                      )}
-                    </Button>
+
+                {/* Content panel */}
+                <div className="flex-1 min-w-0 px-4 py-3 flex flex-col gap-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="stone-card-title leading-snug">{char.name}</span>
+                    {char.dndBeyondId && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="relative z-10 h-6 w-6 p-0 shrink-0 text-muted-foreground/50 hover:text-foreground"
+                        disabled={syncCharacter.isPending}
+                        onClick={(e: MouseEvent) => {
+                          e.preventDefault();
+                          syncCharacter.mutate({ characterId: char.id });
+                        }}
+                        title="Sync from D&D Beyond"
+                      >
+                        {syncCharacter.isPending && syncCharacter.variables?.characterId === char.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-snug">
+                    {[char.race, char.class, char.level && `Level ${char.level}`]
+                      .filter(Boolean)
+                      .join(' · ') || 'No details'}
+                  </p>
+
+                  {char.backstory ? (
+                    <p className="text-xs text-muted-foreground/60 line-clamp-2 mt-auto leading-relaxed">
+                      {char.backstory}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground/40 mt-auto italic">No backstory yet</p>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {[char.race, char.class, char.level && `Level ${char.level}`]
-                    .filter(Boolean)
-                    .join(' | ') || 'No details'}
-                </p>
-              </div>
-              <div className="stone-card-body">
-                {char.backstory ? (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {char.backstory}
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">No backstory added yet.</p>
-                )}
               </div>
             </div>
           ))}

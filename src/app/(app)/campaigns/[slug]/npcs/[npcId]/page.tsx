@@ -64,7 +64,7 @@ export default function NPCDetailPage() {
           </Link>
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl sm:text-2xl font-bold">{data.name}</h2>
+          <h2 className="text-xl sm:text-2xl font-display font-bold tracking-wide">{data.name}</h2>
           {data.faction && (
             <Badge variant="outline" className="mt-1">{data.faction}</Badge>
           )}
