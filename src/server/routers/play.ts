@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '@/server/trpc';
 import { playService } from '@/server/services/play.service';
+import { prisma } from '@/lib/prisma';
+import Redis from 'ioredis';
+import { ForbiddenError } from '@/server/errors';
 
 export const playRouter = router({
   getHome: protectedProcedure.query(({ ctx }) =>
@@ -50,5 +53,25 @@ export const playRouter = router({
     .mutation(({ ctx, input }) => {
       const { sessionId, ...data } = input;
       return playService.upsertPlayerSessionState(sessionId, ctx.session.user.id, data);
+    }),
+
+  getWsToken: protectedProcedure
+    .input(z.object({ sessionId: z.string(), campaignId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await prisma.campaignMember.findFirst({
+        where: { campaignId: input.campaignId, userId: ctx.session.user.id },
+      });
+      if (!member) throw ForbiddenError.forPermission('join', 'session');
+
+      const token = crypto.randomUUID();
+      const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6380');
+      await redis.set(
+        `live-session-token:${token}`,
+        JSON.stringify({ userId: ctx.session.user.id, sessionId: input.sessionId, campaignId: input.campaignId }),
+        'EX',
+        60
+      );
+      await redis.quit();
+      return { token };
     }),
 });
