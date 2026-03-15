@@ -97,7 +97,7 @@ export function CharacterOverview({
     return null;
   }
 
-  const allFeatures = (data.features as any[] | null) ?? [];
+  const allFeatures = Array.isArray(data.features) ? data.features as any[] : [];
   const featActions = allFeatures
     .map((f: any) => ({ ...f, actionType: detectActionType(f.description ?? '') }))
     .filter((f: any) => f.actionType !== null);
@@ -112,7 +112,7 @@ export function CharacterOverview({
     return 'Action';
   }
 
-  const allSpells = (spellcasting?.spells as any[] | null) ?? [];
+  const allSpells = Array.isArray(spellcasting?.spells) ? spellcasting.spells as any[] : [];
   const spellsByLevel: Record<number, any[]> = {};
   for (const spell of allSpells) {
     const lvl = spell.level ?? 0;
