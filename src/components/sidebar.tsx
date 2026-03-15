@@ -20,6 +20,7 @@ import {
   Brain,
   ArrowLeft,
   ChevronRight,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,6 +58,7 @@ function getCampaignNav(slug: string) {
     ],
     library: [
       { href: `/campaigns/${slug}/homebrew`, label: 'Homebrew', icon: BookOpen },
+      { href: `/campaigns/${slug}/players`, label: 'Characters', icon: Shield },
       { href: `/campaigns/${slug}/members`, label: 'Members', icon: UsersRound },
     ],
   };
@@ -80,7 +82,7 @@ function NavItem({
       href={href}
       title={collapsed ? label : undefined}
       className={cn(
-        'relative flex items-center gap-2.5 px-5 py-[7px] text-[13px] font-medium transition-colors',
+        'relative flex items-center gap-2.5 px-5 py-[7px] text-sm font-medium transition-colors',
         isActive
           ? 'text-amber-400/90 bg-amber-500/[0.07]'
           : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
@@ -110,7 +112,7 @@ function NavItem({
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
   if (collapsed) return <div className="h-3" />;
   return (
-    <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">
+    <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">
       {label}
     </p>
   );
@@ -167,7 +169,7 @@ function CampaignSwitcher({
             <p className="text-xs font-medium text-foreground/90 truncate">
               {currentCampaign?.name ?? 'Select Campaign'}
             </p>
-            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+            <p className="text-xs text-muted-foreground/60 mt-0.5">
               {currentCampaign
                 ? `${currentCampaign.sessionCount ?? 0} sessions`
                 : 'Switch campaign'}
@@ -219,7 +221,7 @@ export function Sidebar() {
       className={cn(
         'relative hidden md:flex flex-col border-r border-[hsl(35_35%_18%)] transition-all duration-200',
         'bg-[hsl(240,10%,7%)]',
-        collapsed ? 'w-16' : 'w-[220px]'
+        collapsed ? 'w-16' : 'w-[240px]'
       )}
     >
       {/* Amber gradient right border */}
@@ -249,7 +251,7 @@ export function Sidebar() {
             >
               QuiverDM
             </span>
-            <span className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground/50 mt-0.5">
+            <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/50 mt-0.5">
               Campaign Companion
             </span>
           </Link>
@@ -397,7 +399,7 @@ export function MobileSidebar() {
         key={item.href}
         href={item.href}
         className={cn(
-          'relative flex items-center gap-2.5 px-5 py-2 text-[13px] font-medium transition-colors',
+          'relative flex items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
           isActive
             ? 'text-amber-400/90 bg-amber-500/[0.07]'
             : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
@@ -422,21 +424,21 @@ export function MobileSidebar() {
     <nav className="flex flex-col py-2">
       {inCampaign && campaignNavSections ? (
         <>
-          <p className="px-5 pt-3 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Campaign</p>
+          <p className="px-5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Campaign</p>
           {campaignNavSections.campaign.map((item) => renderLink(item, item.exact))}
-          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">World</p>
+          <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">World</p>
           {campaignNavSections.world.map((item) => renderLink(item))}
-          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Library</p>
+          <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Library</p>
           {campaignNavSections.library.map((item) => renderLink(item))}
-          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
+          <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
           {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ArrowLeft })}
           {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
         </>
       ) : (
         <>
-          <p className="px-5 pt-3 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Navigate</p>
+          <p className="px-5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Navigate</p>
           {globalNav.map((item) => renderLink(item))}
-          <p className="px-5 pt-4 pb-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Tools</p>
+          <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Tools</p>
           {[...toolsNav, { href: '/settings', label: 'Settings', icon: Settings }].map((item) => renderLink(item))}
         </>
       )}
