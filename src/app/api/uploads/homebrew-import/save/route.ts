@@ -8,6 +8,7 @@ interface ItemToSave {
   type: string;
   description: string;
   properties?: Record<string, unknown>;
+  sourceType?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
             images: [],
             tags: [item.type || 'item'],
             searchText: `${item.name} ${item.description}`,
-            sourceType: 'media_import',
+            sourceType: item.sourceType || 'media_import',
           },
         });
         if (campaignId) {

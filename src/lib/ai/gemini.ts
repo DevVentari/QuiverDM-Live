@@ -8,6 +8,7 @@ const TIMEOUT_MS = 60_000;
 interface GeminiCallOpts {
   userId?: string;
   feature?: string;
+  maxOutputTokens?: number;
 }
 
 export async function callGemini(prompt: string, userKey?: string, opts?: GeminiCallOpts): Promise<string> {
@@ -60,7 +61,7 @@ export async function callGeminiVision(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts }],
-      generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
+      generationConfig: { temperature: 0.1, maxOutputTokens: opts?.maxOutputTokens ?? 4096 },
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
