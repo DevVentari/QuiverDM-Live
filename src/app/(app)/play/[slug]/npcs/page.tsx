@@ -12,7 +12,7 @@ const PORTRAIT_COLORS = [
 ];
 
 function portraitColor(name: string) {
-  const code = name.charCodeAt(0) + (name.charCodeAt(1) ?? 0);
+  const code = name.charCodeAt(0) + (name.charCodeAt(1) || 0);
   return PORTRAIT_COLORS[code % PORTRAIT_COLORS.length];
 }
 
