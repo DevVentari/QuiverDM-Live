@@ -24,6 +24,12 @@ export const playService = {
                 character: { select: { name: true, class: true, level: true, portraitUrl: true } },
               },
             },
+            members: {
+              take: 4,
+              select: {
+                user: { select: { id: true, name: true, image: true } },
+              },
+            },
           },
         },
       },
@@ -41,6 +47,12 @@ export const playService = {
         character: cc
           ? { name: cc.character.name, class: cc.character.class ?? null, level: cc.character.level, portraitUrl: cc.character.portraitUrl ?? null }
           : null,
+        memberCount: m.campaign.members.length,
+        members: m.campaign.members.map(mb => ({
+          id: mb.user.id,
+          name: mb.user.name,
+          image: mb.user.image,
+        })),
       };
     });
   },
@@ -65,6 +77,7 @@ export const playService = {
             date: true,
             aiSummary: true,
             playerVisibility: true,
+            sessionNumber: true,
           },
         },
         characters: {
