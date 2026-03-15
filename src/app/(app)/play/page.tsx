@@ -25,7 +25,7 @@ export default function PlayerHomePage() {
       {!campaigns?.length ? (
         <div className="text-center py-16 text-muted-foreground">
           <Sword className="h-10 w-10 mx-auto mb-3 opacity-30" />
-          <p>You haven't joined any campaigns yet.</p>
+          <p>You haven&apos;t joined any campaigns yet.</p>
           <p className="text-sm mt-1">Ask your DM for an invite code.</p>
         </div>
       ) : (

@@ -18,7 +18,7 @@ export default function PlayNpcsPage() {
       {!npcs?.length ? (
         <div className="text-center py-12 text-muted-foreground">
           <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-30" />
-          <p>Your DM hasn't shared any NPCs yet.</p>
+          <p>Your DM hasn&apos;t shared any NPCs yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
