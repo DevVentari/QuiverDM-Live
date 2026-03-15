@@ -133,6 +133,29 @@ export const usageService = {
   /**
    * Check if user can upload a PDF
    */
+  async canTranscribe(userId: string, seconds: number): Promise<boolean> {
+    const usage = await this.getOrCreateUsage(userId);
+    if (new Date() > usage.periodEnd) {
+      await this.resetUsagePeriod(userId);
+      return true;
+    }
+    if (usage.transcriptionLimit === -1) return true;
+    return usage.transcriptionSeconds + seconds <= usage.transcriptionLimit;
+  },
+
+  async incrementTranscription(userId: string, seconds: number) {
+    const canTranscribe = await this.canTranscribe(userId, seconds);
+    if (!canTranscribe) {
+      throw new ForbiddenError(
+        'Transcription limit reached for your tier. Upgrade to Pro for more transcription minutes.'
+      );
+    }
+    return await prisma.userUsage.update({
+      where: { userId },
+      data: { transcriptionSeconds: { increment: seconds } },
+    });
+  },
+
   async canUploadPdf(userId: string): Promise<boolean> {
     const usage = await this.getOrCreateUsage(userId);
     if (new Date() > usage.periodEnd) {
