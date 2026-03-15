@@ -8,6 +8,7 @@ interface ItemToSave {
   type: string;
   description: string;
   properties?: Record<string, unknown>;
+  sourceType?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -16,8 +17,8 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = session.user.id;
 
-    const body = await request.json() as { items: ItemToSave[]; campaignId?: string; sourceType?: string };
-    const { items, campaignId, sourceType } = body;
+    const body = await request.json() as { items: ItemToSave[]; campaignId?: string };
+    const { items, campaignId } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 });
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
             images: [],
             tags: [item.type || 'item'],
             searchText: `${item.name} ${item.description}`,
-            sourceType: sourceType || 'media_import',
+            sourceType: item.sourceType || 'media_import',
           },
         });
         if (campaignId) {

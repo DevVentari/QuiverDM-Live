@@ -33,6 +33,7 @@ interface ExtractedItem {
 interface ReviewItem extends ExtractedItem {
   id: string;
   sourceFile: string;
+  sourceType: string;
   selected: boolean;
 }
 
@@ -52,7 +53,6 @@ export function ImportFromMediaDialog({
   onSuccess,
 }: ImportFromMediaDialogProps) {
   const [step, setStep] = useState<Step>('select');
-  const [extractionMode, setExtractionMode] = useState<'homebrew' | 'notes'>('homebrew');
   const [files, setFiles] = useState<File[]>([]);
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
   const [extractErrors, setExtractErrors] = useState<string[]>([]);
@@ -83,8 +83,6 @@ export function ImportFromMediaDialog({
     try {
       const fd = new FormData();
       for (const f of files) fd.append('files', f);
-      fd.append('mode', extractionMode);
-
       const res = await fetch('/api/uploads/homebrew-import/extract', { method: 'POST', body: fd });
       const json = await res.json();
 
@@ -99,10 +97,10 @@ export function ImportFromMediaDialog({
       const items: ReviewItem[] = [];
       let idx = 0;
 
-      for (const fr of json.fileResults as Array<{ fileName: string; items: ExtractedItem[]; error?: string }>) {
+      for (const fr of json.fileResults as Array<{ fileName: string; items: ExtractedItem[]; sourceType: string; error?: string }>) {
         if (fr.error) errs.push(`${fr.fileName}: ${fr.error}`);
         for (const item of fr.items) {
-          items.push({ ...item, id: String(idx++), sourceFile: fr.fileName, selected: true });
+          items.push({ ...item, id: String(idx++), sourceFile: fr.fileName, sourceType: fr.sourceType, selected: true });
         }
       }
 
@@ -123,9 +121,8 @@ export function ImportFromMediaDialog({
 
     try {
       const body = {
-        items: toSave.map(({ name, type, description, properties }) => ({ name, type, description, properties })),
+        items: toSave.map(({ name, type, description, properties, sourceType }) => ({ name, type, description, properties, sourceType })),
         campaignId: selectedCampaignId !== '__none__' ? selectedCampaignId : undefined,
-        sourceType: extractionMode === 'notes' ? 'handwritten_scan' : undefined,
       };
       const res = await fetch('/api/uploads/homebrew-import/save', {
         method: 'POST',
@@ -152,7 +149,6 @@ export function ImportFromMediaDialog({
 
   function reset() {
     setStep('select');
-    setExtractionMode('homebrew');
     setFiles([]);
     setReviewItems([]);
     setExtractErrors([]);
@@ -173,9 +169,7 @@ export function ImportFromMediaDialog({
         <DialogHeader>
           <DialogTitle>Import from Any Format</DialogTitle>
           <DialogDescription>
-            {step === 'select' && (extractionMode === 'notes'
-              ? 'Upload phone photos of handwritten D&D notes. AI transcribes and organises them into your library.'
-              : 'Upload photos of hand-drawn content, sketches, or any text file. AI will extract D&D homebrew content.')}
+            {step === 'select' && 'Upload images, PDFs, or text files. Photos of handwritten notes are automatically transcribed; PDFs and text are extracted as homebrew content.'}
             {step === 'extracting' && 'Analyzing files with AI…'}
             {step === 'review' && (reviewItems.length > 0
               ? `Review extracted content. ${selectedCount} of ${reviewItems.length} items selected.`
@@ -189,23 +183,6 @@ export function ImportFromMediaDialog({
 
           {step === 'select' && (
             <div className="space-y-4">
-              <div className="flex rounded-lg border border-border overflow-hidden text-sm">
-                <button
-                  type="button"
-                  onClick={() => setExtractionMode('homebrew')}
-                  className={`flex-1 px-3 py-2 transition-colors ${extractionMode === 'homebrew' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
-                >
-                  Homebrew Items
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setExtractionMode('notes')}
-                  className={`flex-1 px-3 py-2 transition-colors ${extractionMode === 'notes' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
-                >
-                  Handwritten Notes
-                </button>
-              </div>
-
               <div
                 className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
                 onClick={() => fileRef.current?.click()}

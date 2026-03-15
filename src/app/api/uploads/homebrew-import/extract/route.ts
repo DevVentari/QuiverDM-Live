@@ -120,35 +120,38 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
-    const mode = (formData.get('mode') as string | null) === 'notes' ? 'notes' : 'homebrew';
 
     if (files.length === 0) return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     if (files.length > MAX_FILES) return NextResponse.json({ error: `Maximum ${MAX_FILES} files allowed` }, { status: 400 });
 
-    const fileResults: Array<{ fileName: string; items: ExtractedItem[]; error?: string }> = [];
+    const fileResults: Array<{ fileName: string; items: ExtractedItem[]; sourceType: string; error?: string }> = [];
 
     for (const file of files) {
       if (file.size > MAX_FILE_SIZE) {
-        fileResults.push({ fileName: file.name, items: [], error: 'File too large (max 10MB)' });
+        fileResults.push({ fileName: file.name, items: [], sourceType: 'media_import', error: 'File too large (max 10MB)' });
         continue;
       }
 
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
         let items: ExtractedItem[];
+        let sourceType: string;
 
         if (IMAGE_TYPES.includes(file.type)) {
-          items = await extractFromImage(buffer.toString('base64'), file.type, userGeminiKey, userId, mode);
+          items = await extractFromImage(buffer.toString('base64'), file.type, userGeminiKey, userId, 'notes');
+          sourceType = 'handwritten_scan';
         } else if (file.type === 'application/pdf') {
           const markdown = await pdfToMarkdown(buffer);
           items = await extractFromText(markdown, userGeminiKey, userId);
+          sourceType = 'pdf_extraction';
         } else {
           items = await extractFromText(buffer.toString('utf-8'), userGeminiKey, userId);
+          sourceType = 'media_import';
         }
 
-        fileResults.push({ fileName: file.name, items });
+        fileResults.push({ fileName: file.name, items, sourceType });
       } catch (err: unknown) {
-        fileResults.push({ fileName: file.name, items: [], error: err instanceof Error ? err.message : String(err) });
+        fileResults.push({ fileName: file.name, items: [], sourceType: 'media_import', error: err instanceof Error ? err.message : String(err) });
       }
     }
 
