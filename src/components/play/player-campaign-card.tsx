@@ -12,7 +12,7 @@ const AVATAR_COLORS = [
 
 function avatarColor(name: string | null) {
   if (!name) return AVATAR_COLORS[0];
-  const code = name.charCodeAt(0) + (name.charCodeAt(1) ?? 0);
+  const code = name.charCodeAt(0) + (name.charCodeAt(1) || 0);
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }
 
