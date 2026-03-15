@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const userId = session.user.id;
 
-    const body = await request.json() as { items: ItemToSave[]; campaignId?: string };
-    const { items, campaignId } = body;
+    const body = await request.json() as { items: ItemToSave[]; campaignId?: string; sourceType?: string };
+    const { items, campaignId, sourceType } = body;
 
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 });
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
             images: [],
             tags: [item.type || 'item'],
             searchText: `${item.name} ${item.description}`,
-            sourceType: 'media_import',
+            sourceType: sourceType || 'media_import',
           },
         });
         if (campaignId) {

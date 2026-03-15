@@ -27,6 +27,40 @@ Rules:
 - If you cannot identify a clear type, use "item"
 - If nothing D&D-related is found, return { "items": [] }`;
 
+const HANDWRITTEN_NOTES_PROMPT = `You are a DM's notes transcriber and organiser. Your job is to extract everything useful from handwritten D&D notes — preserving the DM's original voice and capturing content that doesn't fit rigid stat-block schemas.
+
+Step 1 — Transcribe: Read everything you can see. Mark uncertain words with [?]. Do not paraphrase or formalise.
+
+Step 2 — Split into items: One item per distinct idea. A page with three NPC concepts becomes three items. A page with one long lore entry stays as one item.
+
+Step 3 — Assign a type to each item:
+- "creature" — monster or NPC with combat stats
+- "item" — weapon, armor, or wondrous item
+- "spell" — named spell with mechanics
+- "location" — named place with description
+- "faction" — group, organisation, or cult
+- "race" — playable species or lineage
+- "rule" — house rule or custom mechanic
+- "adventure" — structured adventure hook or scenario outline
+- "npc_concept" — NPC idea, personality sketch, or backstory fragment (no full stats)
+- "plot_hook" — loose story idea, quest seed, or "what if" prompt
+- "lore" — world-building, history, mythology, or setting detail
+- "note" — anything else — reminders, lists, rough ideas, session notes
+
+Return ONLY valid JSON:
+{
+  "items": [
+    {
+      "name": "string (infer a short title if none is written)",
+      "type": "one of the types above",
+      "description": "transcribed content — preserve original phrasing, mark unclear text with [?]",
+      "properties": { "any structured fields if present, e.g. stats, abilities" }
+    }
+  ]
+}
+
+If the image is blank or completely illegible, return { "items": [] }.`;
+
 export interface ExtractedItem {
   name: string;
   type: string;
@@ -50,8 +84,10 @@ async function extractFromText(text: string, userKey?: string, userId?: string):
   return parseExtracted(raw);
 }
 
-async function extractFromImage(base64Data: string, mimeType: string, userKey?: string, userId?: string): Promise<ExtractedItem[]> {
-  const raw = await callGeminiVision(HOMEBREW_EXTRACTION_PROMPT, [{ mimeType, base64Data }], userKey, userId ? { userId, feature: 'extraction' } : undefined);
+async function extractFromImage(base64Data: string, mimeType: string, userKey?: string, userId?: string, mode: 'homebrew' | 'notes' = 'homebrew'): Promise<ExtractedItem[]> {
+  const prompt = mode === 'notes' ? HANDWRITTEN_NOTES_PROMPT : HOMEBREW_EXTRACTION_PROMPT;
+  const opts = userId ? { userId, feature: 'extraction', maxOutputTokens: mode === 'notes' ? 8192 : 4096 } : undefined;
+  const raw = await callGeminiVision(prompt, [{ mimeType, base64Data }], userKey, opts);
   return parseExtracted(raw);
 }
 
@@ -84,6 +120,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
+    const mode = (formData.get('mode') as string | null) === 'notes' ? 'notes' : 'homebrew';
 
     if (files.length === 0) return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     if (files.length > MAX_FILES) return NextResponse.json({ error: `Maximum ${MAX_FILES} files allowed` }, { status: 400 });
@@ -101,7 +138,7 @@ export async function POST(request: NextRequest) {
         let items: ExtractedItem[];
 
         if (IMAGE_TYPES.includes(file.type)) {
-          items = await extractFromImage(buffer.toString('base64'), file.type, userGeminiKey, userId);
+          items = await extractFromImage(buffer.toString('base64'), file.type, userGeminiKey, userId, mode);
         } else if (file.type === 'application/pdf') {
           const markdown = await pdfToMarkdown(buffer);
           items = await extractFromText(markdown, userGeminiKey, userId);

@@ -1,4 +1,4 @@
-import { Wand2, Sparkles, Skull, Shield, Star, BookOpen, Swords, Users, type LucideIcon } from 'lucide-react';
+import { Wand2, Sparkles, Skull, Shield, Star, BookOpen, Swords, Users, StickyNote, UserCircle, Lightbulb, ScrollText, type LucideIcon } from 'lucide-react';
 
 export const typeStyleMap: Record<string, { label: string; color: string; gradient: string; icon: LucideIcon }> = {
   item: { label: 'Item', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', gradient: 'from-amber-900/70 to-amber-700/40', icon: Wand2 },
@@ -11,6 +11,10 @@ export const typeStyleMap: Record<string, { label: string; color: string; gradie
   background: { label: 'Background', color: 'bg-orange-500/10 text-orange-500 border-orange-500/20', gradient: 'from-orange-900/70 to-orange-700/40', icon: BookOpen },
   location: { label: 'Location', color: 'bg-green-500/10 text-green-500 border-green-500/20', gradient: 'from-green-900/70 to-green-700/40', icon: BookOpen },
   rule: { label: 'Rule', color: 'bg-gray-500/10 text-gray-400 border-gray-500/20', gradient: 'from-gray-900/70 to-gray-700/40', icon: BookOpen },
+  note: { label: 'Note', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', gradient: 'from-yellow-900/70 to-yellow-700/40', icon: StickyNote },
+  npc_concept: { label: 'NPC Concept', color: 'bg-violet-500/10 text-violet-500 border-violet-500/20', gradient: 'from-violet-900/70 to-violet-700/40', icon: UserCircle },
+  plot_hook: { label: 'Plot Hook', color: 'bg-rose-500/10 text-rose-500 border-rose-500/20', gradient: 'from-rose-900/70 to-rose-700/40', icon: Lightbulb },
+  lore: { label: 'Lore', color: 'bg-teal-500/10 text-teal-500 border-teal-500/20', gradient: 'from-teal-900/70 to-teal-700/40', icon: ScrollText },
 };
 
 const defaultStyle = { label: 'Content', color: 'bg-muted text-muted-foreground border-border', gradient: 'from-gray-900/70 to-gray-700/40', icon: Swords };
@@ -24,6 +28,7 @@ export function getSourceLabel(sourceType: string) {
     case 'pdf_extraction': return 'Extracted from PDF';
     case 'dndbeyond_import': return 'D&D Beyond';
     case 'manual': return 'Manual';
+    case 'handwritten_scan': return 'Handwritten scan';
     default: return sourceType;
   }
 }

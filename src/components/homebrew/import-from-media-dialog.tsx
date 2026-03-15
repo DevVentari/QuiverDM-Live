@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Upload, Loader2, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
-const CONTENT_TYPES = ['item', 'spell', 'creature', 'location', 'faction', 'race', 'rule', 'adventure'];
+const CONTENT_TYPES = ['item', 'spell', 'creature', 'location', 'faction', 'race', 'rule', 'adventure', 'note', 'npc_concept', 'plot_hook', 'lore'];
 
 interface ExtractedItem {
   name: string;
@@ -52,6 +52,7 @@ export function ImportFromMediaDialog({
   onSuccess,
 }: ImportFromMediaDialogProps) {
   const [step, setStep] = useState<Step>('select');
+  const [extractionMode, setExtractionMode] = useState<'homebrew' | 'notes'>('homebrew');
   const [files, setFiles] = useState<File[]>([]);
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
   const [extractErrors, setExtractErrors] = useState<string[]>([]);
@@ -82,6 +83,7 @@ export function ImportFromMediaDialog({
     try {
       const fd = new FormData();
       for (const f of files) fd.append('files', f);
+      fd.append('mode', extractionMode);
 
       const res = await fetch('/api/uploads/homebrew-import/extract', { method: 'POST', body: fd });
       const json = await res.json();
@@ -123,6 +125,7 @@ export function ImportFromMediaDialog({
       const body = {
         items: toSave.map(({ name, type, description, properties }) => ({ name, type, description, properties })),
         campaignId: selectedCampaignId !== '__none__' ? selectedCampaignId : undefined,
+        sourceType: extractionMode === 'notes' ? 'handwritten_scan' : undefined,
       };
       const res = await fetch('/api/uploads/homebrew-import/save', {
         method: 'POST',
@@ -149,6 +152,7 @@ export function ImportFromMediaDialog({
 
   function reset() {
     setStep('select');
+    setExtractionMode('homebrew');
     setFiles([]);
     setReviewItems([]);
     setExtractErrors([]);
@@ -169,7 +173,9 @@ export function ImportFromMediaDialog({
         <DialogHeader>
           <DialogTitle>Import from Any Format</DialogTitle>
           <DialogDescription>
-            {step === 'select' && 'Upload photos of hand-drawn content, handwritten notes, sketches, or any text file. AI will extract D&D homebrew content.'}
+            {step === 'select' && (extractionMode === 'notes'
+              ? 'Upload phone photos of handwritten D&D notes. AI transcribes and organises them into your library.'
+              : 'Upload photos of hand-drawn content, sketches, or any text file. AI will extract D&D homebrew content.')}
             {step === 'extracting' && 'Analyzing files with AI…'}
             {step === 'review' && (reviewItems.length > 0
               ? `Review extracted content. ${selectedCount} of ${reviewItems.length} items selected.`
@@ -183,6 +189,23 @@ export function ImportFromMediaDialog({
 
           {step === 'select' && (
             <div className="space-y-4">
+              <div className="flex rounded-lg border border-border overflow-hidden text-sm">
+                <button
+                  type="button"
+                  onClick={() => setExtractionMode('homebrew')}
+                  className={`flex-1 px-3 py-2 transition-colors ${extractionMode === 'homebrew' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                >
+                  Homebrew Items
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExtractionMode('notes')}
+                  className={`flex-1 px-3 py-2 transition-colors ${extractionMode === 'notes' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                >
+                  Handwritten Notes
+                </button>
+              </div>
+
               <div
                 className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
                 onClick={() => fileRef.current?.click()}
