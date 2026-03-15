@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Upload, Loader2, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
-const CONTENT_TYPES = ['item', 'spell', 'creature', 'location', 'faction', 'race', 'rule', 'adventure'];
+const CONTENT_TYPES = ['item', 'spell', 'creature', 'location', 'faction', 'race', 'rule', 'adventure', 'note', 'npc_concept', 'plot_hook', 'lore'];
 
 interface ExtractedItem {
   name: string;
@@ -33,6 +33,7 @@ interface ExtractedItem {
 interface ReviewItem extends ExtractedItem {
   id: string;
   sourceFile: string;
+  sourceType: string;
   selected: boolean;
 }
 
@@ -82,7 +83,6 @@ export function ImportFromMediaDialog({
     try {
       const fd = new FormData();
       for (const f of files) fd.append('files', f);
-
       const res = await fetch('/api/uploads/homebrew-import/extract', { method: 'POST', body: fd });
       const json = await res.json();
 
@@ -97,10 +97,10 @@ export function ImportFromMediaDialog({
       const items: ReviewItem[] = [];
       let idx = 0;
 
-      for (const fr of json.fileResults as Array<{ fileName: string; items: ExtractedItem[]; error?: string }>) {
+      for (const fr of json.fileResults as Array<{ fileName: string; items: ExtractedItem[]; sourceType: string; error?: string }>) {
         if (fr.error) errs.push(`${fr.fileName}: ${fr.error}`);
         for (const item of fr.items) {
-          items.push({ ...item, id: String(idx++), sourceFile: fr.fileName, selected: true });
+          items.push({ ...item, id: String(idx++), sourceFile: fr.fileName, sourceType: fr.sourceType, selected: true });
         }
       }
 
@@ -121,7 +121,7 @@ export function ImportFromMediaDialog({
 
     try {
       const body = {
-        items: toSave.map(({ name, type, description, properties }) => ({ name, type, description, properties })),
+        items: toSave.map(({ name, type, description, properties, sourceType }) => ({ name, type, description, properties, sourceType })),
         campaignId: selectedCampaignId !== '__none__' ? selectedCampaignId : undefined,
       };
       const res = await fetch('/api/uploads/homebrew-import/save', {
@@ -169,7 +169,7 @@ export function ImportFromMediaDialog({
         <DialogHeader>
           <DialogTitle>Import from Any Format</DialogTitle>
           <DialogDescription>
-            {step === 'select' && 'Upload photos of hand-drawn content, handwritten notes, sketches, or any text file. AI will extract D&D homebrew content.'}
+            {step === 'select' && 'Upload images, PDFs, or text files. Photos of handwritten notes are automatically transcribed; PDFs and text are extracted as homebrew content.'}
             {step === 'extracting' && 'Analyzing files with AI…'}
             {step === 'review' && (reviewItems.length > 0
               ? `Review extracted content. ${selectedCount} of ${reviewItems.length} items selected.`
