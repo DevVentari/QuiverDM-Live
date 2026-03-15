@@ -18,7 +18,7 @@ export default function PlayLorePage() {
       {!lore?.length ? (
         <div className="text-center py-12 text-muted-foreground">
           <Wand2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
-          <p>Your DM hasn't shared any lore yet.</p>
+          <p>Your DM hasn&apos;t shared any lore yet.</p>
         </div>
       ) : (
         <div className="space-y-3">
