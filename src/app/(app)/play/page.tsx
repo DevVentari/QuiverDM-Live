@@ -1,10 +1,13 @@
 'use client';
+import { useSession } from 'next-auth/react';
 import { trpc } from '@/lib/trpc';
 import { PlayerCampaignCard } from '@/components/play/player-campaign-card';
 import { Sword } from 'lucide-react';
 
 export default function PlayerHomePage() {
   const { data: campaigns, isLoading } = trpc.play.getHome.useQuery();
+  const { data: session } = useSession();
+  const firstName = session?.user?.name?.split(' ')[0];
 
   if (isLoading) {
     return (
@@ -21,6 +24,7 @@ export default function PlayerHomePage() {
       <div className="mb-6">
         <p className="overline-label">Player Mode</p>
         <h1 className="font-display text-2xl font-bold">Your Campaigns</h1>
+        {firstName && <p className="text-sm text-muted-foreground mt-1">Welcome back, {firstName}</p>}
       </div>
       {!campaigns?.length ? (
         <div className="text-center py-16 text-muted-foreground">
