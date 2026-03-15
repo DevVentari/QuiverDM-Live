@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { checkpoint, signInAsTestUser } from '../helpers';
 
+// Tabs (Recordings, Transcript, Recap) are inside lg:hidden — only visible below 1024px.
+// Use a tablet viewport to access the tabbed session interface.
+test.use({ viewport: { width: 900, height: 900 } });
+
 const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
@@ -20,8 +24,11 @@ function makeMp4Buffer(): Buffer {
 async function navigateToSessionDetail(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
   await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
   await page.waitForLoadState('domcontentloaded');
+  // Wait for session DETAIL links (href has session ID after /sessions/) — not just the nav link
+  await page.locator(`a[href^="/campaigns/${CAMPAIGN_SLUG}/sessions/"]`).first()
+    .waitFor({ state: 'attached', timeout: 15_000 }).catch(() => {});
 
-  const sessionHref = await page.locator('a[href*="/sessions/"]').evaluateAll((links) => {
+  const sessionHref = await page.locator(`a[href^="/campaigns/${CAMPAIGN_SLUG}/sessions/"]`).evaluateAll((links) => {
     for (const link of links) {
       const href = link.getAttribute('href');
       if (href && /\/campaigns\/[^/]+\/sessions\/([a-zA-Z0-9_-]{10,})$/.test(href)) {
@@ -57,18 +64,25 @@ test('video upload: MP4 ftyp buffer is accepted and appears in recordings list',
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
   }, 15_000);
 
+  let sessionHref: string | null = null;
+
   await checkpoint(testInfo, 'navigate-to-session', async () => {
-    const href = await navigateToSessionDetail(page);
-    if (!href) test.skip(true, 'Could not find or create a session.');
+    sessionHref = await navigateToSessionDetail(page);
+    if (!sessionHref) test.skip(true, 'Could not find or create a session.');
     await expect(page).toHaveURL(/\/campaigns\/[^/]+\/sessions\/[^/]+$/);
   }, 25_000);
 
   await checkpoint(testInfo, 'open-recordings-tab', async () => {
+    // Re-navigate to session detail — URL can drift if client-side navigation fires after domcontentloaded
+    if (sessionHref) {
+      await page.goto(sessionHref);
+      await page.waitForLoadState('domcontentloaded');
+    }
     const recordingsTab = page.getByRole('tab', { name: /recordings/i });
-    await expect(recordingsTab).toBeVisible({ timeout: 10_000 });
+    await expect(recordingsTab).toBeVisible({ timeout: 25_000 });
     await recordingsTab.click();
     await expect(page.getByRole('tabpanel')).toBeVisible({ timeout: 8_000 });
-  }, 12_000);
+  }, 35_000);
 
   await checkpoint(testInfo, 'upload-mp4-file', async () => {
     const uploadButton = page.getByRole('button', { name: /upload recording/i });
