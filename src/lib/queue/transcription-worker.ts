@@ -36,6 +36,7 @@ import { deleteFromR2, extractKeyFromUrl } from '../storage/r2';
 import { getSignedUrl } from '../storage';
 import type { TranscriptionJobData, TranscriptionJobResult } from './transcription-queue';
 import { addSessionEventsJob } from './session-events-queue';
+import { addAiSummaryJob } from './ai-summary-queue';
 
 const prisma = new PrismaClient();
 
@@ -232,6 +233,43 @@ async function processTranscription(
         campaignId = sess?.campaignId ?? '';
       }
       addSessionEventsJob({ sessionId: data.sessionId, campaignId }).catch(() => undefined);
+    }
+
+    // Auto-trigger AI summary if not already generated
+    {
+      const sessionForSummary = await prisma.gameSession.findUnique({
+        where: { id: data.sessionId },
+        select: {
+          aiSummaryStatus: true,
+          title: true,
+          sessionNumber: true,
+          campaign: { select: { userId: true } },
+          transcripts: {
+            select: { rawText: true, source: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        },
+      });
+      if (sessionForSummary?.aiSummaryStatus === 'none') {
+        const transcriptText = sessionForSummary.transcripts[0]?.rawText ?? '';
+        const transcriptSource = sessionForSummary.transcripts[0]?.source ?? 'upload';
+        if (transcriptText.trim()) {
+          await prisma.gameSession.update({
+            where: { id: data.sessionId },
+            data: { aiSummaryStatus: 'pending' },
+          });
+          addAiSummaryJob({
+            jobId: data.sessionId,
+            sessionId: data.sessionId,
+            userId: sessionForSummary.campaign.userId,
+            transcriptText,
+            transcriptSource,
+            sessionTitle: sessionForSummary.title ?? `Session ${sessionForSummary.sessionNumber}`,
+            sessionNumber: sessionForSummary.sessionNumber,
+          }).catch(() => undefined);
+        }
+      }
     }
 
     // 8. Delete original file if requested
