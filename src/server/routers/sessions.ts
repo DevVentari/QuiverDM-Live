@@ -15,6 +15,8 @@ import { combatCopilotQueue } from '@/lib/queue/combat-copilot-queue';
 import { playerRecapQueue } from '@/lib/queue/player-recap-queue';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
 import { sessionStateService } from '../services/session-state.service';
+import { extractPrepNotes } from '@/lib/ai/extract-prep-notes';
+import { isOllamaAvailable } from '@/lib/ai/ollama';
 
 export const sessionsRouter = router({
   /**
@@ -510,4 +512,47 @@ export const sessionsRouter = router({
   commitSessionEvents: campaignDMProcedure
     .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
     .mutation(({ input }) => sessionStateService.commitSessionEvents(input.sessionId)),
+
+  extractPrepFromNotes: protectedProcedure
+    .input(
+      z.object({
+        sessionId: z.string().min(1),
+        url: z.string().optional(),
+        text: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      await authz.session(input.sessionId, ctx.session.user.id).requireManage();
+
+      let text = input.text ?? '';
+      if (input.url && !text) {
+        text = `[Uploaded document: ${input.url}]`;
+      }
+      if (!text) return {};
+
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: { campaignId: true },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+
+      const available = await isOllamaAvailable();
+      if (!available) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'Ollama is not available' });
+      }
+
+      const ctx2 = await sessionService.getContextForPrep(session.campaignId, ctx.session.user.id);
+
+      return extractPrepNotes({
+        text,
+        campaignContext: {
+          npcs: ctx2.npcs.map(n => ({ id: n.id, name: n.name })),
+          characters: ctx2.characters.map(c => ({ id: c.id, name: c.name })),
+          recentSessions: ctx2.recentSessions.map(s => ({
+            title: s.title ?? null,
+            recap: s.recap ?? null,
+          })),
+        },
+      });
+    }),
 });
