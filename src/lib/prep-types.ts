@@ -55,6 +55,12 @@ export const LooseThreadSchema = z.object({
   fromSessionTitle: z.string().optional(),
 });
 
+export const ImportedNoteSchema = z.object({
+  url: z.string().optional(),
+  extractedAt: z.string(),
+  sectionCounts: z.record(z.string(), z.number()),
+});
+
 // ---------------------------------------------------------------------------
 // Full SessionPrepData schema
 // ---------------------------------------------------------------------------
@@ -86,6 +92,9 @@ export const SessionPrepDataSchema = z.object({
 
   // Step 8: Loose Threads
   looseThreads: z.array(LooseThreadSchema).default([]),
+
+  // Imported Notes
+  importedNotes: z.array(ImportedNoteSchema).optional().default([]),
 });
 
 export type SessionPrepData = z.infer<typeof SessionPrepDataSchema>;
@@ -96,6 +105,7 @@ export type PrepNpc = z.infer<typeof PrepNpcSchema>;
 export type PrepMonster = z.infer<typeof MonsterSchema>;
 export type PrepReward = z.infer<typeof RewardSchema>;
 export type PrepLooseThread = z.infer<typeof LooseThreadSchema>;
+export type ImportedNote = z.infer<typeof ImportedNoteSchema>;
 
 // ---------------------------------------------------------------------------
 // Default empty prep data
