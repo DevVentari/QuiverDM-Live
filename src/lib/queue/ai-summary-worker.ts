@@ -15,6 +15,7 @@ import type {
   AiHighlight,
 } from './ai-summary-queue';
 import { addBrainIngestionJob } from './brain-ingestion-queue';
+import { postSummaryToDiscord } from '@/lib/discord/post-summary';
 
 function getRedisConnection(): Record<string, unknown> {
   if (process.env.REDIS_URL) {
@@ -156,6 +157,30 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
     }).catch(err => {
       console.warn('[ai-summary] Failed to queue brain ingestion:', err);
     });
+  }
+
+  // Auto-post to Discord if campaign has webhook configured
+  try {
+    const campaignForDiscord = session?.campaignId
+      ? await prisma.campaign.findUnique({
+          where: { id: session.campaignId },
+          select: { settings: true, userId: true },
+        })
+      : null;
+    const settings = (campaignForDiscord?.settings ?? {}) as Record<string, unknown>;
+    const webhookUrl = settings.discordWebhookUrl as string | undefined;
+    if (webhookUrl) {
+      const owner = await prisma.user.findUnique({
+        where: { id: campaignForDiscord!.userId },
+        select: { tier: true },
+      });
+      const isSubscribed = owner?.tier === 'pro' || owner?.tier === 'team';
+      const sessionTitle = data.sessionTitle;
+      await postSummaryToDiscord(webhookUrl, sessionTitle, parsed.summary, isSubscribed);
+    }
+  } catch (err) {
+    console.error('[AiSummaryWorker] Discord post failed:', err);
+    // Non-fatal — summary is already saved
   }
 
   return { success: true, summary: parsed.summary, highlights: parsed.highlights };
