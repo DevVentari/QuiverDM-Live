@@ -11,6 +11,7 @@ export interface ExtractPrepNotesInput {
 }
 
 const SYSTEM_PROMPT = `You are a D&D session prep assistant. Extract structured prep content from the DM's raw notes.
+Be thorough — extract ALL npcs, ALL scenes, ALL secrets and clues, ALL monsters, ALL rewards, and ALL loose threads you can find.
 Return ONLY valid JSON matching the schema. Omit any field where no relevant content exists in the notes.`;
 
 function buildUserPrompt(text: string, context: ExtractPrepNotesInput['campaignContext']): string {
@@ -42,7 +43,7 @@ export async function extractPrepNotes(
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(input.text, input.campaignContext) },
     ],
-    { temperature: 0.3 }
+    { temperature: 0.3, openAiModel: 'gpt-4o' }
   );
 
   try {
