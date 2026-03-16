@@ -1,16 +1,28 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { AudioRecorder } from '@/components/session/audio-recorder';
 import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import {
   Sparkles,
   RefreshCw,
@@ -23,6 +35,8 @@ import {
   FileText,
   ArrowLeft,
   Pencil,
+  Play,
+  Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -43,12 +57,6 @@ function SummaryCard({
     onError: (e) => toast({ title: 'Failed', description: e.message, variant: 'destructive' }),
   });
 
-  const postToDiscord = trpc.sessions.postToDiscord.useMutation({
-    onSuccess: () => toast({ title: 'Posted to Discord' }),
-    onError: (e) =>
-      toast({ title: 'Discord post failed', description: e.message, variant: 'destructive' }),
-  });
-
   const status = session.aiSummaryStatus as string | null | undefined;
 
   return (
@@ -65,28 +73,16 @@ function SummaryCard({
         </div>
         <div className="flex gap-2">
           {status === 'done' && (
-            <>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 gap-1.5 text-xs"
-                onClick={() => postToDiscord.mutate({ sessionId, campaignId })}
-                disabled={postToDiscord.isPending}
-              >
-                <Send className="h-3 w-3" />
-                {postToDiscord.isPending ? 'Posting…' : 'Discord'}
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 gap-1.5 text-xs"
-                onClick={() => generateSummary.mutate({ sessionId })}
-                disabled={generateSummary.isPending}
-              >
-                <RefreshCw className="h-3 w-3" />
-                Re-analyze
-              </Button>
-            </>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 gap-1.5 text-xs"
+              onClick={() => generateSummary.mutate({ sessionId })}
+              disabled={generateSummary.isPending}
+            >
+              <RefreshCw className="h-3 w-3" />
+              Re-analyze
+            </Button>
           )}
         </div>
       </div>
@@ -138,6 +134,53 @@ function SummaryCard({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function DiscordPanel({
+  sessionId,
+  campaignId,
+  summaryAvailable,
+}: {
+  sessionId: string;
+  campaignId: string;
+  summaryAvailable: boolean;
+}) {
+  const { toast } = useToast();
+
+  const postToDiscord = trpc.sessions.postToDiscord.useMutation({
+    onSuccess: () => toast({ title: 'Posted to Discord' }),
+    onError: (e) =>
+      toast({ title: 'Discord post failed', description: e.message, variant: 'destructive' }),
+  });
+
+  return (
+    <div
+      className="rounded-sm border border-border/40 px-5 py-4 flex items-center justify-between"
+      style={{ background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%)' }}
+    >
+      <div className="flex items-center gap-2">
+        <Send className="h-4 w-4" style={{ color: 'hsl(240 70% 65%)' }} />
+        <div>
+          <p className="text-sm font-medium" style={{ color: 'hsl(35 20% 88%)' }}>
+            Discord
+          </p>
+          <p className="text-xs" style={{ color: 'hsl(35 10% 45%)' }}>
+            Not posted yet
+          </p>
+        </div>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-8 gap-1.5 text-xs"
+        onClick={() => postToDiscord.mutate({ sessionId, campaignId })}
+        disabled={postToDiscord.isPending || !summaryAvailable}
+      >
+        <Send className="h-3 w-3" />
+        {postToDiscord.isPending ? 'Posting…' : 'Post to Discord'}
+      </Button>
     </div>
   );
 }
@@ -243,9 +286,20 @@ function RecordingsSection({
   );
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  planning: 'Planned',
+  in_progress: 'In Progress',
+  active: 'Active',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+
 export default function SessionDetailPage() {
   const { slug, sessionId } = useParams<{ slug: string; sessionId: string }>();
   const { campaignId, isDM } = useCampaign();
+  const { toast } = useToast();
+  const router = useRouter();
+  const utils = trpc.useUtils();
 
   const { data: session, isLoading } = trpc.sessions.getById.useQuery(
     { id: sessionId },
@@ -257,6 +311,20 @@ export default function SessionDetailPage() {
       },
     }
   );
+
+  const { data: campaign } = trpc.campaigns.getBySlug.useQuery(
+    { slug },
+    { staleTime: 60_000 }
+  );
+
+  const deleteSession = trpc.sessions.delete.useMutation({
+    onSuccess: () => {
+      void utils.sessions.getById.invalidate({ id: sessionId });
+      router.push(`/campaigns/${slug}/sessions`);
+    },
+    onError: (e) =>
+      toast({ title: 'Delete failed', description: e.message, variant: 'destructive' }),
+  });
 
   if (isLoading) {
     return (
@@ -271,6 +339,8 @@ export default function SessionDetailPage() {
   if (!session) return null;
 
   const s = session as any;
+  const discordWebhookUrl = (campaign?.settings as any)?.discordWebhookUrl as string | undefined;
+  const sessionStatus = s.status as string | undefined;
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8 space-y-5">
@@ -291,9 +361,16 @@ export default function SessionDetailPage() {
             >
               Session {s.sessionNumber}
             </p>
-            <h1 className="font-display text-xl font-bold" style={{ color: 'hsl(35 20% 88%)' }}>
-              {s.title ?? `Session ${s.sessionNumber}`}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-display text-xl font-bold" style={{ color: 'hsl(35 20% 88%)' }}>
+                {s.title ?? `Session ${s.sessionNumber}`}
+              </h1>
+              {sessionStatus && (
+                <Badge variant="outline" className="text-xs capitalize">
+                  {STATUS_LABEL[sessionStatus] ?? sessionStatus}
+                </Badge>
+              )}
+            </div>
             {s.date && (
               <p className="text-xs mt-1" style={{ color: 'hsl(35 10% 48%)' }}>
                 {format(new Date(s.date as string), 'd MMM yyyy')}
@@ -301,11 +378,46 @@ export default function SessionDetailPage() {
             )}
           </div>
           {isDM && (
-            <Link href={`/campaigns/${slug}/sessions/${sessionId}/prep`}>
-              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs mt-1">
-                <Pencil className="h-3 w-3" /> Prep
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2 shrink-0 mt-1">
+              <Link href={`/campaigns/${slug}/sessions/${sessionId}/live`}>
+                <Button size="sm" className="h-8 gap-1.5 text-xs">
+                  <Play className="h-3 w-3" /> Start Session
+                </Button>
+              </Link>
+              <Link href={`/campaigns/${slug}/sessions/${sessionId}/prep`}>
+                <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
+                  <Pencil className="h-3 w-3" /> Prep
+                </Button>
+              </Link>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete session?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete this session and all its data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteSession.mutate({ id: sessionId })}
+                      className="bg-destructive text-destructive-foreground"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
           )}
         </div>
         {isDM && s.playerVisibility && (
@@ -315,6 +427,15 @@ export default function SessionDetailPage() {
 
       {/* Summary */}
       <SummaryCard session={s} sessionId={sessionId} campaignId={campaignId} />
+
+      {/* Discord panel (DM only, only when webhook is configured) */}
+      {isDM && discordWebhookUrl && (
+        <DiscordPanel
+          sessionId={sessionId}
+          campaignId={campaignId}
+          summaryAvailable={s.aiSummaryStatus === 'done'}
+        />
+      )}
 
       {/* Recordings (DM only) */}
       {isDM && <RecordingsSection session={s} sessionId={sessionId} campaignId={campaignId} />}
