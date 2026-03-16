@@ -1,4 +1,4 @@
-import { chatWithOllama } from './ollama';
+import { chatWithAI } from './chat';
 import type { SessionPrepData } from '@/lib/prep-types';
 
 export interface ExtractPrepNotesInput {
@@ -37,12 +37,12 @@ Extract prep content as JSON with these optional fields:
 export async function extractPrepNotes(
   input: ExtractPrepNotesInput
 ): Promise<Partial<SessionPrepData>> {
-  const raw = await chatWithOllama(
+  const raw = await chatWithAI(
     [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(input.text, input.campaignContext) },
     ],
-    { format: 'json', temperature: 0.3 }
+    { temperature: 0.3 }
   );
 
   try {
