@@ -16,6 +16,7 @@ interface ChatOptions {
   temperature?: number;
   userGeminiKey?: string;
   userId?: string;
+  openAiModel?: string;
 }
 
 async function tryGroq(messages: ChatMessage[], temperature: number): Promise<string> {
@@ -31,11 +32,11 @@ async function tryGroq(messages: ChatMessage[], temperature: number): Promise<st
   return json.choices?.[0]?.message?.content ?? '';
 }
 
-async function tryOpenAI(messages: ChatMessage[], temperature: number): Promise<string> {
+async function tryOpenAI(messages: ChatMessage[], temperature: number, model = 'gpt-4o-mini'): Promise<string> {
   if (!process.env.OPENAI_API_KEY) throw new Error('No OpenAI key');
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const res = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model,
     messages,
     temperature,
     max_tokens: 4096,
@@ -63,7 +64,7 @@ export async function chatWithAI(
   options: ChatOptions = {}
 ): Promise<string> {
   const temperature = options.temperature ?? 0.1;
-  const { userGeminiKey, userId } = options;
+  const { userGeminiKey, userId, openAiModel } = options;
 
   async function tryGeminiWithUserKey(): Promise<string> {
     const key = userGeminiKey || process.env.GEMINI_API_KEY;
@@ -78,12 +79,12 @@ export async function chatWithAI(
     ? [
         ['gemini-user', tryGeminiWithUserKey],
         ['groq', () => tryGroq(messages, temperature)],
-        ['openai', () => tryOpenAI(messages, temperature)],
+        ['openai', () => tryOpenAI(messages, temperature, openAiModel)],
         ['ollama', () => tryOllama(messages, temperature)],
       ]
     : [
         ['groq', () => tryGroq(messages, temperature)],
-        ['openai', () => tryOpenAI(messages, temperature)],
+        ['openai', () => tryOpenAI(messages, temperature, openAiModel)],
         ['gemini', () => tryGemini(messages, temperature)],
         ['ollama', () => tryOllama(messages, temperature)],
       ];
