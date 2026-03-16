@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { PrepWizard } from '@/components/session/prep/prep-wizard';
+import { PrepWorkspace } from '@/components/session/prep/prep-workspace';
 import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc';
 import { SessionPrepDataSchema, emptyPrepData } from '@/lib/prep-types';
@@ -82,7 +82,7 @@ function PrepPageInner() {
   }
 
   return (
-    <PrepWizard
+    <PrepWorkspace
       sessionId={sessionId}
       initialData={initialData}
       campaignContext={contextQuery.data as any}
