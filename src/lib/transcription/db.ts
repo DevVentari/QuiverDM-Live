@@ -5,6 +5,7 @@ import type {
 } from './whisperx';
 import { addEmbeddingJob } from '@/lib/queue/embeddings-queue';
 import { deleteEntityEmbeddings } from '@/server/repositories/embedding.repository';
+import { stripFillers } from './strip-fillers';
 
 // Alias for compatibility
 type LocalTranscriptionResult = WhisperXTranscriptionResult;
@@ -98,12 +99,13 @@ export async function saveTranscript(
   }));
 
   // Create transcript record
+  const correctedTextBase = textWithSpeakers || result.text;
   const transcript = await prisma.transcript.create({
     data: {
       sessionId,
       recordingId,
       rawText: result.text,
-      correctedText: textWithSpeakers || result.text,
+      correctedText: stripFillers(correctedTextBase),
       speakers: speakers || undefined,
       timestamps,
       language: result.language,
