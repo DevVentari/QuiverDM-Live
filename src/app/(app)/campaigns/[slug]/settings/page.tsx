@@ -40,6 +40,8 @@ export default function CampaignSettingsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
+  const [sourcebook, setSourcebook] = useState('');
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState('');
   const foundryEnabled = process.env.NEXT_PUBLIC_FOUNDRY_BRIDGE_ENABLED === 'true';
   const importJobsQuery = (trpc as any).foundry.getImportJobs.useQuery(
     { campaignId },
@@ -53,6 +55,9 @@ export default function CampaignSettingsPage() {
       setDescription(data.description || '');
       setStatus(data.status || 'active');
       setBannerUrl(data.bannerUrl ?? null);
+      const settings = (data.settings ?? {}) as Record<string, unknown>;
+      setSourcebook((settings.sourcebook as string) || '');
+      setDiscordWebhookUrl((settings.discordWebhookUrl as string) || '');
     }
   }, [campaign.data]);
 
@@ -69,6 +74,16 @@ export default function CampaignSettingsPage() {
 
   const deleteCampaign = trpc.campaigns.delete.useMutation({
     onSuccess: () => router.push('/campaigns'),
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const updateSettings = trpc.campaigns.updateSettings.useMutation({
+    onSuccess: () => {
+      void utils.campaigns.getById.invalidate({ id: campaignId });
+      toast({ title: 'Settings saved', description: 'Integration settings updated.' });
+    },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
@@ -239,6 +254,52 @@ export default function CampaignSettingsPage() {
       </div>
 
       {isDM && <WebhookSettings campaignId={campaignId} />}
+
+      {isDM && (
+        <div className="stone-card">
+          <div className="stone-card-header">
+            <span className="stone-card-title">AI & Integrations</span>
+            <p className="text-sm text-muted-foreground">Configure AI context and external integrations</p>
+          </div>
+          <div className="stone-card-body space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="sourcebook">Sourcebook</Label>
+              <Input
+                id="sourcebook"
+                value={sourcebook}
+                onChange={(e) => setSourcebook(e.target.value)}
+                placeholder="e.g. Curse of Strahd, Homebrew"
+              />
+              <p className="text-xs text-muted-foreground">
+                The rulebook or adventure module this campaign uses. Included in AI session summaries for better lore context.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="discord-webhook">Discord Webhook URL</Label>
+              <Input
+                id="discord-webhook"
+                value={discordWebhookUrl}
+                onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+                placeholder="https://discord.com/api/webhooks/..."
+              />
+              <p className="text-xs text-muted-foreground">
+                Session summaries will be auto-posted here after generation. Create a webhook in your Discord server settings.
+              </p>
+            </div>
+            <Button
+              type="button"
+              disabled={updateSettings.isPending}
+              onClick={() => updateSettings.mutate({
+                campaignId,
+                sourcebook: sourcebook || undefined,
+                discordWebhookUrl: discordWebhookUrl || undefined,
+              })}
+            >
+              {updateSettings.isPending ? 'Saving...' : 'Save Integration Settings'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {isDM && foundryEnabled && (
         <div className="stone-card">

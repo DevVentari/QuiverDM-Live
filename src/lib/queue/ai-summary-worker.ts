@@ -122,7 +122,22 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
     data: { aiSummaryStatus: 'processing', aiSummaryError: null },
   });
 
-  const userPrompt = `Session ${data.sessionNumber}: "${data.sessionTitle}"\n\nTranscript:\n${data.transcriptText.slice(0, 12000)}`;
+  const sessionForCampaign = await prisma.gameSession.findUnique({
+    where: { id: data.sessionId },
+    select: { campaignId: true },
+  });
+  const campaignSettings = sessionForCampaign?.campaignId
+    ? await prisma.campaign.findUnique({
+        where: { id: sessionForCampaign.campaignId },
+        select: { settings: true },
+      })
+    : null;
+  const sourcebook = ((campaignSettings?.settings ?? {}) as Record<string, unknown>).sourcebook as string | undefined;
+  const sourcebookContext = sourcebook
+    ? `This session is part of a campaign running "${sourcebook}". Use this for context when referencing locations, factions, and lore.\n\n`
+    : '';
+
+  const userPrompt = `${sourcebookContext}Session ${data.sessionNumber}: "${data.sessionTitle}"\n\nTranscript:\n${data.transcriptText.slice(0, 12000)}`;
   const content = await chatWithAI(
     [
       { role: 'system', content: getSummarySystemPrompt(data.transcriptSource) },
