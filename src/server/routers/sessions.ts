@@ -13,6 +13,7 @@ import { BadRequestError, NotFoundError } from '../errors';
 import { derailmentQueue } from '@/lib/queue/derailment-queue';
 import { combatCopilotQueue } from '@/lib/queue/combat-copilot-queue';
 import { playerRecapQueue } from '@/lib/queue/player-recap-queue';
+import { postSummaryToDiscord } from '@/lib/discord/post-summary';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
 import { sessionStateService } from '../services/session-state.service';
 import { extractPrepNotes } from '@/lib/ai/extract-prep-notes';
@@ -541,5 +542,62 @@ export const sessionsRouter = router({
           })),
         },
       });
+    }),
+
+  postToDiscord: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: {
+          title: true,
+          sessionNumber: true,
+          aiSummary: true,
+          campaignId: true,
+          campaign: {
+            select: {
+              settings: true,
+              userId: true,
+            },
+          },
+        },
+      });
+
+      if (!session) throw new NotFoundError('session', input.sessionId);
+      if (session.campaignId !== input.campaignId) {
+        throw new BadRequestError('Session does not belong to the provided campaign');
+      }
+
+      if (!session.aiSummary) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'No summary available to post' });
+      }
+
+      const settings = (session.campaign.settings ?? {}) as Record<string, unknown>;
+      const webhookUrl = settings.discordWebhookUrl as string | undefined;
+
+      if (!webhookUrl) {
+        throw new TRPCError({ code: 'PRECONDITION_FAILED', message: 'No Discord webhook configured for this campaign' });
+      }
+
+      const owner = await prisma.user.findUnique({
+        where: { id: session.campaign.userId },
+        select: { tier: true },
+      });
+
+      const isSubscribed = owner?.tier === 'pro' || owner?.tier === 'team';
+
+      await postSummaryToDiscord(
+        webhookUrl,
+        session.title ?? `Session ${session.sessionNumber}`,
+        session.aiSummary,
+        isSubscribed
+      );
+
+      return { ok: true };
     }),
 });

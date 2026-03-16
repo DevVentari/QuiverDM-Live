@@ -5,9 +5,10 @@
  * All business logic lives in the service layer.
  */
 
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, campaignOwnerProcedure } from '../trpc';
 import { z } from 'zod';
 import { campaignService } from '../services/campaign.service';
+import { prisma } from '../db';
 import { serverTrack } from '@/lib/analytics.server';
 import { EVENTS } from '@/lib/analytics-events';
 
@@ -146,4 +147,31 @@ export const campaignsRouter = router({
     .mutation(({ ctx, input }) =>
       campaignService.declineInvite(input.inviteId, ctx.session.user.email)
     ),
+
+  /**
+   * Update campaign settings JSON (sourcebook, discordWebhookUrl, etc.)
+   */
+  updateSettings: campaignOwnerProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      sourcebook: z.string().optional(),
+      discordWebhookUrl: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const campaign = await prisma.campaign.findUnique({
+        where: { id: input.campaignId },
+        select: { settings: true },
+      });
+      const current = (campaign?.settings ?? {}) as Record<string, unknown>;
+      await prisma.campaign.update({
+        where: { id: input.campaignId },
+        data: {
+          settings: {
+            ...current,
+            ...(input.sourcebook !== undefined && { sourcebook: input.sourcebook }),
+            ...(input.discordWebhookUrl !== undefined && { discordWebhookUrl: input.discordWebhookUrl }),
+          },
+        },
+      });
+    }),
 });
