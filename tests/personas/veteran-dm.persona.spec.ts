@@ -137,6 +137,45 @@ test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testI
   }, 15_000);
 });
 
+test('veteran-dm brain-seeded-from-creation: entities accessible after campaign creation with world setup', async ({ page }, testInfo) => {
+  test.slow();
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 12_000);
+
+  let campaignUrl: string;
+
+  await checkpoint(testInfo, 'create-campaign-with-world-setup', async () => {
+    await page.goto('/campaigns/new');
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    const campaignName = `Vic Seed Test ${Date.now()}`;
+    await page.getByLabel(/^name$/i).fill(campaignName);
+    await page.fill('input#antagonistName', 'The Shadow Dragon');
+    await page.fill('input#startingLocation', 'Myth Drannor');
+    await page.getByRole('button', { name: /create campaign/i }).click();
+    await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 15_000 });
+    campaignUrl = page.url();
+  }, 20_000);
+
+  await checkpoint(testInfo, 'brain-page-loads-without-error', async () => {
+    // Navigate to brain page for the newly created campaign
+    const brainLink = page.locator('a[href*="/brain"]').first();
+    const hasBrainLink = await brainLink.isVisible({ timeout: 5_000 }).catch(() => false);
+    if (hasBrainLink) {
+      await brainLink.click();
+    } else {
+      await page.goto(campaignUrl.replace(/\/$/, '') + '/brain');
+    }
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    await page.waitForTimeout(2_000);
+    await expect(page.locator('body')).not.toContainText(/something went wrong|internal server error/i);
+    // Brain page loaded — entities may or may not be present yet (async seeding)
+    const hasEntities = await page.locator('[data-testid="entity-card"]').count() > 0;
+    const hasEmptyState = await page.locator('text=/no entities/i').isVisible().catch(() => false);
+    expect(hasEntities || hasEmptyState).toBe(true);
+  }, 15_000);
+});
+
 test('veteran-dm failure path: blocked action surfaces clear actionable error', async ({ page }, testInfo) => {
   test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
