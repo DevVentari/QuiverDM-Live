@@ -10,6 +10,7 @@ import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
 import { redis } from '@/lib/queue/queue';
 import { coDMQueue } from '@/lib/queue/co-dm-queue';
 import type { CoDMSuggestion } from '@/lib/co-dm/types';
+import { addBrainIngestionJob } from '@/lib/queue/brain-ingestion-queue';
 
 const entityTypeSchema = z.nativeEnum(WorldEntityType);
 const entityStatusSchema = z.nativeEnum(WorldEntityStatus);
@@ -238,7 +239,6 @@ export const brainRouter = router({
       }
 
       if (storyText?.trim()) {
-        const { addBrainIngestionJob } = await import('@/lib/queue/brain-ingestion-queue');
         await addBrainIngestionJob({
           campaignId,
           sessionId: null,
