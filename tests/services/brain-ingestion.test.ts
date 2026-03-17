@@ -24,6 +24,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: mocks.prisma }));
 vi.mock('@/lib/queue/queue', () => ({ getRedisConnection: vi.fn().mockReturnValue({}) }));
 vi.mock('bullmq', () => ({
   Worker: vi.fn().mockImplementation(() => ({ on: vi.fn(), close: vi.fn() })),
+  Queue: vi.fn().mockImplementation(() => ({ add: vi.fn() })),
 }));
 vi.mock('dotenv', () => ({ default: { config: vi.fn() } }));
 
@@ -282,5 +283,21 @@ describe('processBrainIngestionJob', () => {
     expect(result.entitiesUpdated).toBeGreaterThanOrEqual(1);
     // Other two new entities (Obsidian Syndicate, Ruins of Aelindra) are still created
     expect(result.entitiesCreated).toBe(2);
+  });
+});
+
+describe('addBrainIngestionJob', () => {
+  it('uses sessionId-based jobId when sessionId is present', async () => {
+    const { addBrainIngestionJob, brainIngestionQueue } = await import('@/lib/queue/brain-ingestion-queue');
+    const addSpy = vi.spyOn(brainIngestionQueue, 'add').mockResolvedValueOnce({} as any);
+    await addBrainIngestionJob({ sessionId: 'sess-123', campaignId: 'camp-456', summary: 'test', highlights: [] });
+    expect(addSpy).toHaveBeenCalledWith('brain-ingest-sess-123', expect.anything(), { jobId: 'brain-sess-123' });
+  });
+
+  it('uses campaignId-based jobId when sessionId is null (no collision)', async () => {
+    const { addBrainIngestionJob, brainIngestionQueue } = await import('@/lib/queue/brain-ingestion-queue');
+    const addSpy = vi.spyOn(brainIngestionQueue, 'add').mockResolvedValueOnce({} as any);
+    await addBrainIngestionJob({ sessionId: null, campaignId: 'camp-789', summary: 'story so far', highlights: [] });
+    expect(addSpy).toHaveBeenCalledWith('brain-ingest-campaign-camp-789', expect.anything(), { jobId: 'brain-campaign-camp-789' });
   });
 });
