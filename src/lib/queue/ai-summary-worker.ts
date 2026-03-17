@@ -189,7 +189,7 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
         where: { id: campaignForDiscord!.userId },
         select: { tier: true },
       });
-      const isSubscribed = owner?.tier === 'pro' || owner?.tier === 'team';
+      const isSubscribed = owner?.tier === 'pro' || owner?.tier === 'team' || owner?.tier === 'alpha';
       const sessionTitle = data.sessionTitle;
       await postSummaryToDiscord(webhookUrl, sessionTitle, parsed.summary, isSubscribed);
     }

@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email';
 import { ForbiddenError, NotFoundError } from '../errors';
 
-export type UserTier = 'free' | 'pro' | 'team';
+export type UserTier = 'free' | 'pro' | 'team' | 'alpha';
 
 // Option A cap profile (dec-003 accepted 2026-02-24)
 // Source: docs/obsidian-vault/10-Research/2026-02-23-usage-caps-benchmark.md
@@ -21,6 +21,14 @@ export const TIER_LIMITS = {
     imageGenerations: 5,
   },
   pro: {
+    campaigns: -1,                 // Unlimited
+    sessionUploads: 30,
+    aiRecaps: 30,
+    pdfUploads: 40,
+    semanticSearches: 1000,
+    imageGenerations: 80,
+  },
+  alpha: {
     campaigns: -1,                 // Unlimited
     sessionUploads: 30,
     aiRecaps: 30,

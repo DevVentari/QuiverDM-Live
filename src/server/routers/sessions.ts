@@ -589,7 +589,7 @@ export const sessionsRouter = router({
         select: { tier: true },
       });
 
-      const isSubscribed = owner?.tier === 'pro' || owner?.tier === 'team';
+      const isSubscribed = owner?.tier === 'pro' || owner?.tier === 'team' || owner?.tier === 'alpha';
 
       await postSummaryToDiscord(
         webhookUrl,

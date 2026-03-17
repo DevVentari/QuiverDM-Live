@@ -17,6 +17,7 @@ export const PLATFORM_ROLE_LABELS: Record<PlatformRole, string> = {
 export const PLAN_LABELS: Record<string, string> = {
   free: 'Wanderer',
   pro: 'Hero',
+  alpha: 'Alpha',
   team: 'Fellowship',
 };
 
