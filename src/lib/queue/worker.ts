@@ -170,8 +170,8 @@ async function processPDFJob(
       level: 'info',
     });
 
-    // Download PDF to temp location
-    const tempDir = path.join(process.cwd(), 'temp');
+    // Download PDF to temp location — use /tmp (always writable) not cwd (read-only in production containers)
+    const tempDir = process.env.TEMP_DIR ?? '/tmp/quiverdm';
     await fs.mkdir(tempDir, { recursive: true });
     const tempPdfPath = path.join(tempDir, `${pdfId}.pdf`);
 
