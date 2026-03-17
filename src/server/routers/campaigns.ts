@@ -31,7 +31,17 @@ const CreateCampaignSchema = z.object({
       frequency: z.string().optional(),
     }).optional(),
     houseRules: z.string().optional(),
+    themes: z.array(z.string()).optional(),
   }).optional(),
+  players: z.array(
+    z.object({
+      name: z.string().max(100),
+      characterName: z.string().max(100),
+    }).refine(
+      (r) => r.name.trim() !== '' || r.characterName.trim() !== '',
+      { message: 'Player row must have at least a name or character name' }
+    )
+  ).optional(),
 });
 
 const UpdateCampaignSchema = z.object({

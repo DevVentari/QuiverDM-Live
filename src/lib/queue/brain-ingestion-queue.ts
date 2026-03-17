@@ -5,10 +5,11 @@ import { Queue } from 'bullmq';
 import { getRedisConnection } from './queue';
 
 export interface BrainIngestionJobData {
-  sessionId: string;
+  sessionId: string | null;
   campaignId: string;
   summary: string;
   highlights?: Array<{ type: string; text: string }>;
+  source?: string;
 }
 
 export interface BrainIngestionJobResult {
@@ -34,7 +35,12 @@ export const brainIngestionQueue = new Queue<BrainIngestionJobData, BrainIngesti
 );
 
 export async function addBrainIngestionJob(data: BrainIngestionJobData) {
-  return brainIngestionQueue.add(`brain-ingest-${data.sessionId}`, data, {
-    jobId: `brain-${data.sessionId}`,
+  const jobKey = data.sessionId
+    ? `brain-ingest-${data.sessionId}`
+    : `brain-ingest-campaign-${data.campaignId}`;
+  return brainIngestionQueue.add(jobKey, data, {
+    jobId: data.sessionId
+      ? `brain-${data.sessionId}`
+      : `brain-campaign-${data.campaignId}`,
   });
 }
