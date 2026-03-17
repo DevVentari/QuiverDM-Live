@@ -234,6 +234,29 @@ describe('processBrainIngestionJob', () => {
     expect(mocks.brainRepository.upsertEntity).not.toHaveBeenCalled();
   });
 
+  it('handles sessionId: null — skips recordAppearance, still extracts entities', async () => {
+    const mockAIResponse = JSON.stringify({
+      newEntities: [{ type: 'NPC', name: 'Orpheus', description: 'The god of song' }],
+      entityUpdates: [],
+      relationships: [],
+      newHooks: [],
+      pressureShifts: {},
+    });
+    vi.mocked(mocks.chatWithAI).mockResolvedValueOnce(mockAIResponse);
+
+    const result = await processBrainIngestionJob({
+      sessionId: null,
+      campaignId: 'campaign-1',
+      summary: 'The party discovered Orpheus imprisoned in the Far Realm',
+      highlights: [],
+      source: 'campaign_creation',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.entitiesCreated).toBeGreaterThanOrEqual(0);
+    expect(mocks.brainRepository.recordAppearance).not.toHaveBeenCalled();
+  });
+
   it('counts entity as updated (not created) when name:type key already exists in campaign', async () => {
     const existingKorrath = {
       id: 'entity-existing-1',
