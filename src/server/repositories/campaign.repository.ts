@@ -178,6 +178,7 @@ export async function create(data: {
   bannerUrl?: string;
   userId: string;
   settings?: Prisma.InputJsonValue;
+  players?: Array<{ name: string; characterName: string }>;
 }) {
   return prisma.$transaction(async (tx) => {
     const campaign = await tx.campaign.create({
@@ -204,6 +205,21 @@ export async function create(data: {
         canInviteMembers: true,
       },
     });
+
+    if (data.players && data.players.length > 0) {
+      const validPlayers = data.players.filter(
+        (p) => p.name.trim() !== '' || p.characterName.trim() !== ''
+      );
+      if (validPlayers.length > 0) {
+        await tx.player.createMany({
+          data: validPlayers.map((p) => ({
+            campaignId: campaign.id,
+            name: p.name.trim(),
+            characterName: p.characterName.trim(),
+          })),
+        });
+      }
+    }
 
     return campaign;
   });

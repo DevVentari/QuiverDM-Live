@@ -65,17 +65,19 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
         description: entity.description,
         properties: entity.properties ?? {},
         status: entity.status ? STATUS_MAP[entity.status] : undefined,
-        lastSeenSessionId: data.sessionId,
-        firstSeenSessionId: data.sessionId,
+        lastSeenSessionId: data.sessionId ?? undefined,
+        firstSeenSessionId: data.sessionId ?? undefined,
         confidence: 0.8,
       });
 
-      await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: upserted.id, campaignId: data.campaignId });
+      if (data.sessionId) {
+        await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: upserted.id, campaignId: data.campaignId });
+      }
 
       await brainRepository.logChange({
         campaignId: data.campaignId,
         entityId: upserted.id,
-        sessionId: data.sessionId,
+        sessionId: data.sessionId ?? undefined,
         changeType: 'property_update',
         newValue: { name: entity.name, type: entityType, status: entity.status },
         source: 'ingestion',
@@ -101,15 +103,17 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
       await brainRepository.updateEntity(existing.id, {
         properties: { ...(existing.properties as Record<string, unknown>), ...(update.properties ?? {}) },
         status: update.status ? STATUS_MAP[update.status] : undefined,
-        lastSeenSessionId: data.sessionId,
+        lastSeenSessionId: data.sessionId ?? undefined,
       });
 
-      await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: existing.id, campaignId: data.campaignId });
+      if (data.sessionId) {
+        await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: existing.id, campaignId: data.campaignId });
+      }
 
       await brainRepository.logChange({
         campaignId: data.campaignId,
         entityId: existing.id,
-        sessionId: data.sessionId,
+        sessionId: data.sessionId ?? undefined,
         changeType: 'property_update',
         newValue: { name: update.name, status: update.status, properties: update.properties },
         source: 'ingestion',
@@ -137,7 +141,7 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
         strength: rel.strength,
         description: rel.description,
       });
-      if (rel.description) {
+      if (rel.description && data.sessionId) {
         await brainRepository.appendRelationshipHistory(upsertedRel.id, {
           sessionId: data.sessionId,
           description: rel.description,
@@ -158,7 +162,7 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
     const newHooks = extracted.newHooks.map(hook => ({
       id: `hook-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       text: hook.text,
-      createdSessionId: data.sessionId,
+      createdSessionId: data.sessionId ?? null,
       ageInSessions: 0,
       urgency: hook.urgency,
       status: 'open',
@@ -167,12 +171,12 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
 
     await brainRepository.updateState(data.campaignId, {
       hooks: [...existingHooks, ...newHooks],
-      lastIngestedSessionId: data.sessionId,
+      lastIngestedSessionId: data.sessionId ?? undefined,
     });
     result.hooksAdded = newHooks.length;
   } else {
     await brainRepository.updateState(data.campaignId, {
-      lastIngestedSessionId: data.sessionId,
+      lastIngestedSessionId: data.sessionId ?? undefined,
     });
   }
 
@@ -189,7 +193,7 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
 
     await brainRepository.logChange({
       campaignId: data.campaignId,
-      sessionId: data.sessionId,
+      sessionId: data.sessionId ?? undefined,
       changeType: 'pressure_shift',
       newValue: shifts,
       source: 'ingestion',
@@ -207,7 +211,7 @@ const worker = new Worker<BrainIngestionJobData, BrainIngestionJobResult>(
       return await processBrainIngestionJob(job.data);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      console.error(`[brain-ingestion] Job failed for session ${job.data.sessionId}:`, message);
+      console.error(`[brain-ingestion] Job failed for session/campaign ${job.data.sessionId ?? job.data.campaignId}:`, message);
       throw error;
     }
   },
