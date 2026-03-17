@@ -32,7 +32,9 @@ export interface CreateCampaignInput {
       frequency?: string;
     };
     houseRules?: string;
+    themes?: string[];
   };
+  players?: Array<{ name: string; characterName: string }>;
 }
 
 export interface UpdateCampaignInput {
@@ -186,6 +188,7 @@ export class CampaignService {
         bannerUrl: input.bannerUrl,
         userId,
         settings: input.settings ?? undefined,
+        players: input.players,
       });
 
       return campaign;
