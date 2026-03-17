@@ -25,3 +25,76 @@ test('campaign create redirects from new campaign form', async ({ page }, testIn
     await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 10_000 });
   }, 12_000);
 });
+
+test('campaign create — new sections render on the page', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'sections-visible', async () => {
+    await page.goto('/campaigns/new');
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    await expect(page.getByText('Tone & Themes')).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Players')).toBeVisible();
+    await expect(page.getByText('World Setup')).toBeVisible();
+    await expect(page.getByText('Story So Far')).toBeVisible();
+    await expect(page.getByText('Import Documents')).toBeVisible();
+  }, 10_000);
+});
+
+test('campaign create — tone chips toggle and player rows work', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'tone-chips-toggle', async () => {
+    await page.goto('/campaigns/new');
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    await page.click('button:has-text("Horror")');
+    await page.click('button:has-text("Maritime")');
+    const horrorBtn = page.locator('button:has-text("Horror")');
+    await expect(horrorBtn).toHaveClass(/amber/, { timeout: 3_000 });
+  }, 8_000);
+
+  await checkpoint(testInfo, 'player-rows', async () => {
+    await page.locator('[placeholder="Player name"]').first().fill('Blake');
+    await page.locator('[placeholder="Character name"]').first().fill('Tav');
+    await page.click('button:has-text("Add player")');
+    await expect(page.locator('[placeholder="Player name"]')).toHaveCount(2);
+  }, 5_000);
+});
+
+test('campaign create — world setup fields and blank player row filtering', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'world-setup-submit', async () => {
+    await page.goto('/campaigns/new');
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    const uniqueName = `QA World Setup ${Date.now()}`;
+    await page.getByLabel(/^name$/i).fill(uniqueName);
+    await page.fill('input#startingLocation', "Baldur's Gate");
+    await page.fill('input#antagonistName', 'Bane');
+    await page.fill('input#antagonistMotivation', 'Conquest of the Sword Coast');
+    await page.fill('input#openingHook', 'A temple explodes at dawn');
+    // First player row filled, second row blank (should be filtered)
+    await page.locator('[placeholder="Player name"]').first().fill('Alice');
+    await page.locator('[placeholder="Character name"]').first().fill('Astarion');
+    await page.click('button:has-text("Add player")');
+    await page.getByRole('button', { name: /create campaign/i }).click();
+    await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 15_000 });
+  }, 20_000);
+});
+
+test('campaign create — PDF drop zone renders', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'pdf-drop-zone', async () => {
+    await page.goto('/campaigns/new');
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    await expect(page.locator('text=Drop session notes, module PDFs')).toBeVisible({ timeout: 8_000 });
+  }, 10_000);
+});
