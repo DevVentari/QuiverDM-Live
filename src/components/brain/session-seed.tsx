@@ -3,7 +3,9 @@
 import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Sparkles, RefreshCw } from 'lucide-react';
 
 function timeAgo(date: Date | string): string {
   const now = Date.now();
@@ -19,18 +21,43 @@ function timeAgo(date: Date | string): string {
 }
 
 export function SessionSeedCard({ campaignId }: { campaignId: string }) {
+  const { toast } = useToast();
+  const utils = trpc.useUtils();
+
   const { data: events, isLoading } = trpc.brain.worldSimulation.sessionSeed.useQuery(
     { campaignId },
     { staleTime: 60_000 }
   );
 
+  const runTick = trpc.brain.worldSimulation.runTick.useMutation({
+    onSuccess: () => {
+      void utils.brain.worldSimulation.sessionSeed.invalidate({ campaignId });
+      toast({ title: 'World tick complete', description: 'New story developments generated.' });
+    },
+    onError: (e) => toast({ title: 'Tick failed', description: e.message, variant: 'destructive' }),
+  });
+
   return (
     <Card className="glass-panel" data-testid="session-seed-card">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          Major Developments
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Major Developments
+          </CardTitle>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => runTick.mutate({ campaignId })}
+            disabled={runTick.isPending}
+            data-testid="run-tick-button"
+          >
+            {runTick.isPending
+              ? <><RefreshCw className="h-3 w-3 animate-spin" /> Running…</>
+              : <><RefreshCw className="h-3 w-3" /> Run Tick</>}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -40,9 +67,20 @@ export function SessionSeedCard({ campaignId }: { campaignId: string }) {
             ))}
           </div>
         ) : !events || events.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">
-            No simulations run yet. Run a world tick to generate story developments.
-          </p>
+          <div className="flex flex-col items-center gap-3 py-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              No simulations run yet.
+            </p>
+            <Button
+              size="sm"
+              onClick={() => runTick.mutate({ campaignId })}
+              disabled={runTick.isPending}
+            >
+              {runTick.isPending
+                ? <><RefreshCw className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Running…</>
+                : <><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Run World Tick</>}
+            </Button>
+          </div>
         ) : (
           <ul className="space-y-3">
             {events.map((event) => (
