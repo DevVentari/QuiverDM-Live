@@ -131,7 +131,7 @@ export function PrepWorkspace({
   const lastImport = prepData.importedNotes?.[prepData.importedNotes.length - 1];
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col min-h-screen">
       <PrepHeader
         title={title}
         onTitleChange={setTitle}
@@ -144,8 +144,8 @@ export function PrepWorkspace({
         onToggleFullscreen={() => {}}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden md:flex md:flex-col w-56 shrink-0 border-r border-border/50 bg-card/30 overflow-y-auto">
+      <div className="flex flex-1">
+        <aside className="hidden md:flex md:flex-col w-56 shrink-0 border-r border-border/50 bg-card/30 sticky top-0 self-start h-screen overflow-y-auto">
           <PrepSectionNav
             completedSections={completedSections}
             activeSection={activeSection}
@@ -153,8 +153,8 @@ export function PrepWorkspace({
           />
         </aside>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-6 py-8 space-y-4">
+        <main className="flex-1">
+          <div className="px-6 py-8 space-y-4">
             <PrepImportZone
               sessionId={sessionId}
               campaignId={campaignId}
