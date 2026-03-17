@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronDown, Upload, Loader2, Link } from 'lucide-react';
+import { ChevronDown, Upload, Loader2, Link, Trash2, Plus, X } from 'lucide-react';
 import { CreatePageShell } from '@/components/create/create-page-shell';
 import { cn } from '@/lib/utils';
 
@@ -77,14 +77,40 @@ export default function NewCampaignPage() {
   const [scheduleFrequency, setScheduleFrequency] = useState('');
   const [houseRules, setHouseRules] = useState('');
 
+  // Tone & Themes
+  const [themes, setThemes] = useState<string[]>([]);
+
+  // Players
+  const [players, setPlayers] = useState<Array<{ name: string; characterName: string }>>([
+    { name: '', characterName: '' },
+  ]);
+
+  // World Setup
+  const [startingLocation, setStartingLocation] = useState('');
+  const [antagonistName, setAntagonistName] = useState('');
+  const [antagonistMotivation, setAntagonistMotivation] = useState('');
+  const [openingHook, setOpeningHook] = useState('');
+  const [factions, setFactions] = useState<Array<{ name: string; stance: 'ally' | 'neutral' | 'hostile' }>>([
+    { name: '', stance: 'neutral' },
+  ]);
+
+  // Story So Far
+  const [storyText, setStoryText] = useState('');
+
+  // Import Documents
+  const [docFiles, setDocFiles] = useState<File[]>([]);
+  const [docUploading, setDocUploading] = useState(false);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
   const create = trpc.campaigns.create.useMutation({
-    onSuccess: (campaign) => {
-      router.push(`/campaigns/${campaign.slug || campaign.id}`);
-    },
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
+
+  const getUploadUrl = trpc.homebrewPdf.getUploadUrl.useMutation();
+  const createPDF = trpc.homebrewPdf.createPDF.useMutation();
+  const seedFromCreation = trpc.brain.seedFromCreation.useMutation();
 
   async function handleBannerUpload(file: File) {
     if (file.size > 5 * 1024 * 1024) {
@@ -110,7 +136,7 @@ export default function NewCampaignPage() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const result = createCampaignSchema.safeParse({ name: name.trim() });
     if (!result.success) {
@@ -122,23 +148,93 @@ export default function NewCampaignPage() {
       return;
     }
     setErrors({});
-    create.mutate({
-      name: name.trim(),
-      description: description || undefined,
-      bannerUrl: bannerUrl || undefined,
-      settings: showAdvanced ? {
-        gameSystem: gameSystem || undefined,
-        settingName: settingName || undefined,
-        playerCount: playerCount || undefined,
-        startingLevel: startingLevel || undefined,
-        schedule: (scheduleDay || scheduleTime || scheduleFrequency) ? {
-          day: scheduleDay || undefined,
-          time: scheduleTime || undefined,
-          frequency: scheduleFrequency || undefined,
-        } : undefined,
-        houseRules: houseRules || undefined,
-      } : undefined,
-    });
+
+    const validPlayers = players.filter(
+      (p) => p.name.trim() !== '' || p.characterName.trim() !== ''
+    );
+
+    let campaign: { id: string; slug: string };
+    try {
+      campaign = await create.mutateAsync({
+        name: name.trim(),
+        description: description || undefined,
+        bannerUrl: bannerUrl || undefined,
+        settings: {
+          themes: themes.length > 0 ? themes : undefined,
+          ...(showAdvanced && {
+            gameSystem: gameSystem || undefined,
+            settingName: settingName || undefined,
+            playerCount: playerCount || undefined,
+            startingLevel: startingLevel || undefined,
+            schedule: (scheduleDay || scheduleTime || scheduleFrequency) ? {
+              day: scheduleDay || undefined,
+              time: scheduleTime || undefined,
+              frequency: scheduleFrequency || undefined,
+            } : undefined,
+            houseRules: houseRules || undefined,
+          }),
+        },
+        players: validPlayers.length > 0 ? validPlayers : undefined,
+      });
+    } catch {
+      return;
+    }
+
+    if (docFiles.length > 0) {
+      setDocUploading(true);
+      await Promise.allSettled(docFiles.map(async (file) => {
+        try {
+          const { presignedUrl, r2Key, r2Url } = await getUploadUrl.mutateAsync({
+            filename: file.name,
+            fileSize: file.size,
+            campaignId: campaign.id,
+          });
+          if (!presignedUrl || !r2Key || !r2Url) {
+            console.warn('[campaign-create] R2 not configured, skipping doc upload for', file.name);
+            return;
+          }
+          await fetch(presignedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': 'application/pdf' } });
+          await createPDF.mutateAsync({
+            filename: file.name,
+            fileSize: file.size,
+            mimeType: 'application/pdf',
+            r2Url,
+            r2Key,
+            campaignId: campaign.id,
+          });
+        } catch (err) {
+          console.error('[campaign-create] Doc upload failed for', file.name, err);
+          toast({ title: `Upload failed: ${file.name}`, variant: 'destructive' });
+        }
+      }));
+      setDocUploading(false);
+    }
+
+    const hasWorldData = antagonistName.trim() !== '' || startingLocation.trim() !== '' ||
+      openingHook.trim() !== '' || storyText.trim() !== '' ||
+      factions.some((f) => f.name.trim() !== '');
+
+    if (hasWorldData) {
+      try {
+        await seedFromCreation.mutateAsync({
+          campaignId: campaign.id,
+          worldSetup: {
+            startingLocation: startingLocation.trim() || undefined,
+            antagonistName: antagonistName.trim() || undefined,
+            antagonistMotivation: antagonistMotivation.trim() || undefined,
+            openingHook: openingHook.trim() || undefined,
+            factions: factions
+              .filter((f) => f.name.trim() !== '')
+              .map((f) => ({ name: f.name.trim(), stance: f.stance })),
+          },
+          storyText: storyText.trim() || undefined,
+        });
+      } catch {
+        toast({ title: 'Brain seeding failed', description: 'You can seed from the Brain page later.', variant: 'destructive' });
+      }
+    }
+
+    router.push(`/campaigns/${campaign.slug || campaign.id}`);
   }
 
   return (
@@ -224,6 +320,208 @@ export default function NewCampaignPage() {
                 className="resize-none"
               />
             </div>
+          </div>
+
+          {/* Tone & Themes */}
+          <div className="space-y-4">
+            <div>
+              <p className="label-overline mb-1">Tone & Themes</p>
+              <div className="section-rule" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {['Horror', 'Political Intrigue', 'Dungeon Crawl', 'Maritime', 'Exploration', 'Mystery', 'War', 'Cosmic'].map((theme) => (
+                <button
+                  key={theme}
+                  type="button"
+                  onClick={() => setThemes((prev) =>
+                    prev.includes(theme) ? prev.filter((t) => t !== theme) : [...prev, theme]
+                  )}
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                    themes.includes(theme)
+                      ? 'border-amber-500/60 bg-amber-500/15 text-amber-300'
+                      : 'border-border/50 bg-transparent text-muted-foreground hover:border-primary/40 hover:text-foreground'
+                  )}
+                >
+                  {theme}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Players */}
+          <div className="space-y-4">
+            <div>
+              <p className="label-overline mb-1">Players</p>
+              <div className="section-rule" />
+            </div>
+            <div className="space-y-2">
+              {players.map((player, idx) => (
+                <div key={idx} className="grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+                  <Input
+                    placeholder="Player name"
+                    value={player.name}
+                    maxLength={100}
+                    onChange={(e) => setPlayers((prev) => prev.map((p, i) => i === idx ? { ...p, name: e.target.value } : p))}
+                  />
+                  <Input
+                    placeholder="Character name"
+                    value={player.characterName}
+                    maxLength={100}
+                    onChange={(e) => setPlayers((prev) => prev.map((p, i) => i === idx ? { ...p, characterName: e.target.value } : p))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPlayers((prev) => prev.filter((_, i) => i !== idx))}
+                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                    aria-label="Remove player"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setPlayers((prev) => [...prev, { name: '', characterName: '' }])}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add player
+            </button>
+          </div>
+
+          {/* World Setup */}
+          <div className="space-y-4">
+            <div>
+              <p className="label-overline mb-1">World Setup</p>
+              <div className="section-rule" />
+            </div>
+            <div className="rounded-lg border border-border/40 bg-stone-900/40 p-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startingLocation">Starting Location</Label>
+                  <Input id="startingLocation" placeholder="Waterdeep" value={startingLocation} maxLength={200}
+                    onChange={(e) => setStartingLocation(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="antagonistName">Main Antagonist</Label>
+                  <Input id="antagonistName" placeholder="Strahd von Zarovich" value={antagonistName} maxLength={200}
+                    onChange={(e) => setAntagonistName(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="antagonistMotivation">Antagonist Motivation</Label>
+                <Input id="antagonistMotivation" placeholder="Seeks to break an ancient curse..." value={antagonistMotivation} maxLength={200}
+                  onChange={(e) => setAntagonistMotivation(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="openingHook">Opening Hook</Label>
+                <Input id="openingHook" placeholder="A merchant is found dead with a strange symbol..." value={openingHook} maxLength={200}
+                  onChange={(e) => setOpeningHook(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Key Factions</Label>
+                <div className="space-y-2">
+                  {factions.map((faction, idx) => (
+                    <div key={idx} className="grid grid-cols-[1fr_140px_auto] gap-2 items-center">
+                      <Input placeholder="Faction name" value={faction.name} maxLength={100}
+                        onChange={(e) => setFactions((prev) => prev.map((f, i) => i === idx ? { ...f, name: e.target.value } : f))} />
+                      <Select value={faction.stance} onValueChange={(v) => setFactions((prev) => prev.map((f, i) => i === idx ? { ...f, stance: v as 'ally' | 'neutral' | 'hostile' } : f))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ally">Ally</SelectItem>
+                          <SelectItem value="neutral">Neutral</SelectItem>
+                          <SelectItem value="hostile">Hostile</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <button type="button" onClick={() => setFactions((prev) => prev.filter((_, i) => i !== idx))}
+                        className="p-1.5 text-muted-foreground hover:text-destructive transition-colors">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {factions.length < 3 && (
+                  <button type="button" onClick={() => setFactions((prev) => [...prev, { name: '', stance: 'neutral' }])}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                    <Plus className="h-3.5 w-3.5" />
+                    Add faction
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Story So Far */}
+          <div className="space-y-4">
+            <div>
+              <p className="label-overline mb-1">Story So Far</p>
+              <div className="section-rule" />
+            </div>
+            <Textarea
+              placeholder="Migrating from another platform? Paste your campaign history here."
+              value={storyText}
+              onChange={(e) => setStoryText(e.target.value)}
+              maxLength={20000}
+              rows={5}
+              className="resize-none"
+            />
+            {storyText.length > 0 && (
+              <p className="text-xs text-muted-foreground">{storyText.length.toLocaleString()} / 20,000 characters</p>
+            )}
+          </div>
+
+          {/* Import Documents */}
+          <div className="space-y-4">
+            <div>
+              <p className="label-overline mb-1">Import Documents</p>
+              <div className="section-rule" />
+            </div>
+            <div
+              className={cn(
+                'relative rounded-lg border-2 border-dashed border-border/50 hover:border-primary/40 transition-colors cursor-pointer',
+                docUploading && 'pointer-events-none opacity-60'
+              )}
+              onClick={() => docInputRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const files = Array.from(e.dataTransfer.files).filter((f) => f.type === 'application/pdf');
+                setDocFiles((prev) => [...prev, ...files].slice(0, 10));
+              }}
+            >
+              <input
+                ref={docInputRef}
+                type="file"
+                accept="application/pdf"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  setDocFiles((prev) => [...prev, ...files].slice(0, 10));
+                }}
+              />
+              <div className="h-20 flex flex-col items-center justify-center gap-1.5">
+                <Upload className="h-5 w-5 text-muted-foreground/50" />
+                <p className="text-xs text-muted-foreground/50">Drop session notes, module PDFs, or world documents</p>
+                <p className="text-xs text-muted-foreground/30">PDF only · max 10 files · 50MB each</p>
+              </div>
+            </div>
+            {docFiles.length > 0 && (
+              <ul className="space-y-1">
+                {docFiles.map((file, idx) => (
+                  <li key={idx} className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span className="truncate">{file.name}</span>
+                    <button type="button" onClick={() => setDocFiles((prev) => prev.filter((_, i) => i !== idx))}
+                      className="shrink-0 hover:text-destructive transition-colors">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Advanced Settings Toggle */}
@@ -361,8 +659,8 @@ export default function NewCampaignPage() {
           )}
 
           <div className="flex gap-3 pt-2">
-            <Button type="submit" variant="default" disabled={create.isPending}>
-              {create.isPending ? (
+            <Button type="submit" variant="default" disabled={create.isPending || docUploading || seedFromCreation.isPending}>
+              {(create.isPending || docUploading || seedFromCreation.isPending) ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</>
               ) : (
                 'Create Campaign'
