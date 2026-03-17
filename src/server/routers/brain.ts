@@ -1,6 +1,9 @@
+import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { brainService } from '../services/brain.service';
+import { prisma } from '../db';
+import { brainRepository } from '../repositories/brain.repository';
 import { worldSimulationService } from '../services/world-simulation.service';
 import { answerBrainQuery } from '@/lib/voice/brain-query';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
@@ -161,6 +164,92 @@ export const brainRouter = router({
     .mutation(({ input, ctx }) =>
       brainService.seedFromExisting(input.campaignId, ctx.session.user.id)
     ),
+
+  seedFromCreation: protectedProcedure
+    .input(z.object({
+      campaignId: z.string().min(1),
+      worldSetup: z.object({
+        startingLocation: z.string().max(200).optional(),
+        antagonistName: z.string().max(200).optional(),
+        antagonistMotivation: z.string().max(200).optional(),
+        openingHook: z.string().max(200).optional(),
+        factions: z.array(z.object({
+          name: z.string().max(100),
+          stance: z.enum(['ally', 'neutral', 'hostile']),
+        })).max(3).optional(),
+      }).optional(),
+      storyText: z.string().max(20000).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const campaign = await prisma.campaign.findFirst({
+        where: { id: input.campaignId, userId: ctx.session.user.id },
+        select: { id: true },
+      });
+      if (!campaign) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+      }
+
+      const { worldSetup, storyText, campaignId } = input;
+
+      if (worldSetup?.startingLocation?.trim()) {
+        await brainService.createOrUpdateEntity(campaignId, ctx.session.user.id, {
+          type: WorldEntityType.LOCATION,
+          name: worldSetup.startingLocation.trim(),
+          sourceType: 'campaign_creation',
+        });
+      }
+
+      if (worldSetup?.antagonistName?.trim()) {
+        await brainService.createOrUpdateEntity(campaignId, ctx.session.user.id, {
+          type: WorldEntityType.THREAT,
+          name: worldSetup.antagonistName.trim(),
+          description: worldSetup.antagonistMotivation?.trim() || undefined,
+          sourceType: 'campaign_creation',
+        });
+      }
+
+      if (worldSetup?.factions) {
+        for (const faction of worldSetup.factions) {
+          if (faction.name.trim()) {
+            await brainService.createOrUpdateEntity(campaignId, ctx.session.user.id, {
+              type: WorldEntityType.FACTION,
+              name: faction.name.trim(),
+              properties: { stance: faction.stance },
+              sourceType: 'campaign_creation',
+            });
+          }
+        }
+      }
+
+      if (worldSetup?.openingHook?.trim()) {
+        const state = await brainRepository.getOrCreateState(campaignId);
+        const existingHooks = Array.isArray(state.hooks) ? state.hooks as Record<string, unknown>[] : [];
+        await brainRepository.updateState(campaignId, {
+          hooks: [...existingHooks, {
+            id: `hook-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            text: worldSetup.openingHook.trim(),
+            createdSessionId: null,
+            ageInSessions: 0,
+            urgency: 'medium',
+            status: 'open',
+            linkedEntityNames: [],
+          }],
+        });
+      }
+
+      if (storyText?.trim()) {
+        const { addBrainIngestionJob } = await import('@/lib/queue/brain-ingestion-queue');
+        await addBrainIngestionJob({
+          campaignId,
+          sessionId: null,
+          summary: storyText.trim(),
+          highlights: [],
+          source: 'campaign_creation',
+        });
+      }
+
+      return { success: true };
+    }),
 
   coDM: router({
     suggestions: protectedProcedure
