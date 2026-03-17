@@ -312,6 +312,9 @@ export default function SettingsPage() {
                       Upgrade to Pro
                     </Button>
                   )}
+                  {usage.data.tier === 'alpha' && (
+                    <span className="text-xs text-amber-300/70">Alpha access</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -358,7 +361,7 @@ export default function SettingsPage() {
                   </Button>
                 )}
 
-                {usage.data.tier === 'pro' && (
+                {(usage.data.tier === 'pro' || usage.data.tier === 'alpha') && (
                   <Button
                     size="sm"
                     variant="outline"
