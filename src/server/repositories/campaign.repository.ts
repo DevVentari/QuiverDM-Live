@@ -214,8 +214,8 @@ export async function create(data: {
         await tx.player.createMany({
           data: validPlayers.map((p) => ({
             campaignId: campaign.id,
-            name: p.name.trim() || p.characterName.trim(),
-            characterName: p.characterName.trim() || p.name.trim(),
+            name: p.name.trim(),
+            characterName: p.characterName.trim(),
           })),
         });
       }
