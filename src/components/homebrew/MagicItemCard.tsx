@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { CSSProperties } from 'react';
 import { getRarityVars, parseBoldDescription, type Rarity } from '@/lib/homebrew-card-utils';
@@ -19,7 +19,7 @@ export interface MagicItemCardData {
   lore: string;
 }
 
-interface MagicItemCardProps {
+export interface MagicItemCardProps {
   item: MagicItemCardData;
 }
 
@@ -199,3 +199,4 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
     </div>
   );
 }
+

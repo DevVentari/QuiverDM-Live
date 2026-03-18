@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { CSSProperties } from 'react';
 import { parseBoldDescription, getSchoolVars, type SpellSchool } from '@/lib/homebrew-card-utils';
@@ -24,7 +24,7 @@ export interface SpellCardData {
   classes?: string[];
 }
 
-interface SpellCardProps {
+export interface SpellCardProps {
   spell: SpellCardData;
   variant: 'collapsed' | 'expanded';
   onToggle?: () => void;
@@ -96,7 +96,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
   const levelBadge = spell.level === 'cantrip'
     ? 'Cantrip'
     : variant === 'collapsed'
-      ? `${levelLabel(spell.level, true)} · ${SCHOOL_ABBR[spell.school]}`
+      ? `${levelLabel(spell.level, true)} Â· ${SCHOOL_ABBR[spell.school]}`
       : levelLabel(spell.level, true);
 
   const baseClasses = cn(
@@ -181,7 +181,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
             className="text-[10px] font-semibold tracking-[.1em] uppercase mt-[2px]"
             style={{ color: 'var(--school-color)' }}
           >
-            {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)} ·{' '}
+            {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)} Â·{' '}
             {typeof spell.level === 'number' ? levelLabel(spell.level) : 'Cantrip'}
           </div>
         </div>
@@ -270,3 +270,4 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
     </div>
   );
 }
+

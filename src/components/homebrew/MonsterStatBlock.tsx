@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
 import { formatAbilityMod } from '@/lib/homebrew-card-utils';
@@ -50,7 +50,7 @@ export interface MonsterStatBlockData {
   legendaryActions?: { count: number; actions: MonsterAction[] };
 }
 
-interface MonsterStatBlockProps {
+export interface MonsterStatBlockProps {
   monster: MonsterStatBlockData;
   mode: 'drawer' | 'full';
 }
@@ -155,11 +155,11 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
               <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
                 {action.toHit >= 0 ? '+' : ''}{action.toHit} to hit
               </span>
-              {' · '}
+              {' Â· '}
             </>
           )}
-          {action.reach && `${action.reach} · `}
-          {action.range && `${action.range} · `}
+          {action.reach && `${action.reach} Â· `}
+          {action.range && `${action.range} Â· `}
           {action.damage && (
             <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
               {action.damage}
@@ -203,7 +203,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         color: 'var(--card-amber-light)',
       }}
     >
-      CR {formatCR(monster.cr)} · {monster.xp.toLocaleString()} XP
+      CR {formatCR(monster.cr)} Â· {monster.xp.toLocaleString()} XP
     </span>
   );
 
@@ -236,7 +236,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
               {monster.name}
             </div>
             <div className="text-[10px] mt-[1px]" style={{ color: 'var(--card-text-muted)' }}>
-              {monster.size} {monster.type} · {monster.alignment}
+              {monster.size} {monster.type} Â· {monster.alignment}
             </div>
           </div>
           {crBadge}
@@ -292,7 +292,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
               color: 'var(--card-amber-light)',
             }}
           >
-            CR {formatCR(monster.cr)} · {monster.xp.toLocaleString()} XP
+            CR {formatCR(monster.cr)} Â· {monster.xp.toLocaleString()} XP
           </span>
           <span
             className="text-[9px] font-semibold tracking-[.08em] uppercase px-[7px] py-[2px] rounded-full border"
@@ -385,7 +385,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
 
       {monster.legendaryActions && (
         <div className="px-[14px] py-2">
-          <SectionLabel>Legendary Actions · {monster.legendaryActions.count}/round</SectionLabel>
+          <SectionLabel>Legendary Actions Â· {monster.legendaryActions.count}/round</SectionLabel>
           {monster.legendaryActions.actions.map((action) => (
             <ActionItem key={action.name} action={action} />
           ))}
@@ -394,3 +394,4 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
     </div>
   );
 }
+
