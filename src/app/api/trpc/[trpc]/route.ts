@@ -31,7 +31,7 @@ async function handler(req: NextRequest) {
     endpoint: '/api/trpc',
     req,
     router: appRouter,
-    createContext,
+    createContext: (opts) => createContext(opts),
   });
   if (!cors) return res;
   const headers = new Headers(res.headers);

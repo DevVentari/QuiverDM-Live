@@ -12,10 +12,30 @@ import {
 } from './lib/ownership';
 import { authz } from './services/authorization.service';
 import { AppError } from './errors';
+import { jwtVerify } from 'jose';
+import type { ExtensionTokenPayload } from '@/lib/extension-types';
+
+const JWT_SECRET = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
+
+async function sessionFromBearerToken(req: Request) {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+  const token = authHeader.slice(7);
+  try {
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const p = payload as unknown as ExtensionTokenPayload;
+    if (p.type !== 'extension-access' || !p.sub) return null;
+    return { user: { id: p.sub } };
+  } catch {
+    return null;
+  }
+}
 
 // Context with session
-export async function createContext() {
-  const session = await auth();
+export async function createContext(opts?: { req?: Request }) {
+  const session =
+    (opts?.req ? await sessionFromBearerToken(opts.req) : null) ??
+    (await auth());
   return {
     session,
   };
