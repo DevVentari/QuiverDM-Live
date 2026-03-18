@@ -188,7 +188,12 @@ function formatCR(cr: number | string): string {
   return String(cr);
 }
 
-export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
+export function MonsterStatBlock({ monster, mode, onClose }: MonsterStatBlockProps) {
+  const baseVars = {
+    '--card-amber': 'var(--card-amber)',
+    '--card-amber-light': 'var(--card-amber-light)',
+  } as CSSProperties;
+
   const cardBase = cn(
     'bg-[image:var(--card-stone-bg)] border overflow-hidden',
     '[box-shadow:var(--card-stone-inset)]',
@@ -213,6 +218,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         data-testid="monster-stat-drawer"
         className={cn(cardBase, 'rounded-t-[6px] rounded-b-[3px]')}
         style={{
+          ...baseVars,
           borderColor: 'var(--card-stone-border)',
           boxShadow: 'var(--card-stone-inset), 0 -4px 20px hsl(240 10% 4% / 0.6)',
         } as CSSProperties}
@@ -268,7 +274,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
   return (
     <div
       className={cn(cardBase, 'rounded-[3px]')}
-      style={{ borderColor: 'var(--card-stone-border)' } as CSSProperties}
+      style={{ ...baseVars, borderColor: 'var(--card-stone-border)' } as CSSProperties}
     >
       <div
         className="px-[14px] pt-3 pb-[10px] border-b"
