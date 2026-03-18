@@ -12,11 +12,16 @@ async function ensureOffscreen() {
     c.documentUrl?.includes('offscreen.html')
   );
   if (!exists) {
-    await chrome.offscreen.createDocument({
-      url: chrome.runtime.getURL('offscreen.html'),
-      reasons: [chrome.offscreen.Reason.BLOBS],
-      justification: 'Maintain persistent WebSocket to QuiverDM session server',
-    });
+    try {
+      await chrome.offscreen.createDocument({
+        url: chrome.runtime.getURL('offscreen.html'),
+        reasons: [chrome.offscreen.Reason.WEBSOCKET],
+        justification: 'Maintain persistent WebSocket to QuiverDM session server',
+      });
+    } catch (e) {
+      // Ignore "already exists" error on Chrome versions without getContexts
+      if (!String(e).includes('already')) throw e;
+    }
   }
 }
 
