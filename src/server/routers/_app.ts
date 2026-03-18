@@ -23,6 +23,7 @@ import { homebrewImageRouter } from './homebrew-image';
 import { whisperRouter } from './whisper';
 import { encountersRouter } from './encounters';
 import { encounterPlansRouter } from './encounter-plans';
+import { extensionAuthRouter } from './extension-auth';
 import { rulesRouter } from './rules';
 import { webhooksRouter } from './webhooks';
 import { searchRouter } from './search';
@@ -60,6 +61,7 @@ export const appRouter = router({
   whisper: whisperRouter,
   encounters: encountersRouter,
   encounterPlans: encounterPlansRouter,
+  extensionAuth: extensionAuthRouter,
   rules: rulesRouter,
   webhooks: webhooksRouter,
   search: searchRouter,
