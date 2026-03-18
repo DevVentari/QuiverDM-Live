@@ -7,6 +7,8 @@ function getSessionId(): string | null {
 }
 
 export function handleMapsPage() {
+  combatActive = false;
+
   const observer = new MutationObserver(() => {
     const initiativePanel = document.querySelector('[class*="initiative-tracker"], [data-testid="initiative"]');
     const inCombat = !!initiativePanel;
