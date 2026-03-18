@@ -10,7 +10,17 @@ const securityHeaders = [
 const nextConfig = {
   output: 'standalone',
   async headers() {
-    return [{ source: '/(.*)', headers: securityHeaders }];
+    return [
+      { source: '/(.*)', headers: securityHeaders },
+      {
+        source: '/api/trpc/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+        ],
+      },
+    ];
   },
   transpilePackages: ['next-themes'],
   serverExternalPackages: ['pdfjs-dist'],
