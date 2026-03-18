@@ -99,9 +99,9 @@ test('player-join: player portal — campaign list and hub', async ({ page }, te
     await page.waitForLoadState('networkidle', { timeout: 15_000 });
 
     await expect(page.getByRole('link', { name: /hub/i })).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByRole('link', { name: /recaps/i })).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByRole('link', { name: /npcs/i })).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByRole('link', { name: /lore/i })).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('link', { name: /recaps/i }).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('link', { name: /npcs/i }).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('link', { name: /lore/i }).first()).toBeVisible({ timeout: 5_000 });
   }, 15_000);
 });
 

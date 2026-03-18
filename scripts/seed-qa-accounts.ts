@@ -17,7 +17,7 @@ const personas = [
   { name: 'Power DM Dana',     email: process.env.QA_DANA_EMAIL   ?? 'dana@test.local',   onboardingCompleted: true,  tier: 'pro'  },
   { name: 'Veteran Vic',       email: process.env.QA_VIC_EMAIL    ?? 'vic@test.local',    onboardingCompleted: true,  tier: 'pro'  },
   { name: 'Player Pat',        email: process.env.QA_PLAYER_EMAIL ?? 'player@test.local', onboardingCompleted: true,  tier: 'pro'  },
-  { name: 'First-Time Jordan', email: process.env.QA_JORDAN_EMAIL ?? 'jordan@test.local', onboardingCompleted: false, tier: 'free' },
+  { name: 'First-Time Jordan', email: process.env.QA_JORDAN_EMAIL ?? 'jordan@test.local', onboardingCompleted: true,  tier: 'free' },
   { name: 'Player Chris',      email: process.env.QA_CHRIS_EMAIL  ?? 'chris@test.local',  onboardingCompleted: true,  tier: 'free' },
 ] as const;
 
