@@ -5,10 +5,11 @@ export function createImportButton(label = 'Add to QuiverDM'): HTMLButtonElement
   btn.dataset.quiverdmBtn = 'true';
   btn.textContent = label;
   btn.style.cssText = `
-    background: #b45309; color: white; border: none; border-radius: 4px;
-    padding: 6px 12px; cursor: pointer; font-size: 13px; font-weight: 600;
-    margin-left: 8px; display: inline-flex; align-items: center; gap: 6px;
-    transition: opacity 0.15s;
+    background: #000; color: #fff; border: 2px solid #c53030; border-radius: 0;
+    padding: 8px 16px; cursor: pointer; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.15s, border-color 0.15s;
   `;
   return btn;
 }

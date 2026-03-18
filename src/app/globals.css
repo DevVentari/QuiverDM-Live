@@ -49,6 +49,15 @@
     --border: hsl(240 20% 80% / 0.09);
     --input: hsl(240 20% 80% / 0.2);
     --ring: hsl(35 80% 55%);
+
+    /* Card components — homebrew display */
+    --card-stone-bg: linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%);
+    --card-stone-inset: inset 0 1px 0 hsl(35 60% 50% / 0.08);
+    --card-amber: hsl(35, 80%, 48%);
+    --card-amber-light: hsl(35, 80%, 62%);
+    --card-stone-border: hsl(35, 35%, 20%);
+    --card-stone-border-hi: hsl(35, 50%, 28%);
+    --card-text-muted: hsl(35, 10%, 55%);
   }
 
   @supports (color: oklch(0 0 0)) {
