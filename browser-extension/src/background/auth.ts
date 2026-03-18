@@ -16,14 +16,14 @@ const STORAGE_KEY = 'quiverdm_tokens';
 function generateCodeVerifier(): string {
   const array = new Uint8Array(32);
   crypto.getRandomValues(array);
-  return btoa(String.fromCharCode(...array))
+  return btoa(Array.from(array, b => String.fromCharCode(b)).join(''))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
 async function generateCodeChallenge(verifier: string): Promise<string> {
   const data = new TextEncoder().encode(verifier);
   const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+  return btoa(Array.from(new Uint8Array(digest), b => String.fromCharCode(b)).join(''))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
@@ -48,6 +48,8 @@ export async function clearTokens(): Promise<void> {
 // Get valid access token (refresh if needed)
 // ---------------------------------------------------------------------------
 
+let refreshPromise: Promise<string | null> | null = null;
+
 export async function getValidAccessToken(): Promise<string | null> {
   const tokens = await getTokens();
   if (!tokens) return null;
@@ -57,7 +59,12 @@ export async function getValidAccessToken(): Promise<string | null> {
     return tokens.accessToken;
   }
 
-  return refreshAccessToken(tokens.refreshToken);
+  if (!refreshPromise) {
+    refreshPromise = refreshAccessToken(tokens.refreshToken).finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
 }
 
 async function refreshAccessToken(refreshToken: string): Promise<string | null> {
@@ -73,19 +80,21 @@ async function refreshAccessToken(refreshToken: string): Promise<string | null> 
       return null;
     }
 
-    const data = await res.json() as { result: { data: { json: { accessToken: string } } } };
-    const newAccess = data.result.data.json.accessToken;
+    const data = await res.json() as {
+      result: { data: { json: { accessToken: string; expiresIn?: number } } }
+    };
+    const { accessToken, expiresIn } = data.result.data.json;
 
     const stored = await getTokens();
     if (stored) {
       await saveTokens({
         ...stored,
-        accessToken: newAccess,
-        expiresAt: Date.now() + 3600 * 1000,
+        accessToken,
+        expiresAt: Date.now() + (expiresIn ?? 3600) * 1000,
       });
     }
 
-    return newAccess;
+    return accessToken;
   } catch {
     return null;
   }
@@ -107,7 +116,7 @@ export async function authenticate(): Promise<boolean> {
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');
   authorizeUrl.searchParams.set('redirect_uri', redirectUri);
 
-  let callbackUrl: string;
+  let callbackUrl: string | undefined;
   try {
     callbackUrl = await chrome.identity.launchWebAuthFlow({
       url: authorizeUrl.toString(),
@@ -116,6 +125,8 @@ export async function authenticate(): Promise<boolean> {
   } catch {
     return false;
   }
+
+  if (!callbackUrl) return false;
 
   const params = new URL(callbackUrl).searchParams;
   const code = params.get('code');
@@ -132,14 +143,14 @@ export async function authenticate(): Promise<boolean> {
     if (!res.ok) return false;
 
     const data = await res.json() as {
-      result: { data: { json: { accessToken: string; refreshToken: string } } }
+      result: { data: { json: { accessToken: string; refreshToken: string; expiresIn?: number } } }
     };
-    const { accessToken, refreshToken } = data.result.data.json;
+    const { accessToken, refreshToken, expiresIn } = data.result.data.json;
 
     await saveTokens({
       accessToken,
       refreshToken,
-      expiresAt: Date.now() + 3600 * 1000,
+      expiresAt: Date.now() + (expiresIn ?? 3600) * 1000,
     });
 
     return true;
