@@ -117,6 +117,11 @@ tests/qa/screenshots/
 # Git worktrees
 .worktrees/
 
+# Browser extension build artifacts
+browser-extension/key.pem
+browser-extension/dist/
+browser-extension/node_modules/
+
 # QA CI runtime state (homelab-local)
 scripts/qa-ci/scenario_state.json
 scripts/qa-ci/reports/
