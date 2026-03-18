@@ -13,11 +13,13 @@ if (!QA_TEST_PASSWORD) {
 }
 
 const personas = [
-  { name: 'New DM Nora',   email: process.env.QA_NORA_EMAIL   ?? 'nora@test.local',   onboardingCompleted: true  },
-  { name: 'Power DM Dana', email: process.env.QA_DANA_EMAIL   ?? 'dana@test.local',   onboardingCompleted: true  },
-  { name: 'Veteran Vic',   email: process.env.QA_VIC_EMAIL    ?? 'vic@test.local',    onboardingCompleted: true  },
-  { name: 'Player Pat',    email: process.env.QA_PLAYER_EMAIL ?? 'player@test.local', onboardingCompleted: true  },
-];
+  { name: 'New DM Nora',       email: process.env.QA_NORA_EMAIL   ?? 'nora@test.local',   onboardingCompleted: true,  tier: 'pro'  },
+  { name: 'Power DM Dana',     email: process.env.QA_DANA_EMAIL   ?? 'dana@test.local',   onboardingCompleted: true,  tier: 'pro'  },
+  { name: 'Veteran Vic',       email: process.env.QA_VIC_EMAIL    ?? 'vic@test.local',    onboardingCompleted: true,  tier: 'pro'  },
+  { name: 'Player Pat',        email: process.env.QA_PLAYER_EMAIL ?? 'player@test.local', onboardingCompleted: true,  tier: 'pro'  },
+  { name: 'First-Time Jordan', email: process.env.QA_JORDAN_EMAIL ?? 'jordan@test.local', onboardingCompleted: false, tier: 'free' },
+  { name: 'Player Chris',      email: process.env.QA_CHRIS_EMAIL  ?? 'chris@test.local',  onboardingCompleted: true,  tier: 'free' },
+] as const;
 
 async function main() {
   const hashedPassword = await bcrypt.hash(QA_TEST_PASSWORD!, 10);
@@ -39,7 +41,7 @@ async function main() {
           emailVerified: now,
           onboardingCompleted: persona.onboardingCompleted,
           onboardingStep: persona.onboardingCompleted ? 'complete' : 'welcome',
-          tier: 'pro', // Pro tier for QA: no campaign/upload limits
+          tier: persona.tier,
         },
       });
 
