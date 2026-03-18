@@ -102,7 +102,9 @@ async function doImport(payload: DdbMonsterImportPayload, campaignId: string, bt
 export async function handleMonsterPage() {
   await new Promise(resolve => setTimeout(resolve, 500));
 
-  const actionBar = document.querySelector('.page-heading__suffix, .mon-stat-block__header, .page-header__primary');
+  const actionBar = document.querySelector(
+    '.page-heading__actions, .page-header__action-bar, .page-header__actions, .page-heading__suffix, .page-header__primary'
+  );
   if (!actionBar) return;
 
   const payload = extractMonsterFromDom();
