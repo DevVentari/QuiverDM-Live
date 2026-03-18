@@ -243,7 +243,12 @@ export default function NewCampaignPage() {
       title="New Campaign"
       preview={<CampaignPreview name={name} description={description} bannerUrl={bannerUrl} />}
     >
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && e.target instanceof HTMLInputElement) e.preventDefault();
+        }}
+      >
         <div className="glass-panel glass-grain rounded-xl p-6 space-y-6">
           {/* Banner Upload */}
           <div className="space-y-4">
