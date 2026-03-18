@@ -271,7 +271,10 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Settings</h1>
+      <div>
+        <p className="label-overline mb-0.5">Account</p>
+        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Settings</h1>
+      </div>
 
       {/* Usage & Limits Section */}
       {usage.isLoading ? (
@@ -721,7 +724,8 @@ export default function SettingsPage() {
             </Link>
           </div>
         </div>
-        <div className="stone-card-body space-y-6">
+        <div className="stone-card-body">
+          <div className="grid gap-4 md:grid-cols-2">
           {keyConfigs.map((config) => {
             const hasKey = data[config.hasField];
             const masked = data[config.maskedField];
@@ -821,6 +825,7 @@ export default function SettingsPage() {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
 

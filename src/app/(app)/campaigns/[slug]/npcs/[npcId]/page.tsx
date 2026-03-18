@@ -6,7 +6,6 @@ import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
@@ -63,6 +62,7 @@ export default function NPCDetailPage() {
 
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
+      {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <Button variant="ghost" size="icon" asChild className="self-start">
           <Link href={`/campaigns/${slug}/npcs`}>
@@ -107,63 +107,69 @@ export default function NPCDetailPage() {
         )}
       </div>
 
-      <div className="space-y-2">
-        <p className="label-overline">IMAGE</p>
-        <div className="section-rule mb-4" />
-        <ImageGallery
-          entityType="npc"
-          entityId={data.id}
-          currentImageUrl={data.imageUrl}
-          currentJobId={data.imageJobId}
-          canGenerate={isDM}
-          entityName={data.name}
-        />
-      </div>
+      {/* Main content — two-column when stats exist on desktop */}
+      {stats ? (
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] items-start gap-6">
+          {/* Left column */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <p className="label-overline">IMAGE</p>
+              <div className="section-rule mb-4" />
+              <ImageGallery
+                entityType="npc"
+                entityId={data.id}
+                currentImageUrl={data.imageUrl}
+                currentJobId={data.imageJobId}
+                canGenerate={isDM}
+                entityName={data.name}
+              />
+            </div>
 
-      {data.description && (
-        <Card className="glass-panel">
-          <CardHeader>
-            <CardTitle className="text-sm">Description</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{data.description}</p>
-          </CardContent>
-        </Card>
-      )}
+            {data.description && (
+              <div className="stone-card">
+                <div className="stone-card-header">
+                  <span className="stone-card-title">Description</span>
+                </div>
+                <div className="stone-card-body">
+                  <p className="text-sm whitespace-pre-wrap">{data.description}</p>
+                </div>
+              </div>
+            )}
 
-      {isDM && data.secrets && (
-        <Card className="glass-panel border-amber-500/30">
-          <CardHeader>
-            <CardTitle className="text-sm text-foreground">DM Secrets</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm whitespace-pre-wrap">{data.secrets}</p>
-          </CardContent>
-        </Card>
-      )}
+            {isDM && data.secrets && (
+              <div className="stone-card border-amber-500/30">
+                <div className="stone-card-header">
+                  <span className="stone-card-title">DM Secrets</span>
+                </div>
+                <div className="stone-card-body">
+                  <p className="text-sm whitespace-pre-wrap">{data.secrets}</p>
+                </div>
+              </div>
+            )}
 
-      {isDM && (
-        <NpcWorldState
-          npcId={npcId}
-          campaignId={campaignId}
-          slug={slug}
-          isDM={isDM}
-        />
-      )}
+            {isDM && (
+              <NpcWorldState
+                npcId={npcId}
+                campaignId={campaignId}
+                slug={slug}
+                isDM={isDM}
+              />
+            )}
+          </div>
 
-      {stats && (
-        <>
-          <p className="label-overline">STAT BLOCK</p>
-          <div className="section-rule mb-4" />
-          <Card className="glass-panel">
-            <CardContent className="pt-6">
+          {/* Right column — stat block */}
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <span className="stone-card-title">Stat Block</span>
               {(stats.size || stats.creatureType || stats.cr || stats.alignment) && (
-                <p className="text-sm text-muted-foreground mb-4">
+                <span className="text-xs text-muted-foreground ml-auto">
                   {[stats.size, stats.creatureType, stats.alignment, stats.cr ? `CR ${stats.cr}` : null]
                     .filter(Boolean)
                     .join(' · ')}
-                </p>
+                </span>
               )}
+            </div>
+            <div className="stone-card-body">
               <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm mb-4">
                 {stats.armorClass != null && (
                   <p><span className="font-semibold">AC</span> {stats.armorClass}</p>
@@ -246,9 +252,56 @@ export default function NPCDetailPage() {
                   <p className="text-sm whitespace-pre-wrap">{stats.legendaryActions}</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* No stats — single column stacked layout */
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <p className="label-overline">IMAGE</p>
+            <div className="section-rule mb-4" />
+            <ImageGallery
+              entityType="npc"
+              entityId={data.id}
+              currentImageUrl={data.imageUrl}
+              currentJobId={data.imageJobId}
+              canGenerate={isDM}
+              entityName={data.name}
+            />
+          </div>
+
+          {data.description && (
+            <div className="stone-card">
+              <div className="stone-card-header">
+                <span className="stone-card-title">Description</span>
+              </div>
+              <div className="stone-card-body">
+                <p className="text-sm whitespace-pre-wrap">{data.description}</p>
+              </div>
+            </div>
+          )}
+
+          {isDM && data.secrets && (
+            <div className="stone-card border-amber-500/30">
+              <div className="stone-card-header">
+                <span className="stone-card-title">DM Secrets</span>
+              </div>
+              <div className="stone-card-body">
+                <p className="text-sm whitespace-pre-wrap">{data.secrets}</p>
+              </div>
+            </div>
+          )}
+
+          {isDM && (
+            <NpcWorldState
+              npcId={npcId}
+              campaignId={campaignId}
+              slug={slug}
+              isDM={isDM}
+            />
+          )}
+        </div>
       )}
 
       <ConfirmDialog

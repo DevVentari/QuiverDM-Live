@@ -7,7 +7,6 @@ import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -223,104 +222,132 @@ export default function EditNPCPage() {
   }
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-5xl space-y-6">
+      {/* Page header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href={`/campaigns/${slug}/npcs/${npcId}`}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold">Edit NPC</h1>
+        <div>
+          <p className="label-overline mb-0.5">NPC</p>
+          <h1 className="text-xl font-display font-bold tracking-wide">Edit NPC</h1>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>NPC Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+      <form onSubmit={handleSubmit}>
+        {/* Two-column grid on desktop */}
+        <div className="grid gap-6 md:grid-cols-[3fr_2fr]">
+
+          {/* Left column — Identity */}
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <h2 className="stone-card-title">Identity</h2>
+            </div>
+            <div className="stone-card-body space-y-4">
+              <div className="grid gap-4 grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                    aria-invalid={!!nameError}
+                  />
+                  {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="faction">Faction</Label>
+                  <Input
+                    id="faction"
+                    value={faction}
+                    onChange={(e) => setFaction(e.target.value)}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => { setName(e.target.value); setNameError(null); }}
-                  aria-invalid={!!nameError}
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={4}
                 />
-                {nameError && <p className="text-sm text-destructive">{nameError}</p>}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="faction">Faction</Label>
-                <Input
-                  id="faction"
-                  value={faction}
-                  onChange={(e) => setFaction(e.target.value)}
-                />
+                <Label>Image</Label>
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? 'Uploading...' : 'Upload Image'}
+                  </Button>
+                  {imageUrl && (
+                    <Image src={imageUrl} alt={name ? `${name} portrait preview` : 'NPC portrait preview'} width={48} height={48} className="rounded object-cover" unoptimized />
+                  )}
+                </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={4}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="secrets">DM Secrets</Label>
-              <Textarea
-                id="secrets"
-                value={secrets}
-                onChange={(e) => setSecrets(e.target.value)}
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Image</Label>
-              <div className="flex items-center gap-3">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                >
-                  {uploading ? 'Uploading...' : 'Upload Image'}
-                </Button>
-                {imageUrl && (
-                  <Image src={imageUrl} alt={name ? `${name} portrait preview` : 'NPC portrait preview'} width={48} height={48} className="rounded object-cover" unoptimized />
-                )}
+          </div>
+
+          {/* Right column — two stacked cards */}
+          <div className="space-y-6">
+            {/* DM Secrets card */}
+            <div className="stone-card">
+              <div className="stone-card-header">
+                <h2 className="stone-card-title">DM Secrets</h2>
+              </div>
+              <div className="stone-card-body">
+                <div className="space-y-2">
+                  <Label htmlFor="secrets">Secrets</Label>
+                  <Textarea
+                    id="secrets"
+                    value={secrets}
+                    onChange={(e) => setSecrets(e.target.value)}
+                    rows={3}
+                  />
+                </div>
               </div>
             </div>
-            {/* D&D 5e Stat Block */}
-            <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                className="flex items-center gap-2 w-full text-left"
+
+            {/* D&D 5e Stat Block card */}
+            <div className="stone-card">
+              <div
+                className="stone-card-header cursor-pointer w-full flex items-center justify-between"
                 onClick={() => setStatBlockOpen((v) => !v)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setStatBlockOpen((v) => !v); }}
+                aria-expanded={statBlockOpen}
               >
-                <Swords className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider text-[0.65rem]">
-                  D&D 5e Stat Block
-                </span>
+                <div className="flex items-center gap-2">
+                  <Swords className="h-3.5 w-3.5 text-muted-foreground" />
+                  <h2 className="stone-card-title">D&amp;D 5e Stat Block</h2>
+                </div>
                 {statBlockOpen ? (
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
                 )}
-              </button>
-              <div className="h-px bg-border" />
+              </div>
+
               {statBlockOpen && (
-                <div className="space-y-4 pt-1">
+                <div className="stone-card-body space-y-4">
+                  <div className="section-rule" />
                   <div className="grid gap-4 sm:grid-cols-3">
                     <div className="space-y-2">
                       <Label htmlFor="creatureType">Creature Type</Label>
@@ -548,19 +575,20 @@ export default function EditNPCPage() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            <div className="flex gap-3">
-              <Button type="submit" disabled={update.isPending}>
-                <Save className="mr-2 h-4 w-4" />
-                {update.isPending ? 'Saving...' : 'Save Changes'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => router.back()}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        {/* Submit / Cancel — below the two-column grid, left-aligned */}
+        <div className="flex gap-3 mt-6">
+          <Button type="submit" disabled={update.isPending}>
+            <Save className="mr-2 h-4 w-4" />
+            {update.isPending ? 'Saving...' : 'Save Changes'}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }
