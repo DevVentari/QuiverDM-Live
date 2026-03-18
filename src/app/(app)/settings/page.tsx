@@ -249,7 +249,7 @@ export default function SettingsPage() {
 
   if (settings.isLoading) {
     return (
-      <div className="max-w-2xl space-y-4">
+      <div className="max-w-4xl space-y-4">
         <Skeleton className="h-8 w-48" />
         {[1, 2, 3, 4].map((i) => (
           <Skeleton key={i} className="h-24 rounded-lg" />
@@ -270,7 +270,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
       <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Settings</h1>
 
       {/* Usage & Limits Section */}
