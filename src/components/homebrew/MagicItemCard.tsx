@@ -93,6 +93,7 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
       className={cn(
         'relative overflow-hidden rounded-[3px] border',
         'bg-[image:var(--card-stone-bg)]',
+        'mb-[10px]',
       )}
       style={cardStyle}
     >
