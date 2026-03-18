@@ -15,7 +15,7 @@ async function ensureOffscreen() {
     try {
       await chrome.offscreen.createDocument({
         url: chrome.runtime.getURL('offscreen.html'),
-        reasons: [chrome.offscreen.Reason.WEBSOCKET],
+        reasons: ['WEBSOCKET' as chrome.offscreen.Reason],
         justification: 'Maintain persistent WebSocket to QuiverDM session server',
       });
     } catch (e) {
