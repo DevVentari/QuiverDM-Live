@@ -6,30 +6,67 @@ import type { MessageToServiceWorker, ImportResult, CampaignOption } from '../sh
 // Offscreen document management
 // ---------------------------------------------------------------------------
 
-async function ensureOffscreen() {
-  const contexts = await chrome.offscreen.getContexts?.() ?? [];
-  const exists = contexts.some((c: { documentUrl: string }) =>
-    c.documentUrl?.includes('offscreen.html')
-  );
-  if (!exists) {
+let creating: Promise<void> | null = null;
+
+async function ensureOffscreen(): Promise<void> {
+  const offscreenUrl = chrome.runtime.getURL('offscreen.html');
+
+  // Chrome 116+: precise check via getContexts
+  if (chrome.runtime.getContexts) {
+    const existing = await chrome.runtime.getContexts({
+      contextTypes: ['OFFSCREEN_DOCUMENT' as chrome.runtime.ContextType],
+      documentUrls: [offscreenUrl],
+    });
+    if (existing.length > 0) return;
+  } else {
+    // Fallback for older Chrome
+    const contexts = await chrome.offscreen.getContexts?.() ?? [];
+    if (contexts.some((c: { documentUrl: string }) => c.documentUrl?.includes('offscreen.html'))) return;
+  }
+
+  // Concurrency guard — prevent duplicate createDocument calls
+  if (creating) {
+    await creating;
+    return;
+  }
+
+  creating = chrome.offscreen.createDocument({
+    url: offscreenUrl,
+    reasons: ['BLOBS' as chrome.offscreen.Reason],
+    justification: 'Maintain persistent WebSocket to QuiverDM session server',
+  });
+
+  try {
+    await creating;
+  } finally {
+    creating = null;
+  }
+}
+
+// Retry wrapper — handles rare race between createDocument resolving and
+// the offscreen document's onMessage listener being ready
+async function sendToOffscreen(message: object): Promise<void> {
+  await ensureOffscreen();
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      await chrome.offscreen.createDocument({
-        url: chrome.runtime.getURL('offscreen.html'),
-        reasons: ['BLOBS' as chrome.offscreen.Reason],
-        justification: 'Maintain persistent WebSocket to QuiverDM session server',
-      });
+      await chrome.runtime.sendMessage(message);
+      return;
     } catch (e) {
-      // Ignore "already exists" error on Chrome versions without getContexts
-      if (!String(e).includes('already')) throw e;
+      if (attempt < 2 && String(e).includes('Receiving end')) {
+        await new Promise<void>(r => setTimeout(r, 100 * (attempt + 1)));
+      } else {
+        // Swallow — offscreen may not be needed (e.g. WS feature unused)
+        console.warn('[QuiverDM] offscreen send failed:', e);
+        return;
+      }
     }
   }
 }
 
-async function connectWs() {
+async function connectWs(): Promise<void> {
   const token = await getValidAccessToken();
   if (!token) return;
-  await ensureOffscreen();
-  chrome.runtime.sendMessage({ type: 'offscreen.connect', token });
+  await sendToOffscreen({ type: 'offscreen.connect', token });
 }
 
 // ---------------------------------------------------------------------------
@@ -129,8 +166,7 @@ async function handleMessage(message: MessageToServiceWorker): Promise<ImportRes
   }
 
   if (message.type === 'live.event') {
-    await ensureOffscreen();
-    chrome.runtime.sendMessage({ type: 'offscreen.send', event: message.extMessage });
+    await sendToOffscreen({ type: 'offscreen.send', event: message.extMessage });
     return;
   }
 
@@ -157,7 +193,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 });
 
-// Reconnect alarm (Firefox fallback + Chrome keepalive)
+// Reconnect alarm (keepalive + reconnect after SW termination)
 chrome.alarms.create('ws-keepalive', { periodInMinutes: 1 });
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name === 'ws-keepalive') {
