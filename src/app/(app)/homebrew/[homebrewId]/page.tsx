@@ -144,31 +144,52 @@ export default function HomebrewDetailPage() {
         />
       )}
 
-      {/* Type-specific detail renderer */}
-      {renderDetail()}
+      {/* Main two-column layout */}
+      <div className="grid gap-6 lg:grid-cols-[3fr_1fr] items-start">
+        {/* Left: type-specific detail renderer */}
+        <div>
+          {renderDetail()}
+        </div>
 
-      {/* Image Gallery */}
-      <div className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Images</h2>
-        <ImageGallery
-          entityType="homebrew"
-          entityId={item.id}
-          currentImageUrl={item.imageUrl ?? item.images?.[0] ?? null}
-          currentJobId={item.imageJobId}
-          canGenerate={isOwner}
-          entityName={item.name}
-        />
+        {/* Right: sidebar */}
+        <div className="space-y-4">
+          {/* Image Gallery */}
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <p className="label-overline mb-0.5">Gallery</p>
+              <span className="stone-card-title">Images</span>
+            </div>
+            <div className="stone-card-body">
+              <ImageGallery
+                entityType="homebrew"
+                entityId={item.id}
+                currentImageUrl={item.imageUrl ?? item.images?.[0] ?? null}
+                currentJobId={item.imageJobId}
+                canGenerate={isOwner}
+                entityName={item.name}
+              />
+            </div>
+          </div>
+
+          {/* Raw data collapsible */}
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <p className="label-overline mb-0.5">Debug</p>
+              <span className="stone-card-title">Raw Data</span>
+            </div>
+            <div className="stone-card-body">
+              <details className="text-sm">
+                <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors py-1">
+                  View JSON
+                </summary>
+                <pre className="mt-2 p-3 rounded-lg bg-muted/50 border overflow-x-auto text-xs">
+                  {JSON.stringify(itemData, null, 2)}
+                </pre>
+              </details>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Raw data collapsible */}
-      <details className="text-sm">
-        <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors py-2">
-          Raw Data (JSON)
-        </summary>
-        <pre className="mt-2 p-4 rounded-lg bg-muted/50 border overflow-x-auto text-xs">
-          {JSON.stringify(itemData, null, 2)}
-        </pre>
-      </details>
     </div>
   );
 }

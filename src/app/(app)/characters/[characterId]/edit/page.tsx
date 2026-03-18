@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -109,14 +108,17 @@ export default function CharacterEditPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-xl sm:text-2xl font-bold">Edit Character</h1>
+        <div>
+          <p className="label-overline mb-0.5">Character</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Edit Character</h1>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Character Details</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="stone-card">
+        <div className="stone-card-header">
+          <span className="stone-card-title">Character Details</span>
+        </div>
+        <div className="stone-card-body">
           <form onSubmit={handleSave} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -210,8 +212,8 @@ export default function CharacterEditPage() {
               {update.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
