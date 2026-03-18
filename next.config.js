@@ -13,7 +13,7 @@ const nextConfig = {
     return [
       { source: '/(.*)', headers: securityHeaders },
       {
-        source: '/api/trpc/:path*',
+        source: '/api/trpc/(.*)',
         headers: [
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Access-Control-Allow-Methods', value: 'GET, POST, OPTIONS' },
