@@ -41,8 +41,9 @@ npx tsx src/lib/queue/player-recap-worker.ts &
 npx tsx src/lib/queue/feedback-triage-worker.ts &
 npx tsx src/lib/queue/obsidian-import-worker.ts &
 npx tsx src/lib/queue/brain-ingestion-worker.ts &
+npx tsx src/lib/queue/world-simulation-worker.ts &
 
-echo "[Workers] All 13 workers launched"
+echo "[Workers] All 14 workers launched"
 
 wait -n
 echo "[Workers] A worker process exited, shutting down..."
