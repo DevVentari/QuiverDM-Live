@@ -5,14 +5,6 @@ import { handleItemPage } from './pages/item';
 import { handleEncounterPage } from './pages/encounter';
 import { handleMapsPage } from './pages/maps';
 
-function injectPageWorld() {
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL('src/content/page-world.ts');
-  script.type = 'module';
-  (document.head || document.documentElement).appendChild(script);
-  script.remove();
-}
-
 function routePage() {
   const path = window.location.pathname;
 
@@ -33,7 +25,6 @@ window.addEventListener('message', (event) => {
   chrome.runtime.sendMessage({ type: 'network.intercept', url: event.data.url, body: event.data.body });
 });
 
-injectPageWorld();
 routePage();
 
 let lastUrl = window.location.href;
