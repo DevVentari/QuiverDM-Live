@@ -23,21 +23,22 @@ Lives as a separate package inside the QuiverDM monorepo:
 ```
 browser-extension/
   manifest.json          # MV3
+  key.pem                # Stable extension ID keypair (gitignored, required for OAuth)
   package.json           # Vite + CRXJS plugin
   src/
     background/
-      service-worker.ts  # OAuth flow, WS connection, message bus
-      ws-client.ts       # WebSocket to QuiverDM ws server, reconnect logic
+      service-worker.ts  # OAuth flow, alarm-driven WS reconnect, message bus
+      offscreen.ts       # Offscreen document — holds persistent WebSocket connection
       auth.ts            # OAuth PKCE popup, token storage (chrome.storage.local)
     content/
-      page-world.ts      # Injected into MAIN world — overrides fetch/XHR
+      page-world.ts      # Injected into MAIN world — overrides fetch/XHR (secondary)
       content-main.ts    # Isolated world — MutationObserver, button injection, relay
       pages/
         character.ts     # /characters/{id}
         monster.ts       # /monsters/{id}
         spell.ts         # /spells/{id}
         item.ts          # /magic-items/{id}
-        encounter.ts     # /encounters/{id}
+        encounter.ts     # /encounters/{id} (requires CobaltSession)
         maps.ts          # /maps — combat events, initiative
     ui/
       button.ts          # Shared "Add to QuiverDM" button (injected DOM)
@@ -47,22 +48,69 @@ browser-extension/
       campaign-picker.ts # Inline modal: "Which campaign?" on import
 ```
 
+### Manifest (MV3)
+
+```json
+{
+  "manifest_version": 3,
+  "permissions": ["cookies", "storage", "alarms", "offscreen", "identity"],
+  "host_permissions": [
+    "https://*.dndbeyond.com/*",
+    "https://character-service.dndbeyond.com/*"
+  ],
+  "content_scripts": [{
+    "matches": ["https://www.dndbeyond.com/*"],
+    "js": ["src/content/content-main.ts"]
+  }],
+  "web_accessible_resources": [{
+    "resources": ["src/content/page-world.ts", "auth-callback.html"],
+    "matches": ["https://www.dndbeyond.com/*", "chrome-extension://*/*"]
+  }]
+}
+```
+
+**Install warning:** `host_permissions` for `dndbeyond.com` triggers "Read and change your data on dndbeyond.com" during install. Expected — unavoidable for cookie access.
+
+**Extension ID stability:** Generate `key.pem` once (`openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt`), add `key` field to `manifest.json` from the derived public key. Required for a stable `chrome-extension://<id>/` redirect URI during development. Document in `browser-extension/README.md`.
+
+### WebSocket Lifetime — Offscreen Document
+
+MV3 service workers are terminated after ~30s of inactivity. A WebSocket held by a dormant service worker is silently closed. Solution: use a `chrome.offscreen` document (available Chrome 109+) to hold the persistent WebSocket connection.
+
+```
+service-worker.ts
+  ↓ chrome.offscreen.createDocument()
+offscreen.ts  ←→  QuiverDM WS server  (persistent connection)
+  ↑ chrome.runtime.sendMessage (relay events up)
+content-main.ts → service-worker.ts → offscreen.ts → WS
+```
+
+For Firefox (pre-beta): `chrome.offscreen` is not available. Fall back to `chrome.alarms`-driven reconnect (alarm fires every 1 min, service worker wakes and re-establishes WS). Requires Redis-buffered event queue on the QuiverDM side (events held for up to 1 min and flushed on reconnect).
+
 ### Data Flow
 
 **Live bridge:**
-1. `page-world.ts` intercepts DDB's `fetch`/`XHR` calls → posts messages to `content-main.ts`
-2. `content-main.ts` normalises events → forwards to service worker via `chrome.runtime.sendMessage`
-3. Service worker pushes over WebSocket to QuiverDM ws server
-4. QuiverDM ws server fans out to the DM's open session cockpit tab
+1. `page-world.ts` intercepts DDB's `fetch`/`XHR` calls (where viable) → posts to `content-main.ts`
+2. `content-main.ts` MutationObserver fires on DOM changes → additional signal source
+3. Both paths normalise events → forward to service worker via `chrome.runtime.sendMessage`
+4. Service worker relays to offscreen document → WS → QuiverDM ws server → session cockpit
 
 **Import:**
-1. User visits a DDB content page → page script injects "Add to QuiverDM" button
-2. Click → content script captures data (network intercept or JSON-LD) → sends to service worker
+1. User visits a DDB content page → `content-main.ts` injects "Add to QuiverDM" button
+2. Click → primary: DOM/JSON-LD scraping; secondary: network intercept if response already captured
 3. Service worker calls QuiverDM tRPC API with captured payload
+
+### Network Interception — MV3 Constraints
+
+MV3 removes `webRequest` blocking — response bodies cannot be read via the extension API. The only viable path is `page-world.ts` injected into the MAIN world to override `window.fetch` and `XMLHttpRequest` before DDB's own scripts run.
+
+**Fragility risk:** DDB's bundler output can change and break the override. Mitigation:
+- For **import flows**: JSON-LD (`<script type="application/ld+json">`) and stable `data-` attributes are the **primary** data source. Network intercept is a secondary enhancement only.
+- For **live bridge**: network intercept is the primary mechanism (no alternative for real-time HP changes) but the WS event schema is designed to be additive — missing events degrade gracefully rather than breaking the cockpit.
 
 ### Shared Types
 
-`src/lib/extension-types.ts` — WebSocket event shapes and import payload types shared between the extension and QuiverDM app. Both sides import from here.
+`src/lib/extension-types.ts` in the QuiverDM app package. The extension imports these via a workspace package reference (`@quiverdm/types`). Single canonical source — no duplication.
 
 ---
 
@@ -80,10 +128,14 @@ browser-extension/
 - `/api/auth/extension/authorize` — PKCE challenge validation, issues short-lived auth codes
 - `auth.exchangeExtensionCode` tRPC mutation — code → JWT access + refresh tokens
 - `auth.refreshExtensionToken` tRPC mutation — silent refresh
-- Access token is a signed JWT validated by WS server and tRPC without DB round-trip
+- Access token is a signed JWT (HS256, `NEXTAUTH_SECRET`) validated by WS server and tRPC without DB round-trip
+
+**Auth code security:** Auth codes stored in Redis with 10-minute TTL and deleted immediately on first use (`redis.del(key)` before returning tokens — matching the existing WS one-time token pattern in the ws server). Single-use enforced at the Redis layer.
+
+**WS server auth path for extension clients:** The existing WS server uses Redis one-time tokens (join_live_session message). Extension clients use a different path: on WS connection, the extension sends `{ type: 'ext.auth', token: '<jwt>' }`. The WS server verifies the JWT signature using `NEXTAUTH_SECRET` and extracts `userId` — no Redis lookup needed. This is a new code path in the WS connection handler, parallel to the existing Redis token path.
 
 **CobaltSession auto-capture:**
-The extension runs on `dndbeyond.com` and reads the `CobaltSession` cookie automatically via `chrome.cookies.get`. Forwarded to QuiverDM as needed for character/monster fetches. Users never manually copy-paste the cookie.
+The extension runs on `dndbeyond.com` and reads the `CobaltSession` cookie automatically via `chrome.cookies.get`. Forwarded to QuiverDM only in-request for DDB API proxying — **never persisted server-side, never logged**. The QuiverDM server uses it to fetch data from DDB then discards it. Users never manually copy-paste the cookie.
 
 ---
 
@@ -98,7 +150,7 @@ The extension runs on `dndbeyond.com` and reads the `CobaltSession` cookie autom
 | Source book statblocks | `/sources/*` | Inline statblock intercept | `npcs.createFromDDB` |
 | Spell | `/spells/{id}` | DDB content API | `homebrew.createFromDDB` |
 | Magic item | `/magic-items/{id}` | DDB content API | `homebrew.createFromDDB` |
-| Encounter | `/encounters/{id}` | Encounter API | `encounterPlans.createFromDDB` (new) |
+| Encounter | `/encounters/{id}` | Encounter API (requires CobaltSession) | `encounterPlans.createFromDDB` (new) |
 
 ### Button Behaviour
 
@@ -152,7 +204,7 @@ New event types added to QuiverDM's existing ws server:
 
 ### Session Association
 
-On first event of a session, extension prompts once: "Which QuiverDM session is running?" — dropdown of today's scheduled sessions for the active campaign. Answer stored in `chrome.storage.session` (cleared on browser close). All subsequent events route automatically.
+On first event of a session, extension prompts once: "Which QuiverDM session is running?" — dropdown of today's scheduled sessions for the active campaign. Answer stored in `chrome.storage.local` with an explicit session-day TTL (cleared if the stored date differs from today). `chrome.storage.session` is not used — it is unavailable in Firefox.  All subsequent events route automatically.
 
 ---
 
