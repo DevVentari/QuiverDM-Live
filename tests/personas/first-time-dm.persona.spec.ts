@@ -85,11 +85,11 @@ test('first-time-dm (Jordan): signup → onboarding → campaign → subscribe �
   await checkpoint(testInfo, 'create-campaign-free-tier', async () => {
     // Reuse existing campaign if Jordan already hit the free tier limit from a prior run
     await page.goto('/campaigns');
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
     const existingLink = page
       .locator('a[href^="/campaigns/"]:not([href="/campaigns/new"])')
       .first();
-    if (await existingLink.isVisible({ timeout: 3_000 }).catch(() => false)) {
+    if (await existingLink.isVisible({ timeout: 8_000 }).catch(() => false)) {
       const href = await existingLink.getAttribute('href');
       slug = href?.split('/campaigns/')[1]?.split('/')[0] ?? '';
       expect(slug).toBeTruthy();
