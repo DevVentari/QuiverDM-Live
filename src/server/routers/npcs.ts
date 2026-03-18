@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { npcService } from '../services/npc.service';
 import { serverTrack } from '@/lib/analytics.server';
 import { EVENTS } from '@/lib/analytics-events';
+import { mapDdbMonsterToNpc } from '@/lib/dndbeyond-monster-mapper';
 
 const npcNameSchema = z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or fewer');
 const npcDescriptionSchema = z.string().max(10000, 'Description must be 10000 characters or fewer');
@@ -173,17 +174,18 @@ export const npcsRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const { mapDdbMonsterToNpc } = await import('@/lib/dndbeyond-monster-mapper');
       const mapped = mapDdbMonsterToNpc(input.monster);
       const npc = await npcService.create(input.campaignId, ctx.session.user.id, {
         name: mapped.name,
         description: mapped.description,
         faction: mapped.faction,
+        role: mapped.role,
+        tags: mapped.tags,
         stats: mapped.stats,
       });
       void serverTrack(ctx.session.user.id, EVENTS.NPC_CREATED, {
         source: 'ddb-extension',
-        campaignId: input.campaignId,
+        campaign_id: input.campaignId,
       });
       return npc;
     }),
