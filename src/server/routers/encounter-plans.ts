@@ -164,7 +164,10 @@ export const encounterPlansRouter = router({
               xp: z.number().optional(),
             })
           ),
-          difficulty: z.string().optional(),
+          difficulty: z.string().optional().transform((v) => {
+            const valid = ['easy', 'medium', 'hard', 'deadly'] as const;
+            return (valid as readonly string[]).includes(v ?? '') ? (v as typeof valid[number]) : 'medium';
+          }),
           notes: z.string().optional(),
         }),
       })
@@ -172,23 +175,28 @@ export const encounterPlansRouter = router({
     .mutation(async ({ input, ctx }) => {
       const plan = await encounterPlanService.create(input.campaignId, ctx.session.user.id, {
         name: input.encounter.name,
-        difficulty: input.encounter.difficulty ?? 'medium',
+        difficulty: input.encounter.difficulty,
       });
 
-      if (input.encounter.notes) {
-        await encounterPlanService.update(plan.id, ctx.session.user.id, {
-          tacticalNotes: input.encounter.notes,
-        });
-      }
+      try {
+        if (input.encounter.notes) {
+          await encounterPlanService.update(plan.id, ctx.session.user.id, {
+            tacticalNotes: input.encounter.notes,
+          });
+        }
 
-      for (const creature of input.encounter.creatures) {
-        await encounterPlanService.addCreature(plan.id, ctx.session.user.id, {
-          name: creature.name,
-          count: creature.quantity,
-          sourceType: 'custom',
-          cr: creature.cr,
-          xp: creature.xp,
-        });
+        for (const creature of input.encounter.creatures) {
+          await encounterPlanService.addCreature(plan.id, ctx.session.user.id, {
+            name: creature.name,
+            count: creature.quantity,
+            sourceType: 'custom',
+            cr: creature.cr,
+            xp: creature.xp,
+          });
+        }
+      } catch (err) {
+        await encounterPlanService.delete(plan.id, ctx.session.user.id);
+        throw err;
       }
 
       return plan;
