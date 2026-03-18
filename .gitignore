@@ -87,13 +87,20 @@ nul
 # Test documents and recordings (keep locally, too large for git)
 /test-documents/
 .archive/test-documents/
-docs/D&D/Recordings/
+docs/D&D/
 tests/fixtures/
 
 # Build outputs
 /dist/
 
-# Misc temp files
+# Misc temp files and local-only files
+.env.vprod
+PROJECT_OVERVIEW.md
+.claude-terminal/
+vitest-results*.json
+reports/
+lancedb/
+docs/eye of ruin/
 srclibqueue-worker.ts
 find-next-cache.mjs
 package-lock.backup.json
