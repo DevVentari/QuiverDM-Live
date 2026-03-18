@@ -22,7 +22,7 @@
   "web_accessible_resources": [
     {
       "resources": ["src/content/page-world.ts", "auth-callback.html", "offscreen.html"],
-      "matches": ["https://www.dndbeyond.com/*", "chrome-extension://*/*"]
+      "matches": ["https://www.dndbeyond.com/*"]
     }
   ]
 }
