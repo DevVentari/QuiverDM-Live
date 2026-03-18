@@ -12,11 +12,12 @@ function withCors(req: Request, res: Response): Response {
 
   if (!allowed) return res;
 
-  res.headers.set('Access-Control-Allow-Origin', origin);
-  res.headers.set('Access-Control-Allow-Credentials', 'true');
-  res.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  return res;
+  const headers = new Headers(res.headers);
+  headers.set('Access-Control-Allow-Origin', origin);
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }
 
 export async function OPTIONS(req: Request) {
