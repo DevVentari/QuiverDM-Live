@@ -29,13 +29,21 @@ async function doImport(ddbId: string, campaignId: string, btn: HTMLButtonElemen
   }
 }
 
-export async function handleCharacterPage() {
-  await new Promise(resolve => setTimeout(resolve, 800));
+async function waitForElement(selector: string, maxMs = 8000): Promise<Element | null> {
+  const deadline = Date.now() + maxMs;
+  while (Date.now() < deadline) {
+    const el = document.querySelector(selector);
+    if (el) return el;
+    await new Promise(r => setTimeout(r, 300));
+  }
+  return null;
+}
 
+export async function handleCharacterPage() {
   const ddbId = window.location.pathname.split('/')[2];
   if (!ddbId) return;
 
-  const actionBar = document.querySelector('.character-header-desktop-menu, [class*="character-header"]');
+  const actionBar = await waitForElement('.ct-character-header-desktop');
   if (!actionBar) return;
 
   const btn = createImportButton('Sync to QuiverDM');

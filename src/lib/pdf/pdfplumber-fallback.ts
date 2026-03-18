@@ -1,11 +1,17 @@
 /**
- * pdfplumber Fallback for Marker PDF Conversion
- * MIT License - Commercial-safe
+ * pymupdf4llm fallback PDF converter (MIT licensed, commercial-safe).
+ *
+ * pymupdf4llm preserves markdown structure significantly better than pdfplumber:
+ *   - Multi-column layouts are merged in reading order
+ *   - Tables are output as markdown table syntax (| col | col |)
+ *   - Headings and lists are preserved
+ *   - Handles decorative D&D-style table formatting better than PDF-structure parsers
+ *
+ * Requires: pip install pymupdf4llm
  */
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import * as path from 'path';
-import * as fs from 'fs/promises';
 
 const execAsync = promisify(exec);
 
@@ -15,7 +21,7 @@ export interface PDFPlumberResult {
     pages: number;
     processingTime: number;
     tables: number;
-    converter: 'pdfplumber';
+    converter: 'pymupdf4llm' | 'pdfplumber';
   };
 }
 
@@ -23,47 +29,84 @@ export async function convertPdfWithPdfplumber(
   pdfPath: string
 ): Promise<PDFPlumberResult> {
   const startTime = Date.now();
-  const scriptPath = path.join(process.cwd(), 'scripts', 'pdfplumber_extract.py');
-  const outputPath = path.join(
-    process.cwd(),
-    'temp',
-    `${path.basename(pdfPath, '.pdf')}.md`
+
+  // Try pymupdf4llm first (better table and layout support)
+  try {
+    return await convertWithPymupdf4llm(pdfPath, startTime);
+  } catch (pymupdfError: any) {
+    console.warn(`[PDF Fallback] pymupdf4llm failed (${pymupdfError.message}), trying pdfplumber...`);
+  }
+
+  // Fall back to the original pdfplumber script
+  return await convertWithPdfplumber(pdfPath, startTime);
+}
+
+async function convertWithPymupdf4llm(
+  pdfPath: string,
+  startTime: number
+): Promise<PDFPlumberResult> {
+  const scriptPath = path.join(process.cwd(), 'scripts', 'pymupdf_extract.py');
+
+  const { stdout } = await execAsync(
+    `python "${scriptPath}" "${pdfPath}"`,
+    { maxBuffer: 50 * 1024 * 1024, timeout: 120_000 }
   );
 
-  // Ensure temp directory exists
-  await fs.mkdir(path.dirname(outputPath), { recursive: true });
+  const result = JSON.parse(stdout);
+  if (!result.success) {
+    throw new Error(result.error || 'pymupdf4llm extraction failed');
+  }
+
+  // pymupdf4llm outputs clean markdown — count approximate table count
+  const tableCount = (result.markdown.match(/^\|/gm) ?? []).length;
+
+  return {
+    markdown: result.markdown,
+    metadata: {
+      pages: result.pages ?? 0,
+      processingTime: (Date.now() - startTime) / 1000,
+      tables: tableCount,
+      converter: 'pymupdf4llm',
+    },
+  };
+}
+
+async function convertWithPdfplumber(
+  pdfPath: string,
+  startTime: number
+): Promise<PDFPlumberResult> {
+  const { mkdtempSync, rmSync } = await import('fs');
+  const os = await import('os');
+  const fs = await import('fs/promises');
+
+  const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'quiverdm-pdf-'));
+  const outputPath = path.join(tmpDir, 'output.md');
 
   try {
+    const scriptPath = path.join(process.cwd(), 'scripts', 'pdfplumber_extract.py');
+
     const { stdout, stderr } = await execAsync(
       `python "${scriptPath}" "${pdfPath}" --output "${outputPath}"`,
-      { maxBuffer: 50 * 1024 * 1024, timeout: 300000 }
+      { maxBuffer: 50 * 1024 * 1024, timeout: 300_000 }
     );
 
-    if (stderr) {
-      console.warn('[pdfplumber] Warnings:', stderr);
-    }
+    if (stderr) console.warn('[pdfplumber] Warnings:', stderr);
 
     const result = JSON.parse(stdout);
-
-    if (!result.success) {
-      throw new Error(result.error || 'pdfplumber extraction failed');
-    }
+    if (!result.success) throw new Error(result.error || 'pdfplumber extraction failed');
 
     const markdown = await fs.readFile(outputPath, 'utf-8');
-
-    // Clean up temp file
-    await fs.unlink(outputPath).catch(() => {});
 
     return {
       markdown,
       metadata: {
-        pages: result.pages || 0,
+        pages: result.pages ?? 0,
         processingTime: (Date.now() - startTime) / 1000,
-        tables: result.tables || 0,
+        tables: result.tables ?? 0,
         converter: 'pdfplumber',
       },
     };
-  } catch (error: any) {
-    throw new Error(`pdfplumber fallback failed: ${error.message}`);
+  } finally {
+    rmSync(tmpDir, { recursive: true, force: true });
   }
 }

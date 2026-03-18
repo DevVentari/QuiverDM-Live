@@ -50,11 +50,16 @@ export async function convertWithDocling(
 
   const formData = new FormData();
   formData.append('files', new Blob([fileBuffer], { type: 'application/pdf' }), filename);
-  // Request both markdown (for AI extraction) and json (for structured image extraction)
+  // Request markdown + json (for structured image extraction)
   formData.append('to_formats', 'md');
   formData.append('to_formats', 'json');
   formData.append('include_images', 'true');
   formData.append('image_export_mode', 'embedded');
+  // Table structure: disable cell matching so the ML model defines cells directly.
+  // D&D/homebrew PDFs often have merged cells that break cell-matching heuristics.
+  formData.append('table_cell_matching', 'false');
+  // Add page break markers to clearly separate pages in the markdown output.
+  formData.append('md_page_break_placeholder', '<!-- page-break -->');
 
   onProgress?.(15);
 
