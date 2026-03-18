@@ -1,7 +1,12 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import Redis from 'ioredis';
+import { jwtVerify } from 'jose';
 import type { TranscriptionProgress } from '@/lib/transcription/progress';
 import { prisma } from '@/lib/prisma';
+import type {
+  ExtIncomingMessage,
+  ExtensionTokenPayload,
+} from '@/lib/extension-types';
 
 type LiveClientState = {
   sessionId: string;
@@ -69,7 +74,8 @@ type IncomingMessage =
   | DmSpotlightPushMessage
   | DmSpotlightClearMessage
   | DmInitiativeUpdateMessage
-  | { type: 'ping' };
+  | { type: 'ping' }
+  | { type: 'ext.auth'; token: string };
 
 type LiveSessionTokenPayload = {
   userId: string;
@@ -96,6 +102,7 @@ let wss: WebSocketServer | null = null;
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380');
 const jobSubscriptions = new Map<string, Set<WebSocket>>();
 const liveClients = new Map<WebSocket, LiveClientState>();
+const extClients = new Map<WebSocket, { userId: string; sessionId?: string }>();
 const sessionClients = new Map<string, Set<WebSocket>>();
 let liveSessionManagerPromise: Promise<LiveSessionManager | null> | null = null;
 
@@ -319,6 +326,90 @@ async function handleStopLive(ws: WebSocket, message: StopLiveMessage) {
   }
 }
 
+async function handleExtAuth(ws: WebSocket, token: string) {
+  const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET!);
+  try {
+    const { payload } = await jwtVerify(token, secret);
+    const ext = payload as unknown as ExtensionTokenPayload;
+    if (ext.type !== 'extension-access') {
+      sendJSON(ws, { type: 'ext.auth.error', error: 'Wrong token type' });
+      ws.close(4003, 'Wrong token type');
+      return;
+    }
+    extClients.set(ws, { userId: ext.sub });
+    sendJSON(ws, { type: 'ext.auth.ok', userId: ext.sub });
+  } catch {
+    sendJSON(ws, { type: 'ext.auth.error', error: 'Invalid or expired token' });
+    ws.close(4001, 'Invalid token');
+  }
+}
+
+function handleExtMessage(ws: WebSocket, message: ExtIncomingMessage) {
+  const client = extClients.get(ws);
+  if (!client) {
+    sendJSON(ws, { type: 'error', message: 'Not authenticated as extension client' });
+    return;
+  }
+
+  if (message.type === 'ext.character.update') {
+    if (!client.sessionId) {
+      client.sessionId = message.sessionId;
+      extClients.set(ws, client);
+    }
+    broadcastToSession(message.sessionId, {
+      type: 'session.party.update',
+      sessionId: message.sessionId,
+      source: 'extension',
+      characterId: message.characterId,
+      patch: message.patch,
+    });
+    return;
+  }
+
+  if (message.type === 'ext.roll') {
+    broadcastToSession(message.sessionId, {
+      type: 'session.roll.log',
+      sessionId: message.sessionId,
+      source: 'extension',
+      characterId: message.characterId,
+      roll: message.roll,
+    });
+    return;
+  }
+
+  if (message.type === 'ext.combat.start') {
+    broadcastToSession(message.sessionId, {
+      type: 'session.combat.update',
+      sessionId: message.sessionId,
+      source: 'extension',
+      event: 'start',
+      initiativeOrder: message.initiativeOrder,
+    });
+    return;
+  }
+
+  if (message.type === 'ext.combat.end') {
+    broadcastToSession(message.sessionId, {
+      type: 'session.combat.update',
+      sessionId: message.sessionId,
+      source: 'extension',
+      event: 'end',
+    });
+    return;
+  }
+
+  if (message.type === 'ext.token.placed') {
+    broadcastToSession(message.sessionId, {
+      type: 'session.token.placed',
+      sessionId: message.sessionId,
+      source: 'extension',
+      npcDdbId: message.npcDdbId,
+      tokenData: message.tokenData,
+    });
+    return;
+  }
+}
+
 async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
   if (Buffer.isBuffer(raw)) {
     const state = liveClients.get(ws);
@@ -418,6 +509,18 @@ async function handleSocketMessage(ws: WebSocket, raw: WebSocket.RawData) {
     return;
   }
 
+  // Extension client auth
+  if (message.type === 'ext.auth') {
+    await handleExtAuth(ws, (message as { type: 'ext.auth'; token: string }).token);
+    return;
+  }
+
+  // Extension client events
+  if (typeof message.type === 'string' && message.type.startsWith('ext.')) {
+    handleExtMessage(ws, message as unknown as ExtIncomingMessage);
+    return;
+  }
+
   if (message.type === 'ping') {
     sendJSON(ws, { type: 'pong' });
   }
@@ -431,6 +534,8 @@ async function handleSocketClose(ws: WebSocket) {
     removeClientFromSession(ws, state.sessionId);
     liveClients.delete(ws);
   }
+
+  extClients.delete(ws);
 
   const manager = await getLiveSessionManager();
   manager?.removeClient(ws);
