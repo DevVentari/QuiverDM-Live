@@ -7,7 +7,7 @@ export type MessageToServiceWorker =
   | { type: 'import.spell'; payload: Record<string, unknown>; campaignId: string }
   | { type: 'import.item'; payload: Record<string, unknown>; campaignId: string }
   | { type: 'import.encounter'; payload: import('./extension-types').DdbEncounterImportPayload; campaignId: string }
-  | { type: 'live.event'; event: import('./extension-types').ExtIncomingMessage }
+  | { type: 'live.event'; extMessage: import('./extension-types').ExtIncomingMessage }
   | { type: 'network.intercept'; url: string; body: unknown }
   | { type: 'get.campaigns' }
   | { type: 'get.cobalt' };
