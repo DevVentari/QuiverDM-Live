@@ -53,7 +53,6 @@ export interface MonsterStatBlockData {
 interface MonsterStatBlockProps {
   monster: MonsterStatBlockData;
   mode: 'drawer' | 'full';
-  onClose?: () => void;
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -189,7 +188,7 @@ function formatCR(cr: number | string): string {
   return String(cr);
 }
 
-export function MonsterStatBlock({ monster, mode, onClose }: MonsterStatBlockProps) {
+export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
   const cardBase = cn(
     'bg-[image:var(--card-stone-bg)] border overflow-hidden',
     '[box-shadow:var(--card-stone-inset)]',
@@ -249,7 +248,7 @@ export function MonsterStatBlock({ monster, mode, onClose }: MonsterStatBlockPro
         >
           <VitalBox label="HP" value={String(monster.hp)} sub={monster.hpDice} valueColor="hsl(0,60%,62%)" />
           <VitalBox label="AC" value={String(monster.ac)} sub={monster.acNote} />
-          <VitalBox label="Speed" value={monster.speed.replace(' ft', '')} sub="ft" />
+          <VitalBox label="Speed" value={monster.speed.replaceAll(' ft', '')} sub="ft" />
         </div>
 
         <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
