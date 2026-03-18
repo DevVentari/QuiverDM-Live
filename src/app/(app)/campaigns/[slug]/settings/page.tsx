@@ -166,7 +166,7 @@ export default function CampaignSettingsPage() {
     .slice(0, 10);
 
   return (
-    <div className="space-y-6 max-w-2xl px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
       <div className="stone-card">
         <div className="stone-card-header">
           <span className="stone-card-title">Campaign Settings</span>
@@ -213,15 +213,31 @@ export default function CampaignSettingsPage() {
                 <p className="text-xs text-muted-foreground">Max 5MB — JPEG, PNG, WebP, or GIF</p>
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => { setName(e.target.value); setNameError(null); }}
-                aria-invalid={!!nameError}
-              />
-              {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                  aria-invalid={!!nameError}
+                />
+                {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={status} onValueChange={setStatus}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="planning">Planning</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="archived">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -231,20 +247,6 @@ export default function CampaignSettingsPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="planning">Planning</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <Button type="submit" disabled={update.isPending} className="w-full sm:w-auto">
               {update.isPending ? 'Saving...' : 'Save Changes'}
@@ -262,29 +264,31 @@ export default function CampaignSettingsPage() {
             <p className="text-sm text-muted-foreground">Configure AI context and external integrations</p>
           </div>
           <div className="stone-card-body space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="sourcebook">Sourcebook</Label>
-              <Input
-                id="sourcebook"
-                value={sourcebook}
-                onChange={(e) => setSourcebook(e.target.value)}
-                placeholder="e.g. Curse of Strahd, Homebrew"
-              />
-              <p className="text-xs text-muted-foreground">
-                The rulebook or adventure module this campaign uses. Included in AI session summaries for better lore context.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="discord-webhook">Discord Webhook URL</Label>
-              <Input
-                id="discord-webhook"
-                value={discordWebhookUrl}
-                onChange={(e) => setDiscordWebhookUrl(e.target.value)}
-                placeholder="https://discord.com/api/webhooks/..."
-              />
-              <p className="text-xs text-muted-foreground">
-                Session summaries will be auto-posted here after generation. Create a webhook in your Discord server settings.
-              </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="sourcebook">Sourcebook</Label>
+                <Input
+                  id="sourcebook"
+                  value={sourcebook}
+                  onChange={(e) => setSourcebook(e.target.value)}
+                  placeholder="e.g. Curse of Strahd, Homebrew"
+                />
+                <p className="text-xs text-muted-foreground">
+                  The rulebook or adventure module. Included in AI summaries for lore context.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="discord-webhook">Discord Webhook URL</Label>
+                <Input
+                  id="discord-webhook"
+                  value={discordWebhookUrl}
+                  onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+                  placeholder="https://discord.com/api/webhooks/..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Session summaries auto-post here. Create a webhook in your Discord server settings.
+                </p>
+              </div>
             </div>
             <Button
               type="button"

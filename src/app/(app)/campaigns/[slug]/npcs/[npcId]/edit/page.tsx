@@ -215,7 +215,7 @@ export default function EditNPCPage() {
   }
 
   if (npc.isLoading) {
-    return <Skeleton className="h-96 rounded-lg max-w-2xl" />;
+    return <Skeleton className="h-96 rounded-lg max-w-4xl" />;
   }
 
   if (!npc.data) {
@@ -223,7 +223,7 @@ export default function EditNPCPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href={`/campaigns/${slug}/npcs/${npcId}`}>
@@ -239,23 +239,25 @@ export default function EditNPCPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => { setName(e.target.value); setNameError(null); }}
-                aria-invalid={!!nameError}
-              />
-              {nameError && <p className="text-sm text-destructive">{nameError}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="faction">Faction</Label>
-              <Input
-                id="faction"
-                value={faction}
-                onChange={(e) => setFaction(e.target.value)}
-              />
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                  aria-invalid={!!nameError}
+                />
+                {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="faction">Faction</Label>
+                <Input
+                  id="faction"
+                  value={faction}
+                  onChange={(e) => setFaction(e.target.value)}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>

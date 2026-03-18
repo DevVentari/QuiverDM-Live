@@ -65,7 +65,7 @@ export default function CharacterEditPage() {
   }, [character.data]);
 
   if (character.isLoading) {
-    return <Skeleton className="h-96 rounded-lg max-w-2xl" />;
+    return <Skeleton className="h-96 rounded-lg max-w-4xl" />;
   }
 
   if (character.isError) {
@@ -102,7 +102,7 @@ export default function CharacterEditPage() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href={`/characters/${characterId}`}>
