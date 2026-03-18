@@ -191,7 +191,7 @@ export function PDFProcessingProgress({ pdfId, filename, onComplete }: PDFProces
       }
       return changed ? next : prev;
     });
-  }, [stageStatuses]);
+  }, [currentStageId, processingStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stagedRows = useMemo(() => {
     const currentIndex = STAGES.findIndex((stage) => stage.id === currentStageId);
