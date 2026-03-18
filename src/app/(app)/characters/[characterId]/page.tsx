@@ -84,7 +84,7 @@ export default function CharacterDetailPage() {
 
   if (character.isLoading) {
     return (
-      <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
         <Skeleton className="h-24 rounded-lg" />
         <Skeleton className="h-10 rounded-lg w-full max-w-lg" />
         <Skeleton className="h-96 rounded-lg" />

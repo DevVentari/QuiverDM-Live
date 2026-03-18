@@ -31,7 +31,7 @@ export default function HomebrewDetailPage() {
 
   if (content.isLoading) {
     return (
-      <div className="space-y-6 max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
         <Skeleton className="h-16 rounded-lg" />
         <Skeleton className="h-64 rounded-lg" />
       </div>
@@ -81,7 +81,7 @@ export default function HomebrewDetailPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-3xl px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <Button variant="ghost" size="icon" asChild className="self-start">

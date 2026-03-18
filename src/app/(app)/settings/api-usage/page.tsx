@@ -73,7 +73,7 @@ export default function ApiUsagePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Skeleton className="h-8 w-8 rounded" />
           <Skeleton className="h-8 w-48" />
@@ -86,7 +86,7 @@ export default function ApiUsagePage() {
   }
 
   return (
-    <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/settings">

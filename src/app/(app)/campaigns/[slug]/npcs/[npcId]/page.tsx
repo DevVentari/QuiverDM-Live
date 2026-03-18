@@ -62,7 +62,7 @@ export default function NPCDetailPage() {
   const stats = data.stats as any;
 
   return (
-    <div className="space-y-6 max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <Button variant="ghost" size="icon" asChild className="self-start">
           <Link href={`/campaigns/${slug}/npcs`}>
