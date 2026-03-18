@@ -147,4 +147,50 @@ export const encounterPlansRouter = router({
       });
       return results.slice(0, input.limit);
     }),
+
+  createFromDDB: protectedProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+        encounter: z.object({
+          ddbId: z.string(),
+          name: z.string(),
+          creatures: z.array(
+            z.object({
+              ddbId: z.string(),
+              name: z.string(),
+              quantity: z.number().int().min(1),
+              cr: z.string().optional(),
+              xp: z.number().optional(),
+            })
+          ),
+          difficulty: z.string().optional(),
+          notes: z.string().optional(),
+        }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const plan = await encounterPlanService.create(input.campaignId, ctx.session.user.id, {
+        name: input.encounter.name,
+        difficulty: input.encounter.difficulty ?? 'medium',
+      });
+
+      if (input.encounter.notes) {
+        await encounterPlanService.update(plan.id, ctx.session.user.id, {
+          tacticalNotes: input.encounter.notes,
+        });
+      }
+
+      for (const creature of input.encounter.creatures) {
+        await encounterPlanService.addCreature(plan.id, ctx.session.user.id, {
+          name: creature.name,
+          count: creature.quantity,
+          sourceType: 'custom',
+          cr: creature.cr,
+          xp: creature.xp,
+        });
+      }
+
+      return plan;
+    }),
 });
