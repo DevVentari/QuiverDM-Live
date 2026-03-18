@@ -13,9 +13,12 @@ export function showToast(message: string, type: 'success' | 'error' = 'success'
     animation: quiverdm-fadein 0.2s ease;
   `;
 
-  const style = document.createElement('style');
-  style.textContent = `@keyframes quiverdm-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`;
-  document.head.appendChild(style);
+  if (!document.getElementById('quiverdm-toast-style')) {
+    const style = document.createElement('style');
+    style.id = 'quiverdm-toast-style';
+    style.textContent = `@keyframes quiverdm-fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`;
+    document.head.appendChild(style);
+  }
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
 }
