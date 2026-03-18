@@ -25,6 +25,14 @@ function routePage() {
   if (/^\/sources\//.test(path)) { handleMonsterPage(); return; }
 }
 
+// Listen for messages from page-world.ts (MAIN world → isolated world relay)
+window.addEventListener('message', (event) => {
+  if (event.source !== window) return;
+  if (!event.data || event.data.source !== 'quiverdm-page-world') return;
+  // Forward intercepted network data to service worker for live bridge
+  chrome.runtime.sendMessage({ type: 'network.intercept', url: event.data.url, body: event.data.body });
+});
+
 injectPageWorld();
 routePage();
 
