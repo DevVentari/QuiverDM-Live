@@ -6,7 +6,8 @@
   "permissions": ["cookies", "storage", "alarms", "offscreen", "identity"],
   "host_permissions": [
     "https://*.dndbeyond.com/*",
-    "https://character-service.dndbeyond.com/*"
+    "https://character-service.dndbeyond.com/*",
+    "https://quiverdm.com/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.ts",
