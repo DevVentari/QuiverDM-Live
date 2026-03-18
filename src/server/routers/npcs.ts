@@ -128,4 +128,63 @@ export const npcsRouter = router({
     .query(({ input, ctx }) =>
       npcService.getFactions(input.campaignId, ctx.session.user.id)
     ),
+
+  createFromDDB: protectedProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        monster: z.object({
+          ddbId: z.string(),
+          name: z.string(),
+          type: z.string(),
+          alignment: z.string(),
+          ac: z.number(),
+          acNote: z.string().optional(),
+          hp: z.number(),
+          hpDice: z.string().optional(),
+          speed: z.record(z.number()),
+          abilityScores: z.object({
+            str: z.number(), dex: z.number(), con: z.number(),
+            int: z.number(), wis: z.number(), cha: z.number(),
+          }),
+          savingThrows: z.record(z.number()),
+          skills: z.record(z.number()),
+          damageResistances: z.array(z.string()),
+          damageImmunities: z.array(z.string()),
+          conditionImmunities: z.array(z.string()),
+          senses: z.record(z.union([z.string(), z.number()])),
+          languages: z.string(),
+          cr: z.string(),
+          xp: z.number(),
+          actions: z.array(z.object({
+            name: z.string(),
+            description: z.string(),
+            attackBonus: z.number().optional(),
+            damageDice: z.string().optional(),
+            damageBonus: z.number().optional(),
+            saveDc: z.number().optional(),
+            saveType: z.string().optional(),
+          })),
+          legendaryActions: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
+          reactions: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
+          traits: z.array(z.object({ name: z.string(), description: z.string() })).optional(),
+          sourceUrl: z.string(),
+        }),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { mapDdbMonsterToNpc } = await import('@/lib/dndbeyond-monster-mapper');
+      const mapped = mapDdbMonsterToNpc(input.monster);
+      const npc = await npcService.create(input.campaignId, ctx.session.user.id, {
+        name: mapped.name,
+        description: mapped.description,
+        faction: mapped.faction,
+        stats: mapped.stats,
+      });
+      void serverTrack(ctx.session.user.id, EVENTS.NPC_CREATED, {
+        source: 'ddb-extension',
+        campaignId: input.campaignId,
+      });
+      return npc;
+    }),
 });
