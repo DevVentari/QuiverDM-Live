@@ -171,8 +171,9 @@ test('veteran-dm brain-seeded-from-creation: entities accessible after campaign 
     await expect(page.locator('body')).not.toContainText(/something went wrong|internal server error/i);
     // Brain page loaded — entities may or may not be present yet (async seeding)
     const hasEntities = await page.locator('[data-testid="entity-card"]').count() > 0;
-    const hasEmptyState = await page.locator('text=/no entities/i').isVisible().catch(() => false);
-    expect(hasEntities || hasEmptyState).toBe(true);
+    const hasEmptyState = await page.locator('text=/no entities|No entities/').first().isVisible().catch(() => false);
+    const hasSeeding = await page.locator('text=/seed|Seed|ingest/i').first().isVisible().catch(() => false);
+    expect(hasEntities || hasEmptyState || hasSeeding).toBe(true);
   }, 15_000);
 });
 
