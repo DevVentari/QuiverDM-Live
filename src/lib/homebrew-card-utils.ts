@@ -39,7 +39,7 @@ export function getRarityVars(rarity: Rarity): RarityVars {
 }
 
 export function normalizeRarity(rarity: string): Rarity {
-  const normalized = rarity.toLowerCase().replace(/\s+/g, '-') as Rarity;
+  const normalized = rarity.trim().toLowerCase().replace(/\s+/g, '-') as Rarity;
   return normalized in RARITY_VARS ? normalized : 'common';
 }
 
@@ -52,12 +52,14 @@ export type DescriptionSegment = { type: 'text' | 'bold'; content: string };
 export function parseBoldDescription(text: string): DescriptionSegment[] {
   if (!text) return [{ type: 'text', content: '' }];
   const parts = text.split(/(\*\*[^*]+\*\*)/);
-  return parts.map((part) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return { type: 'bold' as const, content: part.slice(2, -2) };
-    }
-    return { type: 'text' as const, content: part };
-  });
+  return parts
+    .filter((part) => part.length > 0)
+    .map((part) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return { type: 'bold' as const, content: part.slice(2, -2) };
+      }
+      return { type: 'text' as const, content: part };
+    });
 }
 
 export function formatAbilityMod(score: number): string {
