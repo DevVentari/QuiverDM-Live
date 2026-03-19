@@ -84,7 +84,7 @@ function NavItem({
       href={href}
       title={collapsed ? label : undefined}
       className={cn(
-        'relative flex items-center gap-2.5 px-5 py-[7px] text-sm font-medium transition-colors',
+        'relative flex items-center gap-2.5 px-5 py-[7px] text-sm font-sans font-medium transition-colors',
         isActive
           ? 'text-amber-400/90 bg-amber-500/[0.07]'
           : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
@@ -115,7 +115,7 @@ function NavItem({
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
   if (collapsed) return <div className="h-3" />;
   return (
-    <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">
+    <p className="px-5 pt-4 pb-1.5 text-[11px] font-sans font-bold uppercase tracking-[0.18em]" style={{ color: 'hsl(35 10% 55%)' }}>
       {label}
     </p>
   );
@@ -254,7 +254,7 @@ export function Sidebar() {
             >
               QuiverDM
             </span>
-            <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/50 mt-0.5">
+            <span className="font-sans text-[9px] uppercase tracking-[0.14em] mt-0.5" style={{ color: 'hsl(240 5% 36%)' }}>
               Campaign Companion
             </span>
           </Link>
