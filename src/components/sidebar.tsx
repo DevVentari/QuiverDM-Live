@@ -483,7 +483,7 @@ export function MobileSidebar() {
             }}
           />
         )}
-        <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} />
+        <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} strokeWidth={1.8} />
         <span>{item.label}</span>
       </Link>
     );
