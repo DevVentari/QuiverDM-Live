@@ -83,7 +83,7 @@ export function DdbSourcebookDrawer({ sourcebookId, onClose }: Props) {
                 {ch.hasPendingChanges && expandedChapters.has(ch.id) && (
                   <div className="border-t border-border p-3 space-y-4 bg-muted/20">
                     {((ch.pendingChanges ?? []) as any[]).map((change, i) => (
-                      <div key={i} className="space-y-2 text-sm">
+                      <div key={`${change.entityId}-${change.field}`} className="space-y-2 text-sm">
                         <p className="font-medium">{change.entityName} — {change.field}</p>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="bg-red-950/30 rounded p-2">
