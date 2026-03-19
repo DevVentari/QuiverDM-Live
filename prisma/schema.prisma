@@ -84,6 +84,8 @@ model User {
   homebrewPDFs        HomebrewPDF[]
   settings            UserSettings?
   apiUsageLogs        ApiUsageLog[]
+  ddbEntitlements     DdbEntitlement[]
+  ddbSourcebooks      DdbSourcebook[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -128,6 +130,62 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model DdbEntitlement {
+  id            String         @id @default(cuid())
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug          String
+  title         String
+  coverImageUrl String?
+  accessType    String         // 'owned' | 'shared' | 'free'
+  sourceUrl     String
+  detectedAt    DateTime       @default(now())
+  sourcebook    DdbSourcebook?
+
+  @@unique([userId, slug])
+  @@index([userId])
+}
+
+model DdbSourcebook {
+  id            String                 @id @default(cuid())
+  userId        String
+  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entitlementId String                 @unique
+  entitlement   DdbEntitlement         @relation(fields: [entitlementId], references: [id])
+  slug          String
+  title         String
+  campaignIds   String[]
+  syncStatus    String                 @default("idle")
+  lastSyncError String?
+  lastSyncedAt  DateTime?
+  contentHash   String?
+  chapters      DdbSourcebookChapter[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@unique([userId, slug])
+  @@index([userId])
+}
+
+model DdbSourcebookChapter {
+  id                String        @id @default(cuid())
+  sourcebookId      String
+  sourcebook        DdbSourcebook @relation(fields: [sourcebookId], references: [id], onDelete: Cascade)
+  slug              String
+  title             String
+  chapterIndex      Int
+  contentHash       String?
+  syncStatus        String        @default("idle")
+  hasPendingChanges Boolean       @default(false)
+  pendingChanges    Json?
+  lastSyncedAt      DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([sourcebookId, slug])
+  @@index([sourcebookId])
 }
 
 // Invite-only registration system
@@ -872,6 +930,7 @@ model HomebrewContent {
   // D&D Beyond integration
   dndBeyondId  String? // D&D Beyond ID for syncing
   dndBeyondUrl String? // D&D Beyond URL for reference
+  ddbChapterId String?
 
   // Source tracking
   sourceType           String       @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import', 'media_import'
@@ -1143,6 +1202,7 @@ model EncounterPlan {
   adjustedXp           Int? // XP after encounter multiplier
   environmentalEffects String?                 @db.Text // weather, terrain, lighting conditions
   portraitUrl          String? // banner / portrait image URL
+  ddbChapterId         String?
   creatures            EncounterPlanCreature[]
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt
@@ -1253,6 +1313,7 @@ model WorldEntity {
   status             WorldEntityStatus @default(active)
   sourceType         String?
   sourceId           String?
+  ddbChapterId       String?
   firstSeenSessionId String?
   lastSeenSessionId  String?
   confidence         Float             @default(1.0)
