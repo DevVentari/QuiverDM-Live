@@ -167,12 +167,18 @@ function CampaignSwitcher({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="mx-3 mt-3 mb-1 flex w-[calc(100%-24px)] items-center justify-between gap-2 rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] px-3 py-2 text-left transition-colors hover:border-[hsl(35_50%_26%)]">
+        <button
+          className="mx-3 mt-3 mb-1 flex w-[calc(100%-24px)] items-center justify-between gap-2 rounded-[3px] border border-[hsl(35_35%_18%)] px-3 py-2 text-left transition-colors hover:border-[hsl(35_50%_26%)]"
+          style={{
+            background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%)',
+            boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.08)',
+          }}
+        >
           <div className="min-w-0">
-            <p className="text-xs font-medium text-foreground/90 truncate">
+            <p className="font-sans text-xs font-semibold truncate" style={{ color: 'hsl(35 20% 88%)' }}>
               {currentCampaign?.name ?? 'Select Campaign'}
             </p>
-            <p className="text-xs text-muted-foreground/60 mt-0.5">
+            <p className="font-sans text-[10px] mt-0.5" style={{ color: 'hsl(35 10% 44%)' }}>
               {currentCampaign
                 ? `${currentCampaign.sessionCount ?? 0} sessions`
                 : 'Switch campaign'}
@@ -227,6 +233,16 @@ export function Sidebar() {
         collapsed ? 'w-16' : 'w-[240px]'
       )}
     >
+      {/* UI 2.0 ambient gradient — amber + purple bleed from top */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: [
+            'radial-gradient(ellipse 140% 30% at 50% 0%, hsl(35 80% 38% / 0.14) 0%, transparent 60%)',
+            'radial-gradient(ellipse 80% 20% at 85% 0%, hsl(260 50% 45% / 0.09) 0%, transparent 50%)',
+          ].join(', '),
+        }}
+      />
       {/* Amber gradient right border */}
       <div
         className="absolute top-0 right-[-1px] w-px h-full pointer-events-none z-10"
