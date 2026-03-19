@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap, MonitorPlay } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap, MonitorPlay, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
@@ -825,6 +825,34 @@ export default function SettingsPage() {
               </div>
             );
           })}
+          </div>
+        </div>
+      </div>
+
+      <div className="stone-card">
+        <div className="stone-card-header">
+          <span className="stone-card-title">Integrations</span>
+          <p className="text-sm text-muted-foreground">
+            Connect external tools and import content into your campaigns.
+          </p>
+        </div>
+        <div className="stone-card-body space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors">
+            <div className="flex items-center gap-3">
+              <BookOpen className="h-5 w-5 text-amber-400" />
+              <div>
+                <div className="font-medium">D&D Beyond Library</div>
+                <div className="text-sm text-muted-foreground">
+                  Import sourcebooks from your D&D Beyond account
+                </div>
+              </div>
+            </div>
+            <Link href="/settings/ddb">
+              <Button variant="outline" size="sm">
+                Open
+                <ArrowUpRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
