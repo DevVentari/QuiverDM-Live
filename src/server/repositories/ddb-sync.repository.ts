@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import type { DdbEntitlementData, DdbChapterMeta } from '@/lib/ddb-sourcebook';
 
 export const ddbSyncRepository = {
@@ -103,7 +104,7 @@ export const ddbSyncRepository = {
       await tx.ddbSourcebookChapter.update({
         where: { id: chapterId },
         data: {
-          pendingChanges: remaining.length > 0 ? remaining : undefined,
+          pendingChanges: remaining.length > 0 ? (remaining as unknown as Prisma.InputJsonValue) : undefined,
           hasPendingChanges: remaining.length > 0,
         },
       });
