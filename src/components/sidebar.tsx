@@ -210,6 +210,61 @@ function CampaignSwitcher({
   );
 }
 
+function CampaignContext({
+  campaign,
+  collapsed,
+}: {
+  campaign: { slug: string; name: string; sessionCount?: number | null } | null;
+  collapsed: boolean;
+}) {
+  if (collapsed) return <div className="h-2" />;
+  return (
+    <div
+      className="mx-3 mt-3 mb-1 rounded-[3px] border border-[hsl(35_35%_18%)] px-3 py-2.5"
+      style={{
+        background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%)',
+        boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.08)',
+      }}
+    >
+      <Link
+        href="/campaigns"
+        className="flex items-center gap-1 mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.1em] transition-colors"
+        style={{ color: 'hsl(240 5% 36%)' }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'hsl(240 5% 55%)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'hsl(240 5% 36%)')}
+      >
+        <ChevronLeft className="h-3 w-3" strokeWidth={2.5} />
+        All Campaigns
+      </Link>
+      <div className="flex items-center gap-1.5">
+        <Shield className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} style={{ color: 'hsl(35 80% 62%)' }} />
+        <span
+          className="font-display text-[13px] font-bold tracking-[0.03em] truncate"
+          style={{
+            color: 'hsl(35 80% 68%)',
+            textShadow: '0 0 14px hsl(35 80% 48% / 0.3)',
+          }}
+        >
+          {campaign?.name ?? 'Campaign'}
+        </span>
+        <span
+          className="font-sans text-[8px] font-bold uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full shrink-0"
+          style={{
+            border: '1px solid hsl(35 60% 28%)',
+            background: 'hsl(35 60% 10%)',
+            color: 'hsl(35 70% 52%)',
+          }}
+        >
+          DM
+        </span>
+      </div>
+      <p className="font-sans text-[10px] mt-1" style={{ color: 'hsl(35 10% 40%)' }}>
+        {campaign?.sessionCount ?? 0} sessions
+      </p>
+    </div>
+  );
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -255,7 +310,7 @@ export function Sidebar() {
       {/* Logo */}
       <div
         className={cn(
-          'flex items-center justify-between border-b border-[hsl(35_35%_18%)]',
+          'relative z-10 flex items-center justify-between border-b border-[hsl(35_35%_18%)]',
           collapsed ? 'px-3 h-14' : 'px-5 h-14'
         )}
       >
@@ -290,15 +345,19 @@ export function Sidebar() {
         </Button>
       </div>
 
-      {/* Campaign switcher (always shown) */}
-      <CampaignSwitcher
-        currentCampaign={currentCampaign}
-        campaigns={campaigns.data ?? []}
-        collapsed={collapsed}
-      />
+      {/* Campaign switcher / context header */}
+      {inCampaign ? (
+        <CampaignContext campaign={currentCampaign} collapsed={collapsed} />
+      ) : (
+        <CampaignSwitcher
+          currentCampaign={currentCampaign}
+          campaigns={campaigns.data ?? []}
+          collapsed={collapsed}
+        />
+      )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-1">
+      <nav className="relative z-10 flex-1 overflow-y-auto py-1">
         {inCampaign && campaignNavSections ? (
           <>
             <SectionLabel label="Campaign" collapsed={collapsed} />
@@ -381,15 +440,6 @@ export function Sidebar() {
               </Link>
             </div>
           </div>
-        )}
-        {inCampaign && (
-          <NavItem
-            href="/campaigns"
-            label="All Campaigns"
-            icon={ChevronLeft}
-            isActive={false}
-            collapsed={collapsed}
-          />
         )}
         <NavItem
           href="/settings"
