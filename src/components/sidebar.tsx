@@ -214,7 +214,7 @@ function CampaignContext({
   campaign,
   collapsed,
 }: {
-  campaign: { slug: string; name: string; sessionCount?: number | null } | null;
+  campaign: { name: string; sessionCount?: number | null } | null;
   collapsed: boolean;
 }) {
   if (collapsed) return <div className="h-2" />;
@@ -228,8 +228,8 @@ function CampaignContext({
     >
       <Link
         href="/campaigns"
-        className="flex items-center gap-1 mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.1em] transition-colors"
-        style={{ color: 'hsl(240 5% 36%)' }}
+        className="flex items-center gap-1 mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.1em]"
+        style={{ color: 'hsl(240 5% 36%)', transition: 'color 150ms' }}
         onMouseEnter={e => (e.currentTarget.style.color = 'hsl(240 5% 55%)')}
         onMouseLeave={e => (e.currentTarget.style.color = 'hsl(240 5% 36%)')}
       >
