@@ -5,10 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
-  Swords,
-  Users,
-  UsersRound,
-  BookOpen,
+  Globe,
+  User,
+  FlaskConical,
   MessageSquare,
   Settings,
   PanelLeftClose,
@@ -18,9 +17,12 @@ import {
   CalendarDays,
   ScrollText,
   Brain,
-  ArrowLeft,
-  ChevronRight,
+  ChevronLeft,
   Shield,
+  UsersRound,
+  Home,
+  Drama,
+  Swords,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,9 +37,9 @@ import { trpc } from '@/lib/trpc';
 
 const globalNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/campaigns', label: 'Campaigns', icon: Swords },
-  { href: '/characters', label: 'Characters', icon: Users },
-  { href: '/homebrew', label: 'Homebrew', icon: BookOpen },
+  { href: '/campaigns', label: 'Campaigns', icon: Globe },
+  { href: '/characters', label: 'Characters', icon: User },
+  { href: '/homebrew', label: 'Homebrew', icon: FlaskConical },
 ];
 
 const toolsNav = [
@@ -47,17 +49,17 @@ const toolsNav = [
 function getCampaignNav(slug: string) {
   return {
     campaign: [
-      { href: `/campaigns/${slug}`, label: 'Overview', icon: LayoutDashboard, exact: true },
+      { href: `/campaigns/${slug}`, label: 'Overview', icon: Home, exact: true },
       { href: `/campaigns/${slug}/sessions`, label: 'Sessions', icon: CalendarDays },
       { href: `/campaigns/${slug}/summaries`, label: 'Summaries', icon: ScrollText },
     ],
     world: [
-      { href: `/campaigns/${slug}/npcs`, label: 'NPCs', icon: Users },
+      { href: `/campaigns/${slug}/npcs`, label: 'NPCs', icon: Drama },
       { href: `/campaigns/${slug}/brain`, label: 'DM Brain', icon: Brain },
       { href: `/campaigns/${slug}/encounters`, label: 'Encounters', icon: Swords },
     ],
     library: [
-      { href: `/campaigns/${slug}/homebrew`, label: 'Homebrew', icon: BookOpen },
+      { href: `/campaigns/${slug}/homebrew`, label: 'Homebrew', icon: FlaskConical },
       { href: `/campaigns/${slug}/players`, label: 'Characters', icon: Shield },
       { href: `/campaigns/${slug}/members`, label: 'Members', icon: UsersRound },
     ],
@@ -103,6 +105,7 @@ function NavItem({
           'h-4 w-4 shrink-0',
           isActive ? 'text-amber-400/90' : 'opacity-60'
         )}
+        strokeWidth={1.8}
       />
       {!collapsed && <span>{label}</span>}
     </Link>
@@ -137,7 +140,7 @@ function CampaignSwitcher({
             className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] text-muted-foreground/60 transition-colors hover:border-[hsl(35_50%_26%)] hover:text-foreground"
             title="Switch campaign"
           >
-            <Swords className="h-3.5 w-3.5" />
+            <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" className="w-52">
@@ -175,7 +178,7 @@ function CampaignSwitcher({
                 : 'Switch campaign'}
             </p>
           </div>
-          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" strokeWidth={1.8} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-52">
@@ -264,9 +267,9 @@ export function Sidebar() {
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? (
-            <PanelLeft className="h-3.5 w-3.5" />
+            <PanelLeft className="h-3.5 w-3.5" strokeWidth={1.8} />
           ) : (
-            <PanelLeftClose className="h-3.5 w-3.5" />
+            <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.8} />
           )}
         </Button>
       </div>
@@ -367,7 +370,7 @@ export function Sidebar() {
           <NavItem
             href="/campaigns"
             label="All Campaigns"
-            icon={ArrowLeft}
+            icon={ChevronLeft}
             isActive={false}
             collapsed={collapsed}
           />
@@ -431,7 +434,7 @@ export function MobileSidebar() {
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Library</p>
           {campaignNavSections.library.map((item) => renderLink(item))}
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
-          {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ArrowLeft })}
+          {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ChevronLeft })}
           {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
         </>
       ) : (
