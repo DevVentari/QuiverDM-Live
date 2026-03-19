@@ -35,21 +35,25 @@ async function processChapterJob(data: DdbChapterExtractJobData) {
     });
 
     if (!existing) {
-      await prisma.homebrewContent.create({
-        data: {
-          userId,
-          type: 'creature',
-          name: monsterData.name,
-          dndBeyondId: monster.ddbId,
-          dndBeyondUrl: monsterData.sourceUrl,
-          ddbChapterId: chapterId,
-          sourceType: 'dndbeyond_import',
-          data: monsterData as any,
-          searchText: monsterData.name,
-          tags: [sourceSlug],
-          images: [],
-        },
-      });
+      try {
+        await prisma.homebrewContent.create({
+          data: {
+            userId,
+            type: 'creature',
+            name: monsterData.name,
+            dndBeyondId: monster.ddbId,
+            dndBeyondUrl: monsterData.sourceUrl,
+            ddbChapterId: chapterId,
+            sourceType: 'dndbeyond_import',
+            data: monsterData as any,
+            searchText: monsterData.name,
+            tags: [sourceSlug],
+            images: [],
+          },
+        });
+      } catch {
+        // Another chapter job may have created this monster in parallel — safe to ignore
+      }
     } else if (isChanged && existing.name !== monsterData.name) {
       pendingChanges.push({
         entityType: 'HomebrewContent',
