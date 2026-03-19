@@ -33,9 +33,9 @@ export async function exchangeCobaltForJwt(cobaltSession: string): Promise<strin
     },
   });
   if (!res.ok) throw new DdbAuthError();
-  const data = await res.json();
-  if (!data.token) throw new DdbAuthError();
-  return data.token as string;
+  const data = await res.json() as Record<string, unknown>;
+  if (!data || typeof data.token !== 'string') throw new DdbAuthError();
+  return data.token;
 }
 
 // ─── Authenticated fetch ──────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ export function parseChapterContent(html: string): ChapterContent {
   const monsterMap = new Map<string, MonsterLink>();
   content.find('a[href*="/monsters/"]').each((_, el) => {
     const href = $(el).attr('href') ?? '';
-    const match = href.match(/\/monsters\/(\d+)-(.+)/);
+    const match = href.match(/\/monsters\/(\d+)-([^/?#]+)/);
     if (!match) return;
     const [, ddbId, slug] = match;
     if (!monsterMap.has(ddbId)) {
