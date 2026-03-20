@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { protectedProcedure, router } from '../trpc';
+import { protectedProcedure, campaignDMProcedure, router } from '../trpc';
 import { encounterPlanService } from '../services/encounter-plan.service';
 import { searchMonsters } from '../../lib/srd/monsters';
 
@@ -28,6 +28,7 @@ export const encounterPlansRouter = router({
         partySize: z.number().int().min(1).max(12).optional(),
         partyLevel: z.number().int().min(1).max(20).optional(),
         difficulty: difficultySchema.optional(),
+        ddbChapterId: z.string().optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -63,6 +64,7 @@ export const encounterPlansRouter = router({
         difficulty: difficultySchema.optional(),
         partySize: z.number().int().min(1).max(12).optional(),
         partyLevel: z.number().int().min(1).max(20).optional(),
+        ddbChapterId: z.string().optional(),
       })
     )
     .mutation(({ input, ctx }) => {
@@ -147,6 +149,20 @@ export const encounterPlansRouter = router({
       });
       return results.slice(0, input.limit);
     }),
+
+  getBySourcebook: campaignDMProcedure
+    .query(({ input }) =>
+      encounterPlanService.getBySourcebook(input.campaignId)
+    ),
+
+  markAsRun: protectedProcedure
+    .input(z.object({
+      planId: z.string(),
+      sessionId: z.string().optional(),
+    }))
+    .mutation(({ input, ctx }) =>
+      encounterPlanService.markAsRun(input.planId, ctx.session.user.id, input.sessionId)
+    ),
 
   createFromDDB: protectedProcedure
     .input(
