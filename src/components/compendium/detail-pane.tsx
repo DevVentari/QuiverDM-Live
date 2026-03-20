@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCompendiumStore } from '@/store/compendium-store';
 import { Button } from '@/components/ui/button';
+import { MonsterStatBlock, type MonsterStatBlockData } from '@/components/homebrew/MonsterStatBlock';
 
 type PlanData = {
   id: string;
@@ -153,6 +154,59 @@ function EncounterDetail({ planId }: { planId: string }) {
   );
 }
 
+type MonsterItemData = {
+  id: string;
+  name: string;
+  data: Record<string, unknown> | null;
+};
+
+function MonsterDetail({ monsterId }: { monsterId: string }) {
+  const { campaignId, currentPlanId } = useRouteContext();
+  const { data: result } = trpc.homebrew.getContent.useQuery(
+    { campaignId: campaignId ?? undefined, type: 'creature' },
+    { enabled: !!campaignId }
+  );
+  const monster = (result?.items ?? []).find((m: any) => m.id === monsterId) as MonsterItemData | undefined;
+
+  const addCreatureMutation = trpc.encounterPlans.addCreature.useMutation();
+
+  if (!monster) return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
+  if (!monster.data) return null;
+
+  const statBlock = monster.data as unknown as MonsterStatBlockData;
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto">
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <MonsterStatBlock monster={statBlock} mode="full" />
+      </div>
+      {currentPlanId && (
+        <div className="px-4 py-3 border-t border-[hsl(240_20%_85%/0.07)]">
+          <Button
+            size="sm"
+            className="w-full bg-emerald-900/30 border border-emerald-800/40 text-emerald-400 hover:bg-emerald-900/50"
+            onClick={() =>
+              addCreatureMutation.mutate({
+                planId: currentPlanId,
+                name: monster.name,
+                count: 1,
+                cr: String((monster.data as any)?.cr ?? ''),
+                xp: (monster.data as any)?.xp ?? undefined,
+                sourceType: 'homebrew',
+                sourceId: monster.id,
+                statBlock: monster.data as Record<string, unknown>,
+              })
+            }
+            disabled={addCreatureMutation.isPending}
+          >
+            Add to Encounter
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DetailPane() {
   const { selectedItemId, selectedItemType } = useCompendiumStore();
 
@@ -166,6 +220,10 @@ export function DetailPane() {
 
   if (selectedItemType === 'encounter') {
     return <EncounterDetail planId={selectedItemId} />;
+  }
+
+  if (selectedItemType === 'monster') {
+    return <MonsterDetail monsterId={selectedItemId} />;
   }
 
   return null;
