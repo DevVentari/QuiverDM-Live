@@ -1,0 +1,424 @@
+{
+  "slug": "character-dossier",
+  "monsterLinks": [
+    {
+      "ddbId": "4468312",
+      "slug": "alustriel-silverhand",
+      "name": "Alustriel Silverhand",
+      "url": "/monsters/4468312-alustriel-silverhand"
+    },
+    {
+      "ddbId": "4468330",
+      "slug": "kas-the-betrayer",
+      "name": "Kas the Betrayer",
+      "url": "/monsters/4468330-kas-the-betrayer"
+    },
+    {
+      "ddbId": "17044",
+      "slug": "vampire-spawn",
+      "name": "vampire spawn",
+      "url": "/monsters/17044-vampire-spawn"
+    },
+    {
+      "ddbId": "17017",
+      "slug": "specter",
+      "name": "specter",
+      "url": "/monsters/17017-specter"
+    },
+    {
+      "ddbId": "3081118",
+      "slug": "lord-soth",
+      "name": "Lord Soth",
+      "url": "/monsters/3081118-lord-soth"
+    },
+    {
+      "ddbId": "17015",
+      "slug": "skeleton",
+      "name": "skeleton",
+      "url": "/monsters/17015-skeleton"
+    },
+    {
+      "ddbId": "4468332",
+      "slug": "miska-the-wolf-spider",
+      "name": "Miska the Wolf-Spider",
+      "url": "/monsters/4468332-miska-the-wolf-spider"
+    },
+    {
+      "ddbId": "4468340",
+      "slug": "strahd-master-of-death-house",
+      "name": "Strahd, Master of Death House",
+      "url": "/monsters/4468340-strahd-master-of-death-house"
+    },
+    {
+      "ddbId": "4468341",
+      "slug": "tasha-the-witch",
+      "name": "Tasha the Witch",
+      "url": "/monsters/4468341-tasha-the-witch"
+    },
+    {
+      "ddbId": "1979789",
+      "slug": "iggwilv-the-witch-queen",
+      "name": "Iggwilv the Witch Queen",
+      "url": "/monsters/1979789-iggwilv-the-witch-queen"
+    },
+    {
+      "ddbId": "2590978",
+      "slug": "vecna-the-archlich",
+      "name": "Vecna the Archlich",
+      "url": "/monsters/2590978-vecna-the-archlich"
+    },
+    {
+      "ddbId": "17077",
+      "slug": "zombie",
+      "name": "zombie",
+      "url": "/monsters/17077-zombie"
+    }
+  ],
+  "itemLinks": [
+    {
+      "ddbId": "4764",
+      "slug": "staff-of-power",
+      "name": "Staff of Power",
+      "category": "magic-items",
+      "url": "/magic-items/4764-staff-of-power"
+    },
+    {
+      "ddbId": "8419440",
+      "slug": "crown-of-lies",
+      "name": "Crown of Lies",
+      "category": "magic-items",
+      "url": "/magic-items/8419440-crown-of-lies"
+    },
+    {
+      "ddbId": "8419448",
+      "slug": "rod-of-seven-parts",
+      "name": "Rod of Seven Parts",
+      "category": "magic-items",
+      "url": "/magic-items/8419448-rod-of-seven-parts"
+    },
+    {
+      "ddbId": "4742",
+      "slug": "robe-of-the-archmagi",
+      "name": "Robe of the Archmagi",
+      "category": "magic-items",
+      "url": "/magic-items/4742-robe-of-the-archmagi"
+    },
+    {
+      "ddbId": "2407504",
+      "slug": "demonomicon-of-iggwilv",
+      "name": "Demonomicon of Iggwilv",
+      "category": "magic-items",
+      "url": "/magic-items/2407504-demonomicon-of-iggwilv"
+    },
+    {
+      "ddbId": "5424",
+      "slug": "book-of-vile-darkness",
+      "name": "Book of Vile Darkness",
+      "category": "magic-items",
+      "url": "/magic-items/5424-book-of-vile-darkness"
+    },
+    {
+      "ddbId": "5269",
+      "slug": "dagger-2",
+      "name": "+2 Dagger",
+      "category": "magic-items",
+      "url": "/magic-items/5269-dagger-2"
+    }
+  ],
+  "spellLinks": [
+    {
+      "ddbId": "2172",
+      "slug": "mage-armor",
+      "name": "Mage Armor",
+      "url": "/spells/2172-mage-armor"
+    },
+    {
+      "ddbId": "2057",
+      "slug": "dancing-lights",
+      "name": "Dancing Lights",
+      "url": "/spells/2057-dancing-lights"
+    },
+    {
+      "ddbId": "2065",
+      "slug": "detect-magic",
+      "name": "Detect Magic",
+      "url": "/spells/2065-detect-magic"
+    },
+    {
+      "ddbId": "2173",
+      "slug": "mage-hand",
+      "name": "Mage Hand",
+      "url": "/spells/2173-mage-hand"
+    },
+    {
+      "ddbId": "2067",
+      "slug": "detect-thoughts",
+      "name": "Detect Thoughts",
+      "url": "/spells/2067-detect-thoughts"
+    },
+    {
+      "ddbId": "2072",
+      "slug": "dispel-magic",
+      "name": "Dispel Magic",
+      "url": "/spells/2072-dispel-magic"
+    },
+    {
+      "ddbId": "2281",
+      "slug": "tongues",
+      "name": "Tongues",
+      "url": "/spells/2281-tongues"
+    },
+    {
+      "ddbId": "2364",
+      "slug": "telepathy",
+      "name": "Telepathy",
+      "url": "/spells/2364-telepathy"
+    },
+    {
+      "ddbId": "2275",
+      "slug": "teleport",
+      "name": "Teleport",
+      "url": "/spells/2275-teleport"
+    },
+    {
+      "ddbId": "2279",
+      "slug": "time-stop",
+      "name": "Time Stop",
+      "url": "/spells/2279-time-stop"
+    },
+    {
+      "ddbId": "2032",
+      "slug": "command",
+      "name": "Command",
+      "url": "/spells/2032-command"
+    },
+    {
+      "ddbId": "2147",
+      "slug": "hold-person",
+      "name": "Hold Person",
+      "url": "/spells/2147-hold-person"
+    },
+    {
+      "ddbId": "2010",
+      "slug": "banishment",
+      "name": "Banishment",
+      "url": "/spells/2010-banishment"
+    },
+    {
+      "ddbId": "2069",
+      "slug": "disguise-self",
+      "name": "Disguise Self",
+      "url": "/spells/2069-disguise-self"
+    },
+    {
+      "ddbId": "2159",
+      "slug": "invisibility",
+      "name": "Invisibility",
+      "url": "/spells/2159-invisibility"
+    },
+    {
+      "ddbId": "2191",
+      "slug": "minor-illusion",
+      "name": "Minor Illusion",
+      "url": "/spells/2191-minor-illusion"
+    },
+    {
+      "ddbId": "2299",
+      "slug": "web",
+      "name": "Web",
+      "url": "/spells/2299-web"
+    },
+    {
+      "ddbId": "2077",
+      "slug": "dominate-monster",
+      "name": "Dominate Monster",
+      "url": "/spells/2077-dominate-monster"
+    },
+    {
+      "ddbId": "2184",
+      "slug": "mass-suggestion",
+      "name": "Mass Suggestion",
+      "url": "/spells/2184-mass-suggestion"
+    },
+    {
+      "ddbId": "2193",
+      "slug": "mirror-image",
+      "name": "Mirror Image",
+      "url": "/spells/2193-mirror-image"
+    },
+    {
+      "ddbId": "2273",
+      "slug": "telekinesis",
+      "name": "Telekinesis",
+      "url": "/spells/2273-telekinesis"
+    },
+    {
+      "ddbId": "2347",
+      "slug": "mordenkainens-faithful-hound",
+      "name": "Mordenkainen’s Faithful Hound",
+      "url": "/spells/2347-mordenkainens-faithful-hound"
+    },
+    {
+      "ddbId": "2362",
+      "slug": "mordenkainens-magnificent-mansion",
+      "name": "Mordenkainen’s Magnificent Mansion",
+      "url": "/spells/2362-mordenkainens-magnificent-mansion"
+    },
+    {
+      "ddbId": "2112",
+      "slug": "fog-cloud",
+      "name": "Fog Cloud",
+      "url": "/spells/2112-fog-cloud"
+    },
+    {
+      "ddbId": "1996",
+      "slug": "animate-dead",
+      "name": "Animate Dead",
+      "url": "/spells/1996-animate-dead"
+    },
+    {
+      "ddbId": "2134",
+      "slug": "gust-of-wind",
+      "name": "Gust of Wind",
+      "url": "/spells/2134-gust-of-wind"
+    },
+    {
+      "ddbId": "2199",
+      "slug": "nondetection",
+      "name": "Nondetection",
+      "url": "/spells/2199-nondetection"
+    },
+    {
+      "ddbId": "2128",
+      "slug": "greater-invisibility",
+      "name": "Greater Invisibility",
+      "url": "/spells/2128-greater-invisibility"
+    },
+    {
+      "ddbId": "2209",
+      "slug": "polymorph",
+      "name": "Polymorph",
+      "url": "/spells/2209-polymorph"
+    },
+    {
+      "ddbId": "2239",
+      "slug": "scrying",
+      "name": "Scrying",
+      "url": "/spells/2239-scrying"
+    },
+    {
+      "ddbId": "2166",
+      "slug": "light",
+      "name": "Light",
+      "url": "/spells/2166-light"
+    },
+    {
+      "ddbId": "2188",
+      "slug": "message",
+      "name": "Message",
+      "url": "/spells/2188-message"
+    },
+    {
+      "ddbId": "2213",
+      "slug": "prestidigitation",
+      "name": "Prestidigitation",
+      "url": "/spells/2213-prestidigitation"
+    },
+    {
+      "ddbId": "2320",
+      "slug": "tashas-hideous-laughter",
+      "name": "Tasha’s Hideous Laughter",
+      "url": "/spells/2320-tashas-hideous-laughter"
+    },
+    {
+      "ddbId": "2185",
+      "slug": "maze",
+      "name": "Maze",
+      "url": "/spells/2185-maze"
+    },
+    {
+      "ddbId": "2111",
+      "slug": "fly",
+      "name": "Fly",
+      "url": "/spells/2111-fly"
+    },
+    {
+      "ddbId": "2167",
+      "slug": "lightning-bolt",
+      "name": "Lightning Bolt",
+      "url": "/spells/2167-lightning-bolt"
+    },
+    {
+      "ddbId": "2068",
+      "slug": "dimension-door",
+      "name": "Dimension Door",
+      "url": "/spells/2068-dimension-door"
+    },
+    {
+      "ddbId": "2124",
+      "slug": "globe-of-invulnerability",
+      "name": "Globe of Invulnerability",
+      "url": "/spells/2124-globe-of-invulnerability"
+    },
+    {
+      "ddbId": "2206",
+      "slug": "plane-shift",
+      "name": "Plane Shift",
+      "url": "/spells/2206-plane-shift"
+    }
+  ],
+  "npcLinks": [],
+  "encounterAreas": [
+    "Acererak",
+    "Alustriel Silverhand",
+    "Kas the Betrayer",
+    "Lolth the Spider Queen",
+    "Lord Soth",
+    "Miska the Wolf-Spider",
+    "Mordenkainen",
+    "Strahd von Zarovich",
+    "Tasha",
+    "Tiamat",
+    "Vecna"
+  ],
+  "subLocations": [
+    "History",
+    "Personality",
+    "Personality",
+    "History",
+    "Alustriel Silverhand",
+    "Personality",
+    "Kas the Betrayer",
+    "History",
+    "Personality",
+    "Lord Soth",
+    "History",
+    "Miska the Wolf-Spider",
+    "History",
+    "Personality",
+    "History",
+    "Strahd, Master of Death House",
+    "Tasha the Witch",
+    "Answering the Summons",
+    "History",
+    "Personality",
+    "Vecna the Archlich"
+  ],
+  "imageUrls": [
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-001.acererak.jpg",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-012.alustriel.jpg",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-013.kas.jpg",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-004.lolth-the-spider-queen.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-014.lord-soth.jpg",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-006.miska-in-battle.jpg",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/391/370/452/638506035197383925.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-015.mordenkainen.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-008.strahd-von-zarovich.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-016.tasha.jpg",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-010.tiamat.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/13-011.vecna.jpg"
+  ],
+  "prose": "Appendix B: Character Dossier This appendix describes iconic characters the heroes might learn about during the adventure, presenting them in alphabetical order. Stat blocks are included as appropriate. Acererak Also known as the Devourer, Acererak is a powerful archlich feared across many worlds. He takes sadistic pleasure in killing adventurers by luring them into his trap-riddled tombs with the promise of powerful artifacts. Then he feeds on their souls to sustain his escapades across the multiverse. History Hundreds of years ago, Acererak was a mortal mage from Oerth devoted to the pursuit of power and immortality. Some say that Acererak was a pupil of Vecna, from whom he learned undeath’s secrets. Acererak travels the planes in search of powerful artifacts. When the archlich finds a particularly intriguing one, he seals it in one of his infamous tombs to tempt treasure hunters into the dungeon’s depths. Acererak has filled these tombs with deadly traps, fearsome monsters, and twisted puzzles meant to torment and eventually slay would-be thieves, whose souls he then consumes. The most famous of Acererak’s tombs is the Tomb of Horrors, which has claimed many adventurers throughout its history. Another infamous tomb is the Tomb of the Nine Gods, in which Acererak sealed nine false gods he had slain there. He has additional tombs on Oerth, in Faerûn, and beyond. Unlike many archliches, Acererak doesn’t desire godhood. Nevertheless, his nefarious deeds have garnered him a substantial following. One such group of these followers founded the Bleak Academy, an institution of arcane and religious learning that extols Acererak’s power. Robson Michel Personality Acererak delights in watching others perish. He regards himself as superior in all aspects, treating others as one would annoying insects. He views even the creatures he creates as mere tools to serve his whims. This hubris has often led him to disaster, but as a lich, Acererak continually returns to unlife. Alustriel Silverhand Lily Abdullina Lady Alustriel Silverhand, called the Shining Lady, has been an influential wizard and proponent of good across Toril for centuries. Alustriel is one of the Seven Sisters—immortal daughters of Mystra, a god of magic. The divine energy Mystra passed to Alustriel grants Alustriel incredible power over arcane magic. Alustriel’s youthful appearance as a human woman with silver hair gives no hint of her supernaturally extended life span. She typically wears long robes and wields a unicorn-headed staff, her Staff of Silverymoon. Personality Alustriel’s primary concerns are to spread kindness, reward virtue, and promote a culture of compassion throughout the multiverse. She is good at building alliances and quick to intervene when she senses a threat to the forces of good. She has traveled far and established safe houses across the planes—such as her sanctum in the city of Sigil. Alustriel doesn’t seek personal glory or wealth; her style of influencing the cosmos is quiet yet steady. History Like other Chosen of Mystra, Alustriel is concerned with preserving the Weave, the primary incarnation of magic that permeates Toril. She believes that the Weave favors those who act with mercy and compassion, seeks to deliver lives of security for all, and bolsters people’s efforts when they seek to right wrongs and combat evil. Nowhere are Alustriel and her deeds better known than in the Silver Marches and its capital, Silverymoon. Alustriel ruled Silverymoon for centuries, once disguised as a wizard named Elué Dualen and then later in her true form. She helped create Silverymoon’s famous Moonbridge and cofounded the Lady’s College, the first school in Faerûn for mages as students rather than as apprentices in service. Alustriel stepped down as Silverymoon’s high mage more than a century ago. Her son, Methrammar Aerasumé, now leads the city and works to uphold his mother’s legacy. Alustriel has partaken in countless adventures before and after her tenure as Silverymoon’s high mage. She has befriended famous adventurers such as Drizzt Do’Urden, worked with prominent organizations like the Harpers, and helped prevent or undo many kinds of evil. Alustriel Silverhand Medium Humanoid (Human, Wizard), Chaotic Good Armor Class 15 (18 with Mage Armor) Hit Points 272 (32d8 + 128) Speed 30 ft. STR 12 (+1) DEX 20 (+5) CON 18 (+4) INT 24 (+7) WIS 23 (+6) CHA 22 (+6) Saving Throws Con +11, Int +14, Wis +13 Skills Arcana +14, History +14, Insight +13, Religion +14 Damage Resistances radiant Damage Immunities poison Condition Immunities charmed, exhaustion, poisoned Senses passive Perception 16 Languages Common, Draconic, Elvish Challenge 21 (33,000 XP) Proficiency Bonus +7 Ear of the Chosen. Whenever a creature on the same plane of existence as Alustriel speaks Alustriel’s name, Alustriel hears her name and the next nine words the speaker utters. Legendary Resistance (3/Day). If Alustriel fails a saving throw, she can choose to succeed instead. Special Equipment. Alustriel carries a magic staff known as the Staff of Silverymoon. In the hands of anyone other than Alustriel, the Staff of Silverymoon is a Staff of Power. Actions Multiattack. Alustriel makes three Staff of Silverymoon attacks or two Reproving Ray attacks. Staff of Silverymoon. Melee Weapon Attack: +12 to hit, reach 5 ft., one target. Hit: 14 (2d8 + 5) bludgeoning damage plus 38 (7d10) radiant damage. Reproving Ray. Ranged Spell Attack: +14 to hit, range 120 ft., one target. Hit: 65 (9d12 + 7) force damage, and if the target is a creature, it must make a DC 22 Charisma saving throw. On a failed save, the target has the incapacitated condition until the start of Alustriel’s next turn. On a successful save, the target’s speed is reduced by 10 feet until the start of Alustriel’s next turn. Argent Blaze (Requires Silver Fire). Alustriel summons a 60-foot cone of silver fire. Each creature in that area must make a DC 22 Dexterity saving throw, taking 77 (14d10) radiant damage on a failed save or half as much damage on a successful one. Additionally, Alustriel or one creature of her choice within 60 feet of her then regains 10 (3d6) hit points. Spellcasting. Alustriel casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC 22): At will: Dancing Lights, Detect Magic, Mage Armor (self only), Mage Hand 2/day each: Detect Thoughts, Dispel Magic, Tongues 1/day each: Telepathy, Teleport, Time Stop Bonus Actions Silver Fire (2/Day). Brilliant silver fire harmlessly wreathes Alustriel and empowers her. The silver fire lasts for 1 hour or until she has the incapacitated condition or uses another bonus action to quench it. While wreathed in silver fire, Alustriel gains truesight within 30 feet and can use her Argent Blaze action. In addition, Alustriel is unaffected by magic that would ascertain her alignment, creature type, thoughts, or truthfulness. Reactions Shining Counterspell. Alustriel interrupts a creature she can see within 60 feet of herself that is casting a spell. If the spell is 5th level or lower, it fails and has no effect. If the spell is 6th level or higher, Alustriel makes an Intelligence check (DC 10 plus the spell’s level). On a successful check, the spell fails and has no effect. Whatever the spell’s level, the caster takes 11 (2d10) radiant damage if the spell fails. Kas the Betrayer Ekaterina Burmak The Betrayer, the Bloody Handed, the Destroyer—Kas has earned many epithets during his long existence. He is a vampire, legendary swordfighter, and ruthless warlord, and he is driven primarily by one thing: his hatred for Vecna. Kas resembles a well-muscled, raven-haired, human man in his thirties, though he is far older. His fangs reveal his vampiric nature. Personality Kas is cruel, spiteful, and unrelenting in his pursuit of vengeance against Vecna. He readily lies, breaks promises, betrays allies, and taunts those who fall for his ruses. Kas has little use for those who won’t validate his superiority or help advance his goals. In this adventure, Kas fools Tasha and Alustriel, two incredibly powerful wizards. In addition to defeating Vecna, Kas desperately wants the wizards to witness and acknowledge his strength. Kas the Betrayer Medium Undead (Vampire), Neutral Evil Armor Class 18 (plate) Hit Points 315 (30d8 + 180) Speed 40 ft. STR 26 (+8) DEX 20 (+5) CON 22 (+6) INT 24 (+7) WIS 19 (+4) CHA 26 (+8) Saving Throws Con +13, Wis +11, Cha +15 Skills Arcana +14, Deception +22, Perception +11, Stealth +12 Damage Immunities necrotic, poison; bludgeoning, piercing, and slashing from nonmagical attacks Condition Immunities charmed, exhaustion, frightened, paralyzed, poisoned Senses darkvision 120 ft., passive Perception 21 Languages Abyssal, Common, Draconic, Infernal Challenge 23 (50,000 XP) Proficiency Bonus +7 Eager Betrayer. Kas adds 1d10 to his initiative rolls. He has advantage on attack rolls against any creature that has the frightened condition. Legendary Resistance (3/Day). If Kas fails a saving throw, he can choose to succeed instead. Regeneration. Kas regains 20 hit points at the start of his turn if he has at least 1 hit point. If he takes radiant damage, this trait doesn’t function at the start of his next turn. Special Equipment. Kas wears the Crown of Lies (see the introduction). Spider Climb. Kas can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Strength of the Night. Kas doesn’t require a coffin, and he drinks blood to sow terror rather than for sustenance. If destroyed, Kas revives in 1d100 nights in an unoccupied space in Tovag, his Domain of Dread. He can be permanently destroyed only by having a stake driven through his heart and then being beheaded. The stake must be cut from a tree growing in soil from Oerth, Kas’s home world. Sunlight Hypersensitivity. While in sunlight, Kas takes 20 radiant damage at the start of his turn, has disadvantage on attack rolls and ability checks, and can’t use Change Shape. Actions Multiattack. Kas makes three Vengeful Sword attacks. He can replace one of these attacks with a Bite attack. Vengeful Sword. Melee Weapon Attack: +15 to hit, reach 5 ft., one target. Hit: 20 (2d8 + 11) slashing damage. The sword scores a critical hit on a roll of 19 or 20. Bite. Melee Weapon Attack: +15 to hit, reach 5 ft., one creature. Hit: 11 (1d6 + 8) piercing damage plus 10 (3d6) necrotic damage. The target’s hit point maximum is reduced by an amount equal to the necrotic damage taken, and Kas regains a number of hit points equal to that amount. The reduction lasts until the target finishes a long rest. The target dies if its hit point maximum is reduced to 0. A Humanoid slain in this way and then buried rises the following night as a vampire spawn under Kas’s control. Bonus Actions Change Shape. Kas transforms into a Medium cloud of mist or back into his true form. Anything he is wearing transforms with him, but nothing he is carrying does. He reverts to his true form if he dies. While in mist form, Kas has a flying speed of 20 feet, can hover, and can enter a hostile creature’s space and stop there. Kas can pass through a space without squeezing as long as air can pass through that space, but he can’t pass through water. Kas has advantage on Strength, Dexterity, and Constitution saving throws, and he is immune to all nonmagical damage except the damage he takes as part of his Sunlight Hypersensitivity trait. While in mist form, Kas can’t take any actions, speak, or manipulate objects. Menacing Glare. Kas targets one creature he can see within 60 feet of himself. The target must succeed on a DC 23 Wisdom saving throw or have the frightened condition until the start of Kas’s next turn. Reactions Parrying Riposte. Kas adds 3 to his AC against one melee attack roll that would hit him. He then makes one Vengeful Sword attack against the attacker if it is within his reach. On a hit, the target takes an additional 9 (2d8) slashing damage. Legendary Actions Kas can take 3 legendary actions, choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature’s turn. Kas regains spent legendary actions at the start of his turn. Move. Kas moves up to his speed without provoking opportunity attacks. Sword (Costs 2 Actions). Kas makes one Vengeful Sword attack. Rise, Fallen Soldier (Costs 3 Actions). Kas magically summons a specter. The specter appears in an unoccupied space within 30 feet of Kas, whom it obeys. The specter takes its turn immediately after Kas. It lasts for 1 hour, until Kas dies, or until Kas dismisses it as a bonus action. Kas can’t have more than two specters summoned at a time. Lolth the Spider Queen Lolth—the demon-god of deceit, shadows, and spiders—gains power by deceiving allies and enemies alike. Worshipers of the Spider Queen believe she can see through the eyes of all spiders and insist she is all-knowing. History In eons past, Lolth regularly plotted against her family of elven gods, seeking to kill those deities and subjugate their followers. Though her attempts mostly failed, she learned from them and grew mightier. Her failed attempt on the life of the powerful elven god Corellon Larethian resulted in Lolth’s banishment to the Abyss. There she conquered a layer known as the Demonweb, where she now makes her home. Lolth embraces her surroundings and takes the form of a demon, regularly appearing as a beautiful elven woman with the lower body of an enormous, monstrous spider. Lolth relishes her title of the Spider Queen and attempts to annihilate any who doubt her power. Lolth became the patron god of evil monsters that dwell in Faerûn’s Underdark. Some Humanoids also choose to worship her. Lolth conveys her favor in monstrous ways. One of the most accursed of the Spider Queen’s gifts is transformation into a drider. Followers of Lolth seek to foment chaos everywhere in the Spider Queen’s name. The more ruthless and fanatically devoted to Lolth a worshiper is, the higher that worshiper ranks in Lolth’s favor. Personality Lolth is a cruel god. She loves chaos and hurting the innocent, especially those who oppose her power-hungry ideals. The suffering of others delights her, and if that pain benefits her plans, all the better. The Spider Queen employs duplicity and sadism against her enemies, but she also enjoys bedeviling those who claim to love her. She promises great rewards to those who follow her without question; whether she delivers on her vows depends on her whims. The Spider Queen often allies with other gods or powerful demon lords, though she does so only for personal gain. At the first sign of any inconvenience, Lolth abandons her allies. Despite that fact, some believe her patronage is valuable. Most recently, Lolth allied with Vecna. The archlich promised Lolth a place at his side as the second-most powerful being in existence if she aids his efforts to use the Ritual of Remaking to re-form the multiverse. Lolth has deployed armies to protect Vecna on Pandemonium, though if the tide turns against the archlich, Lolth plans to strand her forces. Ekaterina Burmak Lord Soth Lord Soth is the most powerful death knight on Krynn. Once a Solamnic Knight of the Order of the Rose, Soth was a paragon of virtue and justice who allowed his pride to lead him down an evil path. Soth perished during Krynn’s Cataclysm, then rose from the ashes as a death knight. Soth lives in his cursed castle, Dargaard Keep. Vetlin Velinov Lord Soth Medium Undead (Paladin), Lawful Evil Armor Class 18 (plate) Hit Points 228 (24d8 + 120) Speed 30 ft. STR 22 (+6) DEX 11 (+0) CON 20 (+5) INT 12 (+1) WIS 16 (+3) CHA 20 (+5) Saving Throws Dex +6, Wis +9, Cha +11 Damage Immunities necrotic, poison Condition Immunities exhaustion, frightened, poisoned Senses darkvision 120 ft., passive Perception 13 Languages Common, Infernal, Solamnic Challenge 19 (22,000 XP) Proficiency Bonus +6 Legendary Resistance (3/Day). If Soth fails a saving throw, he can choose to succeed instead. Magic Resistance. Soth has advantage on saving throws against spells and other magical effects. Marshal Undead. Unless Soth has the incapacitated condition, he and Undead creatures of his choice within 60 feet of him are immune to features that turn Undead. Actions Multiattack. Soth makes three Forsaken Brand attacks. Forsaken Brand. Melee Weapon Attack: +12 to hit, reach 5 ft., one target. Hit: 10 (1d8 + 6) slashing damage plus 18 (4d8) necrotic damage, and if the target is a creature, it can’t regain hit points until the start of Soth’s next turn. Cataclysmic Fire (1/Day). Soth hurls a magical ball of fire that explodes at a point he can see within 120 feet of himself. Each creature in a 20-foot-radius sphere centered on that point must make a DC 19 Dexterity saving throw. A creature takes 35 (10d6) fire damage and 35 (10d6) necrotic damage on a failed save or half as much damage on a successful one. Additionally, any Medium or smaller Humanoid killed by this damage, as well as every corpse of such a creature within the sphere, becomes a skeleton under Soth’s control. The skeleton acts on Soth’s initiative but immediately after his turn. Absent any other command, the skeleton tries to kill any non-Undead creature it encounters. Spellcasting. Soth casts one of the following spells, requiring no material components and using Charisma as the spellcasting ability (spell save DC 19): At will: Command (cast at 3rd level) 2/day each: Dispel Magic, Hold Person (cast at 3rd level) 1/day: Banishment (cast at 6th level) Word of Death (1/Day). Soth points at a creature he can see within 60 feet of himself and magically commands it to die. The target must make a DC 19 Constitution saving throw, taking 100 necrotic damage on a failed save or half as much damage on a successful one. If this damage reduces the target to 0 hit points, the target dies. Legendary Actions Soth can take 3 legendary actions, choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature’s turn. Soth regains spent legendary actions at the start of his turn. Implacable Maneuver. Soth moves up to his speed or commands a mount he is riding to move up to its speed. The movement from this action doesn’t provoke opportunity attacks. If he or his mount moves within 5 feet of a creature during this movement, he can force the creature to make a DC 20 Strength saving throw. The creature has the prone condition unless it succeeds on the saving throw. Strike (Costs 2 Actions). Soth makes one Forsaken Brand attack. Cast a Spell (Costs 3 Actions). Soth uses Spellcasting. Miska the Wolf-Spider Miska the Wolf-Spider is a legendary demon lord and master of battlefield strategy. He has the lower body of a massive armored spider, four arms, and two enormous wolf heads that drip poison. Yet Miska’s greatest strength is his cunning mind. David Auden Nash History Ages ago, Miska led the hordes of Chaos against the forces of Law at the behest of his patron, the enigmatic Queen of Chaos. It seemed Miska’s domination couldn’t be stopped. In desperation, Miska’s opponents crafted an artifact to bind him in an extraplanar prison. This rod broke apart after sealing him in Pandemonium, scattering across the planes and becoming known as the Rod of Seven Parts. The rod is the key to releasing Miska from his long imprisonment. Miska the Wolf-Spider Huge Fiend (Demon), Chaotic Evil Armor Class 21 (natural armor) Hit Points 399 (38d12 + 152) Speed 40 ft., climb 40 ft. STR 23 (+6) DEX 18 (+4) CON 19 (+4) INT 18 (+4) WIS 21 (+5) CHA 22 (+6) Saving Throws Dex +11, Con +11, Wis +12 Skills Insight +12, Perception +12, Stealth +11 Damage Resistances cold, fire, lightning Damage Immunities poison; bludgeoning, piercing, and slashing from nonmagical attacks Condition Immunities poisoned Senses truesight 120 ft., passive Perception 21 Languages Abyssal, Common, telepathy 120 ft. Challenge 24 (62,000 XP) Proficiency Bonus +7 Foul Ichor. A creature that hits Miska with a melee weapon attack takes 7 (2d6) poison damage. Legendary Resistance (3/Day). If Miska fails a saving throw, he can choose to succeed instead. Magic Resistance. Miska has advantage on saving throws against spells and other magical effects. Spider Climb. Miska can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Web Sense. When in contact with a web, Miska knows the exact location of any other creature in contact with the same web. Web Walker. Miska ignores movement restrictions caused by webbing. Actions Multiattack. Miska makes one Lupine Bite attack and two Trident of Chaos attacks. Lupine Bite. Melee Weapon Attack: +13 to hit, reach 10 ft., one target. Hit: 17 (2d10 + 6) piercing damage plus 27 (6d8) poison damage. If the target is a creature, it must succeed on a DC 21 Constitution saving throw or have the poisoned condition for 1 minute. While poisoned in this way, a creature has the incapacitated condition and can’t regain hit points. A poisoned creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Trident of Chaos. Melee Weapon Attack: +13 to hit, reach 15 ft., one target. Hit: 13 (2d6 + 6) piercing damage plus 9 (2d8) force damage. Spellcasting. Miska casts one of the following spells, requiring no material components and using Charisma as the spellcasting ability (spell save DC 21): At will: Disguise Self, Invisibility, Mage Hand, Minor Illusion, Web 2/day each: Dominate Monster, Mass Suggestion, Mirror Image, Telekinesis, Teleport Bonus Actions Demand Loyalty. Miska magically ends the charmed and frightened conditions on himself and on any of his allies within 120 feet of himself. Legendary Actions Miska can take 3 legendary actions, choosing from the options below. Only one legendary action can be used at a time and only at the end of another creature’s turn. Miska regains spent legendary actions at the start of his turn. Howl. Miska utters a bloodthirsty howl at one creature within 120 feet of himself that isn’t a Fiend. The target must succeed on a DC 21 Wisdom saving throw or take 13 (2d12) psychic damage. Skitter. Miska moves up to his speed without provoking opportunity attacks. Cast a Spell (Costs 2 Actions). Miska uses Spellcasting. Zoltan Boros Mordenkainen Mordenkainen is a human wizard from Oerth whose wanderlust and hunger for new magic take him across the multiverse. Mordenkainen is calculating and mysterious, but he isn’t cruel. Mordenkainen has been involved in several friendly rivalries, including with Tasha, another powerful spellcaster from Oerth. Many significant figures across the multiverse are aware of Mordenkainen, but few truly know him—something the vampire Kas exploits to impersonate Mordenkainen. Throughout the adventure, Kas is masquerading as Mordenkainen. The mage is unaware of the vampire warlord’s actions. History Mordenkainen has told conflicting tales about his origins, but most scholars believe he accumulated impressive magical power at a young age. Known for his ingenuity, the wizard is responsible for writing several planar tomes and creating many spells that bear his name, including Mordenkainen’s Faithful Hound and Mordenkainen’s Magnificent Mansion. As his fame on Oerth grew, Mordenkainen became the leader of a powerful group of spellcasters called the Circle of Eight. The group included several wizards who similarly pioneered new spells, including Tenser and Bigby. Eventually, the circle disbanded after it stopped an uprising organized by Vecna. That development fueled Mordenkainen’s lifelong hatred of the lich. Mordenkainen travels the multiverse while following his academic whims. The wizard owns a home called the Tower of Urm, which pops into existence in Avernus when Mordenkainen visits to study how the Nine Hells affect various schools of magic. David Auden nash Personality Mordenkainen is stubborn and egotistical to the point of driving even his friends to annoyance. He has few close relationships, although nearly all wizards recognize his accomplishments. He is lonely and dreams of building a community of spellcasters who support each other. Unfortunately, his ego makes that dream all but impossible. Although Mordenkainen can be brash and off-putting, he eschews cruelty and sees no reason to cause pointless suffering. The wizard doesn’t like to admit it, but he would put his own safety at risk to quell the pain of innocents. Strahd von Zarovich Martin Mottet Strahd von Zarovich is the Darklord of Barovia, a Domain of Dread. Little happens there without the Darklord’s knowledge, although Strahd rarely pays attention to what he considers the uninteresting dealings of lesser beings. However, once the characters arrive in Barovia, explore a place called Death House, and find a piece of the Rod of Seven Parts there, Strahd’s interest becomes piqued, and he makes an appearance. The characters encounter Strahd in his Master of Death House iteration in chapter 5. History In life, Strahd von Zarovich was a prince, a soldier, and a conqueror. His thirst for power never sated, Strahd made a pact with the Dark Powers to become immortal. Meanwhile, Strahd’s evil deepened, until in a jealous rage he murdered his brother, Sergei. Sergei’s betrothed, Tatyana, leapt from a tower to escape Strahd and vanished into the Mists rising around Barovia as Strahd slew everyone else in the castle. He had become a vampire, and Barovia became a Domain of Dread. Now the Dark Powers keep Strahd trapped in his realm, tormenting him with his inability to escape for all eternity. He spends his days amusing himself as best he can, terrorizing Barovia’s people and savoring the fear and worship he commands. Strahd, Master of Death House Medium Undead (Vampire, Wizard), Lawful Evil Armor Class 16 (natural armor) Hit Points 136 (16d8 + 64) Speed 30 ft. STR 18 (+4) DEX 18 (+4) CON 18 (+4) INT 20 (+5) WIS 15 (+2) CHA 18 (+4) Saving Throws Dex +9, Wis +7, Cha +9 Skills Arcana +15, Perception +12, Religion +10, Stealth +14 Damage Resistances necrotic; bludgeoning, piercing, and slashing from nonmagical attacks Senses darkvision 120 ft., passive Perception 22 Languages Abyssal, Common, Draconic, Elvish, Giant, Infernal Challenge 15 (13,000 XP) Proficiency Bonus +5 Legendary Resistance (3/Day). If Strahd fails a saving throw, he can choose to succeed instead. Master of the House. When Strahd is reduced to 0 hit points, he dissolves into mist and immediately teleports to his lair in Castle Ravenloft. After 1d4 hours, Strahd re-forms in a random unoccupied space within his lair, regaining all his hit points. Regeneration. Strahd regains 20 hit points at the start of his turn if he has at least 1 hit point. If he takes radiant damage, this trait doesn’t function at the start of his next turn. Spider Climb. Strahd can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Vampire Weaknesses. Strahd has the following flaws: Harmed by Running Water. While in running water, Strahd takes 20 acid damage if he ends his turn there, and he can’t use Change Shape. Sunlight Hypersensitivity. While in sunlight, Strahd takes 20 radiant damage at the start of his turn, has disadvantage on attack rolls and ability checks, and can’t use Change Shape. Actions Multiattack. Strahd makes two Death Strike attacks. He can replace one of these attacks with Blighted Fire if available. Death Strike. Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) slashing damage plus 14 (4d6) necrotic damage. If the target is a creature, Strahd can forgo dealing slashing damage; the target then has the grappled condition (escape DC 18) instead. Strahd can grapple only one creature at a time. Blighted Fire (Recharge 5–6). Strahd summons shadowy, necrotic fire that fills a 20-foot-radius sphere centered on a point he can see within 90 feet of himself. Each creature in that area must make a DC 18 Dexterity saving throw, taking 14 (4d6) fire damage plus 14 (4d6) necrotic damage on a failed save or half as much damage on a successful one. Charm. Strahd targets one Humanoid he can see within 30 feet of himself. The target must succeed on a DC 17 Wisdom saving throw or have the charmed condition. The charmed target regards Strahd as a trusted friend to be heeded and protected. The target isn’t under Strahd’s control, but it takes Strahd’s requests and actions in the most favorable way. Each time Strahd or his companions deal damage to the target, it can repeat the saving throw, ending the effect on itself on a success. Otherwise, the effect lasts 24 hours or until Strahd is reduced to 0 hit points, is on a different plane of existence than the target, or uses a bonus action to end the effect. Spellcasting. Strahd casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC 18): At will: Detect Thoughts, Fog Cloud, Mage Hand 2/day each: Animate Dead (as an action), Gust of Wind, Mirror Image, Nondetection 1/day each: Greater Invisibility, Polymorph, Scrying (as an action) Bonus Actions Bite. Melee Weapon Attack: +9 to hit, reach 5 ft., one creature that has the charmed or grappled condition. Hit: 7 (1d6 + 4) piercing damage plus 10 (3d6) necrotic damage. The target’s hit point maximum is reduced by an amount equal to the necrotic damage taken, and Strahd regains a number of hit points equal to that amount. The reduction lasts until the target finishes a long rest. The target dies if its hit point maximum is reduced to 0. A Humanoid slain in this way and then buried rises the following night as a vampire spawn under Strahd’s control. Change Shape. Strahd transforms into a new form or back into his true form. Anything he is wearing transforms with him, but nothing he is carrying does. He reverts to his true form if he dies. When transforming into a new form, Strahd chooses one of the following options: Beast Form. Strahd transforms into a Tiny bat (flying speed 30 ft.) or a Medium wolf (speed 40 ft.). While in that form, he can’t speak, and he retains his game statistics other than his size and speed. Mist Form. Strahd transforms into a Medium cloud of mist. While in this form, Strahd has a flying speed of 20 feet, can hover, and can enter a hostile creature’s space and stop there. Strahd can pass through a space without squeezing as long as air can pass through that space, but he can’t pass through water. Strahd has advantage on Strength, Dexterity, and Constitution saving throws, and he is immune to all nonmagical damage except the damage he takes as part of his Vampire Weaknesses trait. While in mist form, Strahd can’t take any actions, speak, or manipulate objects. Legendary Actions Strahd can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature’s turn. Strahd regains spent legendary actions at the start of his turn. Cunning Escape. Strahd moves up to his speed without provoking opportunity attacks. Strike (Costs 2 Actions). Strahd makes one Death Strike attack. Tasha Tasha the Witch Medium Humanoid (Human, Wizard), Chaotic Neutral Armor Class 19 (Robe of the Archmagi) Hit Points 210 (28d8 + 84) Speed 30 ft. STR 10 (+0) DEX 18 (+4) CON 17 (+3) INT 23 (+6) WIS 12 (+1) CHA 22 (+6) Saving Throws Int +12, Wis +7, Cha +12 Skills Arcana +18, History +12, Persuasion +12 Condition Immunities charmed, frightened Senses passive Perception 11 Languages Abyssal, Celestial, Common, Draconic, Elvish, Infernal, Sylvan Challenge 19 (22,000 XP) Proficiency Bonus +6 Legendary Resistance (3/Day). If Tasha fails a saving throw, she can choose to succeed instead. Magic Resistance. Tasha has advantage on saving throws against spells and other magical effects. (This trait is bestowed by her Robe of the Archmagi.) Special Equipment. Tasha wears a Robe of the Archmagi. Actions Multiattack. Tasha makes two Caustic Blast attacks and uses Psychic Whip once. Caustic Blast. Melee or Ranged Spell Attack: +14 to hit, reach 5 ft. or range 120 ft., one target. Hit: 21 (6d4 + 6) acid damage. Psychic Whip. Tasha psychically lashes out at one creature she can see within 90 feet of herself. The target must make a DC 20 Intelligence saving throw. On a failed save, the target takes 21 (6d6) psychic damage and has the stunned condition until the start of Tasha’s next turn. On a successful save, the target takes half as much damage only. Spellcasting. Tasha casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC 22, +14 to hit with spell attacks): At will: Detect Magic, Disguise Self, Dispel Magic, Light, Mage Hand, Message, Prestidigitation, Tasha’s Hideous Laughter 2/day: Polymorph 1/day each: Maze, Telekinesis Bonus Actions Abyssal Visage (2/Day). For 1 minute, Tasha gains a flying speed of 30 feet, is immune to poison damage and the poisoned condition, and has advantage on attack rolls against any creature that doesn’t have all its hit points. These benefits end early if Tasha has the incapacitated condition or if she uses another bonus action to dismiss them. Reactions Arcane Rebuff. Immediately after Tasha takes damage, she unleashes arcane energy in a 10-foot-radius sphere centered on herself. All other creatures in that area must make a DC 20 Dexterity saving throw, taking 19 (3d12) lightning damage on a failed save or half as much damage on a successful one. Tasha then teleports, along with any equipment she is wearing or carrying, to an unoccupied space she can see within 60 feet of herself. Tasha’s path to greatness began when she was adopted by the arch-hag Baba Yaga, who named her Natasha. Tasha went on to create various spells, including Tasha’s Hideous Laughter, and her magic-fueled ambitions brought her into contact with demons and demon lords, which she subjugated and used against her enemies. On the Material Plane, she became known as Iggwilv the Witch Queen and wrote the Demonomicon of Iggwilv, the greatest of all treatises on the Abyss and its demonic inhabitants. In recent years, Tasha has sequestered herself in the Feywild, achieving incredible power and slowly turning into a Fey creature. Tasha has become Zybilna, archfey of the domain of Prismeer. Caroline Gariba Answering the Summons When Zybilna received Alustriel Silverhand’s summons to combat Vecna, the archfey was sorely needed in Prismeer. As a compromise, and to honor Tasha’s friendship with Alustriel, Zybilna sent a version of herself from the past to Alustriel’s side. The Tasha who appears in the adventure is a powerful wizard, though she is not yet a witch queen or an archfey. Tiamat The terrifying dragon god Tiamat is the progenitor of chromatic dragons across the multiverse. Her earliest background is shrouded in mystery, but Tiamat’s grand, five-headed silhouette has become an iconic symbol of avarice and destruction. History Julian Kok Tiamat is one of two primordial dragons, the other being Bahamut, the progenitor of metallic dragons. Together Tiamat and Bahamut created what became known as the First World: the first iteration of physical reality, which was subsequently sundered into the innumerable realities that now make up the Material Plane. The first inhabitant of this First World was Sardior, a ruby-red dragon with jeweled scales they made in their likeness, who worked with Bahamut and Tiamat to create metallic and chromatic dragons. The Draconic poem “Elegy for the First World” describes how hordes of creatures overran this fledgling world, waging war on the dragons and colonizing the realm in the names of their gods. Bahamut and Tiamat were defeated, and Sardior disappeared. Sometime after the destruction of the First World, Tiamat carved out a lair in Avernus, the first layer of the Nine Hells, where she commands a fearsome legion of followers. She maintains a courteous relationship with Asmodeus, the ruler of the Nine Hells, and commands draconic devils called abishais as her agents. Each type of abishai bears the coloring of one of Tiamat’s five heads. Across many worlds, Tiamat is worshiped as a god, with clerics at her disposal. Mortals who covet wealth and power pledge their lives to the dragon queen. Tiamat can send a fragment of her power to the Material Plane, which manifests as a titanic, five-headed dragon driven by rampaging greed. Personality Tiamat embodies the vices of evil dragons. She is vengeful and covets power and wealth above all else. However, Tiamat isn’t reckless in her quests to expand her hoard. The dragon queen exhibits shrewd battle tactics and beguiling charm, easily swaying mortals. Each of Tiamat’s five heads has its own voice and mannerisms, but they all share the same consciousness. The relationship between Tiamat and Bahamut is complicated. Many texts portray the two as mortal enemies, but other histories of the First World depict the two as partners; some even speculate that she still feels great love for her creations on the Material Plane and grief over the loss of Sardior. Vecna Scott Murphy On countless worlds, his name evokes tales of terror and cruelty: Vecna, the Undying King. Vecna, the Whispered One. Vecna, the Lord of the Rotted Tower. But Vecna had humble beginnings on the world of Oerth, where an order of wizards used him as a bootblack and scribe. He spent the better part of his childhood secretly educating himself in his masters’ arts. Once Vecna learned all he could, he massacred the wizards. He then recorded his every foul thought and dream as he started to write his Book of Vile Darkness. Vecna forged a kingdom on Oerth, but he grew bored with it after several centuries. He started inflicting suffering on other worlds. In this adventure, Vecna has risen to godhood on Oerth, but he seeks to become the most powerful god in existence and bend the multiverse to his will. By the time the characters are involved, Vecna’s master plan is almost complete. He has funneled a significant amount of his energy into weaving his ritual. Therefore, when the characters finally confront Vecna and try to save the multiverse, he is in his archlich form and not his divine form. Vecna the Archlich Medium Undead (Wizard), Lawful Evil Armor Class 18 (natural armor) Hit Points 272 (32d8 + 128) Speed 30 ft. STR 14 (+2) DEX 16 (+3) CON 18 (+4) INT 22 (+6) WIS 24 (+7) CHA 16 (+3) Saving Throws Con +12, Int +14, Wis +15 Skills Arcana +22, History +14, Insight +15, Perception +15 Damage Resistances cold, lightning, necrotic Damage Immunities poison; bludgeoning, piercing, and slashing from nonmagical attacks Condition Immunities charmed, exhaustion, frightened, paralyzed, poisoned, stunned Senses truesight 120 ft., passive Perception 25 Languages Common, Draconic, Elvish, Infernal Challenge 26 (90,000 XP) Proficiency Bonus +8 Legendary Resistance (5/Day). If Vecna fails a saving throw, he can choose to succeed instead. Special Equipment. Vecna carries a magic dagger named Afterthought. In the hands of anyone other than Vecna, Afterthought is a +2 Dagger. Undying. If Vecna is slain, his soul refuses to accept its fate and lives on as a disembodied spirit that fashions a new body for itself after 1d100 years. Vecna’s new body appears within 100 miles of where he was slain. When the new body is complete, Vecna regains all his hit points and becomes active again. Actions Multiattack. Vecna uses Flight of the Damned (if available), Rotten Fate, or Spellcasting. He then makes two attacks with Afterthought. Afterthought. Melee Weapon Attack: +13 to hit, reach 5 ft., one target. Hit: 7 (1d4 + 5) piercing damage plus 9 (2d8) necrotic damage. If the target is a creature, it is afflicted by entropic magic, taking 9 (2d8) necrotic damage at the start of each of its turns. Immediately after taking this damage on its turn, the target must make a DC 20 Constitution saving throw, ending the effect on itself on a success. Until it succeeds on this save, the afflicted target can’t regain hit points. Flight of the Damned (Recharge 5–6). Vecna conjures a torrent of flying, spectral entities that fill a 120-foot cone and pass through all creatures in that area before dissipating. Each creature in that area must make a DC 22 Constitution saving throw. On a failed save, the creature takes 36 (8d8) necrotic damage and has the frightened condition for 1 minute. On a successful save, the creature takes half as much damage only. A frightened creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Rotten Fate. Vecna causes necrotic magic to engulf one creature he can see within 120 feet of himself. The target must make a DC 22 Constitution saving throw, taking 96 (8d8 + 60) necrotic damage on a failed save or half as much damage on a successful one. A Humanoid killed by this magic rises as a zombie at the start of Vecna’s next turn and acts immediately after Vecna in the initiative order. The zombie is under Vecna’s control. Spellcasting. Vecna casts one of the following spells, requiring no material components and using Intelligence as the spellcasting ability (spell save DC 22): At will: Animate Dead (as an action), Detect Magic, Dispel Magic, Fly, Lightning Bolt, Mage Hand, Prestidigitation 2/day each: Dimension Door, Invisibility, Scrying (as an action) 1/day each: Dominate Monster, Globe of Invulnerability, Plane Shift (self only) Bonus Actions Vile Teleport. Vecna teleports, along with any equipment he is wearing or carrying, up to 30 feet to an unoccupied space he can see. He can cause each creature of his choice within 15 feet of his destination space to take 10 (3d6) psychic damage. If at least one creature takes this damage, Vecna regains 80 hit points. Reactions Vecna can take up to three reactions per round but only one per turn. Dread Counterspell. Vecna utters a dread word to interrupt a creature he can see that is casting a spell. If the spell is 4th level or lower, it fails and has no effect. If the spell is 5th level or higher, Vecna makes an Intelligence check (DC 10 plus the spell’s level). On a successful check, the spell fails and has no effect. Whatever the spell’s level, the caster takes 10 (3d6) psychic damage if the spell fails. Fell Rebuke. In response to being hit by an attack, Vecna utters a fell word, dealing 10 (3d6) necrotic damage to the attacker, and Vecna teleports, along with any equipment he is wearing or carrying, up to 30 feet to an unoccupied space he can see.",
+  "proseLength": 42658,
+  "contentHash": "fc83a3f7dc330b7114e2c111bd5870b146cd08470fcb522d7908dff6d7edebf1"
+}

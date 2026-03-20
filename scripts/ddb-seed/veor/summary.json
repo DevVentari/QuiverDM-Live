@@ -1,0 +1,1599 @@
+{
+  "slug": "veor",
+  "fetchedAt": "2026-03-20T02:31:35.578Z",
+  "chapterCount": 16,
+  "uniqueMonsterCount": 156,
+  "scrapedMonsterCount": 156,
+  "totalEncounterAreas": 112,
+  "monsters": [
+    {
+      "ddbId": "4468332",
+      "name": "Miska the Wolf-Spider",
+      "cr": "24",
+      "type": "Huge Fiend (Demon)"
+    },
+    {
+      "ddbId": "16860",
+      "name": "Ettin",
+      "cr": "4",
+      "type": "Large Giant"
+    },
+    {
+      "ddbId": "16902",
+      "name": "Glabrezu",
+      "cr": "9",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "4468343",
+      "name": "Warforged Warrior",
+      "cr": "1",
+      "type": "Medium Construct"
+    },
+    {
+      "ddbId": "2821187",
+      "name": "Night Scavver",
+      "cr": "5",
+      "type": "Huge Monstrosity"
+    },
+    {
+      "ddbId": "4468329",
+      "name": "Kakkuu Spyder-Fiend",
+      "cr": "5",
+      "type": "Medium Fiend (Demon)"
+    },
+    {
+      "ddbId": "4468313",
+      "name": "Black Rose Bearer",
+      "cr": "6",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "4468333",
+      "name": "Moonlight Guardian",
+      "cr": "6",
+      "type": "Medium Construct"
+    },
+    {
+      "ddbId": "1680942",
+      "name": "Priest of Osybus",
+      "cr": "6",
+      "type": "Medium Humanoid"
+    },
+    {
+      "ddbId": "4468315",
+      "name": "Blade Scout",
+      "cr": "7",
+      "type": "Medium Construct (Warforged)"
+    },
+    {
+      "ddbId": "2560863",
+      "name": "Lost Sorrowsworn",
+      "cr": "7",
+      "type": "Medium Monstrosity"
+    },
+    {
+      "ddbId": "4468317",
+      "name": "Bone Roc",
+      "cr": "8",
+      "type": "Huge Undead"
+    },
+    {
+      "ddbId": "1680928",
+      "name": "Inquisitor of the Tome",
+      "cr": "8",
+      "type": "Medium Humanoid"
+    },
+    {
+      "ddbId": "4468339",
+      "name": "Star Angler",
+      "cr": "8",
+      "type": "Large Monstrosity"
+    },
+    {
+      "ddbId": "4468344",
+      "name": "Whirling Chandelier",
+      "cr": "7",
+      "type": "Large Construct"
+    },
+    {
+      "ddbId": "4468314",
+      "name": "Blade Lieutenant",
+      "cr": "9",
+      "type": "Medium Construct (Warforged)"
+    },
+    {
+      "ddbId": "2560862",
+      "name": "Lonely Sorrowsworn",
+      "cr": "9",
+      "type": "Medium Monstrosity"
+    },
+    {
+      "ddbId": "2560883",
+      "name": "Necromancer Wizard",
+      "cr": "9",
+      "type": "Medium Humanoid"
+    },
+    {
+      "ddbId": "2821163",
+      "name": "Eye Monger",
+      "cr": "10",
+      "type": "Large Aberration"
+    },
+    {
+      "ddbId": "4468331",
+      "name": "Mirror Shade",
+      "cr": "10",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "4468323",
+      "name": "Degloth",
+      "cr": "11",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "4468325",
+      "name": "Glaive",
+      "cr": "11",
+      "type": "Medium Construct (Warforged)"
+    },
+    {
+      "ddbId": "4468338",
+      "name": "Spiderdragon",
+      "cr": "11",
+      "type": "Huge Monstrosity"
+    },
+    {
+      "ddbId": "4468342",
+      "name": "Vlazok",
+      "cr": "11",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "4468316",
+      "name": "Blazebear",
+      "cr": "12",
+      "type": "Large Monstrosity"
+    },
+    {
+      "ddbId": "4468326",
+      "name": "Granite Juggernaut",
+      "cr": "12",
+      "type": "Large Construct"
+    },
+    {
+      "ddbId": "4468321",
+      "name": "Deadbark Dryad",
+      "cr": "13",
+      "type": "Medium Fey"
+    },
+    {
+      "ddbId": "2821144",
+      "name": "Adult Lunar Dragon",
+      "cr": "13",
+      "type": "Huge Dragon"
+    },
+    {
+      "ddbId": "4468334",
+      "name": "Phisarazu Spyder-Fiend",
+      "cr": "13",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "93826",
+      "name": "Cadaver Collector",
+      "cr": "14",
+      "type": "Large Construct"
+    },
+    {
+      "ddbId": "4468327",
+      "name": "Hazvongel",
+      "cr": "14",
+      "type": "Huge Fiend (Demon)"
+    },
+    {
+      "ddbId": "94566",
+      "name": "Green Abishai",
+      "cr": "15",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "4468318",
+      "name": "Borthak",
+      "cr": "15",
+      "type": "Huge Monstrosity"
+    },
+    {
+      "ddbId": "4468322",
+      "name": "Deathwolf",
+      "cr": "15",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "4468337",
+      "name": "Relentless Impaler",
+      "cr": "15",
+      "type": "Large Fiend"
+    },
+    {
+      "ddbId": "4468340",
+      "name": "Strahd, Master of Death House",
+      "cr": "15",
+      "type": "Medium Undead (Vampire, Wizard)"
+    },
+    {
+      "ddbId": "94561",
+      "name": "Blue Abishai",
+      "cr": "17",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "4468328",
+      "name": "Hertilod",
+      "cr": "17",
+      "type": "Huge Monstrosity"
+    },
+    {
+      "ddbId": "4468335",
+      "name": "Quavilithku Spyder-Fiend",
+      "cr": "17",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "4468320",
+      "name": "Citadel Spider",
+      "cr": "18",
+      "type": "Gargantuan Monstrosity"
+    },
+    {
+      "ddbId": "2821160",
+      "name": "Cosmic Horror",
+      "cr": "18",
+      "type": "Gargantuan Aberration"
+    },
+    {
+      "ddbId": "94605",
+      "name": "Red Abishai",
+      "cr": "19",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "4468336",
+      "name": "Raklupis Spyder-Fiend",
+      "cr": "19",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "3081118",
+      "name": "Lord Soth",
+      "cr": "19",
+      "type": "Medium Undead (Paladin)"
+    },
+    {
+      "ddbId": "4468341",
+      "name": "Tasha the Witch",
+      "cr": "19",
+      "type": "Medium Humanoid (Human, Wizard)"
+    },
+    {
+      "ddbId": "93789",
+      "name": "Astral Dreadnought",
+      "cr": "21",
+      "type": "Gargantuan Monstrosity (Titan)"
+    },
+    {
+      "ddbId": "4468324",
+      "name": "False Lich",
+      "cr": "21",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "4468312",
+      "name": "Alustriel Silverhand",
+      "cr": "21",
+      "type": "Medium Humanoid (Human, Wizard)"
+    },
+    {
+      "ddbId": "4468319",
+      "name": "Camlash",
+      "cr": "22",
+      "type": "Huge Fiend (Demon)"
+    },
+    {
+      "ddbId": "4468330",
+      "name": "Kas the Betrayer",
+      "cr": "23",
+      "type": "Medium Undead (Vampire)"
+    },
+    {
+      "ddbId": "4468345",
+      "name": "Windfall",
+      "cr": "23",
+      "type": "Medium Humanoid (Bard, Tiefling)"
+    },
+    {
+      "ddbId": "2590978",
+      "name": "Vecna the Archlich",
+      "cr": "26",
+      "type": "Medium Undead (Wizard)"
+    },
+    {
+      "ddbId": "17143",
+      "name": "Marid",
+      "cr": "11",
+      "type": "Large Elemental"
+    },
+    {
+      "ddbId": "17059",
+      "name": "Wight",
+      "cr": "3",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "16947",
+      "name": "Mage",
+      "cr": "6",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "17051",
+      "name": "Water Elemental",
+      "cr": "5",
+      "type": "Large Elemental"
+    },
+    {
+      "ddbId": "17208",
+      "name": "Water Weird",
+      "cr": "3",
+      "type": "Large Elemental"
+    },
+    {
+      "ddbId": "16836",
+      "name": "Cult Fanatic",
+      "cr": "2",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "16872",
+      "name": "Ghoul",
+      "cr": "1",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "17110",
+      "name": "Barlgura",
+      "cr": "5",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "16966",
+      "name": "Noble",
+      "cr": "1/8",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "17064",
+      "name": "Wraith",
+      "cr": "5",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "17077",
+      "name": "Zombie",
+      "cr": "1/4",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "17092",
+      "name": "Nothic",
+      "cr": "2",
+      "type": "Medium Aberration"
+    },
+    {
+      "ddbId": "16985",
+      "name": "Priest",
+      "cr": "2",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "17043",
+      "name": "Vampire",
+      "cr": "13",
+      "type": "Medium Undead (Shapechanger)"
+    },
+    {
+      "ddbId": "17044",
+      "name": "Vampire Spawn",
+      "cr": "5",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "16871",
+      "name": "Ghost",
+      "cr": "4",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "16790",
+      "name": "Assassin",
+      "cr": "8",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "16963",
+      "name": "Nalfeshnee",
+      "cr": "13",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "17090",
+      "name": "Cyclops",
+      "cr": "6",
+      "type": "Huge Giant"
+    },
+    {
+      "ddbId": "16914",
+      "name": "Grimlock",
+      "cr": "1/4",
+      "type": "Medium Humanoid (Grimlock)"
+    },
+    {
+      "ddbId": "16858",
+      "name": "Erinyes",
+      "cr": "12",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "16887",
+      "name": "Giant Lizard",
+      "cr": "1/4",
+      "type": "Large Beast"
+    },
+    {
+      "ddbId": "17127",
+      "name": "Yochlol",
+      "cr": "10",
+      "type": "Medium Fiend (Demon, Shapechanger)"
+    },
+    {
+      "ddbId": "16826",
+      "name": "Cloaker",
+      "cr": "8",
+      "type": "Large Aberration"
+    },
+    {
+      "ddbId": "17113",
+      "name": "Death Slaad",
+      "cr": "10",
+      "type": "Medium Aberration (Shapechanger)"
+    },
+    {
+      "ddbId": "17150",
+      "name": "Githyanki Knight",
+      "cr": "8",
+      "type": "Medium Humanoid (Gith)"
+    },
+    {
+      "ddbId": "17045",
+      "name": "Veteran",
+      "cr": "3",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "16848",
+      "name": "Druid",
+      "cr": "2",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "16809",
+      "name": "Blink Dog",
+      "cr": "1/4",
+      "type": "Medium Fey"
+    },
+    {
+      "ddbId": "16832",
+      "name": "Couatl",
+      "cr": "4",
+      "type": "Medium Celestial"
+    },
+    {
+      "ddbId": "17115",
+      "name": "Green Slaad",
+      "cr": "8",
+      "type": "Large Aberration (Shapechanger)"
+    },
+    {
+      "ddbId": "17037",
+      "name": "Treant",
+      "cr": "9",
+      "type": "Huge Plant"
+    },
+    {
+      "ddbId": "17157",
+      "name": "Grell",
+      "cr": "3",
+      "type": "Medium Aberration"
+    },
+    {
+      "ddbId": "16840",
+      "name": "Deva",
+      "cr": "10",
+      "type": "Medium Celestial"
+    },
+    {
+      "ddbId": "16998",
+      "name": "Roc",
+      "cr": "11",
+      "type": "Gargantuan Monstrosity"
+    },
+    {
+      "ddbId": "16865",
+      "name": "Flying Sword",
+      "cr": "1/4",
+      "type": "Small Construct"
+    },
+    {
+      "ddbId": "16786",
+      "name": "Animated Armor",
+      "cr": "1",
+      "type": "Medium Construct"
+    },
+    {
+      "ddbId": "17146",
+      "name": "Fomorian",
+      "cr": "8",
+      "type": "Huge Giant"
+    },
+    {
+      "ddbId": "17013",
+      "name": "Shrieker",
+      "cr": "0",
+      "type": "Medium Plant"
+    },
+    {
+      "ddbId": "17060",
+      "name": "Will-o'-Wisp",
+      "cr": "2",
+      "type": "Tiny Undead"
+    },
+    {
+      "ddbId": "17025",
+      "name": "Stone Golem",
+      "cr": "10",
+      "type": "Large Construct"
+    },
+    {
+      "ddbId": "16957",
+      "name": "Mimic",
+      "cr": "2",
+      "type": "Medium Monstrosity (Shapechanger)"
+    },
+    {
+      "ddbId": "17012",
+      "name": "Shield Guardian",
+      "cr": "7",
+      "type": "Large Construct"
+    },
+    {
+      "ddbId": "16829",
+      "name": "Commoner",
+      "cr": "0",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "16934",
+      "name": "Invisible Stalker",
+      "cr": "6",
+      "type": "Medium Elemental"
+    },
+    {
+      "ddbId": "17159",
+      "name": "Helmed Horror",
+      "cr": "4",
+      "type": "Medium Construct"
+    },
+    {
+      "ddbId": "17091",
+      "name": "Flameskull",
+      "cr": "4",
+      "type": "Tiny Undead"
+    },
+    {
+      "ddbId": "17011",
+      "name": "Shambling Mound",
+      "cr": "5",
+      "type": "Large Plant"
+    },
+    {
+      "ddbId": "16835",
+      "name": "Cultist",
+      "cr": "1/8",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "17017",
+      "name": "Specter",
+      "cr": "1",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "17057",
+      "name": "Werewolf",
+      "cr": "3",
+      "type": "Medium Humanoid (Human, Shapechanger)"
+    },
+    {
+      "ddbId": "16895",
+      "name": "Giant Spider",
+      "cr": "1",
+      "type": "Large Beast"
+    },
+    {
+      "ddbId": "16789",
+      "name": "Archmage",
+      "cr": "12",
+      "type": "Medium Humanoid (Any Race)"
+    },
+    {
+      "ddbId": "17128",
+      "name": "Death Knight",
+      "cr": "17",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "17015",
+      "name": "Skeleton",
+      "cr": "1/4",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "16970",
+      "name": "Ogre Zombie",
+      "cr": "2",
+      "type": "Large Undead"
+    },
+    {
+      "ddbId": "16959",
+      "name": "Minotaur Skeleton",
+      "cr": "2",
+      "type": "Large Undead"
+    },
+    {
+      "ddbId": "17111",
+      "name": "Beholder Zombie",
+      "cr": "5",
+      "type": "Large Undead"
+    },
+    {
+      "ddbId": "16916",
+      "name": "Guardian Naga",
+      "cr": "10",
+      "type": "Large Monstrosity"
+    },
+    {
+      "ddbId": "16853",
+      "name": "Earth Elemental",
+      "cr": "5",
+      "type": "Large Elemental"
+    },
+    {
+      "ddbId": "16992",
+      "name": "Raven",
+      "cr": "0",
+      "type": "Tiny Beast"
+    },
+    {
+      "ddbId": "16940",
+      "name": "Kraken",
+      "cr": "23",
+      "type": "Gargantuan Monstrosity (Titan)"
+    },
+    {
+      "ddbId": "17030",
+      "name": "Swarm of Poisonous Snakes",
+      "cr": "2",
+      "type": "Medium swarm of Tiny beasts"
+    },
+    {
+      "ddbId": "16952",
+      "name": "Marilith",
+      "cr": "16",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "17019",
+      "name": "Spirit Naga",
+      "cr": "8",
+      "type": "Large Monstrosity"
+    },
+    {
+      "ddbId": "16894",
+      "name": "Giant Shark",
+      "cr": "5",
+      "type": "Huge Beast"
+    },
+    {
+      "ddbId": "17156",
+      "name": "Goristro",
+      "cr": "17",
+      "type": "Huge Fiend (Demon)"
+    },
+    {
+      "ddbId": "17047",
+      "name": "Vrock",
+      "cr": "6",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "16922",
+      "name": "Hezrou",
+      "cr": "8",
+      "type": "Large Fiend (Demon)"
+    },
+    {
+      "ddbId": "16988",
+      "name": "Quasit",
+      "cr": "1",
+      "type": "Tiny Fiend (Demon, Shapechanger)"
+    },
+    {
+      "ddbId": "17042",
+      "name": "Unicorn",
+      "cr": "5",
+      "type": "Large Celestial"
+    },
+    {
+      "ddbId": "16933",
+      "name": "Imp",
+      "cr": "1",
+      "type": "Tiny Fiend (Devil)"
+    },
+    {
+      "ddbId": "16803",
+      "name": "Bearded Devil",
+      "cr": "3",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "16979",
+      "name": "Pit Fiend",
+      "cr": "20",
+      "type": "Large Fiend (Devil)"
+    },
+    {
+      "ddbId": "2560902",
+      "name": "Red Abishai",
+      "cr": "19",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "2560742",
+      "name": "Blue Abishai",
+      "cr": "17",
+      "type": "Medium Fiend (Devil, Wizard)"
+    },
+    {
+      "ddbId": "2560838",
+      "name": "Green Abishai",
+      "cr": "15",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "16990",
+      "name": "Rakshasa",
+      "cr": "13",
+      "type": "Medium Fiend"
+    },
+    {
+      "ddbId": "16964",
+      "name": "Nightmare",
+      "cr": "3",
+      "type": "Large Fiend"
+    },
+    {
+      "ddbId": "16800",
+      "name": "Barbed Devil",
+      "cr": "5",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "16987",
+      "name": "Purple Worm",
+      "cr": "15",
+      "type": "Gargantuan Monstrosity"
+    },
+    {
+      "ddbId": "16935",
+      "name": "Iron Golem",
+      "cr": "16",
+      "type": "Large Construct"
+    },
+    {
+      "ddbId": "16927",
+      "name": "Horned Devil",
+      "cr": "11",
+      "type": "Large Fiend (Devil)"
+    },
+    {
+      "ddbId": "16804",
+      "name": "Behir",
+      "cr": "11",
+      "type": "Huge Monstrosity"
+    },
+    {
+      "ddbId": "16931",
+      "name": "Ice Devil",
+      "cr": "14",
+      "type": "Large Fiend (Devil)"
+    },
+    {
+      "ddbId": "16942",
+      "name": "Lemure",
+      "cr": "0",
+      "type": "Medium Fiend (Devil)"
+    },
+    {
+      "ddbId": "16782",
+      "name": "Ancient Red Dragon",
+      "cr": "24",
+      "type": "Gargantuan Dragon"
+    },
+    {
+      "ddbId": "17135",
+      "name": "Drow Mage",
+      "cr": "7",
+      "type": "Medium Humanoid (Elf)"
+    },
+    {
+      "ddbId": "16847",
+      "name": "Drider",
+      "cr": "6",
+      "type": "Large Monstrosity"
+    },
+    {
+      "ddbId": "2560748",
+      "name": "Cadaver Collector",
+      "cr": "14",
+      "type": "Large Construct"
+    },
+    {
+      "ddbId": "2560727",
+      "name": "Astral Dreadnought",
+      "cr": "21",
+      "type": "Gargantuan Monstrosity (Titan)"
+    },
+    {
+      "ddbId": "16849",
+      "name": "Dryad",
+      "cr": "1",
+      "type": "Medium Fey"
+    },
+    {
+      "ddbId": "16774",
+      "name": "Air Elemental",
+      "cr": "5",
+      "type": "Large Elemental"
+    },
+    {
+      "ddbId": "1680938",
+      "name": "Priest of Osybus (Dread)",
+      "cr": "6",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "1680939",
+      "name": "Priest of Osybus (Ectoplasmic)",
+      "cr": "6",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "1680941",
+      "name": "Priest of Osybus (Vampiric)",
+      "cr": "6",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "1680936",
+      "name": "Priest of Osybus (Blazing)",
+      "cr": "4",
+      "type": "Tiny Undead"
+    },
+    {
+      "ddbId": "1680940",
+      "name": "Priest of Osybus (Spectral)",
+      "cr": "7",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "1680937",
+      "name": "Priest of Osybus (Deathly)",
+      "cr": "7",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "17010",
+      "name": "Shadow",
+      "cr": "1/2",
+      "type": "Medium Undead"
+    },
+    {
+      "ddbId": "16807",
+      "name": "Black Dragon Wyrmling",
+      "cr": "2",
+      "type": "Medium Dragon"
+    },
+    {
+      "ddbId": "16833",
+      "name": "Crab",
+      "cr": "0",
+      "type": "Tiny Beast"
+    },
+    {
+      "ddbId": "16879",
+      "name": "Giant Crab",
+      "cr": "1/8",
+      "type": "Medium Beast"
+    },
+    {
+      "ddbId": "1979789",
+      "name": "Iggwilv the Witch Queen",
+      "cr": "20",
+      "type": "Medium Fey (Wizard)"
+    }
+  ],
+  "encounterAreas": [
+    "Existence in Peril",
+    "Vecna’s History",
+    "Kas’s Plan",
+    "Adventure Summary",
+    "Running the Adventure",
+    "Character Creation",
+    "The Power of Secrets",
+    "Challenge Ratings",
+    "Running This Chapter",
+    "Getting Started",
+    "In the Graveyard",
+    "Escaping Evernight",
+    "Dolindar Tomb",
+    "What’s Next?",
+    "After Neverdeath",
+    "Rise of the Lich-God",
+    "The Sigil Sanctum",
+    "The Wizards Three",
+    "Kas the Destroyer",
+    "Surprise Development",
+    "Toward Web’s Edge",
+    "Web’s Edge",
+    "Next Steps",
+    "A Doorway to Space",
+    "Into the Astral Sea",
+    "Wreck of the Lambent Zenith",
+    "Heart of Havock",
+    "Doorway to Eberron",
+    "An Important Detail",
+    "Mount Ironrot",
+    "Finding a Docent",
+    "Landro",
+    "Barovia",
+    "Arriving in Barovia",
+    "Death House",
+    "Strahd’s Presence",
+    "Leaving the House",
+    "Krynn",
+    "Arriving on Krynn",
+    "The Peylon Tree",
+    "Bittergrass Fen",
+    "The Blue Fire Wardens",
+    "Three Moons Vault",
+    "Oerth",
+    "Down to Oerth",
+    "Into the Tomb",
+    "Avernus",
+    "Descending into Avernus",
+    "The Red Belvedere",
+    "Casino Rooms",
+    "Dragon’s Pride",
+    "Returning from Avernus",
+    "Kas Reveals Himself",
+    "Pandesmos Outlook",
+    "Chaos Incarnate",
+    "Carapace Ridge",
+    "Hurricane Tower",
+    "Ruinous Citadel",
+    "Cliffside Redoubt",
+    "Fighting Kas",
+    "Reunion in Sigil",
+    "Vecna’s Grasp",
+    "Torment of Kas",
+    "Neverwinter’s New King",
+    "Dead Gods",
+    "Cave of Shattered Reflection",
+    "Conclusion",
+    "Abishais",
+    "Astral Dreadnought",
+    "Black Rose Bearer",
+    "Blades of Eberron",
+    "Blazebear",
+    "Bone Roc",
+    "Borthak",
+    "Cadaver Collector",
+    "Citadel Spider",
+    "Cosmic Horror",
+    "Deadbark Dryad",
+    "Deathwolf",
+    "Degloth",
+    "Eye Monger",
+    "False Lich",
+    "Granite Juggernaut",
+    "Hazvongel",
+    "Hertilod",
+    "Inquisitor of the Tome",
+    "Lunar Dragon",
+    "Mirror Shade",
+    "Moonlight Guardian",
+    "Necromancer Wizard",
+    "Night Scavver",
+    "Priest of Osybus",
+    "Relentless Impaler",
+    "Sorrowsworn",
+    "Spiderdragon",
+    "Spyder-Fiends",
+    "Star Angler",
+    "Vlazok",
+    "Warforged Warrior",
+    "Whirling Chandelier",
+    "Acererak",
+    "Alustriel Silverhand",
+    "Kas the Betrayer",
+    "Lolth the Spider Queen",
+    "Lord Soth",
+    "Miska the Wolf-Spider",
+    "Mordenkainen",
+    "Strahd von Zarovich",
+    "Tasha",
+    "Tiamat",
+    "Vecna",
+    "D&D Studio"
+  ],
+  "chaptersWithMonsters": [
+    {
+      "slug": "danger-to-the-multiverse",
+      "monsters": [
+        "Miska the Wolf-Spider",
+        "ettins",
+        "glabrezus",
+        "Warforged warrior",
+        "Night scavver",
+        "Kakkuu spyder-fiend",
+        "Black rose bearer",
+        "Moonlight guardian",
+        "Priest of Osybus",
+        "Blade scout",
+        "Lost sorrowsworn",
+        "Bone roc",
+        "Inquisitor of the Tome",
+        "Star angler",
+        "Whirling chandelier",
+        "Blade lieutenant",
+        "Lonely sorrowsworn",
+        "Necromancer wizard",
+        "Eye monger",
+        "Mirror shade",
+        "Degloth",
+        "Glaive",
+        "Spiderdragon",
+        "Vlazok",
+        "Blazebear",
+        "Granite juggernaut",
+        "Deadbark dryad",
+        "Adult lunar dragon",
+        "Phisarazu spyder-fiend",
+        "Cadaver collector",
+        "Hazvongel",
+        "Green abishai",
+        "Borthak",
+        "Deathwolf",
+        "Relentless impaler",
+        "Strahd, Master of Death House",
+        "Blue abishai",
+        "Hertilod",
+        "Quavilithku spyder-fiend",
+        "Citadel spider",
+        "Cosmic horror",
+        "Red abishai",
+        "Raklupis spyder-fiend",
+        "Lord Soth",
+        "Tasha the Witch",
+        "Astral dreadnought",
+        "False lich",
+        "Alustriel Silverhand",
+        "Camlash",
+        "Kas the Betrayer",
+        "Windfall",
+        "Vecna the Archlich"
+      ],
+      "areas": [
+        "Existence in Peril",
+        "Vecna’s History",
+        "Kas’s Plan",
+        "Adventure Summary",
+        "Running the Adventure",
+        "Character Creation",
+        "The Power of Secrets",
+        "Challenge Ratings"
+      ]
+    },
+    {
+      "slug": "return-from-neverdeath-graveyard",
+      "monsters": [
+        "marid",
+        "wights",
+        "mage",
+        "water elemental",
+        "water weirds",
+        "cult fanatics",
+        "ghouls",
+        "barlguras",
+        "noble",
+        "wraiths",
+        "zombie",
+        "necromancer wizard",
+        "nothic",
+        "priest",
+        "vampire",
+        "vampire spawn",
+        "ghost",
+        "lost sorrowsworn",
+        "lonely sorrowsworn"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Getting Started",
+        "In the Graveyard",
+        "Escaping Evernight",
+        "Dolindar Tomb",
+        "What’s Next?"
+      ]
+    },
+    {
+      "slug": "the-wizards-three",
+      "monsters": [
+        "Alustriel Silverhand",
+        "Tasha",
+        "Kas the Destroyer",
+        "assassin",
+        "nalfeshnee",
+        "mage",
+        "glabrezu",
+        "cyclops",
+        "grimlock",
+        "erinyes",
+        "giant lizards",
+        "spiderdragon",
+        "yochlol"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "After Neverdeath",
+        "Rise of the Lich-God",
+        "The Sigil Sanctum",
+        "The Wizards Three",
+        "Kas the Destroyer",
+        "Surprise Development",
+        "Toward Web’s Edge",
+        "Web’s Edge",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "the-lambent-zeniths-last-voyage",
+      "monsters": [
+        "star anglers",
+        "night scavvers",
+        "cloaker",
+        "death slaad",
+        "githyanki knights",
+        "veteran",
+        "assassin",
+        "druid",
+        "blink dog",
+        "mage",
+        "couatl",
+        "priest",
+        "green slaad",
+        "treant",
+        "grells",
+        "deva",
+        "hertilod"
+      ],
+      "areas": [
+        "Running the Adventure",
+        "A Doorway to Space",
+        "Into the Astral Sea",
+        "Wreck of the Lambent Zenith",
+        "Heart of Havock",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "the-ruined-colossus",
+      "monsters": [
+        "blazebears",
+        "warforged warrior",
+        "veterans",
+        "blade scouts",
+        "blade lieutenant",
+        "Glaive",
+        "roc",
+        "zombie",
+        "flying swords",
+        "animated armor",
+        "fomorian",
+        "shriekers",
+        "ghost",
+        "wights",
+        "will-o’-wisps",
+        "stone golem",
+        "mimic",
+        "shield guardian",
+        "water elemental"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Doorway to Eberron",
+        "An Important Detail",
+        "Mount Ironrot",
+        "Finding a Docent",
+        "Landro",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "death-house",
+      "monsters": [
+        "commoners",
+        "inquisitor of the tome",
+        "priests of Osybus",
+        "Strahd von Zarovich",
+        "whirling chandelier",
+        "invisible stalkers",
+        "vampire spawn",
+        "helmed horrors",
+        "will-o’-wisps",
+        "flameskull",
+        "shambling mounds",
+        "cult fanatics",
+        "cultists",
+        "relentless impaler",
+        "specters"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Barovia",
+        "Arriving in Barovia",
+        "Death House",
+        "Strahd’s Presence",
+        "Leaving the House",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "night-of-blue-fire",
+      "monsters": [
+        "Lord Soth",
+        "dryad",
+        "werewolf",
+        "treant",
+        "giant spiders",
+        "borthak",
+        "archmage",
+        "moonlight guardians",
+        "wraiths",
+        "death knight",
+        "skeletons",
+        "zombies",
+        "ogre zombies",
+        "black rose bearer",
+        "minotaur skeletons",
+        "beholder zombie",
+        "guardian naga",
+        "veterans",
+        "bone rocs",
+        "mimic",
+        "earth elementals",
+        "necromancer wizard",
+        "ravens",
+        "deathwolf",
+        "adult lunar dragon"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Krynn",
+        "Arriving on Krynn",
+        "The Peylon Tree",
+        "Bittergrass Fen",
+        "The Blue Fire Wardens",
+        "Three Moons Vault",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "tomb-of-wayward-souls",
+      "monsters": [
+        "kraken",
+        "commoner",
+        "assassin",
+        "priests",
+        "mage",
+        "treant",
+        "will-o’-wisp",
+        "swarms of poisonous snakes",
+        "death knight",
+        "granite juggernauts",
+        "marilith",
+        "spirit naga",
+        "stone golem",
+        "giant shark",
+        "false lich"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Oerth",
+        "Down to Oerth",
+        "Into the Tomb",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "the-dragon-queens-pride",
+      "monsters": [
+        "erinyes",
+        "goristro",
+        "vrocks",
+        "hezrous",
+        "quasits",
+        "unicorn",
+        "imp",
+        "ghost",
+        "bearded devil",
+        "Windfall",
+        "pit fiends",
+        "vampire",
+        "red abishai",
+        "blue abishai",
+        "green abishai",
+        "rakshasa",
+        "nightmares",
+        "barbed devil",
+        "veterans",
+        "Barlguras",
+        "purple worm",
+        "iron golem",
+        "horned devils",
+        "mimics",
+        "water elementals",
+        "behir",
+        "invisible stalkers",
+        "ice devil",
+        "lemure",
+        "ancient red dragon"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Avernus",
+        "Descending into Avernus",
+        "The Red Belvedere",
+        "Casino Rooms",
+        "Dragon’s Pride",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "the-betrayer-revealed",
+      "monsters": [
+        "Alustriel",
+        "Tasha",
+        "Kas the Betrayer",
+        "Miska the Wolf-Spider",
+        "Vecna",
+        "mage",
+        "degloths",
+        "vlazoks",
+        "glabrezus"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Returning from Avernus",
+        "Kas Reveals Himself",
+        "Pandesmos Outlook",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "the-war-of-pandesmos",
+      "monsters": [
+        "Miska the Wolf-Spider",
+        "drow mage",
+        "quavilithku spyder-fiend",
+        "kakkuu spyder-fiends",
+        "citadel spider",
+        "Camlash",
+        "giant spiders",
+        "driders",
+        "hazvongels",
+        "kraken",
+        "assassins",
+        "mage",
+        "phisarazu spyder-fiend",
+        "raklupis battle-leaders",
+        "Kas the Betrayer"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Chaos Incarnate",
+        "Carapace Ridge",
+        "Hurricane Tower",
+        "Ruinous Citadel",
+        "Cliffside Redoubt",
+        "Fighting Kas",
+        "Next Steps"
+      ]
+    },
+    {
+      "slug": "eve-of-ruin",
+      "monsters": [
+        "Vecna",
+        "Alustriel",
+        "Tasha",
+        "Kas the Betrayer",
+        "cadaver collectors",
+        "death knight",
+        "wights",
+        "astral dreadnought",
+        "eye mongers",
+        "cosmic horror",
+        "mirror shade"
+      ],
+      "areas": [
+        "Running This Chapter",
+        "Reunion in Sigil",
+        "Vecna’s Grasp",
+        "Torment of Kas",
+        "Neverwinter’s New King",
+        "Dead Gods",
+        "Cave of Shattered Reflection",
+        "Conclusion"
+      ]
+    },
+    {
+      "slug": "bestiary",
+      "monsters": [
+        "Blue Abishai",
+        "Green Abishai",
+        "Red Abishai",
+        "Astral Dreadnought",
+        "Black Rose Bearer",
+        "Blade Lieutenant",
+        "Blade Scout",
+        "Blazebear",
+        "Bone Roc",
+        "Borthak",
+        "Cadaver Collector",
+        "specters",
+        "Citadel Spider",
+        "Cosmic Horror",
+        "dryad",
+        "Deadbark Dryad",
+        "Deathwolf",
+        "Degloth",
+        "Eye Monger",
+        "False Lich",
+        "Granite Juggernaut",
+        "Hazvongel",
+        "Hertilod",
+        "Inquisitor of the Tome",
+        "air elemental",
+        "Adult Lunar Dragon",
+        "Mirror Shade",
+        "Moonlight Guardian",
+        "Necromancer Wizard",
+        "skeletons",
+        "zombies",
+        "Night Scavver",
+        "Dread",
+        "Ectoplasmic",
+        "Vampiric",
+        "Blazing",
+        "flameskull",
+        "Spectral",
+        "Deathly",
+        "Priest of Osybus",
+        "shadow",
+        "Relentless Impaler",
+        "Lonely Sorrowsworn",
+        "Lost Sorrowsworn",
+        "black dragon wyrmlings",
+        "Spiderdragon",
+        "Miska the Wolf-Spider",
+        "Kakkuu Spyder-Fiend",
+        "driders",
+        "crabs",
+        "Phisarazu Spyder-Fiend",
+        "giant crab",
+        "Quavilithku Spyder-Fiend",
+        "Raklupis Spyder-Fiend",
+        "Star Angler",
+        "Vlazok",
+        "Warforged Warrior",
+        "Whirling Chandelier"
+      ],
+      "areas": [
+        "Abishais",
+        "Astral Dreadnought",
+        "Black Rose Bearer",
+        "Blades of Eberron",
+        "Blazebear",
+        "Bone Roc",
+        "Borthak",
+        "Cadaver Collector",
+        "Citadel Spider",
+        "Cosmic Horror",
+        "Deadbark Dryad",
+        "Deathwolf",
+        "Degloth",
+        "Eye Monger",
+        "False Lich",
+        "Granite Juggernaut",
+        "Hazvongel",
+        "Hertilod",
+        "Inquisitor of the Tome",
+        "Lunar Dragon",
+        "Mirror Shade",
+        "Moonlight Guardian",
+        "Necromancer Wizard",
+        "Night Scavver",
+        "Priest of Osybus",
+        "Relentless Impaler",
+        "Sorrowsworn",
+        "Spiderdragon",
+        "Spyder-Fiends",
+        "Star Angler",
+        "Vlazok",
+        "Warforged Warrior",
+        "Whirling Chandelier"
+      ]
+    },
+    {
+      "slug": "character-dossier",
+      "monsters": [
+        "Alustriel Silverhand",
+        "Kas the Betrayer",
+        "vampire spawn",
+        "specter",
+        "Lord Soth",
+        "skeleton",
+        "Miska the Wolf-Spider",
+        "Strahd, Master of Death House",
+        "Tasha the Witch",
+        "Iggwilv the Witch Queen",
+        "Vecna the Archlich",
+        "zombie"
+      ],
+      "areas": [
+        "Acererak",
+        "Alustriel Silverhand",
+        "Kas the Betrayer",
+        "Lolth the Spider Queen",
+        "Lord Soth",
+        "Miska the Wolf-Spider",
+        "Mordenkainen",
+        "Strahd von Zarovich",
+        "Tasha",
+        "Tiamat",
+        "Vecna"
+      ]
+    }
+  ]
+}
