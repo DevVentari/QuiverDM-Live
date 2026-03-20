@@ -44,7 +44,10 @@ export function MonstersTab() {
   if (!campaignSlug) {
     return <div className="p-4 text-sm text-muted-foreground">Open a campaign to browse monsters.</div>;
   }
-  if (!campaignId || isLoading) {
+  if (!campaignData) {
+    return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
+  }
+  if (isLoading) {
     return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
   }
 
