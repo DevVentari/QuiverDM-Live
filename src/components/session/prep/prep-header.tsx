@@ -18,6 +18,7 @@ export function PrepHeader({
   prepStatus,
   isFullscreen,
   onToggleFullscreen,
+  sessionId,
 }: {
   title: string;
   onTitleChange: (value: string) => void;
@@ -28,6 +29,7 @@ export function PrepHeader({
   prepStatus: string;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
+  sessionId?: string;
 }) {
   return (
     <div
@@ -48,7 +50,7 @@ export function PrepHeader({
         )}
         asChild
       >
-        <Link href={`/campaigns/${slug}/sessions`}>
+        <Link href={sessionId ? `/campaigns/${slug}/sessions/${sessionId}` : `/campaigns/${slug}/sessions`}>
           <ArrowLeft className="h-4 w-4" />
         </Link>
       </Button>

@@ -142,6 +142,7 @@ export function PrepWorkspace({
         prepStatus={prepStatus}
         isFullscreen={false}
         onToggleFullscreen={() => {}}
+        sessionId={sessionId}
       />
 
       <div className="flex flex-1">
