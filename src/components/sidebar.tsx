@@ -5,10 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
-  Swords,
-  Users,
-  UsersRound,
-  BookOpen,
+  Globe,
+  User,
+  FlaskConical,
   MessageSquare,
   Settings,
   PanelLeftClose,
@@ -18,9 +17,12 @@ import {
   CalendarDays,
   ScrollText,
   Brain,
-  ArrowLeft,
-  ChevronRight,
+  ChevronLeft,
   Shield,
+  UsersRound,
+  Home,
+  Drama,
+  Swords,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,9 +37,9 @@ import { trpc } from '@/lib/trpc';
 
 const globalNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/campaigns', label: 'Campaigns', icon: Swords },
-  { href: '/characters', label: 'Characters', icon: Users },
-  { href: '/homebrew', label: 'Homebrew', icon: BookOpen },
+  { href: '/campaigns', label: 'Campaigns', icon: Globe },
+  { href: '/characters', label: 'Characters', icon: User },
+  { href: '/homebrew', label: 'Homebrew', icon: FlaskConical },
 ];
 
 const toolsNav = [
@@ -47,17 +49,17 @@ const toolsNav = [
 function getCampaignNav(slug: string) {
   return {
     campaign: [
-      { href: `/campaigns/${slug}`, label: 'Overview', icon: LayoutDashboard, exact: true },
+      { href: `/campaigns/${slug}`, label: 'Overview', icon: Home, exact: true },
       { href: `/campaigns/${slug}/sessions`, label: 'Sessions', icon: CalendarDays },
       { href: `/campaigns/${slug}/summaries`, label: 'Summaries', icon: ScrollText },
     ],
     world: [
-      { href: `/campaigns/${slug}/npcs`, label: 'NPCs', icon: Users },
+      { href: `/campaigns/${slug}/npcs`, label: 'NPCs', icon: Drama },
       { href: `/campaigns/${slug}/brain`, label: 'DM Brain', icon: Brain },
       { href: `/campaigns/${slug}/encounters`, label: 'Encounters', icon: Swords },
     ],
     library: [
-      { href: `/campaigns/${slug}/homebrew`, label: 'Homebrew', icon: BookOpen },
+      { href: `/campaigns/${slug}/homebrew`, label: 'Homebrew', icon: FlaskConical },
       { href: `/campaigns/${slug}/players`, label: 'Characters', icon: Shield },
       { href: `/campaigns/${slug}/members`, label: 'Members', icon: UsersRound },
     ],
@@ -82,7 +84,7 @@ function NavItem({
       href={href}
       title={collapsed ? label : undefined}
       className={cn(
-        'relative flex items-center gap-2.5 px-5 py-[7px] text-sm font-medium transition-colors',
+        'relative flex items-center gap-2.5 px-5 py-[7px] text-sm font-sans font-medium transition-colors',
         isActive
           ? 'text-amber-400/90 bg-amber-500/[0.07]'
           : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]',
@@ -103,6 +105,7 @@ function NavItem({
           'h-4 w-4 shrink-0',
           isActive ? 'text-amber-400/90' : 'opacity-60'
         )}
+        strokeWidth={1.8}
       />
       {!collapsed && <span>{label}</span>}
     </Link>
@@ -112,7 +115,7 @@ function NavItem({
 function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean }) {
   if (collapsed) return <div className="h-3" />;
   return (
-    <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">
+    <p className="px-5 pt-4 pb-1.5 text-[11px] font-sans font-bold uppercase tracking-[0.18em]" style={{ color: 'hsl(35 10% 55%)' }}>
       {label}
     </p>
   );
@@ -137,7 +140,7 @@ function CampaignSwitcher({
             className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] text-muted-foreground/60 transition-colors hover:border-[hsl(35_50%_26%)] hover:text-foreground"
             title="Switch campaign"
           >
-            <Swords className="h-3.5 w-3.5" />
+            <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" className="w-52">
@@ -164,18 +167,24 @@ function CampaignSwitcher({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="mx-3 mt-3 mb-1 flex w-[calc(100%-24px)] items-center justify-between gap-2 rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] px-3 py-2 text-left transition-colors hover:border-[hsl(35_50%_26%)]">
+        <button
+          className="mx-3 mt-3 mb-1 flex w-[calc(100%-24px)] items-center justify-between gap-2 rounded-[3px] border border-[hsl(35_35%_18%)] px-3 py-2 text-left transition-colors hover:border-[hsl(35_50%_26%)]"
+          style={{
+            background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%)',
+            boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.08)',
+          }}
+        >
           <div className="min-w-0">
-            <p className="text-xs font-medium text-foreground/90 truncate">
+            <p className="font-sans text-xs font-semibold truncate" style={{ color: 'hsl(35 20% 88%)' }}>
               {currentCampaign?.name ?? 'Select Campaign'}
             </p>
-            <p className="text-xs text-muted-foreground/60 mt-0.5">
+            <p className="font-sans text-[10px] mt-0.5" style={{ color: 'hsl(35 10% 44%)' }}>
               {currentCampaign
                 ? `${currentCampaign.sessionCount ?? 0} sessions`
                 : 'Switch campaign'}
             </p>
           </div>
-          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" strokeWidth={1.8} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-52">
@@ -198,6 +207,61 @@ function CampaignSwitcher({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+}
+
+function CampaignContext({
+  campaign,
+  collapsed,
+}: {
+  campaign: { name: string; sessionCount?: number | null } | null;
+  collapsed: boolean;
+}) {
+  if (collapsed) return <div className="h-2" />;
+  return (
+    <div
+      className="mx-3 mt-3 mb-1 rounded-[3px] border border-[hsl(35_35%_18%)] px-3 py-2.5"
+      style={{
+        background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%)',
+        boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.08)',
+      }}
+    >
+      <Link
+        href="/campaigns"
+        className="flex items-center gap-1 mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.1em]"
+        style={{ color: 'hsl(240 5% 36%)', transition: 'color 150ms' }}
+        onMouseEnter={e => (e.currentTarget.style.color = 'hsl(240 5% 55%)')}
+        onMouseLeave={e => (e.currentTarget.style.color = 'hsl(240 5% 36%)')}
+      >
+        <ChevronLeft className="h-3 w-3" strokeWidth={2.5} />
+        All Campaigns
+      </Link>
+      <div className="flex items-center gap-1.5">
+        <Shield className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} style={{ color: 'hsl(35 80% 62%)' }} />
+        <span
+          className="font-display text-[13px] font-bold tracking-[0.03em] truncate"
+          style={{
+            color: 'hsl(35 80% 68%)',
+            textShadow: '0 0 14px hsl(35 80% 48% / 0.3)',
+          }}
+        >
+          {campaign?.name ?? 'Campaign'}
+        </span>
+        <span
+          className="font-sans text-[8px] font-bold uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full shrink-0"
+          style={{
+            border: '1px solid hsl(35 60% 28%)',
+            background: 'hsl(35 60% 10%)',
+            color: 'hsl(35 70% 52%)',
+          }}
+        >
+          DM
+        </span>
+      </div>
+      <p className="font-sans text-[10px] mt-1" style={{ color: 'hsl(35 10% 40%)' }}>
+        {campaign?.sessionCount ?? 0} sessions
+      </p>
+    </div>
   );
 }
 
@@ -224,6 +288,16 @@ export function Sidebar() {
         collapsed ? 'w-16' : 'w-[240px]'
       )}
     >
+      {/* UI 2.0 ambient gradient — amber + purple bleed from top */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: [
+            'radial-gradient(ellipse 140% 30% at 50% 0%, hsl(35 80% 38% / 0.14) 0%, transparent 60%)',
+            'radial-gradient(ellipse 80% 20% at 85% 0%, hsl(260 50% 45% / 0.09) 0%, transparent 50%)',
+          ].join(', '),
+        }}
+      />
       {/* Amber gradient right border */}
       <div
         className="absolute top-0 right-[-1px] w-px h-full pointer-events-none z-10"
@@ -236,7 +310,7 @@ export function Sidebar() {
       {/* Logo */}
       <div
         className={cn(
-          'flex items-center justify-between border-b border-[hsl(35_35%_18%)]',
+          'relative z-10 flex items-center justify-between border-b border-[hsl(35_35%_18%)]',
           collapsed ? 'px-3 h-14' : 'px-5 h-14'
         )}
       >
@@ -251,7 +325,7 @@ export function Sidebar() {
             >
               QuiverDM
             </span>
-            <span className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/50 mt-0.5">
+            <span className="font-sans text-[9px] uppercase tracking-[0.14em] mt-0.5" style={{ color: 'hsl(240 5% 36%)' }}>
               Campaign Companion
             </span>
           </Link>
@@ -264,22 +338,26 @@ export function Sidebar() {
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? (
-            <PanelLeft className="h-3.5 w-3.5" />
+            <PanelLeft className="h-3.5 w-3.5" strokeWidth={1.8} />
           ) : (
-            <PanelLeftClose className="h-3.5 w-3.5" />
+            <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.8} />
           )}
         </Button>
       </div>
 
-      {/* Campaign switcher (always shown) */}
-      <CampaignSwitcher
-        currentCampaign={currentCampaign}
-        campaigns={campaigns.data ?? []}
-        collapsed={collapsed}
-      />
+      {/* Campaign switcher / context header */}
+      {inCampaign ? (
+        <CampaignContext campaign={currentCampaign} collapsed={collapsed} />
+      ) : (
+        <CampaignSwitcher
+          currentCampaign={currentCampaign}
+          campaigns={campaigns.data ?? []}
+          collapsed={collapsed}
+        />
+      )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-1">
+      <nav className="relative z-10 flex-1 overflow-y-auto py-1">
         {inCampaign && campaignNavSections ? (
           <>
             <SectionLabel label="Campaign" collapsed={collapsed} />
@@ -363,15 +441,6 @@ export function Sidebar() {
             </div>
           </div>
         )}
-        {inCampaign && (
-          <NavItem
-            href="/campaigns"
-            label="All Campaigns"
-            icon={ArrowLeft}
-            isActive={false}
-            collapsed={collapsed}
-          />
-        )}
         <NavItem
           href="/settings"
           label="Settings"
@@ -414,7 +483,7 @@ export function MobileSidebar() {
             }}
           />
         )}
-        <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} />
+        <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} strokeWidth={1.8} />
         <span>{item.label}</span>
       </Link>
     );
@@ -431,7 +500,7 @@ export function MobileSidebar() {
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Library</p>
           {campaignNavSections.library.map((item) => renderLink(item))}
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
-          {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ArrowLeft })}
+          {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ChevronLeft })}
           {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
         </>
       ) : (
