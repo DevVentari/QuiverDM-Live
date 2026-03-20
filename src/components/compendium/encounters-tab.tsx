@@ -92,12 +92,15 @@ export function EncountersTab() {
                   key={plan.id}
                   onClick={() => selectItem(plan.id, 'encounter')}
                   className={cn(
-                    'w-full text-left px-3 py-2 rounded border transition-colors',
+                    'relative w-full text-left px-3 py-2 rounded border transition-colors overflow-hidden',
                     selectedItemId === plan.id
                       ? 'bg-[hsl(240_10%_14%)] border-[var(--card-stone-border-hi)]'
                       : 'bg-[hsl(240_10%_10%/0.5)] border-[hsl(240_20%_85%/0.06)] hover:bg-[hsl(240_10%_12%)]'
                   )}
                 >
+                  {selectedItemId === plan.id && (
+                    <span className="absolute left-0 top-0 bottom-0 w-0.5" style={{ background: 'hsl(35 80% 55%)', boxShadow: '0 0 6px hsl(35 80% 48% / 0.5)' }} />
+                  )}
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs text-foreground/80 truncate">{plan.name}</span>
                     {getStatusBadge(plan)}
