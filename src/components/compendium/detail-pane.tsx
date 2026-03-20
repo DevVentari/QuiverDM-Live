@@ -5,6 +5,15 @@ import { trpc } from '@/lib/trpc';
 import { useCompendiumStore } from '@/store/compendium-store';
 import { Button } from '@/components/ui/button';
 
+type PlanData = {
+  id: string;
+  campaignId: string;
+  name: string;
+  difficulty: string | null;
+  sceneDescription?: string | null;
+  ddbChapterId?: string | null;
+};
+
 function useRouteContext() {
   const pathname = usePathname();
   const encounterMatch = pathname.match(/\/campaigns\/([^/]+)\/encounters\/([^/]+)/);
@@ -31,15 +40,16 @@ function EncounterDetail({ planId }: { planId: string }) {
   const utils = trpc.useUtils();
 
   const { data: plan } = trpc.encounterPlans.getById.useQuery({ planId });
+  const typedPlan = plan as unknown as PlanData | undefined;
 
-  const resolvedCampaignId = campaignId ?? (plan as any)?.campaignId ?? null;
+  const resolvedCampaignId = campaignId ?? typedPlan?.campaignId ?? null;
 
   const { data: chapterContent } = trpc.homebrew.getContent.useQuery(
-    { campaignId: resolvedCampaignId!, type: 'location' },
-    { enabled: !!resolvedCampaignId && !!(plan as any)?.ddbChapterId }
+    { campaignId: resolvedCampaignId ?? undefined, type: 'location' },
+    { enabled: !!resolvedCampaignId && !!typedPlan?.ddbChapterId }
   );
   const chapterData = chapterContent?.items?.find(
-    (item: any) => item.dndBeyondId === (plan as any)?.ddbChapterId
+    (item: any) => item.dndBeyondId === typedPlan?.ddbChapterId
   );
   const monsterLinks: { ddbId: string; name: string }[] =
     (chapterData?.data as any)?.monsterLinks ?? [];
@@ -47,7 +57,7 @@ function EncounterDetail({ planId }: { planId: string }) {
   const updateMutation = trpc.encounterPlans.update.useMutation();
   const createMutation = trpc.encounterPlans.create.useMutation({
     onSuccess: (newPlan) => {
-      router.push(`/campaigns/${campaignSlug}/encounters/${newPlan.id}`);
+      if (campaignSlug) router.push(`/campaigns/${campaignSlug}/encounters/${newPlan.id}`);
     },
   });
   const markAsRunMutation = trpc.encounterPlans.markAsRun.useMutation({
@@ -60,17 +70,17 @@ function EncounterDetail({ planId }: { planId: string }) {
     if (currentPlanId) {
       updateMutation.mutate({
         planId: currentPlanId,
-        name: (plan as any).name,
-        difficulty: (plan as any).difficulty as any,
-        sceneDescription: (plan as any).sceneDescription ?? undefined,
-        ddbChapterId: (plan as any).ddbChapterId ?? undefined,
+        name: typedPlan!.name,
+        difficulty: typedPlan!.difficulty as any,
+        sceneDescription: typedPlan!.sceneDescription ?? undefined,
+        ddbChapterId: typedPlan!.ddbChapterId ?? undefined,
       });
     } else if (campaignSlug) {
       createMutation.mutate({
-        campaignId: (plan as any).campaignId,
-        name: (plan as any).name,
-        difficulty: (plan as any).difficulty as any,
-        ddbChapterId: (plan as any).ddbChapterId ?? undefined,
+        campaignId: typedPlan!.campaignId,
+        name: typedPlan!.name,
+        difficulty: typedPlan!.difficulty as any,
+        ddbChapterId: typedPlan!.ddbChapterId ?? undefined,
       });
     }
   };
@@ -85,15 +95,15 @@ function EncounterDetail({ planId }: { planId: string }) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="px-4 py-3 border-b border-[hsl(240_20%_85%/0.07)]">
-        <h3 className="font-display text-sm font-semibold text-foreground">{(plan as any).name}</h3>
-        <p className="text-[10px] text-muted-foreground mt-0.5 capitalize">{(plan as any).difficulty}</p>
+        <h3 className="font-display text-sm font-semibold text-foreground">{typedPlan!.name}</h3>
+        <p className="text-[10px] text-muted-foreground mt-0.5 capitalize">{typedPlan!.difficulty}</p>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-        {(plan as any).sceneDescription && (
+        {typedPlan!.sceneDescription && (
           <div>
             <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-1.5">Scene</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">{(plan as any).sceneDescription}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{typedPlan!.sceneDescription}</p>
           </div>
         )}
 
