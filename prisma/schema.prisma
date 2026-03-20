@@ -1204,6 +1204,9 @@ model EncounterPlan {
   environmentalEffects String?                 @db.Text // weather, terrain, lighting conditions
   portraitUrl          String? // banner / portrait image URL
   ddbChapterId         String?
+  lastRunAt            DateTime?
+  timesRun             Int                     @default(0)
+  lastRunSessionId     String?
   creatures            EncounterPlanCreature[]
   createdAt            DateTime                @default(now())
   updatedAt            DateTime                @updatedAt

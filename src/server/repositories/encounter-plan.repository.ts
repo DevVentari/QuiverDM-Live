@@ -36,7 +36,10 @@ export const encounterPlanRepository = {
   findById: (planId: string) =>
     prismaAny.encounterPlan.findUnique({
       where: { id: planId },
-      include: planWithCreaturesInclude,
+      include: {
+        ...planWithCreaturesInclude,
+        campaign: { select: { id: true, userId: true } },
+      },
     }),
 
   create: (data: {
@@ -51,6 +54,7 @@ export const encounterPlanRepository = {
     xpBudget?: number;
     totalXp?: number;
     adjustedXp?: number;
+    ddbChapterId?: string;
   }) =>
     prismaAny.encounterPlan.create({
       data,
@@ -72,6 +76,7 @@ export const encounterPlanRepository = {
       xpBudget?: number;
       totalXp?: number;
       adjustedXp?: number;
+      ddbChapterId?: string;
     }
   ) =>
     prismaAny.encounterPlan.update({
@@ -112,4 +117,57 @@ export const encounterPlanRepository = {
 
   deleteAllCreatures: (planId: string) =>
     prismaAny.encounterPlanCreature.deleteMany({ where: { planId } }),
+
+  getBySourcebook: async (campaignId: string) => {
+    const plans = await prismaAny.encounterPlan.findMany({
+      where: {
+        campaignId,
+        ddbChapterId: { not: null },
+      },
+      select: {
+        id: true,
+        name: true,
+        difficulty: true,
+        sceneDescription: true,
+        ddbChapterId: true,
+        lastRunAt: true,
+        timesRun: true,
+        _count: { select: { creatures: true } },
+      },
+      orderBy: { ddbChapterId: 'asc' },
+    });
+
+    const chapterIds = [...new Set(plans.map((p: any) => p.ddbChapterId).filter(Boolean))];
+    const chapterRecords = await prismaAny.homebrewContent.findMany({
+      where: {
+        dndBeyondId: { in: chapterIds },
+        type: 'location',
+        campaigns: { some: { campaignId } },
+      },
+      select: { dndBeyondId: true, name: true },
+    });
+    const chapterNameMap = new Map<string, string>(chapterRecords.map((r: any) => [r.dndBeyondId as string, r.name as string]));
+
+    const grouped = new Map<string, { ddbChapterId: string; chapterName: string; plans: any[] }>();
+    for (const plan of plans) {
+      const key = plan.ddbChapterId as string;
+      if (!grouped.has(key)) {
+        const rawName = chapterNameMap.get(key) ?? key.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+        grouped.set(key, { ddbChapterId: key, chapterName: rawName, plans: [] });
+      }
+      grouped.get(key)!.plans.push(plan);
+    }
+    return [...grouped.values()];
+  },
+
+  markAsRun: async (planId: string, sessionId?: string) => {
+    return prismaAny.encounterPlan.update({
+      where: { id: planId },
+      data: {
+        lastRunAt: new Date(),
+        timesRun: { increment: 1 },
+        ...(sessionId ? { lastRunSessionId: sessionId } : {}),
+      },
+    });
+  },
 };

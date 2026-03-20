@@ -23,7 +23,9 @@ import {
   Home,
   Drama,
   Swords,
+  BookOpen,
 } from 'lucide-react';
+import { useCompendiumStore } from '@/store/compendium-store';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -268,6 +270,7 @@ function CampaignContext({
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { open: openCompendium, isOpen: compendiumOpen } = useCompendiumStore();
 
   const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
 
@@ -441,6 +444,25 @@ export function Sidebar() {
             </div>
           </div>
         )}
+        {/* Compendium toggle */}
+        <button
+          onClick={openCompendium}
+          className={cn(
+            'flex w-full items-center gap-3 px-3 py-2 text-sm transition-colors rounded-sm mx-1',
+            compendiumOpen
+              ? 'text-[var(--card-amber)]'
+              : 'text-muted-foreground hover:text-foreground hover:bg-white/5',
+            collapsed && 'justify-center px-0'
+          )}
+          title="Compendium"
+          aria-label="Open Compendium"
+        >
+          <BookOpen
+            className={cn('h-4 w-4 flex-shrink-0', compendiumOpen && 'drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]')}
+            strokeWidth={1.8}
+          />
+          {!collapsed && <span className="font-body">Compendium</span>}
+        </button>
         <NavItem
           href="/settings"
           label="Settings"
@@ -458,6 +480,7 @@ export function MobileSidebar() {
   const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
   const inCampaign = !!campaignSlug;
   const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
+  const { open: openCompendium, isOpen: compendiumOpen } = useCompendiumStore();
 
   const renderLink = (item: { href: string; label: string; icon: React.ElementType }, exact = false) => {
     const isActive = exact
@@ -501,6 +524,18 @@ export function MobileSidebar() {
           {campaignNavSections.library.map((item) => renderLink(item))}
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
           {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ChevronLeft })}
+          <button
+            onClick={openCompendium}
+            className={cn(
+              'relative flex w-full items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
+              compendiumOpen
+                ? 'text-[var(--card-amber)] bg-amber-500/[0.07]'
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+            )}
+          >
+            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-[var(--card-amber)] drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]' : 'opacity-60')} strokeWidth={1.8} />
+            <span>Compendium</span>
+          </button>
           {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
         </>
       ) : (
@@ -508,6 +543,18 @@ export function MobileSidebar() {
           <p className="px-5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Navigate</p>
           {globalNav.map((item) => renderLink(item))}
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Tools</p>
+          <button
+            onClick={openCompendium}
+            className={cn(
+              'relative flex w-full items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
+              compendiumOpen
+                ? 'text-[var(--card-amber)] bg-amber-500/[0.07]'
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
+            )}
+          >
+            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-[var(--card-amber)] drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]' : 'opacity-60')} strokeWidth={1.8} />
+            <span>Compendium</span>
+          </button>
           {[...toolsNav, { href: '/settings', label: 'Settings', icon: Settings }].map((item) => renderLink(item))}
         </>
       )}
