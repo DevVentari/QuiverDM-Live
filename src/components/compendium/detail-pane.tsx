@@ -207,6 +207,56 @@ function MonsterDetail({ monsterId }: { monsterId: string }) {
   );
 }
 
+type ChapterItemData = {
+  id: string;
+  name: string;
+  data: Record<string, unknown> | null;
+};
+
+function ChapterDetail({ chapterId }: { chapterId: string }) {
+  const { campaignId } = useRouteContext();
+  const { data: result } = trpc.homebrew.getContent.useQuery(
+    { campaignId: campaignId ?? undefined, type: 'location' },
+    { enabled: !!campaignId }
+  );
+  const chapter = (result?.items ?? []).find((c: any) => c.id === chapterId) as ChapterItemData | undefined;
+
+  if (!chapter) return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
+
+  const data = chapter.data as any;
+  const prose: string = data?.prose ?? '';
+  const truncated = prose.length > 800
+    ? prose.slice(0, prose.lastIndexOf(' ', 800)) + '…'
+    : prose;
+  const encounterAreas: string[] = data?.encounterAreas ?? [];
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto px-4 py-3 space-y-4">
+      <div>
+        <h3 className="font-display text-sm font-semibold text-foreground mb-1">{chapter.name}</h3>
+      </div>
+      {truncated && (
+        <div>
+          <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-1.5">Excerpt</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{truncated}</p>
+        </div>
+      )}
+      {encounterAreas.length > 0 && (
+        <div>
+          <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-1.5">Encounter Areas</p>
+          <ul className="space-y-1">
+            {encounterAreas.map((area: string) => (
+              <li key={area} className="text-xs text-foreground/70 px-2.5 py-1.5 rounded bg-[hsl(240_10%_10%/0.5)] border border-[hsl(240_20%_85%/0.06)]">
+                {area}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DetailPane() {
   const { selectedItemId, selectedItemType } = useCompendiumStore();
 
@@ -224,6 +274,10 @@ export function DetailPane() {
 
   if (selectedItemType === 'monster') {
     return <MonsterDetail monsterId={selectedItemId} />;
+  }
+
+  if (selectedItemType === 'chapter') {
+    return <ChapterDetail chapterId={selectedItemId} />;
   }
 
   return null;
