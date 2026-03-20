@@ -7,6 +7,9 @@ import { useCompendiumStore } from '@/store/compendium-store';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
+type ChapterGroup = ReturnType<typeof trpc.encounterPlans.getBySourcebook.useQuery>['data'] extends (infer T)[] | undefined ? T : never;
+type EncounterPlanRow = ChapterGroup extends { plans: (infer P)[] } ? P : never;
+
 function getStatusBadge(plan: { lastRunAt: Date | null; timesRun: number; _count: { creatures: number } }) {
   if (plan.lastRunAt) {
     return (
@@ -45,7 +48,7 @@ export function EncountersTab() {
   if (!campaignSlug) {
     return <div className="p-4 text-sm text-muted-foreground">Open a campaign to browse encounters.</div>;
   }
-  if (isLoading) {
+  if (!campaignId || isLoading) {
     return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
   }
   if (chapters.length === 0) {
@@ -55,7 +58,7 @@ export function EncountersTab() {
   const filtered = search
     ? chapters.map((ch) => ({
         ...ch,
-        plans: ch.plans.filter((p: any) =>
+        plans: ch.plans.filter((p: EncounterPlanRow) =>
           p.name.toLowerCase().includes(search.toLowerCase())
         ),
       })).filter((ch) => ch.plans.length > 0)
@@ -78,7 +81,7 @@ export function EncountersTab() {
               {chapter.chapterName}
             </p>
             <div className="space-y-1">
-              {chapter.plans.map((plan: any) => (
+              {chapter.plans.map((plan: EncounterPlanRow) => (
                 <button
                   key={plan.id}
                   onClick={() => selectItem(plan.id, 'encounter')}
