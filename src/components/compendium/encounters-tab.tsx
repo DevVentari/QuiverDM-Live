@@ -7,10 +7,16 @@ import { useCompendiumStore } from '@/store/compendium-store';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
-type ChapterGroup = ReturnType<typeof trpc.encounterPlans.getBySourcebook.useQuery>['data'] extends (infer T)[] | undefined ? T : never;
-type EncounterPlanRow = ChapterGroup extends { plans: (infer P)[] } ? P : never;
+type EncounterPlanRow = {
+  id: string;
+  name: string;
+  difficulty: string | null;
+  lastRunAt: Date | string | null;
+  timesRun: number;
+  _count: { creatures: number };
+};
 
-function getStatusBadge(plan: { lastRunAt: Date | null; timesRun: number; _count: { creatures: number } }) {
+function getStatusBadge(plan: { lastRunAt: Date | string | null; timesRun: number; _count: { creatures: number } }) {
   if (plan.lastRunAt) {
     return (
       <span className="text-[9px] px-1.5 py-0.5 rounded bg-[hsl(35_50%_15%)] text-[var(--card-amber)] border border-[var(--card-stone-border)] uppercase tracking-wide">
