@@ -1,0 +1,755 @@
+{
+  "slug": "bestiary",
+  "monsterLinks": [
+    {
+      "ddbId": "2560742",
+      "slug": "blue-abishai",
+      "name": "Blue Abishai",
+      "url": "/monsters/2560742-blue-abishai"
+    },
+    {
+      "ddbId": "2560838",
+      "slug": "green-abishai",
+      "name": "Green Abishai",
+      "url": "/monsters/2560838-green-abishai"
+    },
+    {
+      "ddbId": "2560902",
+      "slug": "red-abishai",
+      "name": "Red Abishai",
+      "url": "/monsters/2560902-red-abishai"
+    },
+    {
+      "ddbId": "2560727",
+      "slug": "astral-dreadnought",
+      "name": "Astral Dreadnought",
+      "url": "/monsters/2560727-astral-dreadnought"
+    },
+    {
+      "ddbId": "4468313",
+      "slug": "black-rose-bearer",
+      "name": "Black Rose Bearer",
+      "url": "/monsters/4468313-black-rose-bearer"
+    },
+    {
+      "ddbId": "4468314",
+      "slug": "blade-lieutenant",
+      "name": "Blade Lieutenant",
+      "url": "/monsters/4468314-blade-lieutenant"
+    },
+    {
+      "ddbId": "4468315",
+      "slug": "blade-scout",
+      "name": "Blade Scout",
+      "url": "/monsters/4468315-blade-scout"
+    },
+    {
+      "ddbId": "4468316",
+      "slug": "blazebear",
+      "name": "Blazebear",
+      "url": "/monsters/4468316-blazebear"
+    },
+    {
+      "ddbId": "4468317",
+      "slug": "bone-roc",
+      "name": "Bone Roc",
+      "url": "/monsters/4468317-bone-roc"
+    },
+    {
+      "ddbId": "4468318",
+      "slug": "borthak",
+      "name": "Borthak",
+      "url": "/monsters/4468318-borthak"
+    },
+    {
+      "ddbId": "2560748",
+      "slug": "cadaver-collector",
+      "name": "Cadaver Collector",
+      "url": "/monsters/2560748-cadaver-collector"
+    },
+    {
+      "ddbId": "17017",
+      "slug": "specter",
+      "name": "specters",
+      "url": "/monsters/17017-specter"
+    },
+    {
+      "ddbId": "4468320",
+      "slug": "citadel-spider",
+      "name": "Citadel Spider",
+      "url": "/monsters/4468320-citadel-spider"
+    },
+    {
+      "ddbId": "2821160",
+      "slug": "cosmic-horror",
+      "name": "Cosmic Horror",
+      "url": "/monsters/2821160-cosmic-horror"
+    },
+    {
+      "ddbId": "16849",
+      "slug": "dryad",
+      "name": "dryad",
+      "url": "/monsters/16849-dryad"
+    },
+    {
+      "ddbId": "4468321",
+      "slug": "deadbark-dryad",
+      "name": "Deadbark Dryad",
+      "url": "/monsters/4468321-deadbark-dryad"
+    },
+    {
+      "ddbId": "4468322",
+      "slug": "deathwolf",
+      "name": "Deathwolf",
+      "url": "/monsters/4468322-deathwolf"
+    },
+    {
+      "ddbId": "4468323",
+      "slug": "degloth",
+      "name": "Degloth",
+      "url": "/monsters/4468323-degloth"
+    },
+    {
+      "ddbId": "2821163",
+      "slug": "eye-monger",
+      "name": "Eye Monger",
+      "url": "/monsters/2821163-eye-monger"
+    },
+    {
+      "ddbId": "4468324",
+      "slug": "false-lich",
+      "name": "False Lich",
+      "url": "/monsters/4468324-false-lich"
+    },
+    {
+      "ddbId": "4468326",
+      "slug": "granite-juggernaut",
+      "name": "Granite Juggernaut",
+      "url": "/monsters/4468326-granite-juggernaut"
+    },
+    {
+      "ddbId": "4468327",
+      "slug": "hazvongel",
+      "name": "Hazvongel",
+      "url": "/monsters/4468327-hazvongel"
+    },
+    {
+      "ddbId": "4468328",
+      "slug": "hertilod",
+      "name": "Hertilod",
+      "url": "/monsters/4468328-hertilod"
+    },
+    {
+      "ddbId": "1680928",
+      "slug": "inquisitor-of-the-tome",
+      "name": "Inquisitor of the Tome",
+      "url": "/monsters/1680928-inquisitor-of-the-tome"
+    },
+    {
+      "ddbId": "16774",
+      "slug": "air-elemental",
+      "name": "air elemental",
+      "url": "/monsters/16774-air-elemental"
+    },
+    {
+      "ddbId": "2821144",
+      "slug": "adult-lunar-dragon",
+      "name": "Adult Lunar Dragon",
+      "url": "/monsters/2821144-adult-lunar-dragon"
+    },
+    {
+      "ddbId": "4468331",
+      "slug": "mirror-shade",
+      "name": "Mirror Shade",
+      "url": "/monsters/4468331-mirror-shade"
+    },
+    {
+      "ddbId": "4468333",
+      "slug": "moonlight-guardian",
+      "name": "Moonlight Guardian",
+      "url": "/monsters/4468333-moonlight-guardian"
+    },
+    {
+      "ddbId": "2560883",
+      "slug": "necromancer-wizard",
+      "name": "Necromancer Wizard",
+      "url": "/monsters/2560883-necromancer-wizard"
+    },
+    {
+      "ddbId": "17015",
+      "slug": "skeleton",
+      "name": "skeletons",
+      "url": "/monsters/17015-skeleton"
+    },
+    {
+      "ddbId": "17077",
+      "slug": "zombie",
+      "name": "zombies",
+      "url": "/monsters/17077-zombie"
+    },
+    {
+      "ddbId": "2821187",
+      "slug": "night-scavver",
+      "name": "Night Scavver",
+      "url": "/monsters/2821187-night-scavver"
+    },
+    {
+      "ddbId": "1680938",
+      "slug": "priest-of-osybus-dread",
+      "name": "Dread",
+      "url": "/monsters/1680938-priest-of-osybus-dread"
+    },
+    {
+      "ddbId": "1680939",
+      "slug": "priest-of-osybus-ectoplasmic",
+      "name": "Ectoplasmic",
+      "url": "/monsters/1680939-priest-of-osybus-ectoplasmic"
+    },
+    {
+      "ddbId": "1680941",
+      "slug": "priest-of-osybus-vampiric",
+      "name": "Vampiric",
+      "url": "/monsters/1680941-priest-of-osybus-vampiric"
+    },
+    {
+      "ddbId": "1680936",
+      "slug": "priest-of-osybus-blazing",
+      "name": "Blazing",
+      "url": "/monsters/1680936-priest-of-osybus-blazing"
+    },
+    {
+      "ddbId": "17091",
+      "slug": "flameskull",
+      "name": "flameskull",
+      "url": "/monsters/17091-flameskull"
+    },
+    {
+      "ddbId": "1680940",
+      "slug": "priest-of-osybus-spectral",
+      "name": "Spectral",
+      "url": "/monsters/1680940-priest-of-osybus-spectral"
+    },
+    {
+      "ddbId": "1680937",
+      "slug": "priest-of-osybus-deathly",
+      "name": "Deathly",
+      "url": "/monsters/1680937-priest-of-osybus-deathly"
+    },
+    {
+      "ddbId": "1680942",
+      "slug": "priest-of-osybus",
+      "name": "Priest of Osybus",
+      "url": "/monsters/1680942-priest-of-osybus"
+    },
+    {
+      "ddbId": "17010",
+      "slug": "shadow",
+      "name": "shadow",
+      "url": "/monsters/17010-shadow"
+    },
+    {
+      "ddbId": "4468337",
+      "slug": "relentless-impaler",
+      "name": "Relentless Impaler",
+      "url": "/monsters/4468337-relentless-impaler"
+    },
+    {
+      "ddbId": "2560862",
+      "slug": "lonely-sorrowsworn",
+      "name": "Lonely Sorrowsworn",
+      "url": "/monsters/2560862-lonely-sorrowsworn"
+    },
+    {
+      "ddbId": "2560863",
+      "slug": "lost-sorrowsworn",
+      "name": "Lost Sorrowsworn",
+      "url": "/monsters/2560863-lost-sorrowsworn"
+    },
+    {
+      "ddbId": "16807",
+      "slug": "black-dragon-wyrmling",
+      "name": "black dragon wyrmlings",
+      "url": "/monsters/16807-black-dragon-wyrmling"
+    },
+    {
+      "ddbId": "4468338",
+      "slug": "spiderdragon",
+      "name": "Spiderdragon",
+      "url": "/monsters/4468338-spiderdragon"
+    },
+    {
+      "ddbId": "4468332",
+      "slug": "miska-the-wolf-spider",
+      "name": "Miska the Wolf-Spider",
+      "url": "/monsters/4468332-miska-the-wolf-spider"
+    },
+    {
+      "ddbId": "4468329",
+      "slug": "kakkuu-spyder-fiend",
+      "name": "Kakkuu Spyder-Fiend",
+      "url": "/monsters/4468329-kakkuu-spyder-fiend"
+    },
+    {
+      "ddbId": "16847",
+      "slug": "drider",
+      "name": "driders",
+      "url": "/monsters/16847-drider"
+    },
+    {
+      "ddbId": "16833",
+      "slug": "crab",
+      "name": "crabs",
+      "url": "/monsters/16833-crab"
+    },
+    {
+      "ddbId": "4468334",
+      "slug": "phisarazu-spyder-fiend",
+      "name": "Phisarazu Spyder-Fiend",
+      "url": "/monsters/4468334-phisarazu-spyder-fiend"
+    },
+    {
+      "ddbId": "16879",
+      "slug": "giant-crab",
+      "name": "giant crab",
+      "url": "/monsters/16879-giant-crab"
+    },
+    {
+      "ddbId": "4468335",
+      "slug": "quavilithku-spyder-fiend",
+      "name": "Quavilithku Spyder-Fiend",
+      "url": "/monsters/4468335-quavilithku-spyder-fiend"
+    },
+    {
+      "ddbId": "4468336",
+      "slug": "raklupis-spyder-fiend",
+      "name": "Raklupis Spyder-Fiend",
+      "url": "/monsters/4468336-raklupis-spyder-fiend"
+    },
+    {
+      "ddbId": "4468339",
+      "slug": "star-angler",
+      "name": "Star Angler",
+      "url": "/monsters/4468339-star-angler"
+    },
+    {
+      "ddbId": "4468342",
+      "slug": "vlazok",
+      "name": "Vlazok",
+      "url": "/monsters/4468342-vlazok"
+    },
+    {
+      "ddbId": "4468343",
+      "slug": "warforged-warrior",
+      "name": "Warforged Warrior",
+      "url": "/monsters/4468343-warforged-warrior"
+    },
+    {
+      "ddbId": "4468344",
+      "slug": "whirling-chandelier",
+      "name": "Whirling Chandelier",
+      "url": "/monsters/4468344-whirling-chandelier"
+    }
+  ],
+  "itemLinks": [
+    {
+      "ddbId": "4617",
+      "slug": "deck-of-many-things",
+      "name": "Deck of Many Things",
+      "category": "magic-items",
+      "url": "/magic-items/4617-deck-of-many-things"
+    }
+  ],
+  "spellLinks": [
+    {
+      "ddbId": "2069",
+      "slug": "disguise-self",
+      "name": "Disguise Self",
+      "url": "/spells/2069-disguise-self"
+    },
+    {
+      "ddbId": "2173",
+      "slug": "mage-hand",
+      "name": "Mage Hand",
+      "url": "/spells/2173-mage-hand"
+    },
+    {
+      "ddbId": "2191",
+      "slug": "minor-illusion",
+      "name": "Minor Illusion",
+      "url": "/spells/2191-minor-illusion"
+    },
+    {
+      "ddbId": "2025",
+      "slug": "charm-person",
+      "name": "Charm Person",
+      "url": "/spells/2025-charm-person"
+    },
+    {
+      "ddbId": "2072",
+      "slug": "dispel-magic",
+      "name": "Dispel Magic",
+      "url": "/spells/2072-dispel-magic"
+    },
+    {
+      "ddbId": "2128",
+      "slug": "greater-invisibility",
+      "name": "Greater Invisibility",
+      "url": "/spells/2128-greater-invisibility"
+    },
+    {
+      "ddbId": "2292",
+      "slug": "wall-of-force",
+      "name": "Wall of Force",
+      "url": "/spells/2292-wall-of-force"
+    },
+    {
+      "ddbId": "1992",
+      "slug": "alter-self",
+      "name": "Alter Self",
+      "url": "/spells/1992-alter-self"
+    },
+    {
+      "ddbId": "2180",
+      "slug": "major-image",
+      "name": "Major Image",
+      "url": "/spells/2180-major-image"
+    },
+    {
+      "ddbId": "2067",
+      "slug": "detect-thoughts",
+      "name": "Detect Thoughts",
+      "url": "/spells/2067-detect-thoughts"
+    },
+    {
+      "ddbId": "2094",
+      "slug": "fear",
+      "name": "Fear",
+      "url": "/spells/2094-fear"
+    },
+    {
+      "ddbId": "2038",
+      "slug": "confusion",
+      "name": "Confusion",
+      "url": "/spells/2038-confusion"
+    },
+    {
+      "ddbId": "2078",
+      "slug": "dominate-person",
+      "name": "Dominate Person",
+      "url": "/spells/2078-dominate-person"
+    },
+    {
+      "ddbId": "2184",
+      "slug": "mass-suggestion",
+      "name": "Mass Suggestion",
+      "url": "/spells/2184-mass-suggestion"
+    },
+    {
+      "ddbId": "1999",
+      "slug": "antimagic-field",
+      "name": "Antimagic Field",
+      "url": "/spells/1999-antimagic-field"
+    },
+    {
+      "ddbId": "2303",
+      "slug": "wish",
+      "name": "Wish",
+      "url": "/spells/2303-wish"
+    },
+    {
+      "ddbId": "2206",
+      "slug": "plane-shift",
+      "name": "Plane Shift",
+      "url": "/spells/2206-plane-shift"
+    },
+    {
+      "ddbId": "2006",
+      "slug": "astral-projection",
+      "name": "Astral Projection",
+      "url": "/spells/2006-astral-projection"
+    },
+    {
+      "ddbId": "2112",
+      "slug": "fog-cloud",
+      "name": "Fog Cloud",
+      "url": "/spells/2112-fog-cloud"
+    },
+    {
+      "ddbId": "2080",
+      "slug": "druidcraft",
+      "name": "Druidcraft",
+      "url": "/spells/2080-druidcraft"
+    },
+    {
+      "ddbId": "2201",
+      "slug": "pass-without-trace",
+      "name": "Pass without Trace",
+      "url": "/spells/2201-pass-without-trace"
+    },
+    {
+      "ddbId": "2262",
+      "slug": "spike-growth",
+      "name": "Spike Growth",
+      "url": "/spells/2262-spike-growth"
+    },
+    {
+      "ddbId": "2229",
+      "slug": "remove-curse",
+      "name": "Remove Curse",
+      "url": "/spells/2229-remove-curse"
+    },
+    {
+      "ddbId": "2065",
+      "slug": "detect-magic",
+      "name": "Detect Magic",
+      "url": "/spells/2065-detect-magic"
+    },
+    {
+      "ddbId": "2111",
+      "slug": "fly",
+      "name": "Fly",
+      "url": "/spells/2111-fly"
+    },
+    {
+      "ddbId": "2213",
+      "slug": "prestidigitation",
+      "name": "Prestidigitation",
+      "url": "/spells/2213-prestidigitation"
+    },
+    {
+      "ddbId": "2159",
+      "slug": "invisibility",
+      "name": "Invisibility",
+      "url": "/spells/2159-invisibility"
+    },
+    {
+      "ddbId": "2124",
+      "slug": "globe-of-invulnerability",
+      "name": "Globe of Invulnerability",
+      "url": "/spells/2124-globe-of-invulnerability"
+    },
+    {
+      "ddbId": "2146",
+      "slug": "hold-monster",
+      "name": "Hold Monster",
+      "url": "/spells/2146-hold-monster"
+    },
+    {
+      "ddbId": "2172",
+      "slug": "mage-armor",
+      "name": "Mage Armor",
+      "url": "/spells/2172-mage-armor"
+    },
+    {
+      "ddbId": "2165",
+      "slug": "levitate",
+      "name": "Levitate",
+      "url": "/spells/2165-levitate"
+    },
+    {
+      "ddbId": "2243",
+      "slug": "sending",
+      "name": "Sending",
+      "url": "/spells/2243-sending"
+    },
+    {
+      "ddbId": "2349",
+      "slug": "otilukes-resilient-sphere",
+      "name": "Otiluke’s Resilient Sphere",
+      "url": "/spells/2349-otilukes-resilient-sphere"
+    },
+    {
+      "ddbId": "2273",
+      "slug": "telekinesis",
+      "name": "Telekinesis",
+      "url": "/spells/2273-telekinesis"
+    },
+    {
+      "ddbId": "2057",
+      "slug": "dancing-lights",
+      "name": "Dancing Lights",
+      "url": "/spells/2057-dancing-lights"
+    },
+    {
+      "ddbId": "2013",
+      "slug": "bestow-curse",
+      "name": "Bestow Curse",
+      "url": "/spells/2013-bestow-curse"
+    },
+    {
+      "ddbId": "2068",
+      "slug": "dimension-door",
+      "name": "Dimension Door",
+      "url": "/spells/2068-dimension-door"
+    },
+    {
+      "ddbId": "2299",
+      "slug": "web",
+      "name": "Web",
+      "url": "/spells/2299-web"
+    },
+    {
+      "ddbId": "2027",
+      "slug": "circle-of-death",
+      "name": "Circle of Death",
+      "url": "/spells/2027-circle-of-death"
+    },
+    {
+      "ddbId": "1996",
+      "slug": "animate-dead",
+      "name": "Animate Dead",
+      "url": "/spells/1996-animate-dead"
+    },
+    {
+      "ddbId": "2054",
+      "slug": "create-undead",
+      "name": "Create Undead",
+      "url": "/spells/2054-create-undead"
+    },
+    {
+      "ddbId": "2058",
+      "slug": "darkness",
+      "name": "Darkness",
+      "url": "/spells/2058-darkness"
+    },
+    {
+      "ddbId": "2077",
+      "slug": "dominate-monster",
+      "name": "Dominate Monster",
+      "url": "/spells/2077-dominate-monster"
+    },
+    {
+      "ddbId": "2275",
+      "slug": "teleport",
+      "name": "Teleport",
+      "url": "/spells/2275-teleport"
+    }
+  ],
+  "npcLinks": [],
+  "encounterAreas": [
+    "Abishais",
+    "Astral Dreadnought",
+    "Black Rose Bearer",
+    "Blades of Eberron",
+    "Blazebear",
+    "Bone Roc",
+    "Borthak",
+    "Cadaver Collector",
+    "Citadel Spider",
+    "Cosmic Horror",
+    "Deadbark Dryad",
+    "Deathwolf",
+    "Degloth",
+    "Eye Monger",
+    "False Lich",
+    "Granite Juggernaut",
+    "Hazvongel",
+    "Hertilod",
+    "Inquisitor of the Tome",
+    "Lunar Dragon",
+    "Mirror Shade",
+    "Moonlight Guardian",
+    "Necromancer Wizard",
+    "Night Scavver",
+    "Priest of Osybus",
+    "Relentless Impaler",
+    "Sorrowsworn",
+    "Spiderdragon",
+    "Spyder-Fiends",
+    "Star Angler",
+    "Vlazok",
+    "Warforged Warrior",
+    "Whirling Chandelier"
+  ],
+  "subLocations": [
+    "Blue Abishai",
+    "Green Abishai",
+    "Red Abishai",
+    "Red Abishai",
+    "Astral Dreadnought",
+    "Black Rose Bearer",
+    "Blade Lieutenant",
+    "Blade Scout",
+    "Blade Scout",
+    "Blazebear",
+    "Bone Roc Sources",
+    "Bone Roc",
+    "Borthak",
+    "Cadaver Collector",
+    "Citadel Spider",
+    "Cosmic Horror",
+    "Deadbark Dryad",
+    "Deathwolf",
+    "Degloth",
+    "Eye Monger",
+    "False Lich",
+    "Granite Juggernaut",
+    "Hazvongel",
+    "Hertilod",
+    "Inquisitor of the Tome",
+    "A Lunar Dragon’s Lair",
+    "Regional Effects",
+    "Adult Lunar Dragon",
+    "Mirror Shade",
+    "Moonlight Guardian",
+    "Necromancer Wizard",
+    "Night Scavver",
+    "Boons of Undeath",
+    "Priest of Osybus",
+    "Relentless Impaler",
+    "Lonely Sorrowsworn",
+    "Lonely Sorrowsworn",
+    "Lost Sorrowsworn",
+    "Lost Sorrowsworn",
+    "Spiderdragon",
+    "Kakkuu Spyder-Fiend",
+    "Phisarazu Spyder-Fiend",
+    "Quavilithku Spyder-Fiend",
+    "Raklupis Spyder-Fiend",
+    "Raklupis Spyder-Fiend",
+    "Star Angler",
+    "Vlazok",
+    "Warforged Warrior",
+    "Whirling Chandelier"
+  ],
+  "imageUrls": [
+    "https://www.dndbeyond.com/avatars/thumbnails/41008/336/355/464/638479352151885413.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41008/343/340/417/638479352291625877.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-003.red-abishai.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/264/359/300/370/636595787334058863.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/353/325/407/638506035139508539.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/359/370/446/638506035148244365.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-007.bone-roc.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/363/280/329/638506035154328123.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-009.cadaver_collector.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/367/380/469/638506035159788282.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/30143/659/200/480/638036090247437905.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-012.deadbark-dryad.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-013.deathwolf.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-014.degloth-and-skeletal-vlazoks.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-034.eye-monger.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/375/335/449/638506035173516049.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-017.granite-juggernaut.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-018.hazvongel.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-019.hertilod.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/17747/581/325/528/637568597288158983.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/389/300/369/638506035193576995.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/393/235/610/638506035200347915.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-023.necromancer-wizard.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-024.night-scavver.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-025.priest-of-osybus.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-026.relentless-impaler.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-027.lonely-sorrowsworn.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/403/325/407/638506035214231645.png",
+    "https://media.dndbeyond.com/compendium-images/veor/YzlEjWeqRbhK0ANf/12-029.spyder-fiends.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/395/335/408/638506035203311743.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/397/310/421/638506035205807705.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/399/400/507/638506035208771696.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/405/275/400/638506035217351630.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/413/400/368/638506035228895613.png",
+    "https://www.dndbeyond.com/avatars/thumbnails/41626/415/235/295/638506035232639485.png"
+  ],
+  "prose": "Appendix A: Bestiary This appendix describes creatures that appear in the adventure, presenting them in alphabetical order. The introduction of the Monster Manual explains how to read a creature’s stat block. Abishais Each abishai was once a mortal who somehow won Tiamat’s favor before death. As a reward, the dragon god transformed the mortal into a draconic devil to serve at Tiamat’s pleasure in the Nine Hells. Abishais represent Tiamat’s interests in the Nine Hells and across the multiverse. Some have simple tasks, such as delivering messages to cultists. Others have greater responsibilities, such as leading large groups, assassinating targets, and serving in armies. In all cases, abishais are fanatically loyal and ready to lay down their lives for Tiamat. Blue Abishai Seekers of forgotten lore and lost relics, blue abishais are the most cunning and learned of their kind. Blue abishais plunder tomes throughout the universe. They use the knowledge they glean from these books to become accomplished spellcasters, and with the power they gain, they devastate Tiamat’s enemies. Blue Abishai Medium Fiend (Devil, Wizard), Typically Lawful Evil Armor Class 19 (natural armor) Hit Points 202 (27d8 + 81) Speed 30 ft., fly 50 ft. STR 15 (+2) DEX 14 (+2) CON 17 (+3) INT 22 (+6) WIS 23 (+6) CHA 18 (+4) Saving Throws Int +12, Wis +12 Skills Arcana +12 Damage Resistances cold; bludgeoning, piercing, and slashing from nonmagical attacks that aren’t silvered Damage Immunities fire, lightning, poison Condition Immunities poisoned Senses darkvision 120 ft., passive Perception 16 Languages Draconic, Infernal, telepathy 120 ft. Challenge 17 (18,000 XP) Proficiency Bonus +6 Devil’s Sight. Magical darkness doesn’t impede the abishai’s darkvision. Magic Resistance. The abishai has advantage on saving throws against spells and other magical effects. Actions Multiattack. The abishai makes three Bite or Lightning Strike attacks. Bite. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 13 (2d10 + 2) piercing damage plus 14 (4d6) lightning damage. Lightning Strike. Ranged Spell Attack: +12 to hit, range 120 ft., one target. Hit: 36 (8d8) lightning damage. Spellcasting. The abishai casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC 20): At will: Disguise Self, Mage Hand, Minor Illusion 2/day each: Charm Person, Dispel Magic, Greater Invisibility, Wall of Force Bonus Actions Teleport. The abishai teleports, along with any equipment it is wearing or carrying, up to 30 feet to an unoccupied space that it can see. Daniel Landerman Green Abishai Green abishais are adept at discovering secrets and other sensitive information. They use their diplomatic skills and magic to manipulate even the shrewdest opponents. Green Abishai Medium Fiend (Devil), Typically Lawful Evil Armor Class 18 (natural armor) Hit Points 195 (26d8 + 78) Speed 30 ft., fly 40 ft. STR 12 (+1) DEX 17 (+3) CON 16 (+3) INT 17 (+3) WIS 12 (+1) CHA 19 (+4) Saving Throws Int +8, Cha +9 Skills Deception +9, Insight +6, Perception +6, Persuasion +9 Damage Resistances cold; bludgeoning, piercing, and slashing from nonmagical attacks that aren’t silvered Damage Immunities fire, poison Condition Immunities poisoned Senses darkvision 120 ft., passive Perception 16 Languages Draconic, Infernal, telepathy 120 ft. Challenge 15 (13,000 XP) Proficiency Bonus +5 Devil’s Sight. Magical darkness doesn’t impede the abishai’s darkvision. Magic Resistance. The abishai has advantage on saving throws against spells and other magical effects. Actions Multiattack. The abishai makes two Fiendish Claw attacks, or it makes one Fiendish Claw attack and uses Spellcasting. Fiendish Claw. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 12 (2d8 + 3) force damage. If the target is a creature, it must succeed on a DC 16 Constitution saving throw or take 16 (3d10) poison damage and have the poisoned condition for 1 minute. The poisoned target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Spellcasting. The abishai casts one of the following spells, requiring no material components and using Charisma as the spellcasting ability (spell save DC 17): At will: Alter Self, Major Image 3/day each: Charm Person, Detect Thoughts, Fear 1/day each: Confusion, Dominate Person, Mass Suggestion Daniel Landerman Red Abishai Red abishais have no equals among the abishais when it comes to leadership ability and raw power. Red abishais lead other devils into battle or take charge of troublesome cults to ensure that they continue to carry out Tiamat’s commands. The sight of a fearsome red abishai inspires its allies, filling them with a fanatical willingness to fight. “I offer my life, my soul, and all my wicked glories to the Dragon Queen. May she one day transform me into her abishai servant.” —Jharloth, dragonborn high cleric of Tiamat Red Abishai Medium Fiend (Devil), Typically Lawful Evil Armor Class 22 (natural armor) Hit Points 289 (34d8 + 136) Speed 30 ft., fly 50 ft. STR 23 (+6) DEX 16 (+3) CON 19 (+4) INT 14 (+2) WIS 15 (+2) CHA 19 (+4) Saving Throws Str +12, Con +10, Wis +8 Skills Intimidation +10, Perception +8 Damage Resistances cold; bludgeoning, piercing, and slashing from nonmagical attacks that aren’t silvered Damage Immunities fire, poison Condition Immunities frightened, poisoned Senses darkvision 120 ft., passive Perception 18 Languages Draconic, Infernal, telepathy 120 ft. Challenge 19 (22,000 XP) Proficiency Bonus +6 Devil’s Sight. Magical darkness doesn’t impede the abishai’s darkvision. Magic Resistance. The abishai has advantage on saving throws against spells and other magical effects. Actions Multiattack. The abishai makes one Bite attack and one Claw attack, and it can use Frightful Presence or Incite Fanaticism. Bite. Melee Weapon Attack: +12 to hit, reach 5 ft., one target. Hit: 22 (3d10 + 6) piercing damage plus 38 (7d10) fire damage. Claw. Melee Weapon Attack: +12 to hit, reach 5 ft., one target. Hit: 17 (2d10 + 6) force damage plus 11 (2d10) fire damage. Frightful Presence. Each creature of the abishai’s choice that is within 120 feet of it and aware of the abishai must succeed on a DC 18 Wisdom saving throw or have the frightened condition for 1 minute. A creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. If a creature’s saving throw is successful or the effect ends for it, the creature is immune to the abishai’s Frightful Presence for the next 24 hours. Incite Fanaticism. The abishai chooses up to four other creatures within 60 feet of itself that can see it. Until the start of the abishai’s next turn, each of those creatures makes attack rolls with advantage and can’t have the frightened condition. Power of the Dragon Queen. The abishai targets one Dragon it can see within 120 feet of itself. The Dragon must make a DC 18 Charisma saving throw. A chromatic dragon makes this save with disadvantage. On a successful save, the target is immune to the abishai’s Power of the Dragon Queen for 1 hour. On a failed save, the target has the charmed condition for 1 hour. While charmed in this way, the target regards the abishai as a trusted friend to be heeded and protected. This effect ends if the abishai or its companions deal damage to the target. Daniel Landerman Astral Dreadnought Astral dreadnoughts haunt the silvery void of the Astral Plane and have been gliding through the astral mists since the dawn of the multiverse, trying to devour all other creatures they encounter. An astral dreadnought is covered from head to tail in layers of thick, spiked plates, and it has two gnarled limbs that end in magically enhanced pincer claws. Constellations appear to swirl in the depths of its single eye, and its serpentine tail trails off into the silvery void. Anything the dreadnought swallows is deposited in a unique demiplane: an enclosed space that contains eons’ worth of detritus, as well as the remains of travelers. This demiplane, called a donjon, has gravity and breathable air, and organic matter decays there. When the dreadnought dies, its demiplane vanishes, and the contents are released into the Astral Plane. Astral Dreadnought Gargantuan Monstrosity (Titan), Unaligned Armor Class 20 (natural armor) Hit Points 297 (17d20 + 119) Speed 15 ft., fly 80 ft. (hover) STR 28 (+9) DEX 7 (−2) CON 25 (+7) INT 5 (−3) WIS 14 (+2) CHA 18 (+4) Saving Throws Dex +5, Wis +9 Skills Perception +9 Damage Resistances bludgeoning, piercing, and slashing from nonmagical attacks Condition Immunities charmed, exhaustion, frightened, paralyzed, petrified, poisoned, prone, stunned Senses darkvision 120 ft., passive Perception 19 Languages — Challenge 21 (33,000 XP) Proficiency Bonus +7 Antimagic Cone. The dreadnought’s eye creates an area of antimagic, as in the Antimagic Field spell, in a 150-foot cone. At the start of each of its turns, the dreadnought decides which way the cone faces. The cone doesn’t function while the eye is closed or if the dreadnought has the blinded condition. Astral Entity. The dreadnought can’t leave the Astral Plane, nor can it be banished or otherwise transported from that plane. Demiplanar Donjon. Anything the dreadnought swallows is transported to a demiplane that can be entered by no other means except a Wish spell or the dreadnought’s Bite or Donjon Visit. A creature can leave the demiplane only by using magic that enables planar travel, such as the Plane Shift spell. The demiplane resembles a stone cave roughly 1,000 feet in diameter with a ceiling 100 feet high. Like a stomach, it contains the remains of past meals. The dreadnought can’t be harmed from within the demiplane. If the dreadnought dies, the demiplane disappears, and everything inside it appears around the dreadnought’s corpse. The demiplane is otherwise indestructible. Legendary Resistance (3/Day). If the dreadnought fails a saving throw, it can choose to succeed instead. Sever Silver Cord. If the dreadnought scores a critical hit against a creature traveling by means of the Astral Projection spell, the dreadnought can cut the target’s silver cord instead of dealing damage. Actions Multiattack. The dreadnought makes one Bite attack and two Claw attacks. Bite. Melee Weapon Attack: +16 to hit, reach 10 ft., one target. Hit: 36 (5d10 + 9) force damage. If the target is a Huge or smaller creature and this damage reduces it to 0 hit points or it has the incapacitated condition, the dreadnought swallows it. The swallowed target, along with everything it is wearing and carrying, appears in an unoccupied space on the floor of the Demiplanar Donjon. Claw. Melee Weapon Attack: +16 to hit, reach 20 ft., one target. Hit: 19 (3d6 + 9) force damage. Legendary Actions The dreadnought can take 3 legendary actions, choosing from the options below. Only one legendary option can be used at a time and only at the end of another creature’s turn. The dreadnought regains spent legendary actions at the start of its turn. Claw. The dreadnought makes one Claw attack. Donjon Visit (Costs 2 Actions). One Huge or smaller creature that the dreadnought can see within 60 feet of itself must succeed on a DC 19 Charisma saving throw or be teleported to an unoccupied space on the floor of the Demiplanar Donjon. At the end of the target’s next turn, it reappears in the space it left or in the nearest unoccupied space if that space is occupied. Psychic Projection (Costs 3 Actions). Each creature within 60 feet of the dreadnought must make a DC 19 Wisdom saving throw, taking 26 (4d10 + 4) psychic damage on a failed save or half as much damage on a successful one. Sidharth Chaturvedi Black Rose Bearer A black rose bearer is a rotting corpse animated by necromancers on Krynn to serve as a guardian. Its name derives from the preserved black rose the bearer carries inside a delicate bell jar. The slightest jostle can cause the bearer to lose its grasp on the bell jar, destroying the jar and the flower within. Normally, a black rose bearer is sluggish and placid. It follows its creator’s orders and attacks intruders only languidly. If its rose is disturbed, however, the black rose bearer bursts into furious violence, attacking indiscriminately. A bearer’s black rose is an homage to the tyrannical Lord Soth, the most powerful death knight on Krynn, who was once a Solamnic Knight of the Order of the Rose. “Their existence mocks the living. Their roses mock the knights. Suffer not their presence; destroy rose bearers on sight.” —Common saying among the Knights of Solamnia Black Rose Bearer Medium Undead, Typically Neutral Evil Armor Class 11 (natural armor) Hit Points 110 (13d8 + 52) Speed 20 ft. STR 17 (+3) DEX 6 (−2) CON 18 (+4) INT 2 (−4) WIS 10 (+0) CHA 5 (−3) Damage Immunities poison Condition Immunities charmed, exhaustion, frightened, poisoned Senses darkvision 60 ft., passive Perception 10 Languages understands the languages it knew in life but can’t speak Challenge 6 (2,300 XP) Proficiency Bonus +3 Berserk. Whenever the bearer takes damage or makes a Strength or Dexterity saving throw, roll a d6. On a 5 or 6, the bearer goes berserk. On each of its turns while berserk, the bearer has advantage on melee attack rolls, it can Dash as a bonus action, and it must attack the nearest creature it can see. If no creature is near enough to move to and attack, the bearer attacks an object, with preference for an object smaller than itself. Once the bearer goes berserk, it remains berserk until it is destroyed or its creator gives it a pristine black rose. Undead Fortitude. If damage reduces the bearer to 0 hit points, it must make a Constitution saving throw with a DC of 5 plus the damage taken, unless the damage is radiant or from a critical hit. On a successful save, the bearer drops to 1 hit point instead. Actions Multiattack. The bearer makes two Slam attacks. Slam. Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 12 (2d8 + 3) bludgeoning damage plus 11 (2d10) necrotic damage. Helge C. Balzer Blades of Eberron In the aftermath of Eberron’s Last War, a warforged called the Lord of Blades rose to fill the power vacuum left in the devastated Mournland. The Lord of Blades’ followers, known as blades, formed a cult of personality that deifies the Lord of Blades and preaches a bloody, jingoistic doctrine of warforged superiority. The primary tenet of the blades is that non-warforged on the continent of Khorvaire must be slaughtered. Blade Lieutenant Blade lieutenants lead subordinates on raids on behalf of the Lord of Blades. Soldiers who fail to meet a lieutenant’s demands are harshly disciplined. Blade Lieutenant Medium Construct (Warforged), Typically Lawful Evil Armor Class 16 (natural armor) Hit Points 153 (18d8 + 72) Speed 30 ft. STR 18 (+4) DEX 13 (+1) CON 19 (+4) INT 14 (+2) WIS 14 (+2) CHA 17 (+3) Saving Throws Int +6, Cha +7 Skills Insight +6, Intimidation +7, Perception +6 Damage Resistances poison Condition Immunities exhaustion, poisoned Senses passive Perception 16 Languages Common Challenge 9 (5,000 XP) Proficiency Bonus +4 Pack Tactics. The lieutenant has advantage on an attack roll against a creature if at least one of the lieutenant’s allies is within 5 feet of the creature and the ally doesn’t have the incapacitated condition. Actions Multiattack. The lieutenant makes three Longsword or Javelin Launcher attacks. Longsword. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 17 (3d8 + 4) slashing damage, or 20 (3d10 + 4) slashing damage if used with two hands. Javelin Launcher. Ranged Weapon Attack: +8 to hit, range 30/120 ft., one target. Hit: 14 (3d6 + 4) piercing damage, and the target has the prone condition. Bonus Actions Command Ally. The lieutenant targets one ally it can see within 30 feet of itself. If the target can see or hear the lieutenant, the target can make one melee attack using its reaction, if available, and has advantage on the attack roll. Rally the Troops (1/Day). The lieutenant ends the charmed and frightened conditions on itself and each creature of its choice that it can see within 30 feet of itself. Reactions Parry. The lieutenant adds 3 to its AC against one melee attack that would hit it. To do so, the lieutenant must see the attacker and be wielding a melee weapon. Blade Scout Blade scouts are responsible for exploring and charting Mournland regions not yet claimed by the Lord of Blades’ legions. Blade Scout Medium Construct (Warforged), Typically Lawful Evil Armor Class 18 (natural armor) Hit Points 105 (14d8 + 42) Speed 30 ft. STR 14 (+2) DEX 20 (+5) CON 16 (+3) INT 10 (+0) WIS 19 (+4) CHA 10 (+0) Saving Throws Dex +8, Wis +7 Skills Acrobatics +8, Perception +7, Stealth +8 Damage Resistances poison Condition Immunities exhaustion, poisoned Senses passive Perception 17 Languages Common Challenge 7 (2,900 XP) Proficiency Bonus +3 Pack Tactics. The scout has advantage on an attack roll against a creature if at least one of the scout’s allies is within 5 feet of the creature and the ally doesn’t have the incapacitated condition. Actions Multiattack. The scout makes three Armblade or Bolt Launcher attacks. It can replace one of the attacks with a use of Snare Trap. Armblade. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) slashing damage. Bolt Launcher. Ranged Weapon Attack: +8 to hit, range 80/320 ft., one target. Hit: 9 (1d8 + 5) piercing damage. Snare Trap (1/Day). The scout deploys a Tiny mechanical trap on a solid surface within 5 feet of itself. The trap is hidden, requiring a successful DC 17 Intelligence (Investigation) check to find. The trap lasts for 1 minute. Whenever an enemy enters a space within 10 feet of the trap or starts its turn there, it must succeed on a DC 16 Dexterity saving throw or take 21 (6d6) piercing damage and have the prone condition. A creature makes this saving throw only once per turn. Bonus Actions Dash. The scout moves up to its speed without provoking opportunity attacks. Blazebear On the world of Eberron, many strange, magic-warped monsters have emerged from the depths of the war-wracked Mournland. The blazebear is one such monster, so named for its hulking, ursine figure and the glow of its eyes. This glow is magical energy that saturates the blazebear’s entire body. Swipes from a blazebear’s claws dole out painful wounds and can end spells, and its gaze can stun prey. “Even the animals in the Mournland are warped by magic. You should see the bears—terrifying!” —Clank, warforged merchant from Sharn Blazebear Large Monstrosity, Unaligned Armor Class 14 (natural armor) Hit Points 189 (18d10 + 90) Speed 30 ft. STR 24 (+7) DEX 17 (+3) CON 21 (+5) INT 3 (−4) WIS 13 (+1) CHA 16 (+3) Saving Throws Str +11, Cha +7 Skills Perception +5 Senses darkvision 120 ft., passive Perception 15 Languages — Challenge 12 (8,400 XP) Proficiency Bonus +4 Magic Resistance. The blazebear has advantage on saving throws against spells and other magical effects. Mist Sight. The blazebear can see normally through heavily obscured areas created by mist or fog, including areas created by spells such as Fog Cloud. Actions Multiattack. The blazebear makes two Bite attacks. It can replace one attack with Stunning Gaze if available. Bite. Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 20 (2d12 + 7) piercing damage plus 11 (2d10) force damage. Stunning Gaze (Recharge 5–6). The blazebear targets two creatures it can see within 120 feet of itself. Each target must succeed on a DC 15 Wisdom saving throw or have the stunned condition until the start of the blazebear’s next turn. Reactions Antimagic Swipe. Melee Weapon Attack: +11 to hit, reach 10 ft., one creature casting a spell of 3rd level or lower. Hit: 22 (4d10) force damage, and the target must succeed on a DC 15 Intelligence saving throw or the spell fails and has no effect. Lars Grant-west Bone Roc Brynn Metheney Bone rocs often serve as flying mounts for undead soldiers A bone roc is a birdlike Undead that can incorporate the bones of multiple flying creatures. Despite their name, bone rocs aren’t always reanimated skeletons of rocs. You may customize a bone roc by rolling on the Bone Roc Sources table to determine the type of bones used and how that affects its stat block. Bone Roc Sources d6 Bone Source 1 Axe Beak. The bone roc’s walking speed is 50 feet. 2 Cockatrice. A creature hit by the bone roc’s Beak attack must succeed on a DC 14 Constitution saving throw or have its speed reduced by 10 feet until the start of the bone roc’s next turn. 3 Giant Owl. The bone roc’s modifier for Dexterity (Stealth) checks is +8. 4 Peryton. The bone roc has resistance to slashing damage from nonmagical attacks. 5 Pteranodon. The bone roc doesn’t provoke an opportunity attack when it flies out of an enemy’s reach. 6 Roc. The bone roc’s size is Gargantuan, and its flying speed is 120 feet. Its Hit Dice remain unchanged. Bone Roc Huge Undead, Typically Neutral Evil Armor Class 15 Hit Points 133 (14d12 + 42) Speed 15 ft., fly 90 ft. STR 18 (+4) DEX 20 (+5) CON 16 (+3) INT 2 (−4) WIS 17 (+3) CHA 10 (+0) Saving Throws Dex +8, Wis +6 Skills Perception +6 Damage Vulnerabilities bludgeoning Damage Immunities poison Condition Immunities exhaustion, poisoned Senses darkvision 120 ft., passive Perception 16 Languages — Challenge 8 (3,900 XP) Proficiency Bonus +3 Actions Multiattack. The bone roc makes one Beak attack and two Talons attacks. Beak. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 14 (2d8 + 5) piercing damage. Talons. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) slashing damage plus 10 (3d6) necrotic damage. Borthak Borthaks are irascible, wolflike behemoths that ravage northern wetlands and alpine fens on Krynn. Few mountain animals can challenge a borthak physically. Its powerful jaws, acidic spittle, and lightning-quick tail make the borthak an apex predator in its home territory. Luckily for most wetland dwellers, borthaks rarely congregate. Unluckily, a single borthak can wreak havoc on an entire ecosystem with its supernatural ability to siphon heat from the ground. A borthak’s body is so efficient at pulling the heat from its surroundings that it can transform a small, temperate glen into a frigid, slushy bog. Native plants and animals rarely survive long in a region a borthak claims as its hunting ground. Once a borthak has depleted an area of flora and fauna, it moves and begins its pillaging anew. Borthak Huge Monstrosity, Typically Chaotic Evil Armor Class 16 (natural armor) Hit Points 200 (16d12 + 96) Speed 30 ft. STR 25 (+7) DEX 16 (+3) CON 22 (+6) INT 4 (−3) WIS 14 (+2) CHA 15 (+2) Saving Throws Str +12, Con +11, Cha +7 Damage Resistances acid, cold Senses darkvision 60 ft., passive Perception 12 Languages — Challenge 15 (13,000 XP) Proficiency Bonus +5 Glacial Aura. At the end of the borthak’s turn, slippery ice covers surfaces within 10 feet of the borthak. This ice is difficult terrain. When a creature other than the borthak enters the ice’s area for the first time on a turn or starts its turn there, it must succeed on a DC 16 Dexterity saving throw or have the prone condition. The ice disappears at the start of the borthak’s next turn. Webbed Feet. The borthak can move across icy surfaces without needing to make an ability check. Additionally, difficult terrain composed of ice or snow doesn’t cost it extra movement. Actions Multiattack. The borthak makes one Bite attack or uses Noxious Regurgitation if available, and it makes two Stomp attacks. Bite. Melee Weapon Attack: +12 to hit, reach 5 ft., one target. Hit: 16 (2d8 + 7) piercing damage plus 7 (2d6) acid damage. Stomp. Melee Weapon Attack: +12 to hit, reach 10 ft., one target. Hit: 11 (1d8 + 7) bludgeoning damage. Noxious Regurgitation (Recharge 5–6). The borthak spews acid at a creature it can see within 120 feet of itself. The target must make a DC 21 Constitution saving throw. On a failed save, the creature takes 24 (7d6) acid damage and has the poisoned condition until the start of the borthak’s next turn. On a successful save, the creature takes half as much damage only. Reactions Reactive Tail. When a creature within 10 feet of the borthak hits the borthak with an attack roll, the borthak swings its tail in retaliation. The triggering creature and any creature within 5 feet of it must succeed on a DC 16 Dexterity saving throw or take 16 (2d8 + 7) bludgeoning damage. Legendary Actions The borthak can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature’s turn. The borthak regains spent legendary actions at the start of its turn. Move. The borthak moves up to its speed without provoking opportunity attacks. Bite (Costs 2 Actions). The borthak makes one Bite attack. Brynn Metheney Cadaver Collector Tom Babbey Ancient war machines known as cadaver collectors lumber aimlessly across the blasted plains of Acheron until they are called on by a necromancer to bolster the ranks of a conquering army on the Material Plane. These fearsome Constructs obey their summoners until they are dismissed to Acheron, but if a summoner comes to a bad end, a cadaver collector might wander the Material Plane for centuries, collecting corpses while searching for a way to return home. A cadaver collector responds to a summons from a mortal only if it is called to the scene of a great battle—either where one is in progress, where one is imminent, or where one once took place. The collector encases itself in the armor and weapons of fallen warriors, and it impales the corpses of those warriors on the lances and other weapons embedded in the collector’s salvaged armor. Corpses that accumulate on a cadaver collector’s shell aren’t just grisly trophies; a cadaver collector can summon the spirits of these cadavers to battle against its enemies. Although these specters are individually weak, a cadaver collector can call up an almost endless supply of them, if given enough time. Cadaver Collector Large Construct, Typically Lawful Evil Armor Class 17 (natural armor) Hit Points 189 (18d10 + 90) Speed 30 ft. STR 21 (+5) DEX 14 (+2) CON 20 (+5) INT 5 (−3) WIS 11 (+0) CHA 8 (−1) Damage Immunities necrotic, poison, psychic; bludgeoning, piercing, and slashing from nonmagical attacks that aren’t adamantine Condition Immunities charmed, exhaustion, frightened, paralyzed, petrified, poisoned Senses darkvision 60 ft., passive Perception 10 Languages understands all languages but can’t speak Challenge 14 (11,500 XP) Proficiency Bonus +5 Magic Resistance. The collector has advantage on saving throws against spells and other magical effects. Actions Multiattack. The collector makes two Slam attacks. Slam. Melee Weapon Attack: +10 to hit, reach 5 ft., one target. Hit: 18 (3d8 + 5) bludgeoning damage plus 16 (3d10) necrotic damage. Paralyzing Breath (Recharge 5–6). The collector releases paralyzing gas in a 30-foot cone. Each creature in that area must succeed on a DC 18 Constitution saving throw or have the paralyzed condition for 1 minute. A paralyzed creature repeats the saving throw at the end of each of its turns, ending the effect on itself with a success. Bonus Actions Summon Specters (Recharges after a Short or Long Rest). The collector calls upon the spirits of those it has slain; 1d4 specters (without Sunlight Sensitivity) arise in unoccupied spaces within 15 feet of the collector. The specters act after the collector on the same initiative count and fight until they’re destroyed. They disappear when the collector is destroyed. Citadel Spider Lolth’s followers breed spiders of all types and sizes, infusing the creatures with foul energy from the Demonweb Pits. Perhaps the most feared of such abominations is the citadel spider. The titanic citadel spider serves as a powerhouse weapon and mobile command post. Wedges of chitin atop a citadel spider’s back shield passengers and protect the spider’s biological cannon. A citadel spider can launch globs of acidic webbing from its cannon that hold victims in place until the spider can eviscerate them with its serrated jaws. “Citadel spiders aren’t smart, but for sheer battlefield power and versatility, they can’t be beat.” —Camlash, balor general of Lolth Citadel Spider Gargantuan Monstrosity, Typically Neutral Evil Armor Class 18 (natural armor) Hit Points 310 (20d20 + 150) Speed 50 ft., climb 50 ft. STR 26 (+8) DEX 10 (+0) CON 21 (+5) INT 6 (−2) WIS 12 (+1) CHA 9 (−1) Condition Immunities charmed, exhaustion, frightened Senses blindsight 30 ft., darkvision 120 ft., passive Perception 11 Languages — Challenge 18 (20,000 XP) Proficiency Bonus +6 Legendary Resistance (3/Day). If the spider fails a saving throw, it can choose to succeed instead. Spider Climb. The spider can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Web Walker. The spider ignores movement restrictions caused by webbing. Actions Multiattack. The spider makes two Bite attacks. It can replace one of these attacks with a use of Web Bomb. Bite. Melee Weapon Attack: +14 to hit, reach 20 ft., one target. Hit: 19 (2d10 + 8) piercing damage plus 7 (2d6) poison damage. Web Bomb. Ranged Weapon Attack: +14 to hit, range 300 ft./600 ft., one target. Hit: 24 (3d10 + 8) bludgeoning damage, and the target and all creatures within 10 feet of it must succeed on a DC 19 Dexterity saving throw or take 10 (3d6) acid damage and have the restrained condition until the start of the spider’s next turn. Reactions Absorb Blow. In response to being hit with an attack roll, the spider’s carapace absorbs some of the blow, reducing the damage it takes by 11 (2d10). Helge C. balzer Cosmic Horror Cosmic horrors are colossal, malevolent entities that occasionally slip the bonds of the Far Realm and find themselves adrift on the Astral Plane. Drawn to the light of distant stars, these creatures invade Wildspace systems and lay waste to worlds. After sating themselves on the minds and bodies of a world’s inhabitants, cosmic horrors usually return to the void, where they fall into a deep sleep, drifting aimlessly until hunger or some other stimulus awakens them. Cosmic horrors are among the most powerful creatures spawned by the Far Realm. No two of them have the same appearance, but they have certain qualities in common. Each one is roughly 100 feet long or tall, and its physical form is a seemingly impossible conglomeration of eyes, mouths, wings, tentacles, and less recognizable organs and appendages. Cosmic Horror Gargantuan Aberration, Typically Neutral Evil Armor Class 15 (natural armor) Hit Points 280 (16d20 + 112) Speed 50 ft., fly 100 ft. STR 27 (+8) DEX 10 (+0) CON 25 (+7) INT 24 (+7) WIS 15 (+2) CHA 24 (+7) Saving Throws Int +13, Wis +8, Cha +13 Damage Immunities acid, poison Condition Immunities charmed, frightened, poisoned Senses darkvision 240 ft., passive Perception 12 Languages Deep Speech, telepathy 240 ft. Challenge 18 (20,000 XP) Proficiency Bonus +6 Legendary Resistance (3/Day). If the horror fails a saving throw, it can choose to succeed instead. Actions Multiattack. The horror makes one Bite attack and two Tentacle attacks. Bite. Melee Weapon Attack: +14 to hit, reach 10 ft., one target. Hit: 22 (4d6 + 8) piercing damage. Tentacle. Melee Weapon Attack: +14 to hit, reach 30 ft., one target. Hit: 18 (3d6 + 8) force damage, and if the target is a creature, it has the grappled condition (escape DC 18). Until this grapple ends, the horror can’t use this tentacle against other targets. The horror has 1d8 + 1 tentacles, each of which can grapple one target. Psychic Whispers (Recharge 5–6). The horror emits dreadful whispers in a 60-foot-radius sphere centered on itself. Each creature in the sphere that isn’t an Aberration must make a DC 21 Wisdom saving throw, taking 33 (6d10) psychic damage on a failed save or half as much damage on a successful one. Legendary Actions The horror can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature’s turn. The horror regains spent legendary actions at the start of its turn. Crushing Tentacle. The horror crushes one creature it is grappling. The grappled creature must make a DC 22 Constitution saving throw, taking 18 (3d6 + 8) force damage on a failed save or half as much damage on a successful one. Poison Jet (Costs 2 Actions). Foul gas squirts from the horror in a 30-foot line that is 5 feet wide. Each creature in that area must succeed on a DC 21 Constitution saving throw or take 14 (4d6) poison damage. Teleport (Costs 2 Actions). The horror teleports, along with any creatures it is grappling, to an unoccupied space it can see within 120 feet of itself. Simon Dominic Deadbark Dryad Helge C. balzer When a dryad fails to protect its wilderness home from a great evil and is unable to forgive itself, the dryad might transform into a wicked Fey monster called a deadbark dryad. Such dryads relinquish any compassion they once felt for living beings and instead harbor hatred for anyone who dares to invade their rotted demesne. The wilds around a deadbark dryad become malignant, souring into a swampy morass of stinging nettles and noxious muck. Deadbark dryads are immune to this toxic bog’s deleterious effects. A deadbark dryad is typically bound to the spot where it failed to protect its charge. When a dryad transforms into a deadbark dryad, it becomes stronger and more violent, and it typically gains a renewed dedication to protecting its now-fetid domain. Most deadbark dryads would rather fight to the death than allow any intrusion into their homes. Deadbark dryads are most often found on Krynn, but occasionally they are found on other worlds where magic and trees are plentiful. Deadbark Dryad Medium Fey, Typically Chaotic Evil Armor Class 16 (natural armor) Hit Points 187 (22d8 + 88) Speed 30 ft. STR 17 (+3) DEX 16 (+3) CON 18 (+4) INT 11 (+0) WIS 16 (+3) CHA 18 (+4) Saving Throws Con +9, Cha +9 Skills Perception +8, Stealth +8 Damage Resistances bludgeoning, piercing, and slashing from nonmagical attacks Damage Immunities poison Condition Immunities poisoned Senses darkvision 60 ft., passive Perception 18 Languages Elvish, Sylvan Challenge 13 (10,000 XP) Proficiency Bonus +5 Bramble Walk. Difficult terrain composed of vegetation, such as foliage or thorns, doesn’t cost the dryad extra movement. Magic Resistance. The dryad has advantage on saving throws against spells and other magical effects. Speak with Beasts and Plants. The dryad can communicate with Beasts and Plants as if they shared a language. Actions Multiattack. The dryad makes two Poisonous Thorn attacks and one Sapping Vine attack. Poisonous Thorn. Melee or Ranged Weapon Attack: +8 to hit, reach 5 ft. or range 120 ft., one target. Hit: 13 (4d4 + 3) piercing damage plus 10 (3d6) poison damage. If the target is a creature, it must succeed on a DC 17 Constitution saving throw or have the poisoned condition until the start of the dryad’s next turn. Sapping Vine. Melee Weapon Attack: +8 to hit, reach 30 ft., one target. Hit: The target has the grappled condition (escape DC 16). Until the grapple ends, the target has the restrained condition, and the dryad can’t use the same vine on another target. A creature restrained in this way takes 13 (3d8) necrotic damage at the start of its turn. The dryad has six vines. Each vine can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage). Destroying a vine deals no damage to the dryad, but any creature grappled by that vine no longer has the grappled condition. All vines immediately wither and disappear when the dryad is reduced to 0 hit points. Spellcasting. The dryad casts one of the following spells, requiring no material components and using Charisma as the spellcasting ability (spell save DC 17): At will: Druidcraft 2/day each: Pass without Trace, Spike Growth 1/day: Dispel Magic Deathwolf A deathwolf combines the might of a werewolf, the unholy powers of undeath, and the magic of the full moon. Deathwolves are most common on Krynn but occasionally are found in other locations where lycanthropy and necromancy are prevalent. Brian Valeza To create a deathwolf, a necromancer reanimates the body of a powerful werewolf by conducting a profane ritual fueled by lunar magic. The result is an Undead abomination that resembles a skeletal, shadowy werewolf in hybrid form. Deathwolves can’t shapeshift, but they can create dangerous illusions. A deathwolf’s bite makes its victims more susceptible to the mind-bending phantoms the deathwolf can conjure. DEATHWOLVES IN DRAGONLANCE On the world of Krynn, deathwolves are associated with Lunitari, Krynn’s red moon and the god of neutral magic. The god Lunitari is a trickster and master of illusions; necromancers perform the ritual to create a deathwolf under the light of her moon to instill the deathwolf with powers of illusion and trickery. Deathwolf Medium Undead, Typically Chaotic Evil Armor Class 15 (natural armor) Hit Points 153 (18d8 + 72) Speed 40 ft. STR 20 (+5) DEX 16 (+3) CON 18 (+4) INT 10 (+0) WIS 17 (+3) CHA 19 (+4) Saving Throws Str +10, Dex +8, Cha +9 Skills Perception +13, Stealth +8 Damage Immunities poison; bludgeoning, piercing, and slashing from nonmagical attacks that aren’t silvered Condition Immunities charmed, exhaustion, frightened, poisoned Senses darkvision 60 ft., passive Perception 23 Languages Common Challenge 15 (13,000 XP) Proficiency Bonus +5 Legendary Resistance (2/Day). If the deathwolf fails a saving throw, it can choose to succeed instead. Moon’s Grace. When the deathwolf falls, it descends at a rate of 60 feet per round and takes no falling damage. Actions Multiattack. The deathwolf makes one Bite attack and two Claw attacks. It can replace one of these attacks with Phantom Deathwolf if available. Bite. Melee Weapon Attack: +10 to hit, reach 5 ft., one target. Hit: 14 (2d8 + 5) piercing damage plus 9 (2d8) necrotic damage. The target must succeed on a DC 16 Wisdom saving throw or have disadvantage on saving throws against the frightened condition. This curse lasts until removed by the Remove Curse spell or other magic. Claw. Melee Weapon Attack: +10 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) slashing damage plus 4 (1d8) necrotic damage. Phantom Deathwolf (Recharge 5–6). The deathwolf creates a terrifying phantom of itself in the mind of a creature the deathwolf can see within 60 feet of itself. The target must succeed on a DC 17 Intelligence saving throw or have the frightened condition for 1 minute. While the target is frightened, the phantom deals 21 (6d6) psychic damage to the target at the start of each of the target’s turns. A frightened target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Reactions The deathwolf can take up to two reactions per round but only one per turn. Imposing Slash. When a creature within 5 feet of the deathwolf makes an attack roll against it, the deathwolf forces the creature to succeed on a DC 17 Wisdom saving throw or have disadvantage on that roll. After the attack hits or misses, the deathwolf makes one Claw attack against the creature. Phase Step. Immediately after taking damage, the deathwolf teleports up to 30 feet to an unoccupied space it can see that is in dim light or darkness. Degloth Ralph Horsley Demons such as blue-skinned degloths and skeletal vlazoks put their love of violence to use on the battlefield Degloths are massive, blue, bipedal demons with razor-studded fists. They are commonly used as shock troops on the front lines of wars waged in the Abyss and other Outer Planes. Degloths gravitate toward violence and mayhem without caring about the reasons behind the bloodshed. They enjoy ripping their enemies limb from limb using their razor-studded fists, which are equally adept at slashing foes and crushing the life from them. Degloth Large Fiend (Demon), Typically Chaotic Evil Armor Class 18 (natural armor) Hit Points 133 (14d10 + 56) Speed 40 ft., climb 40 ft. STR 23 (+6) DEX 17 (+3) CON 18 (+4) INT 6 (−2) WIS 11 (+0) CHA 9 (−1) Saving Throws Str +10, Con +8 Skills Athletics +10, Perception +4 Damage Resistances cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks Damage Immunities poison Condition Immunities charmed, exhaustion, frightened, poisoned Senses darkvision 120 ft., passive Perception 14 Languages Abyssal, telepathy 120 ft. Challenge 11 (7,200 XP) Proficiency Bonus +4 Magic Resistance. The degloth has advantage on saving throws against spells and other magical effects. Actions Multiattack. The degloth makes two Razor Fist attacks. Razor Fist. Melee Weapon Attack: +10 to hit, reach 10 ft., one target. Hit: 17 (2d10 + 6) slashing damage, and if the target is a Medium or smaller creature, the target has the grappled condition (escape DC 18). Until this grapple ends, the target has the restrained condition, and the degloth can’t use this fist to grapple another target. The degloth has two fists. Bonus Actions Crush. The degloth targets one creature currently grappled by it. The target must make a DC 18 Strength saving throw, taking 15 (2d8 + 6) bludgeoning damage on a failed save or half as much damage on a successful one. Eye Monger Shawn Wood Eye mongers often reveal their true nature right before devouring their prey Eye mongers are hulking, monocular horrors with toothy jaws, typically found in Wildspace on the Astral Plane. When an eye monger’s large eye and mouth are closed, it looks like nothing more than a 12-foot-diameter asteroid. When it senses vibrations in the space around it, the eye monger opens its eye and reveals its true, menacing nature. Magic is suppressed inside an eye monger’s gullet, which prevents swallowed creatures from using magic to escape. Eye Monger Large Aberration, Typically Lawful Evil Armor Class 17 (natural armor) Hit Points 149 (13d10 + 78) Speed 0 ft., fly 20 ft. (hover) STR 21 (+5) DEX 6 (−2) CON 23 (+6) INT 7 (−2) WIS 13 (+1) CHA 7 (−2) Senses blindsight 120 ft. while the eye monger’s eye is closed, darkvision 120 ft., passive Perception 11 Languages Deep Speech Challenge 10 (5,900 XP) Proficiency Bonus +4 Antimagic Gullet. Magical effects, including those produced by spells and magic items but excluding those created by artifacts or deities, are suppressed inside the eye monger’s gullet. Any spell slot or charge expended by a creature in the gullet to cast a spell or activate a property of a magic item is wasted. While an effect is suppressed, it doesn’t function, but the time it spends suppressed counts against its duration. No spell or magical effect that originates outside the eye monger’s gullet, except one created by an artifact or a deity, can affect a creature or an object inside the gullet. False Appearance. If the eye monger is motionless and has its eye and mouth closed at the start of combat, it has advantage on its initiative roll. Moreover, if a creature hasn’t observed the eye monger move or act, that creature must succeed on a DC 18 Intelligence (Investigation) check to discern that the eye monger is animate. Actions Bite. Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) piercing damage, and if the target is a Medium or smaller creature, it must succeed on a DC 18 Dexterity saving throw or be swallowed by the eye monger and deposited in the eye monger’s gullet (see Antimagic Gullet). The eye monger can swallow one creature at a time. A swallowed creature has the blinded and restrained conditions, has total cover against attacks and other effects originating outside the eye monger, and takes 35 (10d6) acid damage at the start of each of its turns. If the eye monger takes 25 damage or more on a single turn from a creature inside its gullet, the eye monger regurgitates the swallowed creature, which lands in a space within 10 feet of the eye monger and has the prone condition. If the eye monger dies, a swallowed creature is no longer restrained by it and can escape from the corpse by using 10 feet of movement, exiting with the prone condition. False Lich Occasionally, liches create nefarious magical copies of themselves to fool enemies, to guard treasure, or for other inscrutable reasons. To create a false lich, a lich binds a shred of its life force to a corpse in a profane ritual. This transforms the corpse into a near-identical copy of the lich with immense necrotic power and some of its creator’s arcane prowess. The creator then embeds enchanted gemstones into the corpse’s eye sockets; the gems allow the false lich to trap creatures’ souls and transfer the souls to its creator. A false lich often gradually gains a sense of self-identity. While many false liches remain steadfastly loyal to their creators, others resent their creators for imprisoning and abandoning them. False Lich Medium Undead, Typically Neutral Evil Armor Class 18 (natural armor) Hit Points 199 (21d8 + 105) Speed 30 ft. STR 10 (+0) DEX 16 (+3) CON 20 (+5) INT 25 (+7) WIS 19 (+4) CHA 15 (+2) Saving Throws Con +12, Int +14, Wis +11, Cha +9 Damage Immunities necrotic, poison, psychic; bludgeoning, piercing, and slashing from nonmagical attacks Condition Immunities charmed, exhaustion, frightened, paralyzed, poisoned, stunned Senses truesight 60 ft., passive Perception 14 Languages Abyssal, Common, Draconic, Dwarvish, Elvish, Giant, Infernal, Primordial, Undercommon Challenge 21 (33,000 XP) Proficiency Bonus +7 Legendary Resistance (3/Day). If the false lich fails a saving throw, it can choose to succeed instead. Magic Resistance. The false lich has advantage on saving throws against spells and magical effects. Actions Multiattack. The false lich makes two Death Rend attacks and uses Bloodcurdling Lament if available. Death Rend. Melee Spell Attack: +14 to hit, reach 5 ft., one target. Hit: 23 (3d10 + 7) necrotic damage. Bloodcurdling Lament (Recharge 5–6). The false lich emits a hideous shriek charged with malignant energy. Each creature within 30 feet of the false lich must succeed on a DC 22 Wisdom saving throw or have the frightened condition for 1 minute. While frightened in this way, a creature also has the unconscious condition. An affected creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Spellcasting. The false lich casts one of the following spells, requiring no material components and using Intelligence as the spellcasting ability (spell save DC 22): At will: Detect Magic, Fly, Mage Hand, Prestidigitation 3/day each: Dispel Magic, Invisibility (self only) 1/day each: Globe of Invulnerability, Hold Monster Bonus Actions Soul Siphon. The false lich targets one creature it can see within 120 feet of itself. The target must make a DC 22 Charisma saving throw; if the target has the unconscious condition, it has disadvantage on this saving throw. The target takes 21 (6d6) force damage on a failed save or half as much damage on a successful one. The false lich then regains a number of hit points equal to the amount of force damage taken. If this damage reduces the target to 0 hit points, the target immediately dies, its body disappears, and its soul is trapped inside one of the soul gems within the false lich’s skull. After 24 hours, the gem transfers the soul to the false lich’s creator. When the false lich is reduced to 0 hit points, it is destroyed and disintegrates, leaving behind the gems. Crushing a gem releases any souls trapped within, at which point the soul’s body re-forms in an unoccupied space nearest to the gem and in the same state as it was when its soul was trapped. Legendary Actions The false lich can take 3 legendary actions, choosing from the options below. It can take only one legendary action at a time and only at the end of another creature’s turn. The false lich regains spent legendary actions at the start of its turn. Spiteful Teleport. The false lich, along with anything it is wearing or carrying, teleports to an unoccupied space it can see within 60 feet of itself. It then makes one Death Rend attack if possible. Cast a Spell (Costs 2 Actions). The false lich uses Spellcasting. David Auden nash Granite Juggernaut A granite juggernaut is a lumbering Construct that can be found trundling across battlefields and down dungeon corridors. Granite juggernauts have dense, boxy bodies atop massive rollers they use for locomotion. Their fronts and rollers are often adorned with fearsome heads, such as those of enraged rhinos. Granite juggernauts are found on many worlds and typically are used to protect high-value locations. “If you’re close enough to see the expression carved onto a granite juggernaut’s face, you’re as good as dead.” —Teythorn, Oerthian adventurer Granite Juggernaut Large Construct, Unaligned Armor Class 14 (natural armor) Hit Points 157 (15d10 + 75) Speed 30 ft. in a straight line STR 23 (+6) DEX 1 (−5) CON 20 (+5) INT 2 (−4) WIS 11 (+0) CHA 3 (−4) Damage Immunities poison, psychic; bludgeoning, piercing, and slashing from nonmagical attacks that aren’t adamantine Condition Immunities charmed, exhaustion, frightened, paralyzed, petrified, poisoned, prone Senses blindsight 120 ft., passive Perception 10 Languages — Challenge 12 (8,400 XP) Proficiency Bonus +4 Magic Resistance. The juggernaut has advantage on saving throws against spells and other magical effects. Siege Monster. The juggernaut deals double damage to objects and structures. Actions Slam. Melee Weapon Attack: +10 to hit, reach 5 ft., one target. Hit: 11 (1d10 + 6) bludgeoning damage, and if the target is a Large or smaller creature, it must succeed on a DC 18 Strength saving throw or have the prone condition. Bonus Actions Devastating Roll. The juggernaut moves up to its speed. During this movement, the juggernaut can move through the spaces of creatures with the prone condition. When the juggernaut enters the space of a prone creature for the first time during this movement, the creature must make a DC 18 Dexterity saving throw, taking 55 (10d10) bludgeoning damage on a failed save or half as much damage on a successful one. Dawn Carlos Hazvongel Avian demons called hazvongels haunt the windswept skies of Pandemonium, preying on lost and weary travelers. Hazvongels resemble enormous, crimson crows with tattered feathers and a dozen legs. Their wings constantly drip blood, which they gather in their many talons and fling in a gruesome rain. Brynn Metheney Hazvongels sometimes soar in the skies of the Abyss, where they originate, but they migrate to and from Pandemonium throughout their existence. More powerful demons, especially the demon lord Pazuzu, use hazvongels as scouts, but hazvongels’ wanderlust makes them ill-suited for extended missions. “They make excellent scouts and are capable aerial attackers, but their attention span is frustratingly wanting.” —The demon lord Pazuzu Hazvongel Huge Fiend (Demon), Typically Chaotic Evil Armor Class 17 (natural armor) Hit Points 237 (25d12 + 75) Speed 20 ft., fly 60 ft. STR 21 (+5) DEX 20 (+5) CON 16 (+3) INT 12 (+1) WIS 15 (+2) CHA 11 (+0) Saving Throws Con +8, Wis +7 Skills Perception +7 Damage Resistances cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks Damage Immunities poison Condition Immunities exhaustion, poisoned Senses blindsight 60 ft., darkvision 120 ft., passive Perception 17 Languages Abyssal, telepathy 120 ft. Challenge 14 (11,500 XP) Proficiency Bonus +5 Magic Resistance. The hazvongel has advantage on saving throws against spells and other magical effects. Actions Multiattack. The hazvongel makes three Talon attacks. Talon. Melee Weapon Attack: +10 to hit, reach 15 ft., one target. Hit: 18 (3d8 + 5) piercing damage. Blood Barrage (Recharge 5–6). The hazvongel launches a spray of blood in a 90-foot cone. Each creature in that area must make a DC 18 Dexterity saving throw, taking 27 (6d8) necrotic damage on a failed save or half as much damage on a successful one. Hertilod When a dead god is left adrift in the Astral Sea, its corpse sometimes spawns a parasitic monster known as a hertilod. Voracious and terrifying, a hertilod resembles a skinless, serpentine lizard, with sharp claws and a gaping maw that drips venom. A hertilod’s gruesomely exposed muscle renders it susceptible to lightning. “They ain’t dragons. They ain’t lizards. Oh no, they’re much worse.” —Melthena Vellaine, wizard and spelljammer Hertilod Huge Monstrosity, Unaligned Armor Class 14 Hit Points 241 (21d12 + 105) Speed 50 ft., climb 50 ft. STR 23 (+6) DEX 18 (+4) CON 20 (+5) INT 3 (−4) WIS 15 (+2) CHA 10 (+0) Saving Throws Str +12, Dex +10 Skills Perception +8 Damage Resistances necrotic; bludgeoning, piercing, and slashing from nonmagical attacks Damage Immunities poison Condition Immunities poisoned Senses blindsight 30 ft., tremorsense 60 ft., passive Perception 18 Languages — Challenge 17 (18,000 XP) Proficiency Bonus +6 Legendary Resistances (3/Day). If the hertilod fails a saving throw, it can choose to succeed instead. Magic Resistance. The hertilod has advantage on saving throws against spells and other magical effects. Shock Susceptibility. If the hertilod takes lightning damage, its speed is halved until the end of its next turn, and it must succeed on a DC 15 Constitution saving throw or immediately regurgitate all swallowed creatures, each of which lands in a space within 10 feet of the hertilod and has the prone condition. Spider Climb. The hertilod can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Actions Multiattack. The hertilod makes one Bite attack and two Claw attacks. Bite. Melee Weapon Attack: +12 to hit, reach 10 ft., one target. Hit: 15 (2d8 + 6) piercing damage plus 13 (2d12) poison damage. If the target is a Large or smaller creature, it must succeed on a DC 20 Strength saving throw or be swallowed by the hertilod. A swallowed creature has the blinded and restrained conditions, and it has total cover against attacks and other effects outside the hertilod. At the start of each of the hertilod’s turns, each swallowed creature takes 13 (2d12) poison damage from the poisonous secretion in the hertilod’s gullet. The hertilod’s gullet can hold up to two creatures at a time. If the hertilod takes 40 damage or more on a single turn from a swallowed creature, the hertilod must succeed on a DC 15 Constitution saving throw at the end of that turn or regurgitate all swallowed creatures, each of which lands in a space within 10 feet of the hertilod and has the prone condition. If the hertilod dies, a swallowed creature is no longer restrained and can escape from the corpse by using 10 feet of movement, exiting with the prone condition. Claw. Melee Weapon Attack: +12 to hit, reach 5 ft., one target. Hit: 17 (2d10 + 6) slashing damage. Legendary Actions The hertilod can take 3 legendary actions, choosing from the options below. It can take only one legendary action at a time and only at the end of another creature’s turn. The hertilod regains spent legendary actions at the start of its turn. Sprint. The hertilod moves up to its speed. This movement doesn’t provoke opportunity attacks. Feed (Costs 2 Actions). The hertilod drains life from the creatures in its gullet to bolster itself. Each creature in the hertilod’s gullet takes 10 (3d6) necrotic damage, and the hertilod regains a number of hit points equal to the damage. Brian Valeza Inquisitor of the Tome The Ulmist Inquisition is an order of inquisitors in the Domain of Dread known as Barovia that seeks to discover the origins of evil within people’s hearts. The order’s founder, Ulmed, once hunted monsters alongside a then-mortal Count Strahd von Zarovich. When the priests of Osybus corrupted Strahd, Ulmed forsook the vampire and refocused the inquisition’s mission. Instead of just hunting monsters, the order now also hunts the seeds of evil that spawn corruption in the first place. Cultists like the priests of Osybus are the inquisition’s primary targets, but the inquisitors’ zealous and sometimes brutal methods inspire terror in many communities throughout the multiverse. Each Ulmist inquisitor belongs to one of three orders that harness the power of psionics, strength, or intellect, respectively, to achieve the inquisition’s goals. Members of the Order of Tristian, which is represented by a tome, endeavor to use knowledge and cunning to alter their surroundings and defeat their foes. Inquisitor of the Tome Medium Humanoid, Any Alignment Armor Class 11 (14 with Mage Armor) Hit Points 77 (14d8 + 14) Speed 30 ft. STR 10 (+0) DEX 12 (+1) CON 12 (+1) INT 19 (+4) WIS 16 (+3) CHA 15 (+2) Saving Throws Int +7, Wis +6, Cha +5 Skills Arcana +10, History +7, Nature +7, Religion +10 Condition Immunities charmed, frightened Senses truesight 30 ft., passive Perception 13 Languages any four languages, telepathy 120 ft. Challenge 8 (3,900 XP) Proficiency Bonus +3 Actions Multiattack. The inquisitor makes two attacks. Silver Longsword. Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) slashing damage, or 9 (1d10 + 4) if used with two hands, plus 18 (4d8) force damage. Force Bolt. Ranged Spell Attack: +7 to hit, range 120 ft., one target. Hit: 22 (4d8 + 4) force damage, and if the target is a Large or smaller creature, the inquisitor can push it up to 10 feet away. Implode (Recharge 4–6). Each creature in a 20-foot-radius sphere centered on a point the inquisitor can see within 120 feet of itself must succeed on a DC 15 Constitution saving throw or take 31 (6d8 + 4) force damage, have the prone condition, and be moved to the unoccupied space closest to the sphere’s center. Large and smaller objects in the sphere that aren’t being worn or carried automatically take the damage and are similarly moved. Innate Spellcasting (Psionics). The inquisitor casts one of the following spells, requiring no spell components and using Intelligence as the spellcasting ability (spell save DC 15): At will: Detect Magic, Dispel Magic, Levitate, Mage Armor, Mage Hand, Sending 1/day each: Otiluke’s Resilient Sphere, Telekinesis Reactions Telekinetic Deflection. In response to being hit by an attack roll, the inquisitor increases its AC by 4 against the attack. If this causes the attack to miss, the attacker is hit by the attack instead. Zuzanna Wuzyk Lunar Dragon Lunar dragons (also known as moon dragons or phase dragons) are capricious, xenophobic creatures that make their lairs by burrowing through rocky terrain. Lunar dragon eggs have stony shells that are pale white to light gray in color. Lunar dragons are alabaster white when they hatch and gradually turn darker as they age. These dragons enjoy depriving other creatures of treasure more than acquiring the treasure themselves. A lunar dragon can become incorporeal, but not to the extent that it can pass through other creatures or solid objects. In this semi-incorporeal state, roughly half of the dragon’s body has a dark, spectral form. A Lunar Dragon’s Lair The cave complex where a lunar dragon makes its lair contains ample space for food, as well as one or more hidden chambers where the dragon keeps its treasure. Depending on the composition and features of the cave, the lair might contain natural springs and heat vents, wild gardens, crystal formations, magical phenomena, or an ecosystem of lesser life forms that have adapted to living with the dragon. Regional Effects The region containing an adult lunar dragon’s lair is warped by the dragon’s magic, which produces one or more of the following effects: Black Frost. A thin layer of black frost covers the ground, which kills all ordinary plants growing within 3 miles of the lair. Haunting Moan. A haunting sound gets louder or fainter (dragon’s choice) the closer one gets to the lair. The moan is audible 3 miles from the lair. Moon Devils. Swirling funnels of dust and frost known as moon devils crisscross the area within 1 mile of the lair, intercepting other creatures they encounter. A moon devil is a free-willed air elemental that deals cold damage instead of bludgeoning damage. If the dragon dies, the moaning stops; the moon devils dissipate; and the black frost disappears over the course of 1d10 days, allowing plant life in the area to recover. Adult Lunar Dragon Huge Dragon, Typically Neutral Evil Armor Class 17 (natural armor) Hit Points 172 (15d12 + 75) Speed 40 ft., burrow 20 ft., fly 80 ft. STR 23 (+6) DEX 12 (+1) CON 20 (+5) INT 10 (+0) WIS 13 (+1) CHA 15 (+2) Saving Throws Con +10, Wis +6 Skills Perception +11, Stealth +11 Damage Immunities cold Senses darkvision 240 ft., passive Perception 21 Languages Draconic Challenge 13 (10,000 XP) Proficiency Bonus +5 Legendary Resistance (2/Day). If the dragon fails a saving throw, it can choose to succeed instead. Tunneler. The dragon can burrow through solid rock at half its burrowing speed and leaves a 15-foot-diameter tunnel in its wake. Actions Multiattack. The dragon makes one Bite attack and two Claw attacks. Bite. Melee Weapon Attack: +11 to hit, reach 10 ft., one target. Hit: 13 (2d6 + 6) piercing damage plus 3 (1d6) cold damage. Claw. Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 13 (2d6 + 6) slashing damage. Tail. Melee Weapon Attack: +11 to hit, reach 15 ft., one target. Hit: 13 (2d6 + 6) bludgeoning damage. Cold Breath (Recharge 5–6). The dragon exhales a blast of frost in a 60-foot cone. Each creature in that area must make a DC 18 Constitution saving throw. On a failed save, the creature takes 36 (8d8) cold damage, and its speed is reduced to 0 until the end of its next turn. On a successful save, the creature takes half as much damage only. Bonus Actions Phase (3/Day). The dragon becomes partially incorporeal for as long as it maintains concentration on the effect (as if concentrating on a spell). While partially incorporeal, the dragon has resistance to bludgeoning, piercing, and slashing damage. Legendary Actions The dragon can take 2 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature’s turn. The dragon regains spent legendary actions at the start of its turn. Tail Attack. The dragon makes one Tail attack. Treacherous Ice. Magical ice covers the ground in a 20-foot radius centered on a point the dragon can see within 120 feet of itself. The ice, which is difficult terrain for all creatures except lunar dragons, lasts for 10 minutes or until the dragon uses this legendary action again. Mirror Shade When the spirit of a malevolent trickster or callous rogue refuses to enter the afterlife, the spirit sometimes becomes a mirror shade instead. Mirror shades are incorporeal Undead that, in their true forms, look like person-shaped blobs of shining light. More often, though, mirror shades are encountered on reflective surfaces such as mirrors or panes of glass. There, they blend in seamlessly with their reflected surroundings and wait until the moment is right to strike. Mirror shades can be found throughout the multiverse but are particularly common in the Outer Planes. “She was great at picking locks but had a terrible cruel streak. When the cloaker got her, we were glad we’d never see her again—then, to our horror, we did.” —Hopewell Lightfinger, Sword Coast adventurer Mirror Shade Medium Undead, Typically Chaotic Evil Armor Class 13 Hit Points 91 (14d8 + 28) Speed 40 ft. STR 8 (−1) DEX 17 (+3) CON 14 (+2) INT 10 (+0) WIS 13 (+1) CHA 18 (+4) Saving Throws Dex +7, Wis +5 Skills Deception +8, Stealth +7 Damage Resistances acid, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks Damage Immunities poison, psychic, radiant Condition Immunities blinded, exhaustion, frightened, grappled, paralyzed, petrified, poisoned, prone, restrained Senses darkvision 60 ft., passive Perception 11 Languages — Challenge 10 (5,900 XP) Proficiency Bonus +4 False Appearance. If the mirror shade is within 5 feet of a reflective surface—such as a mirror, glass pane, or still water—it has advantage on its initiative roll. If a creature hasn’t observed the mirror shade move or act, that creature must succeed on a DC 18 Intelligence (Investigation) check to discern that the mirror shade isn’t the creature’s own reflection. Mirror Movement. The mirror shade can move along the surface of reflective or translucent objects, such as mirrors, without provoking opportunity attacks. It can move through translucent objects as if they were difficult terrain. Actions Multiattack. The mirror shade makes two Phantasmal Strike attacks and uses Reflect Fear. Phantasmal Strike. Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 7 (1d8 + 3) radiant damage plus 7 (2d6) psychic damage. Reflect Fear. The mirror shade targets one creature it can see within 60 feet of itself and projects an illusion of that creature’s greatest fear. The target must make a DC 16 Wisdom saving throw. On a failed save, the target takes 28 (8d6) psychic damage and has the frightened condition until the start of the mirror shade’s next turn. On a successful save, the target takes half as much damage only. Bonus Actions Mirror Stealth. While within 5 feet of a reflective surface, such as a mirror, the mirror shade takes the Hide action. Zuzanna Wuzyk Moonlight Guardian Moonlight guardians are gleaming bipedal statues made of silver and mithral. They were originally created by a desperate mage on Krynn who drew the Moon card from a Deck of Many Things. The mage wished for a retinue of bodyguards ideally suited to fighting lycanthropes and other shapeshifting creatures. In response, the Moon card spawned the first moonlight guardian. A moonlight guardian’s body is infused with magical moonlight that the creature can channel into its blows. It can also unleash searing blasts of lunar energy that can expose shapeshifters by forcing them into their true forms. “Thought it was a person at first,but then I saw its head. Next, its arm.I knew I had to run.” —Werthil, kender adventurer Moonlight Guardian Medium Construct, Unaligned Armor Class 16 (natural armor) Hit Points 105 (14d8 + 42) Speed 30 ft. STR 19 (+4) DEX 9 (−1) CON 16 (+3) INT 6 (−2) WIS 12 (+1) CHA 6 (−2) Damage Resistances bludgeoning, piercing, and slashing from nonmagical attacks Damage Immunities poison, radiant Condition Immunities charmed, exhaustion, frightened, paralyzed, petrified, poisoned Senses truesight 120 ft., passive Perception 11 Languages understands the languages of its creator but can’t speak Challenge 6 (2,300 XP) Proficiency Bonus +3 Immutable Form. The guardian is immune to any spell or other effect that would alter its form. Magic Resistance. The guardian has advantage on saving throws against spells and other magical effects. Radiant Absorption. Whenever the guardian is subjected to radiant damage, it takes no damage and instead regains a number of hit points equal to the radiant damage. Actions Multiattack. The guardian makes two Moonlight Slam attacks. Moonlight Slam. Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 8 (1d8 + 4) bludgeoning damage plus 4 (1d8) radiant damage. Moonlight Blast (Recharge 5–6). The guardian unleashes a magical blast of moonlight in a line 60 feet long and 5 feet wide. Each creature in that area must make a DC 14 Dexterity saving throw. Creatures that aren’t in their true form have disadvantage on the save. On a failed save, a creature takes 22 (5d8) radiant damage, and if it isn’t in its true form, it is forced into its true form and can’t change forms until the end of the guardian’s next turn. On a successful save, a creature takes half as much damage only. Nikki Dawes Necromancer Wizard Spellcasters across the multiverse pursue magical power through the study of arcane texts. Some travel the world searching for esoteric tomes, while others train less experienced wizards or collaborate with colleagues to create new spells. Necromancers study the interaction of life, death, and undeath. Some necromancers dig up or purchase corpses to create Undead servitors. A few instead use their powers for good, hunting Undead. “Life and death is a fascinating cycle, don’t you think? So many secrets to uncover. So much power to be had—as long as one has a strong stomach.” —Renaudon Vollmer, necromancer in training Necromancer Wizard Medium Humanoid, Any Alignment Armor Class 12 (15 with Mage Armor) Hit Points 110 (20d8 + 20) Speed 30 ft. STR 9 (−1) DEX 14 (+2) CON 12 (+1) INT 17 (+3) WIS 12 (+1) CHA 11 (+0) Saving Throws Int +7, Wis +5 Skills Arcana +7, History +7 Damage Resistances necrotic Senses passive Perception 11 Languages any four languages Challenge 9 (5,000 XP) Proficiency Bonus +4 Actions Multiattack. The necromancer makes three Arcane Burst attacks. Arcane Burst. Melee or Ranged Spell Attack: +7 to hit, reach 5 ft. or range 120 ft., one target. Hit: 25 (4d10 + 3) necrotic damage. Spellcasting. The necromancer casts one of the following spells, using Intelligence as the spellcasting ability (spell save DC 15): At will: Dancing Lights, Mage Hand, Prestidigitation 2/day each: Bestow Curse, Dimension Door, Mage Armor, Web 1/day: Circle of Death Bonus Actions Summon Undead (1/Day). The necromancer magically summons five skeletons or zombies. The summoned creatures appear in unoccupied spaces within 60 feet of the necromancer, whom they obey. They take their turns immediately after the necromancer. Each lasts for 1 hour, until it or the necromancer dies, or until the necromancer dismisses it as a bonus action. Reactions Grim Harvest. When the necromancer kills a creature with necrotic damage, the necromancer regains 9 (2d8) hit points. Nikki Dawes Night Scavver Scavvers are sharklike scavengers that fly through space, primarily on the Astral Plane, and feed on whatever they can fit in their mouths. Scavvers aren’t always aggressive; they live primarily on waste and discarded refuse, often trailing behind larger creatures, ships, and asteroids. Night scavvers are 15 feet long. Their coloration resembles that of Wildspace itself: white spots like stars sprinkled amid dark patches and patterns of color. Cooked night scavver meat is a popular offering in taverns across Wildspace. Night Scavver Huge Monstrosity, Unaligned Armor Class 14 (natural armor) Hit Points 114 (12d12 + 36) Speed 0 ft., fly 40 ft. STR 20 (+5) DEX 15 (+2) CON 17 (+3) INT 1 (−5) WIS 10 (+0) CHA 1 (−5) Skills Perception +6, Stealth +8 Senses darkvision 120 ft., passive Perception 16 Languages — Challenge 5 (1,800 XP) Proficiency Bonus +3 Actions Bite. Melee Weapon Attack: +8 to hit (with advantage if the target is a creature that is missing any hit points), reach 10 ft., one target. Hit: 27 (4d10 + 5) piercing damage. Jessica Nguyen Priest of Osybus The priests of Osybus are necromancers in the Domain of Dread known as Barovia who once venerated—and then were betrayed by—a lich of unfathomable ambition and power. The priests steal the souls of others to fuel their wicked magic. A priest of Osybus contains this soul power in shadowy tattoos, which the priest can draw on to defy death and become an Undead monster. Though formidable, the priests of Osybus aren’t truly immortal, a fact that chafes them greatly. They have forged a pact with the Dark Powers that will grant them immortality if they free Count Strahd von Zarovich from the Mists that imprison him. To achieve this goal, they orchestrate far-reaching and complex machinations that are virtually inscrutable to all but their archenemies, the Ulmist inquisitors. Boons of Undeath When a priest of Osybus drops to 0 hit points, the priest might revive with a benefit from the Boons of Undeath table below. Before adventurers face a priest of Osybus, you can decide that the priest has revived with one or more of these boons of your choice. If you do so, the priest is Undead rather than Humanoid. A priest can receive each boon only once. Boons of Undeath d6 Boon 1 Dread. Eerie whispers can be heard around the priest. Any non-Undead creature that starts its turn within 30 feet of the priest must succeed on a DC 15 Wisdom saving throw or have the frightened condition until the start of the creature’s next turn. 2 Ectoplasmic. Otherworldly slime drips off the priest and fades away moments later, leaving a greenish stain. When any creature starts its turn within 10 feet of the priest, the priest can reduce that creature’s speed by 10 feet until the start of the creature’s next turn, until which the creature is covered in slime. In addition, as an action, the priest can use the slime covering its own body to make itself look and feel like any creature that is Medium or Small while retaining its own game statistics. This transformation lasts for 8 hours or until the priest drops to 0 hit points. 3 Vampiric. When the priest deals necrotic damage to any creature, the priest gains a number of temporary hit points equal to half that necrotic damage. The priest’s speed also increases by 10 feet. 4 Blazing. The priest’s flesh sloughs off, and its skeleton crumbles away, leaving only its skull. It uses the flameskull stat block, but it retains its Tattoo of Osybus trait, and all fire damage it deals becomes necrotic damage. The tattoo of Osybus is carved into the skull’s forehead. 5 Spectral. The priest appears wraithlike, and its challenge rating increases by 1. It gains resistance to all damage except force, radiant, and psychic damage, and it is vulnerable to radiant damage. It can also move through creatures and objects as if they were difficult terrain, but it takes 5 (1d10) force damage if it ends its turn inside a creature or an object. 6 Deathly. The priest’s visage becomes bone white, and its challenge rating increases by 1. It can cast Animate Dead and Create Undead once per day each, using Intelligence as the spellcasting ability, and it gains the following action: Circle of Death (Spell; Recharge 5–6). Each creature in a 60-foot-radius sphere centered on a point the priest can see within 150 feet of itself must make a DC 15 Constitution saving throw, taking 28 (8d6) necrotic damage on a failed save or half as much damage on a successful one. Priest of Osybus Medium Humanoid, Any Alignment Armor Class 14 (natural armor) Hit Points 60 (8d8 + 24) Speed 30 ft. STR 10 (+0) DEX 14 (+2) CON 16 (+3) INT 18 (+4) WIS 17 (+3) CHA 11 (+0) Saving Throws Int +7, Wis +6, Cha +3 Condition Immunities frightened Senses darkvision 120 ft., passive Perception 13 Languages any three languages Challenge 6 (2,300 XP) Proficiency Bonus +3 Tattoo of Osybus. If the priest drops to 0 hit points, roll on the Boons of Undeath table for the boon the priest receives. The priest dies if it receives a boon it already has. If it receives a new boon, it revives at the start of its next turn with half its hit points restored, and its creature type is now Undead. To prevent this revival, the tattoo of Osybus on the priest’s body must be destroyed. The tattoo is invulnerable while the priest has at least 1 hit point. The tattoo is otherwise an object with AC 15, 15 hp, and immunity to poison and psychic damage. It regains all its hit points at the end of every combatant’s turn. Actions Multiattack. The priest makes two attacks. Soul Blade. Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 7 (2d4 + 2) piercing damage, and if the target is a creature, it has the paralyzed condition until the start of the priest’s next turn. If this damage reduces a Medium or smaller creature to 0 hit points, the creature dies, and its soul is trapped in the priest’s body, manifesting as a shadowy Soul Tattoo on the priest. The soul is freed if the priest dies. Necrotic Bolt. Ranged Spell Attack: +7 to hit, range 120 ft., one target. Hit: 17 (3d8 + 4) necrotic damage, and the target can’t regain hit points until the start of the priest’s next turn. Bonus Actions Soul Tattoo (Recharge 5–6). The priest touches one of the Soul Tattoos on its body. The tattoo vanishes as the trapped soul manifests as a shadowy creature that appears in an unoccupied space the priest can see within 30 feet of itself. The creature has the size and silhouette of its original body, but it otherwise uses the stat block of a shadow. The shadow obeys the priest’s mental commands (no action required) and takes its turn immediately after the priest. If the shadow is within 5 feet of the priest, it can take an action to reappear on the priest’s flesh, regaining all its hit points. Olly Lawson Relentless Impaler Zuzanna Wuzyk In the Domains of Dread, practitioners of foul magic perform a profane ritual that turns living creatures into fiendish killers. This ritual necessitates the use of a ceremonial stake, which is plunged into the heart of a living sacrifice. The hulking form of the relentless impaler then emerges from the sacrifice’s pool of blood, spear in hand. A relentless impaler is bound to the creature that wielded the ceremonial stake in the ritual that birthed it. As long as the original stake remains lodged in the heart of the ritual victim, the impaler can return over and over again to regenerate beside the victim’s body, no matter how many times it is destroyed. The impaler pursues its creator’s agenda coldly and efficiently. It has no concern for its own self-preservation, knowing that, for itself at least, death isn’t the end. Relentless Impaler Large Fiend, Typically Neutral Evil Armor Class 16 (natural armor) Hit Points 184 (16d10 + 96) Speed 30 ft. STR 23 (+6) DEX 16 (+3) CON 22 (+6) INT 12 (+1) WIS 15 (+2) CHA 18 (+4) Saving Throws Str +11, Dex +8, Cha +9 Skills Athletics +11, Perception +7, Survival +7 Condition Immunities charmed, exhaustion, frightened Senses darkvision 120 ft., passive Perception 17 Languages understands all languages but can’t speak Challenge 15 (11,500 XP) Proficiency Bonus +5 Bloodheart Stake. The impaler is magically bound to the ceremonial stake and the sacrificed corpse the ritual caster used to create it. If the impaler is reduced to 0 hit points, it disappears, then re-forms 1d8 hours later in the nearest unoccupied space to the stake and regains all its hit points. The impaler dies only if it is reduced to 0 hit points while either the ceremonial stake is removed from the sacrifice’s corpse or the impaler is on a different plane of existence from that corpse. Legendary Resistance (3/Day). If the impaler fails a saving throw, it can choose to succeed instead. Actions Multiattack. The impaler makes one Spike attack and two Wicked Spear attacks. Spike. Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 15 (2d8 + 6) piercing damage, and the target’s speed is halved until the start of the impaler’s next turn. Wicked Spear. Melee or Ranged Weapon Attack: +11 to hit, reach 10 ft. or range 20/40 ft., one target. Hit: 13 (2d6 + 6) piercing damage plus 13 (3d8) necrotic damage. Spike Burst (Recharge 5–6). Twisted, spectral spikes shoot out from the impaler’s body. Each creature within 30 feet of the impaler must make a DC 19 Dexterity saving throw, taking 40 (9d8) force damage on a failed save or half as much damage on a successful one. Legendary Actions The impaler can take 3 legendary actions, choosing from the options below. Only one legendary action option can be used at a time and only at the end of another creature’s turn. The impaler regains spent legendary actions at the start of its turn. Speed Spike. The impaler teleports up to 30 feet to an unoccupied space it can see. It can then make a Spike attack. Deepen Wounds (Costs 2 Actions). Each creature whose speed is currently reduced by the impaler’s Spike attack takes 18 (4d8) necrotic damage. Sorrowsworn Sorrowsworn embody the forms of suffering inherent to the Shadowfell and visit horror on those who stumble into their midst. Lonely Sorrowsworn The sorrow of isolation afflicts many creatures in the Shadowfell, but it manifests dramatically in lonely sorrowsworn. When these sorrowsworn spot other creatures, they seek to drag the creatures closer to ease their own sense of isolation. Dawn Carlos Lonely Sorrowsworn Medium Monstrosity, Typically Neutral Evil Armor Class 16 (natural armor) Hit Points 112 (15d8 + 45) Speed 30 ft. STR 16 (+3) DEX 12 (+1) CON 17 (+3) INT 6 (−2) WIS 11 (+0) CHA 6 (−2) Damage Resistances bludgeoning, piercing, and slashing while in dim light or darkness Senses darkvision 60 ft., passive Perception 10 Languages Common Challenge 9 (5,000 XP) Proficiency Bonus +4 Psychic Leech. At the start of each of the sorrowsworn’s turns, each creature within 5 feet of it must succeed on a DC 15 Wisdom saving throw or take 10 (3d6) psychic damage. Thrives on Company. The sorrowsworn has advantage on attack rolls while it is within 30 feet of at least two other creatures. It otherwise has disadvantage on attack rolls. Actions Multiattack. The sorrowsworn makes one Harpoon Arm attack, and it uses Sorrowful Embrace. Harpoon Arm. Melee Weapon Attack: +7 to hit, reach 60 ft., one target. Hit: 21 (4d8 + 3) piercing damage, and the target has the grappled condition (escape DC 15) if it is a Large or smaller creature. The sorrowsworn has two harpoon arms and can grapple up to two creatures at once. Sorrowful Embrace. Each creature grappled by the sorrowsworn must make a DC 15 Wisdom saving throw, taking 18 (4d8) psychic damage on a failed save or half as much damage on a successful one. In either case, the sorrowsworn pulls each of those creatures up to 30 feet straight toward it. Lost Sorrowsworn Lost sorrowsworn are representations of the anxiety and fear people experience when they can’t find their way. These sorrowsworn appear desperate and panicked. Lost sorrowsworn grasp at any creatures they can reach. A victim experiences a flood of panic as its mind fights against the fury of this assault. The more the victim’s allies hurt the sorrowsworn, the more it makes the victim suffer. Lost Sorrowsworn Medium Monstrosity, Typically Neutral Evil Armor Class 15 (natural armor) Hit Points 78 (12d8 + 24) Speed 30 ft. STR 17 (+3) DEX 12 (+1) CON 15 (+2) INT 6 (−2) WIS 7 (−2) CHA 5 (−3) Skills Athletics +6 Damage Resistances bludgeoning, piercing, and slashing while in dim light or darkness Senses darkvision 60 ft., passive Perception 8 Languages Common Challenge 7 (2,900 XP) Proficiency Bonus +3 Actions Multiattack. The sorrowsworn makes two Arm Spike attacks. Arm Spike. Melee Weapon Attack: +6 to hit, reach 10 ft., one target. Hit: 14 (2d10 + 3) piercing damage. Embrace (Recharge 4–6). Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 25 (4d10 + 3) piercing damage, and the target has the grappled condition (escape DC 14) if it is a Medium or smaller creature. Until the grapple ends, the target has the frightened condition, and it takes 27 (6d8) psychic damage at the end of each of its turns. The sorrowsworn can grapple only one creature at a time. Reactions Tightening Embrace. If the sorrowsworn takes damage, the creature grappled by Embrace takes 18 (4d8) psychic damage. Spiderdragon The terrors known as spiderdragons were first found in the deepest corners of the Underdark and trace their origins to black dragon wyrmlings who ate a steady diet of spiders. Though spiderdragons were not created in the Abyss or by Lolth’s faithful, worshipers of the Spider Queen claim that spiderdragons are a gift from their deity, as spiderdragons are most numerous in Underdark areas that Lolth’s faithful claim as their own. Lolth worshipers might employ spiderdragons as guards or treat them as venerated guests. The creatures aren’t as powerful as their black dragon progenitors, though, and they often drain the enclaves’ resources with their selfish demands. Uninterested in building lairs, spiderdragons weave powerful webs and eat an abundance of prey before losing interest in an area and moving on, even when they’re treated like beloved guests. Unlike their black dragon progenitors, spiderdragons aren’t particularly clever, though some of them understand their significance to Lolth worshipers and exploit their positions for as long as possible. Spiderdragon Huge Monstrosity, Typically Chaotic Evil Armor Class 17 (natural armor) Hit Points 152 (16d12 + 48) Speed 50 ft., climb 60 ft. STR 21 (+5) DEX 18 (+4) CON 16 (+3) INT 7 (−2) WIS 14 (+2) CHA 18 (+4) Saving Throws Str +9, Dex +8 Skills Intimidation +8, Perception +6 Damage Resistances poison, psychic Senses darkvision 90 ft., passive Perception 16 Languages Abyssal, Draconic, Undercommon Challenge 11 (7,200 XP) Proficiency Bonus +4 Magic Resistance. The spiderdragon has advantage on saving throws against spells and other magical effects. Spider Climb. The spiderdragon can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Web Walker. The spiderdragon ignores movement restrictions caused by webbing. Actions Multiattack. The spiderdragon makes one Bite attack and two Claw attacks. Bite. Melee Weapon Attack: +9 to hit, reach 10 ft., one target. Hit: 10 (1d10 + 5) piercing damage plus 13 (2d12) poison damage. Claw. Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) slashing damage. Spiderling Breath (Recharge 5–6). The spiderdragon exhales venomous spiderlings in a 30-foot cone. Each creature in that area must make a DC 15 Dexterity saving throw, taking 33 (6d10) piercing damage and 33 (6d10) poison damage on a failed save or half as much damage on a successful one. Bonus Actions Stifling Webs (Recharge 5–6). The spiderdragon spins a 30-foot cube of strong, sticky webbing in an area adjacent to itself. The webbing lasts for 1 minute, is difficult terrain, and lightly obscures its area. A creature that starts its turn in the webbing or enters the webbing for the first time on its turn must succeed on a DC 15 Dexterity saving throw or have the restrained condition while in the web. As an action, a creature can free itself or another creature from the web by succeeding on a DC 15 Strength check. A 5-foot cube of the web is destroyed if it takes at least 10 acid, fire, or slashing damage on a single turn. Brynn Metheney Spyder-Fiends Demonic beasts that combine the worst attributes of wolves and spiders, spyder-fiends scuttle about with bloated, spiderlike bodies and gnash with wolflike heads. Spyder-fiends are usually coated with gore, as brutal killing is their favorite pursuit. They spin durable webs and are ingenious in how they employ their webs against prey. Spyder-fiends are organized into a hierarchy based on might and cunning, with higher-ranked spyder-fiends dominating lower ranks. Spyder-fiends of equivalent rank scheme against each other for advancement and eagerly turn against one another if treachery can improve their position. Spyder-fiends loyally serve their general, Miska the Wolf-Spider. While they were rarely seen during Miska’s imprisonment in Pandemonium, they have become increasingly active as Miska struggles to free himself in Pandesmos. Kakkuu Spyder-Fiend Brynn Metheney Spyder-fiends serve as demonic troops for Miska the Wolf-Spider while Miska attempts to free himself in Pandesmos Resembling enormous spiders, kakkuus are the most numerous and least intelligent spyder-fiends. In large conflicts, they serve as foot soldiers, but they prefer to avoid more powerful Fiends, who boss them around. Left on their own, kakkuus lurk in ambush and use their webs to snare prey. Kakkuu Spyder-Fiend Medium Fiend (Demon), Typically Chaotic Evil Armor Class 15 (natural armor) Hit Points 91 (14d8 + 28) Speed 30 ft., climb 30 ft. STR 17 (+3) DEX 15 (+2) CON 14 (+2) INT 6 (−2) WIS 10 (+0) CHA 10 (+0) Saving Throws Dex +5, Con +5, Wis +3 Skills Perception +3, Stealth +5 Damage Resistances cold, fire, lightning Damage Immunities poison Condition Immunities poisoned Senses darkvision 60 ft., passive Perception 13 Languages understands Abyssal but can’t speak Challenge 5 (1,800 XP) Proficiency Bonus +3 Magic Resistance. The kakkuu has advantage on saving throws against spells and other magical effects. Spider Climb. The kakkuu can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Web Sense. When in contact with a web, the kakkuu knows the exact location of any other creature in contact with the same web. Web Walker. The kakkuu ignores movement restrictions caused by webbing. Actions Multiattack. The kakkuu makes a Web Snare attack, uses Reel, and makes a Bite attack. Bite. Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 14 (2d10 + 3) piercing damage plus 10 (3d6) poison damage. Reel. The kakkuu pulls each creature within 60 feet of itself that is grappled by its Web Snare up to 30 feet straight toward itself. Web Snare. Ranged Weapon Attack: +6 to hit, reach 30/60 ft., one Large or smaller creature. Hit: The target has the grappled condition (escape DC 13). While grappled, the target also has the restrained condition. A web snare grappling a creature can be attacked and destroyed (AC 10; 10 hit points; immunity to bludgeoning, poison, and psychic damage). Phisarazu Spyder-Fiend Phisarazu spyder-fiends have a pair of muscular arms sprouting beneath their wolf heads. They are resentful and suspicious of all other creatures, which makes them useful for corralling kakkuus or standing guard. Phisarazus can magically change their form, but only into shapes that have ten limbs, such as driders and crabs. They use this ability to establish ambushes, infiltrate enemy camps, or appear innocuous while on guard duty. Phisarazu Spyder-Fiend Large Fiend (Demon), Typically Chaotic Evil Armor Class 17 (natural armor) Hit Points 170 (20d10 + 60) Speed 40 ft., climb 40 ft. STR 19 (+4) DEX 14 (+2) CON 17 (+3) INT 11 (+0) WIS 14 (+2) CHA 13 (+1) Saving Throws Dex +7, Con +8, Wis +7 Skills Perception +7, Stealth +7 Damage Resistances cold, fire, lightning; bludgeoning, piercing, and slashing from nonmagical attacks Damage Immunities poison Condition Immunities poisoned Senses truesight 120 ft., passive Perception 17 Languages Abyssal, Common, telepathy 120 ft. Challenge 13 (10,000 XP) Proficiency Bonus +5 Magic Resistance. The phisarazu has advantage on saving throws against spells and other magical effects. Spider Climb. The phisarazu can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Web Sense. When in contact with a web, the phisarazu knows the exact location of any other creature in contact with the same web. Web Walker. The phisarazu ignores movement restrictions caused by webbing. Actions Multiattack. The phisarazu makes one Bite attack and two Claw attacks. It can replace one of these attacks with Scintillating Spray if available. Bite. Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 15 (2d10 + 4) piercing damage plus 9 (2d8) poison damage, and the target has the poisoned condition until the start of the phisarazu’s next turn. Claw. Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 22 (4d8 + 4) slashing damage. Scintillating Spray (Recharge 5–6). The phisarazu expels shimmering webs in a 60-foot cone. Creatures and objects in that area are outlined by the glittering webs for 1 minute, during which time they emit dim light for 10 feet and can’t benefit from the invisible condition. Additionally, creatures in that area must succeed on a DC 16 Wisdom saving throw or have the stunned condition for 1 minute. A stunned creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Bonus Actions Change Shape. The phisarazu transforms into a crab, drider, or giant crab, or returns to its true form. Its game statistics, except for its size, are the same in each form. Any equipment it is wearing or carrying isn’t transformed. Conceptopolis Quavilithku Spyder-Fiend Quavilithku spyder-fiends revel in destruction. Although they like to savage prey with their mangy wolf heads, they delight in destroying structures and art objects—the more beautiful, the better. The arms hanging below their wolf heads are physically frail but useful for employing tools of destruction or sabotage. Quavilithku Spyder-Fiend Large Fiend (Demon), Typically Chaotic Evil Armor Class 19 (natural armor) Hit Points 256 (27d10 + 108) Speed 40 ft., climb 40 ft. STR 18 (+4) DEX 16 (+3) CON 19 (+4) INT 17 (+3) WIS 14 (+2) CHA 12 (+1) Saving Throws Dex +9, Con +10, Wis +8 Skills Investigation +9, Perception +8, Stealth +9 Damage Resistances cold, fire, lightning Damage Immunities acid, poison Condition Immunities poisoned Senses truesight 60 ft., passive Perception 18 Languages Abyssal, Common, telepathy 120 ft. Challenge 17 (18,000 XP) Proficiency Bonus +6 Magic Resistance. The quavilithku has advantage on saving throws against spells and other magical effects. Spider Climb. The quavilithku can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Web Sense. When in contact with a web, the quavilithku knows the exact location of any other creature in contact with the same web. Web Walker. The quavilithku ignores movement restrictions caused by webbing. Actions Multiattack. The quavilithku makes two Bite attacks. Bite. Melee Weapon Attack: +10 to hit, reach 5 ft., one target. Hit: 15 (2d10 + 4) piercing damage plus 17 (5d6) poison damage. If the target is a creature, it must succeed on a DC 18 Constitution saving throw or have the poisoned condition for 1 minute. While poisoned in this way, a creature can’t regain hit points. A poisoned creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Dissolving Web (Recharge 5–6). The quavilithku expels acid-drenched webs in a 90-foot cone. Each creature in that area must make a DC 18 Constitution saving throw, taking 44 (8d10) acid damage on a failed save or half as much damage on a successful one. Nonmagical objects in the area that aren’t being worn or carried take 44 (8d10) acid damage. Bonus Actions Assess Weakness. The quavilithku sizes up a creature it can see within 40 feet of itself. Until the start of the quavilithku’s next turn, it has advantage on attack rolls against the creature. Conceptopolis Raklupis Spyder-Fiend Raklupis spyder-fiends have hard, smooth shells and gleaming spines. With luxuriantly furry wolf heads, powerful arms, and alluring voices, raklupises are the only spyder-fiends that might be called majestic. They create delicate web globes, which they fill with their venom and hurl at foes. Raklupises are keen strategists, and most of them command legions of lesser spyder-fiends. Raklupis Spyder-Fiend Large Fiend (Demon), Typically Chaotic Evil Armor Class 19 (natural armor) Hit Points 210 (28d10 + 56) Speed 40 ft., climb 40 ft. STR 17 (+3) DEX 20 (+5) CON 14 (+2) INT 18 (+4) WIS 16 (+3) CHA 23 (+6) Saving Throws Dex +11, Con +8, Wis +9 Skills Perception +9, Stealth +11 Damage Immunities cold, fire, lightning, poison Condition Immunities poisoned Senses truesight 120 ft., passive Perception 19 Languages Abyssal, Common, telepathy 120 ft. Challenge 19 (22,000 XP) Proficiency Bonus +6 Magic Resistance. The raklupis has advantage on saving throws against spells and other magical effects. Spider Climb. The raklupis can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Web Sense. When in contact with a web, the raklupis knows the exact location of any other creature in contact with the same web. Web Walker. The raklupis ignores movement restrictions caused by webbing. Actions Multiattack. The raklupis makes a Bite attack and two Serrated Sword attacks. It can use Venom Globe in place of one of these attacks. Bite. Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 16 (2d10 + 5) piercing damage plus 18 (4d8) poison damage. If the target is a creature, it must succeed on a DC 20 Constitution saving throw or have the poisoned condition for 1 minute. While poisoned in this way, a creature has the incapacitated condition and can’t regain hit points. A poisoned creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. Serrated Sword. Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 19 (4d6 + 5) slashing damage plus 18 (4d8) poison damage. Venom Globe. Ranged Weapon Attack: +11 to hit, range 60/180 ft., one target. Hit: 45 (10d8) poison damage. Spellcasting. The raklupis casts one of the following spells, requiring no material components and using Charisma as the spellcasting ability (spell save DC 20). At will: Disguise Self, Invisibility (self only), Mage Hand, Minor Illusion 2/day each: Darkness, Dominate Monster, Mass Suggestion, Telekinesis, Teleport Bonus Actions Demand Loyalty. The raklupis magically ends the charmed and frightened conditions on itself and on any number of allies within 60 feet of itself. Conceptopolis Star Angler Distantly related to scavvers, star anglers are astral predators that resemble hulking, golden anglerfish with iridescent fins and tails. A star angler lacks eyes, and its hide is dotted with bioluminescent specks, allowing it to easily blend into the vast expanse of the Astral Plane. A star angler’s signature lure emits an enchanting glow that has pulled many Wildspace explorers to their demises. Star Angler Large Monstrosity, Unaligned Armor Class 15 (natural armor) Hit Points 119 (14d10 + 42) Speed 0 ft., fly 40 ft. STR 21 (+5) DEX 15 (+2) CON 17 (+3) INT 3 (−4) WIS 14 (+2) CHA 6 (−2) Skills Perception +5, Stealth +8 Senses blindsight 120 ft. (can’t see beyond this radius), passive Perception 15 Languages — Challenge 8 (3,900 XP) Proficiency Bonus +3 Avoidance. If the star angler is subjected to an effect that allows it to make a saving throw to take only half damage, it instead takes no damage if it succeeds on the saving throw and only half damage if it fails. Illumination. The star angler’s lure sheds bright light in a 30-foot radius and dim light for an additional 30 feet. Actions Multiattack. The star angler makes three Bite attacks. Bite. Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 16 (2d10 + 5) piercing damage. Bonus Actions Lure Charm. The star angler’s lure flares with enchanting starlight, targeting one creature the star angler can see within 120 feet of itself. The target must succeed on a DC 13 Wisdom saving throw or have the charmed condition until the start of the star angler’s next turn. While charmed in this way, the target has the incapacitated condition and must use its movement on its turn to move directly toward the star angler; a charmed target doesn’t avoid opportunity attacks, but it does avoid damaging terrain. A target can be charmed by only one star angler at a time. Chris Seaman Vlazok Skeletal, quadrupedal horrors, vlazoks are particularly suited to battlefield cleanup in the Outer Planes. They love to stomp across battlefields after the fiercest fighting is over, trampling survivors and crushing pockets of resistance. When vlazoks anticipate an influx of enemies, these demons jump on them from above to crush them. Vlazoks have keen senses, owing to the eyes positioned all around their hideous heads. They easily lose interest in their tasks unless powerful commanders, such as demon lords, keep them in line. Without careful direction, vlazoks become unhinged agents of chaos, smashing through crowds of weaker demons and decimating their ranks with powerful attacks. Vlazok Large Fiend (Demon), Typically Chaotic Evil Armor Class 17 (natural armor) Hit Points 136 (16d10 + 48) Speed 30 ft., climb 30 ft. STR 21 (+5) DEX 18 (+4) CON 16 (+3) INT 6 (−2) WIS 9 (−1) CHA 9 (−1) Saving Throws Str +9, Con +7 Skills Perception +3 Damage Resistances cold, fire, lightning Damage Immunities poison Condition Immunities charmed, exhaustion, frightened, poisoned Senses darkvision 120 ft., passive Perception 13 Languages Abyssal, telepathy 120 ft. Challenge 11 (7,200 XP) Proficiency Bonus +4 All-Around Vision. The vlazok can’t be surprised. Blood Frenzy. The vlazok has advantage on melee attack rolls against any creature that doesn’t have all its hit points. Magic Resistance. The vlazok has advantage on saving throws against spells and other magical effects. Spider Climb. The vlazok can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check. Actions Multiattack. The vlazok makes two Gore attacks. Gore. Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 23 (4d8 + 5) piercing damage, and if the target is a Large or smaller creature, it has the prone condition. Bonus Actions Stomp. Melee Weapon Attack: +9 to hit, reach 5 ft., one prone creature. Hit: 27 (4d10 + 5) bludgeoning damage. Warforged Warrior Warforged warriors are formed from wood and steel, then magically imbued with life and sentience. They were created to fight in the Last War on the continent of Khorvaire in Eberron. In the aftermath of that conflict, they struggle to understand their place in the world. Warforged Warrior Medium Construct, Any Alignment Armor Class 16 (natural armor) Hit Points 30 (4d8 + 12) Speed 30 ft. STR 16 (+3) DEX 12 (+1) CON 16 (+3) INT 10 (+0) WIS 14 (+2) CHA 11 (+0) Skills Athletics +5, Perception +4, Survival +4 Damage Resistances poison Condition Immunities poisoned Senses passive Perception 14 Languages Common Challenge 1 (200 XP) Proficiency Bonus +2 Actions Multiattack. The warforged makes two Armblade attacks. Armblade. Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 6 (1d6 + 3) slashing damage. Javelin. Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 30/120 ft., one target. Hit: 6 (1d6 + 3) piercing damage. Reactions Protection. When an attacker the warforged can see makes an attack roll against a creature within 5 feet of the warforged, the warforged can impose disadvantage on the attack roll. Claudio Pozas Whirling Chandelier Compared to other animated objects, whirling chandeliers seem to have capricious personalities. Victims typically perceive a whirling chandelier’s Blazing Vortex as mischievousness or outright malevolence, though the chandelier lacks any understanding of such concepts. A whirling chandelier makes tactical decisions only as a means to perform its master’s orders to the best of its ability. “The moment I stepped into that cursed house, I knew the owners weren’t just innkeepers, and I knew that wasn’t just a chandelier.” —Samina Crestfarn, Barovian nursemaid Whirling Chandelier Large Construct, Unaligned Armor Class 13 (natural armor) Hit Points 105 (14d10 + 28) Speed 30 ft., fly 30 ft. (hover) STR 18 (+4) DEX 15 (+2) CON 15 (+2) INT 3 (−4) WIS 5 (−3) CHA 1 (−5) Damage Resistances fire Damage Immunities poison, psychic Condition Immunities blinded, charmed, deafened, exhaustion, frightened, paralyzed, petrified, poisoned Senses blindsight 60 ft. (blind beyond this radius), passive Perception 7 Languages understands Common but can’t speak Challenge 8 (3,900 XP) Proficiency Bonus +3 False Appearance. If the chandelier is motionless at the start of combat, it has advantage on its initiative roll. Moreover, if a creature hasn’t observed the chandelier move or act, that creature must succeed on a DC 18 Intelligence (Investigation) check to discern that the chandelier is animate. Fiery Aura. Any creature that starts its turn within 5 feet of the chandelier takes 7 (2d6) fire damage. Actions Multiattack. The chandelier makes three Chain attacks, three Lamp attacks, or a combination thereof. Chain. Melee Weapon Attack: +7 to hit, reach 15 ft., one target. Hit: 13 (2d8 + 4) bludgeoning damage, and the target must succeed on a DC 15 Strength saving throw or be pulled into an unoccupied space within 5 feet of the chandelier. Lamp. Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 9 (2d4 + 4) bludgeoning damage plus 13 (3d8) fire damage. Blazing Vortex (Recharge 5–6). Each creature within 20 feet of the chandelier and not behind total cover must succeed on a DC 14 Constitution saving throw or take 36 (8d8) fire damage and have the blinded condition until the start of the chandelier’s next turn. CoupleofKooks",
+  "proseLength": 104580,
+  "contentHash": "0a8192daeeb60493497a3e5c79681724ce467de12011887ac6e7b416b807205e"
+}
