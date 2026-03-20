@@ -225,8 +225,9 @@ function ChapterDetail({ chapterId }: { chapterId: string }) {
 
   const data = chapter.data as any;
   const prose: string = data?.prose ?? '';
+  const lastSpace = prose.lastIndexOf(' ', 800);
   const truncated = prose.length > 800
-    ? prose.slice(0, prose.lastIndexOf(' ', 800)) + '…'
+    ? (lastSpace > 0 ? prose.slice(0, lastSpace) : prose.slice(0, 800)) + '…'
     : prose;
   const encounterAreas: string[] = data?.encounterAreas ?? [];
 
