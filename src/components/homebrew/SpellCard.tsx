@@ -96,7 +96,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
   const levelBadge = spell.level === 'cantrip'
     ? 'Cantrip'
     : variant === 'collapsed'
-      ? `${levelLabel(spell.level, true)} Â· ${SCHOOL_ABBR[spell.school]}`
+      ? `${levelLabel(spell.level, true)} \u00B7 ${SCHOOL_ABBR[spell.school]}`
       : levelLabel(spell.level, true);
 
   const baseClasses = cn(
@@ -181,7 +181,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
             className="text-[10px] font-semibold tracking-[.1em] uppercase mt-[2px]"
             style={{ color: 'var(--school-color)' }}
           >
-            {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)} Â·{' '}
+            {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)} &middot;{' '}
             {typeof spell.level === 'number' ? levelLabel(spell.level) : 'Cantrip'}
           </div>
         </div>
@@ -265,6 +265,23 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
           <div className="text-[11px] leading-[1.5]" style={{ color: 'hsl(35,10%,68%)' }}>
             {spell.higherLevels}
           </div>
+        </div>
+      )}
+
+      {spell.classes && spell.classes.length > 0 && (
+        <div className="flex items-center gap-[5px] mt-2 flex-wrap">
+          <span className="text-[9px] uppercase tracking-[.1em] font-semibold" style={{ color: 'var(--card-text-muted)' }}>
+            Classes
+          </span>
+          {spell.classes.map((cls) => (
+            <span
+              key={cls}
+              className="text-[9px] px-[6px] py-[1px] rounded-[2px] border"
+              style={{ background: 'hsl(240 10% 13%)', borderColor: 'var(--card-stone-border)', color: 'var(--card-text-muted)' }}
+            >
+              {cls}
+            </span>
+          ))}
         </div>
       )}
     </div>
