@@ -40,6 +40,7 @@ import {
   Circle,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { PrepStatusCard } from '@/components/session/prep-status-card';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -270,6 +271,12 @@ export default function SessionDetailPage() {
   const sessionStatus = s.status as string | undefined;
   const statusCfg = sessionStatus ? STATUS_CONFIG[sessionStatus] : null;
 
+  const prepStatus = s.prepStatus as string | undefined; // 'none' | 'draft' | 'complete'
+  const isPrepComplete = prepStatus === 'complete';
+  const isPlanning = !sessionStatus || sessionStatus === 'planning';
+  const isActive = sessionStatus === 'in_progress' || sessionStatus === 'active';
+  const isCompleted = sessionStatus === 'completed';
+
   return (
     <div className="px-6 py-8 space-y-6">
 
@@ -310,16 +317,59 @@ export default function SessionDetailPage() {
           {/* Action buttons */}
           {isDM && (
             <div className="flex items-center gap-2 shrink-0 mt-1">
-              <Link href={`/campaigns/${slug}/sessions/${sessionId}/live`}>
-                <Button size="sm" className="h-8 gap-1.5 text-xs">
-                  <Play className="h-3 w-3" /> Start Session
-                </Button>
-              </Link>
-              <Link href={`/campaigns/${slug}/sessions/${sessionId}/prep`}>
-                <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
-                  <Pencil className="h-3 w-3" /> Prep
-                </Button>
-              </Link>
+              {/* Planning + prep not done → primary CTA is prep */}
+              {isPlanning && !isPrepComplete && (
+                <Link href={`/campaigns/${slug}/sessions/${sessionId}/prep`}>
+                  <Button size="sm" className="h-8 gap-1.5 text-xs"
+                    style={{ background: 'hsl(35 80% 28%)', borderColor: 'hsl(35 80% 38%)', color: 'hsl(35 80% 85%)' }}>
+                    <Pencil className="h-3 w-3" /> Open Prep Workspace
+                  </Button>
+                </Link>
+              )}
+
+              {/* Planning + prep done → primary CTA is start session */}
+              {isPlanning && isPrepComplete && (
+                <>
+                  <Link href={`/campaigns/${slug}/sessions/${sessionId}/live`}>
+                    <Button size="sm" className="h-8 gap-1.5 text-xs">
+                      <Play className="h-3 w-3" /> Start Session
+                    </Button>
+                  </Link>
+                  <Link href={`/campaigns/${slug}/sessions/${sessionId}/prep`}>
+                    <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
+                      <Pencil className="h-3 w-3" /> View Prep
+                    </Button>
+                  </Link>
+                </>
+              )}
+
+              {/* Active/in-progress → resume */}
+              {isActive && (
+                <>
+                  <Link href={`/campaigns/${slug}/sessions/${sessionId}/live`}>
+                    <Button size="sm" className="h-8 gap-1.5 text-xs"
+                      style={{ background: 'hsl(140 40% 20%)', borderColor: 'hsl(140 40% 30%)', color: 'hsl(140 60% 75%)' }}>
+                      <Play className="h-3 w-3" /> Resume Session
+                    </Button>
+                  </Link>
+                  <Link href={`/campaigns/${slug}/sessions/${sessionId}/prep`}>
+                    <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs">
+                      <Pencil className="h-3 w-3" /> View Prep
+                    </Button>
+                  </Link>
+                </>
+              )}
+
+              {/* Completed → prep is secondary/ghost */}
+              {isCompleted && (
+                <Link href={`/campaigns/${slug}/sessions/${sessionId}/prep`}>
+                  <Button size="sm" variant="ghost" className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+                    <Pencil className="h-3 w-3" /> View Prep
+                  </Button>
+                </Link>
+              )}
+
+              {/* Delete — always last */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
@@ -363,17 +413,23 @@ export default function SessionDetailPage() {
       {/* ── Two-column body ── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_272px] gap-6 items-start">
 
-        {/* Main — summary + transcript */}
+        {/* Main — lifecycle-aware */}
         <div className="space-y-4 min-w-0">
-          <SummaryCard session={s} sessionId={sessionId} campaignId={campaignId} />
-          <TranscriptSection session={s} />
+          {isPlanning ? (
+            <PrepStatusCard session={s} sessionId={sessionId} slug={slug} />
+          ) : (
+            <>
+              <SummaryCard session={s} sessionId={sessionId} campaignId={campaignId} />
+              <TranscriptSection session={s} />
+            </>
+          )}
         </div>
 
         {/* Sidebar — recordings + discord */}
         {isDM && (
           <div className="space-y-5">
             <RecordingsSidebar session={s} sessionId={sessionId} campaignId={campaignId} />
-            {discordWebhookUrl && (
+            {!isPlanning && discordWebhookUrl && (
               <div className="space-y-2">
                 <p className="text-[10px] uppercase tracking-widest font-semibold px-1" style={{ color: 'hsl(35 80% 48%)' }}>
                   Share
