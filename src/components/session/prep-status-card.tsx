@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { CheckCircle2 } from 'lucide-react';
-import { SessionPrepDataSchema } from '@/lib/prep-types';
 
 const SECTIONS = [
   { id: 'characters',   label: 'Characters' },
@@ -38,8 +37,7 @@ export function PrepStatusCard({
   sessionId: string;
   slug: string;
 }) {
-  const parsed = SessionPrepDataSchema.safeParse(session?.prepData);
-  const completed = getCompletedSections(parsed.success ? (parsed.data as Record<string, unknown>) : null);
+  const completed = getCompletedSections((session?.prepData as Record<string, unknown>) ?? null);
   const isPrepComplete = (session?.prepStatus as string) === 'complete';
   const count = completed.size;
 
@@ -47,19 +45,19 @@ export function PrepStatusCard({
     <div
       className="rounded-sm border overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 9%) 100%)',
-        borderColor: isPrepComplete ? 'hsl(35 60% 22%)' : 'hsl(240 20% 16%)',
+        background: 'var(--card-stone-bg)',
+        borderColor: isPrepComplete ? 'var(--card-stone-border)' : 'hsl(240 20% 16%)',
       }}
     >
       <div
         className="px-6 py-4 flex items-center justify-between border-b"
-        style={{ borderColor: isPrepComplete ? 'hsl(35 60% 18%)' : 'hsl(240 20% 14%)' }}
+        style={{ borderColor: isPrepComplete ? 'hsl(35 60% 18%)' : 'hsl(240 20% 13%)' }}
       >
         <div className="flex items-center gap-2.5">
-          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: 'hsl(35 80% 55%)' }} />
+          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--card-amber-light)' }} />
           <span
             className="text-[10px] uppercase tracking-widest font-semibold"
-            style={{ color: 'hsl(35 80% 48%)' }}
+            style={{ color: 'var(--card-amber)' }}
           >
             Session Prep
           </span>
@@ -67,12 +65,12 @@ export function PrepStatusCard({
         {isPrepComplete ? (
           <span
             className="text-[9px] px-2 py-0.5 rounded border uppercase tracking-wide font-semibold"
-            style={{ background: 'hsl(35 60% 12%)', color: 'hsl(35 80% 65%)', borderColor: 'hsl(35 60% 25%)' }}
+            style={{ background: 'hsl(35 60% 12%)', color: 'var(--card-amber-light)', borderColor: 'var(--card-stone-border-hi)' }}
           >
             Prep Complete
           </span>
         ) : (
-          <span className="text-[10px]" style={{ color: 'hsl(240 10% 40%)' }}>
+          <span className="text-[10px]" style={{ color: 'var(--card-text-muted)' }}>
             {count}/8 sections
           </span>
         )}
@@ -88,7 +86,7 @@ export function PrepStatusCard({
                 className="px-2 py-1.5 rounded text-center text-[9px] uppercase tracking-wide border"
                 style={{
                   background: done ? 'hsl(140 30% 10%)' : 'hsl(240 10% 13%)',
-                  color: done ? 'hsl(140 50% 50%)' : 'hsl(240 10% 40%)',
+                  color: done ? 'hsl(140 50% 50%)' : 'var(--card-text-muted)',
                   borderColor: done ? 'hsl(140 30% 18%)' : 'hsl(240 20% 16%)',
                 }}
               >
@@ -101,7 +99,7 @@ export function PrepStatusCard({
         <Link
           href={`/campaigns/${slug}/sessions/${sessionId}/prep`}
           className="inline-flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-80"
-          style={{ color: 'hsl(35 80% 55%)' }}
+          style={{ color: 'var(--card-amber-light)' }}
           data-testid="prep-status-card-cta"
         >
           {isPrepComplete ? 'View Prep' : count === 0 ? 'Start Prep →' : 'Continue Prep →'}
