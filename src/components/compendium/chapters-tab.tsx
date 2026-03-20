@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCompendiumStore } from '@/store/compendium-store';
@@ -34,9 +34,12 @@ export function ChaptersTab() {
     (item) => item.sourceType === 'dndbeyond_import'
   );
 
-  const filtered = search
-    ? chapters.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
-    : chapters;
+  const filtered = useMemo(
+    () => search
+      ? chapters.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+      : chapters,
+    [chapters, search]
+  );
 
   if (!campaignSlug) {
     return <div className="p-4 text-sm text-muted-foreground">Open a campaign to browse chapters.</div>;
