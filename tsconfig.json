@@ -30,6 +30,7 @@
     "dist",
     "docs/Test",
     "src/lib/queue/worker.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "browser-extension"
   ]
 }

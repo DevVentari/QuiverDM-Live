@@ -25,7 +25,7 @@ async function sessionFromBearerToken(req: Request) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const p = payload as unknown as ExtensionTokenPayload;
     if (p.type !== 'extension-access' || !p.sub) return null;
-    return { user: { id: p.sub } };
+    return { user: { id: p.sub, email: null, name: null, image: null } };
   } catch {
     return null;
   }
