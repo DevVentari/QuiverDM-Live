@@ -16,7 +16,7 @@ export interface MagicItemCardData {
     current?: number;
     reset: string;
   };
-  lore: string;
+  lore?: string;
 }
 
 export interface MagicItemCardProps {
@@ -179,23 +179,25 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
         )}
       </div>
 
-      <div
-        className="pr-3 pl-4 pt-2 pb-[9px] border-t"
-        style={{ background: 'hsl(240 10% 7%)', borderColor: 'var(--card-stone-border)' }}
-      >
+      {item.lore && (
         <div
-          className="text-[9px] uppercase tracking-[.1em] font-semibold mb-1"
-          style={{ color: 'var(--card-text-muted)' }}
+          className="pr-3 pl-4 pt-2 pb-[9px] border-t"
+          style={{ background: 'hsl(240 10% 7%)', borderColor: 'var(--card-stone-border)' }}
         >
-          Lore
+          <div
+            className="text-[9px] uppercase tracking-[.1em] font-semibold mb-1"
+            style={{ color: 'var(--card-text-muted)' }}
+          >
+            Lore
+          </div>
+          <p
+            className="text-[11px] italic leading-[1.6]"
+            style={{ color: 'hsl(35 12% 60%)' }}
+          >
+            {item.lore}
+          </p>
         </div>
-        <p
-          className="text-[11px] italic leading-[1.6]"
-          style={{ color: 'hsl(35 12% 60%)' }}
-        >
-          {item.lore}
-        </p>
-      </div>
+      )}
     </div>
   );
 }

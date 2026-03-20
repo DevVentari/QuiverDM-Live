@@ -155,11 +155,11 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
               <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
                 {action.toHit >= 0 ? '+' : ''}{action.toHit} to hit
               </span>
-              {' Â· '}
+              {' &middot; '}
             </>
           )}
-          {action.reach && `${action.reach} Â· `}
-          {action.range && `${action.range} Â· `}
+          {action.reach && `${action.reach} \u00B7 `}
+          {action.range && `${action.range} \u00B7 `}
           {action.damage && (
             <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
               {action.damage}
@@ -203,7 +203,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         color: 'var(--card-amber-light)',
       }}
     >
-      CR {formatCR(monster.cr)} Â· {monster.xp.toLocaleString()} XP
+      CR {formatCR(monster.cr)} &middot; {monster.xp.toLocaleString()} XP
     </span>
   );
 
@@ -236,7 +236,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
               {monster.name}
             </div>
             <div className="text-[10px] mt-[1px]" style={{ color: 'var(--card-text-muted)' }}>
-              {monster.size} {monster.type} Â· {monster.alignment}
+              {monster.size} {monster.type} &middot; {monster.alignment}
             </div>
           </div>
           {crBadge}
@@ -292,7 +292,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
               color: 'var(--card-amber-light)',
             }}
           >
-            CR {formatCR(monster.cr)} Â· {monster.xp.toLocaleString()} XP
+            CR {formatCR(monster.cr)} &middot; {monster.xp.toLocaleString()} XP
           </span>
           <span
             className="text-[9px] font-semibold tracking-[.08em] uppercase px-[7px] py-[2px] rounded-full border"
@@ -344,6 +344,50 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
       <div className="px-[14px] py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
         <SectionLabel>Ability Scores</SectionLabel>
         <AbilityGrid abilities={monster.abilities} />
+        {monster.savingThrows && Object.keys(monster.savingThrows).length > 0 && (
+          <div className="flex items-center text-[11px] mt-[8px]" style={{ color: 'var(--card-text-muted)' }}>
+            <span className="font-semibold">Saving Throws</span>
+            <span className="ml-auto" style={{ color: 'var(--card-amber-light)' }}>
+              {Object.entries(monster.savingThrows).map(([k, v]) =>
+                `${k.charAt(0).toUpperCase() + k.slice(1)} ${(v as number) >= 0 ? '+' : ''}${v}`
+              ).join(', ')}
+            </span>
+          </div>
+        )}
+        {monster.skills && Object.keys(monster.skills).length > 0 && (
+          <div className="flex items-center text-[11px] mt-[4px]" style={{ color: 'var(--card-text-muted)' }}>
+            <span className="font-semibold">Skills</span>
+            <span className="ml-auto" style={{ color: 'var(--card-amber-light)' }}>
+              {Object.entries(monster.skills).map(([k, v]) =>
+                `${k} ${(v as number) >= 0 ? '+' : ''}${v}`
+              ).join(', ')}
+            </span>
+          </div>
+        )}
+        {monster.damageResistances && monster.damageResistances.length > 0 && (
+          <div className="flex items-start text-[11px] mt-[4px]" style={{ color: 'var(--card-text-muted)' }}>
+            <span className="font-semibold shrink-0">Damage Resistances</span>
+            <span className="ml-auto text-right" style={{ color: 'hsl(200 60% 62%)' }}>
+              {monster.damageResistances.join('; ')}
+            </span>
+          </div>
+        )}
+        {monster.damageImmunities && monster.damageImmunities.length > 0 && (
+          <div className="flex items-start text-[11px] mt-[4px]" style={{ color: 'var(--card-text-muted)' }}>
+            <span className="font-semibold shrink-0">Damage Immunities</span>
+            <span className="ml-auto text-right" style={{ color: 'hsl(0 60% 62%)' }}>
+              {monster.damageImmunities.join('; ')}
+            </span>
+          </div>
+        )}
+        {monster.conditionImmunities && monster.conditionImmunities.length > 0 && (
+          <div className="flex items-start text-[11px] mt-[4px]" style={{ color: 'var(--card-text-muted)' }}>
+            <span className="font-semibold shrink-0">Condition Immunities</span>
+            <span className="ml-auto text-right" style={{ color: 'hsl(270 40% 62%)' }}>
+              {monster.conditionImmunities.join(', ')}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="px-[14px] py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
@@ -385,7 +429,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
 
       {monster.legendaryActions && (
         <div className="px-[14px] py-2">
-          <SectionLabel>Legendary Actions Â· {monster.legendaryActions.count}/round</SectionLabel>
+          <SectionLabel>Legendary Actions &middot; {monster.legendaryActions.count}/round</SectionLabel>
           {monster.legendaryActions.actions.map((action) => (
             <ActionItem key={action.name} action={action} />
           ))}
