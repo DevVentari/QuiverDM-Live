@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { CSSProperties } from 'react';
 import { getRarityVars, parseBoldDescription, type Rarity } from '@/lib/homebrew-card-utils';
@@ -19,7 +19,7 @@ export interface MagicItemCardData {
   lore: string;
 }
 
-interface MagicItemCardProps {
+export interface MagicItemCardProps {
   item: MagicItemCardData;
 }
 
@@ -93,6 +93,7 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
       className={cn(
         'relative overflow-hidden rounded-[3px] border',
         'bg-[image:var(--card-stone-bg)]',
+        'mb-[10px]',
       )}
       style={cardStyle}
     >
@@ -102,7 +103,7 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
         aria-hidden
       />
 
-      <div className="px-3 pt-[10px] pb-[10px] pl-4">
+      <div className="pr-3 pl-4 pt-[10px] pb-[10px]">
         <div className="flex items-start justify-between gap-2 mb-[5px]">
           <span
             className="font-serif text-[14px] font-bold tracking-[.03em] leading-[1.2]"
@@ -179,7 +180,7 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
       </div>
 
       <div
-        className="px-3 pt-2 pb-[9px] pl-4 border-t"
+        className="pr-3 pl-4 pt-2 pb-[9px] border-t"
         style={{ background: 'hsl(240 10% 7%)', borderColor: 'var(--card-stone-border)' }}
       >
         <div
@@ -198,3 +199,4 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { CSSProperties } from 'react';
 import { parseBoldDescription, getSchoolVars, type SpellSchool } from '@/lib/homebrew-card-utils';
@@ -24,7 +24,7 @@ export interface SpellCardData {
   classes?: string[];
 }
 
-interface SpellCardProps {
+export interface SpellCardProps {
   spell: SpellCardData;
   variant: 'collapsed' | 'expanded';
   onToggle?: () => void;
@@ -36,10 +36,25 @@ const SCHOOL_ABBR: Record<SpellSchool, string> = {
 };
 
 function levelLabel(level: number | 'cantrip', short = false): string {
-  if (level === 'cantrip') return 'Cantrip';
+  if (level === 'cantrip' || level < 1) return 'Cantrip';
   const suffixes = ['th', 'st', 'nd', 'rd'];
   const suffix = level <= 3 ? suffixes[level] : 'th';
   return short ? `${level}${suffix}` : `${level}${suffix} Level`;
+}
+
+function LevelBadge({ label }: { label: string }) {
+  return (
+    <span
+      className="text-[10px] font-semibold px-[7px] py-[2px] rounded-full border tracking-[.06em]"
+      style={{
+        background: 'var(--school-bg)',
+        color: 'var(--school-color)',
+        borderColor: 'var(--school-color)',
+      }}
+    >
+      {label}
+    </span>
+  );
 }
 
 function BoldText({ text, className }: { text: string; className?: string }) {
@@ -81,7 +96,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
   const levelBadge = spell.level === 'cantrip'
     ? 'Cantrip'
     : variant === 'collapsed'
-      ? `${levelLabel(spell.level, true)} · ${SCHOOL_ABBR[spell.school]}`
+      ? `${levelLabel(spell.level, true)} Â· ${SCHOOL_ABBR[spell.school]}`
       : levelLabel(spell.level, true);
 
   const baseClasses = cn(
@@ -98,19 +113,6 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
     />
   );
 
-  const LevelBadge = () => (
-    <span
-      className="text-[10px] font-semibold px-[7px] py-[2px] rounded-full border tracking-[.06em]"
-      style={{
-        background: 'var(--school-bg)',
-        color: 'var(--school-color)',
-        borderColor: 'var(--school-color)',
-      }}
-    >
-      {levelBadge}
-    </span>
-  );
-
   if (variant === 'collapsed') {
     const durationShort = spell.duration.replace('Instantaneous', 'Instant')
       .replace('Concentration, up to ', '');
@@ -120,7 +122,6 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
         style={cardStyle}
         onClick={onToggle}
         role="button"
-        aria-expanded={false}
       >
         {accentBar}
         <div className="flex items-center justify-between mb-1">
@@ -130,7 +131,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
           >
             {spell.name}
           </span>
-          <LevelBadge />
+          <LevelBadge label={levelBadge} />
         </div>
         <div className="flex items-center gap-3 mb-1">
           <span className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--card-text-muted)' }}>
@@ -143,14 +144,12 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
             {durationShort}
           </span>
         </div>
-        {spell.save && (
-          <p
-            className="text-[11px] truncate leading-[1.4]"
-            style={{ color: 'var(--card-text-muted)' }}
-          >
-            {spell.save}
-          </p>
-        )}
+        <p
+          className="text-[11px] truncate leading-[1.4]"
+          style={{ color: 'var(--card-text-muted)' }}
+        >
+          {spell.save ?? spell.description}
+        </p>
       </div>
     );
   }
@@ -182,11 +181,11 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
             className="text-[10px] font-semibold tracking-[.1em] uppercase mt-[2px]"
             style={{ color: 'var(--school-color)' }}
           >
-            {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)} ·{' '}
+            {spell.school.charAt(0).toUpperCase() + spell.school.slice(1)} Â·{' '}
             {typeof spell.level === 'number' ? levelLabel(spell.level) : 'Cantrip'}
           </div>
         </div>
-        <LevelBadge />
+        <LevelBadge label={levelBadge} />
       </div>
 
       <div
@@ -271,3 +270,4 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
     </div>
   );
 }
+

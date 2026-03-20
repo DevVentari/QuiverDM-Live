@@ -61,8 +61,8 @@ describe('parseBoldDescription', () => {
 
   it('handles multiple bold segments', () => {
     const result = parseBoldDescription('**+3** to hit, **2d6** damage');
-    expect(result[1]).toEqual({ type: 'bold', content: '+3' });
-    expect(result[3]).toEqual({ type: 'bold', content: '2d6' });
+    expect(result[0]).toEqual({ type: 'bold', content: '+3' });
+    expect(result[2]).toEqual({ type: 'bold', content: '2d6' });
   });
 
   it('returns empty text segment for empty string', () => {
@@ -82,6 +82,10 @@ describe('normalizeRarity', () => {
 
   it('falls back to common for unknown values', () => {
     expect(normalizeRarity('godlike')).toBe('common');
+  });
+
+  it('trims leading/trailing whitespace before normalizing', () => {
+    expect(normalizeRarity(' rare ')).toBe('rare');
   });
 });
 

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
 import { formatAbilityMod } from '@/lib/homebrew-card-utils';
@@ -50,10 +50,9 @@ export interface MonsterStatBlockData {
   legendaryActions?: { count: number; actions: MonsterAction[] };
 }
 
-interface MonsterStatBlockProps {
+export interface MonsterStatBlockProps {
   monster: MonsterStatBlockData;
   mode: 'drawer' | 'full';
-  onClose?: () => void;
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -154,13 +153,13 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
           {action.toHit !== undefined && (
             <>
               <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
-                +{action.toHit} to hit
+                {action.toHit >= 0 ? '+' : ''}{action.toHit} to hit
               </span>
-              {' · '}
+              {' Â· '}
             </>
           )}
-          {action.reach && `${action.reach} · `}
-          {action.range && `${action.range} · `}
+          {action.reach && `${action.reach} Â· `}
+          {action.range && `${action.range} Â· `}
           {action.damage && (
             <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
               {action.damage}
@@ -171,7 +170,7 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
         <div className="text-[11px] mt-[2px] leading-[1.5]" style={{ color: 'hsl(35 15% 72%)' }}>
           {action.toHit !== undefined && (
             <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
-              +{action.toHit} to hit
+              {action.toHit >= 0 ? '+' : ''}{action.toHit} to hit
             </span>
           )}
           {action.description && ` ${action.description}`}
@@ -182,9 +181,10 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
 }
 
 function formatCR(cr: number | string): string {
-  if (cr === 0.125) return '1/8';
-  if (cr === 0.25) return '1/4';
-  if (cr === 0.5) return '1/2';
+  const n = typeof cr === 'string' ? parseFloat(cr) : cr;
+  if (n === 0.125) return '1/8';
+  if (n === 0.25) return '1/4';
+  if (n === 0.5) return '1/2';
   return String(cr);
 }
 
@@ -203,7 +203,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         color: 'var(--card-amber-light)',
       }}
     >
-      CR {formatCR(monster.cr)} · {monster.xp.toLocaleString()} XP
+      CR {formatCR(monster.cr)} Â· {monster.xp.toLocaleString()} XP
     </span>
   );
 
@@ -236,7 +236,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
               {monster.name}
             </div>
             <div className="text-[10px] mt-[1px]" style={{ color: 'var(--card-text-muted)' }}>
-              {monster.size} {monster.type} · {monster.alignment}
+              {monster.size} {monster.type} Â· {monster.alignment}
             </div>
           </div>
           {crBadge}
@@ -248,7 +248,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         >
           <VitalBox label="HP" value={String(monster.hp)} sub={monster.hpDice} valueColor="hsl(0,60%,62%)" />
           <VitalBox label="AC" value={String(monster.ac)} sub={monster.acNote} />
-          <VitalBox label="Speed" value={monster.speed.replace(' ft', '')} sub="ft" />
+          <VitalBox label="Speed" value={monster.speed.replaceAll(' ft', '')} sub="ft" />
         </div>
 
         <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
@@ -257,8 +257,8 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
 
         <div className="px-3 py-2">
           <SectionLabel>Actions</SectionLabel>
-          {monster.actions.map((action, i) => (
-            <ActionItem key={i} action={action} compact />
+          {monster.actions.map((action) => (
+            <ActionItem key={action.name} action={action} compact />
           ))}
         </div>
       </div>
@@ -292,7 +292,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
               color: 'var(--card-amber-light)',
             }}
           >
-            CR {formatCR(monster.cr)} · {monster.xp.toLocaleString()} XP
+            CR {formatCR(monster.cr)} Â· {monster.xp.toLocaleString()} XP
           </span>
           <span
             className="text-[9px] font-semibold tracking-[.08em] uppercase px-[7px] py-[2px] rounded-full border"
@@ -348,16 +348,16 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
 
       <div className="px-[14px] py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
         <SectionLabel>Actions</SectionLabel>
-        {monster.actions.map((action, i) => (
-          <ActionItem key={i} action={action} />
+        {monster.actions.map((action) => (
+          <ActionItem key={action.name} action={action} />
         ))}
       </div>
 
       {monster.traits && monster.traits.length > 0 && (
         <div className="px-[14px] py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
           <SectionLabel>Traits</SectionLabel>
-          {monster.traits.map((trait, i) => (
-            <div key={i} className="py-1 text-[11px] leading-[1.5]">
+          {monster.traits.map((trait) => (
+            <div key={trait.name} className="py-1 text-[11px] leading-[1.5]">
               <span className="font-semibold italic">{trait.name}. </span>
               <span style={{ color: 'hsl(35 15% 68%)' }}>{trait.description}</span>
             </div>
@@ -368,8 +368,8 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
       {monster.bonusActions && monster.bonusActions.length > 0 && (
         <div className="px-[14px] py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
           <SectionLabel>Bonus Actions</SectionLabel>
-          {monster.bonusActions.map((action, i) => (
-            <ActionItem key={i} action={action} />
+          {monster.bonusActions.map((action) => (
+            <ActionItem key={action.name} action={action} />
           ))}
         </div>
       )}
@@ -377,20 +377,21 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
       {monster.reactions && monster.reactions.length > 0 && (
         <div className="px-[14px] py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
           <SectionLabel>Reactions</SectionLabel>
-          {monster.reactions.map((action, i) => (
-            <ActionItem key={i} action={action} />
+          {monster.reactions.map((action) => (
+            <ActionItem key={action.name} action={action} />
           ))}
         </div>
       )}
 
       {monster.legendaryActions && (
         <div className="px-[14px] py-2">
-          <SectionLabel>Legendary Actions · {monster.legendaryActions.count}/round</SectionLabel>
-          {monster.legendaryActions.actions.map((action, i) => (
-            <ActionItem key={i} action={action} />
+          <SectionLabel>Legendary Actions Â· {monster.legendaryActions.count}/round</SectionLabel>
+          {monster.legendaryActions.actions.map((action) => (
+            <ActionItem key={action.name} action={action} />
           ))}
         </div>
       )}
     </div>
   );
 }
+
