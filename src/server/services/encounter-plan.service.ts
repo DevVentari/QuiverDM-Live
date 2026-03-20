@@ -283,6 +283,18 @@ export class EncounterPlanService {
     return updated;
   }
 
+  async getBySourcebook(campaignId: string) {
+    return encounterPlanRepository.getBySourcebook(campaignId);
+  }
+
+  async markAsRun(planId: string, userId: string, sessionId?: string) {
+    const plan = await encounterPlanRepository.findById(planId);
+    if (!plan) throw new NotFoundError('encounter plan', planId);
+    const campaignOwnerId = (plan as any).campaign?.userId;
+    if (campaignOwnerId !== userId) throw ForbiddenError.forPermission('mark as run', 'encounter plan');
+    return encounterPlanRepository.markAsRun(planId, sessionId);
+  }
+
   // -------------------------------------------------------------------------
   // Launch to Tracker
   // -------------------------------------------------------------------------
