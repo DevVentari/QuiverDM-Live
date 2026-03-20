@@ -95,26 +95,43 @@ function EncounterDetail({ planId }: { planId: string }) {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      <div className="px-4 py-3 border-b border-[hsl(240_20%_85%/0.07)]">
-        <h3 className="font-display text-sm font-semibold text-foreground">{typedPlan!.name}</h3>
-        <p className="text-[10px] text-muted-foreground mt-0.5 capitalize">{typedPlan!.difficulty}</p>
+      <div className="px-4 pt-4 pb-3 border-b border-[hsl(240_20%_85%/0.07)]">
+        <h3
+          className="font-display text-base font-bold leading-snug"
+          style={{ color: 'hsl(35 80% 68%)', textShadow: '0 0 14px hsl(35 80% 48% / 0.2)' }}
+        >
+          {typedPlan!.name}
+        </h3>
+        {typedPlan!.difficulty && (
+          <span
+            className="inline-block mt-1.5 text-[9px] px-2 py-0.5 rounded uppercase tracking-widest font-sans"
+            style={{ background: 'hsl(35 50% 10%)', border: '1px solid hsl(35 50% 22%)', color: 'hsl(35 70% 52%)' }}
+          >
+            {typedPlan!.difficulty}
+          </span>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
         {typedPlan!.sceneDescription && (
           <div>
-            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-1.5">Scene</p>
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-1.5">Scene</p>
             <p className="text-xs text-muted-foreground leading-relaxed">{typedPlan!.sceneDescription}</p>
           </div>
         )}
 
         {monsterLinks.length > 0 && (
           <div>
-            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/60 mb-1.5">Monsters available in this chapter</p>
+            <p className="text-[9px] uppercase tracking-widest text-muted-foreground/50 mb-2">Creatures</p>
             <div className="space-y-1">
-              {monsterLinks.map((m) => (
-                <div key={m.ddbId} className="px-2.5 py-1.5 rounded bg-[hsl(240_10%_10%/0.5)] border border-[hsl(240_20%_85%/0.06)]">
-                  <span className="text-xs text-foreground/70">{m.name}</span>
+              {monsterLinks.map((m: { ddbId: string; name: string; cr?: string }) => (
+                <div key={m.ddbId} className="flex items-center justify-between px-2.5 py-1.5 rounded bg-[hsl(240_10%_10%/0.5)] border border-[hsl(240_20%_85%/0.06)]">
+                  <span className="text-xs text-foreground/80">{m.name}</span>
+                  {m.cr && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded font-mono shrink-0" style={{ background: 'hsl(240 10% 16%)', color: 'hsl(240 5% 55%)' }}>
+                      CR {m.cr}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
@@ -125,30 +142,33 @@ function EncounterDetail({ planId }: { planId: string }) {
       <div className="px-4 py-3 border-t border-[hsl(240_20%_85%/0.07)] space-y-2">
         <Button
           size="sm"
-          className="w-full bg-emerald-900/30 border border-emerald-800/40 text-emerald-400 hover:bg-emerald-900/50"
+          className="w-full font-sans text-xs"
+          style={{ background: 'linear-gradient(135deg, hsl(35 80% 48%), hsl(35 70% 38%))', color: 'hsl(35 20% 12%)', border: 'none' }}
           onClick={handleLoadToBuilder}
           disabled={updateMutation.isPending || createMutation.isPending}
         >
           Load to Encounter Builder
         </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full border-blue-800/40 text-blue-400 hover:bg-blue-900/20"
-          onClick={() => campaignSlug && router.push(`/campaigns/${campaignSlug}/brain?encounter=${plan.id}`)}
-          disabled={!campaignSlug}
-        >
-          Prep with DM Brain
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-full border-[var(--card-stone-border)] text-[var(--card-amber)] hover:bg-[hsl(35_30%_10%)]"
-          onClick={handleMarkAsRun}
-          disabled={markAsRunMutation.isPending}
-        >
-          Mark as Run
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 text-xs border-[var(--card-stone-border)] text-muted-foreground hover:text-foreground hover:bg-white/5"
+            onClick={() => campaignSlug && router.push(`/campaigns/${campaignSlug}/brain?encounter=${plan.id}`)}
+            disabled={!campaignSlug}
+          >
+            DM Brain
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="flex-1 text-xs border-[var(--card-stone-border)] text-muted-foreground hover:text-foreground hover:bg-white/5"
+            onClick={handleMarkAsRun}
+            disabled={markAsRunMutation.isPending}
+          >
+            Mark Run
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -263,8 +283,9 @@ export function DetailPane() {
 
   if (!selectedItemId) {
     return (
-      <div className="flex items-center justify-center h-full text-center px-6">
-        <p className="text-sm text-muted-foreground">Select an item to see details</p>
+      <div className="flex flex-col items-center justify-center h-full text-center px-8 gap-2">
+        <p className="font-display text-sm" style={{ color: 'hsl(35 30% 38%)' }}>Select an entry</p>
+        <p className="text-xs text-muted-foreground/40 leading-relaxed">Choose an encounter, monster, or chapter from the list to view details.</p>
       </div>
     );
   }
