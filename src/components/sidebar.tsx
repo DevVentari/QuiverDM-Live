@@ -451,9 +451,11 @@ export function Sidebar() {
             'flex w-full items-center gap-3 px-3 py-2 text-sm transition-colors rounded-sm mx-1',
             compendiumOpen
               ? 'text-[var(--card-amber)]'
-              : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+              : 'text-muted-foreground hover:text-foreground hover:bg-white/5',
+            collapsed && 'justify-center px-0'
           )}
           title="Compendium"
+          aria-label="Open Compendium"
         >
           <BookOpen
             className={cn('h-4 w-4 flex-shrink-0', compendiumOpen && 'drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]')}
@@ -527,11 +529,11 @@ export function MobileSidebar() {
             className={cn(
               'relative flex w-full items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
               compendiumOpen
-                ? 'text-amber-400/90 bg-amber-500/[0.07]'
+                ? 'text-[var(--card-amber)] bg-amber-500/[0.07]'
                 : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
             )}
           >
-            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-amber-400/90' : 'opacity-60')} strokeWidth={1.8} />
+            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-[var(--card-amber)] drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]' : 'opacity-60')} strokeWidth={1.8} />
             <span>Compendium</span>
           </button>
           {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
@@ -546,11 +548,11 @@ export function MobileSidebar() {
             className={cn(
               'relative flex w-full items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
               compendiumOpen
-                ? 'text-amber-400/90 bg-amber-500/[0.07]'
+                ? 'text-[var(--card-amber)] bg-amber-500/[0.07]'
                 : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
             )}
           >
-            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-amber-400/90' : 'opacity-60')} strokeWidth={1.8} />
+            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-[var(--card-amber)] drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]' : 'opacity-60')} strokeWidth={1.8} />
             <span>Compendium</span>
           </button>
           {[...toolsNav, { href: '/settings', label: 'Settings', icon: Settings }].map((item) => renderLink(item))}
