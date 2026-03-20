@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/error-boundary';
 import { NavigationProgress } from '@/components/navigation-progress';
 import { ConsoleLogCapture } from '@/components/feedback/console-log-capture';
 import { FeedbackWidget } from '@/components/feedback/feedback-widget';
+import { CompendiumPanel } from '@/components/compendium/compendium-panel';
 import { VideoBackground } from '@/components/video-background';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -54,6 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </div>
       <ConsoleLogCapture />
       <FeedbackWidget />
+      <CompendiumPanel />
     </OnboardingCheck>
     </CampaignVoiceShell>
   );
