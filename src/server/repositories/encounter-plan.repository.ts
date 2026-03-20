@@ -160,13 +160,7 @@ export const encounterPlanRepository = {
     return [...grouped.values()];
   },
 
-  markAsRun: async (planId: string, userId: string, sessionId?: string) => {
-    const plan = await prismaAny.encounterPlan.findFirst({
-      where: { id: planId },
-      include: { campaign: { select: { userId: true } } },
-    });
-    if (!plan || plan.campaign.userId !== userId) return null;
-
+  markAsRun: async (planId: string, sessionId?: string) => {
     return prismaAny.encounterPlan.update({
       where: { id: planId },
       data: {
