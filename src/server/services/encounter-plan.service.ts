@@ -21,7 +21,10 @@ export class EncounterPlanService {
   async getById(planId: string, userId: string) {
     const plan = await encounterPlanRepository.findById(planId);
     if (!plan) throw new NotFoundError('encounter plan', planId);
-    await authz.campaign(plan.campaignId, userId).verify();
+    const access = await authz.campaign(plan.campaignId, userId).verify();
+    if (!access.isDM) {
+      throw ForbiddenError.forPermission('view encounter plans', 'campaign');
+    }
     return plan;
   }
 

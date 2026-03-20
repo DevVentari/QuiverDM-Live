@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCompendiumStore } from '@/store/compendium-store';
+import { useCompendiumRoute } from '@/hooks/use-compendium-route';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -37,14 +37,7 @@ function getStatusBadge(plan: { lastRunAt: Date | string | null; timesRun: numbe
 export function EncountersTab() {
   const [search, setSearch] = useState('');
   const { selectedItemId, selectItem } = useCompendiumStore();
-  const pathname = usePathname();
-  const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
-
-  const { data: campaignData } = trpc.campaigns.getBySlug.useQuery(
-    { slug: campaignSlug! },
-    { enabled: !!campaignSlug }
-  );
-  const campaignId = campaignData?.id;
+  const { campaignSlug, campaignId } = useCompendiumRoute();
 
   const { data: chapters = [], isLoading } = trpc.encounterPlans.getBySourcebook.useQuery(
     { campaignId: campaignId! },

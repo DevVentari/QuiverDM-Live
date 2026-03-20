@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCompendiumStore } from '@/store/compendium-store';
+import { useCompendiumRoute } from '@/hooks/use-compendium-route';
 import { cn } from '@/lib/utils';
 
 type ChapterItem = {
@@ -16,14 +16,7 @@ type ChapterItem = {
 export function ChaptersTab() {
   const [search, setSearch] = useState('');
   const { selectedItemId, selectItem } = useCompendiumStore();
-  const pathname = usePathname();
-  const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
-
-  const { data: campaignData } = trpc.campaigns.getBySlug.useQuery(
-    { slug: campaignSlug! },
-    { enabled: !!campaignSlug }
-  );
-  const campaignId = campaignData?.id;
+  const { campaignSlug, campaignId } = useCompendiumRoute();
 
   const { data: result, isLoading } = trpc.homebrew.getContent.useQuery(
     { campaignId: campaignId!, type: 'location' },
@@ -44,10 +37,7 @@ export function ChaptersTab() {
   if (!campaignSlug) {
     return <div className="p-4 text-sm text-muted-foreground">Open a campaign to browse chapters.</div>;
   }
-  if (!campaignData) {
-    return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
-  }
-  if (isLoading) {
+  if (!campaignId || isLoading) {
     return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
   }
 
