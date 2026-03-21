@@ -283,3 +283,52 @@ export function parseCharacterData(ddbData: any) {
     spellSlots,
   };
 }
+
+export interface DDBCampaignCharacterRef {
+  characterId: string;
+  isPublic: boolean;
+}
+
+export async function fetchDDBCampaignCharacters(
+  campaignUrl: string,
+  cobaltToken: string
+): Promise<{ success: boolean; characters?: DDBCampaignCharacterRef[]; message?: string }> {
+  try {
+    const match = campaignUrl.match(/\/campaigns\/(\d+)/);
+    if (!match) {
+      return { success: false, message: 'Could not parse campaign ID from URL.' };
+    }
+    const campaignId = match[1];
+
+    const response = await fetch(
+      `https://www.dndbeyond.com/api/campaign/${campaignId}/characters`,
+      {
+        headers: {
+          Cookie: `CobaltSession=${cobaltToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        return { success: false, message: 'Invalid or expired Cobalt token.' };
+      }
+      return { success: false, message: `DDB returned ${response.status}` };
+    }
+
+    const json = await response.json();
+    const rawChars: any[] = json?.data?.characters ?? json?.data ?? [];
+    const characters: DDBCampaignCharacterRef[] = rawChars.map((c: any) => ({
+      characterId: String(c.id ?? c.characterId),
+      isPublic: !!c.shareable,
+    }));
+
+    return { success: true, characters };
+  } catch (error) {
+    return {
+      success: false,
+      message: `Error fetching campaign characters: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
+}
