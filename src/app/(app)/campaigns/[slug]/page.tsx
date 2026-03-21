@@ -5,12 +5,11 @@ import { formatDistanceToNow } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Play,
   Plus,
-  Mail,
+  Brain,
   Settings,
   ArrowRight,
   Scroll,
@@ -42,13 +41,7 @@ export default function CampaignOverviewPage() {
   const campaign = campaignQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
   const pressures = stateQuery.data as any;
-  const hasPressures = isDM && pressures && ([
-    'pressurePolitical',
-    'pressureSupernatural',
-    'pressureEconomic',
-    'pressureCosmic',
-    'pressureSocial',
-  ] as const).some((key) => typeof pressures[key] === 'number' && pressures[key] > 0);
+
   const statStrip = (
     <div className="stone-card flex divide-x" style={{ borderColor: 'hsl(35 35% 18%)' }}>
       {[
@@ -136,32 +129,32 @@ export default function CampaignOverviewPage() {
     </div>
   );
 
-  // ─── Quick actions (DM) / Members (player) ───────────────────────────────────
-  const sidePanel = isDM ? (
+  // ─── DM Quick Actions ────────────────────────────────────────────────────────
+  const sidePanel = (
     <div className="stone-card">
       <div className="stone-card-header">
         <span className="stone-card-title">Quick Actions</span>
       </div>
       <div className="stone-card-body flex flex-col gap-2">
         <Button asChild className="justify-start gap-3 h-11">
-          <Link href={`/campaigns/${slug}/sessions`}>
+          <Link href={`/campaigns/${slug}/sessions/prep`}>
             <Play className="h-4 w-4" />
-            Start Session
+            New Session
           </Link>
         </Button>
-        <Button asChild variant="outline" className="justify-start gap-3 h-11">
+        <Button asChild variant="ghost" className="justify-start gap-3 h-11">
           <Link href={`/campaigns/${slug}/npcs/new`}>
             <Plus className="h-4 w-4" />
             Add NPC
           </Link>
         </Button>
-        <Button asChild variant="outline" className="justify-start gap-3 h-11">
-          <Link href={`/campaigns/${slug}/members`}>
-            <Mail className="h-4 w-4" />
-            Invite Player
+        <Button asChild variant="ghost" className="justify-start gap-3 h-11">
+          <Link href={`/campaigns/${slug}/brain`}>
+            <Brain className="h-4 w-4" />
+            Open Brain
           </Link>
         </Button>
-        <Button asChild variant="outline" className="justify-start gap-3 h-11">
+        <Button asChild variant="ghost" className="justify-start gap-3 h-11">
           <Link href={`/campaigns/${slug}/settings`}>
             <Settings className="h-4 w-4" />
             Campaign Settings
@@ -169,77 +162,60 @@ export default function CampaignOverviewPage() {
         </Button>
       </div>
     </div>
-  ) : (
-    <div className="stone-card">
-      <div className="stone-card-header">
-        <span className="stone-card-title">Party</span>
-      </div>
-      <div className="stone-card-body">
-        {membersQuery.isLoading ? (
-          <div className="space-y-2">
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-8 w-full rounded" />
-            ))}
-          </div>
-        ) : membersQuery.data && membersQuery.data.length > 0 ? (
-          <ul className="space-y-1.5">
-            {membersQuery.data.map((m) => (
-              <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
-                <span className="truncate">{m.user?.displayName ?? m.user?.name ?? m.user?.email ?? 'Unknown'}</span>
-                <Badge variant="outline" className="text-xs capitalize shrink-0">
-                  {m.role.toLowerCase().replace('_', ' ')}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-sm text-muted-foreground">No members yet.</p>
-        )}
-      </div>
-    </div>
   );
 
-  const pressureCard = hasPressures ? (
+  // ─── World Pressure card (always shown) ─────────────────────────────────────
+  const pressureCard = (
     <div className="stone-card">
       <div className="stone-card-header">
         <span className="stone-card-title">World Pressure</span>
       </div>
       <div className="stone-card-body space-y-2">
-        {([
+        {pressures && ([
           ['Political', 'pressurePolitical'],
           ['Supernatural', 'pressureSupernatural'],
           ['Economic', 'pressureEconomic'],
           ['Cosmic', 'pressureCosmic'],
           ['Social', 'pressureSocial'],
-        ] as const).map(([label, field]) => {
-          const raw = typeof pressures[field] === 'number' ? pressures[field] : 0;
-          const value = Math.round(raw * 100);
-          if (value === 0) return null;
-          return (
-            <div key={field} className="space-y-1">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">{label}</span>
-                <span className="text-xs font-mono text-amber-400/80">{value}%</span>
+        ] as const).some(([, field]) => typeof pressures[field] === 'number' && pressures[field] > 0) ? (
+          ([
+            ['Political', 'pressurePolitical'],
+            ['Supernatural', 'pressureSupernatural'],
+            ['Economic', 'pressureEconomic'],
+            ['Cosmic', 'pressureCosmic'],
+            ['Social', 'pressureSocial'],
+          ] as const).map(([label, field]) => {
+            const raw = typeof pressures[field] === 'number' ? pressures[field] : 0;
+            const value = Math.round(raw * 100);
+            if (value === 0) return null;
+            return (
+              <div key={field} className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60">{label}</span>
+                  <span className="text-xs font-mono text-amber-400/80">{value}%</span>
+                </div>
+                <div className="h-1 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${value}%`,
+                      background: value > 75
+                        ? 'hsl(0 62% 50%)'
+                        : value > 50
+                        ? 'hsl(35 80% 55%)'
+                        : 'hsl(35 50% 40%)',
+                    }}
+                  />
+                </div>
               </div>
-              <div className="h-1 rounded-full bg-white/5 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{
-                    width: `${value}%`,
-                    background: value > 75
-                      ? 'hsl(0 62% 50%)'
-                      : value > 50
-                      ? 'hsl(35 80% 55%)'
-                      : 'hsl(35 50% 40%)',
-                  }}
-                />
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <p className="text-xs text-muted-foreground/60 italic">No active pressures — the world is stable.</p>
+        )}
       </div>
     </div>
-  ) : null;
+  );
 
   return (
     <div className="space-y-6">
@@ -253,6 +229,24 @@ export default function CampaignOverviewPage() {
         {sidePanel}
         {pressureCard}
       </div>
+      {isDM && membersQuery.data && membersQuery.data.length > 0 && (
+        <div>
+          <p className="label-overline mb-1">Party</p>
+          <div className="section-rule mb-4" />
+          <div className="stone-card">
+            <div className="stone-card-body">
+              <ul className="space-y-1.5">
+                {membersQuery.data.map((m) => (
+                  <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="truncate">{m.user?.displayName ?? m.user?.name ?? m.user?.email ?? 'Unknown'}</span>
+                    <span className="text-xs text-muted-foreground capitalize">{m.role.toLowerCase().replace('_', ' ')}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
