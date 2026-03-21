@@ -67,6 +67,17 @@ export function HookList({
                 {hook.urgency}
               </Badge>
               <span className="flex-1 text-sm leading-snug">{hook.text}</span>
+              {onSelect && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  data-testid="resolve-hook-btn"
+                  className="ml-auto shrink-0 h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  onClick={(e) => { e.stopPropagation(); onSelect(hook); }}
+                >
+                  Resolve
+                </Button>
+              )}
             </li>
           ))}
         </ul>

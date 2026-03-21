@@ -15,6 +15,12 @@ const mocks = vi.hoisted(() => ({
   },
   prisma: {
     $disconnect: vi.fn(),
+    entityMergeRule: { findMany: vi.fn() },
+    entityMergeCandidate: { create: vi.fn() },
+    worldPressureHistory: { create: vi.fn() },
+    gameSession: { findMany: vi.fn() },
+    worldEntity: { findMany: vi.fn(), update: vi.fn() },
+    worldStateChange: { findMany: vi.fn() },
   },
 }));
 
@@ -124,6 +130,14 @@ describe('processBrainIngestionJob', () => {
     mocks.brainRepository.appendRelationshipHistory.mockResolvedValue({});
     mocks.brainRepository.getOrCreateState.mockResolvedValue({ ...BASE_STATE });
     mocks.brainRepository.updateState.mockResolvedValue({ ...BASE_STATE });
+
+    mocks.prisma.entityMergeRule.findMany.mockResolvedValue([]);
+    mocks.prisma.entityMergeCandidate.create.mockResolvedValue({});
+    mocks.prisma.worldPressureHistory.create.mockResolvedValue({});
+    mocks.prisma.gameSession.findMany.mockResolvedValue([]);
+    mocks.prisma.worldEntity.findMany.mockResolvedValue([]);
+    mocks.prisma.worldStateChange.findMany.mockResolvedValue([]);
+    mocks.prisma.worldEntity.update.mockResolvedValue({});
 
     mocks.chatWithAI.mockResolvedValue(AI_RESPONSE_JSON);
   });
