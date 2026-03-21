@@ -40,7 +40,14 @@ export default function CampaignOverviewPage() {
 
   const campaign = campaignQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
-  const pressures = stateQuery.data as any;
+  interface BrainState {
+    pressurePolitical?: number;
+    pressureSupernatural?: number;
+    pressureEconomic?: number;
+    pressureCosmic?: number;
+    pressureSocial?: number;
+  }
+  const pressures = stateQuery.data as BrainState | undefined;
 
   const statStrip = (
     <div className="stone-card flex divide-x" style={{ borderColor: 'hsl(35 35% 18%)' }}>
@@ -177,7 +184,7 @@ export default function CampaignOverviewPage() {
           ['Economic', 'pressureEconomic'],
           ['Cosmic', 'pressureCosmic'],
           ['Social', 'pressureSocial'],
-        ] as const).some(([, field]) => typeof pressures?.[field] === 'number' && (pressures[field] as number) > 0) ? (
+        ] as const).some(([, field]) => typeof pressures?.[field] === 'number' && (pressures?.[field] ?? 0) > 0) ? (
           ([
             ['Political', 'pressurePolitical'],
             ['Supernatural', 'pressureSupernatural'],
@@ -185,7 +192,7 @@ export default function CampaignOverviewPage() {
             ['Cosmic', 'pressureCosmic'],
             ['Social', 'pressureSocial'],
           ] as const).map(([label, field]) => {
-            const raw = typeof pressures[field] === 'number' ? pressures[field] : 0;
+            const raw = pressures?.[field] ?? 0;
             const value = Math.round(raw * 100);
             if (value === 0) return null;
             return (
