@@ -12,11 +12,29 @@ import { EntityCard } from '@/components/brain/entity-card';
 import { EntityGraph } from '@/components/brain/entity-graph';
 import { SessionTimeline } from '@/components/brain/session-timeline';
 import { ContinuityWarnings } from '@/components/brain/continuity-warnings';
-import { Brain, ChevronRight, Sprout } from 'lucide-react';
+import { Brain, ChevronRight, Sprout, Upload, CheckCircle, XCircle, GitMerge } from 'lucide-react';
 import { SessionSeedCard } from '@/components/brain/session-seed';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { WorldEntityType } from '@prisma/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 const TYPE_LABELS: Record<string, string> = {
   NPC: 'NPCs',
@@ -34,6 +52,11 @@ const TYPE_LABELS: Record<string, string> = {
 export default function BrainPage() {
   const { campaignId, slug, isDM } = useCampaign();
   const [seeding, setSeeding] = useState(false);
+  const [ingestOpen, setIngestOpen] = useState(false);
+  const [ingestType, setIngestType] = useState<'pdf' | 'image' | 'text'>('text');
+  const [ingestUrl, setIngestUrl] = useState('');
+  const [ingestContent, setIngestContent] = useState('');
+  const [ingestLabel, setIngestLabel] = useState('');
 
   const stateQuery = trpc.brain.state.get.useQuery(
     { campaignId },
@@ -71,6 +94,45 @@ export default function BrainPage() {
 
   const stateUpdateMutation = trpc.brain.state.update.useMutation({
     onSuccess: () => stateQuery.refetch(),
+  });
+
+  const ingestSourcesQuery = trpc.brain.ingest.sources.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 30_000 }
+  );
+
+  const mergeCandidatesQuery = trpc.brain.mergeCandidates.list.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 30_000 }
+  );
+
+  const ingestDocumentMutation = trpc.brain.ingest.document.useMutation({
+    onSuccess: () => {
+      toast.success('Document queued for ingestion.');
+      setIngestOpen(false);
+      setIngestUrl('');
+      setIngestContent('');
+      setIngestLabel('');
+      ingestSourcesQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const approveMergeMutation = trpc.brain.mergeCandidates.approve.useMutation({
+    onSuccess: () => {
+      toast.success('Entities merged.');
+      mergeCandidatesQuery.refetch();
+      entitiesQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const rejectMergeMutation = trpc.brain.mergeCandidates.reject.useMutation({
+    onSuccess: () => {
+      toast.success('Merge rejected — will not suggest again.');
+      mergeCandidatesQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   if (!isDM) {
@@ -140,21 +202,31 @@ export default function BrainPage() {
             DM Brain
           </h2>
         </div>
-        {!hasEntities && (
+        <div className="flex items-center gap-2">
           <Button
-            data-testid="seed-from-existing-btn"
             size="sm"
             variant="outline"
-            disabled={seeding || seedMutation.isPending}
-            onClick={() => {
-              setSeeding(true);
-              seedMutation.mutate({ campaignId }, { onSettled: () => setSeeding(false) });
-            }}
+            onClick={() => setIngestOpen(true)}
           >
-            <Sprout className="mr-2 h-4 w-4" />
-            Seed from Existing
+            <Upload className="mr-2 h-4 w-4" />
+            Ingest Document
           </Button>
-        )}
+          {!hasEntities && (
+            <Button
+              data-testid="seed-from-existing-btn"
+              size="sm"
+              variant="outline"
+              disabled={seeding || seedMutation.isPending}
+              onClick={() => {
+                setSeeding(true);
+                seedMutation.mutate({ campaignId }, { onSettled: () => setSeeding(false) });
+              }}
+            >
+              <Sprout className="mr-2 h-4 w-4" />
+              Seed from Existing
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="section-rule" />
@@ -169,6 +241,14 @@ export default function BrainPage() {
             {warnings.length > 0 && (
               <span className="ml-1.5 rounded-full bg-destructive/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                 {warnings.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="merge">
+            Merge Queue
+            {(mergeCandidatesQuery.data?.length ?? 0) > 0 && (
+              <span className="ml-1.5 rounded-full bg-amber-600/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+                {mergeCandidatesQuery.data!.length}
               </span>
             )}
           </TabsTrigger>
@@ -396,7 +476,179 @@ export default function BrainPage() {
             </div>
           </div>
         </TabsContent>
+
+        {/* Merge Queue Tab */}
+        <TabsContent value="merge">
+          <div className="space-y-4">
+            <div className="stone-card">
+              <div className="stone-card-header">
+                <span className="stone-card-title flex items-center gap-2">
+                  <GitMerge className="h-4 w-4" />
+                  Entity Merge Queue
+                </span>
+              </div>
+              <div className="stone-card-body">
+                {mergeCandidatesQuery.isLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded" />)}
+                  </div>
+                ) : !mergeCandidatesQuery.data?.length ? (
+                  <p className="text-sm text-muted-foreground italic">No merge candidates pending review.</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {mergeCandidatesQuery.data.map((candidate) => (
+                      <li key={candidate.id} className="flex items-start justify-between gap-4 rounded-lg border border-border/40 p-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-sm">{candidate.entityA.name}</span>
+                            <span className="text-muted-foreground text-xs">≈</span>
+                            <span className="font-medium text-sm">{candidate.entityB.name}</span>
+                            <Badge variant="outline" className="text-[10px]">
+                              {Math.round(candidate.score * 100)}% match
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Suggested canonical: <span className="font-mono">{candidate.suggestedCanonical}</span>
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-500 border-green-500/40 hover:bg-green-500/10"
+                            disabled={approveMergeMutation.isPending || rejectMergeMutation.isPending}
+                            onClick={() => approveMergeMutation.mutate({ campaignId, candidateId: candidate.id })}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Merge
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                            disabled={approveMergeMutation.isPending || rejectMergeMutation.isPending}
+                            onClick={() => rejectMergeMutation.mutate({ campaignId, candidateId: candidate.id })}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Keep Separate
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Ingest Sources history */}
+            <div className="stone-card">
+              <div className="stone-card-header">
+                <span className="stone-card-title">Ingestion History</span>
+              </div>
+              <div className="stone-card-body">
+                {ingestSourcesQuery.isLoading ? (
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full rounded" />)}
+                  </div>
+                ) : !ingestSourcesQuery.data?.length ? (
+                  <p className="text-sm text-muted-foreground italic">No ingestion jobs yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {ingestSourcesQuery.data.map((src) => (
+                      <li key={src.id} className="flex items-center justify-between gap-3 text-sm">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Badge variant="outline" className="shrink-0 text-[10px] uppercase">{src.type}</Badge>
+                          <span className="truncate text-muted-foreground">{src.sourceLabel}</span>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge
+                            variant={src.status === 'done' ? 'default' : src.status === 'failed' ? 'destructive' : 'secondary'}
+                            className="text-[10px]"
+                          >
+                            {src.status}
+                          </Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(src.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {/* Ingest Document Dialog */}
+      <Dialog open={ingestOpen} onOpenChange={setIngestOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ingest Document</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>Document Type</Label>
+              <Select value={ingestType} onValueChange={(v) => setIngestType(v as 'pdf' | 'image' | 'text')}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Plain Text / Notes</SelectItem>
+                  <SelectItem value="pdf">PDF (URL)</SelectItem>
+                  <SelectItem value="image">Image (URL)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Source Label</Label>
+              <Input
+                placeholder="e.g. Session 0 notes, Campaign bible"
+                value={ingestLabel}
+                onChange={(e) => setIngestLabel(e.target.value)}
+              />
+            </div>
+            {ingestType === 'text' ? (
+              <div className="space-y-1.5">
+                <Label>Content</Label>
+                <Textarea
+                  placeholder="Paste your notes, backstory, or lore here..."
+                  rows={6}
+                  value={ingestContent}
+                  onChange={(e) => setIngestContent(e.target.value)}
+                />
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label>File URL</Label>
+                <Input
+                  placeholder="https://..."
+                  value={ingestUrl}
+                  onChange={(e) => setIngestUrl(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIngestOpen(false)}>Cancel</Button>
+            <Button
+              disabled={ingestDocumentMutation.isPending || !ingestLabel.trim() || (ingestType === 'text' ? !ingestContent.trim() : !ingestUrl.trim())}
+              onClick={() =>
+                ingestDocumentMutation.mutate({
+                  campaignId,
+                  type: ingestType,
+                  url: ingestType !== 'text' ? ingestUrl : undefined,
+                  content: ingestType === 'text' ? ingestContent : undefined,
+                  sourceLabel: ingestLabel,
+                })
+              }
+            >
+              {ingestDocumentMutation.isPending ? 'Queuing...' : 'Ingest'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

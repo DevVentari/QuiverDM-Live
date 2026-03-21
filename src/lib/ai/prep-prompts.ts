@@ -149,6 +149,163 @@ Respond with JSON only in this format:
 }
 
 // ---------------------------------------------------------------------------
+// Brain section suggest context type
+// ---------------------------------------------------------------------------
+
+export interface BrainSectionContext {
+  worldState: {
+    pressurePolitical: number;
+    pressureSupernatural: number;
+    pressureEconomic: number;
+    pressureCosmic: number;
+    pressureSocial: number;
+    hooks: Array<{ text: string; urgency: string; status?: string }>;
+    threats: Array<{ name?: string; description?: string }>;
+  };
+  recentChanges: Array<{ entityName: string; entityType: string; changeType: string }>;
+  openHooks: Array<{ text: string; urgency: string }>;
+  elevatedPressure: Array<{ name: string; value: number }>;
+}
+
+export type BrainSectionTarget =
+  | 'characters'
+  | 'strong-start'
+  | 'scenes'
+  | 'secrets'
+  | 'npcs'
+  | 'monsters'
+  | 'rewards'
+  | 'threads';
+
+export function buildBrainSectionPrompt(
+  section: BrainSectionTarget,
+  ctx: BrainSectionContext,
+  currentContent?: string
+): string {
+  const hookList = ctx.openHooks.length > 0
+    ? ctx.openHooks.map((h) => `- [${h.urgency}] ${h.text}`).join('\n')
+    : '(none)';
+  const entityList = ctx.recentChanges.length > 0
+    ? ctx.recentChanges.map((c) => `- ${c.entityName} (${c.entityType.toLowerCase()}): ${c.changeType.replace(/_/g, ' ')}`).join('\n')
+    : '(none)';
+  const pressureList = ctx.elevatedPressure.length > 0
+    ? ctx.elevatedPressure.map((p) => `- ${p.name}: ${p.value.toFixed(2)}`).join('\n')
+    : '(none elevated)';
+  const current = currentContent ? `\nCurrent content:\n${currentContent}\n` : '';
+
+  const base = `You are a DM assistant. Be concise and specific. Return only plain text — no JSON, no markdown headers.`;
+
+  switch (section) {
+    case 'characters':
+      return `${base}
+
+Given these recently active entities and unresolved hooks, suggest 1-2 character-specific goals or arcs the DM should be aware of for this session.
+
+Unresolved hooks:
+${hookList}
+
+Recent entity changes:
+${entityList}
+${current}
+Respond with 1-2 sentences describing relevant character angles to prep.`;
+
+    case 'strong-start':
+      return `${base}
+
+Given the current world pressure and recent events, suggest a strong opening scene for the next session.
+
+Pressure levels:
+${pressureList}
+
+Unresolved hooks:
+${hookList}
+
+Recent events:
+${entityList}
+${current}
+Respond with a vivid 2-3 sentence opening that drops players immediately into action.`;
+
+    case 'scenes':
+      return `${base}
+
+Given these unresolved hooks and entity changes, suggest a potential scene or beat for this session.
+
+Unresolved hooks:
+${hookList}
+
+Recent entity changes:
+${entityList}
+${current}
+Respond with 1-2 sentences describing a scene title and what happens.`;
+
+    case 'secrets':
+      return `${base}
+
+Given these world changes, suggest a secret or clue the players could discover this session.
+
+Recent entity changes:
+${entityList}
+
+Unresolved hooks:
+${hookList}
+${current}
+Respond with a single sentence stating the secret or clue.`;
+
+    case 'npcs':
+      return `${base}
+
+Given these active entities and their current states, suggest 2-3 NPCs for this session with motivations.
+
+Active entities:
+${entityList}
+
+Unresolved hooks:
+${hookList}
+${current}
+Respond with 2-3 lines, one per NPC: "Name — motivation/role this session."`;
+
+    case 'monsters':
+      return `${base}
+
+Given the current world threats and pressure, suggest a monster or enemy encounter for this session.
+
+Active threats:
+${ctx.worldState.threats.map((t) => `- ${t.name ?? 'Unknown'}${t.description ? `: ${t.description}` : ''}`).join('\n') || '(none)'}
+
+Pressure:
+${pressureList}
+${current}
+Respond with 1-2 sentences: monster name, brief description, and why it appears now.`;
+
+    case 'rewards':
+      return `${base}
+
+Given the current campaign context, suggest an appropriate reward for this session.
+
+Recent entity changes:
+${entityList}
+
+Elevated pressure:
+${pressureList}
+${current}
+Respond with 1 sentence describing a thematic reward appropriate to these events.`;
+
+    case 'threads':
+      return `${base}
+
+Given these unresolved hooks, suggest 1-2 loose threads to surface in this session.
+
+Unresolved hooks:
+${hookList}
+${current}
+Respond with 1-2 sentences, one per thread, describing what remains unresolved.`;
+
+    default:
+      return `${base}\n\nSuggest relevant content for this section based on recent world events:\n${entityList}`;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Step 8 (Brain variant): Loose Threads from Brain hooks
 // ---------------------------------------------------------------------------
 

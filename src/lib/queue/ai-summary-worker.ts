@@ -169,6 +169,7 @@ async function processSummaryJob(data: AiSummaryJobData): Promise<AiSummaryJobRe
       campaignId: session.campaignId,
       summary: parsed.summary,
       highlights: parsed.highlights,
+      source: 'session_summary',
     }).catch(err => {
       console.warn('[ai-summary] Failed to queue brain ingestion:', err);
     });
