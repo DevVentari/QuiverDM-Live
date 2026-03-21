@@ -117,6 +117,7 @@ model UserSettings {
 
   // Display preferences
   videoBackground Boolean @default(true)
+  dmExperience    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
