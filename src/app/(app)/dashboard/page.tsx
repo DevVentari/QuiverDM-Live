@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Image from 'next/image';
-import { Plus, Swords, Users, Check, X, BookOpen, Heart } from 'lucide-react';
+import { Plus, Swords, Users, Check, X, BookOpen, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ActiveCampaignHero } from '@/components/dashboard/ActiveCampaignHero';
 
@@ -28,7 +28,6 @@ function stripHtml(html: string): string {
 export default function DashboardPage() {
   const { toast } = useToast();
   const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, { staleTime: 120_000 });
-  const characters = trpc.characters.getMyCharacters.useQuery(undefined, { staleTime: 120_000 });
   const invites = trpc.campaigns.getPendingInvites.useQuery(undefined, { staleTime: 10_000 });
   const homebrew = trpc.homebrew.getContent.useQuery({}, { staleTime: 30_000 });
   const utils = trpc.useUtils();
@@ -52,9 +51,8 @@ export default function DashboardPage() {
     },
   });
 
-  // Quick stats
   const campaignCount = campaigns.data?.length ?? 0;
-  const characterCount = characters.data?.length ?? 0;
+  const totalSessions = campaigns.data?.reduce((sum, c) => sum + (c.sessionCount ?? 0), 0) ?? 0;
   const homebrewItems = ((homebrew.data as any)?.items || []) as any[];
   const activeCampaign = useMemo(() => {
     if (!campaigns.data?.length) return null;
@@ -79,7 +77,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats */}
-      {!campaigns.isLoading && !characters.isLoading && (campaignCount > 0 || characterCount > 0 || homebrewItems.length > 0) && (
+      {!campaigns.isLoading && campaigns.data && campaigns.data.length > 0 && (
         <div className="stone-card glass-panel">
           <div className="stone-card-body py-3 flex flex-wrap items-center gap-x-5 gap-y-2">
             <div className="flex items-center gap-2">
@@ -89,15 +87,9 @@ export default function DashboardPage() {
             </div>
             <span className="text-border select-none hidden sm:block">·</span>
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-sm font-medium tabular-nums">{characterCount}</span>
-              <span className="text-xs text-muted-foreground">characters</span>
-            </div>
-            <span className="text-border select-none hidden sm:block">·</span>
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-sm font-medium tabular-nums">{homebrewItems.length}</span>
-              <span className="text-xs text-muted-foreground">homebrew items</span>
+              <CalendarDays className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-medium tabular-nums">{totalSessions}</span>
+              <span className="text-xs text-muted-foreground">sessions</span>
             </div>
           </div>
         </div>
@@ -143,10 +135,10 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Campaigns - full-width with top banners */}
+      {/* Campaigns */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Continue Playing</h2>
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your Campaigns</h2>
           <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
             <Link href="/campaigns">View all</Link>
           </Button>
@@ -184,11 +176,6 @@ export default function DashboardPage() {
                   <div className="stone-card-header pb-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="stone-card-title text-sm truncate">{campaign.name}</span>
-                      {campaign.role && (
-                        <Badge variant="secondary" className="text-[10px] shrink-0">
-                          {campaign.role}
-                        </Badge>
-                      )}
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-1 text-xs">
                       {campaign.description || 'No description'}
@@ -203,9 +190,6 @@ export default function DashboardPage() {
                       )}
                       {campaign.nextSession && (
                         <span className="text-amber-400">Next: {format(new Date(campaign.nextSession.date), 'EEE MMM d')}</span>
-                      )}
-                      {campaign.myCharacter && (
-                        <span>Playing: {campaign.myCharacter.name}</span>
                       )}
                     </div>
                   </div>
@@ -231,166 +215,79 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Side-by-side: Characters (left) + Homebrew (right) */}
-      <div className="grid gap-6 lg:grid-cols-2 min-w-0">
-        {/* Characters */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Your Party</h2>
-            <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
-              <Link href="/characters">View all</Link>
-            </Button>
-          </div>
-          {characters.isLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <Skeleton key={i} className="h-20 rounded-lg" />
-              ))}
-            </div>
-          ) : characters.isError ? (
-            <div className="stone-card glass-panel p-8 text-center">
-              <p className="text-sm text-muted-foreground">Failed to load characters. Please refresh.</p>
-            </div>
-          ) : characters.data && characters.data.length > 0 ? (
-            <div className="space-y-3">
-              {characters.data.map((char: any) => {
-                const hp = char.hitPoints as any;
-                const hpPct = hp?.max > 0 ? (hp.current / hp.max) * 100 : null;
-                return (
-                  <Link key={char.id} href={`/characters/${char.id}`}>
-                    <div className="stone-card glass-panel group cursor-pointer overflow-hidden transition-all hover:border-white/20 hover:bg-white/[0.05]">
-                      <div className="flex gap-3 p-3">
-                        <div className="relative h-16 w-16 shrink-0 rounded-md overflow-hidden">
-                          {char.portraitUrl ? (
-                            <Image
-                              src={char.portraitUrl}
-                              alt={char.name}
-                              fill
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="h-full w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="stone-card-title text-sm truncate">{char.name}</span>
-                            {char.level && (
-                              <Badge variant="outline" className="border-white/35 bg-white/5 text-[10px] shrink-0 tabular-nums">
-                                Lvl {char.level}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                            {[char.race, char.class].filter(Boolean).join(' · ') || 'No details'}
-                          </p>
-                          {hp && hpPct != null && (
-                            <div className="flex items-center gap-2 mt-2">
-                              <Heart className="h-3 w-3 text-red-500 shrink-0" />
-                              <Progress value={hpPct} className="h-1.5 flex-1" />
-                              <span className="text-[10px] text-muted-foreground tabular-nums shrink-0">
-                                {hp.current}/{hp.max}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="stone-card glass-panel">
-              <div className="stone-card-body flex flex-col items-center py-8 text-center">
-                <Users className="h-8 w-8 text-muted-foreground mb-3" />
-                <p className="text-sm text-muted-foreground mb-3">No characters yet</p>
-                <Button size="sm" asChild>
-                  <Link href="/characters/new">
-                    <Plus className="mr-2 h-3 w-3" />
-                    Create Character
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          )}
+      {/* Homebrew Library */}
+      <div className="space-y-3 min-w-0">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Homebrew Library</h2>
+          <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
+            <Link href="/homebrew">View all</Link>
+          </Button>
         </div>
-
-        {/* Homebrew */}
-        <div className="space-y-3 min-w-0">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Homebrew Library</h2>
-            <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
-              <Link href="/homebrew">View all</Link>
-            </Button>
+        {homebrew.isLoading ? (
+          <div className="space-y-3">
+            {[1, 2].map((i) => (
+              <Skeleton key={i} className="h-16 rounded-lg" />
+            ))}
           </div>
-          {homebrew.isLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <Skeleton key={i} className="h-16 rounded-lg" />
-              ))}
-            </div>
-          ) : homebrew.isError ? (
-            <div className="stone-card glass-panel p-8 text-center">
-              <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
-            </div>
-          ) : homebrewItems.length > 0 ? (
-            <div className="space-y-2">
-              {homebrewItems.slice(0, 8).map((item: any) => (
-                <div key={item.id} className="stone-card glass-row overflow-hidden">
-                  <div className="stone-card-body flex items-center gap-3 py-2.5 px-4 overflow-hidden">
-                    {item.images?.[0] ? (
-                      <Image
-                        src={item.images[0]}
-                        alt={item.name}
-                        width={32}
-                        height={32}
-                        className="h-8 w-8 rounded object-cover shrink-0"
-                      />
-                    ) : (
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted">
-                        <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                      </div>
+        ) : homebrew.isError ? (
+          <div className="stone-card glass-panel p-8 text-center">
+            <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
+          </div>
+        ) : homebrewItems.length > 0 ? (
+          <div className="space-y-2">
+            {homebrewItems.slice(0, 8).map((item: any) => (
+              <div key={item.id} className="stone-card glass-row overflow-hidden">
+                <div className="stone-card-body flex items-center gap-3 py-2.5 px-4 overflow-hidden">
+                  {item.images?.[0] ? (
+                    <Image
+                      src={item.images[0]}
+                      alt={item.name}
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 rounded object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted">
+                      <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.name}</p>
+                    {item.data?.description && (
+                      <p className="text-[11px] text-muted-foreground truncate">
+                        {stripHtml(item.data.description)}
+                      </p>
                     )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{item.name}</p>
-                      {item.data?.description && (
-                        <p className="text-[11px] text-muted-foreground truncate">
-                          {stripHtml(item.data.description)}
-                        </p>
-                      )}
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={`text-[10px] capitalize shrink-0 ${typeColorMap[item.type] || ''}`}
-                    >
-                      {item.type}
-                    </Badge>
                   </div>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] capitalize shrink-0 ${typeColorMap[item.type] || ''}`}
+                  >
+                    {item.type}
+                  </Badge>
                 </div>
-              ))}
-              {homebrewItems.length > 8 && (
-                <p className="text-xs text-muted-foreground text-center pt-1">
-                  +{homebrewItems.length - 8} more items
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="stone-card glass-panel">
-              <div className="stone-card-body flex flex-col items-center py-8 text-center">
-                <BookOpen className="h-8 w-8 text-muted-foreground mb-3" />
-                <p className="text-sm text-muted-foreground mb-3">No homebrew content yet</p>
-                <Button size="sm" variant="outline" asChild>
-                  <Link href="/homebrew/pdfs">
-                    Upload PDFs
-                  </Link>
-                </Button>
               </div>
+            ))}
+            {homebrewItems.length > 8 && (
+              <p className="text-xs text-muted-foreground text-center pt-1">
+                +{homebrewItems.length - 8} more items
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="stone-card glass-panel">
+            <div className="stone-card-body flex flex-col items-center py-8 text-center">
+              <BookOpen className="h-8 w-8 text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground mb-3">No homebrew content yet</p>
+              <Button size="sm" variant="outline" asChild>
+                <Link href="/homebrew/pdfs">
+                  Upload PDFs
+                </Link>
+              </Button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
