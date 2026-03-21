@@ -92,7 +92,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="font-medium text-sm">{invite.campaignName || 'Campaign'}</p>
                   <p className="text-xs text-muted-foreground">
-                    Invited as {invite.role || 'player'}
+                    Invited as {(invite.role ?? 'player').toLowerCase().replace(/_/g, ' ')}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -162,9 +162,6 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between gap-2">
                       <span className="stone-card-title text-sm truncate">{campaign.name}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-1 text-xs">
-                      {campaign.sessionCount} sessions · {campaign.memberCount} members
-                    </p>
                   </div>
                   <div className="stone-card-body pt-0">
                     <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
