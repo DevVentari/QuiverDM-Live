@@ -6,10 +6,14 @@ import Link from 'next/link';
 import { ChevronDown, ChevronRight, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
-import type { Character } from '@prisma/client';
+import type { Character, WorldEntity, WorldRelationship } from '@prisma/client';
+
+type CharacterWithBrainEntity = Character & {
+  brainEntity?: WorldEntity & { relationships: WorldRelationship[] };
+};
 
 interface PlayerCharacterCardProps {
-  character: Character;
+  character: CharacterWithBrainEntity;
   compact?: boolean;
   campaignId?: string;
   className?: string;
@@ -33,32 +37,59 @@ function AbilityScore({ label, score }: { label: string; score: number }) {
   );
 }
 
-function BrainPanel({ campaignId, characterName }: { campaignId: string; characterName: string }) {
+function BrainPanel({
+  campaignId,
+  characterName,
+  brainEntity,
+}: {
+  campaignId: string;
+  characterName: string;
+  brainEntity?: WorldEntity & { relationships: WorldRelationship[] };
+}) {
   const { data, isLoading } = trpc.brain.entities.list.useQuery(
     { campaignId, search: characterName },
-    { staleTime: 60_000 }
+    { staleTime: 60_000, enabled: !brainEntity }
   );
 
-  const entity = data?.[0];
+  const entity = brainEntity ?? data?.[0];
+  const loading = !brainEntity && isLoading;
+
+  const topRelationships = entity && brainEntity?.relationships
+    ? [...brainEntity.relationships]
+        .sort((a, b) => b.strength - a.strength)
+        .slice(0, 3)
+    : [];
 
   return (
     <div className="border-t border-amber-800/30 pt-2 space-y-1 text-xs">
       <div className="font-bold text-sm uppercase tracking-wide text-amber-700">DM Brain</div>
-      {isLoading && <p className="text-muted-foreground">Loading...</p>}
-      {!isLoading && !entity && (
+      {loading && <p className="text-muted-foreground">Loading...</p>}
+      {!loading && !entity && (
         <p className="text-muted-foreground">
           Not yet tracked by DM Brain. Seed the Brain to see history here.
         </p>
       )}
       {entity && (
         <>
-          {entity.firstSeenSessionId && (
+          {entity.lastSeenSessionId && (
             <p className="text-muted-foreground">
-              Last seen: Session {entity.firstSeenSessionId.slice(-6)}
+              Last seen: Session {entity.lastSeenSessionId.slice(-6)}
             </p>
           )}
           {entity.description && (
             <p className="text-foreground/80 line-clamp-2">{entity.description}</p>
+          )}
+          {topRelationships.length > 0 && (
+            <div className="space-y-0.5">
+              {topRelationships.map((rel) => (
+                <p key={rel.id} className="text-muted-foreground">
+                  <span className="capitalize font-medium">{rel.type}</span>
+                  {rel.description && (
+                    <span>: {rel.description}</span>
+                  )}
+                </p>
+              ))}
+            </div>
           )}
           <Link
             href={`/campaigns/${campaignId}/brain?entity=${entity.id}`}
@@ -93,6 +124,8 @@ export function PlayerCharacterCard({
 
   const senses = character.senses as { passivePerception?: number } | null;
   const passivePerception = senses?.passivePerception ?? (scores ? 10 + abilityMod(scores.wis) : null);
+
+  const initiative = scores ? fmtMod(abilityMod(scores.dex ?? 10)) : null;
 
   const classLine = [character.class, character.subclass].filter(Boolean).join(' · ');
   const subtitle = [character.race, classLine ? `${classLine} Lv.${character.level}` : `Lv.${character.level}`]
@@ -151,7 +184,7 @@ export function PlayerCharacterCard({
               <span className="font-bold uppercase text-foreground/60">AC</span>
               <span className="font-bold">{character.armorClass ?? '—'}</span>
             </div>
-            <div className="flex flex-col items-center col-span-2">
+            <div className="flex flex-col items-center">
               <span className="font-bold uppercase text-foreground/60">HP</span>
               <span className="font-bold">
                 {hp ? `${hp.current}/${hp.max}` : '—'}
@@ -160,6 +193,10 @@ export function PlayerCharacterCard({
             <div className="flex flex-col items-center">
               <span className="font-bold uppercase text-foreground/60">Speed</span>
               <span className="font-bold">{character.speed ?? 30} ft.</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="font-bold uppercase text-foreground/60">Init</span>
+              <span className="font-bold">{initiative ?? '—'}</span>
             </div>
             <div className="flex flex-col items-center">
               <span className="font-bold uppercase text-foreground/60">PP</span>
@@ -185,7 +222,11 @@ export function PlayerCharacterCard({
           )}
 
           {campaignId && (
-            <BrainPanel campaignId={campaignId} characterName={character.name} />
+            <BrainPanel
+              campaignId={campaignId}
+              characterName={character.name}
+              brainEntity={character.brainEntity}
+            />
           )}
         </div>
       )}
