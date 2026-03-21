@@ -66,7 +66,10 @@ export async function callGeminiVision(
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
 
-  if (!res.ok) throw new Error(`Gemini Vision error ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    if (res.status === 429) throw new Error('Gemini Vision quota exceeded. Add a personal Gemini API key in Settings → API Keys to unlock higher limits.');
+    throw new Error(`Gemini Vision error ${res.status}: ${await res.text()}`);
+  }
   const json = await res.json();
 
   if (opts?.userId) {
