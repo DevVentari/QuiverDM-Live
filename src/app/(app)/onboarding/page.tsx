@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signOut } from 'next-auth/react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -302,37 +302,40 @@ function FirstCampaignStep({
     },
   });
 
-  const isPending = createCampaign.isPending || completeFirstCampaign.isPending;
+  const isPending = createCampaign.isPending || completeFirstCampaign.isPending || seedBrain.isPending || importDDB.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!campaignName.trim()) return;
-
-    const campaign = await createCampaign.mutateAsync({
-      name: campaignName.trim(),
-      description: description.trim() || undefined,
-    });
-
-    void seedBrain.mutateAsync({
-      campaignId: campaign.id,
-      worldSetup: {
-        startingLocation: startingLocation.trim() || undefined,
-        antagonistName: antagonistName.trim() || undefined,
-        openingHook: openingHook.trim() || undefined,
-      },
-      storyText: storyText.trim() || undefined,
-    });
-
-    if (hasCobalt && ddbCampaignUrl.trim()) {
-      void importDDB.mutateAsync({
-        campaignUrl: ddbCampaignUrl.trim(),
-        campaignId: campaign.id,
+    try {
+      const campaign = await createCampaign.mutateAsync({
+        name: campaignName.trim(),
+        description: description.trim() || undefined,
       });
-    }
 
-    await completeFirstCampaign.mutateAsync();
-    void utils.onboarding.needsOnboarding.invalidate();
-    onNext(campaign.slug);
+      void seedBrain.mutateAsync({
+        campaignId: campaign.id,
+        worldSetup: {
+          startingLocation: startingLocation.trim() || undefined,
+          antagonistName: antagonistName.trim() || undefined,
+          openingHook: openingHook.trim() || undefined,
+        },
+        storyText: storyText.trim() || undefined,
+      });
+
+      if (hasCobalt && ddbCampaignUrl.trim()) {
+        void importDDB.mutateAsync({
+          campaignUrl: ddbCampaignUrl.trim(),
+          campaignId: campaign.id,
+        });
+      }
+
+      await completeFirstCampaign.mutateAsync();
+      void utils.onboarding.needsOnboarding.invalidate();
+      onNext(campaign.slug);
+    } catch (error: unknown) {
+      // createCampaign.error already set by tRPC — no extra toast needed
+    }
   }
 
   return (
@@ -530,10 +533,13 @@ export default function OnboardingPage() {
 
   const currentStep = localStep ?? status?.currentStep ?? 'welcome';
 
-  if (status?.completed && !localStep) {
-    window.location.href = '/dashboard';
-    return null;
-  }
+  useEffect(() => {
+    if (status?.completed && !localStep) {
+      window.location.href = '/dashboard';
+    }
+  }, [status?.completed, localStep]);
+
+  if (status?.completed && !localStep) return null;
 
   if (isLoading) {
     return (
