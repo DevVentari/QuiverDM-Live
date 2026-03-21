@@ -94,11 +94,17 @@ async function extractFromImage(base64Data: string, mimeType: string, userKey?: 
 async function pdfToMarkdown(buffer: Buffer): Promise<string> {
   const doclingUrl = process.env.DOCLING_URL || 'http://localhost:5001';
   const formData = new FormData();
-  formData.append('file', new Blob([new Uint8Array(buffer)], { type: 'application/pdf' }), 'upload.pdf');
-  const res = await fetch(`${doclingUrl}/convert`, { method: 'POST', body: formData });
+  formData.append('files', new Blob([new Uint8Array(buffer)], { type: 'application/pdf' }), 'upload.pdf');
+  formData.append('to_formats', 'md');
+  const res = await fetch(`${doclingUrl}/v1/convert/file`, {
+    method: 'POST',
+    body: formData,
+    signal: AbortSignal.timeout(120_000),
+  });
   if (!res.ok) throw new Error(`Docling error ${res.status}`);
-  const json = await res.json();
-  return json.markdown || json.text || '';
+  const result = await res.json();
+  const item = Array.isArray(result) ? result[0] : result;
+  return item?.document?.md_content ?? item?.output?.md_content ?? item?.md_content ?? item?.content ?? '';
 }
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
