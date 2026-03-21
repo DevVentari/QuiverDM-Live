@@ -310,6 +310,10 @@ model Campaign {
   sessionEntityAppearances SessionEntityAppearance[]
   worldActors              WorldActor[]
   worldSimulationEvents    WorldSimulationEvent[]
+  worldEventProposals      WorldEventProposal[]
+  brainIngestSources       BrainIngestSource[]
+  entityMergeCandidates    EntityMergeCandidate[]
+  entityMergeRules         EntityMergeRule[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -551,6 +555,7 @@ model GameSession {
 
   playerSessionStates PlayerSessionState[]
   spotlights          SessionSpotlight[]
+  worldEventProposals WorldEventProposal[]
 
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
@@ -1330,6 +1335,10 @@ model WorldEntity {
   stateChanges       WorldStateChange[]
   sessionAppearances SessionEntityAppearance[]
   worldActor         WorldActor?
+  mergeCandidatesA   EntityMergeCandidate[]   @relation("MergeCandidateA")
+  mergeCandidatesB   EntityMergeCandidate[]   @relation("MergeCandidateB")
+  mergeRulesA        EntityMergeRule[]        @relation("MergeRuleA")
+  mergeRulesB        EntityMergeRule[]        @relation("MergeRuleB")
 
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
@@ -1448,4 +1457,68 @@ model WorldSimulationEvent {
 
   @@index([campaignId])
   @@index([campaignId, createdAt])
+}
+
+model WorldEventProposal {
+  id            String       @id @default(cuid())
+  campaignId    String
+  campaign      Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  gameSessionId String?
+  gameSession   GameSession? @relation(fields: [gameSessionId], references: [id], onDelete: SetNull)
+  events        Json         // ProposedEvent[]
+  status        String       @default("pending") // pending | partially_approved | approved | rejected
+  createdAt     DateTime     @default(now())
+  reviewedAt    DateTime?
+
+  @@index([campaignId, status])
+}
+
+// ============================================================================
+// DM Brain — Ingestion Pipeline
+// ============================================================================
+
+model BrainIngestSource {
+  id           String    @id @default(cuid())
+  campaignId   String
+  campaign     Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  type         String    // pdf | image | text | session_summary
+  sourceLabel  String
+  status       String    @default("pending") // pending | processing | done | failed
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  @@index([campaignId])
+}
+
+model EntityMergeCandidate {
+  id                 String      @id @default(cuid())
+  campaignId         String
+  campaign           Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entityAId          String
+  entityA            WorldEntity @relation("MergeCandidateA", fields: [entityAId], references: [id], onDelete: Cascade)
+  entityBId          String
+  entityB            WorldEntity @relation("MergeCandidateB", fields: [entityBId], references: [id], onDelete: Cascade)
+  score              Float
+  suggestedCanonical String
+  status             String      @default("pending") // pending | approved | rejected
+  decidedAt          DateTime?
+  createdAt          DateTime    @default(now())
+
+  @@index([campaignId, status])
+}
+
+model EntityMergeRule {
+  id         String      @id @default(cuid())
+  campaignId String
+  campaign   Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entityAId  String
+  entityA    WorldEntity @relation("MergeRuleA", fields: [entityAId], references: [id], onDelete: Cascade)
+  entityBId  String
+  entityB    WorldEntity @relation("MergeRuleB", fields: [entityBId], references: [id], onDelete: Cascade)
+  decision   String      // merge | never
+  learnedAt  DateTime    @default(now())
+
+  @@unique([campaignId, entityAId, entityBId])
+  @@index([campaignId])
 }

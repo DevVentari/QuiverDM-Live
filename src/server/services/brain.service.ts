@@ -1,7 +1,10 @@
-import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
+import { WorldEntityType, WorldEntityStatus, WorldStateChangeType, WorldStateChangeSource, Prisma } from '@prisma/client';
 import { brainRepository } from '../repositories/brain.repository';
 import { authz } from './authorization.service';
 import { ForbiddenError, NotFoundError } from '../errors';
+import { prisma } from '../db';
+import { addBrainIngestionJob } from '@/lib/queue/brain-ingestion-queue';
+import { callGeminiVision } from '@/lib/ai/gemini';
 
 export class BrainService {
   private async requireDM(campaignId: string, userId: string) {
@@ -197,6 +200,154 @@ export class BrainService {
     return warnings;
   }
 
+  async ingestDocument(
+    campaignId: string,
+    userId: string,
+    data: { type: 'pdf' | 'image' | 'text'; url?: string; content?: string; sourceLabel: string }
+  ) {
+    const campaign = await prisma.campaign.findFirst({
+      where: { id: campaignId, userId },
+      select: { id: true },
+    });
+    if (!campaign) throw ForbiddenError.forPermission('ingest documents into', 'campaign');
+
+    const source = await prisma.brainIngestSource.create({
+      data: {
+        campaignId,
+        type: data.type,
+        sourceLabel: data.sourceLabel,
+        status: 'processing',
+      },
+    });
+
+    let summary: string;
+    try {
+      if (data.type === 'text') {
+        if (!data.content) throw new Error('content required for text ingestion');
+        summary = data.content;
+      } else if (data.type === 'pdf') {
+        if (!data.url) throw new Error('url required for pdf ingestion');
+        const doclingUrl = process.env.DOCLING_URL ?? 'http://localhost:5001';
+        const res = await fetch(`${doclingUrl}/convert`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ http_sources: [{ url: data.url }] }),
+          signal: AbortSignal.timeout(120_000),
+        });
+        if (!res.ok) throw new Error(`Docling error ${res.status}: ${await res.text()}`);
+        const json = await res.json() as { document?: { md_content?: string }; md_content?: string };
+        summary = json.document?.md_content ?? json.md_content ?? '';
+        if (!summary) throw new Error('Docling returned empty markdown');
+      } else {
+        if (!data.url) throw new Error('url required for image ingestion');
+        const imageRes = await fetch(data.url, { signal: AbortSignal.timeout(30_000) });
+        if (!imageRes.ok) throw new Error(`Failed to fetch image: ${imageRes.status}`);
+        const arrayBuffer = await imageRes.arrayBuffer();
+        const base64Data = Buffer.from(arrayBuffer).toString('base64');
+        const mimeType = imageRes.headers.get('content-type') ?? 'image/jpeg';
+        summary = await callGeminiVision(
+          'Extract all text, character names, locations, items, factions, events, and lore from this image. Return a descriptive plain-text summary.',
+          [{ mimeType, base64Data }]
+        );
+      }
+
+      await addBrainIngestionJob({
+        sessionId: null,
+        campaignId,
+        summary,
+        highlights: [],
+        source: 'document',
+      });
+
+      await prisma.brainIngestSource.update({
+        where: { id: source.id },
+        data: { status: 'done', completedAt: new Date() },
+      });
+    } catch (err) {
+      await prisma.brainIngestSource.update({
+        where: { id: source.id },
+        data: { status: 'failed', errorMessage: err instanceof Error ? err.message : String(err) },
+      });
+      throw err;
+    }
+
+    return { sourceId: source.id };
+  }
+
+  async listIngestSources(campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+    return prisma.brainIngestSource.findMany({
+      where: { campaignId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  async listMergeCandidates(campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+    return prisma.entityMergeCandidate.findMany({
+      where: { campaignId, status: 'pending' },
+      include: { entityA: true, entityB: true },
+      orderBy: { score: 'desc' },
+    });
+  }
+
+  async approveMergeCandidate(candidateId: string, campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+    const candidate = await prisma.entityMergeCandidate.findUnique({
+      where: { id: candidateId },
+      include: { entityA: true, entityB: true },
+    });
+    if (!candidate || candidate.campaignId !== campaignId) {
+      throw new NotFoundError('merge candidate', candidateId);
+    }
+
+    // Merge entityA data into entityB, then delete entityA
+    const aProps = (candidate.entityA.properties ?? {}) as Record<string, unknown>;
+    const bProps = (candidate.entityB.properties ?? {}) as Record<string, unknown>;
+    await brainRepository.updateEntity(candidate.entityBId, {
+      description: candidate.entityB.description ?? candidate.entityA.description ?? undefined,
+      properties: { ...aProps, ...bProps },
+    });
+    await prisma.worldEntity.delete({ where: { id: candidate.entityAId } });
+
+    await prisma.entityMergeRule.upsert({
+      where: { campaignId_entityAId_entityBId: { campaignId, entityAId: candidate.entityAId, entityBId: candidate.entityBId } },
+      create: { campaignId, entityAId: candidate.entityBId, entityBId: candidate.entityBId, decision: 'merge' },
+      update: { decision: 'merge' },
+    });
+
+    await prisma.entityMergeCandidate.update({
+      where: { id: candidateId },
+      data: { status: 'approved', decidedAt: new Date() },
+    });
+
+    return { success: true };
+  }
+
+  async rejectMergeCandidate(candidateId: string, campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+    const candidate = await prisma.entityMergeCandidate.findUnique({
+      where: { id: candidateId },
+    });
+    if (!candidate || candidate.campaignId !== campaignId) {
+      throw new NotFoundError('merge candidate', candidateId);
+    }
+
+    await prisma.entityMergeRule.upsert({
+      where: { campaignId_entityAId_entityBId: { campaignId, entityAId: candidate.entityAId, entityBId: candidate.entityBId } },
+      create: { campaignId, entityAId: candidate.entityAId, entityBId: candidate.entityBId, decision: 'never' },
+      update: { decision: 'never' },
+    });
+
+    await prisma.entityMergeCandidate.update({
+      where: { id: candidateId },
+      data: { status: 'rejected', decidedAt: new Date() },
+    });
+
+    return { success: true };
+  }
+
   async seedFromExisting(campaignId: string, userId: string) {
     await this.requireDM(campaignId, userId);
 
@@ -246,6 +397,221 @@ export class BrainService {
     }
 
     return results;
+  }
+
+  async listProposals(campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+    return prisma.worldEventProposal.findMany({
+      where: { campaignId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+  }
+
+  async approveProposal(proposalId: string, campaignId: string, userId: string, eventIds: string[]) {
+    await this.requireDM(campaignId, userId);
+
+    const proposal = await prisma.worldEventProposal.findUnique({ where: { id: proposalId } });
+    if (!proposal || proposal.campaignId !== campaignId) {
+      throw new NotFoundError('world event proposal', proposalId);
+    }
+    if (proposal.status !== 'pending') {
+      throw new Error('Proposal is not pending');
+    }
+
+    const events = proposal.events as Array<{
+      id: string;
+      actorId: string | null;
+      description: string;
+      effects: Array<Record<string, unknown>>;
+      approved: boolean | null;
+    }>;
+
+    const eventIdSet = new Set(eventIds);
+    const updatedEvents = events.map(e => ({
+      ...e,
+      approved: eventIdSet.has(e.id) ? true : false,
+    }));
+
+    const approvedEvents = updatedEvents.filter(e => e.approved === true);
+    const allApproved = updatedEvents.every(e => e.approved === true);
+    const someApproved = approvedEvents.length > 0;
+    const newStatus = allApproved ? 'approved' : someApproved ? 'partially_approved' : 'rejected';
+
+    await prisma.$transaction(async (tx) => {
+      for (const event of approvedEvents) {
+        for (const effect of event.effects) {
+          if (effect.type === 'pressure_shift') {
+            const track = effect.track as string;
+            const delta = typeof effect.delta === 'number' ? effect.delta : 0;
+            const fieldMap: Record<string, string> = {
+              political: 'pressurePolitical',
+              supernatural: 'pressureSupernatural',
+              economic: 'pressureEconomic',
+              cosmic: 'pressureCosmic',
+              social: 'pressureSocial',
+            };
+            const field = fieldMap[track];
+            if (field) {
+              const state = await tx.worldState.findUnique({ where: { campaignId } });
+              if (state) {
+                const current = (state as Record<string, unknown>)[field] as number;
+                const next = Math.max(0, Math.min(1, current + delta));
+                await tx.worldState.update({
+                  where: { campaignId },
+                  data: { [field]: next },
+                });
+                await tx.worldStateChange.create({
+                  data: {
+                    campaignId,
+                    changeType: WorldStateChangeType.pressure_shift,
+                    previousValue: { [field]: current } as Prisma.InputJsonValue,
+                    newValue: { [field]: next, track, delta } as Prisma.InputJsonValue,
+                    triggerText: event.description,
+                    source: WorldStateChangeSource.inference,
+                  },
+                });
+              }
+            }
+          } else if (effect.type === 'hook_resolve') {
+            const hookId = effect.hookId as string;
+            const resolution = effect.resolution as string;
+            const state = await tx.worldState.findUnique({ where: { campaignId } });
+            if (state) {
+              const hooks = (state.hooks as Array<Record<string, unknown>>) ?? [];
+              const updated = hooks.map(h => h.id === hookId ? { ...h, status: 'resolved', resolution } : h);
+              await tx.worldState.update({ where: { campaignId }, data: { hooks: updated as Prisma.InputJsonValue } });
+              await tx.worldStateChange.create({
+                data: {
+                  campaignId,
+                  changeType: WorldStateChangeType.status_change,
+                  newValue: { hookId, resolution, action: 'hook_resolve' } as Prisma.InputJsonValue,
+                  triggerText: event.description,
+                  source: WorldStateChangeSource.inference,
+                },
+              });
+            }
+          } else if (effect.type === 'hook_create') {
+            const { nanoid } = await import('nanoid');
+            const state = await tx.worldState.findUnique({ where: { campaignId } });
+            if (state) {
+              const hooks = (state.hooks as Array<Record<string, unknown>>) ?? [];
+              const newHook = {
+                id: nanoid(),
+                text: effect.hookDescription as string,
+                urgency: effect.urgency ?? 'medium',
+                status: 'open',
+                ageInSessions: 0,
+                linkedEntityIds: effect.linkedEntityIds ?? [],
+              };
+              await tx.worldState.update({ where: { campaignId }, data: { hooks: [...hooks, newHook] as Prisma.InputJsonValue } });
+              await tx.worldStateChange.create({
+                data: {
+                  campaignId,
+                  changeType: WorldStateChangeType.property_update,
+                  newValue: { action: 'hook_create', hook: newHook } as Prisma.InputJsonValue,
+                  triggerText: event.description,
+                  source: WorldStateChangeSource.inference,
+                },
+              });
+            }
+          } else if (effect.type === 'entity_status') {
+            const entityId = effect.entityId as string;
+            const newStatus = effect.newStatus as string;
+            const entity = await tx.worldEntity.findUnique({ where: { id: entityId } });
+            if (entity && entity.campaignId === campaignId) {
+              await tx.worldEntity.update({ where: { id: entityId }, data: { status: newStatus as any } });
+              await tx.worldStateChange.create({
+                data: {
+                  campaignId,
+                  entityId,
+                  changeType: WorldStateChangeType.status_change,
+                  previousValue: { status: entity.status } as Prisma.InputJsonValue,
+                  newValue: { status: newStatus } as Prisma.InputJsonValue,
+                  triggerText: event.description,
+                  source: WorldStateChangeSource.inference,
+                },
+              });
+            }
+          } else if (effect.type === 'relationship_change') {
+            const fromEntityId = effect.fromEntityId as string;
+            const toEntityId = effect.toEntityId as string;
+            const strengthDelta = typeof effect.strengthDelta === 'number' ? effect.strengthDelta : 0;
+            const newDescription = effect.newDescription as string | undefined;
+            const rel = await tx.worldRelationship.findFirst({
+              where: { campaignId, fromEntityId, toEntityId },
+            });
+            if (rel) {
+              const nextStrength = Math.max(0, Math.min(1, rel.strength + strengthDelta));
+              const history = Array.isArray(rel.history) ? rel.history as Array<Record<string, unknown>> : [];
+              await tx.worldRelationship.update({
+                where: { id: rel.id },
+                data: {
+                  strength: nextStrength,
+                  description: newDescription ?? rel.description,
+                  history: [...history, { timestamp: new Date().toISOString(), strengthDelta, description: event.description }] as Prisma.InputJsonValue,
+                },
+              });
+              await tx.worldStateChange.create({
+                data: {
+                  campaignId,
+                  changeType: WorldStateChangeType.relationship_change,
+                  newValue: { fromEntityId, toEntityId, strengthDelta, newStrength: nextStrength } as Prisma.InputJsonValue,
+                  triggerText: event.description,
+                  source: WorldStateChangeSource.inference,
+                },
+              });
+            }
+          }
+        }
+
+        await tx.worldSimulationEvent.create({
+          data: {
+            campaignId,
+            actorId: event.actorId ?? null,
+            type: 'world_proposal',
+            description: event.description,
+            causalChain: [] as Prisma.InputJsonValue,
+          },
+        });
+      }
+
+      await tx.worldEventProposal.update({
+        where: { id: proposalId },
+        data: {
+          status: newStatus,
+          events: updatedEvents as unknown as Prisma.InputJsonValue,
+          reviewedAt: new Date(),
+        },
+      });
+    });
+
+    return { success: true, approvedCount: approvedEvents.length, status: newStatus };
+  }
+
+  async rejectProposal(proposalId: string, campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+
+    const proposal = await prisma.worldEventProposal.findUnique({ where: { id: proposalId } });
+    if (!proposal || proposal.campaignId !== campaignId) {
+      throw new NotFoundError('world event proposal', proposalId);
+    }
+    if (proposal.status !== 'pending') {
+      throw new Error('Proposal is not pending');
+    }
+
+    const events = (proposal.events as Array<Record<string, unknown>>).map(e => ({ ...e, approved: false }));
+
+    await prisma.worldEventProposal.update({
+      where: { id: proposalId },
+      data: {
+        status: 'rejected',
+        events: events as unknown as Prisma.InputJsonValue,
+        reviewedAt: new Date(),
+      },
+    });
+
+    return { success: true };
   }
 }
 

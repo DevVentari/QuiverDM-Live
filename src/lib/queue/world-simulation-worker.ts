@@ -2,28 +2,59 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local', override: true });
 
 import { Worker } from 'bullmq';
+import { nanoid } from 'nanoid';
 import { chatWithAI } from '../ai/chat';
 import { buildWorldSimulationPrompt } from '../ai/world-simulation-prompts';
 import { worldSimulationRepository } from '../../server/repositories/world-simulation.repository';
 import { brainRepository } from '../../server/repositories/brain.repository';
 import { worldSimulationQueue } from './world-simulation-queue';
 import { getRedisConnection } from './queue';
+import { prisma } from '../prisma';
 import type { WorldSimulationJobData, WorldSimulationJobResult } from './world-simulation-queue';
+import type { Prisma } from '@prisma/client';
 
-function parseSimulationResponse(raw: string): Array<{ actorId?: string; type: string; description: string; causalChain?: unknown[] }> {
-  let text = raw.trim();
-  if (text.startsWith('```json')) {
-    text = text.replace(/^```json\s*/i, '').replace(/\s*```$/, '');
-  } else if (text.startsWith('```')) {
-    text = text.replace(/^```\s*/i, '').replace(/\s*```$/, '');
-  }
-  const parsed = JSON.parse(text);
-  if (!Array.isArray(parsed)) return [];
-  return parsed;
+interface ProposedEffect {
+  type: 'pressure_shift' | 'hook_resolve' | 'hook_create' | 'entity_status' | 'relationship_change';
+  [key: string]: unknown;
+}
+
+interface ProposedEvent {
+  id: string;
+  actorId: string | null;
+  description: string;
+  effects: ProposedEffect[];
+  approved: boolean | null;
+}
+
+function parseSimulationResponse(raw: string): ProposedEvent[] {
+  const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
+  const parsed = JSON.parse(cleaned);
+  const events: unknown[] = Array.isArray(parsed) ? parsed : (parsed.events ?? []);
+  return events
+    .filter((e): e is Record<string, unknown> => !!e && typeof e === 'object')
+    .slice(0, 4)
+    .map(e => ({
+      id: nanoid(),
+      actorId: typeof e.actorId === 'string' ? e.actorId : null,
+      description: typeof e.description === 'string' ? e.description : '',
+      effects: Array.isArray(e.effects) ? (e.effects as ProposedEffect[]) : [],
+      approved: null,
+    }))
+    .filter(e => e.description.length > 0);
 }
 
 async function processWorldSimulationJob(data: WorldSimulationJobData): Promise<WorldSimulationJobResult> {
   const { campaignId } = data;
+
+  const pendingProposal = await prisma.worldEventProposal.findFirst({
+    where: { campaignId, status: 'pending' },
+    select: { id: true },
+  });
+
+  if (pendingProposal) {
+    console.log(`[world-simulation] Skipping tick — pending proposal exists for campaign ${campaignId}`);
+    return { success: true, eventsCreated: 0, thresholdTriggered: false };
+  }
 
   const [actors, worldState] = await Promise.all([
     worldSimulationRepository.listActors(campaignId),
@@ -45,28 +76,12 @@ async function processWorldSimulationJob(data: WorldSimulationJobData): Promise<
     return { success: false, eventsCreated: 0, thresholdTriggered: false, error: String(err) };
   }
 
-  let parsed: Array<{ actorId?: string; type: string; description: string; causalChain?: unknown[] }>;
+  let proposedEvents: ProposedEvent[];
   try {
-    parsed = parseSimulationResponse(raw);
+    proposedEvents = parseSimulationResponse(raw);
   } catch {
     console.warn(`[world-simulation] Failed to parse AI response for campaign ${campaignId}`);
     return { success: true, eventsCreated: 0, thresholdTriggered: false };
-  }
-
-  let eventsCreated = 0;
-  for (const event of parsed.slice(0, 4)) {
-    if (!event.type || !event.description) continue;
-    try {
-      await worldSimulationRepository.createEvent(campaignId, {
-        actorId: event.actorId,
-        type: event.type,
-        description: event.description,
-        causalChain: event.causalChain,
-      });
-      eventsCreated++;
-    } catch (err) {
-      console.warn(`[world-simulation] Failed to create event:`, err);
-    }
   }
 
   const pressures = [
@@ -82,18 +97,35 @@ async function processWorldSimulationJob(data: WorldSimulationJobData): Promise<
     const highPressure = ['political', 'supernatural', 'economic', 'cosmic', 'social'].filter(
       (_, i) => pressures[i] > 0.8
     );
-    await worldSimulationRepository.createEvent(campaignId, {
-      type: 'threshold_trigger',
+    proposedEvents.push({
+      id: nanoid(),
+      actorId: null,
       description: `Critical pressure threshold exceeded: ${highPressure.join(', ')}. The world teeters on the edge of major change.`,
-      causalChain: [{ trigger: 'pressure_threshold', tracks: highPressure }],
+      effects: highPressure.map(track => ({
+        type: 'pressure_shift' as const,
+        track,
+        delta: 0.05,
+      })),
+      approved: null,
     });
-    eventsCreated++;
     thresholdTriggered = true;
   }
 
+  if (proposedEvents.length === 0) {
+    return { success: true, eventsCreated: 0, thresholdTriggered: false };
+  }
+
+  await prisma.worldEventProposal.create({
+    data: {
+      campaignId,
+      events: proposedEvents as unknown as Prisma.InputJsonValue,
+      status: 'pending',
+    },
+  });
+
   await Promise.all(actors.map(a => worldSimulationRepository.updateActorLastTickAt(a.id)));
 
-  return { success: true, eventsCreated, thresholdTriggered };
+  return { success: true, eventsCreated: proposedEvents.length, thresholdTriggered };
 }
 
 const worker = new Worker<WorldSimulationJobData, WorldSimulationJobResult>(

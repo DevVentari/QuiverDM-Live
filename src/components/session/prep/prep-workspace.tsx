@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Brain, Loader2, X, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { trpc } from '@/lib/trpc';
@@ -11,6 +12,8 @@ import { PrepHeader } from './prep-header';
 import { PrepSectionNav, PREP_SECTIONS, type SectionId } from './prep-section-nav';
 import { PrepSectionCard } from './prep-section-card';
 import { PrepImportZone } from './prep-import-zone';
+import { PrepBrainContextCard } from './prep-brain-context-card';
+import { PrepBrainDrawer } from './prep-brain-drawer';
 import { StepCharacters } from './steps/step-characters';
 import { StepStrongStart } from './steps/step-strong-start';
 import { StepScenes } from './steps/step-scenes';
@@ -19,6 +22,110 @@ import { StepNpcs } from './steps/step-npcs';
 import { StepMonsters } from './steps/step-monsters';
 import { StepRewards } from './steps/step-rewards';
 import { StepLooseThreads } from './steps/step-loose-threads';
+
+type BrainSectionKey = 'characters' | 'strong-start' | 'scenes' | 'secrets' | 'npcs' | 'monsters' | 'rewards' | 'threads';
+
+interface BrainSuggestionState {
+  section: BrainSectionKey;
+  text: string;
+}
+
+function BrainSuggestButton({
+  section,
+  campaignId,
+  currentContent,
+  onSuggest,
+}: {
+  section: BrainSectionKey;
+  campaignId: string;
+  currentContent?: string;
+  onSuggest: (section: BrainSectionKey, text: string) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+
+  const suggest = trpc.brain.sectionSuggest.useMutation();
+
+  const handleClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoading(true);
+    setError(false);
+    try {
+      const result = await suggest.mutateAsync({ campaignId, section, currentContent });
+      setSuggestion(result.suggestion);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUse = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (suggestion) {
+      onSuggest(section, suggestion);
+      setSuggestion(null);
+    }
+  };
+
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSuggestion(null);
+    setError(false);
+  };
+
+  return (
+    <div className="contents">
+      <button
+        onClick={error ? handleDismiss : suggestion ? undefined : handleClick}
+        disabled={loading || !!suggestion}
+        title={error ? 'No brain data — click to dismiss' : 'Brain Suggest'}
+        className="h-6 w-6 flex items-center justify-center rounded-sm transition-colors hover:bg-white/10 disabled:opacity-40 shrink-0"
+        style={{ color: error ? 'hsl(35 10% 40%)' : 'hsl(35 60% 55%)' }}
+      >
+        {loading ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Brain className="h-3.5 w-3.5" />
+        )}
+      </button>
+
+      {suggestion && (
+        <div
+          className="rounded-sm border px-4 py-3 mt-2"
+          style={{
+            borderColor: 'hsl(35 60% 35% / 0.5)',
+            background: 'hsl(35 30% 8% / 0.8)',
+          }}
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'hsl(35 70% 55%)' }}>
+            Brain suggests:
+          </p>
+          <p className="text-xs mb-3" style={{ color: 'hsl(35 15% 78%)' }}>{suggestion}</p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleUse}
+              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-sm font-medium transition-colors"
+              style={{ background: 'hsl(35 50% 18%)', border: '1px solid hsl(35 50% 30%)', color: 'hsl(35 80% 65%)' }}
+            >
+              <Check className="h-3 w-3" />
+              Use this
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-sm transition-colors"
+              style={{ color: 'hsl(35 10% 45%)' }}
+            >
+              <X className="h-3 w-3" />
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const SECTION_DESCRIPTIONS: Record<SectionId, string> = {
   'characters':   'Who are your players, and what do they want?',
@@ -63,6 +170,7 @@ export function PrepWorkspace({
   const [title, setTitle] = useState(initialTitle);
   const [activeSection, setActiveSection] = useState<SectionId | undefined>(undefined);
   const [suggestedCounts, setSuggestedCounts] = useState<Record<string, number>>({});
+  const [brainDrawerOpen, setBrainDrawerOpen] = useState(false);
 
   const updatePrep = trpc.sessions.updatePrep.useMutation();
   const updateSession = trpc.sessions.update.useMutation();
@@ -128,6 +236,36 @@ export function PrepWorkspace({
     document.getElementById(`section-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  const handleBrainSuggest = useCallback((section: BrainSectionKey, text: string) => {
+    const id = `brain-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    switch (section) {
+      case 'strong-start':
+        setPrepData((p) => ({ ...p, strongStart: p.strongStart ? `${p.strongStart}\n${text}` : text }));
+        break;
+      case 'characters':
+        setPrepData((p) => ({ ...p, strongStart: p.strongStart ? `${p.strongStart}\n${text}` : text }));
+        break;
+      case 'secrets':
+        setPrepData((p) => ({ ...p, secretsAndClues: [...p.secretsAndClues, { id, text }] }));
+        break;
+      case 'scenes':
+        setPrepData((p) => ({ ...p, scenes: [...p.scenes, { id, title: text.slice(0, 60), description: text }] }));
+        break;
+      case 'npcs':
+        setPrepData((p) => ({ ...p, npcs: [...p.npcs, { name: text.slice(0, 60), motivation: text, isNew: true }] }));
+        break;
+      case 'monsters':
+        setPrepData((p) => ({ ...p, monsters: [...p.monsters, { name: text.slice(0, 60), source: 'custom', count: 1 }] }));
+        break;
+      case 'rewards':
+        setPrepData((p) => ({ ...p, rewards: [...p.rewards, { name: text.slice(0, 60), source: 'custom', notes: text }] }));
+        break;
+      case 'threads':
+        setPrepData((p) => ({ ...p, looseThreads: [...p.looseThreads, { id, text }] }));
+        break;
+    }
+  }, []);
+
   const lastImport = prepData.importedNotes?.[prepData.importedNotes.length - 1];
 
   return (
@@ -143,6 +281,14 @@ export function PrepWorkspace({
         isFullscreen={false}
         onToggleFullscreen={() => {}}
         sessionId={sessionId}
+        brainDrawerOpen={brainDrawerOpen}
+        onBrainDrawerToggle={() => setBrainDrawerOpen((v) => !v)}
+      />
+
+      <PrepBrainDrawer
+        campaignId={campaignId}
+        open={brainDrawerOpen}
+        onClose={() => setBrainDrawerOpen(false)}
       />
 
       <div className="flex flex-1">
@@ -156,6 +302,8 @@ export function PrepWorkspace({
 
         <main className="flex-1">
           <div className="px-6 py-8 space-y-4">
+            <PrepBrainContextCard campaignId={campaignId} />
+
             <PrepImportZone
               sessionId={sessionId}
               campaignId={campaignId}
@@ -164,56 +312,64 @@ export function PrepWorkspace({
             />
 
             <PrepSectionCard id="characters" title="Review Characters" description={SECTION_DESCRIPTIONS['characters']}
-              defaultOpen={completedSections.has('characters')} onExpand={() => setActiveSection('characters')}>
+              defaultOpen={completedSections.has('characters')} onExpand={() => setActiveSection('characters')}
+              headerAction={<BrainSuggestButton section="characters" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
               <StepCharacters characterNotes={prepData.characterNotes}
                 onChange={(notes) => setPrepData((p) => ({ ...p, characterNotes: notes }))} />
             </PrepSectionCard>
 
             <PrepSectionCard id="strong-start" title="Strong Start" description={SECTION_DESCRIPTIONS['strong-start']}
               suggestedCount={suggestedCounts['strong-start']} defaultOpen={!!prepData.strongStart}
-              onExpand={() => setActiveSection('strong-start')}>
+              onExpand={() => setActiveSection('strong-start')}
+              headerAction={<BrainSuggestButton section="strong-start" campaignId={campaignId} currentContent={prepData.strongStart} onSuggest={handleBrainSuggest} />}>
               <StepStrongStart sessionId={sessionId} value={prepData.strongStart}
                 onChange={(v) => setPrepData((p) => ({ ...p, strongStart: v }))} />
             </PrepSectionCard>
 
             <PrepSectionCard id="scenes" title="Potential Scenes" description={SECTION_DESCRIPTIONS['scenes']}
               suggestedCount={suggestedCounts['scenes']} defaultOpen={prepData.scenes.length > 0}
-              onExpand={() => setActiveSection('scenes')}>
+              onExpand={() => setActiveSection('scenes')}
+              headerAction={<BrainSuggestButton section="scenes" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
               <StepScenes sessionId={sessionId} scenes={prepData.scenes} strongStart={prepData.strongStart}
                 onChange={(scenes) => setPrepData((p) => ({ ...p, scenes }))} />
             </PrepSectionCard>
 
             <PrepSectionCard id="secrets" title="Secrets & Clues" description={SECTION_DESCRIPTIONS['secrets']}
               suggestedCount={suggestedCounts['secrets']} defaultOpen={prepData.secretsAndClues.length > 0}
-              onExpand={() => setActiveSection('secrets')}>
+              onExpand={() => setActiveSection('secrets')}
+              headerAction={<BrainSuggestButton section="secrets" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
               <StepSecrets sessionId={sessionId} secrets={prepData.secretsAndClues}
                 onChange={(secretsAndClues) => setPrepData((p) => ({ ...p, secretsAndClues }))} />
             </PrepSectionCard>
 
             <PrepSectionCard id="npcs" title="Featured NPCs" description={SECTION_DESCRIPTIONS['npcs']}
               suggestedCount={suggestedCounts['npcs']} defaultOpen={prepData.npcs.length > 0}
-              onExpand={() => setActiveSection('npcs')}>
+              onExpand={() => setActiveSection('npcs')}
+              headerAction={<BrainSuggestButton section="npcs" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
               <StepNpcs npcs={prepData.npcs} campaignNpcs={campaignContext.npcs}
                 onChange={(npcs) => setPrepData((p) => ({ ...p, npcs }))} />
             </PrepSectionCard>
 
             <PrepSectionCard id="monsters" title="Monsters" description={SECTION_DESCRIPTIONS['monsters']}
               suggestedCount={suggestedCounts['monsters']} defaultOpen={prepData.monsters.length > 0}
-              onExpand={() => setActiveSection('monsters')}>
+              onExpand={() => setActiveSection('monsters')}
+              headerAction={<BrainSuggestButton section="monsters" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
               <StepMonsters monsters={prepData.monsters}
                 onChange={(monsters) => setPrepData((p) => ({ ...p, monsters }))} />
             </PrepSectionCard>
 
             <PrepSectionCard id="rewards" title="Rewards" description={SECTION_DESCRIPTIONS['rewards']}
               suggestedCount={suggestedCounts['rewards']} defaultOpen={prepData.rewards.length > 0}
-              onExpand={() => setActiveSection('rewards')}>
+              onExpand={() => setActiveSection('rewards')}
+              headerAction={<BrainSuggestButton section="rewards" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
               <StepRewards rewards={prepData.rewards}
                 onChange={(rewards) => setPrepData((p) => ({ ...p, rewards }))} />
             </PrepSectionCard>
 
             <PrepSectionCard id="threads" title="Loose Threads" description={SECTION_DESCRIPTIONS['threads']}
               suggestedCount={suggestedCounts['threads']} defaultOpen={prepData.looseThreads.length > 0}
-              onExpand={() => setActiveSection('threads')}>
+              onExpand={() => setActiveSection('threads')}
+              headerAction={<BrainSuggestButton section="threads" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
               <StepLooseThreads sessionId={sessionId} threads={prepData.looseThreads}
                 onChange={(looseThreads) => setPrepData((p) => ({ ...p, looseThreads }))} />
             </PrepSectionCard>

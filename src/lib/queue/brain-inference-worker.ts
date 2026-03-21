@@ -4,6 +4,7 @@ dotenv.config({ path: '.env.local', override: true });
 import { prisma } from '../prisma';
 import { WorldEntityType, WorldStateChangeType, WorldStateChangeSource } from '@prisma/client';
 import { brainRepository } from '../../server/repositories/brain.repository';
+import { worldSimulationQueue } from './world-simulation-queue';
 
 const STRESS_DRIFT_THRESHOLD = 0.15;
 const STRESS_HISTORY_WINDOW = 5;
@@ -106,6 +107,7 @@ async function main() {
     try {
       await processCampaign(campaign.id);
       console.log(`[brain-inference] Done: ${campaign.name}`);
+      await worldSimulationQueue.add('tick', { campaignId: campaign.id });
     } catch (err) {
       console.error(`[brain-inference] Error for campaign ${campaign.id}:`, err);
     }

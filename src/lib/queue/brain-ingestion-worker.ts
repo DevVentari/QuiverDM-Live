@@ -30,6 +30,83 @@ const STATUS_MAP: Record<string, WorldEntityStatus> = {
   resolved: WorldEntityStatus.resolved,
 };
 
+function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+  }
+  return dp[m][n];
+}
+
+function nameScore(a: string, b: string): number {
+  const aLower = a.toLowerCase();
+  const bLower = b.toLowerCase();
+  const maxLen = Math.max(aLower.length, bLower.length);
+  if (maxLen === 0) return 1;
+  const dist = levenshtein(aLower, bLower);
+  return 1 - dist / maxLen;
+}
+
+interface ResolveResult {
+  action: 'merge' | 'create' | 'create_provisional';
+  targetId?: string;
+  bestMatchId?: string;
+  score?: number;
+}
+
+async function resolveEntity(
+  extractedName: string,
+  _extractedType: string,
+  campaignId: string,
+  candidates: Array<{ id: string; name: string; aliases: string[] }>
+): Promise<ResolveResult> {
+  // 1. Check EntityMergeRule — learned overrides (by name match against entityA)
+  const rules = await prisma.entityMergeRule.findMany({
+    where: { campaignId },
+    include: { entityA: true, entityB: true },
+  });
+  for (const rule of rules) {
+    const matchesA = rule.entityA.name.toLowerCase() === extractedName.toLowerCase() ||
+      rule.entityA.aliases.some(a => a.toLowerCase() === extractedName.toLowerCase());
+    if (matchesA) {
+      if (rule.decision === 'never') return { action: 'create' };
+      if (rule.decision === 'merge') return { action: 'merge', targetId: rule.entityBId };
+    }
+  }
+
+  // 2. Exact name match (case-insensitive)
+  const exactMatch = candidates.find(
+    c => c.name.toLowerCase() === extractedName.toLowerCase()
+  );
+  if (exactMatch) return { action: 'merge', targetId: exactMatch.id };
+
+  // 3. Alias match
+  const aliasMatch = candidates.find(
+    c => c.aliases.some(a => a.toLowerCase() === extractedName.toLowerCase())
+  );
+  if (aliasMatch) return { action: 'merge', targetId: aliasMatch.id };
+
+  // 4. Fuzzy scoring via Levenshtein
+  const scored = candidates
+    .map(c => ({ id: c.id, score: nameScore(extractedName, c.name) }))
+    .sort((a, b) => b.score - a.score);
+
+  const best = scored[0];
+  if (!best || best.score < 0.70) return { action: 'create' };
+  if (best.score >= 0.95) return { action: 'merge', targetId: best.id };
+
+  return { action: 'create_provisional', bestMatchId: best.id, score: best.score };
+}
+
 export async function processBrainIngestionJob(data: BrainIngestionJobData): Promise<BrainIngestionJobResult> {
   const result: BrainIngestionJobResult = {
     success: false,
@@ -55,39 +132,84 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
 
   const extracted = parseBrainExtractionResponse(raw);
 
+  // Build candidate list once — updated after new entities are created
+  let candidates = existingEntities.map(e => ({ id: e.id, name: e.name, aliases: e.aliases }));
+
   for (const entity of extracted.newEntities) {
     const entityType = ENTITY_TYPE_MAP[entity.type];
     if (!entityType) continue;
     try {
-      const upserted = await brainRepository.upsertEntity(data.campaignId, {
-        type: entityType,
-        name: entity.name,
-        description: entity.description,
-        properties: entity.properties ?? {},
-        status: entity.status ? STATUS_MAP[entity.status] : undefined,
-        lastSeenSessionId: data.sessionId ?? undefined,
-        firstSeenSessionId: data.sessionId ?? undefined,
-        confidence: 0.8,
-      });
+      const resolve = await resolveEntity(entity.name, entity.type, data.campaignId, candidates);
 
-      if (data.sessionId) {
-        await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: upserted.id, campaignId: data.campaignId });
-      }
+      if (resolve.action === 'merge' && resolve.targetId) {
+        await brainRepository.updateEntity(resolve.targetId, {
+          description: entity.description ?? undefined,
+          properties: entity.properties ?? {},
+          status: entity.status ? STATUS_MAP[entity.status] : undefined,
+          lastSeenSessionId: data.sessionId ?? undefined,
+        });
 
-      await brainRepository.logChange({
-        campaignId: data.campaignId,
-        entityId: upserted.id,
-        sessionId: data.sessionId ?? undefined,
-        changeType: 'property_update',
-        newValue: { name: entity.name, type: entityType, status: entity.status },
-        source: 'ingestion',
-      });
+        if (data.sessionId) {
+          await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: resolve.targetId, campaignId: data.campaignId });
+        }
 
-      const key = `${entity.name}:${entityType}`;
-      if (existingEntityMap.has(key)) {
+        await brainRepository.logChange({
+          campaignId: data.campaignId,
+          entityId: resolve.targetId,
+          sessionId: data.sessionId ?? undefined,
+          changeType: 'property_update',
+          newValue: { name: entity.name, type: entityType, status: entity.status },
+          source: 'ingestion',
+        });
+
         result.entitiesUpdated++;
       } else {
-        result.entitiesCreated++;
+        // create or create_provisional — upsert entity first
+        const upserted = await brainRepository.upsertEntity(data.campaignId, {
+          type: entityType,
+          name: entity.name,
+          description: entity.description,
+          properties: entity.properties ?? {},
+          status: entity.status ? STATUS_MAP[entity.status] : undefined,
+          lastSeenSessionId: data.sessionId ?? undefined,
+          firstSeenSessionId: data.sessionId ?? undefined,
+          confidence: resolve.action === 'create_provisional' ? 0.5 : 0.8,
+        });
+
+        if (data.sessionId) {
+          await brainRepository.recordAppearance({ sessionId: data.sessionId, entityId: upserted.id, campaignId: data.campaignId });
+        }
+
+        await brainRepository.logChange({
+          campaignId: data.campaignId,
+          entityId: upserted.id,
+          sessionId: data.sessionId ?? undefined,
+          changeType: 'property_update',
+          newValue: { name: entity.name, type: entityType, status: entity.status },
+          source: 'ingestion',
+        });
+
+        if (resolve.action === 'create_provisional' && resolve.bestMatchId) {
+          await prisma.entityMergeCandidate.create({
+            data: {
+              campaignId: data.campaignId,
+              entityAId: upserted.id,
+              entityBId: resolve.bestMatchId,
+              score: resolve.score!,
+              suggestedCanonical: entity.name,
+            },
+          });
+        }
+
+        // Add to candidate pool so subsequent entities in same job can match
+        candidates.push({ id: upserted.id, name: upserted.name, aliases: upserted.aliases });
+
+        const key = `${entity.name}:${entityType}`;
+        if (existingEntityMap.has(key)) {
+          result.entitiesUpdated++;
+        } else {
+          result.entitiesCreated++;
+        }
       }
     } catch (e) {
       console.warn(`[brain-ingestion] Failed to upsert entity ${entity.name}:`, e);

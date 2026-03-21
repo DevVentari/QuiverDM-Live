@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
 import { brainService } from '../services/brain.service';
 import { prisma } from '../db';
@@ -11,6 +11,8 @@ import { redis } from '@/lib/queue/queue';
 import { coDMQueue } from '@/lib/queue/co-dm-queue';
 import type { CoDMSuggestion } from '@/lib/co-dm/types';
 import { addBrainIngestionJob } from '@/lib/queue/brain-ingestion-queue';
+import { buildBrainSectionPrompt } from '@/lib/ai/prep-prompts';
+import { chatWithAI } from '@/lib/ai/chat';
 
 const entityTypeSchema = z.nativeEnum(WorldEntityType);
 const entityStatusSchema = z.nativeEnum(WorldEntityStatus);
@@ -308,11 +310,129 @@ export const brainRouter = router({
       }),
   }),
 
+  sectionSuggest: protectedProcedure
+    .input(z.object({
+      campaignId: z.string().min(1),
+      section: z.enum(['characters', 'strong-start', 'scenes', 'secrets', 'npcs', 'monsters', 'rewards', 'threads']),
+      currentContent: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const campaign = await prisma.campaign.findFirst({
+        where: { id: input.campaignId, userId: ctx.session.user.id },
+        select: { id: true },
+      });
+      if (!campaign) {
+        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+      }
+
+      const [state, timeline] = await Promise.all([
+        brainRepository.getOrCreateState(input.campaignId),
+        brainRepository.getTimeline(input.campaignId, 20),
+      ]);
+
+      const hooks = Array.isArray(state.hooks)
+        ? (state.hooks as Array<{ text: string; urgency: string; status?: string }>).filter(
+            (h) => h.status === 'open' || !h.status
+          )
+        : [];
+
+      const threats = Array.isArray(state.threats)
+        ? (state.threats as Array<{ name?: string; description?: string }>)
+        : [];
+
+      const recentChanges = (() => {
+        const seen = new Map<string, { entityName: string; entityType: string; changeType: string }>();
+        for (const change of timeline) {
+          if (change.entityId && change.entity && !seen.has(change.entityId)) {
+            seen.set(change.entityId, {
+              entityName: change.entity.name,
+              entityType: change.entity.type,
+              changeType: change.changeType,
+            });
+          }
+        }
+        return [...seen.values()].slice(0, 10);
+      })();
+
+      const elevatedPressure = [
+        { name: 'Political', value: state.pressurePolitical },
+        { name: 'Supernatural', value: state.pressureSupernatural },
+        { name: 'Economic', value: state.pressureEconomic },
+        { name: 'Cosmic', value: state.pressureCosmic },
+        { name: 'Social', value: state.pressureSocial },
+      ].filter((p) => p.value > 0.5);
+
+      const brainContext = {
+        worldState: {
+          pressurePolitical: state.pressurePolitical,
+          pressureSupernatural: state.pressureSupernatural,
+          pressureEconomic: state.pressureEconomic,
+          pressureCosmic: state.pressureCosmic,
+          pressureSocial: state.pressureSocial,
+          hooks,
+          threats,
+        },
+        recentChanges,
+        openHooks: hooks,
+        elevatedPressure,
+      };
+
+      const prompt = buildBrainSectionPrompt(input.section, brainContext, input.currentContent);
+      const suggestion = await chatWithAI([{ role: 'user', content: prompt }], { temperature: 0.7 });
+
+      return { suggestion: suggestion.trim() };
+    }),
+
   voiceQuery: protectedProcedure
     .input(z.object({ campaignId: z.string().min(1), query: z.string().min(1).max(500) }))
     .mutation(({ input, ctx: _ctx }) =>
       answerBrainQuery(input.query, input.campaignId)
     ),
+
+  ingest: router({
+    document: protectedProcedure
+      .input(z.object({
+        campaignId: z.string().min(1),
+        type: z.enum(['pdf', 'image', 'text']),
+        url: z.string().optional(),
+        content: z.string().optional(),
+        sourceLabel: z.string().min(1).max(255),
+      }))
+      .mutation(({ input, ctx }) =>
+        brainService.ingestDocument(input.campaignId, ctx.session.user.id, {
+          type: input.type,
+          url: input.url,
+          content: input.content,
+          sourceLabel: input.sourceLabel,
+        })
+      ),
+
+    sources: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1) }))
+      .query(({ input, ctx }) =>
+        brainService.listIngestSources(input.campaignId, ctx.session.user.id)
+      ),
+  }),
+
+  mergeCandidates: router({
+    list: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1) }))
+      .query(({ input, ctx }) =>
+        brainService.listMergeCandidates(input.campaignId, ctx.session.user.id)
+      ),
+
+    approve: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1), candidateId: z.string().min(1) }))
+      .mutation(({ input, ctx }) =>
+        brainService.approveMergeCandidate(input.candidateId, input.campaignId, ctx.session.user.id)
+      ),
+
+    reject: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1), candidateId: z.string().min(1) }))
+      .mutation(({ input, ctx }) =>
+        brainService.rejectMergeCandidate(input.candidateId, input.campaignId, ctx.session.user.id)
+      ),
+  }),
 
   worldSimulation: router({
     sessionSeed: protectedProcedure
@@ -346,5 +466,25 @@ export const brainRouter = router({
     runTick: protectedProcedure
       .input(z.object({ campaignId: z.string().min(1) }))
       .mutation(({ input, ctx }) => worldSimulationService.runWorldTick(input.campaignId, ctx.session.user.id)),
+
+    proposals: router({
+      list: protectedProcedure
+        .input(z.object({ campaignId: z.string().min(1) }))
+        .query(({ input, ctx }) =>
+          brainService.listProposals(input.campaignId, ctx.session.user.id)
+        ),
+
+      approve: protectedProcedure
+        .input(z.object({ campaignId: z.string().min(1), proposalId: z.string().min(1), eventIds: z.array(z.string()) }))
+        .mutation(({ input, ctx }) =>
+          brainService.approveProposal(input.proposalId, input.campaignId, ctx.session.user.id, input.eventIds)
+        ),
+
+      reject: protectedProcedure
+        .input(z.object({ campaignId: z.string().min(1), proposalId: z.string().min(1) }))
+        .mutation(({ input, ctx }) =>
+          brainService.rejectProposal(input.proposalId, input.campaignId, ctx.session.user.id)
+        ),
+    }),
   }),
 });
