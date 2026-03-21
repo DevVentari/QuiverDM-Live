@@ -82,7 +82,7 @@ export const onboardingService = {
       },
     });
 
-    if (data.dmExperience) {
+    if (data.dmExperience !== undefined) {
       await prisma.userSettings.upsert({
         where: { userId },
         update: { dmExperience: data.dmExperience },
