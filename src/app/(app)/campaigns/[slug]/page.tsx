@@ -7,13 +7,20 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Play,
   Plus,
   Brain,
   Settings,
   ArrowRight,
   Scroll,
 } from 'lucide-react';
+
+interface BrainState {
+  pressurePolitical?: number;
+  pressureSupernatural?: number;
+  pressureEconomic?: number;
+  pressureCosmic?: number;
+  pressureSocial?: number;
+}
 
 export default function CampaignOverviewPage() {
   const { campaignId, slug, isDM } = useCampaign();
@@ -40,13 +47,6 @@ export default function CampaignOverviewPage() {
 
   const campaign = campaignQuery.data;
   const lastSession = sessionsQuery.data?.[0] ?? null;
-  interface BrainState {
-    pressurePolitical?: number;
-    pressureSupernatural?: number;
-    pressureEconomic?: number;
-    pressureCosmic?: number;
-    pressureSocial?: number;
-  }
   const pressures = stateQuery.data as BrainState | undefined;
 
   const statStrip = (
@@ -145,7 +145,7 @@ export default function CampaignOverviewPage() {
       <div className="stone-card-body flex flex-col gap-2">
         <Button asChild className="justify-start gap-3 h-11">
           <Link href={`/campaigns/${slug}/sessions/prep`}>
-            <Play className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
             New Session
           </Link>
         </Button>
@@ -233,8 +233,10 @@ export default function CampaignOverviewPage() {
       </div>
       <div className="grid gap-6 md:grid-cols-3">
         {lastSessionCard}
-        {sidePanel}
-        {pressureCard}
+        <div className="flex flex-col gap-6">
+          {sidePanel}
+          {pressureCard}
+        </div>
       </div>
       {isDM && membersQuery.data && membersQuery.data.length > 0 && (
         <div>
