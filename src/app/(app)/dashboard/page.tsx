@@ -6,29 +6,16 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Plus, Swords, Check, X, BookOpen, CalendarDays } from 'lucide-react';
+import { Plus, Swords, Check, X, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ActiveCampaignHero } from '@/components/dashboard/ActiveCampaignHero';
 
-const typeColorMap: Record<string, string> = {
-  item: 'border-amber-500/50 text-amber-600 dark:text-amber-400',
-  spell: 'border-sky-500/50 text-sky-600 dark:text-sky-400',
-  creature: 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400',
-  class: 'border-indigo-500/50 text-indigo-600 dark:text-indigo-400',
-  subclass: 'border-indigo-500/50 text-indigo-600 dark:text-indigo-400',
-};
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-}
 
 export default function DashboardPage() {
   const { toast } = useToast();
   const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, { staleTime: 120_000 });
   const invites = trpc.campaigns.getPendingInvites.useQuery(undefined, { staleTime: 10_000 });
-  const homebrew = trpc.homebrew.getContent.useQuery({}, { staleTime: 30_000 });
   const utils = trpc.useUtils();
 
   const acceptInvite = trpc.campaigns.acceptInvite.useMutation({
@@ -52,7 +39,6 @@ export default function DashboardPage() {
 
   const campaignCount = campaigns.data?.length ?? 0;
   const totalSessions = campaigns.data?.reduce((sum, c) => sum + (c.sessionCount ?? 0), 0) ?? 0;
-  const homebrewItems = ((homebrew.data as any)?.items || []) as any[];
   const activeCampaign = useMemo(() => {
     if (!campaigns.data?.length) return null;
     return [...campaigns.data].sort((a, b) => {
@@ -214,79 +200,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Homebrew Library */}
-      <div className="space-y-3 min-w-0">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Homebrew Library</h2>
-          <Button variant="ghost" size="sm" asChild className="text-xs text-muted-foreground h-auto py-1 px-2">
-            <Link href="/homebrew">View all</Link>
-          </Button>
-        </div>
-        {homebrew.isLoading ? (
-          <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <Skeleton key={i} className="h-16 rounded-lg" />
-            ))}
-          </div>
-        ) : homebrew.isError ? (
-          <div className="stone-card glass-panel p-8 text-center">
-            <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
-          </div>
-        ) : homebrewItems.length > 0 ? (
-          <div className="space-y-2">
-            {homebrewItems.slice(0, 8).map((item: any) => (
-              <div key={item.id} className="stone-card glass-row overflow-hidden">
-                <div className="stone-card-body flex items-center gap-3 py-2.5 px-4 overflow-hidden">
-                  {item.images?.[0] ? (
-                    <Image
-                      src={item.images[0]}
-                      alt={item.name}
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 rounded object-cover shrink-0"
-                    />
-                  ) : (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-muted">
-                      <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{item.name}</p>
-                    {item.data?.description && (
-                      <p className="text-[11px] text-muted-foreground truncate">
-                        {stripHtml(item.data.description)}
-                      </p>
-                    )}
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className={`text-[10px] capitalize shrink-0 ${typeColorMap[item.type] || ''}`}
-                  >
-                    {item.type}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-            {homebrewItems.length > 8 && (
-              <p className="text-xs text-muted-foreground text-center pt-1">
-                +{homebrewItems.length - 8} more items
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="stone-card glass-panel">
-            <div className="stone-card-body flex flex-col items-center py-8 text-center">
-              <BookOpen className="h-8 w-8 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground mb-3">No homebrew content yet</p>
-              <Button size="sm" variant="outline" asChild>
-                <Link href="/homebrew/pdfs">
-                  Upload PDFs
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
