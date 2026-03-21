@@ -86,11 +86,11 @@ export default function DashboardPage() {
       {invites.data && invites.data.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Pending Invites</h2>
-          {invites.data.map((invite: any) => (
+          {invites.data.map((invite) => (
             <div key={invite.id} className="stone-card glass-panel border-primary/30">
               <div className="stone-card-body flex items-center justify-between py-3 px-4">
                 <div>
-                  <p className="font-medium text-sm">{invite.campaign?.name || 'Campaign'}</p>
+                  <p className="font-medium text-sm">{invite.campaignName || 'Campaign'}</p>
                   <p className="text-xs text-muted-foreground">
                     Invited as {invite.role || 'player'}
                   </p>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
           </div>
         ) : campaigns.data && campaigns.data.length > 0 ? (
           <div className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent -mx-1 px-1">
-            {campaigns.data.map((campaign: any) => (
+            {campaigns.data.map((campaign) => (
               <Link
                 key={campaign.id}
                 href={`/campaigns/${campaign.slug || campaign.id}`}
@@ -163,7 +163,7 @@ export default function DashboardPage() {
                       <span className="stone-card-title text-sm truncate">{campaign.name}</span>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-1 text-xs">
-                      {campaign.description || 'No description'}
+                      {campaign.sessionCount} sessions · {campaign.memberCount} members
                     </p>
                   </div>
                   <div className="stone-card-body pt-0">
