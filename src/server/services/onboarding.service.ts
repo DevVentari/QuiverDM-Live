@@ -71,9 +71,9 @@ export const onboardingService = {
     data: {
       displayName?: string;
       bio?: string;
+      dmExperience?: string;
     }
   ) {
-    // Update profile
     await prisma.user.update({
       where: { id: userId },
       data: {
@@ -82,7 +82,14 @@ export const onboardingService = {
       },
     });
 
-    // Move to next step
+    if (data.dmExperience) {
+      await prisma.userSettings.upsert({
+        where: { userId },
+        update: { dmExperience: data.dmExperience },
+        create: { userId, dmExperience: data.dmExperience },
+      });
+    }
+
     return this.updateStep(userId, 'first_campaign');
   },
 
