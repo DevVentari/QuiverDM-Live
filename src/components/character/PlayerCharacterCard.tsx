@@ -54,10 +54,9 @@ function BrainPanel({
   const entity = brainEntity ?? data?.[0];
   const loading = !brainEntity && isLoading;
 
-  const topRelationships = entity && brainEntity?.relationships
-    ? [...brainEntity.relationships]
-        .sort((a, b) => b.strength - a.strength)
-        .slice(0, 3)
+  const entityRelationships = (entity as (WorldEntity & { relationships: WorldRelationship[] }) | undefined)?.relationships;
+  const topRelationships = entityRelationships
+    ? [...entityRelationships].sort((a, b) => b.strength - a.strength).slice(0, 3)
     : [];
 
   return (
@@ -132,11 +131,13 @@ export function PlayerCharacterCard({
     .filter(Boolean)
     .join(' · ');
 
+  const HeaderTag = compact ? 'button' : 'div';
+
   return (
     <div className={cn('border border-amber-800/30 rounded bg-amber-950/10 text-sm', className)}>
-      <button
+      <HeaderTag
         className="w-full flex items-center gap-3 px-3 py-2 text-left"
-        onClick={() => compact && setExpanded((e) => !e)}
+        onClick={compact ? () => setExpanded((e) => !e) : undefined}
       >
         <div className="relative h-10 w-10 shrink-0 rounded overflow-hidden border border-amber-800/30">
           {character.portraitUrl ? (
@@ -175,7 +176,7 @@ export function PlayerCharacterCard({
             )}
           </div>
         )}
-      </button>
+      </HeaderTag>
 
       {expanded && (
         <div className="px-3 pb-3 space-y-2">
