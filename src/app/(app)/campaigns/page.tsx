@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { Plus, Shield } from 'lucide-react';
+import { Plus, Shield, Users } from 'lucide-react';
 
 export default function CampaignsPage() {
   const campaigns = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 120_000 });
@@ -37,34 +37,43 @@ export default function CampaignsPage() {
               href={`/campaigns/${campaign.slug || campaign.id}`}
             >
               <div className="stone-card overflow-hidden hover:border-amber-700/40 transition-colors cursor-pointer h-full flex flex-col">
-                {campaign.bannerUrl && (
-                  <div className="relative h-24 w-full shrink-0">
+                {/* Banner */}
+                <div className="relative h-24 w-full shrink-0">
+                  {campaign.bannerUrl ? (
                     <Image
                       src={campaign.bannerUrl}
                       alt={campaign.name}
                       fill
                       className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(240,10%,11%)] via-transparent to-transparent" />
-                  </div>
-                )}
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-[hsl(240,15%,13%)] via-[hsl(250,20%,10%)] to-[hsl(35,30%,8%)]">
+                      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, hsl(35,60%,40%), transparent 60%), radial-gradient(circle at 80% 20%, hsl(260,40%,30%), transparent 50%)' }} />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[hsl(240,10%,11%)] via-transparent to-transparent" />
+                  {campaign.status && (
+                    <Badge variant="secondary" className="absolute top-2 right-2 text-xs capitalize">
+                      {campaign.status}
+                    </Badge>
+                  )}
+                </div>
+
                 <div className="stone-card-header flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="stone-card-title">{campaign.name}</span>
-                    {campaign.status && (
-                      <Badge variant="secondary" className="text-xs capitalize shrink-0">
-                        {campaign.status}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
+                  <span className="stone-card-title">{campaign.name}</span>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                     {campaign.description || 'No description'}
                   </p>
                 </div>
+
                 <div className="stone-card-body">
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>{campaign._count?.sessions || 0} sessions</span>
-                    <span>{campaign._count?.npcs || 0} NPCs</span>
+                    <span>{campaign._count?.gameSessions ?? 0} sessions</span>
+                    <span>{campaign._count?.npcs ?? 0} NPCs</span>
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {campaign._count?.members ?? 0}
+                    </span>
                   </div>
                 </div>
               </div>
