@@ -7,7 +7,11 @@
 
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 import { charactersDndbeyondService } from '../services/characters-dndbeyond.service';
+import { prisma } from '@/lib/prisma';
+import { decrypt } from '@/lib/encryption';
+import { fetchDDBCampaignCharacters } from '@/lib/dndbeyond-api';
 
 export const charactersDndBeyondRouter = router({
   /**
@@ -65,6 +69,56 @@ export const charactersDndBeyondRouter = router({
   getLinkedCharacters: protectedProcedure.query(({ ctx }) =>
     charactersDndbeyondService.getLinkedCharacters(ctx.session.user.id)
   ),
+
+  /**
+   * Import all characters from a D&D Beyond campaign URL.
+   * Fetches the campaign roster and imports each character into the given campaign.
+   */
+  importFromCampaign: protectedProcedure
+    .input(
+      z.object({
+        campaignUrl: z.string().url(),
+        campaignId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user.id;
+
+      const settings = await prisma.userSettings.findUnique({ where: { userId } });
+      if (!settings?.dndBeyondCobaltCookie) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'No DnD Beyond Cobalt token found. Add it in Settings → API Keys.',
+        });
+      }
+
+      const cobaltToken = decrypt(settings.dndBeyondCobaltCookie);
+      const result = await fetchDDBCampaignCharacters(input.campaignUrl, cobaltToken);
+
+      if (!result.success || !result.characters) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: result.message ?? 'Failed to fetch campaign characters from DnD Beyond.',
+        });
+      }
+
+      const imported: string[] = [];
+      const failed: string[] = [];
+
+      for (const ref of result.characters) {
+        try {
+          await charactersDndbeyondService.importCharacter(userId, {
+            characterId: ref.characterId,
+            campaignId: input.campaignId,
+          });
+          imported.push(ref.characterId);
+        } catch {
+          failed.push(ref.characterId);
+        }
+      }
+
+      return { imported: imported.length, failed: failed.length };
+    }),
 });
 
 export type CharactersDndBeyondRouter = typeof charactersDndBeyondRouter;
