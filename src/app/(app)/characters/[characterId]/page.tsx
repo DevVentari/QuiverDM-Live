@@ -21,6 +21,8 @@ import {
   ScrollText,
   FlaskConical,
   Users,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -34,6 +36,7 @@ import { CharacterBackground } from './_components/CharacterBackground';
 import { AddToCampaignDialog } from '@/components/character/AddToCampaignDialog';
 import { ShortRestDialog } from '@/components/character/ShortRestDialog';
 import { LongRestDialog } from '@/components/character/LongRestDialog';
+import { PlayerCharacterCard } from '@/components/character/PlayerCharacterCard';
 import { CharacterHomebrewItems } from '@/components/character/CharacterHomebrewItems';
 import { CharacterHomebrewSpells } from '@/components/character/CharacterHomebrewSpells';
 import { CharacterHomebrewFeats } from '@/components/character/CharacterHomebrewFeats';
@@ -49,6 +52,7 @@ export default function CharacterDetailPage() {
   const characterId = params.characterId as string;
   const { roll } = useDiceRoller();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [fullSheetOpen, setFullSheetOpen] = useState(false);
 
   const character = trpc.characters.getById.useQuery(
     { id: characterId },
@@ -257,99 +261,120 @@ export default function CharacterDetailPage() {
         </div>
       </div>
 
-      {/* Tabbed Content */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="overview" className="gap-1.5">
-            <Shield className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Overview</span>
-          </TabsTrigger>
-          <TabsTrigger value="spells" className="gap-1.5">
-            <Wand2 className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Spells</span>
-          </TabsTrigger>
-          <TabsTrigger value="inventory" className="gap-1.5">
-            <Backpack className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Inventory</span>
-          </TabsTrigger>
-          <TabsTrigger value="homebrew" className="gap-1.5">
-            <FlaskConical className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Homebrew</span>
-          </TabsTrigger>
-          <TabsTrigger value="features" className="gap-1.5">
-            <BookOpen className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Features</span>
-          </TabsTrigger>
-          <TabsTrigger value="proficiencies" className="gap-1.5">
-            <GraduationCap className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Skills</span>
-          </TabsTrigger>
-          <TabsTrigger value="background" className="gap-1.5">
-            <ScrollText className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Background</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Player Character Card */}
+      <PlayerCharacterCard
+        character={data as any}
+        campaignId={(data.campaignCharacters?.[0]?.campaignId) ?? undefined}
+      />
 
-        <TabsContent value="overview" className="mt-4">
-          <CharacterOverview
-            data={data}
-            onRoll={roll}
-            isUpdating={updateChar.isPending}
-            onUpdate={async (patch) => {
-              await updateChar.mutateAsync({ id: characterId, ...patch });
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="spells" className="mt-4">
-          <CharacterSpells
-            data={data}
-            onRoll={roll}
-            isUpdating={updateChar.isPending}
-            onUpdate={async (patch) => {
-              await updateChar.mutateAsync({ id: characterId, ...patch });
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="inventory" className="mt-4">
-          <CharacterInventory
-            data={data}
-            isUpdating={updateChar.isPending}
-            onUpdate={async (patch) => {
-              await updateChar.mutateAsync({ id: characterId, ...patch });
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="homebrew" className="mt-4">
-          <div className="space-y-6">
-            <CharacterActiveEffects
-              characterId={characterId}
-              abilityScores={data.abilityScores ?? null}
-              armorClass={data.armorClass ?? null}
-            />
-            <section>
-              <h3 className="text-lg font-semibold mb-2">Homebrew Items</h3>
-              <CharacterHomebrewItems characterId={characterId} />
-            </section>
-            <section>
-              <h3 className="text-lg font-semibold mb-2">Homebrew Spells</h3>
-              <CharacterHomebrewSpells characterId={characterId} />
-            </section>
-            <section>
-              <h3 className="text-lg font-semibold mb-2">Homebrew Feats</h3>
-              <CharacterHomebrewFeats characterId={characterId} />
-            </section>
+      {/* Full Sheet — archived, collapsed by default */}
+      <div className="rounded-lg border border-border/50">
+        <button
+          type="button"
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-muted/30 transition-colors"
+          onClick={() => setFullSheetOpen((v) => !v)}
+        >
+          <span>Full Character Sheet</span>
+          {fullSheetOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </button>
+
+        {fullSheetOpen && (
+          <div className="border-t border-border/50 p-4">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="w-full justify-start overflow-x-auto">
+                <TabsTrigger value="overview" className="gap-1.5">
+                  <Shield className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Overview</span>
+                </TabsTrigger>
+                <TabsTrigger value="spells" className="gap-1.5">
+                  <Wand2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Spells</span>
+                </TabsTrigger>
+                <TabsTrigger value="inventory" className="gap-1.5">
+                  <Backpack className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Inventory</span>
+                </TabsTrigger>
+                <TabsTrigger value="homebrew" className="gap-1.5">
+                  <FlaskConical className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Homebrew</span>
+                </TabsTrigger>
+                <TabsTrigger value="features" className="gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Features</span>
+                </TabsTrigger>
+                <TabsTrigger value="proficiencies" className="gap-1.5">
+                  <GraduationCap className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Skills</span>
+                </TabsTrigger>
+                <TabsTrigger value="background" className="gap-1.5">
+                  <ScrollText className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Background</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="mt-4">
+                <CharacterOverview
+                  data={data}
+                  onRoll={roll}
+                  isUpdating={updateChar.isPending}
+                  onUpdate={async (patch) => {
+                    await updateChar.mutateAsync({ id: characterId, ...patch });
+                  }}
+                />
+              </TabsContent>
+              <TabsContent value="spells" className="mt-4">
+                <CharacterSpells
+                  data={data}
+                  onRoll={roll}
+                  isUpdating={updateChar.isPending}
+                  onUpdate={async (patch) => {
+                    await updateChar.mutateAsync({ id: characterId, ...patch });
+                  }}
+                />
+              </TabsContent>
+              <TabsContent value="inventory" className="mt-4">
+                <CharacterInventory
+                  data={data}
+                  isUpdating={updateChar.isPending}
+                  onUpdate={async (patch) => {
+                    await updateChar.mutateAsync({ id: characterId, ...patch });
+                  }}
+                />
+              </TabsContent>
+              <TabsContent value="homebrew" className="mt-4">
+                <div className="space-y-6">
+                  <CharacterActiveEffects
+                    characterId={characterId}
+                    abilityScores={data.abilityScores ?? null}
+                    armorClass={data.armorClass ?? null}
+                  />
+                  <section>
+                    <h3 className="text-lg font-semibold mb-2">Homebrew Items</h3>
+                    <CharacterHomebrewItems characterId={characterId} />
+                  </section>
+                  <section>
+                    <h3 className="text-lg font-semibold mb-2">Homebrew Spells</h3>
+                    <CharacterHomebrewSpells characterId={characterId} />
+                  </section>
+                  <section>
+                    <h3 className="text-lg font-semibold mb-2">Homebrew Feats</h3>
+                    <CharacterHomebrewFeats characterId={characterId} />
+                  </section>
+                </div>
+              </TabsContent>
+              <TabsContent value="features" className="mt-4">
+                <CharacterFeatures data={data} />
+              </TabsContent>
+              <TabsContent value="proficiencies" className="mt-4">
+                <CharacterProficiencies data={data} onRoll={roll} />
+              </TabsContent>
+              <TabsContent value="background" className="mt-4">
+                <CharacterBackground data={data} />
+              </TabsContent>
+            </Tabs>
           </div>
-        </TabsContent>
-        <TabsContent value="features" className="mt-4">
-          <CharacterFeatures data={data} />
-        </TabsContent>
-        <TabsContent value="proficiencies" className="mt-4">
-          <CharacterProficiencies data={data} onRoll={roll} />
-        </TabsContent>
-        <TabsContent value="background" className="mt-4">
-          <CharacterBackground data={data} />
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
 
       <ConfirmDialog
         open={deleteDialogOpen}
