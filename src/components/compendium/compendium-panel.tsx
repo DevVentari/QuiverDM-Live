@@ -1,6 +1,6 @@
 'use client';
 
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { useCompendiumStore } from '@/store/compendium-store';
 import { cn } from '@/lib/utils';
 import { EncountersTab } from './encounters-tab';
@@ -30,7 +30,7 @@ export function CompendiumPanel() {
           {/* Header */}
           <div className="px-4 pt-4 pb-3 border-b border-[hsl(240_20%_85%/0.07)]">
             <p className="text-[10px] font-sans tracking-[0.18em] text-muted-foreground/50 uppercase mb-0.5">Sourcebook</p>
-            <p className="font-display text-sm font-semibold tracking-wide" style={{ color: 'hsl(35 80% 62%)', textShadow: '0 0 12px hsl(35 80% 48% / 0.25)' }}>Compendium</p>
+            <SheetTitle className="font-display text-sm font-semibold tracking-wide m-0" style={{ color: 'hsl(35 80% 62%)', textShadow: '0 0 12px hsl(35 80% 48% / 0.25)' }}>Compendium</SheetTitle>
           </div>
 
           {/* Tab bar */}
