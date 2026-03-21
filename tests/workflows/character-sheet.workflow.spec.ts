@@ -98,6 +98,16 @@ test('character sheet tabs all render without errors', async ({ page }, testInfo
     await expect(page).toHaveURL(/\/characters\/[a-zA-Z0-9_-]+/, { timeout: 10_000 });
   }, 15_000);
 
+  await checkpoint(testInfo, 'expand-full-sheet-accordion', async () => {
+    // Character detail now shows PlayerCharacterCard + collapsed "Full Character Sheet" accordion
+    // Must expand it before tabs are visible
+    const accordionBtn = page.getByRole('button', { name: /full character sheet/i });
+    await expect(accordionBtn).toBeVisible({ timeout: 10_000 });
+    await accordionBtn.click();
+    // Wait for tabs to appear after accordion opens
+    await expect(page.getByRole('tablist')).toBeVisible({ timeout: 8_000 });
+  }, 15_000);
+
   await checkpoint(testInfo, 'verify-hero-stat-bar', async () => {
     // Character name heading should be present
     await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10_000 });
