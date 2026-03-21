@@ -171,13 +171,13 @@ export default function CampaignOverviewPage() {
         <span className="stone-card-title">World Pressure</span>
       </div>
       <div className="stone-card-body space-y-2">
-        {pressures && ([
+        {([
           ['Political', 'pressurePolitical'],
           ['Supernatural', 'pressureSupernatural'],
           ['Economic', 'pressureEconomic'],
           ['Cosmic', 'pressureCosmic'],
           ['Social', 'pressureSocial'],
-        ] as const).some(([, field]) => typeof pressures[field] === 'number' && pressures[field] > 0) ? (
+        ] as const).some(([, field]) => typeof pressures?.[field] === 'number' && (pressures[field] as number) > 0) ? (
           ([
             ['Political', 'pressurePolitical'],
             ['Supernatural', 'pressureSupernatural'],
