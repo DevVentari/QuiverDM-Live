@@ -314,6 +314,7 @@ model Campaign {
   brainIngestSources       BrainIngestSource[]
   entityMergeCandidates    EntityMergeCandidate[]
   entityMergeRules         EntityMergeRule[]
+  pressureHistory          WorldPressureHistory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1521,4 +1522,19 @@ model EntityMergeRule {
 
   @@unique([campaignId, entityAId, entityBId])
   @@index([campaignId])
+}
+
+model WorldPressureHistory {
+  id           String   @id @default(cuid())
+  campaignId   String
+  campaign     Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sessionId    String?
+  political    Float
+  supernatural Float
+  economic     Float
+  cosmic       Float
+  social       Float
+  recordedAt   DateTime @default(now())
+
+  @@index([campaignId, recordedAt])
 }

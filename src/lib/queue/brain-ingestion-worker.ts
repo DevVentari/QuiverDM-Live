@@ -322,6 +322,78 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
     });
   }
 
+  // Write pressure history snapshot
+  const finalState = await brainRepository.getOrCreateState(data.campaignId);
+  await prisma.worldPressureHistory.create({
+    data: {
+      campaignId: data.campaignId,
+      sessionId: data.sessionId ?? null,
+      political: finalState.pressurePolitical,
+      supernatural: finalState.pressureSupernatural,
+      economic: finalState.pressureEconomic,
+      cosmic: finalState.pressureCosmic,
+      social: finalState.pressureSocial,
+    },
+  });
+
+  // Compute threat trajectory for THREAT entities with ≥2 changes in last 5 sessions
+  const recentSessions = await prisma.gameSession.findMany({
+    where: { campaignId: data.campaignId },
+    orderBy: { sessionNumber: 'desc' },
+    take: 5,
+    select: { id: true },
+  });
+  const recentSessionIds = recentSessions.map(s => s.id);
+
+  const threatEntities = await prisma.worldEntity.findMany({
+    where: { campaignId: data.campaignId, type: WorldEntityType.THREAT },
+    select: { id: true, properties: true },
+  });
+
+  for (const threat of threatEntities) {
+    const changes = await prisma.worldStateChange.findMany({
+      where: {
+        campaignId: data.campaignId,
+        entityId: threat.id,
+        sessionId: recentSessionIds.length > 0 ? { in: recentSessionIds } : undefined,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    if (changes.length < 2) continue;
+
+    const props = (threat.properties ?? {}) as Record<string, unknown>;
+    const stressValues: number[] = [];
+    for (const change of changes) {
+      const nv = change.newValue as Record<string, unknown> | null;
+      if (!nv) continue;
+      const stress = nv['stress'] ?? nv['influence'];
+      if (typeof stress === 'number') stressValues.push(stress);
+    }
+
+    if (stressValues.length < 2) continue;
+
+    const first = stressValues[0];
+    const last = stressValues[stressValues.length - 1];
+    const delta = last - first;
+    const sessions = stressValues.length - 1;
+    const deltaPerSession = delta / sessions;
+
+    const trajectory: Record<string, unknown> = {
+      delta_per_session: deltaPerSession,
+      computed_at: new Date().toISOString(),
+    };
+
+    if (deltaPerSession > 0 && last < 1.0) {
+      trajectory['sessions_to_critical'] = Math.ceil((1.0 - last) / deltaPerSession);
+    }
+
+    await prisma.worldEntity.update({
+      where: { id: threat.id },
+      data: { properties: JSON.parse(JSON.stringify({ ...props, trajectory })) },
+    });
+  }
+
   result.success = true;
   return result;
 }

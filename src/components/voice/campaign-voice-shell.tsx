@@ -23,7 +23,7 @@ export function CampaignVoiceShell({ children }: { children: ReactNode }) {
   );
   const campaignId = (campaignQuery.data as { id?: string } | undefined)?.id;
 
-  const voiceQueryMutation = trpc.brain.voiceQuery.useMutation();
+  const brainQueryMutation = trpc.brain.query.useMutation();
 
   const handleCommand = useCallback(async (transcript: string): Promise<string> => {
     const intent = classifyIntent(transcript);
@@ -47,12 +47,12 @@ export function CampaignVoiceShell({ children }: { children: ReactNode }) {
     }
 
     try {
-      const answer = await voiceQueryMutation.mutateAsync({ campaignId, query: transcript });
-      return answer;
+      const result = await brainQueryMutation.mutateAsync({ campaignId, question: transcript });
+      return result.answer;
     } catch {
       return 'Could not query the DM Brain. Try again.';
     }
-  }, [campaignId, slug, router, voiceQueryMutation]);
+  }, [campaignId, slug, router, brainQueryMutation]);
 
   return (
     <VoiceProvider onCommand={handleCommand}>
