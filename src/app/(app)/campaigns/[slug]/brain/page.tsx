@@ -8,6 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PressureGauges } from '@/components/brain/pressure-gauges';
 import { HookList } from '@/components/brain/hook-list';
+import { HookDetailDrawer } from '@/components/brain/hook-detail-drawer';
+import { ThreatTrajectoryCard } from '@/components/brain/threat-trajectory-card';
+import { BrainQueryPanel } from '@/components/brain/brain-query-panel';
 import { EntityCard } from '@/components/brain/entity-card';
 import { EntityGraph } from '@/components/brain/entity-graph';
 import { SessionTimeline } from '@/components/brain/session-timeline';
@@ -49,6 +52,16 @@ const TYPE_LABELS: Record<string, string> = {
   CUSTOM: 'Custom',
 };
 
+type Hook = {
+  id: string;
+  text: string;
+  urgency: 'low' | 'medium' | 'high';
+  status?: string;
+  ageInSessions?: number;
+  linkedEntityNames?: string[];
+  createdSessionId?: string | null | undefined;
+};
+
 export default function BrainPage() {
   const { campaignId, slug, isDM } = useCampaign();
   const [seeding, setSeeding] = useState(false);
@@ -57,6 +70,8 @@ export default function BrainPage() {
   const [ingestUrl, setIngestUrl] = useState('');
   const [ingestContent, setIngestContent] = useState('');
   const [ingestLabel, setIngestLabel] = useState('');
+  const [selectedHook, setSelectedHook] = useState<Hook | null>(null);
+  const [hookDrawerOpen, setHookDrawerOpen] = useState(false);
 
   const stateQuery = trpc.brain.state.get.useQuery(
     { campaignId },
@@ -78,10 +93,25 @@ export default function BrainPage() {
     { campaignId },
     { enabled: isDM, staleTime: 120_000 }
   );
-
   const sessionsQuery = trpc.sessions.getAll.useQuery(
     { campaignId },
     { enabled: isDM, staleTime: 60_000 }
+  );
+  const pressureHistoryQuery = trpc.brain.pressureHistory.list.useQuery(
+    { campaignId, limit: 7 },
+    { enabled: isDM, staleTime: 120_000 }
+  );
+  const pendingEventsQuery = trpc.brain.events.pending.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 30_000 }
+  );
+  const proposalsQuery = trpc.brain.worldSimulation.proposals.list.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 30_000 }
+  );
+  const mergeCandidatesQuery = trpc.brain.mergeCandidates.list.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 30_000 }
   );
 
   const seedMutation = trpc.brain.seedFromExisting.useMutation({
@@ -92,16 +122,7 @@ export default function BrainPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  const stateUpdateMutation = trpc.brain.state.update.useMutation({
-    onSuccess: () => stateQuery.refetch(),
-  });
-
   const ingestSourcesQuery = trpc.brain.ingest.sources.useQuery(
-    { campaignId },
-    { enabled: isDM, staleTime: 30_000 }
-  );
-
-  const mergeCandidatesQuery = trpc.brain.mergeCandidates.list.useQuery(
     { campaignId },
     { enabled: isDM, staleTime: 30_000 }
   );
@@ -135,6 +156,24 @@ export default function BrainPage() {
     onError: (err) => toast.error(err.message),
   });
 
+  const approveProposalMutation = trpc.brain.worldSimulation.proposals.approve.useMutation({
+    onSuccess: () => {
+      toast.success('Events approved.');
+      proposalsQuery.refetch();
+      pendingEventsQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const rejectProposalMutation = trpc.brain.worldSimulation.proposals.reject.useMutation({
+    onSuccess: () => {
+      toast.success('Proposal rejected.');
+      proposalsQuery.refetch();
+      pendingEventsQuery.refetch();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   if (!isDM) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-16 text-center">
@@ -149,9 +188,11 @@ export default function BrainPage() {
   const timeline = timelineQuery.data ?? [];
   const relationships = relationshipsQuery.data ?? [];
   const warnings = warningsQuery.data ?? [];
+  const pressureHistory = pressureHistoryQuery.data ?? [];
 
-  const hooks: Array<{ id: string; text: string; urgency: 'low' | 'medium' | 'high'; status?: string }> =
-    Array.isArray((state as { hooks?: unknown })?.hooks) ? (state as { hooks: unknown[] }).hooks as Array<{ id: string; text: string; urgency: 'low' | 'medium' | 'high'; status?: string }> : [];
+  const hooks: Hook[] = Array.isArray((state as { hooks?: unknown })?.hooks)
+    ? (state as { hooks: unknown[] }).hooks as Hook[]
+    : [];
 
   const typeCounts = entities.reduce<Record<string, number>>((acc, e) => {
     acc[e.type] = (acc[e.type] ?? 0) + 1;
@@ -161,13 +202,11 @@ export default function BrainPage() {
   const recentEntities = entities.slice(0, 6);
   const hasEntities = entities.length > 0;
 
-  function handleResolveHook(hookId: string) {
-    if (!state) return;
-    const updatedHooks = hooks.map((h) =>
-      h.id === hookId ? { ...h, status: 'resolved' } : h
-    );
-    stateUpdateMutation.mutate({ campaignId, hooks: updatedHooks });
-  }
+  const threatEntities = entities.filter(
+    (e) =>
+      e.type === WorldEntityType.THREAT &&
+      (e.properties as Record<string, unknown>)?.['trajectory'] != null
+  );
 
   const rawSessions = (sessionsQuery.data ?? []) as Array<{ id: string; sessionNumber: number; title?: string | null; date: Date | string }>;
   const sessionList = rawSessions.map(s => ({
@@ -190,6 +229,15 @@ export default function BrainPage() {
     if (lastSeen) result.push({ session: lastSeen, entity });
     return result;
   });
+
+  const pendingEventCount =
+    (pendingEventsQuery.data?.proposals.length ?? 0) +
+    (pendingEventsQuery.data?.mergeCandidates.length ?? 0);
+
+  function openHookDrawer(hook: Hook) {
+    setSelectedHook(hook);
+    setHookDrawerOpen(true);
+  }
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
@@ -244,6 +292,14 @@ export default function BrainPage() {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="events">
+            Events
+            {pendingEventCount > 0 && (
+              <span className="ml-1.5 rounded-full bg-amber-600/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+                {pendingEventCount}
+              </span>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="merge">
             Merge Queue
             {(mergeCandidatesQuery.data?.length ?? 0) > 0 && (
@@ -276,7 +332,10 @@ export default function BrainPage() {
                   ) : stateQuery.isError ? (
                     <p className="text-sm text-muted-foreground">Failed to load world state.</p>
                   ) : state ? (
-                    <PressureGauges state={state} />
+                    <PressureGauges
+                      state={state}
+                      history={pressureHistory.length >= 2 ? pressureHistory : undefined}
+                    />
                   ) : null}
                 </div>
               </div>
@@ -294,7 +353,7 @@ export default function BrainPage() {
                       ))}
                     </div>
                   ) : (
-                    <HookList hooks={hooks.slice(0, 5)} onResolve={handleResolveHook} />
+                    <HookList hooks={hooks} onSelect={openHookDrawer} />
                   )}
                 </div>
               </div>
@@ -348,7 +407,7 @@ export default function BrainPage() {
               </div>
             </div>
 
-            {/* Right column — stats + timeline */}
+            {/* Right column — stats + timeline + threats */}
             <div className="space-y-6">
               {/* Entity counts */}
               <div className="stone-card">
@@ -386,6 +445,27 @@ export default function BrainPage() {
                   )}
                 </div>
               </div>
+
+              {/* Threat Trajectories */}
+              {threatEntities.length > 0 && (
+                <div className="stone-card">
+                  <div className="stone-card-header">
+                    <span className="stone-card-title">Threat Trajectories</span>
+                  </div>
+                  <div className="stone-card-body space-y-2">
+                    {threatEntities.map((entity) => (
+                      <ThreatTrajectoryCard
+                        key={entity.id}
+                        entity={{
+                          id: entity.id,
+                          name: entity.name,
+                          properties: entity.properties as Record<string, unknown>,
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Recent Timeline */}
               <div className="stone-card">
@@ -473,6 +553,149 @@ export default function BrainPage() {
               ) : (
                 <ContinuityWarnings warnings={warnings} campaignSlug={slug} />
               )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Events Tab */}
+        <TabsContent value="events">
+          <div className="space-y-6">
+            {/* World Event Proposals */}
+            <div className="stone-card">
+              <div className="stone-card-header">
+                <span className="stone-card-title">World Event Proposals</span>
+              </div>
+              <div className="stone-card-body">
+                {proposalsQuery.isLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => <Skeleton key={i} className="h-24 w-full rounded" />)}
+                  </div>
+                ) : !proposalsQuery.data?.length ? (
+                  <p className="text-sm text-muted-foreground italic">No pending proposals.</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {proposalsQuery.data
+                      .filter(p => p.status === 'pending')
+                      .map((proposal) => {
+                        const events = proposal.events as Array<{ id?: string; narrative?: string; proposedEffects?: string[] }>;
+                        return (
+                          <li key={proposal.id} className="rounded-lg border border-border/40 p-4 space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <Badge variant="outline" className="text-[10px] uppercase">
+                                {new Date(proposal.createdAt).toLocaleDateString()}
+                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-500 border-green-500/40 hover:bg-green-500/10"
+                                  disabled={approveProposalMutation.isPending || rejectProposalMutation.isPending}
+                                  onClick={() =>
+                                    approveProposalMutation.mutate({
+                                      campaignId,
+                                      proposalId: proposal.id,
+                                      eventIds: events.map((e, i) => e.id ?? String(i)),
+                                    })
+                                  }
+                                >
+                                  <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                                  Approve All
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                                  disabled={approveProposalMutation.isPending || rejectProposalMutation.isPending}
+                                  onClick={() => rejectProposalMutation.mutate({ campaignId, proposalId: proposal.id })}
+                                >
+                                  <XCircle className="h-3.5 w-3.5 mr-1" />
+                                  Reject
+                                </Button>
+                              </div>
+                            </div>
+                            <ul className="space-y-2">
+                              {events.map((event, i) => (
+                                <li key={i} className="text-sm space-y-1">
+                                  {event.narrative && (
+                                    <p className="leading-snug">{event.narrative}</p>
+                                  )}
+                                  {event.proposedEffects && event.proposedEffects.length > 0 && (
+                                    <ul className="pl-4 space-y-0.5">
+                                      {event.proposedEffects.map((effect, j) => (
+                                        <li key={j} className="text-xs text-muted-foreground list-disc">{effect}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </li>
+                        );
+                      })}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Merge Candidates */}
+            <div className="stone-card">
+              <div className="stone-card-header">
+                <span className="stone-card-title flex items-center gap-2">
+                  <GitMerge className="h-4 w-4" />
+                  Entity Merge Candidates
+                </span>
+              </div>
+              <div className="stone-card-body">
+                {mergeCandidatesQuery.isLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded" />)}
+                  </div>
+                ) : !mergeCandidatesQuery.data?.length ? (
+                  <p className="text-sm text-muted-foreground italic">No pending merges.</p>
+                ) : (
+                  <ul className="space-y-3">
+                    {mergeCandidatesQuery.data.map((candidate) => (
+                      <li key={candidate.id} className="flex items-start justify-between gap-4 rounded-lg border border-border/40 p-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-sm">{candidate.entityA.name}</span>
+                            <span className="text-muted-foreground text-xs">≈</span>
+                            <span className="font-medium text-sm">{candidate.entityB.name}</span>
+                            <Badge variant="outline" className="text-[10px]">
+                              {Math.round(candidate.score * 100)}% match
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Suggested canonical: <span className="font-mono">{candidate.suggestedCanonical}</span>
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-green-500 border-green-500/40 hover:bg-green-500/10"
+                            disabled={approveMergeMutation.isPending || rejectMergeMutation.isPending}
+                            onClick={() => approveMergeMutation.mutate({ campaignId, candidateId: candidate.id })}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Merge
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive border-destructive/40 hover:bg-destructive/10"
+                            disabled={approveMergeMutation.isPending || rejectMergeMutation.isPending}
+                            onClick={() => rejectMergeMutation.mutate({ campaignId, candidateId: candidate.id })}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Keep Separate
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
         </TabsContent>
@@ -649,6 +872,21 @@ export default function BrainPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hook Detail Drawer */}
+      {selectedHook && (
+        <HookDetailDrawer
+          hook={selectedHook}
+          campaignId={campaignId}
+          campaignSlug={slug}
+          open={hookDrawerOpen}
+          onClose={() => setHookDrawerOpen(false)}
+          onMutated={() => stateQuery.refetch()}
+        />
+      )}
+
+      {/* Brain Query Panel (Cmd+K) */}
+      <BrainQueryPanel campaignId={campaignId} campaignSlug={slug} />
     </div>
   );
 }

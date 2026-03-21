@@ -1,11 +1,13 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { PressureHistoryRow } from './pressure-history-row';
 
 interface PressureTrack {
   label: string;
   value: number;
   color: string;
+  historyKey: 'political' | 'supernatural' | 'economic' | 'cosmic' | 'social';
 }
 
 interface PressureState {
@@ -16,18 +18,45 @@ interface PressureState {
   pressureSocial: number;
 }
 
-export function PressureGauges({ state }: { state: PressureState }) {
+interface PressureHistoryRecord {
+  political: number;
+  supernatural: number;
+  economic: number;
+  cosmic: number;
+  social: number;
+}
+
+export function PressureGauges({
+  state,
+  history,
+}: {
+  state: PressureState;
+  history?: PressureHistoryRecord[];
+}) {
   const tracks: PressureTrack[] = [
-    { label: 'Political', value: state.pressurePolitical, color: 'oklch(0.65 0.16 55)' },
-    { label: 'Supernatural', value: state.pressureSupernatural, color: 'oklch(0.55 0.2 280)' },
-    { label: 'Economic', value: state.pressureEconomic, color: 'oklch(0.60 0.15 160)' },
-    { label: 'Cosmic', value: state.pressureCosmic, color: 'oklch(0.50 0.22 300)' },
-    { label: 'Social', value: state.pressureSocial, color: 'oklch(0.65 0.18 25)' },
+    { label: 'Political', value: state.pressurePolitical, color: 'oklch(0.65 0.16 55)', historyKey: 'political' },
+    { label: 'Supernatural', value: state.pressureSupernatural, color: 'oklch(0.55 0.2 280)', historyKey: 'supernatural' },
+    { label: 'Economic', value: state.pressureEconomic, color: 'oklch(0.60 0.15 160)', historyKey: 'economic' },
+    { label: 'Cosmic', value: state.pressureCosmic, color: 'oklch(0.50 0.22 300)', historyKey: 'cosmic' },
+    { label: 'Social', value: state.pressureSocial, color: 'oklch(0.65 0.18 25)', historyKey: 'social' },
   ];
 
   return (
     <div className="space-y-3">
       {tracks.map((track) => {
+        if (history && history.length >= 2) {
+          const historyValues = history.map(h => h[track.historyKey]);
+          return (
+            <PressureHistoryRow
+              key={track.label}
+              label={track.label}
+              currentValue={track.value}
+              history={historyValues}
+              color={track.color}
+            />
+          );
+        }
+
         const pct = Math.round(track.value * 100);
         const isCritical = track.value >= 0.9;
         const isWarning = track.value >= 0.75 && track.value < 0.9;
@@ -59,12 +88,10 @@ export function PressureGauges({ state }: { state: PressureState }) {
                     : track.color,
                 }}
               />
-              {/* Warning threshold marker at 75% */}
               <div
                 className="absolute top-0 h-full w-px bg-yellow-500/40"
                 style={{ left: '75%' }}
               />
-              {/* Critical threshold marker at 90% */}
               <div
                 className="absolute top-0 h-full w-px bg-destructive/50"
                 style={{ left: '90%' }}

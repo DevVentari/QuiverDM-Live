@@ -383,11 +383,136 @@ export const brainRouter = router({
       return { suggestion: suggestion.trim() };
     }),
 
-  voiceQuery: protectedProcedure
-    .input(z.object({ campaignId: z.string().min(1), query: z.string().min(1).max(500) }))
-    .mutation(({ input, ctx: _ctx }) =>
-      answerBrainQuery(input.query, input.campaignId)
-    ),
+  pressureHistory: router({
+    list: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1), limit: z.number().int().min(1).max(50).optional() }))
+      .query(async ({ input, ctx }) => {
+        const campaign = await prisma.campaign.findFirst({
+          where: { id: input.campaignId, userId: ctx.session.user.id },
+          select: { id: true },
+        });
+        if (!campaign) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+        return prisma.worldPressureHistory.findMany({
+          where: { campaignId: input.campaignId },
+          orderBy: { recordedAt: 'desc' },
+          take: input.limit ?? 7,
+        });
+      }),
+  }),
+
+  hooks: router({
+    resolve: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1), hookId: z.string().min(1), reason: z.string().min(10) }))
+      .mutation(async ({ input, ctx }) => {
+        const campaign = await prisma.campaign.findFirst({
+          where: { id: input.campaignId, userId: ctx.session.user.id },
+          select: { id: true },
+        });
+        if (!campaign) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+        const state = await brainRepository.getOrCreateState(input.campaignId);
+        const hooks = Array.isArray(state.hooks) ? state.hooks as Record<string, unknown>[] : [];
+        const updated = hooks.map(h => h['id'] === input.hookId ? { ...h, status: 'resolved' } : h);
+        await brainRepository.updateState(input.campaignId, { hooks: updated });
+        await brainRepository.logChange({
+          campaignId: input.campaignId,
+          changeType: 'property_update',
+          newValue: { hookId: input.hookId, action: 'resolved', reason: input.reason },
+          source: 'manual',
+        });
+        return { success: true };
+      }),
+
+    escalate: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1), hookId: z.string().min(1) }))
+      .mutation(async ({ input, ctx }) => {
+        const campaign = await prisma.campaign.findFirst({
+          where: { id: input.campaignId, userId: ctx.session.user.id },
+          select: { id: true },
+        });
+        if (!campaign) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+        const state = await brainRepository.getOrCreateState(input.campaignId);
+        const hooks = Array.isArray(state.hooks) ? state.hooks as Record<string, unknown>[] : [];
+        const urgencyUp: Record<string, string> = { low: 'medium', medium: 'high', high: 'high' };
+        const updated = hooks.map(h =>
+          h['id'] === input.hookId
+            ? { ...h, urgency: urgencyUp[h['urgency'] as string] ?? 'high' }
+            : h
+        );
+        await brainRepository.updateState(input.campaignId, { hooks: updated });
+        await brainRepository.logChange({
+          campaignId: input.campaignId,
+          changeType: 'property_update',
+          newValue: { hookId: input.hookId, action: 'escalated' },
+          source: 'manual',
+        });
+        return { success: true };
+      }),
+
+    reopen: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1), hookId: z.string().min(1), reason: z.string().min(10) }))
+      .mutation(async ({ input, ctx }) => {
+        const campaign = await prisma.campaign.findFirst({
+          where: { id: input.campaignId, userId: ctx.session.user.id },
+          select: { id: true },
+        });
+        if (!campaign) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+        const state = await brainRepository.getOrCreateState(input.campaignId);
+        const hooks = Array.isArray(state.hooks) ? state.hooks as Record<string, unknown>[] : [];
+        const updated = hooks.map(h => h['id'] === input.hookId ? { ...h, status: 'open' } : h);
+        await brainRepository.updateState(input.campaignId, { hooks: updated });
+        await brainRepository.logChange({
+          campaignId: input.campaignId,
+          changeType: 'property_update',
+          newValue: { hookId: input.hookId, action: 'reopened', reason: input.reason },
+          source: 'manual',
+        });
+        return { success: true };
+      }),
+  }),
+
+  events: router({
+    pending: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1) }))
+      .query(async ({ input, ctx }) => {
+        const campaign = await prisma.campaign.findFirst({
+          where: { id: input.campaignId, userId: ctx.session.user.id },
+          select: { id: true },
+        });
+        if (!campaign) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+        const [proposals, mergeCandidates] = await Promise.all([
+          prisma.worldEventProposal.findMany({
+            where: { campaignId: input.campaignId, status: 'pending' },
+            orderBy: { createdAt: 'desc' },
+          }),
+          prisma.entityMergeCandidate.findMany({
+            where: { campaignId: input.campaignId, status: 'pending' },
+            include: { entityA: true, entityB: true },
+          }),
+        ]);
+        return { proposals, mergeCandidates };
+      }),
+  }),
+
+  query: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), question: z.string().min(1).max(500) }))
+    .mutation(async ({ input, ctx }) => {
+      const campaign = await prisma.campaign.findFirst({
+        where: { id: input.campaignId, userId: ctx.session.user.id },
+        select: { id: true },
+      });
+      if (!campaign) throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
+      const [answer, allEntities] = await Promise.all([
+        answerBrainQuery(input.question, input.campaignId),
+        brainRepository.findEntities(input.campaignId, { limit: 200 }),
+      ]);
+      const q = input.question.toLowerCase();
+      const terms = q.split(/\s+/).filter(t => t.length > 2);
+      const relatedEntities = allEntities.filter(e => {
+        const haystack = [e.name, e.description ?? ''].join(' ').toLowerCase();
+        return terms.some(t => haystack.includes(t));
+      }).slice(0, 5);
+      return { answer, relatedEntities };
+    }),
 
   ingest: router({
     document: protectedProcedure

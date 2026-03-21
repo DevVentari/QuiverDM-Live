@@ -12,6 +12,12 @@ import { Separator } from '@/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Brain, ArrowLeft, Edit2, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { WorldEntityStatus } from '@prisma/client';
@@ -25,6 +31,32 @@ const statusColors: Record<string, string> = {
   destroyed: 'text-red-400 border-red-400/30 bg-red-400/10',
   resolved: 'text-muted-foreground border-border bg-muted/20',
 };
+
+function ConfidenceBadge({ confidence }: { confidence: number }) {
+  let label: string;
+  let className: string;
+
+  if (confidence >= 0.9) {
+    label = 'Confirmed';
+    className = 'text-emerald-500 border-emerald-500/30 bg-emerald-500/10';
+  } else if (confidence >= 0.7) {
+    label = 'Inferred';
+    className = 'text-amber-500 border-amber-500/30 bg-amber-500/10';
+  } else {
+    label = 'Uncertain';
+    className = 'text-destructive border-destructive/30 bg-destructive/10';
+  }
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn('text-xs uppercase tracking-wider', className)}
+      title="Confidence reflects how consistently this entity has been identified across sessions."
+    >
+      {label}
+    </Badge>
+  );
+}
 
 export default function EntityDetailPage({ params }: { params: Promise<{ entityId: string }> }) {
   const { entityId } = use(params);
@@ -86,6 +118,10 @@ export default function EntityDetailPage({ params }: { params: Promise<{ entityI
 
   const properties = entity?.properties as Record<string, unknown> | null | undefined;
 
+  const hasRelationshipHistory = relationships.some(
+    r => Array.isArray(r.history) && r.history.length > 0
+  );
+
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       {/* Back link */}
@@ -123,6 +159,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ entityI
                 >
                   {entity.status}
                 </Badge>
+                <ConfidenceBadge confidence={entity.confidence} />
               </div>
               {entity.aliases.length > 0 && (
                 <p className="text-sm text-muted-foreground">
@@ -246,40 +283,82 @@ export default function EntityDetailPage({ params }: { params: Promise<{ entityI
                   ) : relationships.length === 0 ? (
                     <p className="text-sm text-muted-foreground italic">No relationships recorded.</p>
                   ) : (
-                    <ul className="space-y-3">
-                      {relationships.map((rel) => {
-                        const isFrom = rel.fromEntityId === entityId;
-                        const otherEntity = isFrom ? rel.toEntity : rel.fromEntity;
-                        return (
-                          <li key={rel.id} className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">
-                                {isFrom ? 'to' : 'from'}
-                              </span>
-                              <Link
-                                href={`/campaigns/${slug}/brain/entities/${otherEntity.id}`}
-                                className="text-sm font-medium hover:text-primary transition-colors"
-                              >
-                                {otherEntity.name}
-                              </Link>
-                              <Badge variant="outline" className="ml-auto text-[10px]">
-                                {rel.type}
-                              </Badge>
-                            </div>
-                            {/* Strength bar */}
-                            <div className="h-1 w-full rounded-full bg-muted/40">
-                              <div
-                                className="h-full rounded-full bg-primary/60"
-                                style={{ width: `${rel.strength * 100}%` }}
-                              />
-                            </div>
-                            {rel.description && (
-                              <p className="text-xs text-muted-foreground">{rel.description}</p>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    <>
+                      <ul className="space-y-3">
+                        {relationships.map((rel) => {
+                          const isFrom = rel.fromEntityId === entityId;
+                          const otherEntity = isFrom ? rel.toEntity : rel.fromEntity;
+                          return (
+                            <li key={rel.id} className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">
+                                  {isFrom ? 'to' : 'from'}
+                                </span>
+                                <Link
+                                  href={`/campaigns/${slug}/brain/entities/${otherEntity.id}`}
+                                  className="text-sm font-medium hover:text-primary transition-colors"
+                                >
+                                  {otherEntity.name}
+                                </Link>
+                                <Badge variant="outline" className="ml-auto text-[10px]">
+                                  {rel.type}
+                                </Badge>
+                              </div>
+                              {/* Strength bar */}
+                              <div className="h-1 w-full rounded-full bg-muted/40">
+                                <div
+                                  className="h-full rounded-full bg-primary/60"
+                                  style={{ width: `${rel.strength * 100}%` }}
+                                />
+                              </div>
+                              {rel.description && (
+                                <p className="text-xs text-muted-foreground">{rel.description}</p>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+
+                      {hasRelationshipHistory && (
+                        <Accordion type="single" collapsible className="mt-4">
+                          <AccordionItem value="rel-history" className="border-border/40">
+                            <AccordionTrigger className="text-xs font-medium text-muted-foreground uppercase tracking-wider py-3">
+                              Relationship History
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <ul className="space-y-4">
+                                {relationships
+                                  .filter(rel => Array.isArray(rel.history) && (rel.history as unknown[]).length > 0)
+                                  .map((rel) => {
+                                    const isFrom = rel.fromEntityId === entityId;
+                                    const otherEntity = isFrom ? rel.toEntity : rel.fromEntity;
+                                    const history = rel.history as Array<{ sessionId?: string; description?: string; timestamp?: string }>;
+                                    return (
+                                      <li key={rel.id}>
+                                        <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                                          {isFrom ? 'to' : 'from'} {otherEntity.name} ({rel.type})
+                                        </p>
+                                        <ul className="space-y-1.5 pl-3 border-l border-border/40">
+                                          {history.map((entry, i) => (
+                                            <li key={i} className="text-xs text-muted-foreground">
+                                              {entry.sessionId && (
+                                                <span className="font-mono text-[10px] mr-1.5">
+                                                  [session {entry.sessionId.slice(-4)}]
+                                                </span>
+                                              )}
+                                              {entry.description ?? 'No description'}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </li>
+                                    );
+                                  })}
+                              </ul>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      )}
+                    </>
                   )}
                 </CardContent>
               </Card>
