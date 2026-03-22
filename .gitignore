@@ -171,3 +171,4 @@ node_modules/
 # tasks.json
 # tasks/ 
 .superpowers/
+scripts/.ddb-auth-state.json
