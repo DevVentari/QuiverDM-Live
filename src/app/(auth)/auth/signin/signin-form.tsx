@@ -4,11 +4,9 @@ import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 export function SignInForm() {
   const router = useRouter();
@@ -42,71 +40,78 @@ export function SignInForm() {
   }
 
   return (
-    <Card className="w-full max-w-sm glass-panel border-border/30 shadow-2xl shadow-black/50">
-      <CardHeader className="text-center">
-        <Link href="/" className="font-display text-2xl font-bold text-foreground mb-2 block">
-          QuiverDM
-        </Link>
-        <CardTitle className="text-xl">Sign In</CardTitle>
-        <CardDescription>Enter your credentials to continue</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+    <div className="w-full max-w-sm">
+      <div className="stone-card-title mb-1">Sign In</div>
+      <div className="section-rule mb-6" />
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-1.5">
+          <label htmlFor="email" className="label-overline block">
+            Email
+          </label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="dm@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="label-overline">
+              Password
+            </label>
+            <Link
+              href="/auth/forgot-password"
+              className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
             <Input
-              id="email"
-              type="email"
-              placeholder="dm@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              className="pr-10"
             />
+            <button
+              type="button"
+              className="absolute right-0 top-0 h-full px-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              onClick={() => setShowPassword(!showPassword)}
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            </button>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link href="/auth/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
-                Forgot password?
-              </Link>
-            </div>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="pr-10"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : <Eye className="h-4 w-4 text-muted-foreground" />}
-              </Button>
-            </div>
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
-          </Button>
-        </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link href="/auth/signup" className="text-primary hover:underline">
-            Sign Up
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+        </div>
+
+        <Button type="submit" className="w-full gap-2" disabled={loading}>
+          <LogIn className="h-3.5 w-3.5" />
+          {loading ? 'Signing in...' : 'Enter the Realm'}
+        </Button>
+      </form>
+
+      <div
+        className="mt-8 pt-5 text-center text-xs border-t"
+        style={{ borderColor: 'hsl(35 35% 13%)', color: 'hsl(35 10% 40%)' }}
+      >
+        No account?{' '}
+        <Link href="/auth/signup" className="text-primary font-semibold hover:underline">
+          Request access
+        </Link>
+      </div>
+    </div>
   );
 }
