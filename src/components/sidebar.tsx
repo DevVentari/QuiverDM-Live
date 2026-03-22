@@ -36,6 +36,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
+import { QuiverLogo } from '@/components/logo/quiver-logo';
+import { useLogoVariant } from '@/hooks/use-logo-variant';
 
 const globalNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -283,6 +285,10 @@ export function Sidebar() {
 
   const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
 
+  const baseVariant = useLogoVariant();
+  const isLiveSession = pathname.match(/\/sessions\/[^/]+\/live$/) !== null;
+  const logoVariant = isLiveSession ? 'gilded' : baseVariant;
+
   return (
     <aside
       className={cn(
@@ -313,39 +319,52 @@ export function Sidebar() {
       {/* Logo */}
       <div
         className={cn(
-          'relative z-10 flex items-center justify-between border-b border-[hsl(35_35%_18%)]',
-          collapsed ? 'px-3 h-14' : 'px-5 h-14'
+          'relative z-10 flex items-center border-b border-[hsl(35_35%_18%)]',
+          collapsed ? 'justify-center px-3 h-14' : 'justify-between px-5 h-14'
         )}
       >
-        {!collapsed && (
-          <Link href="/dashboard" className="flex flex-col leading-none">
-            <span
-              className="font-display text-base font-bold tracking-wide"
-              style={{
-                color: 'hsl(35 80% 62%)',
-                textShadow: '0 0 18px hsl(35 80% 48% / 0.35)',
-              }}
+        {collapsed ? (
+          <>
+            <Link href="/dashboard" aria-label="QuiverDM">
+              <QuiverLogo variant={logoVariant} size="sm" />
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed(!collapsed)}
+              className="absolute right-1 h-7 w-7"
+              aria-label="Expand sidebar"
             >
-              QuiverDM
-            </span>
-            <span className="font-sans text-[9px] uppercase tracking-[0.14em] mt-0.5" style={{ color: 'hsl(240 5% 36%)' }}>
-              Campaign Companion
-            </span>
-          </Link>
+              <PanelLeft className="h-3.5 w-3.5" strokeWidth={1.8} />
+            </Button>
+          </>
+        ) : (
+          <>
+            <Link href="/dashboard" className="flex items-center gap-2.5 leading-none min-w-0">
+              <QuiverLogo variant={logoVariant} size="md" />
+              <div className="flex flex-col min-w-0">
+                <span
+                  className="font-display text-[13px] font-bold tracking-[0.1em] leading-none"
+                  style={{ color: 'hsl(35 70% 88%)', textShadow: '0 0 18px hsl(35 80% 48% / 0.35)' }}
+                >
+                  QUIVER<span style={{ color: 'hsl(35 80% 62%)' }}>DM</span>
+                </span>
+                <span className="font-sans text-[8px] uppercase tracking-[0.14em] mt-1" style={{ color: 'hsl(240 5% 36%)' }}>
+                  Campaign Companion
+                </span>
+              </div>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed(!collapsed)}
+              className="h-7 w-7 shrink-0"
+              aria-label="Collapse sidebar"
+            >
+              <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.8} />
+            </Button>
+          </>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn('h-7 w-7 shrink-0', collapsed && 'mx-auto')}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed ? (
-            <PanelLeft className="h-3.5 w-3.5" strokeWidth={1.8} />
-          ) : (
-            <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.8} />
-          )}
-        </Button>
       </div>
 
       {/* Campaign switcher / context header */}
