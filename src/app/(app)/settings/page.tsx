@@ -274,7 +274,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-5xl xl:max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
       <div>
         <p className="label-overline mb-0.5">Account</p>
         <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Settings</h1>
@@ -582,6 +582,8 @@ export default function SettingsPage() {
         </div>
       ) : null}
 
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+        <div className="space-y-6">
       <div className="stone-card">
         <div className="stone-card-header">
           <div className="flex items-center gap-3">
@@ -709,7 +711,9 @@ export default function SettingsPage() {
           </Button>
         </div>
       </div>
+        </div>
 
+        <div className="space-y-6">
       <div className="stone-card">
         <div className="stone-card-header">
           <div className="flex items-center justify-between">
@@ -858,6 +862,8 @@ export default function SettingsPage() {
               </Button>
             </Link>
           </div>
+        </div>
+      </div>
         </div>
       </div>
 

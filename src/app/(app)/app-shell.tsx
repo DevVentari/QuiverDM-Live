@@ -47,7 +47,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </header>
           <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto w-full max-w-[1400px] p-4 sm:p-6">
+            <div className="mx-auto w-full max-w-[1400px] 2xl:max-w-[1800px] p-4 sm:p-6">
               <ErrorBoundary>{children}</ErrorBoundary>
             </div>
           </main>
