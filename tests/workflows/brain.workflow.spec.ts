@@ -215,8 +215,9 @@ test('hook resolve button removes hook from open list', async ({ page }, testInf
     const hasHooks = await hookList.isVisible({ timeout: 8_000 }).catch(() => false);
 
     if (!hasHooks) {
-      // No hooks — verify empty state renders cleanly
-      await expect(page.getByText(/no open hooks/i).first()).toBeVisible({ timeout: 8_000 });
+      // No hooks — verify empty state renders cleanly (component shows "No hooks." or "No open hooks.")
+      const emptyState = page.getByText(/no (open )?hooks/i).first();
+      await expect(emptyState).toBeVisible({ timeout: 8_000 });
       return;
     }
 
