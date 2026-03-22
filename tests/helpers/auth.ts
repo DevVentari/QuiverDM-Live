@@ -9,7 +9,7 @@ export async function signInAsTestUser(page: Page, email?: string, password?: st
   await page.goto('/auth/signin');
   await page.getByLabel(/email/i).fill(e);
   await page.getByLabel(/password/i).fill(p);
-  await page.getByRole('button', { name: /sign in/i }).click();
+  await page.getByRole('button', { name: /sign in|enter the realm/i }).click();
   try {
     await page.waitForURL(/dashboard|onboarding|campaigns|characters|homebrew|settings|members/, {
       timeout: 15000,
