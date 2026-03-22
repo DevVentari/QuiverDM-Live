@@ -33,38 +33,81 @@ const typeColors: Record<string, string> = {
   CUSTOM: 'text-muted-foreground border-border bg-muted/20',
 };
 
-export function EntityCard({ entity, href }: { entity: Entity; href: string }) {
+type EntityCardProps = {
+  entity: Entity;
+  href?: string;
+  onClick?: () => void;
+};
+
+export function EntityCard({ entity, href, onClick }: EntityCardProps) {
+  const cardInner = (
+    <>
+      <div className="flex items-center gap-2 min-w-0">
+        <span
+          className={cn(
+            'h-2 w-2 shrink-0 rounded-full',
+            statusDot[entity.status] ?? 'bg-muted-foreground'
+          )}
+          title={entity.status}
+        />
+        <span className="truncate text-sm font-medium leading-tight">
+          {entity.name}
+        </span>
+        <Badge
+          variant="outline"
+          className={cn('ml-auto shrink-0 text-[10px] uppercase tracking-wider', typeColors[entity.type] ?? typeColors.CUSTOM)}
+        >
+          {entity.type}
+        </Badge>
+      </div>
+      {entity.description && (
+        <p className="line-clamp-2 text-xs text-muted-foreground leading-snug">
+          {entity.description}
+        </p>
+      )}
+      {entity.aliases.length > 0 && (
+        <p className="text-[10px] text-muted-foreground/60 truncate">
+          aka {entity.aliases.join(', ')}
+        </p>
+      )}
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <div
+        data-testid="entity-card"
+        className="glass-panel group flex flex-col gap-1.5 rounded-lg border border-border/50 bg-card/40 p-3 transition-colors hover:border-foreground/30 cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+          }
+        }}
+      >
+        {cardInner}
+      </div>
+    );
+  }
+
+  if (!href) {
+    return (
+      <div
+        data-testid="entity-card"
+        className="glass-panel group flex flex-col gap-1.5 rounded-lg border border-border/50 bg-card/40 p-3 transition-colors hover:border-foreground/30"
+      >
+        {cardInner}
+      </div>
+    );
+  }
+
   return (
     <Link href={href}>
       <div data-testid="entity-card" className="glass-panel group flex flex-col gap-1.5 rounded-lg border border-border/50 bg-card/40 p-3 transition-colors hover:border-foreground/30 cursor-pointer">
-        <div className="flex items-center gap-2 min-w-0">
-          <span
-            className={cn(
-              'h-2 w-2 shrink-0 rounded-full',
-              statusDot[entity.status] ?? 'bg-muted-foreground'
-            )}
-            title={entity.status}
-          />
-          <span className="truncate text-sm font-medium leading-tight">
-            {entity.name}
-          </span>
-          <Badge
-            variant="outline"
-            className={cn('ml-auto shrink-0 text-[10px] uppercase tracking-wider', typeColors[entity.type] ?? typeColors.CUSTOM)}
-          >
-            {entity.type}
-          </Badge>
-        </div>
-        {entity.description && (
-          <p className="line-clamp-2 text-xs text-muted-foreground leading-snug">
-            {entity.description}
-          </p>
-        )}
-        {entity.aliases.length > 0 && (
-          <p className="text-[10px] text-muted-foreground/60 truncate">
-            aka {entity.aliases.join(', ')}
-          </p>
-        )}
+        {cardInner}
       </div>
     </Link>
   );
