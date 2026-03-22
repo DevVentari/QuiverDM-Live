@@ -152,6 +152,18 @@ export async function fetchChapterContent(
   return parseChapterContent(html);
 }
 
+export async function fetchChapterContentWithCookie(
+  sourceSlug: string,
+  chapterSlug: string,
+  cobaltSession: string
+): Promise<ChapterContent> {
+  const html = await fetchWithCookie(
+    `https://www.dndbeyond.com/sources/${sourceSlug}/${chapterSlug}`,
+    cobaltSession
+  );
+  return parseChapterContent(html);
+}
+
 // ─── Monster stat block ───────────────────────────────────────────────────────
 
 export interface DdbMonsterData {

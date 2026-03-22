@@ -16,7 +16,8 @@ export interface DdbChapterExtractJobData {
   userId: string;
   sourceSlug: string;
   chapterSlug: string;
-  cobaltJwt: string; // short-lived JWT — NOT the raw CobaltSession
+  cobaltJwt: string; // short-lived JWT — for monster stat block API calls
+  cobaltSessionEncrypted: string; // encrypted CobaltSession — for HTML page scraping (cookie auth)
   campaignIds: string[];
 }
 
