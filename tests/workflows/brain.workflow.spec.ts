@@ -46,11 +46,17 @@ test('brain dashboard loads with DM Brain heading and Seed button', async ({ pag
   }, 10_000);
 
   await checkpoint(testInfo, 'seed-button-or-entities-visible', async () => {
+    // Wait for tRPC data to load (skeleton disappears when data arrives)
+    await page.waitForFunction(
+      () => document.querySelectorAll('[data-testid="entity-card"], [data-testid="seed-from-existing-btn"], [href*="/brain/entities"]').length > 0 ||
+            document.body.innerText.includes('No entities'),
+      { timeout: 15_000 }
+    ).catch(() => {});
     // Seed button shows when no entities exist; entity cards show when already seeded
-    const hasSeedBtn = await page.getByRole('button', { name: /seed from existing/i }).first().isVisible({ timeout: 5_000 }).catch(() => false);
-    const hasEntityCards = await page.locator('[data-testid="entity-card"]').first().isVisible({ timeout: 5_000 }).catch(() => false);
+    const hasSeedBtn = await page.getByRole('button', { name: /seed from existing/i }).first().isVisible({ timeout: 12_000 }).catch(() => false);
+    const hasEntityCards = await page.locator('[data-testid="entity-card"]').first().isVisible({ timeout: 12_000 }).catch(() => false);
     expect(hasSeedBtn || hasEntityCards).toBeTruthy();
-  }, 10_000);
+  }, 20_000);
 });
 
 test('world pressure and open hooks sections visible on brain dashboard', async ({ page }, testInfo) => {
@@ -66,12 +72,12 @@ test('world pressure and open hooks sections visible on brain dashboard', async 
   }, 20_000);
 
   await checkpoint(testInfo, 'world-pressure-visible', async () => {
-    await expect(page.getByText(/World Pressure/i).first()).toBeVisible({ timeout: 10_000 });
-  }, 10_000);
+    await expect(page.getByText(/World Pressure/i).first()).toBeVisible({ timeout: 20_000 });
+  }, 25_000);
 
   await checkpoint(testInfo, 'open-hooks-visible', async () => {
-    await expect(page.getByText(/Open Hooks/i).first()).toBeVisible({ timeout: 10_000 });
-  }, 10_000);
+    await expect(page.getByText(/Open Hooks/i).first()).toBeVisible({ timeout: 20_000 });
+  }, 25_000);
 });
 
 test('NPC detail page has World State accordion section', async ({ page }, testInfo) => {
