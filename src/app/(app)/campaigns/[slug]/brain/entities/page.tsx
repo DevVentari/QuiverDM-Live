@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { EntityCard } from '@/components/brain/entity-card';
+import { EntityDetailSheet } from '@/components/brain/entity-detail-sheet';
 import { Brain, Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
@@ -22,14 +23,19 @@ const TYPE_TABS = ['All', ...Object.values(WorldEntityType)] as const;
 const STATUS_OPTIONS = Object.values(WorldEntityStatus);
 
 export default function EntitiesPage() {
-  const { campaignId, slug, isDM } = useCampaign();
+  const { campaignId, isDM } = useCampaign();
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const initialType = searchParams.get('type') as WorldEntityType | null;
+  const initialEntityId = searchParams.get('entity');
 
   const [activeType, setActiveType] = useState<WorldEntityType | 'All'>(initialType ?? 'All');
   const [activeStatus, setActiveStatus] = useState<WorldEntityStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(initialEntityId);
+  const [drawerOpen, setDrawerOpen] = useState(Boolean(initialEntityId));
 
   // New entity form state
   const [newName, setNewName] = useState('');
@@ -57,6 +63,42 @@ export default function EntitiesPage() {
     },
     onError: (err) => toast.error(err.message),
   });
+
+  useEffect(() => {
+    const entityFromUrl = searchParams.get('entity');
+    if (entityFromUrl) {
+      setSelectedEntityId(entityFromUrl);
+      setDrawerOpen(true);
+      return;
+    }
+    setSelectedEntityId(null);
+    setDrawerOpen(false);
+  }, [searchParams]);
+
+  const setEntitySearchParam = (entityId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (entityId) {
+      params.set('entity', entityId);
+    } else {
+      params.delete('entity');
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname);
+  };
+
+  const handleEntityCardClick = (entityId: string) => {
+    setSelectedEntityId(entityId);
+    setDrawerOpen(true);
+    setEntitySearchParam(entityId);
+  };
+
+  const handleDrawerOpenChange = (nextOpen: boolean) => {
+    setDrawerOpen(nextOpen);
+    if (!nextOpen) {
+      setSelectedEntityId(null);
+      setEntitySearchParam(null);
+    }
+  };
 
   if (!isDM) {
     return (
@@ -230,11 +272,17 @@ export default function EntitiesPage() {
             <EntityCard
               key={entity.id}
               entity={entity}
-              href={`/campaigns/${slug}/brain/entities/${entity.id}`}
+              onClick={() => handleEntityCardClick(entity.id)}
             />
           ))}
         </div>
       )}
+
+      <EntityDetailSheet
+        entityId={selectedEntityId}
+        open={drawerOpen}
+        onOpenChange={handleDrawerOpenChange}
+      />
     </div>
   );
 }
