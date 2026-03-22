@@ -51,6 +51,8 @@
     "setup:stripe": "tsx scripts/setup-stripe.ts",
     "setup:r2-cors": "tsx scripts/setup-r2-cors.ts",
     "check:launch": "tsx scripts/pre-launch-check.ts",
+    "ddb:login": "tsx scripts/refresh-cobalt-session.ts --login",
+    "ddb:refresh": "tsx scripts/refresh-cobalt-session.ts",
     "search:reindex": "tsx scripts/reindex-search.ts",
     "generate-invites": "tsx scripts/generate-invite-codes.ts",
     "generate-beta-invites": "tsx scripts/generate-beta-invites.ts",
