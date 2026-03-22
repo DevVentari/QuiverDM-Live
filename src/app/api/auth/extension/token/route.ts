@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
 import { randomBytes, createHash } from 'crypto';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 interface StoredAuthCode {
