@@ -215,7 +215,7 @@ export function NpcPreview({
         onDrop={onDrop}
       >
         <input
-          ref={fileInputRef}
+          ref={fileInputRef as React.RefObject<HTMLInputElement>}
           type="file"
           accept="image/*"
           className="hidden"
