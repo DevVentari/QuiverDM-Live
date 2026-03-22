@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { NpcEditSheet } from '@/components/npc/npc-edit-sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +25,7 @@ export default function NPCDetailPage() {
 
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const npc = trpc.npcs.getById.useQuery({ id: npcId }, { staleTime: 120_000 });
   const utils = trpc.useUtils();
   const updateNpc = trpc.npcs.update.useMutation({
@@ -89,11 +91,9 @@ export default function NPCDetailPage() {
               sourceId={npcId}
               sourceName={data.name ?? 'NPC'}
             />
-            <Button size="sm" variant="outline" className="w-full sm:w-auto" asChild>
-              <Link href={`/campaigns/${slug}/npcs/${npcId}/edit`}>
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Link>
+            <Button size="sm" variant="outline" className="w-full sm:w-auto" onClick={() => setEditOpen(true)}>
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
             </Button>
             <Button
               size="sm"
@@ -314,6 +314,7 @@ export default function NPCDetailPage() {
         onConfirm={() => deleteNpc.mutate({ id: npcId })}
         loading={deleteNpc.isPending}
       />
+      <NpcEditSheet npcId={npcId} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }

@@ -1,18 +1,19 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import Link from 'next/link';
+import { Suspense, useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { NpcListRow } from '@/components/npc/npc-list-row';
+import { NpcCreateSheet } from '@/components/npc/npc-create-sheet';
 import { NpcInspectorPanel } from '@/components/npc/npc-inspector-panel';
+import { NpcListRow } from '@/components/npc/npc-list-row';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Search, Users, Ghost } from 'lucide-react';
+import { Ghost, Plus, Search, Users } from 'lucide-react';
 
 export default function NPCsPage() {
   return (
@@ -29,22 +30,51 @@ function NPCsPageInner() {
   const pathname = usePathname();
 
   const [search, setSearch] = useState('');
+  const [createOpen, setCreateOpen] = useState(searchParams.get('create') === 'true');
   const selectedId = searchParams.get('npc');
 
-  const npcs = trpc.npcs.getAll.useQuery(
-    { campaignId, search: search || undefined },
-    { staleTime: 120_000 }
-  );
+  const npcs = trpc.npcs.getAll.useQuery({ campaignId, search: search || undefined }, { staleTime: 120_000 });
   const factions = trpc.npcs.getFactions.useQuery({ campaignId }, { staleTime: 120_000 });
 
-  function selectNpc(id: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (params.get('npc') === id) {
-      params.delete('npc');
-    } else {
-      params.set('npc', id);
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') {
+      setCreateOpen(true);
     }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams]);
+
+  function updateUrlParams(params: URLSearchParams) {
+    const queryString = params.toString();
+    router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+  }
+
+  function setCreateSheetOpen(open: boolean) {
+    setCreateOpen(open);
+    const params = new URLSearchParams(searchParams.toString());
+    if (open) {
+      params.set('create', 'true');
+    } else {
+      params.delete('create');
+    }
+    updateUrlParams(params);
+  }
+
+  function setSelectedNpc(id: string | null) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (id) {
+      params.set('npc', id);
+    } else {
+      params.delete('npc');
+    }
+    params.delete('create');
+    updateUrlParams(params);
+  }
+
+  function selectNpc(id: string) {
+    if (selectedId === id) {
+      setSelectedNpc(null);
+      return;
+    }
+    setSelectedNpc(id);
   }
 
   const npcList = (npcs.data ?? []) as any[];
@@ -52,19 +82,17 @@ function NPCsPageInner() {
 
   return (
     <>
-      {/* Mobile: grid view (< md) */}
       <div className="md:hidden space-y-4 px-4 sm:px-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-display font-bold tracking-wide">NPCs</h2>
           {isDM && (
-            <Button asChild size="sm">
-              <Link href={`/campaigns/${slug}/npcs/new`}>
-                <Plus className="mr-2 h-4 w-4" />
-                New NPC
-              </Link>
+            <Button size="sm" onClick={() => setCreateSheetOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New NPC
             </Button>
           )}
         </div>
+
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -74,9 +102,12 @@ function NPCsPageInner() {
             className="pl-9"
           />
         </div>
+
         {npcs.isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-32 rounded-lg" />)}
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-32 rounded-lg" />
+            ))}
           </div>
         ) : hasNpcs ? (
           <div className="grid gap-4 sm:grid-cols-2">
@@ -93,13 +124,13 @@ function NPCsPageInner() {
                     <div className="stone-card-header pb-2 flex items-start justify-between gap-2">
                       <span className="stone-card-title">{npc.name}</span>
                       {npc.faction && (
-                        <Badge variant="outline" className="text-xs shrink-0">{npc.faction}</Badge>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {npc.faction}
+                        </Badge>
                       )}
                     </div>
                     <div className="stone-card-body pt-0">
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {npc.description || 'No description'}
-                      </p>
+                      <p className="text-sm text-muted-foreground line-clamp-3">{npc.description || 'No description'}</p>
                     </div>
                   </div>
                 </div>
@@ -107,28 +138,22 @@ function NPCsPageInner() {
             ))}
           </div>
         ) : (
-          <MobileEmpty slug={slug} isDM={isDM} />
+          <MobileEmpty isDM={isDM} onCreateClick={() => setCreateSheetOpen(true)} />
         )}
       </div>
 
-      {/* Desktop: split view (md+) */}
       <div className="hidden md:grid h-[calc(100vh-220px)] overflow-hidden border-t border-[hsl(35,35%,18%)] -mx-8 grid-cols-[300px_1fr]">
-        {/* Left: NPC List */}
         <div className="flex flex-col overflow-hidden border-r border-[hsl(35,35%,18%)]">
-          {/* List header */}
           <div className="flex items-center justify-between px-3 py-2.5 shrink-0 border-b border-[hsl(35,35%,18%)]">
             <p className="label-overline">Characters</p>
             {isDM && (
-              <Button asChild size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1">
-                <Link href={`/campaigns/${slug}/npcs/new`}>
-                  <Plus className="h-3 w-3" />
-                  New
-                </Link>
+              <Button size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1" onClick={() => setCreateSheetOpen(true)}>
+                <Plus className="h-3 w-3" />
+                New
               </Button>
             )}
           </div>
 
-          {/* Search */}
           <div className="px-3 py-2 shrink-0 border-b border-[hsl(35,35%,18%)]">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -141,7 +166,6 @@ function NPCsPageInner() {
             </div>
           </div>
 
-          {/* Faction chips */}
           {factions.data && (factions.data as string[]).length > 0 && (
             <div className="flex gap-1.5 flex-wrap px-3 py-2 shrink-0 border-b border-[hsl(35,35%,18%)]">
               {(factions.data as string[]).map((f) => (
@@ -157,7 +181,6 @@ function NPCsPageInner() {
             </div>
           )}
 
-          {/* NPC list */}
           <div className="flex-1 overflow-y-auto">
             {npcs.isLoading ? (
               <div className="space-y-1 p-2">
@@ -167,20 +190,15 @@ function NPCsPageInner() {
               </div>
             ) : hasNpcs ? (
               npcList.map((npc) => (
-                <NpcListRow
-                  key={npc.id}
-                  npc={npc}
-                  isSelected={selectedId === npc.id}
-                  onClick={() => selectNpc(npc.id)}
-                />
+                <NpcListRow key={npc.id} npc={npc} isSelected={selectedId === npc.id} onClick={() => selectNpc(npc.id)} />
               ))
             ) : (
               <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
                 <Ghost className="h-8 w-8 text-muted-foreground/30 mb-3" />
                 <p className="text-sm text-muted-foreground">No NPCs yet</p>
                 {isDM && (
-                  <Button asChild size="sm" variant="outline" className="mt-3">
-                    <Link href={`/campaigns/${slug}/npcs/new`}>Add First NPC</Link>
+                  <Button size="sm" variant="outline" className="mt-3" onClick={() => setCreateSheetOpen(true)}>
+                    Add First NPC
                   </Button>
                 )}
               </div>
@@ -188,7 +206,6 @@ function NPCsPageInner() {
           </div>
         </div>
 
-        {/* Right: Inspector panel */}
         <div className="overflow-hidden">
           {selectedId ? (
             <NpcInspectorPanel npcId={selectedId} slug={slug} isDM={isDM} />
@@ -197,23 +214,28 @@ function NPCsPageInner() {
               <div className="h-16 w-16 rounded-full flex items-center justify-center mb-4 bg-[hsl(240,10%,11%)]">
                 <Users className="h-7 w-7 text-muted-foreground/40" />
               </div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Select an NPC to inspect
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">Select an NPC to inspect</p>
               <p className="text-xs text-muted-foreground/50 mt-1">
-                {hasNpcs
-                  ? `${npcList.length} NPC${npcList.length !== 1 ? 's' : ''} in this campaign`
-                  : 'No NPCs yet'}
+                {hasNpcs ? `${npcList.length} NPC${npcList.length !== 1 ? 's' : ''} in this campaign` : 'No NPCs yet'}
               </p>
             </div>
           )}
         </div>
       </div>
+
+      <NpcCreateSheet
+        open={createOpen}
+        onOpenChange={setCreateSheetOpen}
+        onSuccess={(id) => {
+          setCreateOpen(false);
+          setSelectedNpc(id);
+        }}
+      />
     </>
   );
 }
 
-function MobileEmpty({ slug, isDM }: { slug: string; isDM: boolean }) {
+function MobileEmpty({ isDM, onCreateClick }: { isDM: boolean; onCreateClick: () => void }) {
   return (
     <div className="stone-card">
       <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
@@ -223,8 +245,8 @@ function MobileEmpty({ slug, isDM }: { slug: string; isDM: boolean }) {
           Add NPCs to track the characters your players encounter.
         </p>
         {isDM && (
-          <Button asChild size="sm">
-            <Link href={`/campaigns/${slug}/npcs/new`}>New NPC</Link>
+          <Button size="sm" onClick={onCreateClick}>
+            New NPC
           </Button>
         )}
       </div>
