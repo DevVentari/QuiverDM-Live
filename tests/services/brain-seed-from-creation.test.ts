@@ -3,10 +3,15 @@ import { prisma } from '@/lib/prisma';
 
 describe('brain.seedFromCreation logic', () => {
   let campaignId: string;
+  let userId: string;
 
   beforeEach(async () => {
+    const user = await prisma.user.create({
+      data: { email: `brain-seed-test-${Date.now()}@test.local` },
+    });
+    userId = user.id;
     const campaign = await prisma.campaign.create({
-      data: { name: 'Test Seed Campaign', slug: `test-seed-${Date.now()}`, userId: 'test-user' },
+      data: { name: 'Test Seed Campaign', slug: `test-seed-${Date.now()}`, userId },
     });
     campaignId = campaign.id;
   });
@@ -15,6 +20,7 @@ describe('brain.seedFromCreation logic', () => {
     await prisma.worldEntity.deleteMany({ where: { campaignId } });
     await prisma.worldState.deleteMany({ where: { campaignId } });
     await prisma.campaign.delete({ where: { id: campaignId } });
+    await prisma.user.delete({ where: { id: userId } });
   });
 
   it('creates a LOCATION entity from startingLocation', async () => {
