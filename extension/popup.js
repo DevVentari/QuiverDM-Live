@@ -1,4 +1,5 @@
 const QDM_BASE = 'https://quiverdm.com';
+const ext = typeof browser !== 'undefined' ? browser : chrome;
 
 const authDot = document.getElementById('auth-dot');
 const authLabel = document.getElementById('auth-label');
@@ -30,12 +31,8 @@ function clearMessages() {
 }
 
 async function getCobaltCookie() {
-  return new Promise((resolve) => {
-    chrome.cookies.get(
-      { url: 'https://www.dndbeyond.com', name: 'CobaltSession' },
-      (cookie) => resolve(cookie ? cookie.value : null)
-    );
-  });
+  const cookie = await ext.cookies.get({ url: 'https://www.dndbeyond.com', name: 'CobaltSession' });
+  return cookie ? cookie.value : null;
 }
 
 async function sendCookieToQdm(token, cobaltSession) {
@@ -55,11 +52,10 @@ async function sendCookieToQdm(token, cobaltSession) {
 }
 
 async function init() {
-  const response = await chrome.runtime.sendMessage({ type: 'GET_TOKEN' });
-  currentToken = response.token;
+  const result = await ext.storage.local.get('qdm_token');
+  currentToken = result.qdm_token || null;
 
   if (!currentToken) {
-    // Not logged in
     authDot.className = 'dot dot-amber';
     authLabel.textContent = 'Not connected to QuiverDM';
     cookieStatus.style.display = 'none';
@@ -70,7 +66,6 @@ async function init() {
     return;
   }
 
-  // Logged in — check cookie
   authDot.className = 'dot dot-green';
   authLabel.textContent = 'Connected to QuiverDM';
   logoutBtn.style.display = 'block';
@@ -99,7 +94,7 @@ async function handleConnect() {
   primaryBtn.textContent = 'Connecting...';
   clearMessages();
 
-  const response = await chrome.runtime.sendMessage({ type: 'LAUNCH_AUTH' });
+  const response = await ext.runtime.sendMessage({ type: 'LAUNCH_AUTH' });
   if (response.error) {
     showError(response.error);
     primaryBtn.disabled = false;
@@ -123,8 +118,7 @@ async function handleSync(cookie) {
     primaryBtn.disabled = false;
   } catch (err) {
     if (err.message === 'unauthorized') {
-      // Token expired — re-auth
-      await chrome.storage.local.remove('qdm_token');
+      await ext.storage.local.remove('qdm_token');
       currentToken = null;
       await init();
     } else {
@@ -136,7 +130,7 @@ async function handleSync(cookie) {
 }
 
 async function handleLogout() {
-  await chrome.runtime.sendMessage({ type: 'LOGOUT' });
+  await ext.runtime.sendMessage({ type: 'LOGOUT' });
   currentToken = null;
   logoutBtn.style.display = 'none';
   await init();
