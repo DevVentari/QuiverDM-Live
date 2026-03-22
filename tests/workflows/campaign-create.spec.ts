@@ -71,7 +71,7 @@ test('campaign create wizard — published adventure pre-fills step 3', async ({
 
   await checkpoint(testInfo, 'step4-create', async () => {
     await expect(page.getByText('Confirm & create')).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByText('Curse of Strahd')).toBeVisible();
+    await expect(page.getByText('Curse of Strahd').first()).toBeVisible();
     await page.getByRole('button', { name: /create campaign/i }).click();
     await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 15_000 });
   }, 20_000);
