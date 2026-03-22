@@ -3,6 +3,9 @@ import { auth } from '@/lib/auth';
 import { redis } from '@/lib/redis';
 import { randomUUID } from 'crypto';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 const CODE_TTL_SECONDS = 600; // 10 minutes
 
 export async function GET(req: NextRequest) {
