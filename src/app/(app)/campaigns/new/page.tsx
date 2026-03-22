@@ -189,6 +189,7 @@ export default function NewCampaignPage() {
   async function handleCreate() {
     if (!name.trim()) {
       setNameError('Campaign name is required');
+      setStep(3);
       return;
     }
     setNameError('');
