@@ -234,28 +234,38 @@ export interface DdbEntitlementData {
 }
 
 export async function fetchUserEntitlements(cobaltSession: string): Promise<DdbEntitlementData[]> {
-  const html = await fetchWithCookie('https://www.dndbeyond.com/my-library', cobaltSession);
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { load } = require('cheerio') as typeof import('cheerio');
-  const $ = load(html);
-  const results: DdbEntitlementData[] = [];
+  const html = await fetchWithCookie('https://www.dndbeyond.com/en/library', cobaltSession);
 
-  $('.listing-card, .sources-listing .listing').each((_, el) => {
-    const link = $(el).find('a[href*="/sources/"]').first();
-    const href = link.attr('href') ?? '';
-    const slugMatch = href.match(/\/sources\/(?:dnd\/)?([^/?#]+)/);
-    if (!slugMatch) return;
-    const slug = slugMatch[1];
-    const title = $(el).find('.listing-card__title, h2, h3').first().text().trim();
-    if (!title || !slug) return;
-    results.push({
-      slug,
-      title,
-      coverImageUrl: $(el).find('img').first().attr('src') ?? null,
-      accessType: 'owned',
-      sourceUrl: `https://www.dndbeyond.com/sources/${slug}`,
-    });
-  });
+  // DDB embeds JSON-LD ItemList blocks with all owned books — more reliable than CSS scraping
+  const ldBlocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+  for (const match of ldBlocks) {
+    if (!match[1].includes('ItemList')) continue;
+    try {
+      const data = JSON.parse(match[1]) as Record<string, unknown>;
+      const graph = Array.isArray(data['@graph'])
+        ? (data['@graph'] as Record<string, unknown>[])
+        : [data];
+      for (const node of graph) {
+        if (node['@type'] !== 'ItemList') continue;
+        const items = (node['itemListElement'] as Record<string, unknown>[] | undefined) ?? [];
+        return items.flatMap(item => {
+          const book = (item['item'] as Record<string, string | undefined>) ?? {};
+          const url = book['url'] ?? '';
+          const slugMatch = url.match(/\/sources\/(?:dnd\/)?([^/?#]+)/);
+          if (!slugMatch || !book['name']) return [];
+          return [{
+            slug: slugMatch[1],
+            title: book['name'] as string,
+            coverImageUrl: (book['image'] as string | undefined) ?? null,
+            accessType: 'owned' as const,
+            sourceUrl: url,
+          }];
+        });
+      }
+    } catch {
+      // try next block
+    }
+  }
 
-  return results;
+  return [];
 }
