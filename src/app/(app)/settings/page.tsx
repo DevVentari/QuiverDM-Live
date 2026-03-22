@@ -157,7 +157,11 @@ export default function SettingsPage() {
   });
 
   const updateKeys = trpc.userSettings.updateApiKeys.useMutation({
-    onSuccess: () => utils.userSettings.getSettings.invalidate(),
+    onSuccess: () => {
+      toast({ title: 'Saved' });
+      utils.userSettings.getSettings.invalidate();
+    },
+    onError: (error) => toast({ title: 'Save failed', description: error.message, variant: 'destructive' }),
   });
 
   const deleteKey = trpc.userSettings.deleteApiKey.useMutation({

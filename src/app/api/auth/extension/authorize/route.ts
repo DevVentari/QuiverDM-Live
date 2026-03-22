@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
 
   const isValidRedirect =
     redirectUri.startsWith('chrome-extension://') ||
+    redirectUri.startsWith('moz-extension://') ||
     redirectUri.includes('.chromiumapp.org/');
   if (!isValidRedirect) {
     return NextResponse.json({ error: 'invalid_redirect_uri' }, { status: 400 });
