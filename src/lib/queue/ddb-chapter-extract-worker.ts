@@ -4,18 +4,20 @@ dotenv.config({ override: true });
 import { Worker, Job } from 'bullmq';
 import { getRedisConnection } from './queue';
 import { prisma } from '@/lib/prisma';
-import { fetchChapterContent, fetchMonsterData, delay } from '@/lib/ddb-sourcebook';
+import { fetchChapterContentWithCookie, fetchMonsterData, delay } from '@/lib/ddb-sourcebook';
+import { decrypt } from '@/lib/encryption';
 import { chatWithAI } from '@/lib/ai/chat';
 import { ddbSyncRepository } from '@/server/repositories/ddb-sync.repository';
 import type { DdbChapterExtractJobData } from './ddb-sync-queue';
 
 async function processChapterJob(data: DdbChapterExtractJobData) {
-  const { chapterId, sourcebookId, userId, sourceSlug, chapterSlug, cobaltJwt, campaignIds } = data;
+  const { chapterId, sourcebookId, userId, sourceSlug, chapterSlug, cobaltJwt, cobaltSessionEncrypted, campaignIds } = data;
 
   await ddbSyncRepository.setChapterSyncStatus(chapterId, 'running');
 
-  // 1. Fetch chapter using JWT Bearer auth
-  const content = await fetchChapterContent(sourceSlug, chapterSlug, cobaltJwt);
+  // 1. Fetch chapter HTML using cookie auth (DDB chapter pages are standard web pages, not API endpoints)
+  const cobaltSession = decrypt(cobaltSessionEncrypted);
+  const content = await fetchChapterContentWithCookie(sourceSlug, chapterSlug, cobaltSession);
 
   const chapter = await prisma.ddbSourcebookChapter.findUnique({ where: { id: chapterId } });
   const priorHash = chapter?.contentHash;

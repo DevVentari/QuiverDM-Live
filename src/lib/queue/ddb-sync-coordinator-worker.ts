@@ -8,7 +8,7 @@ import { decrypt } from '@/lib/encryption';
 import {
   exchangeCobaltForJwt,
   fetchSourcebookToc,
-  fetchChapterContent,
+  fetchChapterContentWithCookie,
   DdbAuthError,
   delay,
 } from '@/lib/ddb-sourcebook';
@@ -57,7 +57,7 @@ async function processCoordinatorJob(data: DdbSyncCoordinatorJobData) {
     // Lightweight: fetch chapter HTML and compare hashes — no extraction
     let changedCount = 0;
     for (const chapter of chapters) {
-      const content = await fetchChapterContent(sourcebook.slug, chapter.slug, cobaltJwt);
+      const content = await fetchChapterContentWithCookie(sourcebook.slug, chapter.slug, cobaltSession);
       await delay(500);
       const existing = sourcebook.chapters.find(c => c.slug === chapter.slug);
       if (existing?.contentHash !== content.contentHash) changedCount++;
@@ -85,6 +85,7 @@ async function processCoordinatorJob(data: DdbSyncCoordinatorJobData) {
       sourceSlug: sourcebook.slug,
       chapterSlug: ch.slug,
       cobaltJwt,
+      cobaltSessionEncrypted: settings.dndBeyondCobaltCookie,
       campaignIds: sourcebook.campaignIds,
     },
   }));
