@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuiverDM Sync</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      width: 320px;
+      min-height: 200px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .logo {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #d97706, #92400e);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: bold;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .header-text p {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 1px;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 12px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-green { background: #22c55e; }
+    .dot-amber { background: #f59e0b; }
+    .dot-red { background: #ef4444; }
+    .dot-gray { background: #475569; }
+
+    .status-label {
+      font-size: 12px;
+      color: #94a3b8;
+      flex: 1;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:not(:disabled):hover { opacity: 0.85; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-top: 8px;
+    }
+
+    .error {
+      font-size: 11px;
+      color: #f87171;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .success {
+      font-size: 11px;
+      color: #4ade80;
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Q</div>
+    <div class="header-text">
+      <h1>QuiverDM Sync</h1>
+      <p>D&amp;D Beyond cookie extractor</p>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="status-row" id="auth-status">
+      <div class="dot dot-gray" id="auth-dot"></div>
+      <span class="status-label" id="auth-label">Checking authentication...</span>
+    </div>
+
+    <div class="status-row" id="cookie-status" style="display:none">
+      <div class="dot dot-gray" id="cookie-dot"></div>
+      <span class="status-label" id="cookie-label">Looking for CobaltSession...</span>
+    </div>
+
+    <button class="btn btn-primary" id="primary-btn" disabled>Loading...</button>
+    <button class="btn btn-secondary" id="logout-btn" style="display:none">Sign out of QuiverDM</button>
+
+    <p class="error" id="error-msg" style="display:none"></p>
+    <p class="success" id="success-msg" style="display:none"></p>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
