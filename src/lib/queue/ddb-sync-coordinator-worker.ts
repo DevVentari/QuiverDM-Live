@@ -85,7 +85,7 @@ async function processCoordinatorJob(data: DdbSyncCoordinatorJobData) {
       sourceSlug: sourcebook.slug,
       chapterSlug: ch.slug,
       cobaltJwt,
-      cobaltSessionEncrypted: settings.dndBeyondCobaltCookie,
+      cobaltSessionEncrypted: settings.dndBeyondCobaltCookie ?? '',
       campaignIds: sourcebook.campaignIds,
     },
   }));
