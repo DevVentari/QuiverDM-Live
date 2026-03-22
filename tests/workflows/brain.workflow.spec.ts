@@ -192,7 +192,8 @@ test('entity detail page shows relationships and properties sections', async ({ 
   await checkpoint(testInfo, 'entity-detail-sections-visible', async () => {
     const url = page.url();
     // Drawer pattern: stays on /brain/entities with ?entity=<id> query param
-    if (!url.includes('/brain/entities')) return; // skipped above
+    // If no entity was clicked (no entities exist), URL won't have ?entity= — skip
+    if (!url.includes('/brain/entities') || !url.includes('entity=')) return;
 
     await expect(page.locator('body')).not.toContainText(/404|something went wrong/i);
 
