@@ -294,7 +294,7 @@ export function Sidebar() {
       className={cn(
         'relative hidden md:flex flex-col border-r border-[hsl(35_35%_18%)] transition-all duration-200',
         'bg-[hsl(240,10%,7%)]',
-        collapsed ? 'w-16' : 'w-[240px]'
+        collapsed ? 'w-16' : 'w-[240px] 2xl:w-[280px]'
       )}
     >
       {/* UI 2.0 ambient gradient — amber + purple bleed from top */}

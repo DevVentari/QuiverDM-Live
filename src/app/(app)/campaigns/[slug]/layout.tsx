@@ -32,7 +32,7 @@ export default function CampaignLayout({
 
   if (campaign.isLoading) {
     return (
-      <div className="space-y-4 max-w-6xl">
+      <div className="space-y-4 max-w-6xl 2xl:max-w-[1500px]">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -42,7 +42,7 @@ export default function CampaignLayout({
 
   if (campaign.error || !campaign.data) {
     return (
-      <div className="max-w-6xl">
+      <div className="max-w-6xl 2xl:max-w-[1500px]">
         <p className="text-destructive">
           {campaign.error?.message || 'Campaign not found'}
         </p>

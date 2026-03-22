@@ -49,7 +49,7 @@ export default function DashboardPage() {
   }, [campaigns.data]);
 
   return (
-    <div className="dashboard-bg space-y-6 max-w-6xl overflow-hidden rounded-2xl border border-white/5 p-4 sm:p-5">
+    <div className="dashboard-bg space-y-6 max-w-6xl 2xl:max-w-[1500px] overflow-hidden rounded-2xl border border-white/5 p-4 sm:p-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Dashboard</h1>

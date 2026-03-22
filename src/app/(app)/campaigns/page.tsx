@@ -12,7 +12,7 @@ export default function CampaignsPage() {
   const campaigns = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 120_000 });
 
   return (
-    <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Campaigns</h1>
         <Button asChild>

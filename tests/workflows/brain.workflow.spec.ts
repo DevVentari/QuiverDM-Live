@@ -179,16 +179,18 @@ test('entity detail page shows relationships and properties sections', async ({ 
     }
 
     await entityCard.click();
-    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+    // Drawer opens in place — no navigation, URL gets ?entity=<id>
+    await page.waitForTimeout(1_000);
   }, 20_000);
 
   await checkpoint(testInfo, 'entity-detail-sections-visible', async () => {
     const url = page.url();
-    if (!url.includes('/brain/entities/')) return; // skipped above
+    // Drawer pattern: stays on /brain/entities with ?entity=<id> query param
+    if (!url.includes('/brain/entities')) return; // skipped above
 
     await expect(page.locator('body')).not.toContainText(/404|something went wrong/i);
 
-    // Properties or description section
+    // Properties or description section (inside drawer or page)
     const propsSection = page.getByText(/properties/i).or(page.getByText(/description/i)).first();
     await expect(propsSection).toBeVisible({ timeout: 10_000 });
 

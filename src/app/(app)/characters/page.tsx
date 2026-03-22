@@ -88,7 +88,7 @@ export default function CharactersPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Characters</h1>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
