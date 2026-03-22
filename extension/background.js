@@ -1,5 +1,8 @@
 const QDM_BASE = 'https://quiverdm.com';
 
+// Cross-browser API shim — Firefox uses browser.*, Chrome uses chrome.*
+const ext = typeof browser !== 'undefined' ? browser : chrome;
+
 // --- PKCE helpers ---
 
 function base64url(buffer) {
@@ -27,51 +30,57 @@ async function launchOAuthFlow() {
   const verifier = await generateCodeVerifier();
   const challenge = await generateCodeChallenge(verifier);
 
-  const redirectUri = chrome.identity.getRedirectURL('callback');
+  const redirectUri = ext.identity.getRedirectURL('callback');
 
   const authorizeUrl = new URL(`${QDM_BASE}/api/auth/extension/authorize`);
   authorizeUrl.searchParams.set('code_challenge', challenge);
   authorizeUrl.searchParams.set('code_challenge_method', 'S256');
   authorizeUrl.searchParams.set('redirect_uri', redirectUri);
 
-  return new Promise((resolve, reject) => {
-    chrome.identity.launchWebAuthFlow(
-      { url: authorizeUrl.toString(), interactive: true },
-      async (responseUrl) => {
-        if (chrome.runtime.lastError || !responseUrl) {
-          reject(new Error(chrome.runtime.lastError?.message || 'Auth cancelled'));
-          return;
+  // browser.identity.launchWebAuthFlow returns a Promise; chrome.identity uses callback
+  let responseUrl;
+  if (typeof browser !== 'undefined') {
+    responseUrl = await ext.identity.launchWebAuthFlow({
+      url: authorizeUrl.toString(),
+      interactive: true,
+    });
+  } else {
+    responseUrl = await new Promise((resolve, reject) => {
+      chrome.identity.launchWebAuthFlow(
+        { url: authorizeUrl.toString(), interactive: true },
+        (url) => {
+          if (chrome.runtime.lastError || !url) {
+            reject(new Error(chrome.runtime.lastError?.message || 'Auth cancelled'));
+          } else {
+            resolve(url);
+          }
         }
+      );
+    });
+  }
 
-        const url = new URL(responseUrl);
-        const code = url.searchParams.get('code');
-        if (!code) {
-          reject(new Error('No auth code returned'));
-          return;
-        }
+  if (!responseUrl) throw new Error('Auth cancelled');
 
-        // Exchange code for token
-        try {
-          const res = await fetch(`${QDM_BASE}/api/auth/extension/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, code_verifier: verifier }),
-          });
-          const data = await res.json();
-          if (!data.access_token) throw new Error('No access token');
-          await chrome.storage.local.set({ qdm_token: data.access_token });
-          resolve(data.access_token);
-        } catch (err) {
-          reject(err);
-        }
-      }
-    );
+  const url = new URL(responseUrl);
+  const code = url.searchParams.get('code');
+  if (!code) throw new Error('No auth code returned');
+
+  // Exchange code for token
+  const res = await fetch(`${QDM_BASE}/api/auth/extension/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code, code_verifier: verifier }),
   });
+  const data = await res.json();
+  if (!data.access_token) throw new Error(data.error || 'No access token');
+
+  await ext.storage.local.set({ qdm_token: data.access_token });
+  return data.access_token;
 }
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+ext.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === 'GET_TOKEN') {
-    chrome.storage.local.get('qdm_token', (result) => {
+    ext.storage.local.get('qdm_token').then((result) => {
       sendResponse({ token: result.qdm_token || null });
     });
     return true;
@@ -85,7 +94,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
 
   if (msg.type === 'LOGOUT') {
-    chrome.storage.local.remove('qdm_token', () => sendResponse({ ok: true }));
+    ext.storage.local.remove('qdm_token').then(() => sendResponse({ ok: true }));
     return true;
   }
 });
