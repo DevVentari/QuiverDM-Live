@@ -456,7 +456,7 @@ export default function PDFsPage() {
   }, [pdfs.data, sortBy, statusFilter]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl 2xl:max-w-[1500px] space-y-6 px-4 sm:px-6 lg:px-8">
       <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-background to-muted/30 p-6">
         <div className="pdf-grid-bg absolute inset-0 opacity-50" />
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
