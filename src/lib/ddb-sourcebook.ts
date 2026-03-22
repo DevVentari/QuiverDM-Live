@@ -157,10 +157,17 @@ export async function fetchChapterContentWithCookie(
   chapterSlug: string,
   cobaltSession: string
 ): Promise<ChapterContent> {
-  const html = await fetchWithCookie(
+  const urls = [
+    `https://www.dndbeyond.com/sources/dnd/${sourceSlug}/${chapterSlug}`,
     `https://www.dndbeyond.com/sources/${sourceSlug}/${chapterSlug}`,
-    cobaltSession
-  );
+  ];
+  for (const url of urls) {
+    const html = await fetchWithCookie(url, cobaltSession);
+    const result = parseChapterContent(html);
+    if (result.prose.length > 100) return result;
+  }
+  // Return empty result from last attempt
+  const html = await fetchWithCookie(urls[urls.length - 1], cobaltSession);
   return parseChapterContent(html);
 }
 
