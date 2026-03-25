@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -64,6 +65,7 @@ type Hook = {
 
 export default function BrainPage() {
   const { campaignId, slug, isDM } = useCampaign();
+  const router = useRouter();
   const [seeding, setSeeding] = useState(false);
   const [ingestOpen, setIngestOpen] = useState(false);
   const [ingestType, setIngestType] = useState<'pdf' | 'image' | 'text'>('text');
@@ -512,7 +514,11 @@ export default function BrainPage() {
               {entitiesQuery.isLoading || relationshipsQuery.isLoading ? (
                 <Skeleton className="h-[500px] w-full rounded-lg" />
               ) : (
-                <EntityGraph entities={entities} relationships={relationships} />
+                <EntityGraph
+                  entities={entities}
+                  relationships={relationships}
+                  onEntityClick={(entityId) => router.push(`/campaigns/${slug}/brain/entities/${entityId}`)}
+                />
               )}
             </div>
           </div>
