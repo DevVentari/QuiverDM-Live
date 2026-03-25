@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+if (!process.env.DATABASE_URL) dotenv.config({ path: '.env.local' });
 
 import { Worker } from 'bullmq';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
