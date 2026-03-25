@@ -1,176 +1,274 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  useNodesState,
-  useEdgesState,
-  type Node,
-  type Edge,
-  type NodeProps,
-  Handle,
-  Position,
-  BackgroundVariant,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { WorldEntity, WorldRelationship } from '@prisma/client';
+import { Search, X, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-const TYPE_COLORS: Record<string, { bg: string; border: string; text: string; mini: string }> = {
-  NPC:      { bg: '#1c1408', border: '#fbbf24', text: '#fde68a', mini: '#fbbf24' },
-  PC:       { bg: '#0a1f1a', border: '#34d399', text: '#6ee7b7', mini: '#34d399' },
-  FACTION:  { bg: '#160e2a', border: '#a78bfa', text: '#c4b5fd', mini: '#a78bfa' },
-  LOCATION: { bg: '#0a1e14', border: '#4ade80', text: '#86efac', mini: '#4ade80' },
-  ITEM:     { bg: '#1c0f08', border: '#fb923c', text: '#fed7aa', mini: '#fb923c' },
-  EVENT:    { bg: '#080e1c', border: '#60a5fa', text: '#bfdbfe', mini: '#60a5fa' },
-  ARC:      { bg: '#160820', border: '#e879f9', text: '#f5d0fe', mini: '#e879f9' },
-  THREAT:   { bg: '#1c0808', border: '#f87171', text: '#fecaca', mini: '#f87171' },
-  SECRET:   { bg: '#1a1808', border: '#fde047', text: '#fef08a', mini: '#fde047' },
-  CUSTOM:   { bg: '#111827', border: '#6b7280', text: '#9ca3af', mini: '#6b7280' },
+// SSR-safe import — canvas won't render server-side
+const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });
+
+const TYPE_COLORS: Record<string, string> = {
+  NPC:      '#fbbf24',
+  PC:       '#34d399',
+  FACTION:  '#a78bfa',
+  LOCATION: '#4ade80',
+  ITEM:     '#fb923c',
+  EVENT:    '#60a5fa',
+  ARC:      '#e879f9',
+  THREAT:   '#f87171',
+  SECRET:   '#fde047',
+  CUSTOM:   '#6b7280',
 };
 
 const STATUS_OPACITY: Record<string, number> = {
   active: 1,
-  dormant: 0.6,
-  destroyed: 0.35,
-  resolved: 0.4,
+  dormant: 0.5,
+  destroyed: 0.25,
+  resolved: 0.35,
 };
 
-type EntityNodeData = {
-  label: string;
-  type: string;
-  status: string;
-  onClick?: () => void;
+type RelWithEntities = WorldRelationship & {
+  fromEntity: WorldEntity;
+  toEntity: WorldEntity;
 };
-
-function EntityNode({ data }: NodeProps<Node<EntityNodeData>>) {
-  const colors = TYPE_COLORS[data.type] ?? TYPE_COLORS.CUSTOM;
-  const opacity = STATUS_OPACITY[data.status] ?? 1;
-
-  return (
-    <div
-      onClick={data.onClick}
-      style={{
-        background: colors.bg,
-        border: `1.5px solid ${colors.border}`,
-        borderRadius: 8,
-        padding: '6px 12px',
-        cursor: 'pointer',
-        opacity,
-        minWidth: 120,
-        maxWidth: 180,
-        boxShadow: `0 0 8px ${colors.border}22`,
-      }}
-    >
-      <Handle type="target" position={Position.Left} style={{ background: colors.border, width: 6, height: 6 }} />
-      <div style={{ fontSize: 10, color: colors.border, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 2 }}>
-        {data.type}
-      </div>
-      <div
-        style={{
-          fontSize: 12,
-          color: colors.text,
-          fontWeight: 600,
-          lineHeight: 1.3,
-          wordBreak: 'break-word',
-        }}
-      >
-        {data.label}
-      </div>
-      <Handle type="source" position={Position.Right} style={{ background: colors.border, width: 6, height: 6 }} />
-    </div>
-  );
-}
-
-const nodeTypes = { entity: EntityNode };
 
 interface EntityGraphProps {
   entities: WorldEntity[];
-  relationships: (WorldRelationship & { fromEntity: WorldEntity; toEntity: WorldEntity })[];
+  relationships: RelWithEntities[];
   onEntityClick?: (entityId: string) => void;
 }
 
-function layoutNodes(entities: WorldEntity[]): Record<string, { x: number; y: number }> {
-  // Group by type, then arrange each group in a cluster
-  const groups: Record<string, WorldEntity[]> = {};
-  for (const e of entities) {
-    (groups[e.type] ??= []).push(e);
-  }
+interface GraphNode {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  val: number; // node size = degree count
+  color: string;
+  opacity: number;
+}
 
-  const typeKeys = Object.keys(groups);
-  const positions: Record<string, { x: number; y: number }> = {};
-
-  // Place each type group in a rough circle, entities within group in a sub-circle
-  const groupCount = typeKeys.length;
-  typeKeys.forEach((type, groupIdx) => {
-    const groupAngle = (groupIdx / groupCount) * 2 * Math.PI - Math.PI / 2;
-    const groupRadius = Math.max(250, groupCount * 80);
-    const cx = Math.cos(groupAngle) * groupRadius;
-    const cy = Math.sin(groupAngle) * groupRadius;
-
-    const members = groups[type];
-    const memberCount = members.length;
-    members.forEach((entity, memberIdx) => {
-      if (memberCount === 1) {
-        positions[entity.id] = { x: cx, y: cy };
-      } else {
-        const memberAngle = (memberIdx / memberCount) * 2 * Math.PI;
-        const memberRadius = Math.max(60, memberCount * 18);
-        positions[entity.id] = {
-          x: cx + Math.cos(memberAngle) * memberRadius,
-          y: cy + Math.sin(memberAngle) * memberRadius,
-        };
-      }
-    });
-  });
-
-  return positions;
+interface GraphLink {
+  source: string;
+  target: string;
+  label: string;
+  strength: number;
 }
 
 export function EntityGraph({ entities, relationships, onEntityClick }: EntityGraphProps) {
-  const positions = useMemo(() => layoutNodes(entities), [entities]);
+  const graphRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 500 });
+  const [search, setSearch] = useState('');
+  const [visibleIds, setVisibleIds] = useState<Set<string>>(new Set());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const initialNodes = useMemo<Node<EntityNodeData>[]>(() =>
-    entities.map((entity) => ({
-      id: entity.id,
-      type: 'entity',
-      position: positions[entity.id] ?? { x: 0, y: 0 },
-      data: {
-        label: entity.name,
-        type: entity.type,
-        status: entity.status,
-        onClick: onEntityClick ? () => onEntityClick(entity.id) : undefined,
-      },
-    })),
-    [entities, positions, onEntityClick]
+  // Measure container
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      setDimensions({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    ro.observe(el);
+    setDimensions({ width: el.clientWidth, height: el.clientHeight });
+    return () => ro.disconnect();
+  }, []);
+
+  // Degree map for node sizing
+  const degreeMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const rel of relationships) {
+      map.set(rel.fromEntityId, (map.get(rel.fromEntityId) ?? 0) + 1);
+      map.set(rel.toEntityId, (map.get(rel.toEntityId) ?? 0) + 1);
+    }
+    return map;
+  }, [relationships]);
+
+  // Build graph data from visible nodes
+  const graphData = useMemo(() => {
+    const nodeSet = visibleIds;
+    const nodes: GraphNode[] = entities
+      .filter(e => nodeSet.has(e.id))
+      .map(e => ({
+        id: e.id,
+        name: e.name,
+        type: e.type,
+        status: e.status,
+        val: Math.max(2, (degreeMap.get(e.id) ?? 0) * 1.5 + 3),
+        color: TYPE_COLORS[e.type] ?? TYPE_COLORS.CUSTOM,
+        opacity: STATUS_OPACITY[e.status] ?? 1,
+      }));
+
+    const links: GraphLink[] = relationships
+      .filter(r => nodeSet.has(r.fromEntityId) && nodeSet.has(r.toEntityId))
+      .map(r => ({
+        source: r.fromEntityId,
+        target: r.toEntityId,
+        label: r.type,
+        strength: r.strength,
+      }));
+
+    return { nodes, links };
+  }, [entities, relationships, visibleIds, degreeMap]);
+
+  // Search results
+  const searchResults = useMemo(() => {
+    if (!search.trim()) return [];
+    const q = search.toLowerCase();
+    return entities
+      .filter(e => e.name.toLowerCase().includes(q) || e.type.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [search, entities]);
+
+  function addEntityToGraph(entityId: string) {
+    setVisibleIds(prev => {
+      const next = new Set(prev);
+      next.add(entityId);
+      return next;
+    });
+    setSearch('');
+    setSelectedId(entityId);
+  }
+
+  function expandEntity(entityId: string) {
+    const connected = relationships
+      .filter(r => r.fromEntityId === entityId || r.toEntityId === entityId)
+      .flatMap(r => [r.fromEntityId, r.toEntityId]);
+    setVisibleIds(prev => {
+      const next = new Set(prev);
+      for (const id of connected) next.add(id);
+      return next;
+    });
+  }
+
+  function removeEntity(entityId: string) {
+    setVisibleIds(prev => {
+      const next = new Set(prev);
+      next.delete(entityId);
+      return next;
+    });
+    if (selectedId === entityId) setSelectedId(null);
+  }
+
+  function clearGraph() {
+    setVisibleIds(new Set());
+    setSelectedId(null);
+  }
+
+  const selectedEntity = useMemo(
+    () => entities.find(e => e.id === selectedId) ?? null,
+    [entities, selectedId]
   );
 
-  const initialEdges = useMemo<Edge[]>(() =>
-    relationships.map((rel) => ({
-      id: rel.id,
-      source: rel.fromEntityId,
-      target: rel.toEntityId,
-      label: rel.type,
-      type: 'smoothstep',
-      animated: rel.strength > 0.7,
-      style: {
-        stroke: 'rgba(251,191,36,0.35)',
-        strokeWidth: Math.max(1, Math.round(rel.strength * 3)),
-      },
-      labelStyle: { fill: '#64748b', fontSize: 9 },
-      labelBgStyle: { fill: 'rgba(10,10,20,0.8)' },
-      markerEnd: { type: 'arrowclosed' as const, color: 'rgba(251,191,36,0.5)', width: 12, height: 12 },
-    })),
-    [relationships]
+  const selectedRelationships = useMemo(
+    () => selectedId
+      ? relationships.filter(r => r.fromEntityId === selectedId || r.toEntityId === selectedId)
+      : [],
+    [relationships, selectedId]
   );
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+  const connectedButHidden = useMemo(
+    () => selectedId
+      ? selectedRelationships
+          .flatMap(r => [r.fromEntityId, r.toEntityId])
+          .filter(id => id !== selectedId && !visibleIds.has(id))
+          .length
+      : 0,
+    [selectedId, selectedRelationships, visibleIds]
+  );
 
-  const onNodeClick = useCallback(() => {
-    // handled via data.onClick on the node component itself
+  const handleNodeClick = useCallback((node: GraphNode) => {
+    setSelectedId(node.id);
+  }, []);
+
+  const handleNodeRightClick = useCallback((node: GraphNode) => {
+    expandEntity(node.id);
+  }, [relationships]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const paintNode = useCallback((node: GraphNode, ctx: CanvasRenderingContext2D, globalScale: number) => {
+    const r = node.val;
+    const isSelected = node.id === selectedId;
+    const isHovered = node.id === hoveredId;
+    const opacity = node.opacity;
+
+    ctx.globalAlpha = opacity;
+
+    // Glow for selected/hovered
+    if (isSelected || isHovered) {
+      ctx.shadowColor = node.color;
+      ctx.shadowBlur = isSelected ? 16 : 8;
+    }
+
+    // Node circle
+    ctx.beginPath();
+    ctx.arc(node.x as number, node.y as number, r, 0, 2 * Math.PI);
+    ctx.fillStyle = isSelected
+      ? node.color
+      : `${node.color}55`;
+    ctx.fill();
+    ctx.strokeStyle = node.color;
+    ctx.lineWidth = isSelected ? 2 : 1;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+
+    // Label
+    const fontSize = Math.max(8, Math.min(12, r * 1.2));
+    if (globalScale > 0.4 || isSelected || isHovered) {
+      ctx.font = `${isSelected ? 600 : 400} ${fontSize}px "Bricolage Grotesque", system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const label = node.name.length > 18 ? node.name.slice(0, 17) + '…' : node.name;
+      const textY = (node.y as number) + r + fontSize * 0.8;
+
+      // Text bg
+      const tw = ctx.measureText(label).width;
+      ctx.fillStyle = 'rgba(8,8,20,0.75)';
+      ctx.fillRect(
+        (node.x as number) - tw / 2 - 2,
+        textY - fontSize * 0.65,
+        tw + 4,
+        fontSize * 1.3
+      );
+
+      ctx.fillStyle = isSelected ? '#fff' : node.color;
+      ctx.fillText(label, node.x as number, textY);
+    }
+
+    ctx.globalAlpha = 1;
+  }, [selectedId, hoveredId]);
+
+  const paintLink = useCallback((link: GraphLink, ctx: CanvasRenderingContext2D) => {
+    const source = link.source as unknown as GraphNode;
+    const target = link.target as unknown as GraphNode;
+    if (!source?.x || !target?.x) return;
+
+    ctx.globalAlpha = 0.35 + link.strength * 0.4;
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = Math.max(0.5, link.strength * 2);
+    ctx.beginPath();
+    ctx.moveTo(source.x, source.y as number);
+    ctx.lineTo(target.x, target.y as number);
+    ctx.stroke();
+
+    // Label at midpoint if zoomed in
+    ctx.globalAlpha = 0.6;
+    const mx = (source.x + target.x) / 2;
+    const my = ((source.y as number) + (target.y as number)) / 2;
+    ctx.font = '7px system-ui';
+    ctx.fillStyle = '#64748b';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(link.label, mx, my);
+    ctx.globalAlpha = 1;
   }, []);
 
   if (entities.length === 0) {
@@ -182,42 +280,230 @@ export function EntityGraph({ entities, relationships, onEntityClick }: EntityGr
   }
 
   return (
-    <div
-      className="rounded-lg border border-border overflow-hidden"
-      style={{ height: 520, background: 'oklch(0.08 0.015 260)' }}
-      data-testid="entity-graph"
-    >
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onNodeClick={onNodeClick}
-        nodeTypes={nodeTypes}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.2}
-        maxZoom={2}
-        proOptions={{ hideAttribution: true }}
-      >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={24}
-          size={1}
-          color="rgba(255,255,255,0.04)"
+    <div className="flex flex-col gap-3" data-testid="entity-graph">
+      {/* Search bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          className="pl-9"
+          placeholder={`Search ${entities.length} entities to add to graph…`}
+          value={search}
+          onChange={e => setSearch(e.target.value)}
         />
-        <Controls
-          style={{ background: 'oklch(0.12 0.01 260)', border: '1px solid rgba(255,255,255,0.08)' }}
-        />
-        <MiniMap
-          style={{ background: 'oklch(0.1 0.01 260)', border: '1px solid rgba(255,255,255,0.08)' }}
-          nodeColor={(node) => {
-            const colors = TYPE_COLORS[(node.data as EntityNodeData).type] ?? TYPE_COLORS.CUSTOM;
-            return colors.mini;
-          }}
-          maskColor="rgba(0,0,0,0.6)"
-        />
-      </ReactFlow>
+        {search && (
+          <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border border-border bg-popover shadow-xl overflow-hidden">
+            {searchResults.length === 0 ? (
+              <div className="px-4 py-3 text-sm text-muted-foreground">No matches</div>
+            ) : (
+              searchResults.map(e => (
+                <button
+                  key={e.id}
+                  type="button"
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/40 transition-colors"
+                  onClick={() => addEntityToGraph(e.id)}
+                >
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ background: TYPE_COLORS[e.type] ?? TYPE_COLORS.CUSTOM }}
+                  />
+                  <span className="flex-1 text-left truncate">{e.name}</span>
+                  <span className="text-[10px] text-muted-foreground uppercase">{e.type}</span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-3">
+        {/* Graph canvas */}
+        <div
+          ref={containerRef}
+          className="relative flex-1 rounded-lg border border-border overflow-hidden"
+          style={{ height: 480, background: 'oklch(0.08 0.015 260)' }}
+        >
+          {visibleIds.size === 0 ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-muted-foreground">
+              <Search className="h-8 w-8 opacity-30" />
+              <p className="text-sm">Search for an entity above to start exploring</p>
+              <p className="text-xs opacity-60">Right-click a node to expand its connections</p>
+            </div>
+          ) : (
+            <ForceGraph2D
+              ref={graphRef}
+              graphData={graphData as any}
+              width={dimensions.width}
+              height={dimensions.height}
+              backgroundColor="transparent"
+              nodeCanvasObject={paintNode as any}
+              nodeCanvasObjectMode={() => 'replace'}
+              linkCanvasObject={paintLink as any}
+              linkCanvasObjectMode={() => 'replace'}
+              onNodeClick={handleNodeClick as any}
+              onNodeRightClick={handleNodeRightClick as any}
+              onNodeHover={(node: any) => setHoveredId(node?.id ?? null)}
+              nodeLabel={() => ''}
+              cooldownTicks={120}
+              d3AlphaDecay={0.02}
+              d3VelocityDecay={0.3}
+            />
+          )}
+
+          {/* Controls */}
+          {visibleIds.size > 0 && (
+            <div className="absolute bottom-3 right-3 flex flex-col gap-1">
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-7 w-7 bg-background/80"
+                onClick={() => graphRef.current?.zoom(1.5, 300)}
+              >
+                <ZoomIn className="h-3 w-3" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-7 w-7 bg-background/80"
+                onClick={() => graphRef.current?.zoom(0.67, 300)}
+              >
+                <ZoomOut className="h-3 w-3" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-7 w-7 bg-background/80"
+                onClick={() => graphRef.current?.zoomToFit(400)}
+              >
+                <Maximize2 className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
+
+          {/* Node count */}
+          {visibleIds.size > 0 && (
+            <div className="absolute top-2 left-2 flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground bg-background/60 px-2 py-1 rounded">
+                {visibleIds.size} nodes · {graphData.links.length} edges
+              </span>
+              <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2" onClick={clearGraph}>
+                Clear
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Selection panel */}
+        {selectedEntity && (
+          <div className="w-64 shrink-0 rounded-lg border border-border bg-card/40 p-4 flex flex-col gap-3 overflow-y-auto" style={{ maxHeight: 480 }}>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="label-overline text-muted-foreground">{selectedEntity.type}</p>
+                <p className="font-semibold text-sm leading-tight mt-1">{selectedEntity.name}</p>
+              </div>
+              <button type="button" onClick={() => setSelectedId(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="section-rule" />
+
+            <div className="flex flex-wrap gap-1">
+              <Badge
+                variant="outline"
+                className="text-[10px]"
+                style={{ borderColor: `${TYPE_COLORS[selectedEntity.type]}44`, color: TYPE_COLORS[selectedEntity.type] }}
+              >
+                {selectedEntity.status}
+              </Badge>
+            </div>
+
+            {selectedEntity.description && (
+              <p className="text-xs text-muted-foreground leading-relaxed">{selectedEntity.description}</p>
+            )}
+
+            {connectedButHidden > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-xs"
+                onClick={() => expandEntity(selectedEntity.id)}
+              >
+                Expand {connectedButHidden} hidden connection{connectedButHidden !== 1 ? 's' : ''}
+              </Button>
+            )}
+
+            {selectedRelationships.length > 0 && (
+              <div className="space-y-2">
+                <p className="label-overline text-muted-foreground">Connections</p>
+                <div className="section-rule" />
+                {selectedRelationships.map(rel => {
+                  const other = rel.fromEntityId === selectedId ? rel.toEntity : rel.fromEntity;
+                  const isVisible = visibleIds.has(other.id);
+                  return (
+                    <div key={rel.id} className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className={cn(
+                          'flex-1 text-left text-xs truncate',
+                          isVisible ? 'text-foreground hover:text-primary' : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={() => isVisible ? setSelectedId(other.id) : addEntityToGraph(other.id)}
+                      >
+                        {other.name}
+                      </button>
+                      <span className="text-[9px] text-muted-foreground/60 uppercase shrink-0">{rel.type}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="section-rule" />
+
+            <div className="flex flex-col gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full text-xs"
+                onClick={() => onEntityClick?.(selectedEntity.id)}
+              >
+                Open detail page
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="w-full text-xs text-destructive hover:text-destructive"
+                onClick={() => removeEntity(selectedEntity.id)}
+              >
+                Remove from graph
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Type legend */}
+      <div className="flex flex-wrap gap-3">
+        {Object.entries(TYPE_COLORS).map(([type, color]) => {
+          const count = entities.filter(e => e.type === type).length;
+          if (count === 0) return null;
+          return (
+            <button
+              key={type}
+              type="button"
+              className="flex items-center gap-1.5 hover:opacity-80 transition-opacity"
+              onClick={() => {
+                const first = entities.find(e => e.type === type && !visibleIds.has(e.id));
+                if (first) addEntityToGraph(first.id);
+              }}
+              title={`Add a ${type} to graph`}
+            >
+              <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+              <span className="text-[10px] text-muted-foreground">{type} ({count})</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
