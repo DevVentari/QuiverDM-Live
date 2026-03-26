@@ -36,6 +36,7 @@ import { adminApiUsageRouter } from './admin-api-usage';
 import { brainRouter } from './brain';
 import { playRouter } from './play';
 import { ddbSyncRouter } from './ddb-sync';
+import { sourcebookScenesRouter } from './sourcebook-scenes';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -75,6 +76,7 @@ export const appRouter = router({
   brain: brainRouter,
   play: playRouter,
   ddbSync: ddbSyncRouter,
+  sourcebookScenes: sourcebookScenesRouter,
 });
 
 export type AppRouter = typeof appRouter;
