@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brain, Loader2, X, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -145,6 +145,15 @@ type CampaignContext = {
   homebrew: any[];
 };
 
+function migrateNpcIds(data: SessionPrepData): SessionPrepData {
+  const needsMigration = data.npcs.some(npc => !npc.id);
+  if (!needsMigration) return data;
+  return {
+    ...data,
+    npcs: data.npcs.map(npc => npc.id ? npc : { ...npc, id: npc.npcId ?? crypto.randomUUID() }),
+  };
+}
+
 interface PrepWorkspaceProps {
   sessionId: string;
   initialData: SessionPrepData;
@@ -166,7 +175,7 @@ export function PrepWorkspace({
   const { toast } = useToast();
   const { campaignId } = useCampaign();
 
-  const [prepData, setPrepData] = useState<SessionPrepData>(initialData ?? emptyPrepData());
+  const [prepData, setPrepData] = useState<SessionPrepData>(() => migrateNpcIds(initialData ?? emptyPrepData()));
   const [title, setTitle] = useState(initialTitle);
   const [activeSection, setActiveSection] = useState<SectionId | undefined>(undefined);
   const [suggestedCounts, setSuggestedCounts] = useState<Record<string, number>>({});
@@ -182,6 +191,13 @@ export function PrepWorkspace({
     onError: (error) =>
       toast({ title: 'Failed to complete prep', description: error.message, variant: 'destructive' }),
   });
+
+  useEffect(() => {
+    const needsMigration = initialData.npcs.some((npc: any) => !npc.id);
+    if (!needsMigration) return;
+    updatePrep.mutate({ id: sessionId, prepData: migrateNpcIds(initialData) });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   const savePayload = useMemo(() => ({ prepData, title }), [prepData, title]);
 
