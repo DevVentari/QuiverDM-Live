@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BookOpen, Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -208,15 +209,13 @@ export function StepScenes({
                 <textarea
                   value={scene.readAloud ?? ''}
                   onChange={e => updateScene(scene.id, { readAloud: e.target.value })}
-                  placeholder="Read this aloud to your players when the scene begins..."
+                  placeholder="Read this aloud to your players..."
                   rows={3}
-                  className="w-full resize-none rounded-md border border-amber-400/30 bg-background px-3 py-2 text-sm italic text-amber-100/80 placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
+                  className="w-full resize-none rounded-md border border-border border-l-2 border-l-amber-400/60 bg-amber-950/20 px-3 py-2 text-sm italic text-amber-100/80 placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-amber-400/50"
                   style={{ fontFamily: 'Georgia, serif' }}
                 />
                 {scene.sourceId && (
-                  <span className="absolute top-1.5 right-2 text-[9px] text-amber-400/60 uppercase tracking-wider">
-                    From book
-                  </span>
+                  <Badge variant="outline" className="absolute top-1.5 right-2 text-[9px] text-amber-400/70 border-amber-400/30">From book</Badge>
                 )}
               </div>
 
