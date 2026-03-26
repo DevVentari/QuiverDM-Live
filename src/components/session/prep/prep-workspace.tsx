@@ -346,8 +346,15 @@ export function PrepWorkspace({
               suggestedCount={suggestedCounts['scenes']} defaultOpen={prepData.scenes.length > 0}
               onExpand={() => setActiveSection('scenes')}
               headerAction={<BrainSuggestButton section="scenes" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
-              <StepScenes sessionId={sessionId} scenes={prepData.scenes} strongStart={prepData.strongStart}
-                onChange={(scenes) => setPrepData((p) => ({ ...p, scenes }))} />
+              <StepScenes
+                sessionId={sessionId}
+                scenes={prepData.scenes}
+                strongStart={prepData.strongStart}
+                onChange={(scenes) => setPrepData((p) => ({ ...p, scenes }))}
+                prepNpcs={prepData.npcs}
+                prepSecrets={prepData.secretsAndClues}
+                prepMonsters={prepData.monsters}
+              />
             </PrepSectionCard>
 
             <PrepSectionCard id="secrets" title="Secrets & Clues" description={SECTION_DESCRIPTIONS['secrets']}
