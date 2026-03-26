@@ -123,6 +123,15 @@ export const sourcebookScenesRouter = router({
         where: { id: { in: sourceIds }, pdfId: input.pdfId },
         select: { chapterIndex: true },
       });
+      if (usedScenes.length === 0) {
+        // None of the sourceIds matched this PDF — fall back to first chapter
+        const first = await prisma.sourcebookScene.findFirst({
+          where: { pdfId: input.pdfId },
+          orderBy: { chapterIndex: 'asc' },
+          select: { chapterId: true, chapterIndex: true },
+        });
+        return first ? { chapterId: first.chapterId, chapterIndex: first.chapterIndex } : null;
+      }
       const maxUsed = Math.max(...usedScenes.map(s => s.chapterIndex));
 
       const next = await prisma.sourcebookScene.findFirst({

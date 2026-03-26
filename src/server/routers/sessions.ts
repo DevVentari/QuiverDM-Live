@@ -554,7 +554,7 @@ export const sessionsRouter = router({
     }),
 
   getActiveScene: campaignMemberProcedure
-    .input(z.object({ sessionId: z.string() }))
+    .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
     .query(async ({ input }) => {
       const session = await prisma.gameSession.findUniqueOrThrow({
         where: { id: input.sessionId },
