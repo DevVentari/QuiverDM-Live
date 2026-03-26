@@ -50,7 +50,7 @@ export function SceneRunner({
         <span className="text-xs font-medium text-amber-100/70 shrink-0">{scene.title}</span>
         {preview && (
           <span className="text-xs text-amber-100/30 italic truncate hidden sm:block">
-            "{preview}{(scene.readAloud?.length ?? 0) > 60 ? '…' : ''}"
+            &quot;{preview}{(scene.readAloud?.length ?? 0) > 60 ? '…' : ''}&quot;
           </span>
         )}
         <div className="ml-auto flex items-center gap-1 shrink-0">
