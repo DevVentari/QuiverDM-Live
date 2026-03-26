@@ -6,12 +6,12 @@ const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
 
 test.describe('Session Scene Runner', () => {
-  test.beforeEach(async ({ page }) => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
-  });
-
   test('prep wizard scenes step shows read-aloud textarea', async ({ page }, testInfo) => {
     test.slow();
+    await checkpoint(testInfo, 'sign-in', async () => {
+      await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    }, 15_000);
+
     await checkpoint(testInfo, 'navigate-to-sessions', async () => {
       await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
@@ -37,6 +37,10 @@ test.describe('Session Scene Runner', () => {
 
   test('prep wizard scenes step has Import from Sourcebook button', async ({ page }, testInfo) => {
     test.slow();
+    await checkpoint(testInfo, 'sign-in', async () => {
+      await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    }, 15_000);
+
     await checkpoint(testInfo, 'navigate-to-sessions', async () => {
       await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
@@ -62,6 +66,10 @@ test.describe('Session Scene Runner', () => {
 
   test('cockpit shows scene runner above live notes', async ({ page }, testInfo) => {
     test.slow();
+    await checkpoint(testInfo, 'sign-in', async () => {
+      await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    }, 15_000);
+
     await checkpoint(testInfo, 'navigate-to-sessions', async () => {
       await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
@@ -88,6 +96,10 @@ test.describe('Session Scene Runner', () => {
 
   test('cockpit right panel has Scene tab', async ({ page }, testInfo) => {
     test.slow();
+    await checkpoint(testInfo, 'sign-in', async () => {
+      await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    }, 15_000);
+
     await checkpoint(testInfo, 'navigate-to-sessions', async () => {
       await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
@@ -112,6 +124,10 @@ test.describe('Session Scene Runner', () => {
 
   test('scene navigation advances to next scene', async ({ page }, testInfo) => {
     test.slow();
+    await checkpoint(testInfo, 'sign-in', async () => {
+      await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    }, 15_000);
+
     await checkpoint(testInfo, 'navigate-to-sessions', async () => {
       await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
