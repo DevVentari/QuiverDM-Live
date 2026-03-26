@@ -10,6 +10,7 @@ import { trpc } from '@/lib/trpc';
 import { SceneSchema, type PrepScene, type PrepNpc, type PrepSecret, type PrepMonster } from '@/lib/prep-types';
 import { AiSuggestionCard } from '../ai-suggestion-card';
 import { VoiceScribe } from '../voice-scribe';
+import { SourcebookImportDrawer } from '../sourcebook-import-drawer';
 
 function LinkedEntitiesSection({
   scene,
@@ -287,6 +288,16 @@ export function StepScenes({
           ))}
         </div>
       )}
+
+      <SourcebookImportDrawer
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        existingSceneCount={scenes.length}
+        prepNpcs={prepNpcs}
+        prepSecrets={prepSecrets}
+        prepMonsters={prepMonsters}
+        onImport={importedScenes => onChange([...scenes, ...importedScenes])}
+      />
     </div>
   );
 }
