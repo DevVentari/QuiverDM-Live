@@ -49,8 +49,14 @@ function RollTableWidget({ table }: { table: { name: string; die: string; entrie
   const [result, setResult] = useState<string | null>(null);
   const sides = parseInt(table.die.replace('d', ''), 10);
   const roll = () => {
-    const idx = Math.floor(Math.random() * table.entries.length);
-    setResult(table.entries[idx] ?? String(Math.ceil(Math.random() * sides)));
+    if (table.entries.length > 0) {
+      const idx = Math.floor(Math.random() * table.entries.length);
+      setResult(table.entries[idx] ?? '?');
+    } else if (!isNaN(sides) && sides > 0) {
+      setResult(String(Math.ceil(Math.random() * sides)));
+    } else {
+      setResult('?');
+    }
   };
   return (
     <div className="rounded px-2 py-1.5 border border-border bg-card/50">
@@ -58,7 +64,8 @@ function RollTableWidget({ table }: { table: { name: string; die: string; entrie
         <span className="text-xs text-amber-400/80">{table.name}</span>
         <button
           onClick={roll}
-          className="text-[10px] px-2 py-0.5 rounded border border-amber-400/50 text-amber-400 hover:bg-amber-400/10 transition-colors"
+          disabled={table.entries.length === 0 && (isNaN(sides) || sides <= 0)}
+          className="text-[10px] px-2 py-0.5 rounded border border-amber-400/50 text-amber-400 hover:bg-amber-400/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {table.die}
         </button>
