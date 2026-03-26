@@ -82,7 +82,7 @@ export function StepNpcs({
           <div className="space-y-2">
             {npcs.map((npc, i) => (
               <div
-                key={i}
+                key={npc.id}
                 className="group flex items-start gap-3 rounded-xl border border-border/60 bg-card/40 p-3 transition-colors hover:bg-card/60"
               >
                 {/* Avatar */}
