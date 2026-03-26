@@ -34,6 +34,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { activeJobs } from './worker-control';
 import { decrypt } from '../encryption';
+import { addSourcebookSceneExtractionJob } from './sourcebook-scene-extraction-queue';
 
 declare const __webpack_require__: unknown;
 
@@ -560,6 +561,11 @@ async function processPDFJob(
       log: 'Markdown saved',
       level: 'success',
     });
+
+    if (markdownContent) {
+      await addSourcebookSceneExtractionJob({ pdfId, markdownContent });
+      console.log(`[worker] Queued sourcebook scene extraction for PDF ${pdfId}`);
+    }
 
     // Fetch user's Gemini key if available (allows per-user key without server env key)
     let userGeminiKey: string | undefined;

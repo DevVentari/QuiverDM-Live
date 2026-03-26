@@ -525,8 +525,9 @@ model GameSession {
   playerVisibility String   @default("dm-only") // dm-only|summary-only|public
 
   // Lazy DM structured prep (8 steps)
-  prepData   Json? // SessionPrepData blob
-  prepStatus String @default("none") // none | draft | complete
+  prepData        Json? // SessionPrepData blob
+  prepStatus      String @default("none") // none | draft | complete
+  activeSceneIndex Int?  @default(0)
 
   recordings             SessionRecording[]
   transcripts            Transcript[]
@@ -1068,6 +1069,7 @@ model HomebrewPDF {
   indexedAt           DateTime?
 
   extractedContent HomebrewContent[]
+  sourcebookScenes SourcebookScene[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1076,6 +1078,28 @@ model HomebrewPDF {
   @@index([campaignId])
   @@index([processingStatus])
   @@index([createdAt])
+}
+
+model SourcebookScene {
+  id            String   @id @default(cuid())
+  pdfId         String
+  chapterId     String
+  chapterTitle  String
+  chapterIndex  Int
+  sceneIndex    Int
+  title         String
+  location      String?
+  readAloud     String?  @db.Text
+  description   String?  @db.Text
+  linkedNpcs    Json     @default("[]")
+  linkedMonsters Json    @default("[]")
+  rollTables    Json     @default("[]")
+  createdAt     DateTime @default(now())
+
+  pdf HomebrewPDF @relation(fields: [pdfId], references: [id], onDelete: Cascade)
+
+  @@index([pdfId, chapterId])
+  @@index([pdfId, chapterIndex])
 }
 
 // Feedback system for closed beta

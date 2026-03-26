@@ -544,6 +544,25 @@ export const sessionsRouter = router({
       });
     }),
 
+  updateActiveScene: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string(), sceneIndex: z.number().int().min(0) }))
+    .mutation(async ({ input }) => {
+      await prisma.gameSession.update({
+        where: { id: input.sessionId },
+        data: { activeSceneIndex: input.sceneIndex },
+      });
+    }),
+
+  getActiveScene: campaignMemberProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
+    .query(async ({ input }) => {
+      const session = await prisma.gameSession.findUniqueOrThrow({
+        where: { id: input.sessionId },
+        select: { activeSceneIndex: true },
+      });
+      return { sceneIndex: session.activeSceneIndex ?? 0 };
+    }),
+
   postToDiscord: campaignDMProcedure
     .input(
       z.object({
