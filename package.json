@@ -41,6 +41,7 @@
     "worker:brain-ingestion": "tsx src/lib/queue/brain-ingestion-worker.ts",
     "worker:brain-inference": "tsx src/lib/queue/brain-inference-worker.ts",
     "worker:ddb-sync": "tsx src/lib/queue/ddb-sync-coordinator-worker.ts",
+    "worker:sourcebook-scenes": "tsx src/lib/queue/sourcebook-scene-extraction-worker.ts",
     "worker:ddb-chapter": "tsx src/lib/queue/ddb-chapter-extract-worker.ts",
     "worker:ddb-review": "tsx src/lib/queue/ddb-sync-review-worker.ts",
     "worker:co-dm": "tsx src/lib/queue/co-dm-worker.ts",
