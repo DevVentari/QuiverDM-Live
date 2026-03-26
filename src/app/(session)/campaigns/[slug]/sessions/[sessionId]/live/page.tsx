@@ -51,6 +51,20 @@ export default function SessionCockpitPage() {
   }, [transcription]);
 
   const campaignId = (campaignQuery.data as any)?.id as string | undefined;
+
+  const rawSession = sessionQuery.data as any;
+  const prepData = rawSession?.prepData
+    ? SessionPrepDataSchema.safeParse(rawSession.prepData).data ?? null
+    : null;
+
+  const scenes = prepData?.scenes ?? [];
+  const sourceIds = scenes.map((s: any) => s.sourceId).filter(Boolean) as string[];
+  const sourcebookScenesQuery = trpc.sourcebookScenes.getByIds.useQuery(
+    { campaignId: campaignId ?? '', ids: sourceIds },
+    { enabled: !!campaignId && sourceIds.length > 0 }
+  );
+  const sourcebookScenes = (sourcebookScenesQuery.data ?? []) as any[];
+
   useEffect(() => {
     if (!campaignId) return;
     initStates.mutate({ campaignId, sessionId });
@@ -91,6 +105,12 @@ export default function SessionCockpitPage() {
     }, 500);
   };
 
+  useEffect(() => {
+    return () => {
+      if (debouncedUpdateRef.current) clearTimeout(debouncedUpdateRef.current);
+    };
+  }, []);
+
   if (sessionQuery.isLoading || campaignQuery.isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -112,19 +132,6 @@ export default function SessionCockpitPage() {
       </div>
     );
   }
-
-  const rawSession = session as any;
-  const prepData = rawSession.prepData
-    ? SessionPrepDataSchema.safeParse(rawSession.prepData).data ?? null
-    : null;
-
-  const scenes = prepData?.scenes ?? [];
-  const sourceIds = scenes.map((s: any) => s.sourceId).filter(Boolean) as string[];
-  const sourcebookScenesQuery = trpc.sourcebookScenes.getByIds.useQuery(
-    { campaignId: campaignId ?? '', ids: sourceIds },
-    { enabled: !!campaignId && sourceIds.length > 0 }
-  );
-  const sourcebookScenes = (sourcebookScenesQuery.data ?? []) as any[];
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
