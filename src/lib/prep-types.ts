@@ -16,6 +16,12 @@ export const SceneSchema = z.object({
   title: z.string(),
   description: z.string().default(''),
   location: z.string().optional(),
+  readAloud: z.string().default(''),
+  order: z.number().int().default(0),
+  linkedNpcIds: z.array(z.string()).default([]),
+  linkedSecretIds: z.array(z.string()).default([]),
+  linkedMonsterNames: z.array(z.string()).default([]),
+  sourceId: z.string().optional(),
 });
 
 export const SecretSchema = z.object({
@@ -25,6 +31,7 @@ export const SecretSchema = z.object({
 });
 
 export const PrepNpcSchema = z.object({
+  id: z.string().default(() => crypto.randomUUID()),
   npcId: z.string().optional(),
   name: z.string(),
   role: z.string().optional(),

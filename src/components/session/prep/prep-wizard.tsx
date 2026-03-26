@@ -120,7 +120,7 @@ export function PrepWizard({
     switch (currentStep) {
       case 0: return <StepCharacters characterNotes={prepData.characterNotes} onChange={(notes) => setPrepData((p) => ({ ...p, characterNotes: notes }))} />;
       case 1: return <StepStrongStart sessionId={sessionId} value={prepData.strongStart} onChange={(v) => setPrepData((p) => ({ ...p, strongStart: v }))} />;
-      case 2: return <StepScenes sessionId={sessionId} scenes={prepData.scenes} strongStart={prepData.strongStart} onChange={(scenes) => setPrepData((p) => ({ ...p, scenes }))} />;
+      case 2: return <StepScenes sessionId={sessionId} scenes={prepData.scenes} strongStart={prepData.strongStart} onChange={(scenes) => setPrepData((p) => ({ ...p, scenes }))} prepNpcs={prepData.npcs} prepSecrets={prepData.secretsAndClues} prepMonsters={prepData.monsters} />;
       case 3: return <StepSecrets sessionId={sessionId} secrets={prepData.secretsAndClues} onChange={(secretsAndClues) => setPrepData((p) => ({ ...p, secretsAndClues }))} />;
       case 4: return <StepNpcs npcs={prepData.npcs} campaignNpcs={campaignContext.npcs} onChange={(npcs) => setPrepData((p) => ({ ...p, npcs }))} />;
       case 5: return <StepMonsters monsters={prepData.monsters} onChange={(monsters) => setPrepData((p) => ({ ...p, monsters }))} />;

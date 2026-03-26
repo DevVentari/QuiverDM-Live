@@ -1,13 +1,13 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Brain, Loader2, X, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { emptyPrepData, type SessionPrepData } from '@/lib/prep-types';
+import { emptyPrepData, PrepNpcSchema, SceneSchema, type SessionPrepData } from '@/lib/prep-types';
 import { PrepHeader } from './prep-header';
 import { PrepSectionNav, PREP_SECTIONS, type SectionId } from './prep-section-nav';
 import { PrepSectionCard } from './prep-section-card';
@@ -145,6 +145,15 @@ type CampaignContext = {
   homebrew: any[];
 };
 
+function migrateNpcIds(data: SessionPrepData): SessionPrepData {
+  const needsMigration = data.npcs.some(npc => !npc.id);
+  if (!needsMigration) return data;
+  return {
+    ...data,
+    npcs: data.npcs.map(npc => npc.id ? npc : { ...npc, id: npc.npcId ?? crypto.randomUUID() }),
+  };
+}
+
 interface PrepWorkspaceProps {
   sessionId: string;
   initialData: SessionPrepData;
@@ -166,7 +175,7 @@ export function PrepWorkspace({
   const { toast } = useToast();
   const { campaignId } = useCampaign();
 
-  const [prepData, setPrepData] = useState<SessionPrepData>(initialData ?? emptyPrepData());
+  const [prepData, setPrepData] = useState<SessionPrepData>(() => migrateNpcIds(initialData ?? emptyPrepData()));
   const [title, setTitle] = useState(initialTitle);
   const [activeSection, setActiveSection] = useState<SectionId | undefined>(undefined);
   const [suggestedCounts, setSuggestedCounts] = useState<Record<string, number>>({});
@@ -182,6 +191,13 @@ export function PrepWorkspace({
     onError: (error) =>
       toast({ title: 'Failed to complete prep', description: error.message, variant: 'destructive' }),
   });
+
+  useEffect(() => {
+    const needsMigration = initialData.npcs.some((npc: any) => !npc.id);
+    if (!needsMigration) return;
+    updatePrep.mutate({ id: sessionId, prepData: migrateNpcIds(initialData) });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   const savePayload = useMemo(() => ({ prepData, title }), [prepData, title]);
 
@@ -249,10 +265,10 @@ export function PrepWorkspace({
         setPrepData((p) => ({ ...p, secretsAndClues: [...p.secretsAndClues, { id, text }] }));
         break;
       case 'scenes':
-        setPrepData((p) => ({ ...p, scenes: [...p.scenes, { id, title: text.slice(0, 60), description: text }] }));
+        setPrepData((p) => ({ ...p, scenes: [...p.scenes, SceneSchema.parse({ id, title: text.slice(0, 60), description: text })] }));
         break;
       case 'npcs':
-        setPrepData((p) => ({ ...p, npcs: [...p.npcs, { name: text.slice(0, 60), motivation: text, isNew: true }] }));
+        setPrepData((p) => ({ ...p, npcs: [...p.npcs, PrepNpcSchema.parse({ name: text.slice(0, 60), motivation: text, isNew: true })] }));
         break;
       case 'monsters':
         setPrepData((p) => ({ ...p, monsters: [...p.monsters, { name: text.slice(0, 60), source: 'custom', count: 1 }] }));
@@ -330,8 +346,15 @@ export function PrepWorkspace({
               suggestedCount={suggestedCounts['scenes']} defaultOpen={prepData.scenes.length > 0}
               onExpand={() => setActiveSection('scenes')}
               headerAction={<BrainSuggestButton section="scenes" campaignId={campaignId} onSuggest={handleBrainSuggest} />}>
-              <StepScenes sessionId={sessionId} scenes={prepData.scenes} strongStart={prepData.strongStart}
-                onChange={(scenes) => setPrepData((p) => ({ ...p, scenes }))} />
+              <StepScenes
+                sessionId={sessionId}
+                scenes={prepData.scenes}
+                strongStart={prepData.strongStart}
+                onChange={(scenes) => setPrepData((p) => ({ ...p, scenes }))}
+                prepNpcs={prepData.npcs}
+                prepSecrets={prepData.secretsAndClues}
+                prepMonsters={prepData.monsters}
+              />
             </PrepSectionCard>
 
             <PrepSectionCard id="secrets" title="Secrets & Clues" description={SECTION_DESCRIPTIONS['secrets']}

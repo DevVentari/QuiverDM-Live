@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { PrepNpc } from '@/lib/prep-types';
+import { PrepNpcSchema, type PrepNpc } from '@/lib/prep-types';
 
 type CampaignNpc = {
   id: string;
@@ -33,7 +33,7 @@ export function StepNpcs({
     if (npcs.some((e) => e.npcId === npc.id)) return;
     onChange([
       ...npcs,
-      { npcId: npc.id, name: npc.name, role: npc.role ?? undefined, motivation: npc.motivation ?? undefined },
+      PrepNpcSchema.parse({ npcId: npc.id, name: npc.name, role: npc.role ?? undefined, motivation: npc.motivation ?? undefined }),
     ]);
   };
 
@@ -44,7 +44,7 @@ export function StepNpcs({
 
   const commitNew = () => {
     if (!newNpc.name.trim()) return;
-    onChange([...npcs, { name: newNpc.name.trim(), role: newNpc.role || undefined, motivation: newNpc.motivation || undefined, isNew: true }]);
+    onChange([...npcs, PrepNpcSchema.parse({ name: newNpc.name.trim(), role: newNpc.role || undefined, motivation: newNpc.motivation || undefined, isNew: true })]);
     setNewNpc({ name: '', role: '', motivation: '' });
     setShowNewForm(false);
   };
@@ -82,7 +82,7 @@ export function StepNpcs({
           <div className="space-y-2">
             {npcs.map((npc, i) => (
               <div
-                key={i}
+                key={npc.id}
                 className="group flex items-start gap-3 rounded-xl border border-border/60 bg-card/40 p-3 transition-colors hover:bg-card/60"
               >
                 {/* Avatar */}
