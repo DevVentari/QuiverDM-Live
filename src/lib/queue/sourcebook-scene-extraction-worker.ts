@@ -125,7 +125,7 @@ function parseMarkdown(markdown: string): ParsedScene[] {
           if (dieMatch) {
             currentTable = { name: sceneTitle || 'Random Table', die: dieMatch[1].toLowerCase(), entries: [] };
           }
-        } else if (trimmed.includes('---')) {
+        } else if (/^\|[-|:\s]+\|?$/.test(trimmed)) {
           // Separator row — skip
         } else {
           currentTable.entries.push(cells[cells.length - 1]);
@@ -164,8 +164,6 @@ export async function processSourcebookSceneExtraction(
 ): Promise<SourcebookSceneExtractionJobResult> {
   const { pdfId, markdownContent } = data;
 
-  await prisma.sourcebookScene.deleteMany({ where: { pdfId } });
-
   const parsed = parseMarkdown(markdownContent);
 
   if (parsed.length === 0) {
@@ -176,21 +174,27 @@ export async function processSourcebookSceneExtraction(
   const chapters = new Set(parsed.map(s => s.chapterId)).size;
   const tables = parsed.reduce((n, s) => n + s.rollTables.length, 0);
 
-  await prisma.sourcebookScene.createMany({
-    data: parsed.map(s => ({
-      pdfId,
-      chapterId: s.chapterId,
-      chapterTitle: s.chapterTitle,
-      chapterIndex: s.chapterIndex,
-      sceneIndex: s.sceneIndex,
-      title: s.title,
-      location: s.location ?? null,
-      readAloud: s.readAloud || null,
-      description: s.description || null,
-      linkedNpcs: [],
-      linkedMonsters: [],
-      rollTables: s.rollTables,
-    })),
+  await prisma.$transaction(async (tx) => {
+    await tx.sourcebookScene.deleteMany({ where: { pdfId } });
+
+    if (parsed.length > 0) {
+      await tx.sourcebookScene.createMany({
+        data: parsed.map(s => ({
+          pdfId,
+          chapterId: s.chapterId,
+          chapterTitle: s.chapterTitle,
+          chapterIndex: s.chapterIndex,
+          sceneIndex: s.sceneIndex,
+          title: s.title,
+          location: s.location ?? null,
+          readAloud: s.readAloud || null,
+          description: s.description || null,
+          linkedNpcs: [],
+          linkedMonsters: [],
+          rollTables: s.rollTables,
+        })),
+      });
+    }
   });
 
   console.log(`[sourcebook-scene-extraction] PDF ${pdfId}: ${parsed.length} scenes, ${chapters} chapters, ${tables} tables`);
