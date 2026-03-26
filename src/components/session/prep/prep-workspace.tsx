@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { emptyPrepData, type SessionPrepData } from '@/lib/prep-types';
+import { emptyPrepData, PrepNpcSchema, SceneSchema, type SessionPrepData } from '@/lib/prep-types';
 import { PrepHeader } from './prep-header';
 import { PrepSectionNav, PREP_SECTIONS, type SectionId } from './prep-section-nav';
 import { PrepSectionCard } from './prep-section-card';
@@ -249,10 +249,10 @@ export function PrepWorkspace({
         setPrepData((p) => ({ ...p, secretsAndClues: [...p.secretsAndClues, { id, text }] }));
         break;
       case 'scenes':
-        setPrepData((p) => ({ ...p, scenes: [...p.scenes, { id, title: text.slice(0, 60), description: text }] }));
+        setPrepData((p) => ({ ...p, scenes: [...p.scenes, SceneSchema.parse({ id, title: text.slice(0, 60), description: text })] }));
         break;
       case 'npcs':
-        setPrepData((p) => ({ ...p, npcs: [...p.npcs, { name: text.slice(0, 60), motivation: text, isNew: true }] }));
+        setPrepData((p) => ({ ...p, npcs: [...p.npcs, PrepNpcSchema.parse({ name: text.slice(0, 60), motivation: text, isNew: true })] }));
         break;
       case 'monsters':
         setPrepData((p) => ({ ...p, monsters: [...p.monsters, { name: text.slice(0, 60), source: 'custom', count: 1 }] }));

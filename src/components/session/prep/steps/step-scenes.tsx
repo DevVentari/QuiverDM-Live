@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
-import type { PrepScene } from '@/lib/prep-types';
+import { SceneSchema, type PrepScene } from '@/lib/prep-types';
 import { AiSuggestionCard } from '../ai-suggestion-card';
 import { VoiceScribe } from '../voice-scribe';
 
@@ -37,7 +37,7 @@ export function StepScenes({
   const addScene = () =>
     onChange([
       ...scenes,
-      { id: crypto.randomUUID(), title: '', description: '', location: '' },
+      SceneSchema.parse({ id: crypto.randomUUID(), title: '', description: '', location: '' }),
     ]);
 
   const update = (id: string, field: keyof PrepScene, value: string) => {
@@ -120,12 +120,12 @@ export function StepScenes({
               suggestion={`${scene.title}\n${scene.description}`}
               label={`Scene Suggestion ${i + 1}`}
               onAccept={() => {
-                const normalized: PrepScene = {
+                const normalized: PrepScene = SceneSchema.parse({
                   id: scene.id || crypto.randomUUID(),
                   title: scene.title || '',
                   description: scene.description || '',
                   location: scene.location,
-                };
+                });
                 onChange([...scenes, normalized]);
                 setAiSuggestions((prev) => prev?.filter((_, j) => j !== i) ?? null);
               }}
