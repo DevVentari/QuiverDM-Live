@@ -51,6 +51,9 @@ interface GraphNode {
   val: number; // node size = degree count
   color: string;
   opacity: number;
+  // runtime-injected by force-graph
+  x?: number;
+  y?: number;
 }
 
 interface GraphLink {

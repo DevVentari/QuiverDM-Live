@@ -12,26 +12,28 @@ test.describe('Session Scene Runner', () => {
       await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
     }, 15_000);
 
-    await checkpoint(testInfo, 'navigate-to-sessions', async () => {
-      await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
+    await checkpoint(testInfo, 'create-fresh-prep', async () => {
+      await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions/prep`);
+      await page.waitForURL(/sessionId=/, { timeout: 20_000 });
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
-    });
+    }, 30_000);
 
-    await checkpoint(testInfo, 'open-prep', async () => {
-      const prepLink = page.locator('a[href*="/prep"]').first();
-      await expect(prepLink).toBeVisible({ timeout: 10000 });
-      await prepLink.click();
-      await page.waitForLoadState('networkidle', { timeout: 15_000 });
-    });
-
-    await checkpoint(testInfo, 'navigate-to-scenes', async () => {
-      const scenesNav = page.getByText('Scenes', { exact: false }).first();
-      await scenesNav.click();
-      await page.waitForTimeout(500);
+    await checkpoint(testInfo, 'open-scenes-section', async () => {
+      // Section is closed by default on a fresh session — scroll to it and click the toggle
+      const toggleBtn = page.locator('#section-scenes button').first();
+      await toggleBtn.scrollIntoViewIfNeeded();
+      await toggleBtn.click();
+      // Wait for section content to render
+      await expect(page.getByRole('button', { name: 'Add Scene' })).toBeVisible({ timeout: 8000 });
     });
 
     await checkpoint(testInfo, 'verify-read-aloud', async () => {
-      await expect(page.locator('textarea[placeholder*="Read this aloud"]')).toBeVisible({ timeout: 5000 });
+      // Add a scene to get a scene card with the read-aloud textarea
+      await page.getByRole('button', { name: 'Add Scene' }).click();
+      await page.waitForTimeout(500);
+      const textarea = page.locator('textarea[placeholder*="Read this aloud"]').first();
+      await textarea.scrollIntoViewIfNeeded();
+      await expect(textarea).toBeVisible({ timeout: 5000 });
     });
   });
 
@@ -41,22 +43,19 @@ test.describe('Session Scene Runner', () => {
       await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
     }, 15_000);
 
-    await checkpoint(testInfo, 'navigate-to-sessions', async () => {
-      await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
+    await checkpoint(testInfo, 'create-fresh-prep', async () => {
+      await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions/prep`);
+      await page.waitForURL(/sessionId=/, { timeout: 20_000 });
       await page.waitForLoadState('networkidle', { timeout: 15_000 });
-    });
+    }, 30_000);
 
-    await checkpoint(testInfo, 'open-prep', async () => {
-      const prepLink = page.locator('a[href*="/prep"]').first();
-      await expect(prepLink).toBeVisible({ timeout: 10000 });
-      await prepLink.click();
-      await page.waitForLoadState('networkidle', { timeout: 15_000 });
-    });
-
-    await checkpoint(testInfo, 'navigate-to-scenes', async () => {
-      const scenesNav = page.getByText('Scenes', { exact: false }).first();
-      await scenesNav.click();
-      await page.waitForTimeout(500);
+    await checkpoint(testInfo, 'open-scenes-section', async () => {
+      // Section is closed by default on a fresh session — scroll to it and click the toggle
+      const toggleBtn = page.locator('#section-scenes button').first();
+      await toggleBtn.scrollIntoViewIfNeeded();
+      await toggleBtn.click();
+      // Wait for section content to render
+      await expect(page.getByRole('button', { name: 'Add Scene' })).toBeVisible({ timeout: 8000 });
     });
 
     await checkpoint(testInfo, 'verify-import-button', async () => {
