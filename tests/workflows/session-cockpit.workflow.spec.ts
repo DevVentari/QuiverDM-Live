@@ -117,8 +117,8 @@ test('session cockpit loads panels and mode toggle works', async ({ page, contex
   }, 10_000);
 
   await checkpoint(testInfo, 'right-panel-tabs-visible', async () => {
-    // Right panel has Prep and NPCs tabs
-    await expect(page.getByRole('tab', { name: /prep/i })).toBeVisible({ timeout: 10_000 });
+    // Right panel has Scene and NPCs tabs (Prep tab replaced by Scene tab in PR #132)
+    await expect(page.getByRole('tab', { name: /scene/i })).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('tab', { name: /npcs/i })).toBeVisible({ timeout: 10_000 });
   }, 10_000);
 
