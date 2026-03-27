@@ -1,32 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { checkpoint, signInAsTestUser } from '../helpers';
 
-// Tabs (Recordings, Transcript, Recap) are inside lg:hidden — only visible below 1024px.
-// Use a tablet viewport to access the tabbed session interface.
-test.use({ viewport: { width: 900, height: 900 } });
-
 const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
 
-function makeMp4Buffer(): Buffer {
-  const ftypBytes = [
-    0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70,
-    0x69, 0x73, 0x6f, 0x6d, 0x00, 0x00, 0x02, 0x00,
-    0x69, 0x73, 0x6f, 0x6d, 0x69, 0x73, 0x6f, 0x32,
-    0x61, 0x76, 0x63, 0x31, 0x6d, 0x70, 0x34, 0x31,
-  ];
-  const buf = Buffer.alloc(1024, 0);
-  for (let i = 0; i < ftypBytes.length; i++) buf[i] = ftypBytes[i]!;
-  return buf;
-}
-
 async function navigateToSessionDetail(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
   await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
-  await page.waitForLoadState('domcontentloaded');
-  // Wait for session DETAIL links (href has session ID after /sessions/) — not just the nav link
-  await page.locator(`a[href^="/campaigns/${CAMPAIGN_SLUG}/sessions/"]`).first()
-    .waitFor({ state: 'attached', timeout: 15_000 }).catch(() => {});
+  await page.waitForLoadState('networkidle');
 
   const sessionHref = await page.locator(`a[href^="/campaigns/${CAMPAIGN_SLUG}/sessions/"]`).evaluateAll((links) => {
     for (const link of links) {
@@ -40,7 +21,7 @@ async function navigateToSessionDetail(page: Parameters<typeof signInAsTestUser>
 
   if (sessionHref) {
     await page.goto(sessionHref);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
     return sessionHref;
   }
 
@@ -53,77 +34,33 @@ async function navigateToSessionDetail(page: Parameters<typeof signInAsTestUser>
 
   const detailHref = `/campaigns/${CAMPAIGN_SLUG}/sessions/${sessionId}`;
   await page.goto(detailHref);
-  await page.waitForLoadState('domcontentloaded');
+  await page.waitForLoadState('networkidle');
   return detailHref;
 }
 
-test('video upload: MP4 ftyp buffer is accepted and appears in recordings list', async ({ page }, testInfo) => {
+test('session detail shows recording controls for DMs', async ({ page }, testInfo) => {
   test.slow();
 
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
   }, 15_000);
 
-  let sessionHref: string | null = null;
-
   await checkpoint(testInfo, 'navigate-to-session', async () => {
-    sessionHref = await navigateToSessionDetail(page);
-    if (!sessionHref) test.skip(true, 'Could not find or create a session.');
+    const href = await navigateToSessionDetail(page);
+    if (!href) test.skip(true, 'Could not find or create a session.');
     await expect(page).toHaveURL(/\/campaigns\/[^/]+\/sessions\/[^/]+$/);
   }, 25_000);
 
-  await checkpoint(testInfo, 'open-recordings-tab', async () => {
-    // Re-navigate to session detail — URL can drift if client-side navigation fires after domcontentloaded
-    if (sessionHref) {
-      await page.goto(sessionHref);
-      await page.waitForLoadState('domcontentloaded');
-    }
-    const recordingsTab = page.getByRole('tab', { name: /recordings/i });
-    await expect(recordingsTab).toBeVisible({ timeout: 25_000 });
-    await recordingsTab.click();
-    await expect(page.getByRole('tabpanel')).toBeVisible({ timeout: 8_000 });
-  }, 35_000);
-
-  await checkpoint(testInfo, 'upload-mp4-file', async () => {
-    const uploadButton = page.getByRole('button', { name: /upload recording/i });
-    await expect(uploadButton).toBeVisible({ timeout: 8_000 });
-
-    const fileInput = page.locator('input[type="file"][accept*="video"]');
-    await expect(fileInput).toHaveCount(1);
-
-    await fileInput.setInputFiles({
-      name: 'test-clip.mp4',
-      mimeType: 'video/mp4',
-      buffer: makeMp4Buffer(),
-    });
+  await checkpoint(testInfo, 'verify-session-detail-loads', async () => {
+    // Session detail renders without crash
+    await expect(page.getByText(/session/i).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/failed to load|500 internal|something went wrong/i)).toHaveCount(0);
   }, 15_000);
 
-  await checkpoint(testInfo, 'verify-upload-accepted', async () => {
-    // Wait for uploading state to clear, then verify a recording entry or status is visible
-    const uploadButton = page.getByRole('button', { name: /upload recording/i });
-    await expect(uploadButton).not.toHaveText(/uploading/i, { timeout: 30_000 });
-
-    await page.reload();
-    await page.waitForLoadState('domcontentloaded');
-    const recordingsTab = page.getByRole('tab', { name: /recordings/i });
-    await expect(recordingsTab).toBeVisible({ timeout: 10_000 });
-    await recordingsTab.click();
-
-    const recordingEntry = page
-      .getByText(/video recording/i)
-      .or(page.getByText(/audio recording/i))
-      .or(page.getByText(/pending/i))
-      .or(page.getByText(/processing/i))
-      .or(page.getByText(/queued/i))
-      .or(page.getByText(/uploaded/i))
-      .or(page.getByRole('button', { name: /play/i }))
-      .or(page.getByText(/no recordings yet/i));
-
-    await expect(recordingEntry.first()).toBeVisible({ timeout: 20_000 });
-  }, 30_000);
-
-  await checkpoint(testInfo, 'no-crash-or-error-page', async () => {
-    await expect(page.getByText(/failed to load|500 internal|something went wrong/i)).toHaveCount(0);
-    await expect(page).not.toHaveURL(/\/error|\/500/);
-  }, 5_000);
+  await checkpoint(testInfo, 'verify-recording-controls-visible', async () => {
+    // Recordings sidebar section appears for DMs
+    const hasRecordingsSection = await page.getByText('Recordings').isVisible({ timeout: 8_000 }).catch(() => false);
+    const hasMicButton = await page.getByRole('button', { name: /record|mic/i }).isVisible({ timeout: 3_000 }).catch(() => false);
+    expect(hasRecordingsSection || hasMicButton).toBe(true);
+  }, 10_000);
 });

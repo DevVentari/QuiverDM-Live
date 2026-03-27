@@ -45,10 +45,11 @@ test('character homebrew tab renders active effects section and AC is a valid nu
 
   await checkpoint(testInfo, 'create-homebrew-item-with-effect', async () => {
     await page.goto('/homebrew');
-    await page.waitForLoadState('domcontentloaded');
-    await expect(page.getByRole('button', { name: /^create$/i })).toBeVisible({ timeout: 10_000 });
+    await page.waitForURL('/homebrew', { timeout: 10_000 });
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /create/i }).first()).toBeVisible({ timeout: 10_000 });
 
-    await page.getByRole('button', { name: /^create$/i }).click();
+    await page.getByRole('button', { name: /create/i }).first().click();
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5_000 });
 
@@ -70,7 +71,7 @@ test('character homebrew tab renders active effects section and AC is a valid nu
       await contentArea.fill('A sturdy shield that grants +2 AC to the bearer.');
     }
 
-    await dialog.getByRole('button', { name: /^create$/i }).click();
+    await dialog.getByRole('button', { name: /create/i }).last().click();
     await expect(dialog).toHaveCount(0, { timeout: 10_000 });
   }, 15_000);
 
