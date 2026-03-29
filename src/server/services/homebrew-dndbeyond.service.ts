@@ -269,12 +269,86 @@ export class HomebrewDndbeyondService {
     images?: string[];
     tags?: string[];
   } {
+    const images = this.extractImageUrls(ddbData);
+
     return {
       name: ddbData.name || 'Imported Item',
       data: ddbData,
-      images: [],
+      images,
       tags: ['imported', 'dndbeyond'],
     };
+  }
+
+  private extractImageUrls(ddbData: any): string[] {
+    const results = new Set<string>();
+    const visited = new Set<any>();
+
+    const directCandidates = [
+      ddbData?.avatarUrl,
+      ddbData?.largeAvatarUrl,
+      ddbData?.basicAvatarUrl,
+      ddbData?.portraitAvatarUrl,
+      ddbData?.imageUrl,
+      ddbData?.thumbnailUrl,
+      ddbData?.definition?.avatarUrl,
+      ddbData?.definition?.largeAvatarUrl,
+      ddbData?.definition?.basicAvatarUrl,
+      ddbData?.definition?.portraitAvatarUrl,
+      ddbData?.definition?.imageUrl,
+      ddbData?.definition?.thumbnailUrl,
+    ];
+
+    for (const candidate of directCandidates) {
+      if (typeof candidate === 'string' && this.looksLikeImageUrl(candidate)) {
+        results.add(candidate);
+      }
+    }
+
+    const walk = (value: unknown) => {
+      if (!value || typeof value !== 'object') return;
+      if (visited.has(value)) return;
+      visited.add(value);
+
+      if (Array.isArray(value)) {
+        for (const entry of value) walk(entry);
+        return;
+      }
+
+      for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+        if (typeof v === 'string') {
+          const keyLower = key.toLowerCase();
+          if (
+            (keyLower.includes('image') ||
+              keyLower.includes('avatar') ||
+              keyLower.includes('portrait') ||
+              keyLower.includes('thumbnail')) &&
+            this.looksLikeImageUrl(v)
+          ) {
+            results.add(v);
+          }
+        } else {
+          walk(v);
+        }
+      }
+    };
+
+    walk(ddbData);
+    return Array.from(results);
+  }
+
+  private looksLikeImageUrl(value: string): boolean {
+    const lower = value.toLowerCase();
+    if (!/^https?:\/\//.test(lower)) return false;
+    return (
+      lower.includes('image') ||
+      lower.includes('avatar') ||
+      lower.includes('portrait') ||
+      lower.endsWith('.png') ||
+      lower.endsWith('.jpg') ||
+      lower.endsWith('.jpeg') ||
+      lower.endsWith('.webp') ||
+      lower.endsWith('.gif')
+    );
   }
 
   private generateSearchText(name: string, data: any): string {

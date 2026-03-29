@@ -194,7 +194,18 @@ export async function POST(request: NextRequest) {
       });
     } catch (queueError) {
       console.error('[Upload PDF] Failed to queue job:', queueError);
-      // Don't fail the request - PDF is uploaded, can be retried later
+      const queueErrorMessage =
+        queueError instanceof Error ? queueError.message : String(queueError);
+
+      // Prevent indefinite "pending" state when queueing fails.
+      await prisma.homebrewPDF.update({
+        where: { id: pdf.id },
+        data: {
+          processingStatus: 'failed',
+          errorMessage: `Failed to queue PDF job: ${queueErrorMessage}`,
+          processingEndedAt: new Date(),
+        },
+      });
     }
 
     return NextResponse.json({
