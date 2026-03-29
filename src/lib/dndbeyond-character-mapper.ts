@@ -77,6 +77,11 @@ export interface MappedSpell {
   ritual: boolean;
   isHomebrew: boolean;
   dndBeyondId: number | null;
+  description: string | null;
+  damage: string | null;
+  healing: string | null;
+  atHigherLevels: string | null;
+  savingThrow: string | null;
 }
 
 export interface MappedItem {
@@ -90,6 +95,14 @@ export interface MappedItem {
   weight: number | null;
   isHomebrew: boolean;
   dndBeyondId: number | null;
+  damage: string | null;
+  damageType: string | null;
+  attackType: string | null;
+  properties: string[];
+  magicBonus: number | null;
+  armorClassBonus: number | null;
+  charges: { current: number; max: number } | null;
+  range: { normal: number; long: number | null } | null;
 }
 
 export interface HomebrewDetection {
@@ -140,6 +153,12 @@ const ALL_SKILLS: { name: string; ability: string }[] = [
   { name: 'Stealth', ability: 'dex' },
   { name: 'Survival', ability: 'wis' },
 ];
+
+// =============================================================================
+// Exported Helpers (used by frontend for rawData parsing)
+// =============================================================================
+
+export { extractConditions, extractAttunementSlots };
 
 // =============================================================================
 // URL Helpers
@@ -464,6 +483,28 @@ function extractProficiencies(modifiers: any[]): {
 function extractInventory(char: any): MappedItem[] {
   return (char.inventory || []).map((item: any) => {
     const def = item.definition || {};
+    const attackTypeMap: Record<number, string> = { 1: 'Melee', 2: 'Ranged' };
+
+    // Limited use / charges
+    let charges: { current: number; max: number } | null = null;
+    const lu = item.limitedUse || def.limitedUse;
+    if (lu) {
+      const max = lu.maxUses ?? lu.maxCharges ?? 0;
+      const used = lu.numberUsed ?? 0;
+      if (max > 0) {
+        charges = { current: max - used, max };
+      }
+    }
+
+    // Range (weapons)
+    let range: { normal: number; long: number | null } | null = null;
+    if (def.range) {
+      range = {
+        normal: def.range ?? 0,
+        long: def.longRange ?? null,
+      };
+    }
+
     return {
       name: def.name || 'Unknown Item',
       quantity: item.quantity ?? 1,
@@ -475,6 +516,14 @@ function extractInventory(char: any): MappedItem[] {
       weight: def.weight ?? null,
       isHomebrew: def.isHomebrew ?? false,
       dndBeyondId: def.id ?? null,
+      damage: def.damage?.diceString || null,
+      damageType: def.damageType || null,
+      attackType: def.attackType ? (attackTypeMap[def.attackType] || null) : null,
+      properties: (def.properties || []).map((p: any) => p.name).filter(Boolean),
+      magicBonus: def.magicBonus ?? null,
+      armorClassBonus: def.armorClass ?? null,
+      charges,
+      range,
     };
   });
 }
@@ -524,6 +573,11 @@ function extractSpellcasting(char: any): {
         ritual: def.ritual ?? false,
         isHomebrew: def.isHomebrew ?? false,
         dndBeyondId: def.id ?? null,
+        description: def.description || null,
+        damage: extractSpellDamage(def),
+        healing: def.healing || null,
+        atHigherLevels: extractAtHigherLevels(def),
+        savingThrow: def.saveDcAbilityId ? (ABILITY_FULL_MAP[def.saveDcAbilityId] || null) : null,
       });
     }
   }
@@ -540,6 +594,42 @@ function extractSpellcasting(char: any): {
   }
 
   return { spells, slots, ability: castingAbility };
+}
+
+function extractSpellDamage(def: any): string | null {
+  // DDB stores damage in definition.damage array
+  if (def.damage && Array.isArray(def.damage)) {
+    const first = def.damage[0];
+    if (first?.diceString) return first.diceString;
+  }
+  // Some spells store it differently
+  if (def.damage?.diceString) return def.damage.diceString;
+  return null;
+}
+
+function extractAtHigherLevels(def: any): string | null {
+  const ahl = def.atHigherLevels;
+  if (!ahl) return null;
+  // DDB stores this as an array of higher-level definitions
+  if (Array.isArray(ahl.higherLevelDefinitions) && ahl.higherLevelDefinitions.length > 0) {
+    return ahl.higherLevelDefinitions[0]?.description || null;
+  }
+  // Some spells have a scaleType description directly
+  if (typeof ahl === 'string') return ahl;
+  return null;
+}
+
+function extractConditions(char: any): string[] {
+  if (!char.conditions || !Array.isArray(char.conditions)) return [];
+  return char.conditions
+    .map((c: any) => c.name || c.definition?.name || null)
+    .filter(Boolean);
+}
+
+function extractAttunementSlots(char: any): { used: number; max: number } {
+  const inventory = char.inventory || [];
+  const attuned = inventory.filter((item: any) => item.isAttuned).length;
+  return { used: attuned, max: 3 };
 }
 
 function extractSpellComponents(def: any): string[] {
