@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quiverdm.local/schemas/agent-task-spec.schema.json",
+  "title": "AgentTaskSpec",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "taskId",
+    "ownerAgent",
+    "scope",
+    "acceptanceChecks",
+    "priority",
+    "status"
+  ],
+  "properties": {
+    "taskId": {
+      "type": "string",
+      "minLength": 3
+    },
+    "ownerAgent": {
+      "type": "string",
+      "enum": [
+        "AGENT_A",
+        "AGENT_B",
+        "AGENT_C",
+        "AGENT_D",
+        "AGENT_E",
+        "AGENT_QA",
+        "AGENT_ORCHESTRATOR"
+      ]
+    },
+    "scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "acceptanceChecks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "blockedBy": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["queued", "in_progress", "failed", "completed"]
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
