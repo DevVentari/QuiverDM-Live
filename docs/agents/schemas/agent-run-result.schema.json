@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quiverdm.local/schemas/agent-run-result.schema.json",
+  "title": "AgentRunResult",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "taskId",
+    "ownerAgent",
+    "status",
+    "startedAt",
+    "endedAt",
+    "checks",
+    "artifacts"
+  ],
+  "properties": {
+    "taskId": {
+      "type": "string"
+    },
+    "ownerAgent": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["passed", "failed"]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "endedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "durationMs": {
+      "type": "number"
+    },
+    "changedFiles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "command", "passed", "exitCode"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "exitCode": {
+            "type": "number"
+          },
+          "stdoutTail": {
+            "type": "string"
+          },
+          "stderrTail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

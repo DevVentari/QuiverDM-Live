@@ -1,0 +1,37 @@
+[
+  {
+    "taskId": "TASK-001",
+    "ownerAgent": "AGENT_B",
+    "scope": [
+      "src/server/services",
+      "src/server/routers"
+    ],
+    "acceptanceChecks": [
+      "npx tsc --noEmit --pretty false",
+      "npm run lint",
+      "npm run workflow:e2e -- --workflow session-management --run-id session-001"
+    ],
+    "blockedBy": [],
+    "priority": "high",
+    "status": "queued",
+    "notes": "Backend session workflow hardening."
+  },
+  {
+    "taskId": "TASK-002",
+    "ownerAgent": "AGENT_A",
+    "scope": [
+      "src/app/(app)",
+      "src/components"
+    ],
+    "acceptanceChecks": [
+      "npx tsc --noEmit --pretty false",
+      "npm run lint"
+    ],
+    "blockedBy": [
+      "TASK-001"
+    ],
+    "priority": "medium",
+    "status": "queued",
+    "notes": "UI-side workflow fixes after backend APIs settle."
+  }
+]
