@@ -1,0 +1,35 @@
+{
+  "minimumSuccessfulRuns": 3,
+  "workflows": {
+    "campaign-management-ui": {
+      "description": "Campaign list and navigation UI",
+      "recommendedCommand": "npx playwright test tests/frontend/workflows/campaign-management-ui.spec.ts --project=chromium",
+      "resultDir": "docs/Workflows/campaign-management/results/frontend"
+    },
+    "session-management-ui": {
+      "description": "Session list and session detail UI",
+      "recommendedCommand": "npx playwright test tests/frontend/workflows/session-management-ui.spec.ts --project=chromium",
+      "resultDir": "docs/Workflows/session-management/results/frontend"
+    },
+    "transcription-pipeline-ui": {
+      "description": "Transcript UI rendering in session detail",
+      "recommendedCommand": "npx playwright test tests/frontend/workflows/transcription-pipeline-ui.spec.ts --project=chromium",
+      "resultDir": "docs/Workflows/transcription-pipeline/results/frontend"
+    },
+    "pdf-processing-ui": {
+      "description": "PDF list and upload UI",
+      "recommendedCommand": "npx playwright test tests/frontend/workflows/pdf-processing-ui.spec.ts --project=chromium",
+      "resultDir": "docs/Workflows/pdf-processing/results/frontend"
+    },
+    "homebrew-content-ui": {
+      "description": "Homebrew library UI",
+      "recommendedCommand": "npx playwright test tests/frontend/workflows/homebrew-content-ui.spec.ts --project=chromium",
+      "resultDir": "docs/Workflows/homebrew-content/results/frontend"
+    },
+    "character-management-ui": {
+      "description": "Character list UI",
+      "recommendedCommand": "npx playwright test tests/frontend/workflows/character-management-ui.spec.ts --project=chromium",
+      "resultDir": "docs/Workflows/character-management/results/frontend"
+    }
+  }
+}
