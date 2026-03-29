@@ -1,0 +1,35 @@
+{
+  "minimumSuccessfulRuns": 3,
+  "workflows": {
+    "campaign-management": {
+      "description": "Campaign CRUD, invites, and authorization checks",
+      "recommendedCommand": "npm run test:workflow:campaign",
+      "resultDir": "docs/Workflows/campaign-management/results"
+    },
+    "session-management": {
+      "description": "Session CRUD and recording management",
+      "recommendedCommand": "npm run test:workflow:session",
+      "resultDir": "docs/Workflows/session-management/results"
+    },
+    "transcription-pipeline": {
+      "description": "Recording transcription pipeline with progress tracking",
+      "recommendedCommand": "npm run test:workflow:transcription",
+      "resultDir": "docs/Workflows/transcription-pipeline/results"
+    },
+    "pdf-processing": {
+      "description": "PDF upload, queue processing, and extraction",
+      "recommendedCommand": "npm run test:e2e",
+      "resultDir": "docs/Workflows/pdf-processing/results"
+    },
+    "homebrew-content": {
+      "description": "Homebrew CRUD and campaign association",
+      "recommendedCommand": "npm run test:workflow:homebrew",
+      "resultDir": "docs/Workflows/homebrew-content/results"
+    },
+    "character-management": {
+      "description": "Character CRUD and campaign assignments",
+      "recommendedCommand": "npm run test:workflow:character",
+      "resultDir": "docs/Workflows/character-management/results"
+    }
+  }
+}

@@ -110,6 +110,10 @@ package-lock.corrupted.json
 CODEX_*.md
 docs/codex-handoffs/
 
+# Workflow test run results (generated artifacts, not source)
+docs/Workflows/**/results/
+docs/agents/results/
+
 # Screenshots captured during development
 docs/screenshots/
 tests/qa/screenshots/
