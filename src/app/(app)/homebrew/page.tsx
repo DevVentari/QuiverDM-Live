@@ -3,16 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
 import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
 import { ImportFromMediaDialog } from '@/components/homebrew/import-from-media-dialog';
-import { BookOpen, Search, FileText, Plus, Globe, ImageUp } from 'lucide-react';
+import { BookOpen, Search, FileText, Plus, Globe, ImageUp, ChevronDown } from 'lucide-react';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -33,16 +32,14 @@ export default function HomebrewPage() {
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
-    debounceTimer.current = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 300);
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(debounceTimer.current);
   }, [search]);
 
-  const content = trpc.homebrew.getContent.useQuery({
-    search: debouncedSearch || undefined,
-    type: typeFilter as any,
-  }, { staleTime: 300_000 });
+  const content = trpc.homebrew.getContent.useQuery(
+    { search: debouncedSearch || undefined, type: typeFilter as any },
+    { staleTime: 300_000 }
+  );
 
   const stats = trpc.homebrew.getContentStats.useQuery({}, { staleTime: 300_000 });
 
@@ -50,39 +47,40 @@ export default function HomebrewPage() {
     <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Homebrew</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />Create
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setDdbImportOpen(true)}>
-            <Globe className="mr-2 h-4 w-4" />
-            D&amp;D Beyond
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setMediaImportOpen(true)}>
-            <ImageUp className="mr-2 h-4 w-4" />
-            Import Photo/Notes
-          </Button>
+        <div className="flex items-center gap-2">
           <Button asChild variant="outline" size="sm">
             <Link href="/homebrew/pdfs">
               <FileText className="mr-2 h-4 w-4" />
               PDFs
             </Link>
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+                <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create manually
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setDdbImportOpen(true)}>
+                <Globe className="mr-2 h-4 w-4" />
+                Import from D&amp;D Beyond
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setMediaImportOpen(true)}>
+                <ImageUp className="mr-2 h-4 w-4" />
+                Import from photo / notes
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* Stats badges */}
-      {stats.data && (
-        <div className="flex gap-2 flex-wrap">
-          {Object.entries((stats.data as any).byType || {}).map(([type, count]) => (
-            <Badge key={type} variant="secondary" className="capitalize">
-              {type}: {count as number}
-            </Badge>
-          ))}
-        </div>
-      )}
-
-      {/* Type filter buttons */}
+      {/* Type filter */}
       <div className="flex flex-wrap gap-2">
         {TYPE_FILTERS.map((filter) => (
           <Button
@@ -94,13 +92,18 @@ export default function HomebrewPage() {
             {filter.label}
           </Button>
         ))}
+        {stats.data && (
+          <span className="ml-auto text-xs text-muted-foreground self-center">
+            {Object.values((stats.data as any).byType || {}).reduce((a: number, b) => a + (b as number), 0)} items
+          </span>
+        )}
       </div>
 
-      {/* Search with debounce */}
+      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search homebrew content..."
+          placeholder="Search homebrew..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -109,44 +112,34 @@ export default function HomebrewPage() {
 
       {content.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-lg" />
-          ))}
+          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-32 rounded-lg" />)}
         </div>
       ) : content.isError ? (
         <div className="stone-card p-8 text-center">
-          <p className="text-sm text-muted-foreground">Failed to load homebrew content. Please refresh.</p>
+          <p className="text-sm text-muted-foreground">Failed to load homebrew content.</p>
         </div>
       ) : content.data && (content.data as any).items?.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {((content.data as any).items || []).map((item: any) => (
-            <HomebrewContentCard
-              key={item.id}
-              item={item}
-              href={`/homebrew/${item.id}`}
-            />
+            <HomebrewContentCard key={item.id} item={item} href={`/homebrew/${item.id}`} />
           ))}
         </div>
-      ) : content.data ? (
+      ) : (
         <div className="stone-card">
           <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No homebrew content yet</h3>
+            <h3 className="text-lg font-semibold mb-2">No homebrew yet</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-              Upload PDFs to extract spells, monsters, and items - or browse your campaign homebrew.
+              Upload a PDF to extract content, or create entries manually.
             </p>
             <Button asChild size="sm">
               <Link href="/homebrew/pdfs">Upload PDF</Link>
             </Button>
           </div>
         </div>
-      ) : null}
+      )}
 
-      <CreateHomebrewDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onCreated={() => content.refetch()}
-      />
+      <CreateHomebrewDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => content.refetch()} />
       <ImportFromDDBDialog
         open={ddbImportOpen}
         onOpenChange={setDdbImportOpen}
