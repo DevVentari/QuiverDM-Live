@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { prisma } from '@/server/db';
-import { callGemini, callGeminiVision } from '@/lib/ai/gemini';
+import Anthropic from '@anthropic-ai/sdk';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const MAX_FILES = 5;
@@ -78,16 +77,38 @@ function parseExtracted(text: string): ExtractedItem[] {
   }
 }
 
-async function extractFromText(text: string, userKey?: string, userId?: string): Promise<ExtractedItem[]> {
-  const prompt = `${HOMEBREW_EXTRACTION_PROMPT}\n\nContent:\n${text.slice(0, 8000)}`;
-  const raw = await callGemini(prompt, userKey, userId ? { userId, feature: 'extraction' } : undefined);
+function getAnthropicClient(): Anthropic {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error('Anthropic API key not configured on server');
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
+
+async function extractFromText(text: string): Promise<ExtractedItem[]> {
+  const client = getAnthropicClient();
+  const msg = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 4096,
+    messages: [{ role: 'user', content: `${HOMEBREW_EXTRACTION_PROMPT}\n\nContent:\n${text.slice(0, 8000)}` }],
+  });
+  const raw = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
   return parseExtracted(raw);
 }
 
-async function extractFromImage(base64Data: string, mimeType: string, userKey?: string, userId?: string, mode: 'homebrew' | 'notes' = 'homebrew'): Promise<ExtractedItem[]> {
+async function extractFromImage(base64Data: string, mimeType: string, mode: 'homebrew' | 'notes' = 'homebrew'): Promise<ExtractedItem[]> {
+  const client = getAnthropicClient();
   const prompt = mode === 'notes' ? HANDWRITTEN_NOTES_PROMPT : HOMEBREW_EXTRACTION_PROMPT;
-  const opts = userId ? { userId, feature: 'extraction', maxOutputTokens: mode === 'notes' ? 8192 : 4096 } : undefined;
-  const raw = await callGeminiVision(prompt, [{ mimeType, base64Data }], userKey, opts);
+  const mediaType = (mimeType === 'image/jpeg' ? 'image/jpeg' : mimeType === 'image/png' ? 'image/png' : mimeType === 'image/gif' ? 'image/gif' : 'image/webp') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+  const msg = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: mode === 'notes' ? 8192 : 4096,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Data } },
+        { type: 'text', text: prompt },
+      ],
+    }],
+  });
+  const raw = msg.content[0]?.type === 'text' ? msg.content[0].text : '';
   return parseExtracted(raw);
 }
 
@@ -113,16 +134,6 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const userId = session.user.id;
-
-    const userSettings = await prisma.userSettings.findUnique({ where: { userId }, select: { geminiApiKey: true } });
-    let userGeminiKey: string | undefined;
-    if (userSettings?.geminiApiKey) {
-      try {
-        const { decrypt } = await import('@/lib/encryption');
-        userGeminiKey = decrypt(userSettings.geminiApiKey);
-      } catch {}
-    }
 
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
@@ -144,14 +155,14 @@ export async function POST(request: NextRequest) {
         let sourceType: string;
 
         if (IMAGE_TYPES.includes(file.type)) {
-          items = await extractFromImage(buffer.toString('base64'), file.type, userGeminiKey, userId, 'notes');
+          items = await extractFromImage(buffer.toString('base64'), file.type, 'notes');
           sourceType = 'handwritten_scan';
         } else if (file.type === 'application/pdf') {
           const markdown = await pdfToMarkdown(buffer);
-          items = await extractFromText(markdown, userGeminiKey, userId);
+          items = await extractFromText(markdown);
           sourceType = 'pdf_extraction';
         } else {
-          items = await extractFromText(buffer.toString('utf-8'), userGeminiKey, userId);
+          items = await extractFromText(buffer.toString('utf-8'));
           sourceType = 'media_import';
         }
 
