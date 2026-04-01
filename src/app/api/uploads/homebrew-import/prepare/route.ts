@@ -11,6 +11,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'PDF file required' }, { status: 400 });
   }
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024;
+  if (file.size > MAX_FILE_SIZE) {
+    return NextResponse.json({ error: 'File exceeds 10MB limit' }, { status: 400 });
+  }
+
   const doclingUrl = process.env.DOCLING_URL || 'http://localhost:5001';
   const body = new FormData();
   const buffer = Buffer.from(await file.arrayBuffer());
@@ -23,7 +28,11 @@ export async function POST(request: NextRequest) {
     signal: AbortSignal.timeout(120_000),
   });
 
-  if (!res.ok) return NextResponse.json({ error: `Docling error ${res.status}` }, { status: 502 });
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => 'unknown');
+    console.error(`[homebrew-prepare] Docling error ${res.status}: ${errorText}`);
+    return NextResponse.json({ error: 'PDF conversion failed' }, { status: 502 });
+  }
 
   const result = await res.json();
   const item = Array.isArray(result) ? result[0] : result;
