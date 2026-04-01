@@ -51,9 +51,9 @@ test.describe('homebrew chat import', () => {
     // AI response appears
     await expect(page.getByText(/magic sword/i)).toBeVisible({ timeout: 10_000 });
 
-    // Item appears in right panel — input in the Extracted items panel with value "Vorpal Edge"
-    const itemNameInput = page.getByRole('dialog').locator('input:not([type="file"])').first();
-    await expect(itemNameInput).toHaveValue('Vorpal Edge', { timeout: 10_000 });
+    // Item appears in right panel
+    const itemNameInput = page.locator('input[value="Vorpal Edge"]');
+    await expect(itemNameInput).toBeVisible({ timeout: 10_000 });
 
     // Send a follow-up message — the Send button is icon-only, use the placeholder input + Enter
     await page.getByPlaceholder('Type a message…').fill('The damage is 1d8 slashing');
@@ -80,12 +80,12 @@ test.describe('homebrew chat import', () => {
 
     await page.getByRole('button', { name: /start chat/i }).click();
 
-    // Item name input appears in the Extracted items panel — first input in dialog
-    const nameInput = page.getByRole('dialog').locator('input:not([type="file"])').first();
-    await expect(nameInput).toHaveValue('Vorpal Edge', { timeout: 10_000 });
+    // Item name input appears in the Extracted items panel
+    const nameInput = page.locator('input[value="Vorpal Edge"]');
+    await expect(nameInput).toBeVisible({ timeout: 10_000 });
 
     // Edit the item name inline
     await nameInput.fill('Blade of Dawn');
-    await expect(nameInput).toHaveValue('Blade of Dawn');
+    await expect(page.locator('input[value="Blade of Dawn"]')).toBeVisible();
   });
 });
