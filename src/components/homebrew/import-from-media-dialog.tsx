@@ -194,11 +194,30 @@ export function ImportFromMediaDialog({
     ]);
 
     try {
-      const res = await fetch('/api/uploads/homebrew-import/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newApiMessages }),
-      });
+      const body = JSON.stringify({ messages: newApiMessages });
+
+      // Guard: refuse payloads > 40 MB (base64 images balloon quickly)
+      if (body.length > 40 * 1024 * 1024) {
+        throw new Error(
+          'Images are too large to process together. Please start over and upload fewer or smaller files.'
+        );
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 55_000);
+
+      let res: Response;
+      try {
+        res = await fetch('/api/uploads/homebrew-import/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || 'Chat failed');
 
@@ -210,12 +229,12 @@ export function ImportFromMediaDialog({
         (json.items as ExtractedItem[]).map((item) => ({ ...item, id: crypto.randomUUID() })),
       );
     } catch (e) {
+      const message =
+        e instanceof Error && e.name === 'AbortError'
+          ? 'The AI took too long to respond. Try sending fewer or smaller images, then try again.'
+          : `Something went wrong — ${e instanceof Error ? e.message : 'chat failed'}. Try sending your message again.`;
       setDisplayMessages((prev) =>
-        prev.map((m) =>
-          m.id === loadingId
-            ? { ...m, text: `Something went wrong — ${e instanceof Error ? e.message : 'chat failed'}. Try sending your message again.` }
-            : m,
-        ),
+        prev.map((m) => (m.id === loadingId ? { ...m, text: message } : m)),
       );
     } finally {
       setIsLoading(false);
