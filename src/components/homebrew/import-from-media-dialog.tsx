@@ -259,8 +259,8 @@ export function ImportFromMediaDialog({
       { id: crypto.randomUUID(), role: 'user', text },
     ]);
 
-    if (displayMessages.length >= 40) {
-      // 20-turn warning (each turn = 2 display messages)
+    if (newApiMessages.length >= 20) {
+      // 20-turn warning (each turn = 1 API message pair)
       setDisplayMessages((prev) => [
         ...prev,
         {
@@ -375,7 +375,7 @@ export function ImportFromMediaDialog({
               {files.length > 0 && (
                 <ul className="space-y-1.5">
                   {files.map((f, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm">
+                    <li key={`${f.name}-${f.size}`} className="flex items-center gap-2 text-sm">
                       <span className="flex-1 truncate">{f.name}</span>
                       <span className="text-muted-foreground text-xs">
                         {(f.size / 1024).toFixed(0)} KB
