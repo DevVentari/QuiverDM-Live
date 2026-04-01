@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
+
+export const maxDuration = 60;
 import Anthropic from '@anthropic-ai/sdk';
 import {
   parseItems,
