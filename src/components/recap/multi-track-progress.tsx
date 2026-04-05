@@ -32,12 +32,12 @@ export function MultiTrackProgress({
   );
 
   useEffect(() => {
-    if (data?.overallStatus === 'complete' && !showMapping) {
+    if (data?.overallStatus === 'complete') {
       setShowMapping(true);
     }
-  }, [data?.overallStatus, showMapping]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.overallStatus]);
 
-  // Transition to speaker mapping once complete
   if (showMapping && data && data.transcriptId) {
     const speakerLabels = (
       data.recordings as Array<{ speakerTag?: string | null }>
@@ -50,6 +50,14 @@ export function MultiTrackProgress({
         speakerLabels={speakerLabels}
         onComplete={onComplete}
       />
+    );
+  }
+
+  if (showMapping && data && !data.transcriptId) {
+    return (
+      <div className="text-sm text-white/40">
+        Transcription complete. Refresh if this does not advance.
+      </div>
     );
   }
 
