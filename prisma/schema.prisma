@@ -565,6 +565,10 @@ model GameSession {
   spotlights          SessionSpotlight[]
   worldEventProposals WorldEventProposal[]
 
+  // RecapForge
+  recaps            SessionRecap[]
+  campaignContexts  CampaignContext[]
+
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
   @@index([date])
