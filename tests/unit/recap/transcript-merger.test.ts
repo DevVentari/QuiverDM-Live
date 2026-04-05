@@ -52,6 +52,27 @@ describe('mergeTranscripts', () => {
     expect(result[0].speaker).toBe('A');
     expect(result[1].speaker).toBe('B');
   });
+
+  it('exact 500ms gap splits (boundary: gap < 500ms merges, >= 500ms splits)', () => {
+    const result = mergeTranscripts([{
+      speakerTag: 'A',
+      words: [
+        { text: 'one', start: 0, end: 500 },
+        { text: 'two', start: 1000, end: 1400 }, // gap = 500ms: NOT < 500, so splits
+      ],
+    }]);
+    expect(result).toHaveLength(2);
+  });
+
+  it('handles overlapping words from two speakers by start-time order', () => {
+    const result = mergeTranscripts([
+      { speakerTag: 'A', words: [{ text: 'hello', start: 0, end: 800 }] },
+      { speakerTag: 'B', words: [{ text: 'hi', start: 600, end: 900 }] },
+    ]);
+    expect(result).toHaveLength(2);
+    expect(result[0].speaker).toBe('A');
+    expect(result[1].speaker).toBe('B');
+  });
 });
 
 describe('segmentsToText', () => {
