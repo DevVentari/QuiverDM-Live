@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { PrepStatusCard } from '@/components/session/prep-status-card';
+import { RecapCard } from '@/components/recap/recap-card';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -421,6 +422,12 @@ export default function SessionDetailPage() {
             <>
               <SummaryCard session={s} sessionId={sessionId} campaignId={campaignId} />
               <TranscriptSection session={s} />
+              <RecapCard
+                sessionId={sessionId}
+                campaignId={campaignId}
+                transcriptId={(s.transcripts as Array<{ id: string }> | undefined)?.[0]?.id}
+                slug={slug}
+              />
             </>
           )}
         </div>
