@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { RecapStatus, RecapStyle } from '@prisma/client';
 import { router, campaignDMProcedure } from '../trpc';
 import { prisma } from '@/lib/prisma';
 import { recapGenerationQueue } from '@/lib/queue/recap-generation-queue';
 import { NotFoundError } from '../errors';
 
-const RecapStyleEnum = z.enum(['NARRATIVE', 'SESSION_LOG', 'BARDS_TALE', 'PREVIOUSLY_ON']);
+const RecapStyleEnum = z.nativeEnum(RecapStyle);
 
 export const recapRouter = router({
   generate: campaignDMProcedure
@@ -17,12 +18,18 @@ export const recapRouter = router({
       })
     )
     .mutation(async ({ input }) => {
+      const session = await prisma.gameSession.findFirst({
+        where: { id: input.sessionId, campaignId: input.campaignId },
+        select: { id: true },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+
       const recap = await prisma.sessionRecap.create({
         data: {
           sessionId: input.sessionId,
           campaignId: input.campaignId,
           style: input.style,
-          status: 'GENERATING',
+          status: RecapStatus.GENERATING,
           sections: [],
           rawContent: '',
           clarificationSkipped: true,
@@ -92,7 +99,7 @@ export const recapRouter = router({
           sessionId: source.sessionId,
           campaignId: input.campaignId,
           style: input.style,
-          status: 'GENERATING',
+          status: RecapStatus.GENERATING,
           sections: [],
           rawContent: '',
           clarificationSkipped: true,
@@ -126,7 +133,7 @@ export const recapRouter = router({
 
       const title = recap.session.title ?? `Session ${recap.session.sessionNumber}`;
       const sections = recap.sections as Array<{ key: string; title: string; content: string }>;
-      const markdown = [`# ${title}\n`]
+      const markdown = [`# ${title}`]
         .concat(sections.map((s) => `## ${s.title}\n\n${s.content}`))
         .join('\n\n');
       return { markdown };
