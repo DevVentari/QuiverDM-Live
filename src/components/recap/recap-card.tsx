@@ -33,6 +33,7 @@ export function RecapCard({ sessionId, campaignId, transcriptId, slug }: RecapCa
 
   const latest = recaps?.[0];
   const isGenerating = latest?.status === 'GENERATING';
+  const isFailed = latest?.status === 'FAILED';
   const isStuck =
     isGenerating &&
     latest &&
@@ -102,9 +103,11 @@ export function RecapCard({ sessionId, campaignId, transcriptId, slug }: RecapCa
           </div>
         )}
 
-        {isStuck && (
+        {(isStuck || isFailed) && (
           <div className="py-4 text-center">
-            <p className="text-sm text-destructive">Generation timed out.</p>
+            <p className="text-sm text-destructive">
+              {isFailed ? 'Generation failed.' : 'Generation timed out.'}
+            </p>
             <Link href={`/campaigns/${slug}/sessions/${sessionId}/recap`}>
               <Button size="sm" variant="outline" className="mt-2">
                 Retry on recap page

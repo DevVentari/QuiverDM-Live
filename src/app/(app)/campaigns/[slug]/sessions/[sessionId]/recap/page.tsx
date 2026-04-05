@@ -56,7 +56,7 @@ export default function RecapPage() {
 
   const s = session as any;
   const transcriptId = (s?.transcripts as Array<{ id: string }> | undefined)?.[0]?.id;
-  const sessionTitle = s?.title ?? `Session ${s?.sessionNumber}`;
+  const sessionTitle = s?.title ?? (s?.sessionNumber != null ? `Session ${s.sessionNumber}` : '…');
 
   const activeRecap =
     recaps?.find((r) => r.style === activeStyle && r.status === 'AUTO_GENERATED') ??

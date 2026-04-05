@@ -121,6 +121,11 @@ worker.on('completed', (job, result) => {
 
 worker.on('failed', (job, err) => {
   console.error(`[RecapWorker] Job ${job?.id} failed:`, err);
+  if (job?.data.recapId && job.attemptsMade >= (job.opts.attempts ?? 1)) {
+    prisma.sessionRecap
+      .update({ where: { id: job.data.recapId }, data: { status: RecapStatus.FAILED } })
+      .catch(console.error);
+  }
 });
 
 worker.on('error', (err) => {
