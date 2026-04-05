@@ -46,6 +46,7 @@ export function MultiTrackProgress({
     return (
       <SpeakerMappingStep
         campaignId={campaignId}
+        sessionId={sessionId}
         transcriptId={data.transcriptId}
         speakerLabels={speakerLabels}
         onComplete={onComplete}

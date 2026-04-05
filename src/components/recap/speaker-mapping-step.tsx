@@ -16,6 +16,7 @@ import { Loader2, Mic } from 'lucide-react';
 
 interface SpeakerMappingStepProps {
   campaignId: string;
+  sessionId: string;
   transcriptId: string;
   speakerLabels: string[];
   onComplete: () => void;
@@ -31,6 +32,7 @@ interface MappingRow {
 
 export function SpeakerMappingStep({
   campaignId,
+  sessionId,
   transcriptId,
   speakerLabels,
   onComplete,
@@ -43,6 +45,7 @@ export function SpeakerMappingStep({
 
   const upsert = trpc.speakerMapping.upsert.useMutation();
   const applyToTranscript = trpc.speakerMapping.applyToTranscript.useMutation();
+  const generateRecap = trpc.recap.generate.useMutation();
 
   // Initialize rows once existing mappings are loaded
   useEffect(() => {
@@ -102,6 +105,17 @@ export function SpeakerMappingStep({
 
     setSaving(false);
     onComplete();
+
+    try {
+      await generateRecap.mutateAsync({
+        campaignId,
+        sessionId,
+        transcriptId,
+        style: 'NARRATIVE',
+      });
+    } catch (err) {
+      console.warn('[SpeakerMappingStep] Auto-recap trigger failed (non-fatal):', err);
+    }
   };
 
   if (existingMappings === undefined || characters === undefined) {
