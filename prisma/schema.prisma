@@ -1630,6 +1630,71 @@ model CampaignContext {
   @@index([sessionId])
 }
 
+// RecapForge — AI-generated clarification questions answered by DM before final summary
+model ClarificationQA {
+  id       String       @id @default(cuid())
+  recapId  String
+  recap    SessionRecap @relation(fields: [recapId], references: [id], onDelete: Cascade)
+
+  question     String  // The AI-generated question text
+  context      String? @db.Text // Relevant transcript excerpt
+  timestamp    Float?  // Position in recording (seconds) where ambiguity occurs
+
+  questionType String  // "binary" | "short_answer" | "multiple_choice"
+  options      Json?   // For binary/multiple_choice: ["Yes, sincere", "No, sarcastic"]
+
+  answer  String?  // DM's response
+  skipped Boolean  @default(false)
+
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([recapId])
+}
+
+// RecapForge — AI-generated session summary in one of four styles
+model SessionRecap {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  style  RecapStyle
+  status RecapStatus @default(AUTO_GENERATED)
+
+  // Content — sectioned JSON and raw concatenated text
+  sections   Json   // [{ key: "setup", title: "Setup", content: "..." }, ...]
+  rawContent String @db.Text
+
+  // Discord formatting
+  discordFormatted  String?  @db.Text
+  discordCharLimit  Int      @default(2000)
+  discordThreadMode Boolean  @default(false)
+
+  // Generation provenance
+  promptVersion    String
+  modelUsed        String
+  tokensUsed       Int?
+  generationTimeMs Int?
+
+  // Clarification round
+  clarifications       ClarificationQA[]
+  clarificationSkipped Boolean           @default(false)
+
+  // Edit history — [{ sectionKey, previousContent, editedAt, editType }]
+  editHistory Json?
+
+  // Workflow timestamps
+  approvedAt DateTime?
+  sharedAt   DateTime?
+  sharedTo   String?   // "discord" | "clipboard" | "markdown"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([status])
+}
+
 enum RecapStyle {
   NARRATIVE
   SESSION_LOG
