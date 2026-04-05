@@ -59,7 +59,8 @@ export function SpeakerMappingStep({
         };
       })
     );
-  }, [existingMappings, speakerLabels]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingMappings, speakerLabels.join(',')]);
 
   const updateRow = (index: number, patch: Partial<MappingRow>) => {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, ...patch, error: undefined } : r)));
