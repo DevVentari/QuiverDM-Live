@@ -13,6 +13,7 @@ interface FileEntry {
   recordingId?: string;
   uploadUrl?: string;
   r2Key?: string;
+  isLocalMode?: boolean;
   status: 'pending' | 'initiating' | 'uploading' | 'done' | 'error';
   error?: string;
 }
@@ -100,6 +101,7 @@ export function MultiTrackDropzone({
           recordingId: result.recordingId,
           uploadUrl: result.uploadUrl,
           r2Key: result.r2Key,
+          isLocalMode: result.isLocalMode,
           status: 'uploading',
         });
 
@@ -110,15 +112,23 @@ export function MultiTrackDropzone({
         );
       }
 
-      // 2. Upload all files to R2 in parallel
+      // 2. Upload all files to R2 in parallel (or local endpoint for dev)
       await Promise.all(
         withUrls.map(async (entry, i) => {
           if (!entry.uploadUrl) return;
-          const res = await fetch(entry.uploadUrl, {
-            method: 'PUT',
-            body: entry.file,
-            headers: { 'Content-Type': entry.file.type },
-          });
+          let res: Response;
+          if (entry.isLocalMode) {
+            const form = new FormData();
+            form.append('file', entry.file);
+            form.append('sessionId', sessionId);
+            res = await fetch(entry.uploadUrl, { method: 'POST', body: form });
+          } else {
+            res = await fetch(entry.uploadUrl, {
+              method: 'PUT',
+              body: entry.file,
+              headers: { 'Content-Type': entry.file.type },
+            });
+          }
           if (!res.ok) throw new Error(`Upload failed for ${entry.file.name}`);
           setEntries((prev) =>
             prev.map((e, idx) => (idx === i ? { ...e, status: 'done' } : e))
