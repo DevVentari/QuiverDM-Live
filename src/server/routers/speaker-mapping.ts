@@ -3,7 +3,7 @@ import { router } from '../trpc';
 import { campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { TRPCError } from '@trpc/server';
+import { NotFoundError } from '../errors';
 import {
   applyMappingsToTranscriptData,
   type SpeakerEntry,
@@ -26,7 +26,7 @@ export const speakerMappingRouter = router({
         campaignId: z.string(),
         speakerLabel: z.string().min(1).max(100),
         characterId: z.string().optional(),
-        characterName: z.string().max(100),
+        characterName: z.string().min(1).max(100),
         isDM: z.boolean().default(false),
       })
     )
@@ -71,7 +71,7 @@ export const speakerMappingRouter = router({
       });
 
       if (!transcript) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Transcript not found' });
+        throw new NotFoundError('transcript', input.transcriptId);
       }
 
       // No speakers/timestamps to patch
