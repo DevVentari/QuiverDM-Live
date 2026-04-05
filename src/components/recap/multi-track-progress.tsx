@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, Loader2, Mic } from 'lucide-react';
@@ -16,13 +16,21 @@ export function MultiTrackProgress({
   campaignId,
   onComplete,
 }: MultiTrackProgressProps) {
+  const calledRef = useRef(false);
+
   const { data } = trpc.multiTrackUpload.getStatus.useQuery(
     { campaignId, uploadGroupId },
-    { refetchInterval: 3000 }
+    {
+      refetchInterval: (query) => {
+        const status = (query.state.data as { overallStatus?: string } | undefined)?.overallStatus;
+        return status === 'complete' || status === 'failed' ? false : 3000;
+      },
+    }
   );
 
   useEffect(() => {
-    if (data?.overallStatus === 'complete') {
+    if (data?.overallStatus === 'complete' && !calledRef.current) {
+      calledRef.current = true;
       onComplete();
     }
   }, [data?.overallStatus, onComplete]);
