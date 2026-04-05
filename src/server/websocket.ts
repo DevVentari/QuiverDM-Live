@@ -608,3 +608,38 @@ export function broadcastPDFStatus(pdfId: string, status: string, data?: unknown
     timestamp: Date.now(),
   });
 }
+
+export function broadcastMultiTrackProgress(
+  uploadGroupId: string,
+  payload: { recordingId: string; completed: number; total: number; stage: string }
+) {
+  broadcastToJobSubscribers(uploadGroupId, {
+    type: 'multitrack:track_complete',
+    uploadGroupId,
+    ...payload,
+  });
+}
+
+export function broadcastMultiTrackComplete(
+  uploadGroupId: string,
+  transcriptId: string
+) {
+  broadcastToJobSubscribers(uploadGroupId, {
+    type: 'multitrack:complete',
+    uploadGroupId,
+    transcriptId,
+  });
+}
+
+export function broadcastMultiTrackError(
+  uploadGroupId: string,
+  error: string,
+  recordingId?: string
+) {
+  broadcastToJobSubscribers(uploadGroupId, {
+    type: 'multitrack:error',
+    uploadGroupId,
+    recordingId,
+    error,
+  });
+}
