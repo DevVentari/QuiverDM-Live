@@ -41,4 +41,19 @@ test.describe('RecapForge: Multi-Track Upload', () => {
   test.fixme('Merged transcript appears in session detail after all tracks complete', async ({ page }) => {
     // Full E2E: upload → worker → transcript visible in UI.
   });
+
+  test.fixme(
+    'speaker mapping step appears and saves to campaign after transcription completes',
+    async ({ page }) => {
+      // Phase 3 UI — requires worker + real R2 in E2E env
+      // Expected flow:
+      // 1. Multi-track upload completes (overallStatus = 'complete')
+      // 2. SpeakerMappingStep renders inline
+      // 3. DM selects character from dropdown for each speaker
+      // 4. Clicks "Save & Continue"
+      // 5. speakerMapping.upsert called per row
+      // 6. speakerMapping.applyToTranscript called
+      // 7. onComplete fires
+    }
+  );
 });

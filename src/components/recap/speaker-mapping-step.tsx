@@ -59,7 +59,7 @@ export function SpeakerMappingStep({
         };
       })
     );
-  }, [existingMappings, speakerLabels.join(',')]);
+  }, [existingMappings, speakerLabels]);
 
   const updateRow = (index: number, patch: Partial<MappingRow>) => {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, ...patch, error: undefined } : r)));
