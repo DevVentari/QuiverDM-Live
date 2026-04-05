@@ -23,7 +23,7 @@ export const multiTrackUploadRouter = router({
         fileName: z.string().min(1).max(255),
         fileSize: z.number().int().positive().max(MAX_FILE_SIZE),
         contentType: z.string(),
-        uploadGroupId: z.string().cuid(),
+        uploadGroupId: z.string().min(1).max(50),
         speakerTag: z.string().max(50).optional(),
       })
     )
@@ -82,7 +82,7 @@ export const multiTrackUploadRouter = router({
       z.object({
         campaignId: z.string(),
         sessionId: z.string(),
-        uploadGroupId: z.string().cuid(),
+        uploadGroupId: z.string().min(1).max(50),
       })
     )
     .mutation(async ({ input }) => {
@@ -121,7 +121,7 @@ export const multiTrackUploadRouter = router({
     .input(
       z.object({
         campaignId: z.string(),
-        uploadGroupId: z.string().cuid(),
+        uploadGroupId: z.string().min(1).max(50),
       })
     )
     .query(async ({ input }) => {
