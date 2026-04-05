@@ -47,6 +47,19 @@ export default function CampaignSettingsPage() {
     { campaignId },
     { enabled: isDM && foundryEnabled }
   );
+  const sourcebooks = trpc.campaignContext.getSourcebooks.useQuery(
+    { campaignId },
+    { enabled: isDM }
+  );
+  const seedMutation = trpc.campaignContext.seedFromSourcebook.useMutation({
+    onSuccess: (data, variables) => {
+      const book = sourcebooks.data?.find((s) => s.id === variables.sourcebookId);
+      toast({ title: `Seeded ${data.seeded} context records from ${book?.title ?? 'sourcebook'}` });
+    },
+    onError: (err) => {
+      toast({ title: 'Seeding failed', description: err.message, variant: 'destructive' });
+    },
+  });
 
   useEffect(() => {
     if (campaign.data) {
@@ -304,6 +317,41 @@ export default function CampaignSettingsPage() {
                 >
                   {updateSettings.isPending ? 'Saving...' : 'Save Integration Settings'}
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {isDM && (
+            <div className="stone-card">
+              <div className="stone-card-body space-y-3">
+                <Separator />
+                <div>
+                  <h3 className="text-sm font-medium text-white/80">Campaign Context</h3>
+                  <p className="text-xs text-white/40 mt-0.5">
+                    Seed AI context from synced sourcebooks to improve session summaries.
+                  </p>
+                </div>
+                {sourcebooks.data && sourcebooks.data.length === 0 && (
+                  <p className="text-xs text-white/30">No sourcebooks synced to this campaign.</p>
+                )}
+                <div className="flex flex-col gap-2">
+                  {sourcebooks.data?.map((book) => (
+                    <Button
+                      key={book.id}
+                      variant="outline"
+                      size="sm"
+                      className="self-start"
+                      disabled={seedMutation.isPending}
+                      onClick={() =>
+                        seedMutation.mutate({ campaignId, sourcebookId: book.id })
+                      }
+                    >
+                      {seedMutation.isPending && seedMutation.variables?.sourcebookId === book.id
+                        ? 'Seeding…'
+                        : `Seed context from ${book.title}`}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
