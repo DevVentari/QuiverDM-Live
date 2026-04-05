@@ -317,6 +317,11 @@ model Campaign {
   entityMergeRules         EntityMergeRule[]
   pressureHistory          WorldPressureHistory[]
 
+  // RecapForge
+  campaignContexts  CampaignContext[]
+  speakerMappings   SpeakerMapping[]
+  sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
