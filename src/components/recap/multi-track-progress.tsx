@@ -8,18 +8,20 @@ import { CheckCircle, XCircle, Loader2, Mic } from 'lucide-react';
 interface MultiTrackProgressProps {
   uploadGroupId: string;
   campaignId: string;
+  sessionId: string;
   onComplete: () => void;
 }
 
 export function MultiTrackProgress({
   uploadGroupId,
   campaignId,
+  sessionId,
   onComplete,
 }: MultiTrackProgressProps) {
   const calledRef = useRef(false);
 
   const { data } = trpc.multiTrackUpload.getStatus.useQuery(
-    { campaignId, uploadGroupId },
+    { campaignId, uploadGroupId, sessionId },
     {
       refetchInterval: (query) => {
         const status = (query.state.data as { overallStatus?: string } | undefined)?.overallStatus;

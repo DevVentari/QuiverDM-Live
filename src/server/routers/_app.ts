@@ -38,6 +38,7 @@ import { playRouter } from './play';
 import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
 import { multiTrackUploadRouter } from './multi-track-upload';
+import { speakerMappingRouter } from './speaker-mapping';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -49,6 +50,7 @@ export const appRouter = router({
   sessionTranscription: sessionTranscriptionRouter,
   sessionRecordings: sessionRecordingsRouter,
   multiTrackUpload: multiTrackUploadRouter,
+  speakerMapping: speakerMappingRouter,
   transcript: transcriptRouter,
   homebrew: homebrewRouter,
   homebrewDndBeyond: homebrewDndBeyondRouter,
