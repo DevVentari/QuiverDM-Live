@@ -106,8 +106,10 @@ async function processMultiTrack(
     throw new Error(`No recordings found for uploadGroupId ${uploadGroupId}`);
   }
 
-  // 2. Get word boost from campaign names (reuses existing helper)
-  const wordBoost = await getCampaignWordBoost(campaignId);
+  // 2. Get word boost from campaign names + per-file speaker tags (spec: "speakerTag passed as word boost")
+  const campaignWordBoost = await getCampaignWordBoost(campaignId);
+  const speakerTags = recordings.map((r) => r.speakerTag).filter((t): t is string => Boolean(t));
+  const wordBoost = [...new Set([...campaignWordBoost, ...speakerTags])];
 
   // 3. Mark all recordings as processing
   await prisma.sessionRecording.updateMany({
