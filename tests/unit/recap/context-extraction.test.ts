@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseExtractionResponse, buildContentStrings } from '../../../src/lib/recap/context-extraction-utils';
+import { parseExtractionResponse, buildContentStrings } from '@/lib/recap/context-extraction-utils';
 
 describe('parseExtractionResponse', () => {
   it('parses a valid JSON response', () => {
