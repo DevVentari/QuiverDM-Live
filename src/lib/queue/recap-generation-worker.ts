@@ -13,6 +13,7 @@ import { getRedisConnection } from './queue';
 import type { RecapGenerationJobData, RecapGenerationJobResult } from './recap-generation-queue';
 import { buildRecapPrompt, SECTION_SHAPES } from '../recap/recap-prompts';
 import { broadcastRecapComplete } from '../../server/websocket';
+import { RecapStatus } from '@prisma/client';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -26,7 +27,7 @@ async function processRecapGeneration(
 
   // 1. Idempotency guard
   const recap = await prisma.sessionRecap.findUnique({ where: { id: recapId } });
-  if (!recap || recap.status !== 'GENERATING') {
+  if (!recap || recap.status !== RecapStatus.GENERATING) {
     console.log(`[RecapWorker] Recap ${recapId} is not GENERATING — skipping`);
     return { success: true, recapId };
   }
@@ -86,7 +87,7 @@ async function processRecapGeneration(
     data: {
       sections: parsed.sections,
       rawContent,
-      status: 'AUTO_GENERATED',
+      status: RecapStatus.AUTO_GENERATED,
       modelUsed: 'claude-sonnet-4-6',
       tokensUsed,
       generationTimeMs,
