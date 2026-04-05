@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, Loader2, Mic } from 'lucide-react';
 interface MultiTrackProgressProps {
   uploadGroupId: string;
   campaignId: string;
-  onComplete: (transcriptId?: string) => void;
+  onComplete: () => void;
 }
 
 export function MultiTrackProgress({
