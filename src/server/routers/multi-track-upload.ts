@@ -124,6 +124,7 @@ export const multiTrackUploadRouter = router({
       z.object({
         campaignId: z.string(),
         uploadGroupId: z.string().min(1).max(50),
+        sessionId: z.string(),
       })
     )
     .query(async ({ input }) => {
@@ -152,6 +153,17 @@ export const multiTrackUploadRouter = router({
         : recordings.some((r) => r.mergeStatus === 'processing') ? 'processing'
         : 'pending';
 
-      return { recordings, total, done, failed, overallStatus };
+      // Resolve transcriptId once processing is complete
+      let transcriptId: string | null = null;
+      if (overallStatus === 'complete') {
+        const transcript = await prisma.transcript.findFirst({
+          where: { sessionId: input.sessionId },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true },
+        });
+        transcriptId = transcript?.id ?? null;
+      }
+
+      return { recordings, total, done, failed, overallStatus, transcriptId };
     }),
 });
