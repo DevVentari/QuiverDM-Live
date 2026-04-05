@@ -88,6 +88,12 @@ export const recapRouter = router({
       });
       if (!source) throw new NotFoundError('recap', input.recapId);
 
+      const session = await prisma.gameSession.findFirst({
+        where: { id: source.sessionId, campaignId: input.campaignId },
+        select: { id: true },
+      });
+      if (!session) throw new NotFoundError('session', source.sessionId);
+
       const transcript = await prisma.transcript.findFirst({
         where: { sessionId: source.sessionId },
         orderBy: { createdAt: 'desc' },
