@@ -1563,3 +1563,24 @@ model WorldPressureHistory {
 
   @@index([campaignId, recordedAt])
 }
+
+enum RecapStyle {
+  NARRATIVE
+  SESSION_LOG
+  BARDS_TALE
+  PREVIOUSLY_ON
+}
+
+enum RecapStatus {
+  GENERATING
+  AUTO_GENERATED
+  CLARIFICATION_PENDING
+  REVIEWED
+  QUICK_FIRE
+}
+
+enum ContextType {
+  CAMPAIGN_BRIEF
+  SESSION_EXTRACT
+  SOURCEBOOK_LABEL
+}
