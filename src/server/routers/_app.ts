@@ -39,6 +39,7 @@ import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
 import { multiTrackUploadRouter } from './multi-track-upload';
 import { speakerMappingRouter } from './speaker-mapping';
+import { campaignContextRouter } from './campaign-context';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -81,6 +82,7 @@ export const appRouter = router({
   play: playRouter,
   ddbSync: ddbSyncRouter,
   sourcebookScenes: sourcebookScenesRouter,
+  campaignContext: campaignContextRouter,
 });
 
 export type AppRouter = typeof appRouter;
