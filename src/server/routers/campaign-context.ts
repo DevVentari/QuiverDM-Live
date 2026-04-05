@@ -1,7 +1,6 @@
 import { router } from '../trpc';
 import { campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
-import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { generateEmbedding } from '@/lib/ai/embeddings';
 import { NotFoundError } from '../errors';
@@ -44,7 +43,7 @@ export const campaignContextRouter = router({
       const queryVector = await generateEmbedding(input.query);
       const vectorStr = `[${queryVector.join(',')}]`;
 
-      const results = await prisma.$queryRaw<
+      const results = await prisma.$queryRawUnsafe<
         Array<{
           id: string;
           content: string;
@@ -53,15 +52,16 @@ export const campaignContextRouter = router({
           similarity: number | string;
         }>
       >(
-        Prisma.sql`
-          SELECT id, content, type, "sessionId",
-                 1 - (embedding <=> ${vectorStr}::vector) AS similarity
-          FROM "CampaignContext"
-          WHERE "campaignId" = ${input.campaignId}
-            AND embedding IS NOT NULL
-          ORDER BY embedding <=> ${vectorStr}::vector
-          LIMIT ${input.limit}
-        `
+        `SELECT id, content, type, "sessionId",
+                1 - (embedding <=> $1::vector) AS similarity
+         FROM "CampaignContext"
+         WHERE "campaignId" = $2
+           AND embedding IS NOT NULL
+         ORDER BY embedding <=> $1::vector
+         LIMIT $3`,
+        vectorStr,
+        input.campaignId,
+        input.limit
       );
 
       return results.map((r) => ({
@@ -129,11 +129,10 @@ export const campaignContextRouter = router({
             vectorStr,
             record.id
           );
+          seeded++;
         } catch (err) {
           console.warn(`[campaignContext.seedFromSourcebook] Embedding failed for "${content}":`, err);
         }
-
-        seeded++;
       }
 
       return { seeded };
