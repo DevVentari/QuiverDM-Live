@@ -46,8 +46,9 @@ npx tsx src/lib/queue/ddb-chapter-extract-worker.ts &
 npx tsx src/lib/queue/ddb-sync-review-worker.ts &
 npx tsx src/lib/queue/world-simulation-worker.ts &
 npx tsx src/lib/queue/context-extraction-worker.ts &
+npx tsx src/lib/queue/recap-generation-worker.ts &
 
-echo "[Workers] All 18 workers launched"
+echo "[Workers] All 19 workers launched"
 
 wait -n
 echo "[Workers] A worker process exited, shutting down..."
