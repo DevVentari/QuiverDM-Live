@@ -22,8 +22,8 @@ export const multiTrackQueue = new Queue<MultiTrackJobData, MultiTrackJobResult>
   {
     connection: getRedisConnection() as any,
     defaultJobOptions: {
-      attempts: 2,
-      backoff: { type: 'exponential', delay: 15000 },
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 30000 },
       removeOnComplete: { age: 24 * 3600, count: 200 },
       removeOnFail: { age: 7 * 24 * 3600 },
     },
