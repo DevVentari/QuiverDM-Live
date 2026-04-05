@@ -477,6 +477,9 @@ model Character {
   homebrewSpells CharacterSpell[]
   homebrewFeats  CharacterFeat[]
 
+  // RecapForge — speaker attribution
+  speakerMappings SpeakerMapping[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
