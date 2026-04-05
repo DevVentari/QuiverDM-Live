@@ -131,7 +131,7 @@ export function MultiTrackDropzone({
           }
           if (!res.ok) throw new Error(`Upload failed for ${entry.file.name}`);
           setEntries((prev) =>
-            prev.map((e, idx) => (idx === i ? { ...e, status: 'done' } : e))
+            prev.map((e) => (e.recordingId === entry.recordingId ? { ...e, status: 'done' } : e))
           );
         })
       );
