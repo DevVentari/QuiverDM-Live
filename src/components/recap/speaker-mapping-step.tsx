@@ -59,7 +59,7 @@ export function SpeakerMappingStep({
         };
       })
     );
-  }, [existingMappings, speakerLabels]);
+  }, [existingMappings, speakerLabels.join(',')]);
 
   const updateRow = (index: number, patch: Partial<MappingRow>) => {
     setRows((prev) => prev.map((r, i) => (i === index ? { ...r, ...patch, error: undefined } : r)));
@@ -99,6 +99,7 @@ export function SpeakerMappingStep({
       console.error('[SpeakerMappingStep] applyToTranscript failed:', err);
     }
 
+    setSaving(false);
     onComplete();
   };
 
