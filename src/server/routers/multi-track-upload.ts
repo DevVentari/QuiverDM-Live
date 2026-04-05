@@ -87,7 +87,7 @@ export const multiTrackUploadRouter = router({
     )
     .mutation(async ({ input }) => {
       const recordings = await prisma.sessionRecording.findMany({
-        where: { uploadGroupId: input.uploadGroupId },
+        where: { uploadGroupId: input.uploadGroupId, sessionId: input.sessionId },
         select: { id: true, mergeStatus: true },
       });
 
@@ -126,7 +126,10 @@ export const multiTrackUploadRouter = router({
     )
     .query(async ({ input }) => {
       const recordings = await prisma.sessionRecording.findMany({
-        where: { uploadGroupId: input.uploadGroupId },
+        where: {
+          uploadGroupId: input.uploadGroupId,
+          session: { campaignId: input.campaignId },
+        },
         select: {
           id: true,
           mergeStatus: true,

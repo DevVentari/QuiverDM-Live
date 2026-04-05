@@ -155,7 +155,7 @@ export function MultiTrackDropzone({
         <p className="text-sm text-white/60">
           Drop audio files here, or click to select
         </p>
-        <p className="mt-1 text-xs text-white/30">MP3, WAV, OGG, FLAC, M4A — up to 500MB each</p>
+        <p className="mt-1 text-xs text-white/30">MP3, WAV, OGG, FLAC, M4A, WEBM, AAC — up to 500MB each</p>
       </div>
 
       {entries.length > 0 && (
