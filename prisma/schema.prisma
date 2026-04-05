@@ -902,7 +902,7 @@ model Transcript {
   languageProbability Float?
   durationSeconds     Float?
   hasSpeakers         Boolean           @default(false)
-  source              String            @default("upload") // 'upload' | 'live' | 'web_speech'
+  source              String            @default("upload") // 'upload' | 'live' | 'web_speech' | 'multi_track'
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
 
