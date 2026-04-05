@@ -871,16 +871,19 @@ model SessionRecording {
   originalDeleted   Boolean      @default(false) // true if original video was deleted after transcription
   transcripts       Transcript[]
 
-  // RecapForge — Craig multi-track support
-  isCraigMultiTrack Boolean      @default(false)
-  craigTrackFiles   Json?        // [{ filename, discordUsername, r2Key, duration }]
-  craigMergeStatus  String  @default("none")  // "none" | "pending" | "processing" | "complete" | "failed"
+  // RecapForge — Multi-track audio support
+  isMultiTrack  Boolean      @default(false)
+  trackFiles    Json?        // [{ filename, r2Key, speakerTag?, durationSeconds? }]
+  mergeStatus   String       @default("none")  // "none" | "pending" | "processing" | "complete" | "failed"
+  uploadGroupId String?      // shared across all files uploaded in one batch
+  speakerTag    String?      // optional speaker label for this file (AI attribution hint)
 
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([sessionId])
   @@index([processingStatus])
+  @@index([uploadGroupId])
 }
 
 model Transcript {
