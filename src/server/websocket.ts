@@ -643,3 +643,11 @@ export function broadcastMultiTrackError(
     error,
   });
 }
+
+export function broadcastRecapComplete(sessionId: string, recapId: string) {
+  broadcastToJobSubscribers(sessionId, {
+    type: 'recap:complete',
+    sessionId,
+    recapId,
+  });
+}
