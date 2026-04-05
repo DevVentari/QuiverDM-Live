@@ -123,8 +123,8 @@ async function processMultiTrack(
   for (let i = 0; i < recordings.length; i += 3) {
     const batch = recordings.slice(i, i + 3);
     const results = await Promise.all(
-      batch.map(async (rec) => {
-        const speakerLabel = rec.speakerTag || `Speaker ${recordings.indexOf(rec)}`;
+      batch.map(async (rec, j) => {
+        const speakerLabel = rec.speakerTag || `Speaker ${i + j}`;
         try {
           const { words } = await transcribeTrack(
             { id: rec.id, originalUrl: rec.originalUrl, speakerTag: rec.speakerTag },
