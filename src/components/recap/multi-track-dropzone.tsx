@@ -172,7 +172,7 @@ export function MultiTrackDropzone({
         <div className="space-y-2">
           {entries.map((entry, i) => (
             <div
-              key={i}
+              key={entry.recordingId ?? `${entry.file.name}-${entry.file.size}`}
               className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 px-3 py-2"
             >
               <Mic className="h-4 w-4 shrink-0 text-amber-500/60" />
