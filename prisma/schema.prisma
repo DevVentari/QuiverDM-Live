@@ -1615,21 +1615,20 @@ model CampaignContext {
   sessionId  String?
   session    GameSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
 
-  type       ContextType // CAMPAIGN_BRIEF | SESSION_EXTRACT | SOURCEBOOK_LABEL
+  type       ContextType
   content    String      @db.Text
 
-  // pgvector embedding for semantic search (1536 dimensions — OpenAI ada-002 compatible)
-  embedding  Unsupported("vector(1536)")?
+  embedding  Unsupported("vector(768)")?
 
-  // Structured extraction fields (populated for SESSION_EXTRACT type)
-  keyEvents    Json? // ["Event description", ...]
-  npcsInvolved Json? // ["NPC Name", ...]
-  decisions    Json? // ["Decision made", ...]
-  lootGained   Json? // ["Item name", ...]
+  keyEvents    Json?
+  npcsInvolved Json?
+  decisions    Json?
+  lootGained   Json?
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  @@unique([campaignId, type, content])
   @@index([campaignId, type])
   @@index([campaignId, createdAt(sort: Desc)])
   @@index([sessionId])
