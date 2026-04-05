@@ -37,6 +37,7 @@ import { brainRouter } from './brain';
 import { playRouter } from './play';
 import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
+import { multiTrackUploadRouter } from './multi-track-upload';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -47,6 +48,7 @@ export const appRouter = router({
   charactersDndBeyond: charactersDndBeyondRouter,
   sessionTranscription: sessionTranscriptionRouter,
   sessionRecordings: sessionRecordingsRouter,
+  multiTrackUpload: multiTrackUploadRouter,
   transcript: transcriptRouter,
   homebrew: homebrewRouter,
   homebrewDndBeyond: homebrewDndBeyondRouter,
