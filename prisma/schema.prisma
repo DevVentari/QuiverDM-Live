@@ -866,6 +866,12 @@ model SessionRecording {
   errorMessage      String?      @db.Text
   originalDeleted   Boolean      @default(false) // true if original video was deleted after transcription
   transcripts       Transcript[]
+
+  // RecapForge — Craig multi-track support
+  isCraigMultiTrack Boolean      @default(false)
+  craigTrackFiles   Json?        // [{ filename, discordUsername, r2Key, duration }]
+  craigMergeStatus  String?      // "pending" | "processing" | "complete" | "failed"
+
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
 
