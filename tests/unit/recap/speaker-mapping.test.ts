@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { applyMappingsToTranscriptData } from '../../../src/lib/recap/speaker-mapping-utils';
-
-type SpeakerEntry = { id: string; name: string; segments: number };
-type TimestampEntry = { start: number; end: number; text: string; speaker: string };
+import { applyMappingsToTranscriptData, type SpeakerEntry, type TimestampEntry } from '../../../src/lib/recap/speaker-mapping-utils';
 
 const speakers: SpeakerEntry[] = [
   { id: 'S0', name: 'Speaker 0', segments: 3 },
