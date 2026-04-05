@@ -32,6 +32,7 @@ export function parseExtractionResponse(raw: string): TranscriptExtract | null {
 }
 
 export function buildContentStrings(extract: TranscriptExtract): string[] {
+  const seen = new Set<string>();
   return [
     ...extract.keyEvents,
     ...extract.npcsInvolved,
@@ -39,5 +40,5 @@ export function buildContentStrings(extract: TranscriptExtract): string[] {
     ...extract.lootGained,
   ]
     .map((s) => s.trim().slice(0, 500))
-    .filter((s) => s.length > 0);
+    .filter((s) => s.length > 0 && !seen.has(s) && seen.add(s) !== undefined);
 }

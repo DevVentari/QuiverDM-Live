@@ -87,6 +87,7 @@ async function processContextExtraction(
           lootGained: extract.lootGained,
         },
       });
+      chunksWritten++;
     } catch (err) {
       console.warn(`[ContextExtractionWorker] Upsert failed for content "${content.slice(0, 50)}...":`, err);
       continue;
@@ -103,8 +104,6 @@ async function processContextExtraction(
     } catch (err) {
       console.warn(`[ContextExtractionWorker] Embedding failed for "${content.slice(0, 50)}...":`, err);
     }
-
-    chunksWritten++;
   }
 
   console.log(`[ContextExtractionWorker] Done — ${chunksWritten} chunks written for transcript ${transcriptId}`);
