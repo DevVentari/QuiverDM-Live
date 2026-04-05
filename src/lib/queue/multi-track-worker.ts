@@ -9,7 +9,7 @@
 
 import 'dotenv/config';
 import { Worker, Job } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../prisma';
 import { getRedisConnection } from './queue';
 import type { MultiTrackJobData, MultiTrackJobResult } from './multi-track-queue';
 import {
@@ -25,8 +25,6 @@ import {
   broadcastMultiTrackComplete,
   broadcastMultiTrackError,
 } from '../../server/websocket';
-
-const prisma = new PrismaClient();
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -68,8 +66,10 @@ async function transcribeTrack(
     attempts++;
   }
 
-  if (status.status === 'error') {
-    throw new Error(`AssemblyAI transcription failed for recording ${recording.id}`);
+  if (status.status !== 'completed') {
+    throw new Error(
+      `AssemblyAI transcription timed out or failed for recording ${recording.id} (status: ${status.status})`
+    );
   }
 
   const result = await getAsyncResult(assemblyaiId);
