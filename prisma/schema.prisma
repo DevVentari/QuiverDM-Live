@@ -319,6 +319,7 @@ model Campaign {
 
   // RecapForge
   campaignContexts  CampaignContext[]
+  recaps            SessionRecap[]
   speakerMappings   SpeakerMapping[]
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
 
@@ -873,7 +874,7 @@ model SessionRecording {
   // RecapForge — Craig multi-track support
   isCraigMultiTrack Boolean      @default(false)
   craigTrackFiles   Json?        // [{ filename, discordUsername, r2Key, duration }]
-  craigMergeStatus  String?      // "pending" | "processing" | "complete" | "failed"
+  craigMergeStatus  String  @default("none")  // "none" | "pending" | "processing" | "complete" | "failed"
 
   createdAt         DateTime     @default(now())
   updatedAt         DateTime     @updatedAt
@@ -1626,7 +1627,8 @@ model CampaignContext {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@index([campaignId])
+  @@index([campaignId, type])
+  @@index([campaignId, createdAt(sort: Desc)])
   @@index([sessionId])
 }
 
@@ -1648,6 +1650,7 @@ model ClarificationQA {
 
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([recapId])
 }
@@ -1657,6 +1660,8 @@ model SessionRecap {
   id        String      @id @default(cuid())
   sessionId String
   session   GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  campaignId String
+  campaign   Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   style  RecapStyle
   status RecapStatus @default(AUTO_GENERATED)
@@ -1671,8 +1676,8 @@ model SessionRecap {
   discordThreadMode Boolean  @default(false)
 
   // Generation provenance
-  promptVersion    String
-  modelUsed        String
+  promptVersion    String?
+  modelUsed        String?
   tokensUsed       Int?
   generationTimeMs Int?
 
@@ -1692,7 +1697,7 @@ model SessionRecap {
   updatedAt DateTime @updatedAt
 
   @@index([sessionId])
-  @@index([status])
+  @@index([campaignId, status])
 }
 
 enum RecapStyle {
