@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, Loader2, Mic } from 'lucide-react';
+import { SpeakerMappingStep } from './speaker-mapping-step';
 
 interface MultiTrackProgressProps {
   uploadGroupId: string;
@@ -18,7 +19,7 @@ export function MultiTrackProgress({
   sessionId,
   onComplete,
 }: MultiTrackProgressProps) {
-  const calledRef = useRef(false);
+  const [showMapping, setShowMapping] = useState(false);
 
   const { data } = trpc.multiTrackUpload.getStatus.useQuery(
     { campaignId, uploadGroupId, sessionId },
@@ -31,11 +32,26 @@ export function MultiTrackProgress({
   );
 
   useEffect(() => {
-    if (data?.overallStatus === 'complete' && !calledRef.current) {
-      calledRef.current = true;
-      onComplete();
+    if (data?.overallStatus === 'complete' && !showMapping) {
+      setShowMapping(true);
     }
-  }, [data?.overallStatus, onComplete]);
+  }, [data?.overallStatus, showMapping]);
+
+  // Transition to speaker mapping once complete
+  if (showMapping && data && data.transcriptId) {
+    const speakerLabels = (
+      data.recordings as Array<{ speakerTag?: string | null }>
+    ).map((r, i) => r.speakerTag ?? `Track ${i + 1}`);
+
+    return (
+      <SpeakerMappingStep
+        campaignId={campaignId}
+        transcriptId={data.transcriptId}
+        speakerLabels={speakerLabels}
+        onComplete={onComplete}
+      />
+    );
+  }
 
   if (!data) {
     return (
@@ -66,11 +82,14 @@ export function MultiTrackProgress({
       </div>
 
       <div className="space-y-1">
-        {(data.recordings as Array<{ id: string; mergeStatus: string; speakerTag?: string | null }>).map((rec, i) => (
-          <div
-            key={rec.id}
-            className="flex items-center gap-2 text-sm text-white/60"
-          >
+        {(
+          data.recordings as Array<{
+            id: string;
+            mergeStatus: string;
+            speakerTag?: string | null;
+          }>
+        ).map((rec, i) => (
+          <div key={rec.id} className="flex items-center gap-2 text-sm text-white/60">
             {rec.mergeStatus === 'complete' ? (
               <CheckCircle className="h-4 w-4 text-green-500" />
             ) : rec.mergeStatus === 'failed' ? (
@@ -80,10 +99,8 @@ export function MultiTrackProgress({
             ) : (
               <Mic className="h-4 w-4 text-white/20" />
             )}
-            <span className="flex-1 truncate">
-              {rec.speakerTag ?? `Track ${i + 1}`}
-            </span>
-            <span className="text-xs text-white/30 capitalize">{rec.mergeStatus}</span>
+            <span className="flex-1 truncate">{rec.speakerTag ?? `Track ${i + 1}`}</span>
+            <span className="text-xs capitalize text-white/30">{rec.mergeStatus}</span>
           </div>
         ))}
       </div>
