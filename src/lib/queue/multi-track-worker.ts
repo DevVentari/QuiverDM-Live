@@ -26,6 +26,7 @@ import {
   broadcastMultiTrackError,
 } from '../../server/websocket';
 import { applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
+import { contextExtractionQueue } from './context-extraction-queue';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -209,6 +210,16 @@ async function processMultiTrack(
 
   // 8. Broadcast completion
   broadcastMultiTrackComplete(uploadGroupId, transcript.id);
+
+  try {
+    await contextExtractionQueue.add('extract', {
+      transcriptId: transcript.id,
+      sessionId,
+      campaignId,
+    });
+  } catch (err) {
+    console.warn('[MultiTrackWorker] Failed to enqueue context extraction (non-fatal):', err);
+  }
 
   console.log(`[MultiTrackWorker] Done — transcript ${transcript.id}`);
 
