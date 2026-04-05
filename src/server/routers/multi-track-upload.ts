@@ -44,10 +44,12 @@ export const multiTrackUploadRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Session not found' });
       }
 
-      const r2Key = `session-recordings/${input.sessionId}/${input.uploadGroupId}/${Date.now()}-${input.fileName}`;
+      const suffix = Math.random().toString(36).slice(2, 8);
+      const r2Key = `session-recordings/${input.sessionId}/${input.uploadGroupId}/${Date.now()}-${suffix}-${input.fileName}`;
 
+      const isLocalMode = getStorageMode() !== 'r2';
       let uploadUrl: string;
-      if (getStorageMode() === 'r2') {
+      if (!isLocalMode) {
         uploadUrl = await getPresignedUploadUrl(r2Key, input.contentType, 3600);
       } else {
         uploadUrl = `/api/recordings/upload`;
@@ -74,7 +76,7 @@ export const multiTrackUploadRouter = router({
         },
       });
 
-      return { uploadUrl, r2Key, recordingId: recording.id };
+      return { uploadUrl, r2Key, recordingId: recording.id, isLocalMode };
     }),
 
   process: campaignDMProcedure
