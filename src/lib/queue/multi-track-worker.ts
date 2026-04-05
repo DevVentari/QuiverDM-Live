@@ -25,6 +25,7 @@ import {
   broadcastMultiTrackComplete,
   broadcastMultiTrackError,
 } from '../../server/websocket';
+import { applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -111,6 +112,18 @@ async function processMultiTrack(
   const speakerTags = recordings.map((r) => r.speakerTag).filter((t): t is string => Boolean(t));
   const wordBoost = [...new Set([...campaignWordBoost, ...speakerTags])];
 
+  // Fetch existing speaker mappings — best-effort, never blocks transcription
+  let mappingLookup = new Map<string, string>();
+  try {
+    const existingMappings = await prisma.speakerMapping.findMany({
+      where: { campaignId },
+      select: { speakerLabel: true, characterName: true },
+    });
+    mappingLookup = new Map(existingMappings.map((m) => [m.speakerLabel, m.characterName]));
+  } catch (err) {
+    console.warn('[MultiTrackWorker] Failed to load speaker mappings, continuing without:', err);
+  }
+
   // 3. Mark all recordings as processing
   await prisma.sessionRecording.updateMany({
     where: { uploadGroupId },
@@ -154,11 +167,23 @@ async function processMultiTrack(
   const rawText = segmentsToText(segments);
 
   const uniqueSpeakers = [...new Set(tracks.map((t) => t.speakerTag))];
-  const speakersJson = uniqueSpeakers.map((name, i) => ({
+  const rawSpeakers = uniqueSpeakers.map((name, i) => ({
     id: `S${i}`,
     name,
     segments: segments.filter((s) => s.speaker === name).length,
   }));
+  const rawTimestamps = segments.map((s) => ({
+    start: s.start,
+    end: s.end,
+    text: s.text,
+    speaker: s.speaker,
+  }));
+
+  const { speakers: speakersJson, timestamps: resolvedTimestamps } = applyMappingsToTranscriptData(
+    rawSpeakers,
+    rawTimestamps,
+    mappingLookup
+  );
 
   // 6. Write Transcript record
   const transcript = await prisma.transcript.create({
@@ -167,12 +192,7 @@ async function processMultiTrack(
       rawText,
       correctedText: rawText,
       speakers: speakersJson,
-      timestamps: segments.map((s) => ({
-        start: s.start,
-        end: s.end,
-        text: s.text,
-        speaker: s.speaker,
-      })),
+      timestamps: resolvedTimestamps,
       hasSpeakers: true,
       durationSeconds:
         segments.length > 0
