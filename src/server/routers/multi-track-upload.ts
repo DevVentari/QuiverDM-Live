@@ -157,7 +157,7 @@ export const multiTrackUploadRouter = router({
       let transcriptId: string | null = null;
       if (overallStatus === 'complete') {
         const transcript = await prisma.transcript.findFirst({
-          where: { sessionId: input.sessionId },
+          where: { sessionId: input.sessionId, session: { campaignId: input.campaignId } },
           orderBy: { createdAt: 'desc' },
           select: { id: true },
         });
