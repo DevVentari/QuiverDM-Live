@@ -42,13 +42,12 @@ export function VideoBackground() {
         loop
         playsInline
         preload="none"
-        poster="/video/dungeon-bg-poster.jpg"
         onCanPlay={() => setVisible(true)}
         className="absolute inset-0 h-full w-full object-cover"
         style={{ filter: 'brightness(0.32) saturate(0.75)' }}
       >
-        <source src="/video/dungeon-bg.webm" type="video/webm" />
-        <source src="/video/dungeon-bg.mp4" type="video/mp4" />
+        <source src="/video/login-bg.webm" type="video/webm" />
+        <source src="/video/login-bg.mp4" type="video/mp4" />
       </video>
       {/* Readability overlay — darkens bottom and top edges */}
       <div
