@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
@@ -105,6 +105,16 @@ export default function RecapPage() {
       (s) => s.key in localSections && localSections[s.key] !== s.content
     ) ?? false;
 
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
   const effectiveSections = sections?.map((s) => ({
     ...s,
     content: s.key in localSections ? localSections[s.key]! : s.content,
@@ -169,6 +179,53 @@ export default function RecapPage() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0 mt-1">
+            {activeRecap &&
+              ['AUTO_GENERATED', 'REVIEWED', 'QUICK_FIRE'].includes(activeRecap.status as string) && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1.5 text-xs"
+                  style={
+                    activeRecap.status === 'REVIEWED'
+                      ? { borderColor: 'hsl(35 60% 35%)', color: 'hsl(35 70% 58%)' }
+                      : {}
+                  }
+                  onClick={() =>
+                    updateSectionsMutation.mutate({
+                      campaignId,
+                      recapId: activeRecap.id as string,
+                      sections: effectiveSections ?? [],
+                      status: 'REVIEWED',
+                    })
+                  }
+                  disabled={updateSectionsMutation.isPending}
+                >
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 gap-1.5 text-xs"
+                  style={
+                    activeRecap.status === 'QUICK_FIRE'
+                      ? { borderColor: 'hsl(50 80% 40%)', color: 'hsl(50 80% 62%)' }
+                      : {}
+                  }
+                  onClick={() =>
+                    updateSectionsMutation.mutate({
+                      campaignId,
+                      recapId: activeRecap.id as string,
+                      sections: effectiveSections ?? [],
+                      status: 'QUICK_FIRE',
+                    })
+                  }
+                  disabled={updateSectionsMutation.isPending}
+                >
+                  Quick-fire
+                </Button>
+              </>
+            )}
             {activeRecap?.status === 'AUTO_GENERATED' && (
               <>
                 <Button
