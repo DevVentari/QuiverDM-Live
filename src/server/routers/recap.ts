@@ -244,7 +244,8 @@ export const recapRouter = router({
 
       const sessionTitle =
         recap.session.title ?? `Session ${recap.session.sessionNumber}`;
-      const sections = recap.sections as Array<{ key: string; title: string; content: string }>;
+      const sections = (recap.sections as Array<{ key: string; title: string; content: string }>)
+        .filter((s) => s.title && s.content);
 
       await postRecapToChannel({
         channelId: campaign.discordRecapChannelId,
