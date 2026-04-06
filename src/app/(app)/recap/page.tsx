@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
-import { ScrollText } from 'lucide-react';
+import { ScrollText, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import type { RecapStatus } from '@prisma/client';
@@ -72,19 +73,26 @@ export default function RecapDashboardPage() {
   return (
     <div className="px-6 py-8 space-y-6 max-w-4xl">
       {/* Header */}
-      <div>
-        <span
-          className="text-[10px] uppercase tracking-widest font-semibold"
-          style={{ color: 'hsl(35 80% 48%)' }}
-        >
-          Recaps
-        </span>
-        <h1
-          className="font-display text-2xl font-bold mt-0.5"
-          style={{ color: 'hsl(35 20% 90%)' }}
-        >
-          All Campaigns
-        </h1>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span
+            className="text-[10px] uppercase tracking-widest font-semibold"
+            style={{ color: 'hsl(35 80% 48%)' }}
+          >
+            Recaps
+          </span>
+          <h1
+            className="font-display text-2xl font-bold mt-0.5"
+            style={{ color: 'hsl(35 20% 90%)' }}
+          >
+            All Campaigns
+          </h1>
+        </div>
+        <Link href="/recap/upload">
+          <Button size="sm" className="h-8 gap-1.5 text-xs mt-1">
+            <Upload className="h-3 w-3" /> New Upload
+          </Button>
+        </Link>
       </div>
 
       {/* Amber rule */}
