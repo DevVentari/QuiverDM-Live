@@ -7,6 +7,7 @@ import { NotFoundError } from '../errors';
 import Anthropic from '@anthropic-ai/sdk';
 import { buildSectionRegenPrompt } from '@/lib/recap/recap-section-prompts';
 import type { RecapStyleKey } from '@/lib/recap/recap-prompts';
+import { postRecapToChannel } from '@/lib/discord/bot';
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -196,6 +197,62 @@ export const recapRouter = router({
         response.content[0]?.type === 'text' ? response.content[0].text.trim() : '';
       if (!content) throw new Error('Anthropic returned empty content');
       return { content };
+    }),
+
+  linkDiscordChannel: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+        guildId: z.string().min(1),
+        channelId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await prisma.campaign.update({
+        where: { id: input.campaignId },
+        data: {
+          discordGuildId: input.guildId,
+          discordRecapChannelId: input.channelId,
+        },
+      });
+      return { ok: true };
+    }),
+
+  shareToDiscord: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+        recapId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const [recap, campaign] = await Promise.all([
+        prisma.sessionRecap.findFirst({
+          where: { id: input.recapId, campaignId: input.campaignId },
+          include: { session: { select: { title: true, sessionNumber: true } } },
+        }),
+        prisma.campaign.findUnique({
+          where: { id: input.campaignId },
+          select: { discordRecapChannelId: true, discordGuildId: true },
+        }),
+      ]);
+
+      if (!recap) throw new NotFoundError('recap', input.recapId);
+      if (!campaign?.discordRecapChannelId) {
+        throw new Error('NO_CHANNEL_LINKED');
+      }
+
+      const sessionTitle =
+        recap.session.title ?? `Session ${recap.session.sessionNumber}`;
+      const sections = recap.sections as Array<{ key: string; title: string; content: string }>;
+
+      await postRecapToChannel({
+        channelId: campaign.discordRecapChannelId,
+        sessionTitle,
+        sections,
+      });
+
+      return { ok: true };
     }),
 
   updateSections: campaignDMProcedure
