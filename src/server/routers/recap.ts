@@ -226,7 +226,7 @@ export const recapRouter = router({
         data: {
           sections: input.sections,
           rawContent,
-          status: input.status as RecapStatus,
+          status: RecapStatus[input.status],
         },
       });
     }),
