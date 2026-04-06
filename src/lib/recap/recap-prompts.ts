@@ -24,7 +24,7 @@ export type RecapStyleKey = keyof typeof SECTION_SHAPES;
 const SYSTEM_PROMPT =
   'You are an expert D&D session recorder. Respond ONLY with valid JSON — no prose, no markdown fencing, no explanation.';
 
-const STYLE_INSTRUCTIONS: Record<RecapStyleKey, string> = {
+export const STYLE_INSTRUCTIONS: Record<RecapStyleKey, string> = {
   NARRATIVE:
     'Write a dramatic third-person narrative (~150 words per section) that reads like a novel excerpt.',
   SESSION_LOG:
