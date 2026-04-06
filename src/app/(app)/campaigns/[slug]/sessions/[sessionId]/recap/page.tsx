@@ -30,6 +30,8 @@ export default function RecapPage() {
   const [copied, setCopied] = useState(false);
   const [localSections, setLocalSections] = useState<Record<string, string>>({});
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [regenKey, setRegenKey] = useState<string | null>(null);
+  const [regenNote, setRegenNote] = useState('');
 
   const { data: session } = trpc.sessions.getById.useQuery(
     { id: sessionId },
@@ -54,6 +56,20 @@ export default function RecapPage() {
   const regenerateMutation = trpc.recap.regenerate.useMutation({
     onSuccess: () => void utils.recap.getBySession.invalidate({ campaignId, sessionId }),
     onError: (e) => toast({ title: 'Regeneration failed', description: e.message, variant: 'destructive' }),
+  });
+
+  const regenSectionMutation = trpc.recap.regenSection.useMutation({
+    onSuccess: (data) => {
+      if (regenKey) {
+        setLocalSections((prev) => ({ ...prev, [regenKey]: data.content }));
+      }
+      setRegenKey(null);
+      setRegenNote('');
+    },
+    onError: (e) => {
+      setRegenKey(null);
+      toast({ title: 'Regen failed', description: e.message, variant: 'destructive' });
+    },
   });
 
   const updateSectionsMutation = trpc.recap.updateSections.useMutation({
@@ -326,15 +342,50 @@ export default function RecapPage() {
                 </div>
                 <div className="px-6 py-5">
                   {isEditing ? (
-                    <textarea
-                      autoFocus
-                      value={section.content}
-                      onChange={(e) =>
-                        setLocalSections((prev) => ({ ...prev, [section.key]: e.target.value }))
-                      }
-                      className="w-full min-h-[120px] bg-transparent text-sm leading-relaxed resize-y outline-none"
-                      style={{ color: 'hsl(35 15% 72%)', border: '1px solid hsl(35 30% 22%)', borderRadius: 2, padding: '8px 10px' }}
-                    />
+                    <>
+                      <textarea
+                        autoFocus
+                        value={section.content}
+                        onChange={(e) =>
+                          setLocalSections((prev) => ({ ...prev, [section.key]: e.target.value }))
+                        }
+                        className="w-full min-h-[120px] bg-transparent text-sm leading-relaxed resize-y outline-none"
+                        style={{ color: 'hsl(35 15% 72%)', border: '1px solid hsl(35 30% 22%)', borderRadius: 2, padding: '8px 10px' }}
+                      />
+                      <div className="mt-3 flex gap-2 items-start">
+                        <input
+                          type="text"
+                          placeholder="DM note for regen (optional)"
+                          value={regenKey === section.key ? regenNote : ''}
+                          onChange={(e) => {
+                            setRegenKey(section.key);
+                            setRegenNote(e.target.value);
+                          }}
+                          className="flex-1 bg-transparent text-xs outline-none px-2 py-1.5 rounded-sm"
+                          style={{ border: '1px solid hsl(35 20% 20%)', color: 'hsl(35 10% 55%)' }}
+                        />
+                        <button
+                          onClick={() => {
+                            setRegenKey(section.key);
+                            regenSectionMutation.mutate({
+                              campaignId,
+                              recapId: activeRecap!.id as string,
+                              sectionKey: section.key,
+                              dmNote: regenNote || undefined,
+                            });
+                          }}
+                          disabled={regenSectionMutation.isPending && regenKey === section.key}
+                          className="text-xs px-3 py-1.5 rounded-sm transition-opacity disabled:opacity-40"
+                          style={{ background: 'hsl(35 50% 16%)', border: '1px solid hsl(35 40% 24%)', color: 'hsl(35 70% 58%)' }}
+                        >
+                          {regenSectionMutation.isPending && regenKey === section.key ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            'Regen'
+                          )}
+                        </button>
+                      </div>
+                    </>
                   ) : (
                     <p
                       className="text-sm leading-relaxed whitespace-pre-wrap cursor-text"
