@@ -42,6 +42,8 @@ export default function CampaignSettingsPage() {
   const [latestApiKey, setLatestApiKey] = useState<string | null>(null);
   const [sourcebook, setSourcebook] = useState('');
   const [discordWebhookUrl, setDiscordWebhookUrl] = useState('');
+  const [discordGuildId, setDiscordGuildId] = useState('');
+  const [discordChannelId, setDiscordChannelId] = useState('');
   const foundryEnabled = process.env.NEXT_PUBLIC_FOUNDRY_BRIDGE_ENABLED === 'true';
   const importJobsQuery = (trpc as any).foundry.getImportJobs.useQuery(
     { campaignId },
@@ -71,6 +73,8 @@ export default function CampaignSettingsPage() {
       const settings = (data.settings ?? {}) as Record<string, unknown>;
       setSourcebook((settings.sourcebook as string) || '');
       setDiscordWebhookUrl((settings.discordWebhookUrl as string) || '');
+      setDiscordGuildId((data.discordGuildId as string) || '');
+      setDiscordChannelId((data.discordRecapChannelId as string) || '');
     }
   }, [campaign.data]);
 
@@ -83,6 +87,14 @@ export default function CampaignSettingsPage() {
     onError: (error) => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
+  });
+
+  const linkDiscordMutation = trpc.recap.linkDiscordChannel.useMutation({
+    onSuccess: () => {
+      toast({ title: 'Discord channel linked' });
+      utils.campaigns.getById.invalidate({ id: campaignId });
+    },
+    onError: (e) => toast({ title: 'Link failed', description: e.message, variant: 'destructive' }),
   });
 
   const deleteCampaign = trpc.campaigns.delete.useMutation({
@@ -317,6 +329,71 @@ export default function CampaignSettingsPage() {
                 >
                   {updateSettings.isPending ? 'Saving...' : 'Save Integration Settings'}
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {isDM && (
+            <div className="stone-card">
+              <div className="stone-card-body space-y-4">
+                <Separator className="my-6" />
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold" style={{ color: 'hsl(35 20% 78%)' }}>
+                      Discord Integration
+                    </h3>
+                    <p className="text-xs mt-1" style={{ color: 'hsl(35 5% 42%)' }}>
+                      Link a Discord channel to share session recaps via the QuiverDM bot.
+                      Add the bot to your server first, then paste the channel and server IDs below.
+                    </p>
+                  </div>
+
+                  {(discordGuildId || discordChannelId) && (
+                    <p className="text-xs" style={{ color: 'hsl(35 50% 52%)' }}>
+                      Currently linked — channel ID: {discordChannelId || '—'}
+                    </p>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Discord Server (Guild) ID</Label>
+                      <Input
+                        value={discordGuildId}
+                        onChange={(e) => setDiscordGuildId(e.target.value)}
+                        placeholder="1234567890123456789"
+                        className="mt-1 h-8 text-xs font-mono"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Channel ID</Label>
+                      <Input
+                        value={discordChannelId}
+                        onChange={(e) => setDiscordChannelId(e.target.value)}
+                        placeholder="1234567890123456789"
+                        className="mt-1 h-8 text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() =>
+                      linkDiscordMutation.mutate({
+                        campaignId,
+                        guildId: discordGuildId.trim(),
+                        channelId: discordChannelId.trim(),
+                      })
+                    }
+                    disabled={
+                      linkDiscordMutation.isPending ||
+                      !discordGuildId.trim() ||
+                      !discordChannelId.trim()
+                    }
+                  >
+                    {linkDiscordMutation.isPending ? 'Saving…' : 'Save Discord Channel'}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
