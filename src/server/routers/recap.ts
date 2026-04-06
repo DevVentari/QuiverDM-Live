@@ -4,6 +4,11 @@ import { router, campaignDMProcedure } from '../trpc';
 import { prisma } from '@/lib/prisma';
 import { recapGenerationQueue } from '@/lib/queue/recap-generation-queue';
 import { NotFoundError } from '../errors';
+import Anthropic from '@anthropic-ai/sdk';
+import { buildSectionRegenPrompt } from '@/lib/recap/recap-section-prompts';
+import type { RecapStyleKey } from '@/lib/recap/recap-prompts';
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const RecapStyleEnum = z.nativeEnum(RecapStyle);
 
@@ -143,5 +148,86 @@ export const recapRouter = router({
         .concat(sections.map((s) => `## ${s.title}\n\n${s.content}`))
         .join('\n\n');
       return { markdown };
+    }),
+
+  regenSection: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+        recapId: z.string(),
+        sectionKey: z.string(),
+        dmNote: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const recap = await prisma.sessionRecap.findFirst({
+        where: { id: input.recapId, campaignId: input.campaignId },
+        include: {
+          session: {
+            include: { transcripts: { orderBy: { createdAt: 'desc' }, take: 1 } },
+          },
+        },
+      });
+      if (!recap) throw new NotFoundError('recap', input.recapId);
+
+      const transcript = recap.session.transcripts[0];
+      if (!transcript?.correctedText) throw new Error('No transcript available for this session');
+
+      const sections = recap.sections as Array<{ key: string; title: string; content: string }>;
+      const target = sections.find((s) => s.key === input.sectionKey);
+      if (!target) throw new Error(`Section "${input.sectionKey}" not found in recap`);
+
+      const { system, user } = buildSectionRegenPrompt({
+        correctedText: transcript.correctedText.slice(0, 12000),
+        sectionKey: input.sectionKey,
+        sectionTitle: target.title,
+        style: recap.style as RecapStyleKey,
+        dmNote: input.dmNote,
+      });
+
+      const response = await anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 512,
+        system,
+        messages: [{ role: 'user', content: user }],
+      });
+
+      const content =
+        response.content[0]?.type === 'text' ? response.content[0].text.trim() : '';
+      if (!content) throw new Error('Anthropic returned empty content');
+      return { content };
+    }),
+
+  updateSections: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+        recapId: z.string(),
+        sections: z.array(
+          z.object({
+            key: z.string(),
+            title: z.string(),
+            content: z.string(),
+          })
+        ),
+        status: z.enum(['REVIEWED', 'QUICK_FIRE']),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const recap = await prisma.sessionRecap.findFirst({
+        where: { id: input.recapId, campaignId: input.campaignId },
+        select: { id: true },
+      });
+      if (!recap) throw new NotFoundError('recap', input.recapId);
+
+      const rawContent = input.sections.map((s) => s.content).join('\n\n');
+      return prisma.sessionRecap.update({
+        where: { id: input.recapId },
+        data: {
+          sections: input.sections,
+          rawContent,
+          status: input.status as RecapStatus,
+        },
+      });
     }),
 });
