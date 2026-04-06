@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { RecapStatus, RecapStyle } from '@prisma/client';
-import { router, campaignDMProcedure } from '../trpc';
+import { router, campaignDMProcedure, protectedProcedure } from '../trpc';
 import { prisma } from '@/lib/prisma';
 import { recapGenerationQueue } from '@/lib/queue/recap-generation-queue';
 import { NotFoundError } from '../errors';
@@ -254,6 +254,134 @@ export const recapRouter = router({
       });
 
       return { ok: true };
+    }),
+
+  getDashboard: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const memberships = await prisma.campaignMember.findMany({
+      where: {
+        userId,
+        role: { in: ['OWNER', 'CO_DM'] },
+      },
+      include: {
+        campaign: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+    });
+
+    const campaignIds = memberships.map((m) => m.campaignId);
+    if (campaignIds.length === 0) return [];
+
+    const recapGroups = await prisma.sessionRecap.groupBy({
+      by: ['campaignId', 'status'],
+      where: { campaignId: { in: campaignIds } },
+      _count: { id: true },
+    });
+
+    const latestRecaps = await prisma.sessionRecap.findMany({
+      where: { campaignId: { in: campaignIds } },
+      orderBy: { createdAt: 'desc' },
+      distinct: ['campaignId'],
+      select: {
+        campaignId: true,
+        createdAt: true,
+        session: { select: { title: true, sessionNumber: true } },
+      },
+    });
+
+    return memberships.map((m) => {
+      const groups = recapGroups.filter((g) => g.campaignId === m.campaignId);
+      const totalRecaps = groups.reduce((sum, g) => sum + g._count.id, 0);
+      const pendingReview = groups
+        .filter((g) => g.status === 'AUTO_GENERATED')
+        .reduce((sum, g) => sum + g._count.id, 0);
+      const latest = latestRecaps.find((r) => r.campaignId === m.campaignId);
+      const lastSessionTitle = latest
+        ? (latest.session.title ?? `Session ${latest.session.sessionNumber}`)
+        : null;
+      return {
+        campaignId: m.campaignId,
+        campaignName: m.campaign.name,
+        slug: m.campaign.slug,
+        totalRecaps,
+        pendingReview,
+        lastRecapDate: latest?.createdAt ?? null,
+        lastSessionTitle,
+      };
+    });
+  }),
+
+  getRecentAcrossCampaigns: protectedProcedure
+    .input(
+      z.object({
+        campaignIds: z.array(z.string()).optional(),
+        status: z.nativeEnum(RecapStatus).optional(),
+        cursor: z.number().default(0),
+        limit: z.number().min(1).max(50).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const memberships = await prisma.campaignMember.findMany({
+        where: {
+          userId,
+          role: { in: ['OWNER', 'CO_DM'] },
+          ...(input.campaignIds?.length
+            ? { campaignId: { in: input.campaignIds } }
+            : {}),
+        },
+        select: { campaignId: true },
+      });
+      const allowedCampaignIds = memberships.map((m) => m.campaignId);
+      if (allowedCampaignIds.length === 0) return { items: [], nextCursor: null };
+
+      const recaps = await prisma.sessionRecap.findMany({
+        where: {
+          campaignId: { in: allowedCampaignIds },
+          ...(input.status ? { status: input.status } : {}),
+        },
+        orderBy: [{ session: { date: 'desc' } }, { createdAt: 'desc' }],
+        skip: input.cursor,
+        take: input.limit + 1,
+        include: {
+          session: {
+            select: {
+              title: true,
+              sessionNumber: true,
+              date: true,
+            },
+          },
+          campaign: {
+            select: { name: true, slug: true },
+          },
+        },
+      });
+
+      const hasMore = recaps.length > input.limit;
+      const items = hasMore ? recaps.slice(0, -1) : recaps;
+      const nextCursor = hasMore ? input.cursor + input.limit : null;
+
+      return {
+        items: items.map((r) => ({
+          recapId: r.id,
+          sessionId: r.sessionId,
+          sessionTitle: r.session.title ?? `Session ${r.session.sessionNumber}`,
+          sessionDate: r.session.date,
+          campaignId: r.campaignId,
+          campaignName: r.campaign.name,
+          slug: r.campaign.slug,
+          status: r.status,
+          style: r.style,
+        })),
+        nextCursor,
+      };
     }),
 
   updateSections: campaignDMProcedure
