@@ -54,7 +54,8 @@ export const multiTrackUploadRouter = router({
       if (!isLocalMode) {
         uploadUrl = await getPresignedUploadUrl(r2Key, input.contentType, 3600);
       } else {
-        uploadUrl = `/api/recordings/upload`;
+        // Pass the exact storage key so the upload handler saves at the right path
+        uploadUrl = `/api/recordings/upload?key=${encodeURIComponent(r2Key)}`;
       }
 
       const recording = await prisma.sessionRecording.create({
