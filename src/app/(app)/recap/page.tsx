@@ -210,7 +210,7 @@ export default function RecapDashboardPage() {
                 <p className="text-[10px] mt-0.5" style={{ color: 'hsl(35 5% 40%)' }}>
                   {r.campaignName}
                   {r.sessionDate
-                    ? ` · ${format(r.sessionDate as Date, 'd MMM yyyy')}`
+                    ? ` · ${format(new Date(r.sessionDate), 'd MMM yyyy')}`
                     : ''}
                 </p>
               </div>
