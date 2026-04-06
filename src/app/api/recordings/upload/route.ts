@@ -106,7 +106,10 @@ export async function POST(request: NextRequest) {
 
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      const key = generateLocalFileKey(userId, sessionId, file.name, 'session-recordings');
+      // If the caller passes ?key= (multi-track flow), use that exact key so the worker
+      // can find the file at the path stored in SessionRecording.originalUrl
+      const explicitKey = request.nextUrl.searchParams.get('key');
+      const key = explicitKey ?? generateLocalFileKey(userId, sessionId, file.name, 'session-recordings');
       const url = await uploadToLocal({ key, body: buffer, contentType: file.type });
 
       return NextResponse.json({

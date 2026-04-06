@@ -18,7 +18,7 @@ import {
   getAsyncResult,
   getCampaignWordBoost,
 } from '../transcription/assemblyai';
-import { getSignedUrl, getLocalStoragePath, isLocalStorage } from '../storage';
+import { getSignedUrl, isLocalStorage } from '../storage';
 import * as path from 'path';
 import { mergeTranscripts, segmentsToText, type TrackInput } from '../recap/transcript-merger';
 import {
@@ -46,8 +46,9 @@ async function resolveAudioUrl(originalUrl: string): Promise<string> {
   if (!isKey) return originalUrl; // Already an absolute URL
 
   if (isLocalStorage()) {
-    // Return absolute disk path so AssemblyAI SDK can read the file directly
-    return path.resolve(getLocalStoragePath(), key);
+    // uploadToLocal (local-storage.ts) saves under ./storage/ — return the absolute disk path
+    // so the AssemblyAI SDK can read and upload the file directly
+    return path.resolve(process.cwd(), 'storage', key);
   }
 
   return getSignedUrl(key, 3600);
