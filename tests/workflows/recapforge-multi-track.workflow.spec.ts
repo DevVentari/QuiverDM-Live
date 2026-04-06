@@ -8,8 +8,8 @@ import { signInAsTestUser } from '../helpers';
  * trigger transcription → view progress → see merged transcript.
  */
 
-const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
-const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
+const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? process.env.TEST_USER_EMAIL ?? 'test@local.dev';
+const PASSWORD = process.env.QA_TEST_PASSWORD ?? process.env.TEST_USER_PASSWORD ?? 'TestPass123!';
 
 test.describe('RecapForge: Multi-Track Upload', () => {
   test('DM can navigate to app without being redirected to sign-in', async ({ page }) => {

@@ -12,9 +12,10 @@ const ALLOWED_AUDIO_TYPES = [
   'audio/flac', 'audio/x-flac',
   'audio/x-m4a', 'audio/aac',
   'audio/opus', 'audio/ogg; codecs=opus',
+  'video/mp4', 'video/webm', 'video/quicktime',
 ];
 
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
 
 export const multiTrackUploadRouter = router({
   initiate: campaignDMProcedure
