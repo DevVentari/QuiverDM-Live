@@ -35,6 +35,9 @@ const ACCEPTED_AUDIO = {
   'audio/x-flac': ['.flac'],
   'audio/x-m4a': ['.m4a'],
   'audio/aac': ['.aac'],
+  'video/mp4': ['.mp4'],
+  'video/webm': ['.webm'],
+  'video/quicktime': ['.mov'],
 };
 
 export function MultiTrackDropzone({
@@ -63,7 +66,7 @@ export function MultiTrackDropzone({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: ACCEPTED_AUDIO,
-    maxSize: 500 * 1024 * 1024,
+    maxSize: 10 * 1024 * 1024 * 1024, // 10 GB
   });
 
   const removeEntry = (index: number) => {
@@ -169,7 +172,7 @@ export function MultiTrackDropzone({
         <p className="text-sm text-white/60">
           Drop audio files here, or click to select
         </p>
-        <p className="mt-1 text-xs text-white/30">MP3, WAV, OGG, FLAC, M4A, WEBM, AAC — up to 500MB each</p>
+        <p className="mt-1 text-xs text-white/30">MP3, WAV, OGG, FLAC, M4A, AAC, MP4, MOV — up to 10GB each</p>
       </div>
 
       {entries.length > 0 && (
