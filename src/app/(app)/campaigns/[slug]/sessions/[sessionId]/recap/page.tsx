@@ -28,6 +28,8 @@ export default function RecapPage() {
 
   const [activeStyle, setActiveStyle] = useState<StyleKey>('NARRATIVE');
   const [copied, setCopied] = useState(false);
+  const [localSections, setLocalSections] = useState<Record<string, string>>({});
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
   const { data: session } = trpc.sessions.getById.useQuery(
     { id: sessionId },
@@ -54,6 +56,16 @@ export default function RecapPage() {
     onError: (e) => toast({ title: 'Regeneration failed', description: e.message, variant: 'destructive' }),
   });
 
+  const updateSectionsMutation = trpc.recap.updateSections.useMutation({
+    onSuccess: () => {
+      setLocalSections({});
+      setEditingKey(null);
+      void utils.recap.getBySession.invalidate({ campaignId, sessionId });
+    },
+    onError: (e) =>
+      toast({ title: 'Save failed', description: e.message, variant: 'destructive' }),
+  });
+
   const s = session as any;
   const transcriptId = (s?.transcripts as Array<{ id: string }> | undefined)?.[0]?.id;
   const sessionTitle = s?.title ?? (s?.sessionNumber != null ? `Session ${s.sessionNumber}` : '…');
@@ -71,6 +83,16 @@ export default function RecapPage() {
   const sections = activeRecap?.sections as
     | Array<{ key: string; title: string; content: string }>
     | undefined;
+
+  const isDirty =
+    sections?.some(
+      (s) => s.key in localSections && localSections[s.key] !== s.content
+    ) ?? false;
+
+  const effectiveSections = sections?.map((s) => ({
+    ...s,
+    content: s.key in localSections ? localSections[s.key]! : s.content,
+  }));
 
   const handleGenerate = () => {
     if (!transcriptId) return;
@@ -274,32 +296,58 @@ export default function RecapPage() {
       )}
 
       {/* Recap sections */}
-      {activeRecap?.status === 'AUTO_GENERATED' && sections && sections.length > 0 && (
+      {activeRecap &&
+        ['AUTO_GENERATED', 'REVIEWED', 'QUICK_FIRE'].includes(activeRecap.status as string) &&
+        effectiveSections &&
+        effectiveSections.length > 0 && (
         <div className="space-y-4">
-          {sections.map((section) => (
-            <div
-              key={section.key}
-              className="rounded-sm border border-border/40 overflow-hidden"
-              style={{ background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 9%) 100%)' }}
-            >
-              <div className="px-6 py-3.5 border-b border-border/20">
-                <span
-                  className="text-[10px] uppercase tracking-widest font-semibold"
-                  style={{ color: 'hsl(35 80% 48%)' }}
-                >
-                  {section.title}
-                </span>
+          {effectiveSections.map((section) => {
+            const isEditing = editingKey === section.key;
+            return (
+              <div
+                key={section.key}
+                className="rounded-sm border border-border/40 overflow-hidden"
+                style={{ background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 9%) 100%)' }}
+              >
+                <div className="px-6 py-3.5 border-b border-border/20 flex items-center justify-between">
+                  <span
+                    className="text-[10px] uppercase tracking-widest font-semibold"
+                    style={{ color: 'hsl(35 80% 48%)' }}
+                  >
+                    {section.title}
+                  </span>
+                  <button
+                    onClick={() => setEditingKey(isEditing ? null : section.key)}
+                    className="text-[10px] transition-opacity opacity-40 hover:opacity-80"
+                    style={{ color: 'hsl(35 20% 68%)' }}
+                  >
+                    {isEditing ? 'Cancel' : 'Edit'}
+                  </button>
+                </div>
+                <div className="px-6 py-5">
+                  {isEditing ? (
+                    <textarea
+                      autoFocus
+                      value={section.content}
+                      onChange={(e) =>
+                        setLocalSections((prev) => ({ ...prev, [section.key]: e.target.value }))
+                      }
+                      className="w-full min-h-[120px] bg-transparent text-sm leading-relaxed resize-y outline-none"
+                      style={{ color: 'hsl(35 15% 72%)', border: '1px solid hsl(35 30% 22%)', borderRadius: 2, padding: '8px 10px' }}
+                    />
+                  ) : (
+                    <p
+                      className="text-sm leading-relaxed whitespace-pre-wrap cursor-text"
+                      style={{ color: 'hsl(35 15% 72%)' }}
+                      onClick={() => setEditingKey(section.key)}
+                    >
+                      {section.content}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="px-6 py-5">
-                <p
-                  className="text-sm leading-relaxed whitespace-pre-wrap"
-                  style={{ color: 'hsl(35 15% 72%)' }}
-                >
-                  {section.content}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
