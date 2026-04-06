@@ -276,9 +276,17 @@ export default function RecapPage() {
       {/* Style picker */}
       <div className="flex gap-2 flex-wrap">
         {STYLES.map((style) => {
-          const hasRecap = recaps?.some(
-            (r) => r.style === style.key && r.status === 'AUTO_GENERATED'
-          );
+          const bestRecap =
+            recaps?.find((r) => r.style === style.key && r.status === 'QUICK_FIRE') ??
+            recaps?.find((r) => r.style === style.key && r.status === 'REVIEWED') ??
+            recaps?.find((r) => r.style === style.key && r.status === 'AUTO_GENERATED');
+          const dotColor = bestRecap
+            ? bestRecap.status === 'QUICK_FIRE'
+              ? 'bg-yellow-400/70'
+              : bestRecap.status === 'REVIEWED'
+              ? 'bg-amber-500/60'
+              : 'bg-green-500/60'
+            : null;
           const isActive = activeStyle === style.key;
           return (
             <button
@@ -290,14 +298,14 @@ export default function RecapPage() {
                 border: `1px solid ${isActive ? 'hsl(35 60% 30%)' : 'hsl(240 10% 20%)'}`,
                 color: isActive
                   ? 'hsl(35 80% 70%)'
-                  : hasRecap
+                  : bestRecap
                   ? 'hsl(35 20% 60%)'
                   : 'hsl(35 5% 40%)',
               }}
             >
               {style.label}
-              {hasRecap && !isActive && (
-                <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-green-500/60" />
+              {dotColor && !isActive && (
+                <span className={`ml-1.5 inline-block h-1.5 w-1.5 rounded-full ${dotColor}`} />
               )}
             </button>
           );
