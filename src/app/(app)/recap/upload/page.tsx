@@ -24,6 +24,7 @@ export default function RecapUploadPage() {
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>('');
   const [sessionId, setSessionId] = useState<string>('');
   const [uploadGroupId, setUploadGroupId] = useState<string>('');
+  const [startError, setStartError] = useState<string | null>(null);
 
   const { data: dashboard, isLoading: dashLoading } = trpc.recap.getDashboard.useQuery();
   const createSession = trpc.sessions.create.useMutation();
@@ -33,15 +34,20 @@ export default function RecapUploadPage() {
 
   async function handleStartUpload() {
     if (!selectedCampaignId) return;
-    const now = new Date();
-    const title = `Session — ${now.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`;
-    const session = await createSession.mutateAsync({
-      campaignId: selectedCampaignId,
-      title,
-      status: 'in_progress',
-    });
-    setSessionId(session.id);
-    setStep('upload');
+    setStartError(null);
+    try {
+      const now = new Date();
+      const title = `Session — ${now.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+      const session = await createSession.mutateAsync({
+        campaignId: selectedCampaignId,
+        title,
+        status: 'in_progress',
+      });
+      setSessionId(session.id);
+      setStep('upload');
+    } catch (err) {
+      setStartError(err instanceof Error ? err.message : 'Failed to create session');
+    }
   }
 
   function handleUploadComplete(groupId: string) {
@@ -153,6 +159,11 @@ export default function RecapUploadPage() {
               )}
             </div>
 
+            {startError && (
+              <p className="text-xs px-1" style={{ color: 'hsl(0 60% 58%)' }}>
+                {startError}
+              </p>
+            )}
             <Button
               className="w-full gap-2"
               onClick={handleStartUpload}
