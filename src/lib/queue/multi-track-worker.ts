@@ -18,7 +18,8 @@ import {
   getAsyncResult,
   getCampaignWordBoost,
 } from '../transcription/assemblyai';
-import { getSignedUrl } from '../storage';
+import { getSignedUrl, getLocalStoragePath, isLocalStorage } from '../storage';
+import * as path from 'path';
 import { mergeTranscripts, segmentsToText, type TrackInput } from '../recap/transcript-merger';
 import {
   broadcastMultiTrackProgress,
@@ -33,17 +34,23 @@ function sleep(ms: number) {
 }
 
 async function resolveAudioUrl(originalUrl: string): Promise<string> {
-  if (
-    originalUrl.startsWith('session-recordings/') ||
-    originalUrl.startsWith('files/')
-  ) {
-    return getSignedUrl(originalUrl, 3600);
+  // Normalise: strip /api/storage/ or /api/files/ prefix to get the bare storage key
+  let key = originalUrl;
+  if (key.startsWith('/api/storage/')) key = key.replace(/^\/api\/storage\//, '');
+  else if (key.startsWith('/api/files/')) key = key.replace(/^\/api\/files\//, '');
+
+  const isKey =
+    key.startsWith('session-recordings/') ||
+    key.startsWith('files/');
+
+  if (!isKey) return originalUrl; // Already an absolute URL
+
+  if (isLocalStorage()) {
+    // Return absolute disk path so AssemblyAI SDK can read the file directly
+    return path.resolve(getLocalStoragePath(), key);
   }
-  if (originalUrl.startsWith('/api/storage/')) {
-    const key = originalUrl.replace(/^\/api\/storage\//, '');
-    return getSignedUrl(key, 3600);
-  }
-  return originalUrl;
+
+  return getSignedUrl(key, 3600);
 }
 
 async function transcribeTrack(
