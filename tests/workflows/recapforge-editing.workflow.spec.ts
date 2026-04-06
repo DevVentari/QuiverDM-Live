@@ -14,3 +14,8 @@ test.fixme('navigate away with dirty edits — confirm dialog appears', async ({
   // Phase 6a — beforeunload guard
   void page;
 });
+
+test.fixme('DM shares approved recap to Discord — success toast shown', async ({ page }) => {
+  // Phase 6b — requires Discord bot token + linked channel in test campaign
+  void page;
+});
