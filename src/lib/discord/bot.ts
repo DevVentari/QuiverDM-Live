@@ -28,8 +28,7 @@ export async function postRecapToChannel(opts: PostRecapOptions): Promise<void> 
       body: JSON.stringify({ content: chunk }),
     });
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Discord API error ${res.status}: ${text}`);
+      throw new Error(`Discord post failed (HTTP ${res.status}). Check that the bot is in your server and has permission to post in that channel.`);
     }
   }
 }
