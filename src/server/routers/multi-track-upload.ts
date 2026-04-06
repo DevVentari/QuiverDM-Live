@@ -9,7 +9,9 @@ import { addMultiTrackJob } from '@/lib/queue/multi-track-queue';
 
 const ALLOWED_AUDIO_TYPES = [
   'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm',
-  'audio/flac', 'audio/x-m4a', 'audio/aac',
+  'audio/flac', 'audio/x-flac',
+  'audio/x-m4a', 'audio/aac',
+  'audio/opus', 'audio/ogg; codecs=opus',
 ];
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB

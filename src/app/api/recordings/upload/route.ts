@@ -9,8 +9,8 @@ export const maxDuration = 30;
 
 const ALLOWED_TYPES = [
   'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo',
-  'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm',
-  'audio/flac', 'audio/x-m4a', 'audio/aac',
+  'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/opus', 'audio/mp4', 'audio/webm',
+  'audio/flac', 'audio/x-flac', 'audio/x-m4a', 'audio/aac',
 ];
 
 /**

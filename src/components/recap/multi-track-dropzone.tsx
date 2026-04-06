@@ -28,9 +28,12 @@ const ACCEPTED_AUDIO = {
   'audio/mpeg': ['.mp3'],
   'audio/wav': ['.wav'],
   'audio/ogg': ['.ogg'],
+  'audio/opus': ['.opus'],
   'audio/mp4': ['.m4a'],
   'audio/webm': ['.webm'],
   'audio/flac': ['.flac'],
+  'audio/x-flac': ['.flac'],
+  'audio/x-m4a': ['.m4a'],
   'audio/aac': ['.aac'],
 };
 
@@ -186,11 +189,15 @@ export function MultiTrackDropzone({
                 className="w-40 h-7 text-xs border-white/10 bg-white/5"
                 disabled={isSubmitting}
               />
-              <span className="text-xs text-white/30 shrink-0">
+              <span
+                className="text-xs shrink-0 max-w-[180px] truncate"
+                style={{ color: entry.status === 'error' ? 'hsl(0 60% 58%)' : 'rgba(255,255,255,0.3)' }}
+                title={entry.error}
+              >
                 {entry.status === 'initiating' && 'Preparing…'}
                 {entry.status === 'uploading' && 'Uploading…'}
                 {entry.status === 'done' && '✓'}
-                {entry.status === 'error' && '✗'}
+                {entry.status === 'error' && (entry.error ?? 'Upload failed')}
               </span>
               {!isSubmitting && (
                 <button
