@@ -144,6 +144,7 @@ export function MultiTrackDropzone({
 
       onComplete(uploadGroupId);
     } catch (err) {
+      console.error('[MultiTrackDropzone] Upload failed:', err);
       setIsSubmitting(false);
       setEntries((prev) =>
         prev.map((e) =>
