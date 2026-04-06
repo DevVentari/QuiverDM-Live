@@ -299,7 +299,7 @@ export const recapRouter = router({
       const groups = recapGroups.filter((g) => g.campaignId === m.campaignId);
       const totalRecaps = groups.reduce((sum, g) => sum + g._count.id, 0);
       const pendingReview = groups
-        .filter((g) => g.status === 'AUTO_GENERATED')
+        .filter((g) => g.status === RecapStatus.AUTO_GENERATED)
         .reduce((sum, g) => sum + g._count.id, 0);
       const latest = latestRecaps.find((r) => r.campaignId === m.campaignId);
       const lastSessionTitle = latest
