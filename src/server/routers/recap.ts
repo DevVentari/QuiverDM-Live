@@ -186,16 +186,21 @@ export const recapRouter = router({
         dmNote: input.dmNote,
       });
 
-      const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 512,
-        system,
-        messages: [{ role: 'user', content: user }],
-      });
+      let response;
+      try {
+        response = await anthropic.messages.create({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 512,
+          system,
+          messages: [{ role: 'user', content: user }],
+        });
+      } catch {
+        throw new Error('AI regeneration failed. Please try again.');
+      }
 
       const content =
         response.content[0]?.type === 'text' ? response.content[0].text.trim() : '';
-      if (!content) throw new Error('Anthropic returned empty content');
+      if (!content) throw new Error('AI regeneration returned empty content. Please try again.');
       return { content };
     }),
 

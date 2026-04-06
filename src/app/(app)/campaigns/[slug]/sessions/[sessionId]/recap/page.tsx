@@ -216,14 +216,15 @@ export default function RecapPage() {
                       ? { borderColor: 'hsl(35 60% 35%)', color: 'hsl(35 70% 58%)' }
                       : {}
                   }
-                  onClick={() =>
+                  onClick={() => {
+                    setEditingKey(null);
                     updateSectionsMutation.mutate({
                       campaignId,
                       recapId: activeRecap.id as string,
                       sections: effectiveSections ?? [],
                       status: 'REVIEWED',
-                    })
-                  }
+                    });
+                  }}
                   disabled={updateSectionsMutation.isPending}
                 >
                   Approve
@@ -237,14 +238,15 @@ export default function RecapPage() {
                       ? { borderColor: 'hsl(50 80% 40%)', color: 'hsl(50 80% 62%)' }
                       : {}
                   }
-                  onClick={() =>
+                  onClick={() => {
+                    setEditingKey(null);
                     updateSectionsMutation.mutate({
                       campaignId,
                       recapId: activeRecap.id as string,
                       sections: effectiveSections ?? [],
                       status: 'QUICK_FIRE',
-                    })
-                  }
+                    });
+                  }}
                   disabled={updateSectionsMutation.isPending}
                 >
                   Quick-fire
@@ -258,6 +260,8 @@ export default function RecapPage() {
                 variant="outline"
                 className="h-8 gap-1.5 text-xs"
                 onClick={() => setShareDialogOpen(true)}
+                disabled={isDirty}
+                title={isDirty ? 'Save changes first (Approve or Quick-fire)' : undefined}
               >
                 <MessageSquare className="h-3 w-3" /> Share to Discord
               </Button>
