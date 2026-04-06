@@ -42,6 +42,7 @@ import { useLogoVariant } from '@/hooks/use-logo-variant';
 const globalNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/campaigns', label: 'Campaigns', icon: Globe },
+  { href: '/recap', label: 'Recaps', icon: ScrollText },
   { href: '/characters', label: 'Characters', icon: User },
   { href: '/homebrew', label: 'Homebrew', icon: FlaskConical },
 ];
@@ -280,6 +281,12 @@ export function Sidebar() {
     staleTime: 300_000,
   });
 
+  const recapDashboard = trpc.recap.getDashboard.useQuery(undefined, {
+    staleTime: 60_000,
+  });
+  const pendingRecapCount =
+    recapDashboard.data?.reduce((sum, c) => sum + c.pendingReview, 0) ?? 0;
+
   const currentCampaign = campaigns.data?.find((c) => c.slug === campaignSlug) ?? null;
   const inCampaign = !!campaignSlug;
 
@@ -415,16 +422,31 @@ export function Sidebar() {
         ) : (
           <>
             <SectionLabel label="Navigate" collapsed={collapsed} />
-            {globalNav.map((item) => (
-              <NavItem
-                key={item.href}
-                {...item}
-                isActive={
-                  pathname === item.href || pathname.startsWith(item.href + '/')
-                }
-                collapsed={collapsed}
-              />
-            ))}
+            {globalNav.map((item) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(item.href + '/');
+              if (item.href === '/recap' && pendingRecapCount > 0 && !collapsed) {
+                return (
+                  <div key={item.href} className="relative">
+                    <NavItem {...item} isActive={isActive} collapsed={collapsed} />
+                    <span
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full pointer-events-none"
+                      style={{ background: 'hsl(35 60% 18%)', color: 'hsl(35 70% 58%)' }}
+                    >
+                      {pendingRecapCount}
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <NavItem
+                  key={item.href}
+                  {...item}
+                  isActive={isActive}
+                  collapsed={collapsed}
+                />
+              );
+            })}
 
             <SectionLabel label="Tools" collapsed={collapsed} />
             {toolsNav.map((item) => (
