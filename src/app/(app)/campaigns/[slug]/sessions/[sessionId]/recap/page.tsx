@@ -8,7 +8,15 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, RefreshCw, ScrollText, Copy, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ScrollText, Copy, CheckCircle2, MessageSquare } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { format } from 'date-fns';
 
 const STYLES = [
@@ -69,6 +77,23 @@ export default function RecapPage() {
     onError: (e) => {
       setRegenKey(null);
       toast({ title: 'Regen failed', description: e.message, variant: 'destructive' });
+    },
+  });
+
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+
+  const shareToDiscordMutation = trpc.recap.shareToDiscord.useMutation({
+    onSuccess: () => {
+      setShareDialogOpen(false);
+      toast({ title: 'Posted to Discord' });
+    },
+    onError: (e) => {
+      setShareDialogOpen(false);
+      const msg =
+        e.message === 'NO_CHANNEL_LINKED'
+          ? 'No Discord channel linked. Go to Campaign Settings → Discord Integration.'
+          : e.message;
+      toast({ title: 'Share failed', description: msg, variant: 'destructive' });
     },
   });
 
@@ -225,6 +250,17 @@ export default function RecapPage() {
                   Quick-fire
                 </Button>
               </>
+            )}
+            {activeRecap &&
+              ['REVIEWED', 'QUICK_FIRE'].includes(activeRecap.status as string) && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setShareDialogOpen(true)}
+              >
+                <MessageSquare className="h-3 w-3" /> Share to Discord
+              </Button>
             )}
             {activeRecap?.status === 'AUTO_GENERATED' && (
               <>
@@ -466,6 +502,58 @@ export default function RecapPage() {
           })}
         </div>
       )}
+
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle style={{ color: 'hsl(35 20% 88%)' }}>Share to Discord</DialogTitle>
+            <DialogDescription style={{ color: 'hsl(35 5% 48%)' }}>
+              This recap will be posted to your linked Discord channel.
+            </DialogDescription>
+          </DialogHeader>
+          <div
+            className="rounded-sm border border-border/30 px-4 py-3 max-h-48 overflow-y-auto text-xs leading-relaxed"
+            style={{ background: 'hsl(240 10% 9%)', color: 'hsl(35 10% 60%)' }}
+          >
+            <p className="font-semibold mb-2" style={{ color: 'hsl(35 20% 78%)' }}>
+              {sessionTitle}
+            </p>
+            {effectiveSections?.slice(0, 2).map((s) => (
+              <div key={s.key} className="mb-2">
+                <p
+                  className="font-semibold text-[10px] uppercase tracking-widest mb-1"
+                  style={{ color: 'hsl(35 60% 42%)' }}
+                >
+                  {s.title}
+                </p>
+                <p className="line-clamp-3">{s.content}</p>
+              </div>
+            ))}
+            {(effectiveSections?.length ?? 0) > 2 && (
+              <p className="opacity-50 italic">
+                + {(effectiveSections?.length ?? 0) - 2} more sections…
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setShareDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() =>
+                shareToDiscordMutation.mutate({
+                  campaignId,
+                  recapId: activeRecap!.id as string,
+                })
+              }
+              disabled={shareToDiscordMutation.isPending}
+            >
+              {shareToDiscordMutation.isPending ? 'Posting…' : 'Post to Discord'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
