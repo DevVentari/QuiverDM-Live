@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/use-toast';
 
 interface TranscriptCleanupBadgeProps {
   sessionId: string;
-  transcriptId: string;
   campaignId: string;
   cleanupStatus: string | null;
   oocReviewItemCount: number;
@@ -16,7 +15,6 @@ interface TranscriptCleanupBadgeProps {
 
 export function TranscriptCleanupBadge({
   sessionId,
-  transcriptId,
   campaignId,
   cleanupStatus,
   oocReviewItemCount,
@@ -32,8 +30,6 @@ export function TranscriptCleanupBadge({
     },
     onError: (err) => toast({ title: 'Error', description: err.message, variant: 'destructive' }),
   });
-
-  void transcriptId;
 
   if (!cleanupStatus) return null;
 

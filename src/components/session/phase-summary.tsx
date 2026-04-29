@@ -57,7 +57,6 @@ export function PhaseSummary({ session, campaignId, onSummaryReady }: PhaseSumma
               <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
                 <TranscriptCleanupBadge
                   sessionId={session.id}
-                  transcriptId={transcript.id}
                   campaignId={campaignId}
                   cleanupStatus={transcript.cleanupStatus ?? null}
                   oocReviewItemCount={Array.isArray(transcript.oocReviewItems) ? transcript.oocReviewItems.length : 0}
