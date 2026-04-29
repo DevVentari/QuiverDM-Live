@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -21,6 +22,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string 
 type FilterStatus = 'all' | 'planning' | 'in_progress' | 'completed';
 
 export default function SessionsPage() {
+  const router = useRouter();
   const { campaignId, slug, isDM } = useCampaign();
   const prefersReducedMotion = useReducedMotion();
   const sessionsQuery = trpc.sessions.getAll.useQuery({ campaignId }, { staleTime: 30_000 });
@@ -178,11 +180,14 @@ export default function SessionsPage() {
                             {session.prepStatus === 'draft' && (
                               <Badge
                                 variant="outline"
-                                className="shrink-0 border-amber-500/30 bg-amber-500/10 text-xs text-amber-300 hover:border-amber-400/50"
+                                className="shrink-0 border-amber-500/30 bg-amber-500/10 text-xs text-amber-300 hover:border-amber-400/50 cursor-pointer"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  router.push(`/campaigns/${slug}/sessions/prep?sessionId=${session.id}`);
+                                }}
                               >
-                                <Link href={`/campaigns/${slug}/sessions/prep?sessionId=${session.id}`}>
-                                  Prep Draft
-                                </Link>
+                                Prep Draft
                               </Badge>
                             )}
                           </div>

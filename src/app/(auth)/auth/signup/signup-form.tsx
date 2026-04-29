@@ -50,8 +50,7 @@ export function SignUpForm() {
         return;
       }
 
-      router.push('/dashboard');
-      router.refresh();
+      router.push('/onboarding');
     } catch {
       setError('Something went wrong. Please try again.');
       setLoading(false);

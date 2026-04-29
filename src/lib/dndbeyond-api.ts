@@ -9,10 +9,44 @@ interface DDBCharacterResponse {
   data?: any;
 }
 
+const CRAWL4AI_URL = process.env.CRAWL4AI_URL ?? 'http://localhost:5002';
+
 /**
- * Fetch character data from D&D Beyond API using Cobalt token
- * @param characterId - The character ID from the D&D Beyond URL
- * @param cobaltToken - The CobaltSession cookie value
+ * Fallback for private characters: use the crawl4ai service to render the
+ * DDB character page as the DM and intercept the character-service XHR.
+ * Only called when the direct API returns 403/401.
+ */
+async function fetchCharacterViaBrowser(
+  characterId: string,
+  cobaltToken: string
+): Promise<DDBCharacterResponse> {
+  try {
+    const res = await fetch(`${CRAWL4AI_URL}/character/extract`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ character_id: characterId, cobalt_session: cobaltToken }),
+      signal: AbortSignal.timeout(45_000),
+    });
+    if (!res.ok) {
+      return { success: false, message: `crawl4ai service error: ${res.statusText}` };
+    }
+    const result = await res.json();
+    return result.success
+      ? { success: true, data: result.data }
+      : { success: false, message: result.message };
+  } catch (error) {
+    return {
+      success: false,
+      message: `Browser extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    };
+  }
+}
+
+/**
+ * Fetch character data from D&D Beyond.
+ * Tries the direct character-service API first. If that returns 403/401
+ * (private character visible to DM in browser but not via API), falls back
+ * to the crawl4ai browser service which intercepts the page's own XHR.
  */
 export async function fetchCharacterFromDDB(
   characterId: string,
@@ -35,10 +69,7 @@ export async function fetchCharacterFromDDB(
 
     if (!response.ok) {
       if (response.status === 403 || response.status === 401) {
-        return {
-          success: false,
-          message: 'Invalid or expired Cobalt token. Please get a fresh token from D&D Beyond.',
-        };
+        return fetchCharacterViaBrowser(characterId, cobaltToken);
       }
       return {
         success: false,
