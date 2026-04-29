@@ -18,6 +18,11 @@ export async function findById(id: string) {
       },
       recordings: true,
       transcripts: true,
+      _count: {
+        select: {
+          recaps: { where: { approvedAt: { not: null } } },
+        },
+      },
     },
   });
 }
@@ -41,6 +46,11 @@ export async function findByCampaignId(campaignId: string) {
           correctedText: true,
           hasSpeakers: true,
           source: true,
+        },
+      },
+      _count: {
+        select: {
+          recaps: { where: { approvedAt: { not: null } } },
         },
       },
     },

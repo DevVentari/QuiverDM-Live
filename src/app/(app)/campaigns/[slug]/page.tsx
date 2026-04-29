@@ -21,7 +21,7 @@ function computeContinueAction(
       aiSummaryStatus: session.aiSummaryStatus ?? 'none',
       aiSummary: session.aiSummary ?? null,
       recordingCount: session.recordings?.length ?? 0,
-      hasApprovedRecap: false,
+      hasApprovedRecap: ((session._count as { recaps?: number } | undefined)?.recaps ?? 0) > 0,
     });
 
     if (phase === 'complete') continue;
