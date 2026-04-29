@@ -48,7 +48,7 @@ export default function SessionHubPage() {
     aiSummaryStatus: (session.aiSummaryStatus as string) ?? 'none',
     aiSummary: (session.aiSummary as string | null) ?? null,
     recordingCount: recordings.length,
-    hasApprovedRecap: false,
+    hasApprovedRecap: ((session._count as { recaps?: number } | undefined)?.recaps ?? 0) > 0,
   });
 
   const refresh = () => void utils.sessions.getById.invalidate({ id: sessionId });
