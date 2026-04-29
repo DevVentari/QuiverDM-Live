@@ -28,6 +28,7 @@ import {
 } from '../../server/websocket';
 import { applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
 import { contextExtractionQueue } from './context-extraction-queue';
+import { addTranscriptCleanupJob } from './transcript-cleanup-queue';
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -227,6 +228,18 @@ async function processMultiTrack(
     });
   } catch (err) {
     console.warn('[MultiTrackWorker] Failed to enqueue context extraction (non-fatal):', err);
+  }
+
+  // Auto-trigger basic transcript cleanup
+  try {
+    await addTranscriptCleanupJob({
+      transcriptId: transcript.id,
+      sessionId,
+      campaignId,
+      phase: 'basic',
+    });
+  } catch (err) {
+    console.warn('[MultiTrackWorker] Failed to enqueue transcript cleanup (non-fatal):', err);
   }
 
   console.log(`[MultiTrackWorker] Done — transcript ${transcript.id}`);
