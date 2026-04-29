@@ -148,14 +148,18 @@ function NPCsPageInner() {
 
       <div className="hidden md:grid h-[calc(100vh-220px)] overflow-hidden border-t border-[hsl(35,35%,18%)] -mx-8 grid-cols-[300px_1fr]">
         <div className="flex flex-col overflow-hidden border-r border-[hsl(35,35%,18%)]">
-          <div className="flex items-center justify-between px-3 py-2.5 shrink-0 border-b border-[hsl(35,35%,18%)]">
-            <p className="label-overline">Characters</p>
-            {isDM && (
-              <Button size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1" onClick={() => setCreateSheetOpen(true)}>
-                <Plus className="h-3 w-3" />
-                New
-              </Button>
-            )}
+          <div className="px-3 pt-3 pb-2.5 shrink-0 border-b border-[hsl(35,35%,18%)]">
+            <p className="label-overline mb-1">Campaign</p>
+            <div className="section-rule" />
+            <div className="flex items-center justify-between mt-3">
+              <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Characters</h1>
+              {isDM && (
+                <Button size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1" onClick={() => setCreateSheetOpen(true)}>
+                  <Plus className="h-3 w-3" />
+                  New
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="px-3 py-2 shrink-0 border-b border-[hsl(35,35%,18%)]">
