@@ -11,8 +11,11 @@ export interface SessionForPhase {
 export function deriveSessionPhase(session: SessionForPhase): SessionPhase {
   if (session.status === 'planning') return 'prep';
   if (session.status === 'in_progress' || session.status === 'active') return 'ran';
+  if (session.status === 'cancelled') return 'prep';
   if (session.recordingCount === 0) return 'processing';
-  const summaryDone = (session.aiSummaryStatus === 'done' || session.aiSummaryStatus === 'error') && session.aiSummary !== null;
+  const summaryDone =
+    (session.aiSummaryStatus === 'done' && session.aiSummary !== null) ||
+    session.aiSummaryStatus === 'error';
   if (!summaryDone) return 'summary';
   if (!session.hasApprovedRecap) return 'recap';
   return 'complete';
