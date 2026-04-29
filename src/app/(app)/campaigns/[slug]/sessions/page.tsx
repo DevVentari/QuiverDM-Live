@@ -65,25 +65,28 @@ export default function SessionsPage() {
     <div className="space-y-5">
       {/* Header */}
       <motion.div
-        className="flex items-end justify-between"
         initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
       >
-        <div>
-          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Sessions</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {allSessions.length} {allSessions.length === 1 ? 'session' : 'sessions'} recorded
-          </p>
+        <p className="label-overline mb-1">Campaign</p>
+        <div className="section-rule" />
+        <div className="flex items-center justify-between mt-3">
+          <div>
+            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Sessions</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              {allSessions.length} {allSessions.length === 1 ? 'session' : 'sessions'} recorded
+            </p>
+          </div>
+          {isDM && (
+            <Button size="sm" className="gap-1.5" asChild>
+              <Link href={`/campaigns/${slug}/sessions/prep`}>
+                <Plus className="h-3.5 w-3.5" />
+                New Session
+              </Link>
+            </Button>
+          )}
         </div>
-        {isDM && (
-          <Button size="sm" className="gap-1.5" asChild>
-            <Link href={`/campaigns/${slug}/sessions/prep`}>
-              <Plus className="h-3.5 w-3.5" />
-              New Session
-            </Link>
-          </Button>
-        )}
       </motion.div>
 
       {/* Status filter pills */}
