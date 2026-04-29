@@ -25,7 +25,7 @@ export function SessionPipeline({ currentPhase, onPhaseClick }: SessionPipelineP
             onClick={() => isDone && onPhaseClick?.(phase)}
             disabled={!isDone}
             className={cn(
-              'relative flex-1 flex flex-col items-center gap-1 py-2.5 px-1 text-center transition-colors',
+              'relative flex-1 min-w-[44px] flex flex-col items-center gap-1 py-2.5 px-1 text-center transition-colors',
               isDone   && 'cursor-pointer hover:bg-white/5',
               isActive && 'bg-amber-500/[0.08]',
               isLocked && 'opacity-40 cursor-default',
