@@ -103,20 +103,23 @@ export default function NewCampaignPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [path, setPath] = useState<'published' | 'original' | null>(null);
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureTemplate | null>(null);
-  const [ddbCampaignUrl, setDdbCampaignUrl] = useState('');
 
+  // Step 2: identity
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const [nameError, setNameError] = useState('');
+
+  // Step 3: world + party
   const [startingLocation, setStartingLocation] = useState('');
   const [antagonistName, setAntagonistName] = useState('');
   const [antagonistMotivation, setAntagonistMotivation] = useState('');
   const [openingHook, setOpeningHook] = useState('');
   const [factions, setFactions] = useState<Faction[]>([]);
   const [storyText, setStoryText] = useState('');
-  const [nameError, setNameError] = useState('');
+  const [ddbCampaignUrl, setDdbCampaignUrl] = useState('');
 
   const settingsQuery = trpc.userSettings.getSettings.useQuery();
   const hasCobalt = settingsQuery.data?.hasDndBeyondCobaltCookie ?? false;
@@ -126,8 +129,16 @@ export default function NewCampaignPage() {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
-  const seedFromCreation = trpc.brain.seedFromCreation.useMutation();
-  const importFromCampaign = trpc.charactersDndBeyond.importFromCampaign.useMutation();
+  const seedFromCreation = trpc.brain.seedFromCreation.useMutation({
+    onError: () => {
+      toast({ title: 'World data not saved', description: 'Campaign was created but world setup failed. You can re-add it from the campaign settings.', variant: 'destructive' });
+    },
+  });
+  const importFromCampaign = trpc.charactersDndBeyond.importFromCampaign.useMutation({
+    onError: () => {
+      toast({ title: 'Party import failed', description: 'Campaign was created but party import failed. Try importing again from campaign settings.', variant: 'destructive' });
+    },
+  });
 
   function handleSelectAdventure(adventure: AdventureTemplate) {
     setSelectedAdventure(adventure);
@@ -186,14 +197,16 @@ export default function NewCampaignPage() {
     return false;
   }
 
-  async function handleCreate() {
+  function handleNextFromStep2() {
     if (!name.trim()) {
       setNameError('Campaign name is required');
-      setStep(3);
       return;
     }
     setNameError('');
+    setStep(3);
+  }
 
+  async function handleCreate() {
     let campaign: { id: string; slug: string };
     try {
       campaign = await createCampaign.mutateAsync({
@@ -237,6 +250,8 @@ export default function NewCampaignPage() {
 
     router.push(`/campaigns/${campaign.slug || campaign.id}`);
   }
+
+  const activeFactions = factions.filter((f) => f.name.trim() !== '');
 
   return (
     <CreatePageShell
@@ -312,56 +327,13 @@ export default function NewCampaignPage() {
           </div>
         )}
 
-        {/* Step 2: Party Import */}
+        {/* Step 2: Campaign Identity */}
         {step === 2 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div>
               <p className="label-overline mb-1">Step 2 of 4</p>
               <div className="section-rule" />
-              <h2 className="font-display text-lg font-semibold mt-3">Import your party</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Bring in your players from D&D Beyond. You can skip this and do it later.
-              </p>
-            </div>
-
-            <PartyImportStep
-              campaignUrl={ddbCampaignUrl}
-              onChange={setDdbCampaignUrl}
-              hasCobalt={hasCobalt}
-            />
-
-            <div className="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                ← Back
-              </button>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Skip for now →
-                </button>
-                <Button type="button" onClick={() => setStep(3)}>
-                  Next
-                  <ChevronRight className="ml-1.5 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: World Setup */}
-        {step === 3 && (
-          <div className="space-y-6">
-            <div>
-              <p className="label-overline mb-1">Step 3 of 4</p>
-              <div className="section-rule" />
-              <h2 className="font-display text-lg font-semibold mt-3">World setup</h2>
+              <h2 className="font-display text-lg font-semibold mt-3">Name your campaign</h2>
               {selectedAdventure && (
                 <p className="text-xs text-amber-400/70 mt-1">
                   Pre-filled from {selectedAdventure.title} — edit freely
@@ -369,10 +341,7 @@ export default function NewCampaignPage() {
               )}
             </div>
 
-            {/* Identity */}
             <div className="space-y-3">
-              <p className="label-overline">Campaign Identity</p>
-              <div className="section-rule" />
               <div className="space-y-2">
                 <Label htmlFor="name">Campaign Name *</Label>
                 <Input
@@ -382,6 +351,7 @@ export default function NewCampaignPage() {
                   onChange={(e) => { setName(e.target.value); setNameError(''); }}
                   aria-invalid={!!nameError}
                   maxLength={100}
+                  autoFocus
                 />
                 {nameError && <p className="text-xs text-destructive">{nameError}</p>}
               </div>
@@ -441,6 +411,32 @@ export default function NewCampaignPage() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back
+              </button>
+              <Button type="button" onClick={handleNextFromStep2}>
+                Next
+                <ChevronRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: World Setup + Party */}
+        {step === 3 && (
+          <div className="space-y-6">
+            <div>
+              <p className="label-overline mb-1">Step 3 of 4</p>
+              <div className="section-rule" />
+              <h2 className="font-display text-lg font-semibold mt-3">World & party</h2>
+              <p className="text-xs text-muted-foreground mt-1">All optional — you can fill this in later.</p>
             </div>
 
             {/* World fields */}
@@ -533,16 +529,14 @@ export default function NewCampaignPage() {
                   </div>
                 ))}
               </div>
-              {factions.length < 3 && (
-                <button
-                  type="button"
-                  onClick={() => setFactions((prev) => [...prev, { name: '', stance: 'neutral' }])}
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Add faction
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => setFactions((prev) => [...prev, { name: '', stance: 'neutral' }])}
+                className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add faction
+              </button>
             </div>
 
             {/* Story So Far */}
@@ -560,6 +554,17 @@ export default function NewCampaignPage() {
               {storyText.length > 0 && (
                 <p className="text-xs text-muted-foreground">{storyText.length.toLocaleString()} / 20,000</p>
               )}
+            </div>
+
+            {/* Party Import */}
+            <div className="space-y-3">
+              <p className="label-overline">Party Import</p>
+              <div className="section-rule" />
+              <PartyImportStep
+                campaignUrl={ddbCampaignUrl}
+                onChange={setDdbCampaignUrl}
+                hasCobalt={hasCobalt}
+              />
             </div>
 
             <div className="flex items-center justify-between pt-2">
@@ -587,11 +592,11 @@ export default function NewCampaignPage() {
               <h2 className="font-display text-lg font-semibold mt-3">Confirm & create</h2>
             </div>
 
-            <div className="rounded-lg border border-border/40 bg-stone-900/40 p-4 space-y-3">
+            <div className="rounded-lg border border-border/40 bg-stone-900/40 p-4 space-y-3 text-sm">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-xs text-muted-foreground">Adventure</p>
-                  <p className="text-sm font-medium">
+                  <p className="font-medium">
                     {selectedAdventure ? selectedAdventure.title : 'Original Campaign'}
                   </p>
                 </div>
@@ -601,28 +606,92 @@ export default function NewCampaignPage() {
                   </Badge>
                 )}
               </div>
+
               <div className="h-px bg-border/30" />
+
               <div>
                 <p className="text-xs text-muted-foreground">Name</p>
-                <p className="text-sm font-medium">{name || <span className="text-muted-foreground/50">Not set</span>}</p>
+                <p className="font-medium">{name}</p>
               </div>
-              {startingLocation && (
+
+              {description && (
                 <div>
-                  <p className="text-xs text-muted-foreground">Starting Location</p>
-                  <p className="text-sm">{startingLocation}</p>
+                  <p className="text-xs text-muted-foreground">Description</p>
+                  <p className="text-muted-foreground line-clamp-2">{description}</p>
                 </div>
               )}
-              {antagonistName && (
+
+              {bannerUrl && (
                 <div>
-                  <p className="text-xs text-muted-foreground">Antagonist</p>
-                  <p className="text-sm">{antagonistName}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Banner</p>
+                  <img src={bannerUrl} alt="" className="h-16 w-full object-cover rounded" />
                 </div>
               )}
+
+              {(startingLocation || antagonistName || openingHook) && (
+                <>
+                  <div className="h-px bg-border/30" />
+                  {startingLocation && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Starting Location</p>
+                      <p>{startingLocation}</p>
+                    </div>
+                  )}
+                  {antagonistName && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Antagonist</p>
+                      <p>{antagonistName}{antagonistMotivation ? ` — ${antagonistMotivation}` : ''}</p>
+                    </div>
+                  )}
+                  {openingHook && (
+                    <div>
+                      <p className="text-xs text-muted-foreground">Opening Hook</p>
+                      <p className="text-muted-foreground line-clamp-2">{openingHook}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {activeFactions.length > 0 && (
+                <>
+                  <div className="h-px bg-border/30" />
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1.5">Factions</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {activeFactions.map((f, i) => (
+                        <Badge
+                          key={i}
+                          variant="outline"
+                          className={cn(
+                            'text-xs',
+                            f.stance === 'ally' && 'text-emerald-400 border-emerald-500/30',
+                            f.stance === 'hostile' && 'text-red-400 border-red-500/30',
+                            f.stance === 'neutral' && 'text-slate-400 border-slate-500/30'
+                          )}
+                        >
+                          {f.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {storyText && (
+                <>
+                  <div className="h-px bg-border/30" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Story So Far</p>
+                    <p className="text-muted-foreground line-clamp-2">{storyText}</p>
+                  </div>
+                </>
+              )}
+
               <div className="h-px bg-border/30" />
               <div>
                 <p className="text-xs text-muted-foreground">Party Import</p>
-                <p className="text-sm">
-                  {ddbCampaignUrl ? 'D&D Beyond campaign linked — importing on creation' : 'No party imported yet'}
+                <p>
+                  {ddbCampaignUrl ? 'D&D Beyond campaign linked — importing on creation' : 'No party imported'}
                 </p>
               </div>
             </div>

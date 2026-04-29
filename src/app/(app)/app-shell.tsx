@@ -8,7 +8,6 @@ import { NavigationProgress } from '@/components/navigation-progress';
 import { ConsoleLogCapture } from '@/components/feedback/console-log-capture';
 import { FeedbackWidget } from '@/components/feedback/feedback-widget';
 import { CompendiumPanel } from '@/components/compendium/compendium-panel';
-import { VideoBackground } from '@/components/video-background';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
@@ -20,10 +19,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <CampaignVoiceShell>
     <OnboardingCheck>
       <NavigationProgress />
-      {/* Atmospheric layers */}
-      <VideoBackground />
-      <div className="app-ambient-glow" />
-      <div className="flex h-screen overflow-hidden app-grain app-vignette">
+      <div className="flex h-screen overflow-hidden">
         <Sidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
           <header className="glass-shell flex h-14 items-center justify-between border-b border-border px-4">

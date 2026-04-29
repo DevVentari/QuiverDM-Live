@@ -4,12 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { CreatePageShell } from '@/components/create/create-page-shell';
 
 type ImportState =
   | { phase: 'form' }
@@ -27,11 +27,9 @@ interface Progress {
 
 function ProgressView({
   jobId,
-  campaignSlug,
   onDone,
 }: {
   jobId: string;
-  campaignSlug: string;
   onDone: (errors: string[]) => void;
 }) {
   const { data } = trpc.obsidian.getImportStatus.useQuery(
@@ -74,6 +72,13 @@ function ProgressView({
     </div>
   );
 }
+
+const IMPORT_OPTIONS = [
+  { key: 'npcs' as const, label: 'NPCs' },
+  { key: 'sessions' as const, label: 'Sessions' },
+  { key: 'characters' as const, label: 'Characters' },
+  { key: 'homebrew' as const, label: 'Homebrew' },
+] as const;
 
 export default function ImportObsidianPage() {
   const router = useRouter();
@@ -129,24 +134,21 @@ export default function ImportObsidianPage() {
 
   if (state.phase === 'done') {
     return (
-      <div className="max-w-2xl space-y-4">
-        <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+      <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 text-emerald-400">
           <CheckCircle2 className="h-5 w-5" />
-          <h1 className="text-xl font-semibold">Import complete</h1>
+          <h1 className="font-display text-2xl font-bold">Import complete</h1>
         </div>
         {state.errors.length > 0 && (
-          <Card className="border-yellow-500/30">
-            <CardHeader>
-              <CardTitle className="text-sm">Some items had errors</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="text-xs text-muted-foreground space-y-1 max-h-48 overflow-y-auto">
-                {state.errors.map((e, i) => (
-                  <li key={i}>{e}</li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <div className="glass-panel glass-grain rounded-xl p-4 border border-amber-500/20">
+            <p className="label-overline mb-1">Import warnings</p>
+            <div className="section-rule mb-3" />
+            <ul className="text-xs text-muted-foreground space-y-1 max-h-48 overflow-y-auto">
+              {state.errors.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          </div>
         )}
         <Button onClick={() => router.push(`/campaigns/${state.campaignSlug}`)}>
           Open Campaign
@@ -157,10 +159,10 @@ export default function ImportObsidianPage() {
 
   if (state.phase === 'error') {
     return (
-      <div className="max-w-2xl space-y-4">
+      <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 text-destructive">
           <XCircle className="h-5 w-5" />
-          <h1 className="text-xl font-semibold">Import failed</h1>
+          <h1 className="font-display text-2xl font-bold">Import failed</h1>
         </div>
         <p className="text-sm text-muted-foreground">{state.message}</p>
         <Button variant="outline" onClick={() => setState({ phase: 'form' })}>
@@ -172,42 +174,55 @@ export default function ImportObsidianPage() {
 
   if (state.phase === 'processing') {
     return (
-      <div className="max-w-2xl">
-        <h1 className="text-2xl font-bold mb-6">Importing vault…</h1>
-        <Card>
-          <CardContent className="pt-6">
-            <ProgressView
-              jobId={state.jobId}
-              campaignSlug={state.campaignSlug}
-              onDone={(errors) => setState({ phase: 'done', campaignSlug: state.campaignSlug, errors })}
-            />
-          </CardContent>
-        </Card>
+      <div className="max-w-2xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <div>
+          <p className="label-overline mb-1">Import</p>
+          <h1 className="font-display text-2xl font-bold tracking-wide">Importing vault…</h1>
+        </div>
+        <div className="glass-panel glass-grain rounded-xl p-6">
+          <ProgressView
+            jobId={state.jobId}
+            onDone={(errors) => setState({ phase: 'done', campaignSlug: state.campaignSlug, errors })}
+          />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">Import Obsidian Vault</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Campaign Details</CardTitle>
-          <CardDescription>
-            Zip your Obsidian vault folder and upload it. QuiverDM will extract NPCs, sessions,
-            characters, and homebrew content automatically.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-5">
+    <CreatePageShell
+      overline="Import"
+      title="Import Obsidian Vault"
+      preview={
+        <div className="glass-panel glass-grain rounded-xl p-5 space-y-3 border border-border">
+          <p className="label-overline">What gets imported</p>
+          <div className="section-rule" />
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>NPCs extracted from markdown files</li>
+            <li>Session notes converted to session records</li>
+            <li>Character sheets and player notes</li>
+            <li>Homebrew items, spells, and monsters</li>
+          </ul>
+          <p className="text-xs text-muted-foreground/60 pt-2">
+            Zip your Obsidian vault folder and upload it. QuiverDM extracts content automatically.
+          </p>
+        </div>
+      }
+    >
+      <div className="glass-panel glass-grain rounded-xl p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <p className="label-overline">Campaign Details</p>
+            <div className="section-rule" />
             <div className="space-y-2">
-              <Label htmlFor="name">Campaign Name</Label>
+              <Label htmlFor="name">Campaign Name *</Label>
               <Input
                 id="name"
                 placeholder="Tales from The Bonfire Keep"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                autoFocus
               />
             </div>
             <div className="space-y-2">
@@ -218,23 +233,25 @@ export default function ImportObsidianPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                className="resize-none"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Vault ZIP</Label>
-              <div
-                className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
-                onClick={() => fileRef.current?.click()}
-              >
-                {file ? (
-                  <p className="text-sm font-medium">{file.name}</p>
-                ) : (
-                  <>
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">Click to select a ZIP file (max 50 MB)</p>
-                  </>
-                )}
-              </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="label-overline">Vault ZIP</p>
+            <div className="section-rule" />
+            <div
+              className="relative rounded-lg border-2 border-dashed border-border/50 hover:border-primary/40 transition-colors cursor-pointer overflow-hidden"
+              onClick={() => fileRef.current?.click()}
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const f = e.dataTransfer.files[0];
+                if (f) setFile(f);
+              }}
+            >
               <input
                 ref={fileRef}
                 type="file"
@@ -242,41 +259,57 @@ export default function ImportObsidianPage() {
                 className="hidden"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>Import</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {(Object.keys(options) as Array<keyof typeof options>).map((key) => (
-                  <label key={key} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 accent-primary"
-                      checked={options[key]}
-                      onChange={() => toggleOption(key)}
-                    />
-                    <span className="text-sm capitalize">{key}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button type="submit" disabled={state.phase === 'uploading'}>
-                {state.phase === 'uploading' ? (
+              <div className="h-24 flex flex-col items-center justify-center gap-2">
+                {file ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading…
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                    <p className="text-sm font-medium">{file.name}</p>
                   </>
                 ) : (
-                  'Import Vault'
+                  <>
+                    <Upload className="h-5 w-5 text-muted-foreground/50" />
+                    <p className="text-xs text-muted-foreground/50">Drop a ZIP file or click to upload (max 50 MB)</p>
+                  </>
                 )}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => router.back()}>
-                Cancel
-              </Button>
+              </div>
             </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="label-overline">Import</p>
+            <div className="section-rule" />
+            <div className="grid grid-cols-2 gap-2">
+              {IMPORT_OPTIONS.map(({ key, label }) => (
+                <label key={key} className="flex items-center gap-2 cursor-pointer text-sm">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-primary"
+                    checked={options[key]}
+                    onChange={() => toggleOption(key)}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <Button type="submit" disabled={state.phase === 'uploading'}>
+              {state.phase === 'uploading' ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading…
+                </>
+              ) : (
+                'Import Vault'
+              )}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </div>
+    </CreatePageShell>
   );
 }

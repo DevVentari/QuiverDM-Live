@@ -52,6 +52,14 @@ services:
       - DOCLING_SERVE_CONCURRENCY=2
     restart: unless-stopped
 
+  crawl4ai:
+    build: ./services/crawl4ai
+    container_name: quiverdm-crawl4ai
+    ports:
+      - "5002:5002"
+    restart: unless-stopped
+    shm_size: 1gb
+
   ollama:
     image: ollama/ollama:latest
     container_name: quiverdm-ollama
