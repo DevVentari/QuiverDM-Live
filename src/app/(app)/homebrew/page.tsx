@@ -45,38 +45,42 @@ export default function HomebrewPage() {
 
   return (
     <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Homebrew</h1>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/homebrew/pdfs">
-              <FileText className="mr-2 h-4 w-4" />
-              PDFs
-            </Link>
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm">
-                <Plus className="mr-2 h-4 w-4" />
-                Add
-                <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setCreateOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create manually
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDdbImportOpen(true)}>
-                <Globe className="mr-2 h-4 w-4" />
-                Import from D&amp;D Beyond
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setMediaImportOpen(true)}>
-                <ImageUp className="mr-2 h-4 w-4" />
-                Import from photo / notes
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      <div>
+        <p className="label-overline mb-1">Library</p>
+        <div className="section-rule" />
+        <div className="flex items-center justify-between mt-3">
+          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Homebrew</h1>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/homebrew/pdfs">
+                <FileText className="mr-2 h-4 w-4" />
+                PDFs
+              </Link>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add
+                  <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setCreateOpen(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create manually
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDdbImportOpen(true)}>
+                  <Globe className="mr-2 h-4 w-4" />
+                  Import from D&amp;D Beyond
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setMediaImportOpen(true)}>
+                  <ImageUp className="mr-2 h-4 w-4" />
+                  Import from photo / notes
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 

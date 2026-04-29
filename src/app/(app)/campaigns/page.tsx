@@ -13,14 +13,18 @@ export default function CampaignsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Campaigns</h1>
-        <Button asChild>
-          <Link href="/campaigns/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Campaign
-          </Link>
-        </Button>
+      <div>
+        <p className="label-overline mb-1">Campaigns</p>
+        <div className="section-rule" />
+        <div className="flex items-center justify-between mt-3">
+          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Campaigns</h1>
+          <Button asChild>
+            <Link href="/campaigns/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Campaign
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {campaigns.isLoading ? (

@@ -83,14 +83,18 @@ function NPCsPageInner() {
   return (
     <>
       <div className="md:hidden space-y-4 px-4 sm:px-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-display font-bold tracking-wide">NPCs</h2>
-          {isDM && (
-            <Button size="sm" onClick={() => setCreateSheetOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              New NPC
-            </Button>
-          )}
+        <div>
+          <p className="label-overline mb-1">Campaign</p>
+          <div className="section-rule" />
+          <div className="flex items-center justify-between mt-3">
+            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">NPCs</h1>
+            {isDM && (
+              <Button size="sm" onClick={() => setCreateSheetOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                New NPC
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="relative">
