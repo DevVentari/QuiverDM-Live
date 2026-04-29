@@ -244,42 +244,41 @@ export default function BrainPage() {
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="label-overline">World State Intelligence</p>
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+      <div>
+        <p className="label-overline mb-1">Campaign</p>
+        <div className="section-rule" />
+        <div className="flex items-center justify-between mt-3">
+          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide flex items-center gap-2">
             <Brain className="h-5 w-5 text-primary" />
             DM Brain
-          </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIngestOpen(true)}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Ingest Document
-          </Button>
-          {!hasEntities && (
+          </h1>
+          <div className="flex items-center gap-2">
             <Button
-              data-testid="seed-from-existing-btn"
               size="sm"
               variant="outline"
-              disabled={seeding || seedMutation.isPending}
-              onClick={() => {
-                setSeeding(true);
-                seedMutation.mutate({ campaignId }, { onSettled: () => setSeeding(false) });
-              }}
+              onClick={() => setIngestOpen(true)}
             >
-              <Sprout className="mr-2 h-4 w-4" />
-              Seed from Existing
+              <Upload className="mr-2 h-4 w-4" />
+              Ingest Document
             </Button>
-          )}
+            {!hasEntities && (
+              <Button
+                data-testid="seed-from-existing-btn"
+                size="sm"
+                variant="outline"
+                disabled={seeding || seedMutation.isPending}
+                onClick={() => {
+                  setSeeding(true);
+                  seedMutation.mutate({ campaignId }, { onSettled: () => setSeeding(false) });
+                }}
+              >
+                <Sprout className="mr-2 h-4 w-4" />
+                Seed from Existing
+              </Button>
+            )}
+          </div>
         </div>
       </div>
-
-      <div className="section-rule" />
 
       <Tabs defaultValue="overview">
         <TabsList className="mb-4">

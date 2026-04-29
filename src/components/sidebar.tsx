@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -12,8 +12,6 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
-  ChevronsUpDown,
-  Check,
   CalendarDays,
   ScrollText,
   Brain,
@@ -27,17 +25,11 @@ import {
 } from 'lucide-react';
 import { useCompendiumStore } from '@/store/compendium-store';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { QuiverLogo } from '@/components/logo/quiver-logo';
 import { useLogoVariant } from '@/hooks/use-logo-variant';
+import { CampaignPill } from '@/components/campaign/campaign-pill';
 
 const globalNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -126,149 +118,6 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
   );
 }
 
-function CampaignSwitcher({
-  currentCampaign,
-  campaigns,
-  collapsed,
-}: {
-  currentCampaign: { slug: string; name: string; sessionCount?: number | null } | null;
-  campaigns: { slug: string; name: string; sessionCount?: number | null }[];
-  collapsed: boolean;
-}) {
-  const router = useRouter();
-
-  if (collapsed) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] text-muted-foreground/60 transition-colors hover:border-[hsl(35_50%_26%)] hover:text-foreground"
-            title="Switch campaign"
-          >
-            <Globe className="h-3.5 w-3.5" strokeWidth={1.8} />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" align="start" className="w-52">
-          {campaigns.map((c) => (
-            <DropdownMenuItem
-              key={c.slug}
-              onClick={() => router.push(`/campaigns/${c.slug}`)}
-              className="gap-2"
-            >
-              {c.slug === currentCampaign?.slug && <Check className="h-3.5 w-3.5 text-amber-400" />}
-              {c.slug !== currentCampaign?.slug && <span className="w-3.5" />}
-              <span className="truncate">{c.name}</span>
-            </DropdownMenuItem>
-          ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => router.push('/campaigns')}>
-            All campaigns
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          className="mx-3 mt-3 mb-1 flex w-[calc(100%-24px)] items-center justify-between gap-2 rounded-[3px] border border-[hsl(35_35%_18%)] px-3 py-2 text-left transition-colors hover:border-[hsl(35_50%_26%)]"
-          style={{
-            background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%)',
-            boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.08)',
-          }}
-        >
-          <div className="min-w-0">
-            <p className="font-sans text-xs font-semibold truncate" style={{ color: 'hsl(35 20% 88%)' }}>
-              {currentCampaign?.name ?? 'Select Campaign'}
-            </p>
-            <p className="font-sans text-[10px] mt-0.5" style={{ color: 'hsl(35 10% 44%)' }}>
-              {currentCampaign
-                ? `${currentCampaign.sessionCount ?? 0} sessions`
-                : 'Switch campaign'}
-            </p>
-          </div>
-          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" strokeWidth={1.8} />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="right" align="start" className="w-52">
-        {campaigns.map((c) => (
-          <DropdownMenuItem
-            key={c.slug}
-            onClick={() => router.push(`/campaigns/${c.slug}`)}
-            className="gap-2"
-          >
-            {c.slug === currentCampaign?.slug
-              ? <Check className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              : <span className="w-3.5 shrink-0" />
-            }
-            <span className="truncate">{c.name}</span>
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/campaigns')}>
-          All campaigns
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-function CampaignContext({
-  campaign,
-  collapsed,
-}: {
-  campaign: { name: string; sessionCount?: number | null } | null;
-  collapsed: boolean;
-}) {
-  if (collapsed) return <div className="h-2" />;
-  return (
-    <div
-      className="mx-3 mt-3 mb-1 rounded-[3px] border border-[hsl(35_35%_18%)] px-3 py-2.5"
-      style={{
-        background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%)',
-        boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.08)',
-      }}
-    >
-      <Link
-        href="/campaigns"
-        className="flex items-center gap-1 mb-2 font-sans text-[10px] font-semibold uppercase tracking-[0.1em]"
-        style={{ color: 'hsl(240 5% 36%)', transition: 'color 150ms' }}
-        onMouseEnter={e => (e.currentTarget.style.color = 'hsl(240 5% 55%)')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'hsl(240 5% 36%)')}
-      >
-        <ChevronLeft className="h-3 w-3" strokeWidth={2.5} />
-        All Campaigns
-      </Link>
-      <div className="flex items-center gap-1.5">
-        <Shield className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} style={{ color: 'hsl(35 80% 62%)' }} />
-        <span
-          className="font-display text-[13px] font-bold tracking-[0.03em] truncate"
-          style={{
-            color: 'hsl(35 80% 68%)',
-            textShadow: '0 0 14px hsl(35 80% 48% / 0.3)',
-          }}
-        >
-          {campaign?.name ?? 'Campaign'}
-        </span>
-        <span
-          className="font-sans text-[8px] font-bold uppercase tracking-[0.1em] px-1.5 py-0.5 rounded-full shrink-0"
-          style={{
-            border: '1px solid hsl(35 60% 28%)',
-            background: 'hsl(35 60% 10%)',
-            color: 'hsl(35 70% 52%)',
-          }}
-        >
-          DM
-        </span>
-      </div>
-      <p className="font-sans text-[10px] mt-1" style={{ color: 'hsl(35 10% 40%)' }}>
-        {campaign?.sessionCount ?? 0} sessions
-      </p>
-    </div>
-  );
-}
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -276,6 +125,7 @@ export function Sidebar() {
   const { open: openCompendium, isOpen: compendiumOpen } = useCompendiumStore();
 
   const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
+  const inCampaign = !!campaignSlug;
 
   const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, {
     staleTime: 300_000,
@@ -288,8 +138,6 @@ export function Sidebar() {
     recapDashboard.data?.reduce((sum, c) => sum + c.pendingReview, 0) ?? 0;
 
   const currentCampaign = campaigns.data?.find((c) => c.slug === campaignSlug) ?? null;
-  const inCampaign = !!campaignSlug;
-
   const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
 
   const baseVariant = useLogoVariant();
@@ -374,21 +222,45 @@ export function Sidebar() {
         )}
       </div>
 
-      {/* Campaign switcher / context header */}
-      {inCampaign ? (
-        <CampaignContext campaign={currentCampaign} collapsed={collapsed} />
-      ) : (
-        <CampaignSwitcher
-          currentCampaign={currentCampaign}
-          campaigns={campaigns.data ?? []}
-          collapsed={collapsed}
-        />
-      )}
-
       {/* Navigation */}
       <nav className="relative z-10 flex-1 overflow-y-auto py-1">
-        {inCampaign && campaignNavSections ? (
+        {/* Global zone — always visible */}
+        <SectionLabel label="Navigate" collapsed={collapsed} />
+        {globalNav.map((item) => {
+          const isActive =
+            pathname === item.href || pathname.startsWith(item.href + '/');
+          if (item.href === '/recap' && pendingRecapCount > 0 && !collapsed) {
+            return (
+              <div key={item.href} className="relative">
+                <NavItem {...item} isActive={isActive} collapsed={collapsed} />
+                <span
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full pointer-events-none"
+                  style={{ background: 'hsl(35 60% 18%)', color: 'hsl(35 70% 58%)' }}
+                >
+                  {pendingRecapCount}
+                </span>
+              </div>
+            );
+          }
+          return (
+            <NavItem
+              key={item.href}
+              {...item}
+              isActive={isActive}
+              collapsed={collapsed}
+            />
+          );
+        })}
+
+        {/* Campaign zone — only when inside a campaign */}
+        {inCampaign && campaignNavSections && (
           <>
+            <div className="mx-3 my-3 border-t border-[hsl(35_35%_14%)]" />
+            <CampaignPill
+              current={currentCampaign}
+              campaigns={campaigns.data ?? []}
+              collapsed={collapsed}
+            />
             <SectionLabel label="Campaign" collapsed={collapsed} />
             {campaignNavSections.campaign.map((item) => (
               <NavItem
@@ -415,47 +287,6 @@ export function Sidebar() {
                 key={item.href}
                 {...item}
                 isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
-                collapsed={collapsed}
-              />
-            ))}
-          </>
-        ) : (
-          <>
-            <SectionLabel label="Navigate" collapsed={collapsed} />
-            {globalNav.map((item) => {
-              const isActive =
-                pathname === item.href || pathname.startsWith(item.href + '/');
-              if (item.href === '/recap' && pendingRecapCount > 0 && !collapsed) {
-                return (
-                  <div key={item.href} className="relative">
-                    <NavItem {...item} isActive={isActive} collapsed={collapsed} />
-                    <span
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full pointer-events-none"
-                      style={{ background: 'hsl(35 60% 18%)', color: 'hsl(35 70% 58%)' }}
-                    >
-                      {pendingRecapCount}
-                    </span>
-                  </div>
-                );
-              }
-              return (
-                <NavItem
-                  key={item.href}
-                  {...item}
-                  isActive={isActive}
-                  collapsed={collapsed}
-                />
-              );
-            })}
-
-            <SectionLabel label="Tools" collapsed={collapsed} />
-            {toolsNav.map((item) => (
-              <NavItem
-                key={item.href}
-                {...item}
-                isActive={
-                  pathname === item.href || pathname.startsWith(item.href + '/')
-                }
                 collapsed={collapsed}
               />
             ))}
