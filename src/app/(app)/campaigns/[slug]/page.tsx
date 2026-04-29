@@ -88,10 +88,15 @@ export default function CampaignOverviewPage() {
     })
     .slice(0, 5);
 
-  const nextSession = sessions.find(
-    (s: any) => s.status === 'planning' && s.id !== sessions[0]?.id
-  );
   const continueAction = computeContinueAction(sessions, slug);
+  const heroSessionId = continueAction?.sessionId;
+  const nextSession = sessions.find(
+    (s: any) =>
+      s.status === 'planning' &&
+      s.id !== heroSessionId &&
+      s.date &&
+      new Date(s.date) > new Date()
+  );
   const hasWorldPressure = PRESSURE_TRACKS.some(([, field]) => (state?.[field] ?? 0) > 0);
 
   const memberCount = campaign?._count?.members ?? 0;
