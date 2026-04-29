@@ -45,4 +45,12 @@ describe('deriveSessionPhase', () => {
   it('returns recap when aiSummaryStatus is error but has summary text', () => {
     expect(deriveSessionPhase({ ...base, status: 'completed', recordingCount: 1, aiSummaryStatus: 'error', aiSummary: 'text', hasApprovedRecap: false })).toBe('recap');
   });
+
+  it('returns prep when status is cancelled', () => {
+    expect(deriveSessionPhase({ ...base, status: 'cancelled' })).toBe('prep');
+  });
+
+  it('returns recap when aiSummaryStatus is error and aiSummary is null', () => {
+    expect(deriveSessionPhase({ ...base, status: 'completed', recordingCount: 1, aiSummaryStatus: 'error', aiSummary: null, hasApprovedRecap: false })).toBe('recap');
+  });
 });
