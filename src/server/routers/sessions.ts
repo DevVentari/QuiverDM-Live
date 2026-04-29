@@ -6,6 +6,7 @@ import {
 } from '../trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { Prisma } from '@prisma/client';
 import { sessionService } from '../services/session.service';
 import { prisma } from '../db';
 import { authz } from '../services/authorization.service';
@@ -17,6 +18,17 @@ import { postSummaryToDiscord } from '@/lib/discord/post-summary';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
 import { sessionStateService } from '../services/session-state.service';
 import { extractPrepNotes } from '@/lib/ai/extract-prep-notes';
+import { addTranscriptCleanupJob } from '@/lib/queue/transcript-cleanup-queue';
+
+interface OocReviewItem {
+  index: number;
+  speaker: string;
+  text: string;
+  start_formatted: string;
+  classification: 'ooc' | 'uncertain';
+  confidence: number;
+  reason: string;
+}
 
 export const sessionsRouter = router({
   /**
@@ -618,5 +630,81 @@ export const sessionsRouter = router({
       );
 
       return { ok: true };
+    }),
+
+  triggerOocCleanup: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string() }))
+    .mutation(async ({ input }) => {
+      const session = await prisma.gameSession.findFirst({
+        where: { id: input.sessionId, campaignId: input.campaignId },
+        include: { transcripts: { take: 1, orderBy: { createdAt: 'desc' } } },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+
+      const transcript = session.transcripts[0];
+      if (!transcript) throw new BadRequestError('No transcript found for this session');
+
+      await prisma.transcript.update({
+        where: { id: transcript.id },
+        data: { cleanupStatus: 'processing' },
+      });
+
+      await addTranscriptCleanupJob({
+        transcriptId: transcript.id,
+        sessionId: input.sessionId,
+        campaignId: input.campaignId,
+        phase: 'ooc',
+      });
+
+      return { transcriptId: transcript.id };
+    }),
+
+  confirmOocReview: campaignDMProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      sessionId: z.string(),
+      drops: z.array(z.number()),
+    }))
+    .mutation(async ({ input }) => {
+      const session = await prisma.gameSession.findFirst({
+        where: { id: input.sessionId, campaignId: input.campaignId },
+        include: { transcripts: { take: 1, orderBy: { createdAt: 'desc' } } },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+
+      const transcript = session.transcripts[0];
+      if (!transcript) throw new BadRequestError('No transcript found');
+
+      const reviewItems = (transcript.oocReviewItems ?? []) as unknown as OocReviewItem[];
+
+      if (input.drops.length > 0 && transcript.correctedText) {
+        const dropSet = new Set(input.drops);
+        const dropTexts = reviewItems
+          .filter(item => dropSet.has(item.index))
+          .map(item => item.text);
+
+        const lines = transcript.correctedText.split('\n');
+        const cleaned = lines.filter(line => {
+          if (!line.startsWith('**[')) return true;
+          const m = line.match(/^\*\*\[[^\]]+\] [^:]+:\*\*\s(.+)$/);
+          return !m || !dropTexts.includes(m[1]);
+        });
+
+        await prisma.transcript.update({
+          where: { id: transcript.id },
+          data: {
+            correctedText: cleaned.join('\n'),
+            oocReviewItems: Prisma.JsonNull,
+            cleanupStatus: 'complete',
+          },
+        });
+      } else {
+        await prisma.transcript.update({
+          where: { id: transcript.id },
+          data: { oocReviewItems: Prisma.JsonNull, cleanupStatus: 'complete' },
+        });
+      }
+
+      return { success: true };
     }),
 });
