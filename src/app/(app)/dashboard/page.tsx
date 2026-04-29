@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { formatDistanceToNow, format } from 'date-fns';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { ActiveCampaignHero } from '@/components/dashboard/ActiveCampaignHero';
 
 export default function DashboardPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, { staleTime: 120_000 });
   const invites = trpc.campaigns.getPendingInvites.useQuery(undefined, { staleTime: 10_000 });
   const utils = trpc.useUtils();
@@ -47,6 +49,15 @@ export default function DashboardPage() {
       return bDate - aDate;
     })[0] ?? null;
   }, [campaigns.data]);
+
+  useEffect(() => {
+    if (!campaigns.isLoading && campaigns.data && campaigns.data.length > 0) {
+      const mostRecent = activeCampaign;
+      if (mostRecent?.slug) {
+        router.replace(`/campaigns/${mostRecent.slug}`);
+      }
+    }
+  }, [campaigns.isLoading, campaigns.data, activeCampaign, router]);
 
   return (
     <div className="dashboard-bg space-y-6 max-w-6xl 2xl:max-w-[1500px] overflow-hidden rounded-2xl border border-white/5 p-4 sm:p-5">
