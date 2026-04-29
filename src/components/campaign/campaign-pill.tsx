@@ -27,7 +27,7 @@ export function CampaignPill({ current, campaigns, collapsed }: CampaignPillProp
 
   const trigger = collapsed ? (
     <button
-      className="mx-auto mb-1 flex h-8 w-8 items-center justify-center rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] text-muted-foreground/60 transition-colors hover:border-[hsl(35_50%_26%)] hover:text-foreground"
+      className="mx-auto mb-1 flex h-11 w-11 items-center justify-center rounded-[3px] border border-[hsl(35_35%_18%)] bg-[hsl(240,10%,10%)] text-muted-foreground/60 transition-colors hover:border-[hsl(35_50%_26%)] hover:text-foreground"
       title={current?.name ?? 'Select campaign'}
     >
       <ChevronsUpDown className="h-3.5 w-3.5" strokeWidth={1.8} />
