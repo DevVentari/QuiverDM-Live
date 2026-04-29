@@ -7,21 +7,31 @@ import { Sparkles, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
+import { TranscriptCleanupBadge } from '@/components/session/transcript-cleanup-badge';
+import { OocReviewSheet } from '@/components/session/ooc-review-sheet';
 
 interface PhaseSummaryProps {
   session: {
     id: string;
     aiSummaryStatus?: string | null;
     aiSummary?: string | null;
-    transcripts?: Array<{ correctedText?: string | null; rawText?: string | null }>;
+    transcripts?: Array<{
+      id: string;
+      correctedText?: string | null;
+      rawText?: string | null;
+      cleanupStatus?: string | null;
+      oocReviewItems?: unknown;
+    }>;
   };
+  campaignId: string;
   onSummaryReady: () => void;
 }
 
-export function PhaseSummary({ session, onSummaryReady }: PhaseSummaryProps) {
+export function PhaseSummary({ session, campaignId, onSummaryReady }: PhaseSummaryProps) {
   const { toast } = useToast();
   const utils = trpc.useUtils();
   const [showTranscript, setShowTranscript] = useState(false);
+  const [oocSheetOpen, setOocSheetOpen] = useState(false);
 
   const generateSummary = trpc.sessions.generateSummary.useMutation({
     onSuccess: () => {
@@ -37,24 +47,45 @@ export function PhaseSummary({ session, onSummaryReady }: PhaseSummaryProps) {
   return (
     <div className="space-y-4">
       {transcript && (
-        <div className="stone-card glass-panel">
-          <button
-            onClick={() => setShowTranscript((v) => !v)}
-            className="stone-card-header flex w-full items-center justify-between hover:text-foreground transition-colors"
-          >
-            <span className="stone-card-title text-sm">Transcript</span>
-            {showTranscript ? (
-              <ChevronUp className="h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        <>
+          <div className="stone-card glass-panel">
+            <button
+              onClick={() => setShowTranscript((v) => !v)}
+              className="stone-card-header flex w-full items-center justify-between hover:text-foreground transition-colors"
+            >
+              <span className="stone-card-title text-sm">Transcript</span>
+              <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
+                <TranscriptCleanupBadge
+                  sessionId={session.id}
+                  transcriptId={transcript.id}
+                  campaignId={campaignId}
+                  cleanupStatus={transcript.cleanupStatus ?? null}
+                  oocReviewItemCount={Array.isArray(transcript.oocReviewItems) ? transcript.oocReviewItems.length : 0}
+                  onReviewOpen={() => setOocSheetOpen(true)}
+                />
+                {showTranscript ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+              </div>
+            </button>
+            {showTranscript && (
+              <div className="stone-card-body max-h-64 overflow-y-auto text-[11px] leading-relaxed font-mono text-muted-foreground whitespace-pre-wrap">
+                {transcript.correctedText ?? transcript.rawText}
+              </div>
             )}
-          </button>
-          {showTranscript && (
-            <div className="stone-card-body max-h-64 overflow-y-auto text-[11px] leading-relaxed font-mono text-muted-foreground whitespace-pre-wrap">
-              {transcript.correctedText ?? transcript.rawText}
-            </div>
+          </div>
+          {Array.isArray(transcript.oocReviewItems) && transcript.oocReviewItems.length > 0 && (
+            <OocReviewSheet
+              open={oocSheetOpen}
+              onClose={() => setOocSheetOpen(false)}
+              sessionId={session.id}
+              campaignId={campaignId}
+              items={transcript.oocReviewItems as Parameters<typeof OocReviewSheet>[0]['items']}
+            />
           )}
-        </div>
+        </>
       )}
 
       <div className="stone-card glass-panel">
