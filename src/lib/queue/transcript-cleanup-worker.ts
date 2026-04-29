@@ -2,7 +2,7 @@ import 'dotenv/config';
 import path from 'path';
 import fs from 'fs';
 import { Worker, Job } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { getRedisConnection } from './queue';
 import OpenAI from 'openai';
 import type { TranscriptCleanupJobData, TranscriptCleanupJobResult } from './transcript-cleanup-queue';
@@ -414,7 +414,7 @@ async function processOoc(
     where: { id: transcriptId },
     data: {
       correctedText,
-      oocReviewItems: reviewItems.length > 0 ? reviewItems : null,
+      oocReviewItems: reviewItems.length > 0 ? (reviewItems as any) : Prisma.JsonNull,
       cleanupStatus: reviewItems.length > 0 ? 'ooc_pending_review' : 'complete',
     },
   });
