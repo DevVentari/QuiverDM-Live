@@ -321,6 +321,7 @@ model Campaign {
   campaignContexts  CampaignContext[]
   recaps            SessionRecap[]
   speakerMappings   SpeakerMapping[]
+  transcriptCorrections TranscriptCorrection[]
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
 
   // Discord integration
@@ -906,6 +907,8 @@ model Transcript {
   languageProbability Float?
   durationSeconds     Float?
   hasSpeakers         Boolean           @default(false)
+  cleanupStatus  String?  // pending | processing | complete | ooc_pending_review | failed
+  oocReviewItems Json?
   source              String            @default("upload") // 'upload' | 'live' | 'web_speech' | 'multi_track'
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -1607,6 +1610,18 @@ model SpeakerMapping {
   updatedAt     DateTime  @updatedAt
 
   @@unique([campaignId, speakerLabel])
+  @@index([campaignId])
+}
+
+// Transcript cleanup — campaign-specific term corrections
+model TranscriptCorrection {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  wrong      String
+  correct    String
+  createdAt  DateTime @default(now())
+
   @@index([campaignId])
 }
 
