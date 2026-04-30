@@ -22,10 +22,11 @@ const worker = (name, file, opts = {}) => ({
 module.exports = {
   apps: [
     // --- Core pipeline ---
-    worker('worker-pdf',              'src/lib/queue/worker.ts'),
-    worker('worker-transcription',    'src/lib/queue/transcription-worker.ts'),
-    worker('worker-multi-track',      'src/lib/queue/multi-track-worker.ts'),
-    worker('worker-summary',          'src/lib/queue/ai-summary-worker.ts'),
+    worker('worker-pdf',                  'src/lib/queue/worker.ts'),
+    worker('worker-transcription',        'src/lib/queue/transcription-worker.ts'),
+    worker('worker-multi-track',          'src/lib/queue/multi-track-worker.ts'),
+    worker('worker-transcript-cleanup',   'src/lib/queue/transcript-cleanup-worker.ts'),
+    worker('worker-summary',              'src/lib/queue/ai-summary-worker.ts'),
     worker('worker-embeddings',       'src/lib/queue/embeddings-worker.ts'),
     worker('worker-recap',            'src/lib/queue/recap-generation-worker.ts'),
     worker('worker-player-recap',     'src/lib/queue/player-recap-worker.ts'),
