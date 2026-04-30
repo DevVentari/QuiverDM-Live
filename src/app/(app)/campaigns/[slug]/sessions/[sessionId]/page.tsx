@@ -38,7 +38,13 @@ export default function SessionHubPage() {
   }
 
   const recordings = (session.recordings as Array<unknown>) ?? [];
-  const transcripts = (session.transcripts as Array<{ id: string; correctedText?: string | null; rawText?: string | null }>) ?? [];
+  const transcripts = (session.transcripts as Array<{
+    id: string;
+    correctedText?: string | null;
+    rawText?: string | null;
+    cleanupStatus?: string | null;
+    oocReviewItems?: unknown;
+  }>) ?? [];
   const sessionNumber = session.sessionNumber as number;
   const sessionTitle = session.title as string | null;
   const sessionDate = session.date ? new Date(session.date as string) : null;
@@ -135,6 +141,7 @@ export default function SessionHubPage() {
             aiSummary: (session.aiSummary as string | null) ?? null,
             transcripts,
           }}
+          campaignId={campaignId}
           onSummaryReady={refresh}
         />
       )}
