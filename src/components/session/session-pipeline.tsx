@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Check } from 'lucide-react';
+import { PHASE_ICONS } from '@/lib/session-phase-icons';
 import { PHASE_ORDER, PHASE_LABELS, type SessionPhase } from '@/lib/session-lifecycle';
 
 interface SessionPipelineProps {
@@ -32,14 +32,19 @@ export function SessionPipeline({ currentPhase, onPhaseClick }: SessionPipelineP
               i > 0 && 'border-l border-border/40'
             )}
           >
-            <div className={cn(
-              'h-2 w-2 rounded-full transition-all flex items-center justify-center',
-              isDone   && 'bg-emerald-500',
-              isActive && 'bg-amber-400 shadow-[0_0_6px_hsl(35_80%_55%/0.5)]',
-              isLocked && 'bg-muted-foreground/30 border border-muted-foreground/20'
-            )}>
-              {isDone && <Check className="h-1.5 w-1.5 text-white" strokeWidth={3} />}
-            </div>
+            {(() => {
+              const Icon = PHASE_ICONS[phase];
+              return (
+                <Icon
+                  className={cn(
+                    'h-3.5 w-3.5 transition-all',
+                    isDone   && 'text-emerald-400/70',
+                    isActive && 'text-amber-400 drop-shadow-[0_0_4px_hsl(35_80%_55%/0.5)]',
+                    isLocked && 'text-muted-foreground/30'
+                  )}
+                />
+              );
+            })()}
             <span className={cn(
               'text-[9px] font-semibold uppercase tracking-[0.1em]',
               isDone   && 'text-emerald-400/70',
