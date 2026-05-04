@@ -1,9 +1,16 @@
 import { create } from 'zustand';
 
+export type HeaderStat = {
+  label: string;
+  value: string | number;
+  alert?: boolean;
+};
+
 export type HeaderSlot = {
   label: string;
   title: string;
   badge?: { text: string; color: 'amber' | 'sky' };
+  stats?: HeaderStat[];
 } | null;
 
 interface HeaderStore {
