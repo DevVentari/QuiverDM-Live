@@ -28,6 +28,7 @@ test.describe('Character Add Sheet', () => {
   test('manual create requires a name', async ({ page }) => {
     await page.goto('/characters?create=true');
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByLabel(/name/i)).toBeVisible({ timeout: 3000 });
     await page.getByRole('button', { name: /^create character$/i }).click();
     await expect(page.getByText(/name is required/i)).toBeVisible({ timeout: 3000 });
   });
@@ -36,7 +37,7 @@ test.describe('Character Add Sheet', () => {
     await page.goto('/characters?create=true');
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 });
     await page.keyboard.press('Escape');
-    await page.waitForURL('/characters', { timeout: 3000 });
+    await page.waitForURL(/\/characters$/, { timeout: 3000 });
     await expect(page.getByRole('dialog')).not.toBeVisible();
   });
 });
