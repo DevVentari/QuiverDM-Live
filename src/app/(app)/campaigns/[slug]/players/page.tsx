@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
@@ -8,6 +8,14 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -15,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, Plus } from 'lucide-react';
+import { Users, Plus, Link2, RefreshCw, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CharacterAddSheet } from '@/components/character/CharacterAddSheet';
 
@@ -128,12 +136,46 @@ function PlayersPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAddOpen = searchParams.get('add') === 'true';
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
 
   const characters = trpc.characters.getCampaignCharacters.useQuery(
     { campaignId },
     { staleTime: 120_000 }
   );
   const utils = trpc.useUtils();
+
+  const ddbUrl = trpc.campaigns.getDdbCampaignUrl.useQuery(
+    { campaignId },
+    { enabled: isDM }
+  );
+
+  const setDdbUrl = trpc.campaigns.setDdbCampaignUrl.useMutation({
+    onSuccess: () => {
+      utils.campaigns.getDdbCampaignUrl.invalidate({ campaignId });
+      setLinkDialogOpen(false);
+      setLinkUrl('');
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const syncDdb = trpc.charactersDndBeyond.importFromCampaign.useMutation({
+    onSuccess: (data) => {
+      utils.characters.getCampaignCharacters.invalidate({ campaignId });
+      toast({
+        title: 'Synced',
+        description: `${data.imported} imported, ${data.failed} already up to date`,
+      });
+    },
+    onError: (error) => {
+      const msg = error.message.includes('Cobalt')
+        ? 'D&D Beyond session not configured — add your CobaltSession in Settings → API Keys.'
+        : error.message;
+      toast({ title: 'Sync failed', description: msg, variant: 'destructive' });
+    },
+  });
 
   const approve = trpc.characters.approveCharacter.useMutation({
     onSuccess: () => utils.characters.getCampaignCharacters.invalidate({ campaignId }),
@@ -183,7 +225,44 @@ function PlayersPageInner() {
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       {isDM && (
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center gap-2">
+          {ddbUrl.data?.url ? (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                onClick={() => syncDdb.mutate({ campaignUrl: ddbUrl.data.url!, campaignId })}
+                disabled={syncDdb.isPending}
+              >
+                {syncDdb.isPending ? (
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                )}
+                Sync DDB
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                onClick={() => setDdbUrl.mutate({ campaignId, url: null })}
+                title="Unlink D&D Beyond"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-border text-muted-foreground hover:text-foreground"
+              onClick={() => setLinkDialogOpen(true)}
+            >
+              <Link2 className="mr-2 h-3.5 w-3.5 text-amber-500/70" />
+              Link D&amp;D Beyond
+            </Button>
+          )}
           <Button size="sm" onClick={() => router.push('?add=true')}>
             <Plus className="mr-2 h-4 w-4" />
             Add Character
@@ -321,6 +400,34 @@ function PlayersPageInner() {
           }}
         />
       )}
+
+      <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Link D&amp;D Beyond Campaign</DialogTitle>
+          </DialogHeader>
+          <div className="py-2">
+            <Input
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://www.dndbeyond.com/campaigns/…"
+              className="font-mono text-sm"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLinkDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => setDdbUrl.mutate({ campaignId, url: linkUrl || null })}
+              disabled={!linkUrl || setDdbUrl.isPending}
+            >
+              {setDdbUrl.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
