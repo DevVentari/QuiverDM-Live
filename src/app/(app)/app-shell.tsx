@@ -13,8 +13,11 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
 import { CampaignVoiceShell } from '@/components/voice/campaign-voice-shell';
 import { VoiceButton } from '@/components/voice/voice-button';
+import { useHeaderStore } from '@/store/header-store';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const slot = useHeaderStore((s) => s.slot);
+
   return (
     <CampaignVoiceShell>
     <OnboardingCheck>
@@ -36,7 +39,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <MobileSidebar />
               </SheetContent>
             </Sheet>
-            <div className="flex-1" />
+
+            {slot ? (
+              <div className="flex-1 flex items-center gap-3 min-w-0 mx-3">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.2em] leading-none mb-0.5" style={{ color: 'hsl(35 60% 45%)' }}>
+                    {slot.label}
+                  </p>
+                  <p className="font-display text-sm font-bold truncate leading-tight" style={{ color: 'hsl(35 30% 90%)' }}>
+                    {slot.title}
+                  </p>
+                </div>
+                {slot.badge && (
+                  <span
+                    className={`shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full border ${
+                      slot.badge.color === 'amber'
+                        ? 'text-amber-400/80 border-amber-500/20 bg-amber-500/8'
+                        : 'text-sky-400/80 border-sky-500/20 bg-sky-500/8'
+                    }`}
+                  >
+                    {slot.badge.text}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="flex-1" />
+            )}
+
             <div className="flex items-center gap-2">
               <VoiceButton />
               <UserMenu />
