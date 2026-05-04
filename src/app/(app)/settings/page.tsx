@@ -10,14 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
-import { Trash2, Save, Ticket, ExternalLink, FileText, Map, ArrowUpRight, Loader2, Upload, Sparkles, Search, Image as ImageIcon, Zap, MonitorPlay, BookOpen } from 'lucide-react';
+import { Trash2, Save, Ticket, ExternalLink, ArrowUpRight, Loader2, Zap, MonitorPlay, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { RoleBadge } from '@/components/ui/role-badge';
-import { PlanBadge } from '@/components/ui/plan-badge';
 import { PlatformRole } from '@prisma/client';
 import { hasMinimumRole } from '@/lib/platform';
 
@@ -72,65 +70,10 @@ const keyConfigs: KeyConfig[] = [
 ];
 
 
-/**
- * Returns the indicator color class based on usage percentage.
- * Normal: default foreground
- * Warning (>80%): amber/orange
- * Critical (>=100%): red
- */
-function getProgressColor(percentage: number): string {
-  if (percentage >= 100) return 'bg-red-500';
-  if (percentage > 80) return 'bg-amber-500';
-  return '';
-}
-
-/**
- * Returns the text color class based on usage percentage.
- */
-function getTextColor(percentage: number): string {
-  if (percentage >= 100) return 'text-red-500';
-  if (percentage > 80) return 'text-amber-500';
-  return 'text-muted-foreground';
-}
-
-
-function getSubscriptionBadgeVariant(
-  status: string | null | undefined
-): 'default' | 'secondary' | 'destructive' | 'outline' {
-  switch (status) {
-    case 'active':
-      return 'default';
-    case 'past_due':
-      return 'destructive';
-    case 'canceling':
-      return 'secondary';
-    default:
-      return 'outline';
-  }
-}
-
-function getSubscriptionLabel(status: string | null | undefined): string {
-  switch (status) {
-    case 'active':
-      return 'Active';
-    case 'past_due':
-      return 'Past Due';
-    case 'canceling':
-      return 'Canceling';
-    case 'canceled':
-      return 'Canceled';
-    default:
-      return 'None';
-  }
-}
-
 export default function SettingsPage() {
   const { toast } = useToast();
   const profile = trpc.userSettings.getProfile.useQuery(undefined, { staleTime: 300_000 });
   const settings = trpc.userSettings.getSettings.useQuery(undefined, { staleTime: 300_000 });
-  const usage = trpc.usage.getStatus.useQuery(undefined, { staleTime: 300_000 });
-  const billingStatus = trpc.billing.getStatus.useQuery(undefined, { staleTime: 300_000 });
-  const billingPlans = trpc.billing.getPlans.useQuery(undefined, { staleTime: 300_000 });
   const utils = trpc.useUtils();
 
   const updateProfile = trpc.userSettings.updateProfile.useMutation({
@@ -172,51 +115,7 @@ export default function SettingsPage() {
     onSuccess: () => utils.userSettings.getSettings.invalidate(),
   });
 
-  const createCheckout = trpc.billing.createCheckout.useMutation({
-    onSuccess: (data) => {
-      window.location.href = data.url;
-    },
-    onError: (error) => {
-      toast({
-        title: 'Checkout failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const createPortal = trpc.billing.createPortal.useMutation({
-    onSuccess: (data) => {
-      window.location.href = data.url;
-    },
-    onError: (error) => {
-      toast({
-        title: 'Portal failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  const cancelSubscription = trpc.billing.cancel.useMutation({
-    onSuccess: async () => {
-      toast({
-        title: 'Subscription updated',
-        description: 'Your subscription will cancel at period end.',
-      });
-      await billingStatus.refetch();
-    },
-    onError: (error) => {
-      toast({
-        title: 'Cancellation failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
-
   const [editing, setEditing] = useState<Record<string, string>>({});
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: '', displayName: '', bio: '' });
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
@@ -233,23 +132,6 @@ export default function SettingsPage() {
       setProfileLoaded(true);
     }
   }, [profile.data, profileLoaded]);
-
-  function handleStartCheckout(priceId: string | null | undefined) {
-    if (!priceId) {
-      toast({
-        title: 'Plan unavailable',
-        description: 'Stripe price ID is not configured.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    createCheckout.mutate({ priceId });
-  }
-
-  function handleCancelSubscription() {
-    setCancelDialogOpen(true);
-  }
 
   if (settings.isLoading) {
     return (
@@ -279,308 +161,6 @@ export default function SettingsPage() {
         <p className="label-overline mb-0.5">Account</p>
         <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Settings</h1>
       </div>
-
-      {/* Usage & Limits Section */}
-      {usage.isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-24 rounded-lg" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Skeleton className="h-32 rounded-lg" />
-            <Skeleton className="h-32 rounded-lg" />
-            <Skeleton className="h-32 rounded-lg" />
-          </div>
-        </div>
-      ) : usage.data ? (
-        <>
-          {/* Current Plan Card */}
-          <div className="stone-card">
-            <div className="stone-card-header">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="stone-card-title">Usage &amp; Limits</span>
-                  <p className="text-sm text-muted-foreground">
-                    Your current plan and resource usage
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <PlanBadge tier={usage.data.tier} />
-                  {usage.data.tier === 'free' && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleStartCheckout(billingPlans.data?.pro.priceId)}
-                      disabled={createCheckout.isPending}
-                    >
-                      {createCheckout.isPending ? (
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      ) : (
-                        <ArrowUpRight className="h-4 w-4 mr-1" />
-                      )}
-                      Upgrade to Pro
-                    </Button>
-                  )}
-                  {usage.data.tier === 'alpha' && (
-                    <span className="text-xs text-amber-300/70">Alpha access</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="stone-card-body space-y-6">
-              {/* Subscription Status */}
-              {billingStatus.data && (
-                <div className="rounded-lg border bg-muted/50 p-3 text-sm">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-muted-foreground">Subscription:</span>
-                    <Badge variant={getSubscriptionBadgeVariant(billingStatus.data.subscriptionStatus)}>
-                      {getSubscriptionLabel(billingStatus.data.subscriptionStatus)}
-                    </Badge>
-                    {billingStatus.data.currentPeriodEnd && (
-                      <span className="text-muted-foreground">
-                        Period ends {new Date(billingStatus.data.currentPeriodEnd).toLocaleDateString()}
-                      </span>
-                    )}
-                  </div>
-
-                  {billingStatus.data.subscriptionStatus === 'past_due' && (
-                    <p className="mt-2 text-destructive">
-                      Payment is past due. Open billing portal to update your payment method.
-                    </p>
-                  )}
-
-                  {billingStatus.data.subscriptionStatus === 'canceling' && (
-                    <p className="mt-2 text-muted-foreground">
-                      Your subscription will remain active until the period end date.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Billing Actions */}
-              <div className="flex flex-wrap gap-2">
-                {usage.data.tier === 'free' && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleStartCheckout(billingPlans.data?.team.priceId)}
-                    disabled={createCheckout.isPending}
-                  >
-                    Upgrade to Team ({billingPlans.data?.team.displayPrice ?? '$19/mo'})
-                  </Button>
-                )}
-
-                {(usage.data.tier === 'pro' || usage.data.tier === 'alpha') && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleStartCheckout(billingPlans.data?.team.priceId)}
-                    disabled={createCheckout.isPending}
-                  >
-                    Upgrade to Team ({billingPlans.data?.team.displayPrice ?? '$19/mo'})
-                  </Button>
-                )}
-
-                {billingStatus.data?.hasSubscription && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => createPortal.mutate()}
-                    disabled={createPortal.isPending}
-                  >
-                    {createPortal.isPending && (
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    )}
-                    Manage Subscription
-                  </Button>
-                )}
-
-                {billingStatus.data?.hasSubscription && billingStatus.data.subscriptionStatus !== 'canceling' && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={handleCancelSubscription}
-                    disabled={cancelSubscription.isPending}
-                  >
-                    {cancelSubscription.isPending && (
-                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                    )}
-                    Cancel Subscription
-                  </Button>
-                )}
-              </div>
-
-              {/* Usage Meters Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Campaigns Meter */}
-                <div className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Map className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Campaigns</span>
-                  </div>
-                  {usage.data.campaigns.limit === -1 ? (
-                    <p className="text-sm text-muted-foreground">
-                      {usage.data.campaigns.used} used — <span className="text-foreground/70">Unlimited</span>
-                    </p>
-                  ) : (
-                    <>
-                      <Progress
-                        value={Math.min(usage.data.campaigns.percentage, 100)}
-                        className="h-2"
-                        indicatorClassName={getProgressColor(usage.data.campaigns.percentage)}
-                        aria-label="Campaign usage"
-                      />
-                      <p className={`text-sm ${getTextColor(usage.data.campaigns.percentage)}`}>
-                        {usage.data.campaigns.used} of {usage.data.campaigns.limit} used
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* PDF Uploads Meter */}
-                <div className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">PDF Uploads</span>
-                  </div>
-                  {usage.data.pdfUploads.limit === -1 ? (
-                    <p className="text-sm text-muted-foreground">
-                      {usage.data.pdfUploads.used} used — <span className="text-foreground/70">Unlimited</span>
-                    </p>
-                  ) : (
-                    <>
-                      <Progress
-                        value={Math.min(usage.data.pdfUploads.percentage, 100)}
-                        className="h-2"
-                        indicatorClassName={getProgressColor(usage.data.pdfUploads.percentage)}
-                        aria-label="PDF upload usage"
-                      />
-                      <p className={`text-sm ${getTextColor(usage.data.pdfUploads.percentage)}`}>
-                        {usage.data.pdfUploads.used} of {usage.data.pdfUploads.limit} used
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* Session Uploads Meter */}
-                <div className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Upload className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Session Uploads</span>
-                  </div>
-                  {usage.data.sessionUploads.limit === -1 ? (
-                    <p className="text-sm text-muted-foreground">
-                      {usage.data.sessionUploads.used} used — <span className="text-foreground/70">Unlimited</span>
-                    </p>
-                  ) : (
-                    <>
-                      <Progress
-                        value={Math.min(usage.data.sessionUploads.percentage, 100)}
-                        className="h-2"
-                        indicatorClassName={getProgressColor(usage.data.sessionUploads.percentage)}
-                        aria-label="Session upload usage"
-                      />
-                      <p className={`text-sm ${getTextColor(usage.data.sessionUploads.percentage)}`}>
-                        {usage.data.sessionUploads.used} of {usage.data.sessionUploads.limit} used
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* AI Recaps Meter */}
-                <div className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">AI Recaps</span>
-                  </div>
-                  {usage.data.aiRecaps.limit === -1 ? (
-                    <p className="text-sm text-muted-foreground">
-                      {usage.data.aiRecaps.used} used — <span className="text-foreground/70">Unlimited</span>
-                    </p>
-                  ) : (
-                    <>
-                      <Progress
-                        value={Math.min(usage.data.aiRecaps.percentage, 100)}
-                        className="h-2"
-                        indicatorClassName={getProgressColor(usage.data.aiRecaps.percentage)}
-                        aria-label="AI recap usage"
-                      />
-                      <p className={`text-sm ${getTextColor(usage.data.aiRecaps.percentage)}`}>
-                        {usage.data.aiRecaps.used} of {usage.data.aiRecaps.limit} used
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* Semantic Searches Meter */}
-                <div className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Search className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Semantic Searches</span>
-                  </div>
-                  {usage.data.semanticSearches.limit === -1 ? (
-                    <p className="text-sm text-muted-foreground">
-                      {usage.data.semanticSearches.used} used — <span className="text-foreground/70">Unlimited</span>
-                    </p>
-                  ) : (
-                    <>
-                      <Progress
-                        value={Math.min(usage.data.semanticSearches.percentage, 100)}
-                        className="h-2"
-                        indicatorClassName={getProgressColor(usage.data.semanticSearches.percentage)}
-                        aria-label="Semantic search usage"
-                      />
-                      <p className={`text-sm ${getTextColor(usage.data.semanticSearches.percentage)}`}>
-                        {usage.data.semanticSearches.used} of {usage.data.semanticSearches.limit} used
-                      </p>
-                    </>
-                  )}
-                </div>
-
-                {/* Image Generations Meter */}
-                <div className="rounded-lg border p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Image Generations</span>
-                  </div>
-                  {usage.data.imageGenerations.limit === -1 ? (
-                    <p className="text-sm text-muted-foreground">
-                      {usage.data.imageGenerations.used} used — <span className="text-foreground/70">Unlimited</span>
-                    </p>
-                  ) : (
-                    <>
-                      <Progress
-                        value={Math.min(usage.data.imageGenerations.percentage, 100)}
-                        className="h-2"
-                        indicatorClassName={getProgressColor(usage.data.imageGenerations.percentage)}
-                        aria-label="Image generation usage"
-                      />
-                      <p className={`text-sm ${getTextColor(usage.data.imageGenerations.percentage)}`}>
-                        {usage.data.imageGenerations.used} of {usage.data.imageGenerations.limit} used
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Billing Period */}
-              <div className="rounded-lg border bg-muted/50 p-3 text-sm text-muted-foreground">
-                <span>
-                  Billing period: {new Date(usage.data.periodStart).toLocaleDateString()} — {new Date(usage.data.periodEnd).toLocaleDateString()}
-                </span>
-                <span className="mx-2 text-muted-foreground/40">·</span>
-                <span>
-                  Resets on {new Date(usage.data.periodEnd).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : usage.isError ? (
-        <div className="stone-card">
-          <div className="stone-card-body py-6">
-            <p className="text-sm text-destructive">Failed to load usage data. Please try refreshing the page.</p>
-          </div>
-        </div>
-      ) : null}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
         <div className="space-y-6">
@@ -941,20 +521,6 @@ export default function SettingsPage() {
           </Button>
         </div>
       </div>
-
-      <ConfirmDialog
-        open={cancelDialogOpen}
-        onOpenChange={setCancelDialogOpen}
-        title="Cancel Subscription"
-        description="Cancel your subscription at the end of the current billing period?"
-        confirmLabel="Cancel Subscription"
-        variant="destructive"
-        onConfirm={() => {
-          cancelSubscription.mutate();
-          setCancelDialogOpen(false);
-        }}
-        loading={cancelSubscription.isPending}
-      />
 
       <ConfirmDialog
         open={deleteDialogOpen}
