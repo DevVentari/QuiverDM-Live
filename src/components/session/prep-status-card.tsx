@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Users, Zap, MapPin, KeyRound, Users2, Skull, Award, List } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 const SECTIONS = [
   { id: 'characters',   label: 'Characters' },
@@ -11,6 +12,17 @@ const SECTIONS = [
   { id: 'rewards',      label: 'Rewards' },
   { id: 'threads',      label: 'Loose Threads' },
 ] as const;
+
+const SECTION_ICONS: Record<string, LucideIcon> = {
+  characters:     Users,
+  'strong-start': Zap,
+  scenes:         MapPin,
+  secrets:        KeyRound,
+  npcs:           Users2,
+  monsters:       Skull,
+  rewards:        Award,
+  threads:        List,
+};
 
 export function getCompletedSections(prepData: Record<string, unknown> | null): Set<string> {
   const s = new Set<string>();
@@ -83,13 +95,17 @@ export function PrepStatusCard({
             return (
               <div
                 key={id}
-                className="px-2 py-1.5 rounded text-center text-[9px] uppercase tracking-wide border"
+                className="px-2 py-1.5 rounded text-[9px] uppercase tracking-wide border flex items-center justify-center gap-1"
                 style={{
                   background: done ? 'hsl(140 30% 10%)' : 'hsl(240 10% 13%)',
                   color: done ? 'hsl(140 50% 50%)' : 'var(--card-text-muted)',
                   borderColor: done ? 'hsl(140 30% 18%)' : 'hsl(240 20% 16%)',
                 }}
               >
+                {(() => {
+                  const Icon = SECTION_ICONS[id];
+                  return Icon ? <Icon className="h-2 w-2 shrink-0" strokeWidth={2} /> : null;
+                })()}
                 {label}
               </div>
             );
