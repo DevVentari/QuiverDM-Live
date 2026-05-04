@@ -21,21 +21,37 @@ import { trpc } from '@/lib/trpc';
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  campaignId?: string;
 };
 
-export function CharacterAddSheet({ open, onOpenChange }: Props) {
+export function CharacterAddSheet({ open, onOpenChange, campaignId }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const utils = trpc.useUtils();
 
   const [ddbUrl, setDdbUrl] = useState('');
 
+  const addToCampaignActive = trpc.characters.addToCampaignActive.useMutation({
+    onSuccess: async () => {
+      await utils.characters.getCampaignCharacters.invalidate({ campaignId: campaignId! });
+      handleOpenChange(false);
+    },
+    onError: (err) => {
+      toast({ title: 'Added character but failed to join campaign', description: err.message, variant: 'destructive' });
+      handleOpenChange(false);
+    },
+  });
+
   const importCharacter = trpc.charactersDndBeyond.importCharacter.useMutation({
     onSuccess: async (data) => {
       const char = data.character as { id: string };
       await utils.characters.getMyCharacters.invalidate();
-      handleOpenChange(false);
-      router.push(`/characters/${char.id}`);
+      if (campaignId) {
+        addToCampaignActive.mutate({ campaignId, characterId: char.id });
+      } else {
+        handleOpenChange(false);
+        router.push(`/characters/${char.id}`);
+      }
     },
   });
 
@@ -52,8 +68,12 @@ export function CharacterAddSheet({ open, onOpenChange }: Props) {
   const createCharacter = trpc.characters.create.useMutation({
     onSuccess: async (data) => {
       await utils.characters.getMyCharacters.invalidate();
-      handleOpenChange(false);
-      router.push(`/characters/${data.id}`);
+      if (campaignId) {
+        addToCampaignActive.mutate({ campaignId, characterId: data.id });
+      } else {
+        handleOpenChange(false);
+        router.push(`/characters/${data.id}`);
+      }
     },
     onError: (err) => {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });

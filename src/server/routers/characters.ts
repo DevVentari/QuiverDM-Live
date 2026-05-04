@@ -226,6 +226,36 @@ export const charactersRouter = router({
     ),
 
   /**
+   * DM adds a character directly to their campaign as ACTIVE (bypasses PENDING approval).
+   * Used when the DM imports or creates a character from within the campaign players page.
+   */
+  addToCampaignActive: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string(),
+        characterId: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const existing = await prisma.campaignCharacter.findFirst({
+        where: { campaignId: input.campaignId, characterId: input.characterId },
+      });
+      if (existing) {
+        return prisma.campaignCharacter.update({
+          where: { id: existing.id },
+          data: { status: CharacterStatus.ACTIVE },
+        });
+      }
+      return prisma.campaignCharacter.create({
+        data: {
+          campaignId: input.campaignId,
+          characterId: input.characterId,
+          status: CharacterStatus.ACTIVE,
+        },
+      });
+    }),
+
+  /**
    * Update DM notes for a campaign character (DM only)
    */
   updateDMNotes: campaignDMProcedure
