@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +25,11 @@ export default function CampaignHomebrewPage() {
     { staleTime: 30_000 }
   );
 
+  const itemCount = (content.data as any)?.items?.length ?? 0;
+  useCampaignPageSlot('Homebrew', [
+    { label: itemCount === 1 ? 'item' : 'items', value: itemCount },
+  ]);
+
   const updateSharingMutation = trpc.homebrew.updateSharing.useMutation({
     onSuccess: () => utils.homebrew.getContent.invalidate({ campaignId, search: search || undefined }),
     onError: (e) => toast.error(e.message),
@@ -31,8 +37,7 @@ export default function CampaignHomebrewPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">Homebrew</h2>
+      <div className="flex items-center justify-end gap-2">
         {isDM && (
           <Button size="sm" variant="outline" onClick={() => setLibraryOpen(true)}>
             <Library className="mr-2 h-4 w-4" />

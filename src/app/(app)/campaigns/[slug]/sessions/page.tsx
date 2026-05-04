@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,6 +31,11 @@ export default function SessionsPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const allSessions = (sessionsQuery.data ?? []) as any[];
+  const activeCount = allSessions.filter((s) => s.status === 'in_progress' || s.status === 'active').length;
+  useCampaignPageSlot('Sessions', [
+    { label: allSessions.length === 1 ? 'session' : 'sessions', value: allSessions.length },
+    ...(activeCount > 0 ? [{ label: 'active', value: activeCount, alert: true }] : []),
+  ]);
   const sessions = filter === 'all'
     ? allSessions
     : allSessions.filter((s) => {
@@ -65,49 +71,33 @@ export default function SessionsPage() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <motion.div
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
-      >
-        <p className="label-overline mb-1">Campaign</p>
-        <div className="section-rule" />
-        <div className="flex items-center justify-between mt-3">
-          <div>
-            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Sessions</h1>
-            <p className="text-muted-foreground text-sm mt-0.5">
-              {allSessions.length} {allSessions.length === 1 ? 'session' : 'sessions'} recorded
-            </p>
+      {/* Toolbar: filter pills + action */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {allSessions.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap flex-1">
+            {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
+              <Button
+                key={f}
+                size="sm"
+                variant={filter === f ? 'default' : 'outline'}
+                onClick={() => setFilter(f)}
+                className="rounded-full h-7 px-3 text-xs"
+              >
+                {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
+                <span className="ml-1.5 opacity-70">{counts[f]}</span>
+              </Button>
+            ))}
           </div>
-          {isDM && (
-            <Button size="sm" className="gap-1.5" asChild>
-              <Link href={`/campaigns/${slug}/sessions/prep`}>
-                <Plus className="h-3.5 w-3.5" />
-                New Session
-              </Link>
-            </Button>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Status filter pills */}
-      {allSessions.length > 0 && (
-        <div className="flex gap-1.5 flex-wrap">
-          {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
-            <Button
-              key={f}
-              size="sm"
-              variant={filter === f ? 'default' : 'outline'}
-              onClick={() => setFilter(f)}
-              className="rounded-full h-7 px-3 text-xs"
-            >
-              {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
-              <span className="ml-1.5 opacity-70">{counts[f]}</span>
-            </Button>
-          ))}
-        </div>
-      )}
+        )}
+        {isDM && (
+          <Button size="sm" className="gap-1.5 ml-auto shrink-0" asChild>
+            <Link href={`/campaigns/${slug}/sessions/prep`}>
+              <Plus className="h-3.5 w-3.5" />
+              New Session
+            </Link>
+          </Button>
+        )}
+      </div>
 
       {/* Session list */}
       {sessionsQuery.isLoading ? (

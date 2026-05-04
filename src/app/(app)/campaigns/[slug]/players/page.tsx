@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -169,6 +170,11 @@ function PlayersPageInner() {
   const chars = (characters.data || []) as any[];
   const pending = chars.filter((cc) => cc.status === 'PENDING');
   const active = chars.filter((cc) => cc.status !== 'PENDING');
+
+  useCampaignPageSlot('Characters', [
+    { label: active.length === 1 ? 'character' : 'characters', value: active.length },
+    ...(pending.length > 0 ? [{ label: 'pending', value: pending.length, alert: true }] : []),
+  ]);
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">

@@ -4,11 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
-  LayoutDashboard,
-  Globe,
-  User,
   FlaskConical,
-  MessageSquare,
   Settings,
   PanelLeftClose,
   PanelLeft,
@@ -31,17 +27,7 @@ import { QuiverLogo } from '@/components/logo/quiver-logo';
 import { useLogoVariant } from '@/hooks/use-logo-variant';
 import { CampaignPill } from '@/components/campaign/campaign-pill';
 
-const globalNav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/campaigns', label: 'Campaigns', icon: Globe },
-  { href: '/recap', label: 'Recaps', icon: ScrollText },
-  { href: '/characters', label: 'Characters', icon: User },
-  { href: '/homebrew', label: 'Homebrew', icon: FlaskConical },
-];
 
-const toolsNav = [
-  { href: '/feedback', label: 'Feedback', icon: MessageSquare },
-];
 
 function getCampaignNav(slug: string) {
   return {
@@ -131,12 +117,6 @@ export function Sidebar() {
     staleTime: 300_000,
   });
 
-  const recapDashboard = trpc.recap.getDashboard.useQuery(undefined, {
-    staleTime: 60_000,
-  });
-  const pendingRecapCount =
-    recapDashboard.data?.reduce((sum, c) => sum + c.pendingReview, 0) ?? 0;
-
   const currentCampaign = campaigns.data?.find((c) => c.slug === campaignSlug) ?? null;
   const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
 
@@ -224,34 +204,6 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="relative z-10 flex-1 overflow-y-auto py-1">
-        {/* Global zone — always visible */}
-        <SectionLabel label="Navigate" collapsed={collapsed} />
-        {globalNav.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + '/');
-          if (item.href === '/recap' && pendingRecapCount > 0 && !collapsed) {
-            return (
-              <div key={item.href} className="relative">
-                <NavItem {...item} isActive={isActive} collapsed={collapsed} />
-                <span
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full pointer-events-none"
-                  style={{ background: 'hsl(35 60% 18%)', color: 'hsl(35 70% 58%)' }}
-                >
-                  {pendingRecapCount}
-                </span>
-              </div>
-            );
-          }
-          return (
-            <NavItem
-              key={item.href}
-              {...item}
-              isActive={isActive}
-              collapsed={collapsed}
-            />
-          );
-        })}
-
         {/* Campaign zone — only when inside a campaign */}
         {inCampaign && campaignNavSections && (
           <>
@@ -392,9 +344,6 @@ export function MobileSidebar() {
         </>
       ) : (
         <>
-          <p className="px-5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Navigate</p>
-          {globalNav.map((item) => renderLink(item))}
-          <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Tools</p>
           <button
             onClick={openCompendium}
             className={cn(
@@ -407,7 +356,7 @@ export function MobileSidebar() {
             <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-[var(--card-amber)] drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]' : 'opacity-60')} strokeWidth={1.8} />
             <span>Compendium</span>
           </button>
-          {[...toolsNav, { href: '/settings', label: 'Settings', icon: Settings }].map((item) => renderLink(item))}
+          {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
         </>
       )}
     </nav>
