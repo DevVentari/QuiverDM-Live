@@ -41,8 +41,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Sheet>
 
             {slot ? (
-              <div className="flex-1 flex items-center gap-3 min-w-0 mx-3">
-                <div className="min-w-0">
+              <div className="flex-1 flex items-center gap-4 min-w-0 mx-3">
+                <div className="min-w-0 shrink-0">
                   <p className="text-[9px] font-semibold uppercase tracking-[0.2em] leading-none mb-0.5" style={{ color: 'hsl(35 60% 45%)' }}>
                     {slot.label}
                   </p>
@@ -50,16 +50,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     {slot.title}
                   </p>
                 </div>
-                {slot.badge && (
-                  <span
-                    className={`shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full border ${
-                      slot.badge.color === 'amber'
-                        ? 'text-amber-400/80 border-amber-500/20 bg-amber-500/8'
-                        : 'text-sky-400/80 border-sky-500/20 bg-sky-500/8'
-                    }`}
-                  >
-                    {slot.badge.text}
-                  </span>
+
+                {slot.stats && slot.stats.length > 0 && (
+                  <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-border">
+                    {slot.stats.map((stat) => (
+                      <div key={stat.label} className="flex items-center gap-1.5">
+                        <span
+                          className="text-xs font-semibold tabular-nums"
+                          style={{ color: stat.alert ? 'hsl(35 70% 55%)' : 'hsl(35 20% 65%)' }}
+                        >
+                          {stat.value}
+                        </span>
+                        <span className="text-[11px]" style={{ color: 'hsl(35 10% 40%)' }}>
+                          {stat.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ) : (
