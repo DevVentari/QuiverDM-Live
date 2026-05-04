@@ -34,18 +34,9 @@ export default function CampaignLayout({
   useEffect(() => {
     if (!campaign.data) return;
     const data = campaign.data as any;
-    const role = data.myRole || data.myPermissions?.role || 'PLAYER';
-    const isDM = role === 'OWNER' || role === 'CO_DM';
-    const roleLabel =
-      role === 'OWNER' ? 'Dungeon Master'
-      : role === 'CO_DM' ? 'Co-DM'
-      : role === 'PLAYER' ? 'Player'
-      : 'Spectator';
-
     setSlot({
       label: 'Campaign',
       title: data.name,
-      badge: { text: roleLabel, color: isDM ? 'amber' : 'sky' },
     });
 
     return () => setSlot(null);
