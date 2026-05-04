@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -65,12 +64,6 @@ function CharacterCard({
         <div className="flex-1 min-w-0 px-4 py-3 flex flex-col gap-1">
           <div className="flex items-start justify-between gap-2">
             <span className="stone-card-title leading-snug">{char.name}</span>
-            <Badge
-              variant={cc.status === 'ACTIVE' ? 'default' : 'secondary'}
-              className="text-xs shrink-0"
-            >
-              {cc.status}
-            </Badge>
           </div>
 
           <p className="text-xs text-muted-foreground leading-snug">
