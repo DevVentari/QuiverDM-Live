@@ -324,6 +324,9 @@ model Campaign {
   transcriptCorrections TranscriptCorrection[]
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
 
+  // D&D Beyond integration
+  dndBeyondCampaignUrl String? // e.g. https://www.dndbeyond.com/campaigns/7547491
+
   // Discord integration
   discordGuildId        String?
   discordRecapChannelId String?
