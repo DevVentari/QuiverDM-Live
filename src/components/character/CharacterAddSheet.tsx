@@ -37,9 +37,6 @@ export function CharacterAddSheet({ open, onOpenChange }: Props) {
       handleOpenChange(false);
       router.push(`/characters/${char.id}`);
     },
-    onError: (err) => {
-      toast({ title: 'Import failed', description: err.message, variant: 'destructive' });
-    },
   });
 
   const [name, setName] = useState('');
@@ -73,7 +70,7 @@ export function CharacterAddSheet({ open, onOpenChange }: Props) {
       const res = await fetch('/api/upload/character-portrait', { method: 'POST', body: formData });
       const data = await res.json() as { url?: string; error?: string };
       if (data.url) setPortraitUrl(data.url);
-      else toast({ title: 'Upload failed', description: data.error, variant: 'destructive' });
+      else toast({ title: 'Upload failed', description: data.error ?? 'Unknown error', variant: 'destructive' });
     } catch {
       toast({ title: 'Upload failed', variant: 'destructive' });
     } finally {
