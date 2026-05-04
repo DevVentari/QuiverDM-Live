@@ -11,7 +11,6 @@ import { PhasePrep } from '@/components/session/phase-prep';
 import { PhaseProcessing } from '@/components/session/phase-processing';
 import { PhaseSummary } from '@/components/session/phase-summary';
 import { PhaseRecap } from '@/components/session/phase-recap';
-import { DmVisibilityControls } from '@/components/session/dm-visibility-controls';
 import { deriveSessionPhase } from '@/lib/session-lifecycle';
 
 export default function SessionHubPage() {
@@ -25,7 +24,7 @@ export default function SessionHubPage() {
 
   if (sessionQuery.isLoading) {
     return (
-      <div className="space-y-4 max-w-2xl">
+      <div className="space-y-4 max-w-3xl">
         <Skeleton className="h-7 w-64" />
         <Skeleton className="h-12 rounded-lg" />
         <Skeleton className="h-32 rounded-lg" />
@@ -66,7 +65,7 @@ export default function SessionHubPage() {
   const isRanOrProcessing = phase === 'ran' || phase === 'processing';
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 max-w-3xl">
       {/* Page header */}
       <div>
         <p className="label-overline mb-1">Session {sessionNumber}</p>
@@ -160,16 +159,6 @@ export default function SessionHubPage() {
         </div>
       )}
 
-      {/* Visibility controls — DM only, shown when field is present */}
-      {isDM && !!session.playerVisibility && (
-        <div className="flex items-center gap-3 pt-2">
-          <span className="label-overline shrink-0">Visibility</span>
-          <DmVisibilityControls
-            sessionId={sessionId}
-            currentVisibility={session.playerVisibility as 'dm-only' | 'summary-only' | 'public'}
-          />
-        </div>
-      )}
     </div>
   );
 }
