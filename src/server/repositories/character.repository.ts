@@ -204,7 +204,12 @@ export async function remove(id: string) {
  */
 export async function findByCampaignId(
   campaignId: string,
-  statuses: CharacterStatus[] = [CharacterStatus.ACTIVE, CharacterStatus.PENDING]
+  statuses: CharacterStatus[] = [
+    CharacterStatus.ACTIVE,
+    CharacterStatus.PENDING,
+    CharacterStatus.RETIRED,
+    CharacterStatus.DECEASED,
+  ]
 ) {
   return prisma.campaignCharacter.findMany({
     where: {
