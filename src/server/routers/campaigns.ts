@@ -5,7 +5,7 @@
  * All business logic lives in the service layer.
  */
 
-import { router, protectedProcedure, campaignOwnerProcedure } from '../trpc';
+import { router, protectedProcedure, campaignOwnerProcedure, campaignMemberProcedure, campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
 import { campaignService } from '../services/campaign.service';
 import { prisma } from '../db';
@@ -157,6 +157,29 @@ export const campaignsRouter = router({
     .mutation(({ ctx, input }) =>
       campaignService.declineInvite(input.inviteId, ctx.session.user.email)
     ),
+
+  getDdbCampaignUrl: campaignMemberProcedure
+    .input(z.object({ campaignId: z.string() }))
+    .query(async ({ input }) => {
+      const campaign = await prisma.campaign.findUnique({
+        where: { id: input.campaignId },
+        select: { dndBeyondCampaignUrl: true },
+      });
+      return { url: campaign?.dndBeyondCampaignUrl ?? null };
+    }),
+
+  setDdbCampaignUrl: campaignDMProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      url: z.string().regex(/dndbeyond\.com\/campaigns\/\d+/).nullable(),
+    }))
+    .mutation(async ({ input }) => {
+      await prisma.campaign.update({
+        where: { id: input.campaignId },
+        data: { dndBeyondCampaignUrl: input.url },
+      });
+      return { url: input.url };
+    }),
 
   /**
    * Update campaign settings JSON (sourcebook, discordWebhookUrl, etc.)
