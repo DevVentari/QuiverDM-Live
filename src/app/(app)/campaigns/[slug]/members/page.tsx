@@ -2,6 +2,7 @@
 
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
 import { InviteDialog } from '@/components/campaign/invite-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,10 @@ export default function MembersPage() {
   const { toast } = useToast();
   const members = trpc.members.getAll.useQuery({ campaignId }, { staleTime: 120_000 });
   const utils = trpc.useUtils();
+  const memberCount = (members.data || []).length;
+  useCampaignPageSlot('Members', [
+    { label: memberCount === 1 ? 'member' : 'members', value: memberCount },
+  ]);
 
   const updateRole = trpc.members.updateRole.useMutation({
     onSuccess: () => {
@@ -71,10 +76,7 @@ export default function MembersPage() {
 
   return (
     <div className="space-y-4 px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg sm:text-xl font-semibold">Members</h2>
-        {isDM && <InviteDialog />}
-      </div>
+      {isDM && <div className="flex justify-end"><InviteDialog /></div>}
 
       <div className="space-y-2">
         {(members.data || []).map((member: any) => {

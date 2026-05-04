@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
 import { NpcCreateSheet } from '@/components/npc/npc-create-sheet';
 import { NpcInspectorPanel } from '@/components/npc/npc-inspector-panel';
 import { NpcListRow } from '@/components/npc/npc-list-row';
@@ -79,22 +80,22 @@ function NPCsPageInner() {
 
   const npcList = (npcs.data ?? []) as any[];
   const hasNpcs = npcList.length > 0;
+  useCampaignPageSlot('NPCs', [
+    { label: npcList.length === 1 ? 'NPC' : 'NPCs', value: npcList.length },
+  ]);
 
   return (
     <>
       <div className="md:hidden space-y-4 px-4 sm:px-6">
         <div>
-          <p className="label-overline mb-1">Campaign</p>
-          <div className="section-rule" />
-          <div className="flex items-center justify-between mt-3">
-            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">NPCs</h1>
-            {isDM && (
+          {isDM && (
+            <div className="flex justify-end">
               <Button size="sm" onClick={() => setCreateSheetOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 New NPC
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="relative">
@@ -149,12 +150,9 @@ function NPCsPageInner() {
       <div className="hidden md:grid h-[calc(100vh-220px)] overflow-hidden border-t border-[hsl(35,35%,18%)] -mx-8 grid-cols-[300px_1fr]">
         <div className="flex flex-col overflow-hidden border-r border-[hsl(35,35%,18%)]">
           <div className="px-3 pt-3 pb-2.5 shrink-0 border-b border-[hsl(35,35%,18%)]">
-            <p className="label-overline mb-1">Campaign</p>
-            <div className="section-rule" />
-            <div className="flex items-center justify-between mt-3">
-              <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Characters</h1>
+            <div className="flex items-center justify-between">
               {isDM && (
-                <Button size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1" onClick={() => setCreateSheetOpen(true)}>
+                <Button size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1 ml-auto" onClick={() => setCreateSheetOpen(true)}>
                   <Plus className="h-3 w-3" />
                   New
                 </Button>
