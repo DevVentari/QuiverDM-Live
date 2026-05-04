@@ -54,10 +54,15 @@ export default function CampaignLayout({
   const role = data.myRole || data.myPermissions?.role || 'PLAYER';
   const isDM = role === 'OWNER' || role === 'CO_DM';
 
-  const roleLabel = role === 'OWNER' ? 'Dungeon Master' : role === 'CO_DM' ? 'Co-DM' : role === 'PLAYER' ? 'Player' : 'Spectator';
+  const roleLabel =
+    role === 'OWNER' ? 'Dungeon Master'
+    : role === 'CO_DM' ? 'Co-DM'
+    : role === 'PLAYER' ? 'Player'
+    : 'Spectator';
+
   const roleColor = isDM
-    ? 'text-amber-400 border-amber-500/30 bg-amber-500/10'
-    : 'text-sky-400 border-sky-500/30 bg-sky-500/10';
+    ? 'text-amber-400/80 border-amber-500/20 bg-amber-500/8'
+    : 'text-sky-400/80 border-sky-500/20 bg-sky-500/8';
 
   return (
     <CampaignProvider
@@ -70,50 +75,83 @@ export default function CampaignLayout({
         isDM,
       }}
     >
-      <div className="space-y-0 w-full max-w-[1400px]">
-        {/* Stone Arch Split hero header */}
-        <div
-          className="relative flex overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8"
-          style={{ height: 140, borderBottom: '1px solid hsl(35 35% 18%)' }}
-        >
-          {/* Left panel — arch clip, dark bg, campaign name */}
-          <div
-            className="hero-arch-left relative flex flex-col justify-center px-6 sm:px-8 min-w-0"
-            style={{
-              flex: '0 0 65%',
-              background: 'linear-gradient(160deg, hsl(240 10% 10%), hsl(240 8% 7%))',
-              paddingRight: '3rem',
-            }}
-          >
-            <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide leading-tight truncate" style={{ color: 'hsl(35 30% 88%)' }}>
-              {data.name}
-            </h1>
-            {data.description && (
-              <p className="text-sm mt-1 line-clamp-2" style={{ color: 'hsl(35 10% 50%)' }}>{data.description}</p>
-            )}
-          </div>
+      <div className="w-full max-w-[1400px]">
+        {/* Campaign hero header */}
+        <div className="relative overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8" style={{ minHeight: 120 }}>
+          {/* Banner image */}
+          {data.bannerUrl && (
+            <Image
+              src={data.bannerUrl}
+              alt=""
+              fill
+              className="object-cover object-center"
+              style={{ opacity: 0.15 }}
+              aria-hidden
+            />
+          )}
 
-          {/* Right panel — banner image or atmospheric gradient, role badge */}
-          <div className="relative flex-1 flex items-end justify-end p-4">
-            {data.bannerUrl ? (
-              <Image
-                src={data.bannerUrl}
-                alt=""
-                fill
-                className="object-cover opacity-40"
-                aria-hidden
-              />
-            ) : (
-              <div
-                className="absolute inset-0"
-                style={{ background: 'radial-gradient(ellipse 80% 80% at 80% 50%, hsl(258 40% 12% / 0.7), hsl(240 8% 6%))' }}
-              />
-            )}
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to left, transparent 30%, hsl(240 8% 7% / 0.6))' }} />
-            <span className={`relative z-10 text-xs font-medium px-2.5 py-1 rounded-full border ${roleColor}`}>
+          {/* Base background */}
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(180deg, hsl(240 10% 9%) 0%, hsl(240 8% 7%) 100%)' }}
+          />
+
+          {/* Amber candlelight — upper left */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse 55% 130% at 0% 0%, hsl(35 70% 18% / 0.45), transparent 70%)' }}
+          />
+
+          {/* Mystical purple — upper right */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse 45% 100% at 100% 0%, hsl(258 50% 14% / 0.35), transparent 65%)' }}
+          />
+
+          {/* Grain overlay */}
+          <div className="absolute inset-0 opacity-[0.025] pointer-events-none" style={{
+            backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")',
+            backgroundSize: '200px 200px',
+          }} />
+
+          {/* Content */}
+          <div className="relative z-10 flex items-end justify-between gap-4 px-6 sm:px-8 pt-8 pb-5">
+            <div className="min-w-0">
+              <p
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] mb-2"
+                style={{ color: 'hsl(35 60% 45%)' }}
+              >
+                Campaign
+              </p>
+              <h1
+                className="font-display text-2xl sm:text-3xl font-bold tracking-wide leading-tight"
+                style={{ color: 'hsl(35 30% 90%)' }}
+              >
+                {data.name}
+              </h1>
+              {data.description && (
+                <p
+                  className="text-sm mt-1.5 line-clamp-1 max-w-xl"
+                  style={{ color: 'hsl(35 10% 50%)' }}
+                >
+                  {data.description}
+                </p>
+              )}
+            </div>
+
+            <span
+              className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border ${roleColor}`}
+              style={{ letterSpacing: '0.04em' }}
+            >
               {roleLabel}
             </span>
           </div>
+
+          {/* Amber rule */}
+          <div
+            className="absolute bottom-0 left-0 right-0 h-px"
+            style={{ background: 'linear-gradient(to right, transparent 0%, hsl(35 60% 35% / 0.6) 30%, hsl(35 60% 35% / 0.6) 70%, transparent 100%)' }}
+          />
         </div>
 
         <div className="pt-6">{children}</div>
