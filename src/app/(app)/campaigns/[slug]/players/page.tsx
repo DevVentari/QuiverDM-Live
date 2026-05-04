@@ -30,6 +30,7 @@ function CharacterCard({
   onReject,
   onStatusChange,
   onRemove,
+  cardStyle,
 }: {
   cc: any;
   isDM: boolean;
@@ -38,12 +39,13 @@ function CharacterCard({
   onReject: () => void;
   onStatusChange: (status: CharacterStatusValue) => void;
   onRemove: () => void;
+  cardStyle?: React.CSSProperties;
 }) {
   const char = cc.character || cc;
   const player = cc.character?.user;
 
   return (
-    <div className="stone-card overflow-hidden min-h-[120px]">
+    <div className="stone-card overflow-hidden min-h-[120px]" style={cardStyle}>
       <div className="flex h-full min-h-[120px]">
         <div className="relative w-[28%] shrink-0 self-stretch">
           {char.portraitUrl ? (
@@ -169,7 +171,9 @@ function PlayersPageInner() {
 
   const chars = (characters.data || []) as any[];
   const pending = chars.filter((cc) => cc.status === 'PENDING');
-  const active = chars.filter((cc) => cc.status !== 'PENDING');
+  const active = chars.filter((cc) => cc.status === 'ACTIVE');
+  const retired = chars.filter((cc) => cc.status === 'RETIRED');
+  const deceased = chars.filter((cc) => cc.status === 'DECEASED');
 
   useCampaignPageSlot('Characters', [
     { label: active.length === 1 ? 'character' : 'characters', value: active.length },
@@ -208,7 +212,12 @@ function PlayersPageInner() {
         <>
           {pending.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-semibold">Pending Approval</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-semibold">Pending Approval</h2>
+                <span className="rounded-full bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 font-semibold">
+                  {pending.length}
+                </span>
+              </div>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {pending.map((cc) => (
                   <CharacterCard
@@ -222,6 +231,7 @@ function PlayersPageInner() {
                       updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    cardStyle={{ borderStyle: 'dashed', borderColor: 'hsl(35 80% 55% / 0.35)' }}
                   />
                 ))}
               </div>
@@ -251,6 +261,54 @@ function PlayersPageInner() {
               </div>
             )}
           </div>
+
+          {retired.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg sm:text-xl font-semibold text-muted-foreground">Retired</h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-[0.65]">
+                {retired.map((cc) => (
+                  <CharacterCard
+                    key={cc.id}
+                    cc={cc}
+                    isDM={isDM}
+                    campaignId={campaignId}
+                    onApprove={() => approve.mutate({ campaignId, campaignCharacterId: cc.id })}
+                    onReject={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    onStatusChange={(status) =>
+                      updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
+                    }
+                    onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {deceased.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg sm:text-xl font-semibold text-muted-foreground">Deceased</h2>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-[0.65]">
+                {deceased.map((cc) => (
+                  <CharacterCard
+                    key={cc.id}
+                    cc={cc}
+                    isDM={isDM}
+                    campaignId={campaignId}
+                    onApprove={() => approve.mutate({ campaignId, campaignCharacterId: cc.id })}
+                    onReject={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    onStatusChange={(status) =>
+                      updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
+                    }
+                    onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    cardStyle={{
+                      background: 'linear-gradient(180deg, hsl(0 20% 8%) 0%, hsl(0 15% 5%) 100%)',
+                      borderColor: 'hsl(0 25% 14%)',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
 
