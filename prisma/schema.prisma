@@ -67,7 +67,7 @@ model User {
   suspended    Boolean      @default(false)
 
   // Subscription and usage limits
-  tier                 String    @default("free") // free, pro, team
+  tier                 String    @default("alpha") // free, pro, team, alpha
   stripeCustomerId     String?   @unique // Stripe customer ID for billing
   stripeSubscriptionId String?   @unique // Stripe subscription ID
   subscriptionStatus   String? // active, canceled, past_due, etc.
@@ -1165,31 +1165,31 @@ model UserUsage {
 
   // Transcription usage (in seconds)
   transcriptionSeconds Int @default(0)
-  transcriptionLimit   Int @default(7200) // 120 minutes for free tier
+  transcriptionLimit   Int @default(-1)
 
   // PDF uploads
   pdfUploads     Int @default(0)
-  pdfUploadLimit Int @default(3) // 3 PDFs for free tier
+  pdfUploadLimit Int @default(-1)
 
   // Campaigns owned
   campaignsOwned Int @default(0)
-  campaignLimit  Int @default(1) // 1 campaign for free tier
+  campaignLimit  Int @default(-1)
 
   // Session uploads (audio recording uploads)
   sessionUploads     Int @default(0)
-  sessionUploadLimit Int @default(4) // 4/mo for free tier
+  sessionUploadLimit Int @default(-1)
 
   // AI recaps (session summary generations)
   aiRecaps     Int @default(0)
-  aiRecapLimit Int @default(4) // 4/mo for free tier
+  aiRecapLimit Int @default(-1)
 
   // Semantic searches
   semanticSearches    Int @default(0)
-  semanticSearchLimit Int @default(50) // 50/mo for free tier
+  semanticSearchLimit Int @default(-1)
 
   // Image generations
   imageGenerations     Int @default(0)
-  imageGenerationLimit Int @default(5) // 5/mo for free tier
+  imageGenerationLimit Int @default(-1)
 
   // Last reset date (for tracking monthly resets)
   lastResetAt DateTime @default(now())

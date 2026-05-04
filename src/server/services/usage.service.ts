@@ -29,12 +29,12 @@ export const TIER_LIMITS = {
     imageGenerations: 80,
   },
   alpha: {
-    campaigns: -1,                 // Unlimited
-    sessionUploads: 30,
-    aiRecaps: 30,
-    pdfUploads: 40,
-    semanticSearches: 1000,
-    imageGenerations: 80,
+    campaigns: -1,
+    sessionUploads: -1,
+    aiRecaps: -1,
+    pdfUploads: -1,
+    semanticSearches: -1,
+    imageGenerations: -1,
   },
   team: {
     campaigns: -1,                 // Unlimited
@@ -65,7 +65,7 @@ export const usageService = {
         throw new NotFoundError('user', userId);
       }
 
-      const tier = (user.tier as UserTier) || 'free';
+      const tier = (user.tier as UserTier) || 'alpha';
       const limits = TIER_LIMITS[tier];
       const now = new Date();
       const periodEnd = new Date(now);
@@ -99,7 +99,7 @@ export const usageService = {
       select: { tier: true },
     });
 
-    const tier = (user?.tier as UserTier) || 'free';
+    const tier = (user?.tier as UserTier) || 'alpha';
 
     function limitStat(used: number, limit: number) {
       return {
@@ -133,7 +133,7 @@ export const usageService = {
       return true;
     }
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } });
-    const limit = TIER_LIMITS[(user?.tier as UserTier) || 'free'].campaigns;
+    const limit = TIER_LIMITS[(user?.tier as UserTier) || 'alpha'].campaigns;
     if (limit === -1) return true;
     return usage.campaignsOwned < limit;
   },
@@ -264,7 +264,7 @@ export const usageService = {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
     if (user) {
       void this.checkAndAlertThreshold(
-        userId, user.tier ?? 'free', 'pdfUploads',
+        userId, user.tier ?? 'alpha', 'pdfUploads',
         updated.pdfUploads, updated.pdfUploadLimit, updated.periodEnd
       );
     }
@@ -287,7 +287,7 @@ export const usageService = {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
     if (user) {
       void this.checkAndAlertThreshold(
-        userId, user.tier ?? 'free', 'sessionUploads',
+        userId, user.tier ?? 'alpha', 'sessionUploads',
         updated.sessionUploads, updated.sessionUploadLimit, updated.periodEnd
       );
     }
@@ -310,7 +310,7 @@ export const usageService = {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
     if (user) {
       void this.checkAndAlertThreshold(
-        userId, user.tier ?? 'free', 'aiRecaps',
+        userId, user.tier ?? 'alpha', 'aiRecaps',
         updated.aiRecaps, updated.aiRecapLimit, updated.periodEnd
       );
     }
@@ -333,7 +333,7 @@ export const usageService = {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
     if (user) {
       void this.checkAndAlertThreshold(
-        userId, user.tier ?? 'free', 'semanticSearches',
+        userId, user.tier ?? 'alpha', 'semanticSearches',
         updated.semanticSearches, updated.semanticSearchLimit, updated.periodEnd
       );
     }
@@ -356,7 +356,7 @@ export const usageService = {
     const user = await prisma.user.findUnique({ where: { id: userId }, select: { tier: true } }).catch(() => null);
     if (user) {
       void this.checkAndAlertThreshold(
-        userId, user.tier ?? 'free', 'imageGenerations',
+        userId, user.tier ?? 'alpha', 'imageGenerations',
         updated.imageGenerations, updated.imageGenerationLimit, updated.periodEnd
       );
     }
@@ -375,7 +375,7 @@ export const usageService = {
       throw new NotFoundError('user', userId);
     }
 
-    const tier = (user.tier as UserTier) || 'free';
+    const tier = (user.tier as UserTier) || 'alpha';
     const limits = TIER_LIMITS[tier];
     const now = new Date();
     const periodEnd = new Date(now);
