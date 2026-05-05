@@ -23,9 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, Plus, Link2, RefreshCw, X, Loader2 } from 'lucide-react';
+import { Users, Plus, Link2, RefreshCw, X, Loader2, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CharacterAddSheet } from '@/components/character/CharacterAddSheet';
+import { usePinnedItems } from '@/store/pinned-items-store';
 
 const STATUS_OPTIONS = ['ACTIVE', 'RETIRED', 'DECEASED', 'REMOVED'] as const;
 type CharacterStatusValue = (typeof STATUS_OPTIONS)[number] | 'PENDING';
@@ -38,6 +39,7 @@ function CharacterCard({
   onReject,
   onStatusChange,
   onRemove,
+  onView,
   cardStyle,
 }: {
   cc: any;
@@ -47,6 +49,7 @@ function CharacterCard({
   onReject: () => void;
   onStatusChange: (status: CharacterStatusValue) => void;
   onRemove: () => void;
+  onView: () => void;
   cardStyle?: React.CSSProperties;
 }) {
   const char = cc.character || cc;
@@ -75,6 +78,13 @@ function CharacterCard({
         <div className="flex-1 min-w-0 px-4 py-3 flex flex-col gap-1">
           <div className="flex items-start justify-between gap-2">
             <span className="stone-card-title leading-snug">{char.name}</span>
+            <button
+              onClick={onView}
+              className="shrink-0 text-muted-foreground/50 hover:text-amber-400 transition-colors mt-0.5"
+              title="View character sheet"
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </button>
           </div>
 
           <p className="text-xs text-muted-foreground leading-snug">
@@ -139,6 +149,7 @@ function PlayersPageInner() {
   const isDdbImporting = searchParams.get('ddb-importing') === 'true';
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
+  const { openSheet: openCharacterSheet } = usePinnedItems();
 
   const characters = trpc.characters.getCampaignCharacters.useQuery(
     { campaignId },
@@ -224,16 +235,6 @@ function PlayersPageInner() {
     },
   });
 
-  if (characters.isLoading) {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-[120px] rounded-lg" />
-        ))}
-      </div>
-    );
-  }
-
   const chars = (characters.data || []) as any[];
   const pending = chars.filter((cc) => cc.status === 'PENDING');
   const active = chars.filter((cc) => cc.status === 'ACTIVE');
@@ -244,6 +245,16 @@ function PlayersPageInner() {
     { label: active.length === 1 ? 'character' : 'characters', value: active.length },
     ...(pending.length > 0 ? [{ label: 'pending', value: pending.length, alert: true }] : []),
   ]);
+
+  if (characters.isLoading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-[120px] rounded-lg" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
@@ -340,6 +351,13 @@ function PlayersPageInner() {
                       updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    onView={() => openCharacterSheet({
+                      id: cc.character?.id ?? cc.id,
+                      entityType: 'npc',
+                      name: (cc.character?.name ?? cc.name) || 'Character',
+                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
+                      order: 0,
+                    })}
                     cardStyle={{ borderStyle: 'dashed', borderColor: 'hsl(35 80% 55% / 0.35)' }}
                   />
                 ))}
@@ -365,6 +383,13 @@ function PlayersPageInner() {
                       updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    onView={() => openCharacterSheet({
+                      id: cc.character?.id ?? cc.id,
+                      entityType: 'npc',
+                      name: (cc.character?.name ?? cc.name) || 'Character',
+                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
+                      order: 0,
+                    })}
                   />
                 ))}
               </div>
@@ -387,6 +412,13 @@ function PlayersPageInner() {
                       updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    onView={() => openCharacterSheet({
+                      id: cc.character?.id ?? cc.id,
+                      entityType: 'npc',
+                      name: (cc.character?.name ?? cc.name) || 'Character',
+                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
+                      order: 0,
+                    })}
                   />
                 ))}
               </div>
@@ -409,6 +441,13 @@ function PlayersPageInner() {
                       updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
+                    onView={() => openCharacterSheet({
+                      id: cc.character?.id ?? cc.id,
+                      entityType: 'npc',
+                      name: (cc.character?.name ?? cc.name) || 'Character',
+                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
+                      order: 0,
+                    })}
                     cardStyle={{
                       background: 'linear-gradient(180deg, hsl(0 20% 8%) 0%, hsl(0 15% 5%) 100%)',
                       borderColor: 'hsl(0 25% 14%)',
@@ -421,7 +460,7 @@ function PlayersPageInner() {
         </>
       )}
 
-      {isDM && (
+{isDM && (
         <CharacterAddSheet
           campaignId={campaignId}
           open={isAddOpen}
