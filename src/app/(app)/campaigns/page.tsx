@@ -1,15 +1,29 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Plus, Shield, Users } from 'lucide-react';
+import { CampaignCreateSheet } from '@/components/campaign/campaign-create-sheet';
 
 export default function CampaignsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const campaigns = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 120_000 });
+
+  const sheetOpen = searchParams.get('create') === 'true';
+
+  function openSheet() {
+    router.push('?create=true');
+  }
+
+  function closeSheet() {
+    router.replace('/campaigns');
+  }
 
   return (
     <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
@@ -18,11 +32,9 @@ export default function CampaignsPage() {
         <div className="section-rule" />
         <div className="flex items-center justify-between mt-3">
           <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Campaigns</h1>
-          <Button asChild>
-            <Link href="/campaigns/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Campaign
-            </Link>
+          <Button onClick={openSheet}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Campaign
           </Button>
         </div>
       </div>
@@ -41,7 +53,6 @@ export default function CampaignsPage() {
               href={`/campaigns/${campaign.slug || campaign.id}`}
             >
               <div className="stone-card overflow-hidden hover:border-amber-700/40 transition-colors cursor-pointer h-full flex flex-col">
-                {/* Banner */}
                 <div className="relative h-24 w-full shrink-0">
                   {campaign.bannerUrl ? (
                     <Image
@@ -90,16 +101,16 @@ export default function CampaignsPage() {
             <Shield className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No campaigns yet</h3>
             <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-              Create a campaign to start your adventure - invite players, track sessions, and manage your world.
+              Create a campaign to start your adventure — invite players, track sessions, and manage your world.
             </p>
-            <Button asChild size="sm">
-              <Link href="/campaigns/new">
-                New Campaign
-              </Link>
+            <Button size="sm" onClick={openSheet}>
+              New Campaign
             </Button>
           </div>
         </div>
       )}
+
+      <CampaignCreateSheet open={sheetOpen} onOpenChange={(o) => { if (!o) closeSheet(); }} />
     </div>
   );
 }
