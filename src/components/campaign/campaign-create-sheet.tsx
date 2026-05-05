@@ -191,7 +191,10 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     // Close and reset directly to avoid double-firing via Sheet's onOpenChange callback
     onOpenChange(false);
     resetState();
-    router.push(`/campaigns/${campaign.slug || campaign.id}`);
+    const dest = ddbUrl.trim()
+      ? `/campaigns/${campaign.slug || campaign.id}/players?ddb-importing=true`
+      : `/campaigns/${campaign.slug || campaign.id}`;
+    router.push(dest);
   }
 
   // importFromCampaign is intentionally excluded — it's fire-and-forget after navigate
