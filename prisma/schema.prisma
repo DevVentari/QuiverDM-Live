@@ -324,6 +324,9 @@ model Campaign {
   transcriptCorrections TranscriptCorrection[]
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
 
+  // Campaign Documents
+  documents         CampaignDocument[]
+
   // D&D Beyond integration
   dndBeyondCampaignUrl String? // e.g. https://www.dndbeyond.com/campaigns/7547491
 
@@ -584,6 +587,33 @@ model GameSession {
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
   @@index([date])
+}
+
+model CampaignDocument {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  title      String
+  slug       String
+  type       String    // 'lore' | 'faction' | 'location' | 'adventure' | 'timeline'
+  content    String    @db.Text
+  data       Json?
+  tags       String[]
+  sourceFile String?
+  order      Int      @default(0)
+
+  brainIngestStatus String    @default("none") // none | pending | processing | done | error
+  brainIngestAt     DateTime?
+
+  searchText String   @db.Text
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([campaignId, slug])
+  @@index([campaignId])
+  @@index([campaignId, type])
 }
 
 model PlayerSessionState {
