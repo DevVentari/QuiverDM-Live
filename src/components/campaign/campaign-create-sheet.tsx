@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Loader2, Upload, Check, ChevronLeft } from 'lucide-react';
 import {
   Sheet,
@@ -111,8 +112,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     },
   });
 
-  function handleClose() {
-    onOpenChange(false);
+  function resetState() {
     setTimeout(() => {
       setStep(1);
       setName('');
@@ -122,6 +122,11 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       setDdbUrl('');
       setSelectedAdventure(null);
     }, 300);
+  }
+
+  function handleClose() {
+    onOpenChange(false);
+    resetState();
   }
 
   function validateStep1() {
@@ -183,10 +188,13 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     }
 
     await utils.campaigns.getAll.invalidate();
-    handleClose();
+    // Close and reset directly to avoid double-firing via Sheet's onOpenChange callback
+    onOpenChange(false);
+    resetState();
     router.push(`/campaigns/${campaign.slug || campaign.id}`);
   }
 
+  // importFromCampaign is intentionally excluded — it's fire-and-forget after navigate
   const isCreating =
     createCampaign.isPending ||
     seedFromCreation.isPending;
@@ -243,7 +251,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                 />
                 {bannerUrl ? (
                   <div className="relative h-24 rounded-md overflow-hidden">
-                    <img src={bannerUrl} alt="" className="w-full h-full object-cover" />
+                    <Image src={bannerUrl} alt="" fill className="object-cover" />
                     <button
                       onClick={() => setBannerUrl(null)}
                       className="absolute top-1.5 right-1.5 bg-black/60 text-white text-xs px-2 py-0.5 rounded"
