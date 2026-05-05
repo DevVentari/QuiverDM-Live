@@ -9,6 +9,8 @@ export type HeaderStat = {
 export type HeaderSlot = {
   label: string;
   title: string;
+  campaignSlug?: string;
+  campaignId?: string;
   badge?: { text: string; color: 'amber' | 'sky' };
   stats?: HeaderStat[];
 } | null;
