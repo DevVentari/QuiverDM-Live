@@ -114,14 +114,10 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      /* Warm amber glow from upper-left (candlelight) */
-      radial-gradient(ellipse 60% 50% at 25% -10%, hsl(35 70% 15% / 0.7), transparent),
-      /* Cool purple glow from upper-right (mystical) */
-      radial-gradient(ellipse 50% 45% at 75% -5%, hsl(258 40% 12% / 0.6), transparent),
-      /* Faint amber warmth from bottom-center */
-      radial-gradient(ellipse 70% 40% at 50% 110%, hsl(35 50% 10% / 0.4), transparent),
-      /* Base near-black */
-      linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
+      radial-gradient(ellipse 60% 50% at 25% -10%, hsl(33 40% 22% / 0.5), transparent),
+      radial-gradient(ellipse 50% 45% at 75% -5%,  hsl(258 25% 22% / 0.35), transparent),
+      radial-gradient(ellipse 70% 40% at 50% 110%, hsl(33 30% 18% / 0.3), transparent),
+      linear-gradient(hsl(32 7% 18%), hsl(32 7% 18%));
   }
 }
 
