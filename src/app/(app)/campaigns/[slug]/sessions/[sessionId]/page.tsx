@@ -25,7 +25,7 @@ export default function SessionHubPage() {
 
   if (sessionQuery.isLoading) {
     return (
-      <div className="space-y-4 max-w-3xl">
+      <div className="space-y-4 max-w-5xl">
         <Skeleton className="h-7 w-64" />
         <Skeleton className="h-12 rounded-lg" />
         <Skeleton className="h-32 rounded-lg" />
@@ -70,7 +70,7 @@ export default function SessionHubPage() {
       overline={`Session ${sessionNumber}`}
       title={sessionTitle ?? `Session ${sessionNumber}`}
       subtitle={sessionDate ? format(sessionDate, 'EEEE, MMMM d yyyy') : undefined}
-      maxWidth="md"
+      maxWidth={phase === 'prep' ? 'lg' : 'md'}
     >
       {/* Pipeline */}
       <SessionPipeline currentPhase={phase} />
