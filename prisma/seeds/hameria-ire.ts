@@ -138,4 +138,103 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
   }
 
   console.log(`Seeded ${sessionCount} sessions for Tales from the Bonfire Keep`);
+
+  // Homebrew content — items
+  const itemFiles = ['mechanics_items.json', 'mechanics_pregenitor-artifacts.json'];
+  let itemCount = 0;
+
+  for (const itemFile of itemFiles) {
+    if (!fs.existsSync(path.join(JSON_DIR, itemFile))) continue;
+    const file = readJson(itemFile);
+    const items: any[] = file.data ?? [];
+    for (const item of items) {
+      if (!item.name || item.name.startsWith('...') || item.name === '') continue;
+      const existing = await prisma.homebrewContent.findFirst({
+        where: { userId, name: item.name, type: 'item' },
+      });
+      if (existing) continue;
+      await prisma.homebrewContent.create({
+        data: {
+          userId,
+          type: 'item',
+          name: item.name,
+          data: { properties: item.properties ?? [], rarity_type: item.rarity_type ?? '', description: item.description ?? '' },
+          tags: file.metadata?.tags ?? [],
+          searchText: toSearchText(item.description ?? '', item.name, file.metadata?.tags ?? []),
+          sourceType: 'manual',
+        },
+      });
+      itemCount++;
+    }
+  }
+  console.log(`Seeded ${itemCount} items for Tales from the Bonfire Keep`);
+
+  // Homebrew content — monsters
+  const monsterFile = readJson('bestiary_monsters.json');
+  const monsters: any[] = monsterFile.data ?? [];
+  let creatureCount = 0;
+
+  for (const monster of monsters) {
+    if (!monster.name || monster.name.startsWith('...') || monster.name === '') continue;
+
+    const existing = await prisma.homebrewContent.findFirst({
+      where: { userId, name: monster.name, type: 'creature' },
+    });
+    if (existing) continue;
+
+    await prisma.homebrewContent.create({
+      data: {
+        userId,
+        type: 'creature',
+        name: monster.name,
+        data: {
+          mechanics: monster.mechanics ?? {},
+          traits: monster.traits ?? [],
+          actions: monster.actions ?? [],
+          ability_scores: monster.ability_scores ?? {},
+          type_alignment: monster.type_alignment ?? '',
+        },
+        tags: monsterFile.metadata?.tags ?? [],
+        searchText: toSearchText(
+          monster.description ?? '',
+          monster.name,
+          monsterFile.metadata?.tags ?? []
+        ),
+        sourceType: 'manual',
+      },
+    });
+    creatureCount++;
+  }
+
+  // Homebrew content — races
+  const racesFile = readJson('mechanics_races.json');
+  const races: any[] = racesFile.data ?? [];
+  let raceCount = 0;
+
+  for (const race of races) {
+    if (!race.name || race.name.startsWith('...') || race.name === '') continue;
+
+    const existing = await prisma.homebrewContent.findFirst({
+      where: { userId, name: race.name, type: 'race' },
+    });
+    if (existing) continue;
+
+    await prisma.homebrewContent.create({
+      data: {
+        userId,
+        type: 'race',
+        name: race.name,
+        data: {
+          traits: race.traits ?? [],
+          subraces: race.subraces ?? [],
+        },
+        tags: racesFile.metadata?.tags ?? [],
+        searchText: toSearchText(race.description ?? '', race.name, racesFile.metadata?.tags ?? []),
+        sourceType: 'manual',
+      },
+    });
+    raceCount++;
+  }
+
+  console.log(`Seeded ${creatureCount} creatures, ${raceCount} races for Tales from the Bonfire Keep`);
 }
