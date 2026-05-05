@@ -4,50 +4,30 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
-  FlaskConical,
   Settings,
   PanelLeftClose,
   PanelLeft,
   CalendarDays,
   ScrollText,
   Brain,
-  ChevronLeft,
   Shield,
   UsersRound,
   Home,
   Drama,
   Swords,
-  BookOpen,
+  Package,
+  MapPin,
+  Sparkles,
+  Skull,
+  ChevronLeft,
 } from 'lucide-react';
-import { useCompendiumStore } from '@/store/compendium-store';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { trpc } from '@/lib/trpc';
 import { QuiverLogo } from '@/components/logo/quiver-logo';
 import { useLogoVariant } from '@/hooks/use-logo-variant';
-import { CampaignPill } from '@/components/campaign/campaign-pill';
-
-
-
-function getCampaignNav(slug: string) {
-  return {
-    campaign: [
-      { href: `/campaigns/${slug}`, label: 'Overview', icon: Home, exact: true },
-      { href: `/campaigns/${slug}/sessions`, label: 'Sessions', icon: CalendarDays },
-      { href: `/campaigns/${slug}/summaries`, label: 'Summaries', icon: ScrollText },
-    ],
-    world: [
-      { href: `/campaigns/${slug}/npcs`, label: 'NPCs', icon: Drama },
-      { href: `/campaigns/${slug}/brain`, label: 'DM Brain', icon: Brain },
-      { href: `/campaigns/${slug}/encounters`, label: 'Encounters', icon: Swords },
-    ],
-    library: [
-      { href: `/campaigns/${slug}/homebrew`, label: 'Homebrew', icon: FlaskConical },
-      { href: `/campaigns/${slug}/players`, label: 'Characters', icon: Shield },
-      { href: `/campaigns/${slug}/members`, label: 'Members', icon: UsersRound },
-    ],
-  };
-}
+import { useHeaderStore } from '@/store/header-store';
+import { CompendiumSection } from '@/components/sidebar/compendium-section';
+import { CompendiumSearch } from '@/components/sidebar/compendium-search';
 
 function NavItem({
   href,
@@ -55,12 +35,14 @@ function NavItem({
   icon: Icon,
   isActive,
   collapsed,
+  exact,
 }: {
   href: string;
   label: string;
   icon: React.ElementType;
   isActive: boolean;
   collapsed: boolean;
+  exact?: boolean;
 }) {
   return (
     <Link
@@ -77,19 +59,10 @@ function NavItem({
       {isActive && (
         <span
           className="absolute left-0 top-0 bottom-0 w-0.5"
-          style={{
-            background: 'hsl(35 80% 55%)',
-            boxShadow: '0 0 8px hsl(35 80% 48% / 0.55)',
-          }}
+          style={{ background: 'hsl(35 80% 55%)', boxShadow: '0 0 8px hsl(35 80% 48% / 0.55)' }}
         />
       )}
-      <Icon
-        className={cn(
-          'h-4 w-4 shrink-0',
-          isActive ? 'text-amber-400/90' : 'opacity-60'
-        )}
-        strokeWidth={1.8}
-      />
+      <Icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} strokeWidth={1.8} />
       {!collapsed && <span>{label}</span>}
     </Link>
   );
@@ -104,21 +77,15 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
   );
 }
 
-
 export function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
-  const { open: openCompendium, isOpen: compendiumOpen } = useCompendiumStore();
+  const [searchActive, setSearchActive] = useState(false);
+  const slot = useHeaderStore((s) => s.slot);
 
   const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
-  const inCampaign = !!campaignSlug;
-
-  const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, {
-    staleTime: 300_000,
-  });
-
-  const currentCampaign = campaigns.data?.find((c) => c.slug === campaignSlug) ?? null;
-  const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
+  const campaignId = slot?.campaignId ?? '';
+  const inCampaign = !!campaignSlug && !!campaignId;
 
   const baseVariant = useLogoVariant();
   const isLiveSession = pathname.match(/\/sessions\/[^/]+\/live$/) !== null;
@@ -132,44 +99,16 @@ export function Sidebar() {
         collapsed ? 'w-16' : 'w-[240px] 2xl:w-[280px]'
       )}
     >
-      {/* UI 2.0 ambient gradient — amber + purple bleed from top */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          background: [
-            'radial-gradient(ellipse 140% 30% at 50% 0%, hsl(35 80% 38% / 0.14) 0%, transparent 60%)',
-            'radial-gradient(ellipse 80% 20% at 85% 0%, hsl(260 50% 45% / 0.09) 0%, transparent 50%)',
-          ].join(', '),
-        }}
-      />
-      {/* Amber gradient right border */}
-      <div
-        className="absolute top-0 right-[-1px] w-px h-full pointer-events-none z-10"
-        style={{
-          background:
-            'linear-gradient(180deg, transparent 0%, hsl(35 80% 55% / 0.35) 25%, hsl(35 80% 62% / 0.35) 55%, transparent 100%)',
-        }}
-      />
+      {/* Ambient gradients */}
+      <div className="absolute inset-0 pointer-events-none z-0" style={{ background: ['radial-gradient(ellipse 140% 30% at 50% 0%, hsl(35 80% 38% / 0.14) 0%, transparent 60%)', 'radial-gradient(ellipse 80% 20% at 85% 0%, hsl(260 50% 45% / 0.09) 0%, transparent 50%)'].join(', ') }} />
+      <div className="absolute top-0 right-[-1px] w-px h-full pointer-events-none z-10" style={{ background: 'linear-gradient(180deg, transparent 0%, hsl(35 80% 55% / 0.35) 25%, hsl(35 80% 62% / 0.35) 55%, transparent 100%)' }} />
 
       {/* Logo */}
-      <div
-        className={cn(
-          'relative z-10 flex items-center border-b border-[hsl(35_35%_18%)]',
-          collapsed ? 'justify-center px-3 h-14' : 'justify-between px-5 h-14'
-        )}
-      >
+      <div className={cn('relative z-10 flex items-center border-b border-[hsl(35_35%_18%)]', collapsed ? 'justify-center px-3 h-14' : 'justify-between px-5 h-14')}>
         {collapsed ? (
           <>
-            <Link href="/dashboard" aria-label="QuiverDM">
-              <QuiverLogo variant={logoVariant} size="sm" />
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCollapsed(!collapsed)}
-              className="absolute right-1 h-7 w-7"
-              aria-label="Expand sidebar"
-            >
+            <Link href="/dashboard" aria-label="QuiverDM"><QuiverLogo variant={logoVariant} size="sm" /></Link>
+            <Button variant="ghost" size="icon" onClick={() => setCollapsed(false)} className="absolute right-1 h-7 w-7" aria-label="Expand sidebar">
               <PanelLeft className="h-3.5 w-3.5" strokeWidth={1.8} />
             </Button>
           </>
@@ -178,102 +117,83 @@ export function Sidebar() {
             <Link href="/dashboard" className="flex items-center gap-2.5 leading-none min-w-0">
               <QuiverLogo variant={logoVariant} size="md" />
               <div className="flex flex-col min-w-0">
-                <span
-                  className="font-display text-[13px] font-bold tracking-[0.1em] leading-none"
-                  style={{ color: 'hsl(35 70% 88%)', textShadow: '0 0 18px hsl(35 80% 48% / 0.35)' }}
-                >
+                <span className="font-display text-[13px] font-bold tracking-[0.1em] leading-none" style={{ color: 'hsl(35 70% 88%)', textShadow: '0 0 18px hsl(35 80% 48% / 0.35)' }}>
                   QUIVER<span style={{ color: 'hsl(35 80% 62%)' }}>DM</span>
                 </span>
-                <span className="font-sans text-[8px] uppercase tracking-[0.14em] mt-1" style={{ color: 'hsl(240 5% 36%)' }}>
-                  Campaign Companion
-                </span>
+                <span className="font-sans text-[8px] uppercase tracking-[0.14em] mt-1" style={{ color: 'hsl(240 5% 36%)' }}>Campaign Companion</span>
               </div>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCollapsed(!collapsed)}
-              className="h-7 w-7 shrink-0"
-              aria-label="Collapse sidebar"
-            >
+            <Button variant="ghost" size="icon" onClick={() => setCollapsed(true)} className="h-7 w-7 shrink-0" aria-label="Collapse sidebar">
               <PanelLeftClose className="h-3.5 w-3.5" strokeWidth={1.8} />
             </Button>
           </>
         )}
       </div>
 
+      {/* Search */}
+      {inCampaign && (
+        <CompendiumSearch
+          campaignId={campaignId}
+          slug={campaignSlug!}
+          collapsed={collapsed}
+          onSearchActive={setSearchActive}
+        />
+      )}
+
       {/* Navigation */}
-      <nav className="relative z-10 flex-1 overflow-y-auto py-1">
-        {/* Campaign zone — only when inside a campaign */}
-        {inCampaign && campaignNavSections && (
+      <nav className={cn('relative z-10 flex-1 overflow-y-auto py-1', searchActive && 'invisible h-0 overflow-hidden')}>
+        {inCampaign && (
           <>
             <div className="mx-3 my-3 border-t border-[hsl(35_35%_14%)]" />
-            <CampaignPill
-              current={currentCampaign}
-              campaigns={campaigns.data ?? []}
-              collapsed={collapsed}
-            />
+
             <SectionLabel label="Campaign" collapsed={collapsed} />
-            {campaignNavSections.campaign.map((item) => (
-              <NavItem
-                key={item.href}
-                {...item}
-                isActive={item.exact ? pathname === item.href : pathname.startsWith(item.href + '/')}
-                collapsed={collapsed}
-              />
-            ))}
+            <NavItem href={`/campaigns/${campaignSlug}`}          label="Overview"  icon={Home}         isActive={pathname === `/campaigns/${campaignSlug}`}                           collapsed={collapsed} exact />
+            <NavItem href={`/campaigns/${campaignSlug}/sessions`}  label="Sessions"  icon={CalendarDays} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/sessions`)}          collapsed={collapsed} />
+            <NavItem href={`/campaigns/${campaignSlug}/summaries`} label="Summaries" icon={ScrollText}   isActive={pathname.startsWith(`/campaigns/${campaignSlug}/summaries`)}         collapsed={collapsed} />
 
             <SectionLabel label="World" collapsed={collapsed} />
-            {campaignNavSections.world.map((item) => (
-              <NavItem
-                key={item.href}
-                {...item}
-                isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
-                collapsed={collapsed}
-              />
-            ))}
+            <CompendiumSection label="NPCs"      entityType="npc"      icon={Drama}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/npcs`}       collapsed={collapsed} />
+            <NavItem href={`/campaigns/${campaignSlug}/brain`} label="DM Brain" icon={Brain} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/brain`)} collapsed={collapsed} />
+            <CompendiumSection label="Encounters" entityType="encounter" icon={Swords} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/encounters`}  collapsed={collapsed} />
 
             <SectionLabel label="Library" collapsed={collapsed} />
-            {campaignNavSections.library.map((item) => (
-              <NavItem
-                key={item.href}
-                {...item}
-                isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
-                collapsed={collapsed}
-              />
-            ))}
+            <CompendiumSection label="Items"     entityType="item"     icon={Package}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
+            <CompendiumSection label="Locations" entityType="location" icon={MapPin}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
+            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
+            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}     campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
           </>
         )}
       </nav>
 
-      {/* Bottom */}
-      <div className="border-t border-[hsl(35_35%_18%)] py-2">
-        {/* Compendium toggle */}
-        <button
-          onClick={openCompendium}
-          className={cn(
-            'flex w-full items-center gap-3 px-3 py-2 text-sm transition-colors rounded-sm mx-1',
-            compendiumOpen
-              ? 'text-[var(--card-amber)]'
-              : 'text-muted-foreground hover:text-foreground hover:bg-white/5',
-            collapsed && 'justify-center px-0'
-          )}
-          title="Compendium"
-          aria-label="Open Compendium"
-        >
-          <BookOpen
-            className={cn('h-4 w-4 flex-shrink-0', compendiumOpen && 'drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]')}
-            strokeWidth={1.8}
-          />
-          {!collapsed && <span className="font-body">Compendium</span>}
-        </button>
-        <NavItem
+      {/* Bottom icon row */}
+      <div className="relative z-10 border-t border-[hsl(35_35%_18%)] py-2 flex items-center gap-1 px-2">
+        {inCampaign && (
+          <>
+            <Link
+              href={`/campaigns/${campaignSlug}/players`}
+              title="Party"
+              className={cn('flex flex-1 items-center justify-center gap-1.5 py-1.5 rounded text-xs transition-colors', pathname.startsWith(`/campaigns/${campaignSlug}/players`) ? 'text-amber-400/90 bg-amber-500/[0.07]' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]')}
+            >
+              <Shield className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+              {!collapsed && <span>Party</span>}
+            </Link>
+            <Link
+              href={`/campaigns/${campaignSlug}/members`}
+              title="Members"
+              className={cn('flex flex-1 items-center justify-center gap-1.5 py-1.5 rounded text-xs transition-colors', pathname.startsWith(`/campaigns/${campaignSlug}/members`) ? 'text-amber-400/90 bg-amber-500/[0.07]' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]')}
+            >
+              <UsersRound className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+              {!collapsed && <span>Members</span>}
+            </Link>
+          </>
+        )}
+        <Link
           href="/settings"
-          label="Settings"
-          icon={Settings}
-          isActive={pathname === '/settings' || pathname.startsWith('/settings/')}
-          collapsed={collapsed}
-        />
+          title="Settings"
+          className={cn('flex items-center justify-center p-1.5 rounded transition-colors', pathname.startsWith('/settings') ? 'text-amber-400/90' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]')}
+        >
+          <Settings className="h-4 w-4" strokeWidth={1.8} />
+        </Link>
       </div>
     </aside>
   );
@@ -281,35 +201,16 @@ export function Sidebar() {
 
 export function MobileSidebar() {
   const pathname = usePathname();
+  const slot = useHeaderStore((s) => s.slot);
   const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
-  const inCampaign = !!campaignSlug;
-  const campaignNavSections = campaignSlug ? getCampaignNav(campaignSlug) : null;
-  const { open: openCompendium, isOpen: compendiumOpen } = useCompendiumStore();
+  const campaignId = slot?.campaignId ?? '';
+  const inCampaign = !!campaignSlug && !!campaignId;
 
   const renderLink = (item: { href: string; label: string; icon: React.ElementType }, exact = false) => {
-    const isActive = exact
-      ? pathname === item.href
-      : pathname === item.href || pathname.startsWith(item.href + '/');
+    const isActive = exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + '/');
     return (
-      <Link
-        key={item.href}
-        href={item.href}
-        className={cn(
-          'relative flex items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
-          isActive
-            ? 'text-amber-400/90 bg-amber-500/[0.07]'
-            : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
-        )}
-      >
-        {isActive && (
-          <span
-            className="absolute left-0 top-0 bottom-0 w-0.5"
-            style={{
-              background: 'hsl(35 80% 55%)',
-              boxShadow: '0 0 8px hsl(35 80% 48% / 0.55)',
-            }}
-          />
-        )}
+      <Link key={item.href} href={item.href} className={cn('relative flex items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors', isActive ? 'text-amber-400/90 bg-amber-500/[0.07]' : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]')}>
+        {isActive && <span className="absolute left-0 top-0 bottom-0 w-0.5" style={{ background: 'hsl(35 80% 55%)', boxShadow: '0 0 8px hsl(35 80% 48% / 0.55)' }} />}
         <item.icon className={cn('h-4 w-4 shrink-0', isActive ? 'text-amber-400/90' : 'opacity-60')} strokeWidth={1.8} />
         <span>{item.label}</span>
       </Link>
@@ -318,44 +219,26 @@ export function MobileSidebar() {
 
   return (
     <nav className="flex flex-col py-2">
-      {inCampaign && campaignNavSections ? (
+      {inCampaign ? (
         <>
           <p className="px-5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Campaign</p>
-          {campaignNavSections.campaign.map((item) => renderLink(item, item.exact))}
+          {renderLink({ href: `/campaigns/${campaignSlug}`,          label: 'Overview',   icon: Home         }, true)}
+          {renderLink({ href: `/campaigns/${campaignSlug}/sessions`,  label: 'Sessions',   icon: CalendarDays })}
+          {renderLink({ href: `/campaigns/${campaignSlug}/summaries`, label: 'Summaries',  icon: ScrollText   })}
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">World</p>
-          {campaignNavSections.world.map((item) => renderLink(item))}
+          {renderLink({ href: `/campaigns/${campaignSlug}/npcs`,       label: 'NPCs',       icon: Drama  })}
+          {renderLink({ href: `/campaigns/${campaignSlug}/brain`,      label: 'DM Brain',   icon: Brain  })}
+          {renderLink({ href: `/campaigns/${campaignSlug}/encounters`, label: 'Encounters', icon: Swords })}
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">Library</p>
-          {campaignNavSections.library.map((item) => renderLink(item))}
+          {renderLink({ href: `/campaigns/${campaignSlug}/homebrew`,   label: 'Homebrew',   icon: Package })}
           <p className="px-5 pt-4 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
+          {renderLink({ href: `/campaigns/${campaignSlug}/players`,  label: 'Party',         icon: Shield    })}
+          {renderLink({ href: `/campaigns/${campaignSlug}/members`,  label: 'Members',       icon: UsersRound})}
           {renderLink({ href: '/campaigns', label: 'All Campaigns', icon: ChevronLeft })}
-          <button
-            onClick={openCompendium}
-            className={cn(
-              'relative flex w-full items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
-              compendiumOpen
-                ? 'text-[var(--card-amber)] bg-amber-500/[0.07]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
-            )}
-          >
-            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-[var(--card-amber)] drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]' : 'opacity-60')} strokeWidth={1.8} />
-            <span>Compendium</span>
-          </button>
-          {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
+          {renderLink({ href: '/settings',  label: 'Settings',      icon: Settings    })}
         </>
       ) : (
         <>
-          <button
-            onClick={openCompendium}
-            className={cn(
-              'relative flex w-full items-center gap-2.5 px-5 py-2 text-sm font-medium transition-colors',
-              compendiumOpen
-                ? 'text-[var(--card-amber)] bg-amber-500/[0.07]'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.04]'
-            )}
-          >
-            <BookOpen className={cn('h-4 w-4 shrink-0', compendiumOpen ? 'text-[var(--card-amber)] drop-shadow-[0_0_4px_hsl(35_80%_48%/0.6)]' : 'opacity-60')} strokeWidth={1.8} />
-            <span>Compendium</span>
-          </button>
           {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
         </>
       )}
