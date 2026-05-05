@@ -189,7 +189,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
 
   const isCreating =
     createCampaign.isPending ||
-    importFromCampaign.isPending ||
     seedFromCreation.isPending;
 
   return (
