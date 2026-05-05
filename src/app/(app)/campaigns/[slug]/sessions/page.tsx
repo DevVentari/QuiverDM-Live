@@ -247,7 +247,7 @@ export default function SessionsPage() {
             </p>
             {isDM && filter === 'all' && (
               <Button size="sm" className="gap-1.5" asChild>
-                <Link href={`/campaigns/${slug}/sessions/new`}>
+                <Link href={`/campaigns/${slug}/sessions/prep`}>
                   <Plus className="h-3.5 w-3.5" />
                   Create First Session
                 </Link>
