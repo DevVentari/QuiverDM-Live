@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
@@ -10,7 +11,7 @@ import Image from 'next/image';
 import { Plus, Shield, Users } from 'lucide-react';
 import { CampaignCreateSheet } from '@/components/campaign/campaign-create-sheet';
 
-export default function CampaignsPage() {
+function CampaignsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const campaigns = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 120_000 });
@@ -18,7 +19,7 @@ export default function CampaignsPage() {
   const sheetOpen = searchParams.get('create') === 'true';
 
   function openSheet() {
-    router.push('?create=true');
+    router.replace('?create=true');
   }
 
   function closeSheet() {
@@ -112,5 +113,13 @@ export default function CampaignsPage() {
 
       <CampaignCreateSheet open={sheetOpen} onOpenChange={(o) => { if (!o) closeSheet(); }} />
     </div>
+  );
+}
+
+export default function CampaignsPage() {
+  return (
+    <Suspense fallback={<div className="h-[calc(100vh-220px)] animate-pulse bg-white/5" />}>
+      <CampaignsPageInner />
+    </Suspense>
   );
 }
