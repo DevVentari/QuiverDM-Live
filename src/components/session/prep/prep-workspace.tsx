@@ -416,20 +416,22 @@ export function PrepWorkspace({
         </main>
       </div>
 
-      <div className="md:hidden border-t border-border/50 px-4 py-3 flex items-center justify-between"
-        style={{ background: 'hsl(240 10% 5% / 0.97)', backdropFilter: 'blur(12px)' }}>
-        <span className="text-xs" style={{ color: 'hsl(35 10% 48%)' }}>
-          {completedSections.size} / {PREP_SECTIONS.length} sections
-        </span>
-        <button
-          onClick={() => completePrep.mutate({ id: sessionId })}
-          disabled={completePrep.isPending}
-          className="text-xs font-semibold px-3 py-1.5 rounded-sm"
-          style={{ background: 'hsl(35 70% 18%)', border: '1px solid hsl(35 60% 32%)', color: 'hsl(35 80% 65%)' }}
-        >
-          {completePrep.isPending ? 'Saving…' : 'Mark Complete'}
-        </button>
-      </div>
+      {!inline && (
+        <div className="md:hidden border-t border-border/50 px-4 py-3 flex items-center justify-between"
+          style={{ background: 'hsl(240 10% 5% / 0.97)', backdropFilter: 'blur(12px)' }}>
+          <span className="text-xs" style={{ color: 'hsl(35 10% 48%)' }}>
+            {completedSections.size} / {PREP_SECTIONS.length} sections
+          </span>
+          <button
+            onClick={() => completePrep.mutate({ id: sessionId })}
+            disabled={completePrep.isPending}
+            className="text-xs font-semibold px-3 py-1.5 rounded-sm"
+            style={{ background: 'hsl(35 70% 18%)', border: '1px solid hsl(35 60% 32%)', color: 'hsl(35 80% 65%)' }}
+          >
+            {completePrep.isPending ? 'Saving…' : 'Mark Complete'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
