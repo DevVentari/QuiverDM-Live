@@ -12,6 +12,7 @@ import { PhaseProcessing } from '@/components/session/phase-processing';
 import { PhaseSummary } from '@/components/session/phase-summary';
 import { PhaseRecap } from '@/components/session/phase-recap';
 import { deriveSessionPhase } from '@/lib/session-lifecycle';
+import { PageLayout } from '@/components/layout/page-layout';
 
 export default function SessionHubPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -65,21 +66,12 @@ export default function SessionHubPage() {
   const isRanOrProcessing = phase === 'ran' || phase === 'processing';
 
   return (
-    <div className="space-y-5 max-w-3xl">
-      {/* Page header */}
-      <div>
-        <p className="label-overline mb-1">Session {sessionNumber}</p>
-        <div className="section-rule" />
-        <h1 className="font-display text-xl font-bold mt-3 tracking-wide">
-          {sessionTitle ?? `Session ${sessionNumber}`}
-        </h1>
-        {sessionDate && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {format(sessionDate, 'EEEE, MMMM d yyyy')}
-          </p>
-        )}
-      </div>
-
+    <PageLayout
+      overline={`Session ${sessionNumber}`}
+      title={sessionTitle ?? `Session ${sessionNumber}`}
+      subtitle={sessionDate ? format(sessionDate, 'EEEE, MMMM d yyyy') : undefined}
+      maxWidth="md"
+    >
       {/* Pipeline */}
       <SessionPipeline currentPhase={phase} />
 
@@ -89,7 +81,6 @@ export default function SessionHubPage() {
           <PhaseCompleteRow
             phase="prep"
             detail={(session.prepStatus as string) === 'complete' ? 'Prep complete' : 'Skipped'}
-            editHref={`/campaigns/${slug}/sessions/prep?sessionId=${session.id as string}`}
           />
         )}
         {ranDone && (
@@ -159,6 +150,6 @@ export default function SessionHubPage() {
         </div>
       )}
 
-    </div>
+    </PageLayout>
   );
 }
