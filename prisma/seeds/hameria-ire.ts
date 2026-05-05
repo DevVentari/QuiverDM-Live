@@ -91,4 +91,51 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
   }
 
   console.log(`Seeded ${npcCount} NPCs for Tales from the Bonfire Keep`);
+
+  // Sessions (adventures)
+  const adventureFiles = [
+    'adventures_01-whispered-names.json',
+    'adventures_01b-the-withered-root.json',
+    'adventures_01c-the-salted-current.json',
+    'adventures_02-the-starfall-conspiracy.json',
+    'adventures_03-the-withering-world.json',
+    'adventures_04-desperate-alliance.json',
+    'adventures_05-the-hunt-begins.json',
+    'adventures_06-the-dreaming-deep.json',
+    'adventures_07-the-glass-sea.json',
+  ];
+
+  const existingSessions = await prisma.gameSession.findMany({
+    where: { campaignId: campaign.id },
+    select: { sessionNumber: true },
+  });
+  const existingNumbers = new Set(existingSessions.map((s) => s.sessionNumber));
+
+  let sessionCount = 0;
+  for (let i = 0; i < adventureFiles.length; i++) {
+    const file = adventureFiles[i];
+    if (!fs.existsSync(path.join(JSON_DIR, file))) {
+      console.warn(`[hameria-ire seed] Adventure file not found: ${file}`);
+      continue;
+    }
+    const adventure = readJson(file);
+    const sessionNumber = (adventure.metadata?.weight ?? i + 1) as number;
+    const finalNumber = existingNumbers.has(sessionNumber) ? sessionNumber + 100 + i : sessionNumber;
+
+    if (existingNumbers.has(finalNumber)) continue;
+
+    await prisma.gameSession.create({
+      data: {
+        campaignId: campaign.id,
+        sessionNumber: finalNumber,
+        title: adventure.metadata?.title ?? file,
+        status: 'planning',
+        prepData: { rawContent: adventure.content ?? '' },
+      },
+    });
+    existingNumbers.add(finalNumber);
+    sessionCount++;
+  }
+
+  console.log(`Seeded ${sessionCount} sessions for Tales from the Bonfire Keep`);
 }
