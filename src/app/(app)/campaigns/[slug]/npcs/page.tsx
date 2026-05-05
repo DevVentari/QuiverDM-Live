@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Ghost, Plus, Search, Users } from 'lucide-react';
+import { PageLayout } from '@/components/layout/page-layout';
 
 export default function NPCsPage() {
   return (
@@ -84,20 +85,16 @@ function NPCsPageInner() {
     { label: npcList.length === 1 ? 'NPC' : 'NPCs', value: npcList.length },
   ]);
 
-  return (
-    <>
-      <div className="md:hidden space-y-4 px-4 sm:px-6">
-        <div>
-          {isDM && (
-            <div className="flex justify-end">
-              <Button size="sm" onClick={() => setCreateSheetOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                New NPC
-              </Button>
-            </div>
-          )}
-        </div>
+  const newNpcAction = isDM ? (
+    <Button size="sm" onClick={() => setCreateSheetOpen(true)}>
+      <Plus className="h-3.5 w-3.5 mr-1.5" />
+      New NPC
+    </Button>
+  ) : undefined;
 
+  return (
+    <PageLayout overline="NPCs" title="NPCs" actions={newNpcAction}>
+      <div className="md:hidden space-y-4 px-4 sm:px-6">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -149,17 +146,6 @@ function NPCsPageInner() {
 
       <div className="hidden md:grid h-[calc(100vh-220px)] overflow-hidden border-t border-[hsl(35,35%,18%)] -mx-8 grid-cols-[300px_1fr]">
         <div className="flex flex-col overflow-hidden border-r border-[hsl(35,35%,18%)]">
-          <div className="px-3 pt-3 pb-2.5 shrink-0 border-b border-[hsl(35,35%,18%)]">
-            <div className="flex items-center justify-between">
-              {isDM && (
-                <Button size="sm" variant="ghost" className="h-6 px-2 text-xs gap-1 ml-auto" onClick={() => setCreateSheetOpen(true)}>
-                  <Plus className="h-3 w-3" />
-                  New
-                </Button>
-              )}
-            </div>
-          </div>
-
           <div className="px-3 py-2 shrink-0 border-b border-[hsl(35,35%,18%)]">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -237,7 +223,7 @@ function NPCsPageInner() {
           setSelectedNpc(id);
         }}
       />
-    </>
+    </PageLayout>
   );
 }
 
