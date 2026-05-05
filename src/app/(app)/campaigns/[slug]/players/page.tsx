@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
@@ -136,14 +136,37 @@ function PlayersPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAddOpen = searchParams.get('add') === 'true';
+  const isDdbImporting = searchParams.get('ddb-importing') === 'true';
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
 
   const characters = trpc.characters.getCampaignCharacters.useQuery(
     { campaignId },
-    { staleTime: 120_000 }
+    {
+      staleTime: isDdbImporting ? 0 : 120_000,
+      refetchInterval: isDdbImporting ? 3_000 : false,
+    }
   );
   const utils = trpc.useUtils();
+
+  useEffect(() => {
+    if (!isDdbImporting) return;
+    const timer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete('ddb-importing');
+      const qs = params.toString();
+      router.replace(qs ? '?' + qs : '?');
+    }, 180_000);
+    return () => clearTimeout(timer);
+  }, [isDdbImporting]);
+
+  useEffect(() => {
+    if (!isDdbImporting || !characters.data?.length) return;
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('ddb-importing');
+    const qs = params.toString();
+    router.replace(qs ? '?' + qs : '?');
+  }, [isDdbImporting, characters.data?.length]);
 
   const ddbUrl = trpc.campaigns.getDdbCampaignUrl.useQuery(
     { campaignId },
@@ -224,6 +247,13 @@ function PlayersPageInner() {
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
+      {isDdbImporting && (
+        <div className="flex items-center gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <span>Syncing characters from D&amp;D Beyond — this may take a moment</span>
+        </div>
+      )}
+
       {isDM && (
         <div className="flex justify-end items-center gap-2">
           {ddbUrl.data?.url ? (
@@ -233,7 +263,7 @@ function PlayersPageInner() {
                 variant="outline"
                 className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
                 onClick={() => syncDdb.mutate({ campaignUrl: ddbUrl.data.url!, campaignId })}
-                disabled={syncDdb.isPending}
+                disabled={syncDdb.isPending || isDdbImporting}
               >
                 {syncDdb.isPending ? (
                   <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
