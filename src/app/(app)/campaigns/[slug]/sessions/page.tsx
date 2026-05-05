@@ -7,6 +7,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
+import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -69,35 +70,34 @@ export default function SessionsPage() {
     },
   };
 
+  const newSessionAction = isDM ? (
+    <Button size="sm" className="gap-1.5" asChild>
+      <Link href={`/campaigns/${slug}/sessions/prep`}>
+        <Plus className="h-3.5 w-3.5" />
+        New Session
+      </Link>
+    </Button>
+  ) : undefined;
+
   return (
-    <div className="space-y-5">
-      {/* Toolbar: filter pills + action */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {allSessions.length > 0 && (
-          <div className="flex gap-1.5 flex-wrap flex-1">
-            {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
-              <Button
-                key={f}
-                size="sm"
-                variant={filter === f ? 'default' : 'outline'}
-                onClick={() => setFilter(f)}
-                className="rounded-full h-7 px-3 text-xs"
-              >
-                {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
-                <span className="ml-1.5 opacity-70">{counts[f]}</span>
-              </Button>
-            ))}
-          </div>
-        )}
-        {isDM && (
-          <Button size="sm" className="gap-1.5 ml-auto shrink-0" asChild>
-            <Link href={`/campaigns/${slug}/sessions/prep`}>
-              <Plus className="h-3.5 w-3.5" />
-              New Session
-            </Link>
-          </Button>
-        )}
-      </div>
+    <PageLayout overline="Sessions" title="Sessions" actions={newSessionAction}>
+      {/* Filter pills */}
+      {allSessions.length > 0 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
+            <Button
+              key={f}
+              size="sm"
+              variant={filter === f ? 'default' : 'outline'}
+              onClick={() => setFilter(f)}
+              className="rounded-full h-7 px-3 text-xs"
+            >
+              {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
+              <span className="ml-1.5 opacity-70">{counts[f]}</span>
+            </Button>
+          ))}
+        </div>
+      )}
 
       {/* Session list */}
       {sessionsQuery.isLoading ? (
@@ -256,6 +256,6 @@ export default function SessionsPage() {
           </div>
         </motion.div>
       )}
-    </div>
+    </PageLayout>
   );
 }
