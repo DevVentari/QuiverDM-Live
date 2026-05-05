@@ -176,3 +176,4 @@ node_modules/
 # tasks/ 
 .superpowers/
 scripts/.ddb-auth-state.json
+*.flac
