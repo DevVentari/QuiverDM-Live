@@ -71,6 +71,8 @@ export default function CampaignLayout({
     setSlot({
       label: 'Campaign',
       title: data.name,
+      campaignSlug: slug,
+      campaignId: data.id,
       stats: statItems,
     });
   }, [campaign.data, stats.data, characters.data, setSlot]);
