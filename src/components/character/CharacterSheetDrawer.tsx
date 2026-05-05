@@ -270,11 +270,11 @@ export function CharacterSheetDrawer() {
   return (
     <Sheet open={!!activeSheet} onOpenChange={(open) => { if (!open) closeSheet(); }}>
       <SheetContent
-        className={cn(
-          'w-full p-0 flex flex-col gap-0 overflow-hidden',
-          isExpanded ? 'sm:max-w-[85vw]' : 'sm:max-w-[400px]'
-        )}
-        style={{ transition: 'max-width 300ms ease-in-out' }}
+        className="w-full p-0 flex flex-col gap-0 overflow-hidden"
+        style={{
+          maxWidth: isExpanded ? '85vw' : '400px',
+          transition: 'max-width 300ms ease-in-out',
+        }}
       >
         {isLoading && (
           <div className="p-4 space-y-3">
