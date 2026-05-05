@@ -30,34 +30,33 @@
   }
 
   .dark {
-    --background: hsl(240 10% 4%);
-    --foreground: hsl(240 5% 96%);
-    --card: hsl(240 10% 9% / 0.56);
-    --card-foreground: hsl(240 5% 96%);
-    --popover: hsl(240 10% 9% / 0.7);
-    --popover-foreground: hsl(240 5% 96%);
+    --background: hsl(32 7% 18%);
+    --foreground: hsl(35 8% 93%);
+    --card: hsl(32 6% 22% / 0.7);
+    --card-foreground: hsl(35 8% 93%);
+    --popover: hsl(32 7% 20% / 0.92);
+    --popover-foreground: hsl(35 8% 93%);
     --primary: hsl(35 80% 55%);
-    --primary-foreground: hsl(240 10% 4%);
-    --secondary: hsl(240 8% 16% / 0.62);
-    --secondary-foreground: hsl(240 5% 96%);
-    --muted: hsl(240 8% 16% / 0.52);
-    --muted-foreground: hsl(240 5% 64%);
-    --accent: hsl(35 15% 14%);
-    --accent-foreground: hsl(35 60% 80%);
+    --primary-foreground: hsl(32 8% 8%);
+    --secondary: hsl(32 6% 23% / 0.6);
+    --secondary-foreground: hsl(35 8% 93%);
+    --muted: hsl(32 6% 23% / 0.5);
+    --muted-foreground: hsl(32 5% 60%);
+    --accent: hsl(33 12% 21%);
+    --accent-foreground: hsl(35 65% 78%);
     --destructive: hsl(0 62% 50%);
     --destructive-foreground: hsl(240 5% 96%);
-    --border: hsl(240 20% 80% / 0.09);
-    --input: hsl(240 20% 80% / 0.2);
+    --border: hsl(35 8% 80% / 0.12);
+    --input: hsl(35 8% 80% / 0.22);
     --ring: hsl(35 80% 55%);
 
-    /* Card components — homebrew display */
-    --card-stone-bg: linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 8%) 100%);
-    --card-stone-inset: inset 0 1px 0 hsl(35 60% 50% / 0.08);
-    --card-amber: hsl(35, 80%, 48%);
-    --card-amber-light: hsl(35, 80%, 62%);
-    --card-stone-border: hsl(35, 35%, 20%);
-    --card-stone-border-hi: hsl(35, 50%, 28%);
-    --card-text-muted: hsl(35, 10%, 55%);
+    --card-stone-bg: linear-gradient(180deg, hsl(32 6% 22%) 0%, hsl(32 6% 20%) 100%);
+    --card-stone-inset: inset 0 1px 0 hsl(35 60% 50% / 0.07);
+    --card-amber: hsl(35, 80%, 55%);
+    --card-amber-light: hsl(35, 80%, 68%);
+    --card-stone-border: hsl(33, 12%, 28%);
+    --card-stone-border-hi: hsl(33, 16%, 34%);
+    --card-text-muted: hsl(32, 7%, 56%);
   }
 
   @supports (color: oklch(0 0 0)) {
