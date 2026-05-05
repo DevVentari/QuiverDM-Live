@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Brain, Loader2, X, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -161,6 +162,8 @@ interface PrepWorkspaceProps {
   slug: string;
   initialTitle: string;
   prepStatus?: string;
+  inline?: boolean;
+  onComplete?: () => void;
 }
 
 export function PrepWorkspace({
@@ -170,6 +173,8 @@ export function PrepWorkspace({
   slug,
   initialTitle,
   prepStatus = 'draft',
+  inline = false,
+  onComplete,
 }: PrepWorkspaceProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -185,8 +190,12 @@ export function PrepWorkspace({
   const updateSession = trpc.sessions.update.useMutation();
   const completePrep = trpc.sessions.completePrep.useMutation({
     onSuccess: () => {
-      toast({ title: 'Prep marked complete' });
-      router.push(`/campaigns/${slug}/sessions/${sessionId}`);
+      if (onComplete) {
+        onComplete();
+      } else {
+        toast({ title: 'Prep marked complete' });
+        router.push(`/campaigns/${slug}/sessions/${sessionId}`);
+      }
     },
     onError: (error) =>
       toast({ title: 'Failed to complete prep', description: error.message, variant: 'destructive' }),
@@ -285,30 +294,37 @@ export function PrepWorkspace({
   const lastImport = prepData.importedNotes?.[prepData.importedNotes.length - 1];
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <PrepHeader
-        title={title}
-        onTitleChange={setTitle}
-        saveStatus={saveStatus}
-        slug={slug}
-        onComplete={() => completePrep.mutate({ id: sessionId })}
-        isCompleting={completePrep.isPending}
-        prepStatus={prepStatus}
-        isFullscreen={false}
-        onToggleFullscreen={() => {}}
-        sessionId={sessionId}
-        brainDrawerOpen={brainDrawerOpen}
-        onBrainDrawerToggle={() => setBrainDrawerOpen((v) => !v)}
-      />
+    <div className={inline ? 'flex flex-col' : 'flex flex-col min-h-screen'}>
+      {!inline && (
+        <PrepHeader
+          title={title}
+          onTitleChange={setTitle}
+          saveStatus={saveStatus}
+          slug={slug}
+          onComplete={() => completePrep.mutate({ id: sessionId })}
+          isCompleting={completePrep.isPending}
+          prepStatus={prepStatus}
+          isFullscreen={false}
+          onToggleFullscreen={() => {}}
+          sessionId={sessionId}
+          brainDrawerOpen={brainDrawerOpen}
+          onBrainDrawerToggle={() => setBrainDrawerOpen((v) => !v)}
+        />
+      )}
 
-      <PrepBrainDrawer
-        campaignId={campaignId}
-        open={brainDrawerOpen}
-        onClose={() => setBrainDrawerOpen(false)}
-      />
+      {!inline && (
+        <PrepBrainDrawer
+          campaignId={campaignId}
+          open={brainDrawerOpen}
+          onClose={() => setBrainDrawerOpen(false)}
+        />
+      )}
 
       <div className="flex flex-1">
-        <aside className="hidden md:flex md:flex-col w-56 shrink-0 border-r border-border/50 bg-card/30 sticky top-0 self-start h-screen overflow-y-auto">
+        <aside className={cn(
+          'hidden md:flex md:flex-col w-48 shrink-0 border-r border-border/50 bg-card/30',
+          inline ? 'overflow-y-auto' : 'sticky top-0 self-start h-screen overflow-y-auto'
+        )}>
           <PrepSectionNav
             completedSections={completedSections}
             activeSection={activeSection}
@@ -318,7 +334,7 @@ export function PrepWorkspace({
 
         <main className="flex-1">
           <div className="px-6 py-8 space-y-4">
-            <PrepBrainContextCard campaignId={campaignId} />
+            {!inline && <PrepBrainContextCard campaignId={campaignId} />}
 
             <PrepImportZone
               sessionId={sessionId}
