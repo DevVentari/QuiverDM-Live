@@ -9,10 +9,7 @@ import { ContinueActionCard, type ContinueAction } from '@/components/campaign/c
 import { deriveSessionPhase } from '@/lib/session-lifecycle';
 import { PageLayout } from '@/components/layout/page-layout';
 
-function computeContinueAction(
-  sessions: any[],
-  slug: string
-): ContinueAction | null {
+function computeContinueAction(sessions: any[], slug: string): ContinueAction | null {
   if (!sessions.length) return null;
 
   for (const session of sessions) {
@@ -30,16 +27,13 @@ function computeContinueAction(
     const hub = `/campaigns/${slug}/sessions/${session.id}`;
 
     const actions: Record<string, Omit<ContinueAction, 'sessionId' | 'sessionNumber' | 'sessionTitle'>> = {
-      prep: { phase, icon: '📋', label: 'Continue Prep', description: 'Finish your session prep before game day', href: hub },
-      ran: { phase, icon: '🎮', label: 'End Session', description: 'Mark session complete and start post-session', href: hub },
+      prep:       { phase, icon: '📋', label: 'Continue Prep',    description: 'Finish your session prep before game day', href: hub },
+      ran:        { phase, icon: '🎮', label: 'End Session',       description: 'Mark session complete and start post-session', href: hub },
       processing: { phase, icon: '🎙️', label: 'Upload Recording', description: 'Upload your audio to generate transcript and summary', href: hub },
       summary: {
-        phase,
-        icon: '✨',
-        label: 'View Summary',
+        phase, icon: '✨', label: 'View Summary',
         description: session.aiSummaryStatus === 'processing' ? 'Transcript processing...' : 'Generate AI summary',
-        href: hub,
-        loading: session.aiSummaryStatus === 'processing',
+        href: hub, loading: session.aiSummaryStatus === 'processing',
       },
       recap: { phase, icon: '📰', label: 'Review Recap', description: 'Review and approve your session recap', href: hub },
     };
@@ -49,12 +43,8 @@ function computeContinueAction(
 
   const next = sessions[0];
   return {
-    sessionId: next.id,
-    sessionNumber: (next.sessionNumber ?? 0) + 1,
-    sessionTitle: null,
-    phase: 'prep',
-    icon: '📋',
-    label: 'New Session',
+    sessionId: next.id, sessionNumber: (next.sessionNumber ?? 0) + 1, sessionTitle: null,
+    phase: 'prep', icon: '📋', label: 'New Session',
     description: 'All sessions complete. Start planning the next one.',
     href: `/campaigns/${slug}/sessions/prep`,
   };
@@ -96,22 +86,18 @@ export default function CampaignOverviewPage() {
   const continueAction = computeContinueAction(sessions, slug);
   const heroSessionId = continueAction?.sessionId;
   const nextSession = sessions.find(
-    (session: any) =>
-      session.status === 'planning' &&
-      session.id !== heroSessionId &&
-      session.date &&
-      new Date(session.date) > new Date()
+    (s: any) => s.status === 'planning' && s.id !== heroSessionId && s.date && new Date(s.date) > new Date()
   );
   const hasWorldPressure = PRESSURE_TRACKS.some(([, field]) => (state?.[field] ?? 0) > 0);
-  const memberCount = campaign?._count?.members ?? 0;
+  const memberCount = (campaign as any)?._count?.members ?? 0;
 
   if (campaignQuery.isLoading || sessionsQuery.isLoading) {
     return (
       <div className="space-y-5">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-16 rounded-lg" />
-        <Skeleton className="h-10 rounded-lg" />
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-40 rounded-lg" />
           <Skeleton className="h-40 rounded-lg" />
           <Skeleton className="h-40 rounded-lg" />
         </div>
@@ -119,14 +105,17 @@ export default function CampaignOverviewPage() {
     );
   }
 
+  const heroStats = [
+    { label: sessions.length === 1 ? 'session' : 'sessions', value: sessions.length },
+    ...(memberCount > 0 ? [{ label: memberCount === 1 ? 'member' : 'members', value: memberCount }] : []),
+  ];
+
   return (
     <PageLayout
       overline="Campaign"
-      title={campaign?.name ?? 'Campaign'}
-      stats={[
-        { label: 'Sessions', value: sessions.length },
-        { label: 'Members',  value: memberCount     },
-      ]}
+      title={(campaign as any)?.name ?? 'Campaign'}
+      subtitle={campaign ? `Active since ${format(new Date((campaign as any).createdAt), 'MMM yyyy')}` : undefined}
+      stats={heroStats}
       actions={
         isDM ? (
           <span className="rounded-full border border-amber-500/35 bg-amber-500/[0.08] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">
@@ -135,32 +124,43 @@ export default function CampaignOverviewPage() {
         ) : undefined
       }
     >
-      {isDM && <ContinueActionCard action={continueAction} slug={slug} />}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {isDM && continueAction && (
+          <div className="col-span-full">
+            <ContinueActionCard action={continueAction} slug={slug} />
+          </div>
+        )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {nextSession && (
-          <div className="md:col-span-1">
+          <div className="col-span-1">
             <Link href={`/campaigns/${slug}/sessions/${nextSession.id}`} className="block h-full">
-              <div className="stone-card glass-panel h-full flex items-center gap-3 px-4 py-4 transition-colors hover:border-foreground/20">
+              <div className="stone-card glass-panel h-full flex items-center gap-3 px-4 py-3 transition-colors hover:border-foreground/20">
                 <div className="shrink-0 rounded border border-[hsl(240_20%_80%_/_0.1)] bg-[hsl(240_10%_14%)] px-2 py-1 text-[10px] font-bold tabular-nums text-[hsl(240_5%_55%)]">
                   {nextSession.date ? format(new Date(nextSession.date), 'EEE MMM d') : 'Upcoming'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60 mb-1">Next Session</p>
-                  <p className="text-sm font-semibold truncate">
-                    Session {nextSession.sessionNumber}{nextSession.title ? ` · ${nextSession.title}` : ''}
+                  <p className="text-sm font-semibold">
+                    Session {nextSession.sessionNumber}
+                    {nextSession.title ? ` · ${nextSession.title}` : ''}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {nextSession.prepStatus === 'complete' ? 'Prep complete' : nextSession.prepStatus === 'draft' ? 'Prep in progress' : 'No prep yet'}
+                    {nextSession.prepStatus === 'complete' ? 'Prep complete'
+                      : nextSession.prepStatus === 'draft' ? 'Prep in progress'
+                      : 'No prep yet'}
                   </p>
                 </div>
+                {nextSession.prepStatus !== 'none' && (
+                  <span className="shrink-0 text-xs font-semibold text-amber-400/70">
+                    {nextSession.prepStatus === 'complete' ? '100%' : 'Prep →'}
+                  </span>
+                )}
               </div>
             </Link>
           </div>
         )}
 
         {isDM && hasWorldPressure && (
-          <div className="md:col-span-1">
+          <div className="col-span-1">
             <div className="stone-card glass-panel h-full">
               <div className="stone-card-header pb-2">
                 <span className="stone-card-title text-xs">World Pressure</span>
@@ -188,7 +188,7 @@ export default function CampaignOverviewPage() {
         )}
 
         {isDM && openHooks.length > 0 && (
-          <div className="md:col-span-2 lg:col-span-1">
+          <div className="col-span-1 md:col-span-2 lg:col-span-1">
             <div className="stone-card glass-panel h-full">
               <div className="stone-card-header pb-2">
                 <span className="stone-card-title text-xs">Open Hooks</span>
@@ -196,7 +196,11 @@ export default function CampaignOverviewPage() {
               <div className="stone-card-body divide-y divide-border/50">
                 {openHooks.map((hook: any) => (
                   <div key={hook.id ?? hook.text} className="flex items-start gap-2.5 py-2 first:pt-0 last:pb-0">
-                    <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${hook.urgency === 'high' ? 'bg-red-500' : hook.urgency === 'medium' ? 'bg-amber-400' : 'bg-muted-foreground/40'}`} />
+                    <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+                      hook.urgency === 'high' ? 'bg-red-500'
+                        : hook.urgency === 'medium' ? 'bg-amber-400'
+                        : 'bg-muted-foreground/40'
+                    }`} />
                     <div className="min-w-0">
                       <p className="line-clamp-2 text-xs text-muted-foreground">{hook.text}</p>
                       {hook.ageInSessions != null && (

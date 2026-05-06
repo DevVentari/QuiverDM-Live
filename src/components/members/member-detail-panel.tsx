@@ -3,74 +3,75 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { UserMinus } from 'lucide-react';
 
-interface MemberDetailPanelProps {
-  member: {
-    id: string;
-    role: string;
-    user: {
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-    };
-  };
-  isOwner: boolean;
-  isDM: boolean;
-  onRoleChange: (memberId: string, role: string) => void;
-  onRemove: (memberId: string) => void;
-  isPending: boolean;
-}
-
-const ROLE_LABELS: Record<string, string> = {
-  OWNER:     'Owner',
-  CO_DM:     'Co-DM',
-  PLAYER:    'Player',
+const roleLabels: Record<string, string> = {
+  OWNER: 'Owner',
+  CO_DM: 'Co-DM',
+  PLAYER: 'Player',
   SPECTATOR: 'Spectator',
 };
 
-export function MemberDetailPanel({ member, isOwner, isDM, onRoleChange, onRemove, isPending }: MemberDetailPanelProps) {
-  const user     = member.user;
+interface MemberDetailPanelProps {
+  member: any;
+  isDM: boolean;
+  isOwner: boolean;
+  isUpdating: boolean;
+  isRemoving: boolean;
+  onRoleChange: (role: string) => void;
+  onRemove: () => void;
+}
+
+export function MemberDetailPanel({
+  member,
+  isDM,
+  isOwner,
+  isUpdating,
+  isRemoving,
+  onRoleChange,
+  onRemove,
+}: MemberDetailPanelProps) {
+  const user = member.user || {};
   const initials = (user.name || user.email || '?')
     .split(' ')
-    .map((n) => n[0])
+    .map((n: string) => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2);
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto">
-      <div className="p-6 border-b border-border/50 shrink-0">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-14 w-14 shrink-0">
-            <AvatarImage src={user.image || undefined} />
-            <AvatarFallback className="text-base font-bold">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="font-display text-lg font-bold text-foreground truncate">
-              {user.name || user.email}
-            </p>
-            {user.name && user.email && (
-              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-            )}
-            <Badge variant="secondary" className="mt-1.5 text-xs">
-              {ROLE_LABELS[member.role] || member.role}
-            </Badge>
-          </div>
+    <div className="flex flex-col h-full overflow-y-auto p-6">
+      <div className="flex flex-col items-center text-center mb-8">
+        <Avatar className="h-20 w-20 mb-4">
+          <AvatarImage src={user.image || undefined} />
+          <AvatarFallback className="text-xl">{initials}</AvatarFallback>
+        </Avatar>
+        <h2 className="font-display text-xl font-bold text-amber-50">{user.name || user.email}</h2>
+        {user.name && user.email && (
+          <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
+        )}
+        <div className="mt-3">
+          {member.role === 'OWNER' ? (
+            <Badge>Owner</Badge>
+          ) : (
+            <Badge variant="secondary">{roleLabels[member.role] || member.role}</Badge>
+          )}
         </div>
       </div>
 
-      <div className="p-6 space-y-5 flex-1">
-        {isDM && member.role !== 'OWNER' && (
+      {isDM && member.role !== 'OWNER' && (
+        <div className="space-y-4">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60 mb-2">Role</p>
-            <Select
-              value={member.role}
-              disabled={isPending}
-              onValueChange={(role) => onRoleChange(member.id, role)}
-            >
-              <SelectTrigger className="w-40">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-amber-100/45 mb-2">Role</p>
+            <Select value={member.role} disabled={isUpdating} onValueChange={onRoleChange}>
+              <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -80,27 +81,20 @@ export function MemberDetailPanel({ member, isOwner, isDM, onRoleChange, onRemov
               </SelectContent>
             </Select>
           </div>
-        )}
 
-        {isDM && member.role !== 'OWNER' && (
-          <div className="pt-4 border-t border-border/40">
+          <div className="pt-4 border-t border-white/[0.08]">
             <Button
-              size="sm"
-              variant="ghost"
-              className="text-muted-foreground hover:text-destructive gap-2"
-              disabled={isPending}
-              onClick={() => onRemove(member.id)}
+              variant="outline"
+              className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+              disabled={isRemoving}
+              onClick={onRemove}
             >
-              <UserMinus className="h-4 w-4" />
-              Remove from campaign
+              <UserMinus className="h-4 w-4 mr-2" />
+              Remove from Campaign
             </Button>
           </div>
-        )}
-
-        {member.role === 'OWNER' && (
-          <p className="text-xs text-muted-foreground/50 italic">Campaign owner — role cannot be changed.</p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
