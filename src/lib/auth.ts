@@ -50,7 +50,6 @@ providers.push(
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
-        // Validate credentials
         const parsedCredentials = z
           .object({
             email: z.string().email(),
@@ -58,42 +57,20 @@ providers.push(
           })
           .safeParse(credentials);
 
-        if (!parsedCredentials.success) {
-          return null;
-        }
+        if (!parsedCredentials.success) return null;
 
         const { email, password } = parsedCredentials.data;
 
-        // Find user by email
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return null;
 
-        if (!user) {
-          return null;
-        }
-
-        // Check if user has a password (credentials account)
         const credentialsAccount = await prisma.account.findFirst({
-          where: {
-            userId: user.id,
-            provider: 'credentials',
-          },
+          where: { userId: user.id, provider: 'credentials' },
         });
+        if (!credentialsAccount || !credentialsAccount.password) return null;
 
-        if (!credentialsAccount || !credentialsAccount.password) {
-          return null;
-        }
-
-        // Verify password
-        const passwordsMatch = await bcrypt.compare(
-          password,
-          credentialsAccount.password
-        );
-
-        if (!passwordsMatch) {
-          return null;
-        }
+        const passwordsMatch = await bcrypt.compare(password, credentialsAccount.password);
+        if (!passwordsMatch) return null;
 
         return {
           id: user.id,

@@ -8,6 +8,10 @@ import { ValidationError, NotFoundError, ConflictError } from '../errors';
 import crypto from 'crypto';
 
 export const inviteService = {
+  normalizeCode(code: string): string {
+    return code.trim().toUpperCase();
+  },
+
   /**
    * Generate a cryptographically secure invite code
    * Format: QDMXXXX-XXXX (QDM prefix + 8 random chars)
@@ -52,15 +56,17 @@ export const inviteService = {
    * Validate an invite code
    * Returns true if valid, throws error if not
    */
-  async validateCode(code: string): Promise<void> {
-    if (!code || code.length < 8) {
+  async validateCode(code: string) {
+    const normalizedCode = this.normalizeCode(code);
+
+    if (!normalizedCode || normalizedCode.length < 8) {
       throw ValidationError.forField('code', 'Invalid invite code format');
     }
 
-    const invite = await inviteRepository.findByCode(code.trim().toUpperCase());
+    const invite = await inviteRepository.findByCode(normalizedCode);
 
     if (!invite) {
-      throw new NotFoundError('invite code', code);
+      throw new NotFoundError('invite code', normalizedCode);
     }
 
     if (invite.usedBy) {
@@ -75,15 +81,19 @@ export const inviteService = {
         `Invite code expired on ${invite.expiresAt.toISOString().split('T')[0]}`
       );
     }
+
+    return {
+      invite,
+      normalizedCode,
+    };
   },
 
   /**
    * Redeem an invite code (mark as used)
    */
   async redeemCode(code: string, userId: string): Promise<void> {
-    await this.validateCode(code);
-
-    await inviteRepository.markAsUsed(code.trim().toUpperCase(), userId);
+    const { normalizedCode } = await this.validateCode(code);
+    await inviteRepository.markAsUsed(normalizedCode, userId);
   },
 
   /**

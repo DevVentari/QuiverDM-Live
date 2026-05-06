@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/email';
+import { inviteService } from '@/server/services/invite.service';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 
@@ -19,31 +20,18 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { name, email, password, inviteCode } = signupSchema.parse(body);
+    const normalizedInviteCode = inviteService.normalizeCode(inviteCode);
 
-    // Validate invite code first
-    const invite = await prisma.inviteCode.findUnique({
-      where: { code: inviteCode },
-    });
-
-    if (!invite) {
-      return NextResponse.json(
-        { error: 'Invalid invite code' },
-        { status: 403 }
-      );
-    }
-
-    if (invite.usedBy) {
-      return NextResponse.json(
-        { error: 'This invite code has already been used' },
-        { status: 403 }
-      );
-    }
-
-    if (invite.expiresAt && invite.expiresAt < new Date()) {
-      return NextResponse.json(
-        { error: 'This invite code has expired' },
-        { status: 403 }
-      );
+    try {
+      await inviteService.validateCode(normalizedInviteCode);
+    } catch (error) {
+      if (error instanceof Error) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 403 }
+        );
+      }
+      throw error;
     }
 
     // Check if user already exists
@@ -68,6 +56,7 @@ export async function POST(request: Request) {
           name,
           email,
           emailVerified: new Date(), // Auto-verify for simplicity
+          inviteCodeUsed: normalizedInviteCode,
         },
       });
 
@@ -83,7 +72,7 @@ export async function POST(request: Request) {
 
       // Mark invite code as used
       await tx.inviteCode.update({
-        where: { code: inviteCode },
+        where: { code: normalizedInviteCode },
         data: {
           usedBy: newUser.id,
           usedAt: new Date(),
