@@ -13,20 +13,9 @@ import {
   Upload, Loader2, BookOpen, MapPin, Package, Skull,
   Flag, ScrollText, Sparkles, Dna, UsersRound,
 } from 'lucide-react';
+import type { ExtractedEntity, ExtractedEntityType } from '@/server/services/markdown-extraction.service';
 
-type EntityType =
-  | 'location' | 'npc' | 'item' | 'creature'
-  | 'faction' | 'lore' | 'timeline' | 'spell' | 'race';
-
-type ExtractedEntity = {
-  type: EntityType;
-  name: string;
-  description?: string;
-  data?: Record<string, unknown>;
-  tags?: string[];
-};
-
-const TYPE_META: Record<EntityType, { label: string; icon: React.ElementType; color: string }> = {
+const TYPE_META: Record<ExtractedEntityType, { label: string; icon: React.ElementType; color: string }> = {
   location: { label: 'Locations', icon: MapPin,      color: 'text-emerald-400/80' },
   npc:      { label: 'NPCs',      icon: UsersRound,  color: 'text-blue-400/80'    },
   item:     { label: 'Items',     icon: Package,     color: 'text-yellow-400/80'  },
@@ -70,9 +59,8 @@ export function ImportSheet({
 
   const extract = trpc.campaigns.importFromMarkdown.useMutation({
     onSuccess: (data) => {
-      const list = data as ExtractedEntity[];
-      setEntities(list);
-      setChecked(new Set(list.map((_, i) => i)));
+      setEntities(data);
+      setChecked(new Set(data.map((_, i) => i)));
       setView('review');
     },
     onError: (e) => {
@@ -85,6 +73,10 @@ export function ImportSheet({
     onSuccess: () => {
       onSuccess();
       reset();
+    },
+    onError: (e) => {
+      setError(e.message);
+      setView('upload');
     },
   });
 
@@ -106,6 +98,10 @@ export function ImportSheet({
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 60_000) {
+      setError('File too large (max ~55 KB). Please split the file.');
+      return;
+    }
     setFilename(file.name);
     setError(null);
     const reader = new FileReader();
@@ -143,7 +139,7 @@ export function ImportSheet({
   );
 
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
+    <Sheet open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
       <SheetContent className="w-full sm:max-w-lg flex flex-col gap-0 p-0">
         <SheetHeader className="px-6 py-4 border-b border-border/40">
           <SheetTitle className="font-display text-sm tracking-widest uppercase text-amber-300/80">
@@ -212,7 +208,7 @@ export function ImportSheet({
               ) : (
                 <div className="space-y-5">
                   {grouped.map(([type, items]) => {
-                    const meta = TYPE_META[type as EntityType];
+                    const meta = TYPE_META[type as ExtractedEntityType];
                     const Icon = meta?.icon ?? BookOpen;
                     return (
                       <div key={type} className="space-y-1.5">
