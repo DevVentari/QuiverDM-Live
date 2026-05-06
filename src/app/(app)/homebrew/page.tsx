@@ -11,6 +11,7 @@ import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
 import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
 import { ImportFromMediaDialog } from '@/components/homebrew/import-from-media-dialog';
+import { PageLayout } from '@/components/layout/page-layout';
 import { BookOpen, Search, FileText, Plus, Globe, ImageUp, ChevronDown } from 'lucide-react';
 
 const TYPE_FILTERS = [
@@ -42,76 +43,80 @@ export default function HomebrewPage() {
   );
 
   const stats = trpc.homebrew.getContentStats.useQuery({}, { staleTime: 300_000 });
+  const totalItems = stats.data
+    ? Object.values((stats.data as any).byType || {}).reduce((a: number, b) => a + (b as number), 0)
+    : 0;
 
   return (
-    <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
-      <div>
-        <p className="label-overline mb-1">Library</p>
-        <div className="section-rule" />
-        <div className="flex items-center justify-between mt-3">
-          <h1 className="font-display text-xl sm:text-2xl font-bold tracking-wide">Homebrew</h1>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link href="/homebrew/pdfs">
-                <FileText className="mr-2 h-4 w-4" />
-                PDFs
-              </Link>
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add
-                  <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setCreateOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create manually
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDdbImportOpen(true)}>
-                  <Globe className="mr-2 h-4 w-4" />
-                  Import from D&amp;D Beyond
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setMediaImportOpen(true)}>
-                  <ImageUp className="mr-2 h-4 w-4" />
-                  Import from photo / notes
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+    <PageLayout
+      overline="Library"
+      title="Homebrew"
+      subtitle="Your spells, creatures, items, and imported fragments live here. Search fast, filter by type, and add new lore without leaving the archive."
+      maxWidth="xl"
+      actions={
+        <>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/homebrew/pdfs">
+              <FileText className="mr-2 h-4 w-4" />
+              PDFs
+            </Link>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+                <ChevronDown className="ml-1 h-3 w-3 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setCreateOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create manually
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setDdbImportOpen(true)}>
+                <Globe className="mr-2 h-4 w-4" />
+                Import from D&amp;D Beyond
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setMediaImportOpen(true)}>
+                <ImageUp className="mr-2 h-4 w-4" />
+                Import from photo / notes
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      }
+    >
+      <div className="stone-card glass-panel">
+        <div className="stone-card-body space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {TYPE_FILTERS.map((filter) => (
+              <Button
+                key={filter.label}
+                size="sm"
+                variant={typeFilter === filter.value ? 'default' : 'outline'}
+                onClick={() => setTypeFilter(filter.value)}
+              >
+                {filter.label}
+              </Button>
+            ))}
+            {stats.data && (
+              <span className="ml-auto self-center text-xs text-muted-foreground">
+                {totalItems} items
+              </span>
+            )}
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search homebrew..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
           </div>
         </div>
-      </div>
-
-      {/* Type filter */}
-      <div className="flex flex-wrap gap-2">
-        {TYPE_FILTERS.map((filter) => (
-          <Button
-            key={filter.label}
-            size="sm"
-            variant={typeFilter === filter.value ? 'default' : 'outline'}
-            onClick={() => setTypeFilter(filter.value)}
-          >
-            {filter.label}
-          </Button>
-        ))}
-        {stats.data && (
-          <span className="ml-auto text-xs text-muted-foreground self-center">
-            {Object.values((stats.data as any).byType || {}).reduce((a: number, b) => a + (b as number), 0)} items
-          </span>
-        )}
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search homebrew..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
       </div>
 
       {content.isLoading ? (
@@ -131,9 +136,9 @@ export default function HomebrewPage() {
       ) : (
         <div className="stone-card">
           <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
-            <BookOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No homebrew yet</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+            <BookOpen className="mb-4 h-12 w-12 text-muted-foreground/50" />
+            <h3 className="mb-2 text-lg font-semibold">No homebrew yet</h3>
+            <p className="mb-6 max-w-sm text-sm text-muted-foreground">
               Upload a PDF to extract content, or create entries manually.
             </p>
             <Button asChild size="sm">
@@ -154,6 +159,6 @@ export default function HomebrewPage() {
         onOpenChange={setMediaImportOpen}
         onSuccess={() => { content.refetch(); stats.refetch(); }}
       />
-    </div>
+    </PageLayout>
   );
 }

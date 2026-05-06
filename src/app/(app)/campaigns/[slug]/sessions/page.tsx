@@ -135,7 +135,7 @@ export default function SessionsPage() {
                       {/* Session number bubble */}
                       <div className="relative z-10 shrink-0 hidden sm:flex items-start pt-1.5">
                         <div className={`w-12 h-12 rounded-full border-2 bg-card group-hover:border-primary/50 transition-all duration-200 flex items-center justify-center ${isPlanning ? 'border-dashed border-border/70' : 'border-border'}`}>
-                          <span className="font-display text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors tabular-nums">
+                          <span className="text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors tabular-nums">
                             {String(sessionNum).padStart(2, '0')}
                           </span>
                         </div>
@@ -147,7 +147,7 @@ export default function SessionsPage() {
                         <div className="px-4 py-3 flex items-center gap-3">
                         {/* Mobile number */}
                         <div className="sm:hidden shrink-0 w-8 h-8 rounded-full border border-border flex items-center justify-center">
-                          <span className="font-display text-[10px] font-bold text-muted-foreground">{sessionNum}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground">{sessionNum}</span>
                         </div>
 
                         {/* Content */}

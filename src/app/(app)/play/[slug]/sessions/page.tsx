@@ -46,7 +46,7 @@ export default function PlaySessionsPage() {
                     border: '1px solid hsl(35 35% 18%)',
                     boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.06)',
                   }}>
-                  <div className="w-9 h-9 shrink-0 flex items-center justify-center rounded-sm font-display text-sm font-bold"
+                  <div className="w-9 h-9 shrink-0 flex items-center justify-center rounded-sm text-sm font-bold"
                     style={{ background: 'hsl(35 70% 18%)', border: '1px solid hsl(35 60% 32%)', color: 'hsl(35 80% 65%)' }}>
                     {isLive ? <Zap className="h-4 w-4" /> : num}
                   </div>

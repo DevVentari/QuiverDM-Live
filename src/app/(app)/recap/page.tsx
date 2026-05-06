@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { trpc } from '@/lib/trpc';
-import { ScrollText, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import type { RecapStatus } from '@prisma/client';
+import { ScrollText, Upload } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { PageLayout } from '@/components/layout/page-layout';
 
 const STATUS_FILTERS: Array<{ label: string; value: RecapStatus | 'ALL' }> = [
   { label: 'All', value: 'ALL' },
@@ -71,127 +72,90 @@ export default function RecapDashboardPage() {
   };
 
   return (
-    <div className="px-6 py-8 space-y-6 max-w-4xl">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <span
-            className="text-[10px] uppercase tracking-widest font-semibold"
-            style={{ color: 'hsl(35 80% 48%)' }}
-          >
-            Recaps
-          </span>
-          <h1
-            className="font-display text-2xl font-bold mt-0.5"
-            style={{ color: 'hsl(35 20% 90%)' }}
-          >
-            All Campaigns
-          </h1>
-        </div>
-        <Link href="/recap/upload">
-          <Button size="sm" className="h-8 gap-1.5 text-xs mt-1">
-            <Upload className="h-3 w-3" /> New Upload
-          </Button>
-        </Link>
-      </div>
-
-      {/* Amber rule */}
-      <div
-        className="h-px"
-        style={{ background: 'linear-gradient(90deg, hsl(35 60% 28%) 0%, transparent 60%)' }}
-      />
-
-      {/* Campaign cards */}
-      {campaignsLoading ? (
-        <div className="flex gap-3 flex-wrap">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-20 w-44 rounded-sm animate-pulse"
-              style={{ background: 'hsl(240 10% 11%)' }}
-            />
-          ))}
-        </div>
-      ) : !campaigns?.length ? (
-        <p className="text-sm" style={{ color: 'hsl(35 10% 40%)' }}>
-          No campaigns found. Create a campaign to get started.
-        </p>
-      ) : (
-        <div className="flex gap-3 flex-wrap">
-          {campaigns.map((c) => {
-            const isSelected = selectedCampaignIds.includes(c.campaignId);
-            return (
-              <button
-                key={c.campaignId}
-                onClick={() => toggleCampaign(c.campaignId)}
-                className="rounded-sm border text-left px-4 py-3 transition-colors w-44 shrink-0"
-                style={{
-                  background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 9%) 100%)',
-                  border: `1px solid ${isSelected ? 'hsl(35 60% 30%)' : 'hsl(240 10% 20%)'}`,
-                }}
-              >
-                <p
-                  className="text-xs font-semibold truncate"
-                  style={{ color: isSelected ? 'hsl(35 70% 68%)' : 'hsl(35 15% 70%)' }}
-                >
-                  {c.campaignName}
-                </p>
-                <p className="text-[10px] mt-1" style={{ color: 'hsl(35 5% 40%)' }}>
-                  {c.totalRecaps} recap{c.totalRecaps !== 1 ? 's' : ''}
-                </p>
-                {c.pendingReview > 0 && (
-                  <span
-                    className="inline-block mt-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'hsl(35 60% 18%)', color: 'hsl(35 70% 58%)' }}
+    <PageLayout
+      overline="Recaps"
+      title="All Campaigns"
+      subtitle="Review recap output across your worlds, filter by campaign or status, and jump directly into approval work."
+      maxWidth="lg"
+      actions={
+        <Button asChild size="sm" className="gap-1.5 text-xs">
+          <Link href="/recap/upload">
+            <Upload className="h-3 w-3" />
+            New Upload
+          </Link>
+        </Button>
+      }
+    >
+      <div className="stone-card glass-panel">
+        <div className="stone-card-body space-y-4">
+          <div className="flex flex-wrap gap-3">
+            {campaignsLoading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="h-20 w-44 animate-pulse rounded-sm bg-[hsl(240_10%_11%)]" />
+              ))
+            ) : !campaigns?.length ? (
+              <p className="text-sm text-muted-foreground">
+                No campaigns found. Create a campaign to get started.
+              </p>
+            ) : (
+              campaigns.map((campaign) => {
+                const isSelected = selectedCampaignIds.includes(campaign.campaignId);
+                return (
+                  <button
+                    key={campaign.campaignId}
+                    onClick={() => toggleCampaign(campaign.campaignId)}
+                    className={cn(
+                      'w-44 shrink-0 rounded-sm border px-4 py-3 text-left transition-colors',
+                      isSelected
+                        ? 'border-amber-500/35 bg-amber-500/[0.07]'
+                        : 'border-border/50 bg-card/25 hover:border-foreground/15 hover:bg-card/40'
+                    )}
                   >
-                    {c.pendingReview} pending
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+                    <p className={cn('truncate text-xs font-semibold', isSelected ? 'text-amber-200' : 'text-foreground/85')}>
+                      {campaign.campaignName}
+                    </p>
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      {campaign.totalRecaps} recap{campaign.totalRecaps !== 1 ? 's' : ''}
+                    </p>
+                    {campaign.pendingReview > 0 && (
+                      <span className="mt-1.5 inline-block rounded-full bg-amber-500/[0.12] px-1.5 py-0.5 text-[9px] font-bold text-amber-300">
+                        {campaign.pendingReview} pending
+                      </span>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
 
-      {/* Status filter */}
-      <div className="flex gap-2 flex-wrap">
-        {STATUS_FILTERS.map((f) => {
-          const isActive = statusFilter === f.value;
-          return (
-            <button
-              key={f.value}
-              onClick={() => setStatusFilter(f.value)}
-              className="px-3 py-1.5 rounded-sm text-xs font-medium transition-colors"
-              style={{
-                background: isActive ? 'hsl(35 80% 18%)' : 'hsl(240 10% 11%)',
-                border: `1px solid ${isActive ? 'hsl(35 60% 30%)' : 'hsl(240 10% 20%)'}`,
-                color: isActive ? 'hsl(35 80% 70%)' : 'hsl(35 5% 48%)',
-              }}
-            >
-              {f.label}
-            </button>
-          );
-        })}
+          <div className="flex flex-wrap gap-2">
+            {STATUS_FILTERS.map((filter) => {
+              const isActive = statusFilter === filter.value;
+              return (
+                <Button
+                  key={filter.value}
+                  size="sm"
+                  variant={isActive ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter(filter.value)}
+                >
+                  {filter.label}
+                </Button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* Recap list */}
-      {recapsLoading ? (
+      {campaignsLoading || recapsLoading ? (
         <div className="space-y-2">
           {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-12 rounded-sm animate-pulse"
-              style={{ background: 'hsl(240 10% 11%)' }}
-            />
+            <div key={i} className="h-12 animate-pulse rounded-sm bg-[hsl(240_10%_11%)]" />
           ))}
         </div>
       ) : allRecaps.length === 0 ? (
-        <div
-          className="rounded-sm border border-border/40 px-6 py-12 text-center"
-          style={{ background: 'linear-gradient(180deg, hsl(240 10% 11%) 0%, hsl(240 8% 9%) 100%)' }}
-        >
-          <ScrollText className="h-7 w-7 mx-auto mb-3" style={{ color: 'hsl(35 10% 28%)' }} />
-          <p className="text-sm" style={{ color: 'hsl(35 10% 40%)' }}>
+        <div className="rounded-sm border border-border/40 bg-[linear-gradient(180deg,hsl(240_10%_11%)_0%,hsl(240_8%_9%)_100%)] px-6 py-12 text-center">
+          <ScrollText className="mx-auto mb-3 h-7 w-7 text-muted-foreground/40" />
+          <p className="text-sm text-muted-foreground">
             {statusFilter !== 'ALL'
               ? 'No recaps match this filter.'
               : 'No recaps yet. Generate one from any session page.'}
@@ -199,44 +163,41 @@ export default function RecapDashboardPage() {
         </div>
       ) : (
         <div className="space-y-1">
-          {allRecaps.map((r) => (
+          {allRecaps.map((recap) => (
             <div
-              key={r.recapId}
-              className="flex items-center gap-4 rounded-sm border border-border/20 px-4 py-3"
+              key={recap.recapId}
+              className="flex items-center gap-4 rounded-sm border border-border/20 bg-[hsl(240_10%_10%)] px-4 py-3"
               style={{
-                background: 'hsl(240 10% 10%)',
                 borderLeft:
-                  r.status === 'AUTO_GENERATED'
+                  recap.status === 'AUTO_GENERATED'
                     ? '2px solid hsl(35 50% 32%)'
                     : '2px solid transparent',
               }}
             >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: 'hsl(35 15% 78%)' }}>
-                  {r.sessionTitle}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground/85">
+                  {recap.sessionTitle}
                 </p>
-                <p className="text-[10px] mt-0.5" style={{ color: 'hsl(35 5% 40%)' }}>
-                  {r.campaignName}
-                  {r.sessionDate
-                    ? ` · ${format(new Date(r.sessionDate), 'd MMM yyyy')}`
-                    : ''}
+                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                  {recap.campaignName}
+                  {recap.sessionDate ? ` · ${format(new Date(recap.sessionDate), 'd MMM yyyy')}` : ''}
                 </p>
               </div>
               <span
-                className="text-[10px] font-medium shrink-0"
-                style={{ color: STATUS_COLORS[r.status] ?? 'hsl(35 5% 48%)' }}
+                className="shrink-0 text-[10px] font-medium"
+                style={{ color: STATUS_COLORS[recap.status] ?? 'hsl(35 5% 48%)' }}
               >
-                {STATUS_LABELS[r.status] ?? r.status}
+                {STATUS_LABELS[recap.status] ?? recap.status}
               </span>
               <Link
-                href={`/campaigns/${r.slug}/sessions/${r.sessionId}/recap`}
-                className="text-xs shrink-0 transition-opacity opacity-50 hover:opacity-100"
-                style={{ color: 'hsl(35 20% 60%)' }}
+                href={`/campaigns/${recap.slug}/sessions/${recap.sessionId}/recap`}
+                className="shrink-0 text-xs text-amber-300/75 transition-opacity opacity-60 hover:opacity-100"
               >
                 View →
               </Link>
             </div>
           ))}
+
           {hasNextPage && (
             <div className="pt-3 text-center">
               <Button
@@ -251,6 +212,6 @@ export default function RecapDashboardPage() {
           )}
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

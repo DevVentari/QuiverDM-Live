@@ -141,7 +141,7 @@ export default function PlayCampaignHubPage() {
       {(data.members as any[]).length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <span className="font-display text-xs font-bold tracking-wide" style={{ color: 'hsl(35 20% 88%)' }}>
+            <span className="text-xs font-bold tracking-wide" style={{ color: 'hsl(35 20% 88%)' }}>
               Your Party
             </span>
             <Link href={`/play/${slug}/characters`} className="text-[11px] font-semibold" style={{ color: 'hsl(35 80% 55%)' }}>
@@ -179,7 +179,7 @@ export default function PlayCampaignHubPage() {
       {data.sessions.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <span className="font-display text-xs font-bold tracking-wide" style={{ color: 'hsl(35 20% 88%)' }}>
+            <span className="text-xs font-bold tracking-wide" style={{ color: 'hsl(35 20% 88%)' }}>
               Recent Sessions
             </span>
             <Link href={`/play/${slug}/sessions`} className="text-[11px] font-semibold" style={{ color: 'hsl(35 80% 55%)' }}>
@@ -198,7 +198,7 @@ export default function PlayCampaignHubPage() {
                       border: '1px solid hsl(35 35% 18%)',
                       boxShadow: 'inset 0 1px 0 hsl(35 60% 50% / 0.06)',
                     }}>
-                    <div className="w-9 h-9 shrink-0 flex items-center justify-center rounded-sm font-display text-sm font-bold"
+                    <div className="w-9 h-9 shrink-0 flex items-center justify-center rounded-sm text-sm font-bold"
                       style={{ background: 'hsl(35 70% 18%)', border: '1px solid hsl(35 60% 32%)', color: 'hsl(35 80% 65%)' }}>
                       {num}
                     </div>
