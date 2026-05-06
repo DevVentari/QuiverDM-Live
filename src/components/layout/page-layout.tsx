@@ -27,16 +27,20 @@ export function PageLayout({
 }: PageLayoutProps) {
   return (
     <div className={cn('space-y-5', MAX_WIDTH_CLASSES[maxWidth])}>
-      <div>
+      <div className="rounded-[1.1rem] border border-border/60 bg-card/35 p-5 backdrop-blur">
         <p className="label-overline mb-1">{overline}</p>
         <div className="section-rule" />
-        <div className="flex items-end justify-between mt-3">
-          <h1 className="font-display text-xl font-bold tracking-wide">{title}</h1>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+        <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="font-display text-xl font-bold tracking-wide sm:text-2xl">{title}</h1>
+            {subtitle && (
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                {subtitle}
+              </p>
+            )}
+          </div>
+          {actions && <div className="flex items-center gap-2 sm:justify-end">{actions}</div>}
         </div>
-        {subtitle && (
-          <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-        )}
       </div>
       {children}
     </div>

@@ -7,6 +7,7 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
+  LayoutDashboard,
   CalendarDays,
   ScrollText,
   Brain,
@@ -20,6 +21,7 @@ import {
   Sparkles,
   Skull,
   ChevronLeft,
+  BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -163,6 +165,18 @@ export function Sidebar() {
             <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}     campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
           </>
         )}
+
+        {!inCampaign && (
+          <>
+            <div className="mx-3 my-3 border-t border-[hsl(35_35%_14%)]" />
+
+            <SectionLabel label="App" collapsed={collapsed} />
+            <NavItem href="/dashboard" label="Dashboard" icon={LayoutDashboard} isActive={pathname === '/dashboard'} collapsed={collapsed} exact />
+            <NavItem href="/campaigns" label="Campaigns" icon={Swords} isActive={pathname === '/campaigns' || pathname.startsWith('/campaigns/')} collapsed={collapsed} />
+            <NavItem href="/homebrew" label="Homebrew" icon={BookOpen} isActive={pathname === '/homebrew' || pathname.startsWith('/homebrew/')} collapsed={collapsed} />
+            <NavItem href="/recap" label="Recaps" icon={ScrollText} isActive={pathname === '/recap' || pathname.startsWith('/recap/')} collapsed={collapsed} />
+          </>
+        )}
       </nav>
 
       {/* Bottom icon row */}
@@ -239,6 +253,11 @@ export function MobileSidebar() {
         </>
       ) : (
         <>
+          <p className="px-5 pt-3 pb-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground/50 font-display">App</p>
+          {renderLink({ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }, true)}
+          {renderLink({ href: '/campaigns', label: 'Campaigns', icon: Swords })}
+          {renderLink({ href: '/homebrew', label: 'Homebrew', icon: BookOpen })}
+          {renderLink({ href: '/recap', label: 'Recaps', icon: ScrollText })}
           {renderLink({ href: '/settings', label: 'Settings', icon: Settings })}
         </>
       )}
