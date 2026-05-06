@@ -226,6 +226,7 @@ export const campaignsRouter = router({
         include: {
           npcs: true,
           documents: true,
+          homebrewContent: { include: { homebrew: true } },
         },
       });
       if (!source) throw new Error(`World sourcebook "${input.sourceSlug}" not found`);
@@ -270,8 +271,47 @@ export const campaignsRouter = router({
         });
       }
 
-      const docCount = source.documents.length;
-      const npcCount = source.npcs.length;
-      return { docCount, npcCount };
+      // Clone homebrew content (items, creatures, races) to the importing user
+      let homebrewCount = 0;
+      for (const link of source.homebrewContent) {
+        const hb = link.homebrew;
+        let targetHb = await prisma.homebrewContent.findFirst({
+          where: { userId, name: hb.name, type: hb.type },
+        });
+        if (!targetHb) {
+          targetHb = await prisma.homebrewContent.create({
+            data: {
+              userId,
+              type: hb.type,
+              name: hb.name,
+              data: hb.data,
+              tags: hb.tags,
+              searchText: hb.searchText,
+              sourceType: 'manual',
+            },
+          });
+          homebrewCount++;
+        }
+        await prisma.campaignHomebrewContent.upsert({
+          where: { campaignId_homebrewId: { campaignId: target.id, homebrewId: targetHb.id } },
+          update: {},
+          create: { campaignId: target.id, homebrewId: targetHb.id },
+        });
+      }
+
+      return {
+        docCount: source.documents.length,
+        npcCount: source.npcs.length,
+        homebrewCount,
+      };
+    }),
+
+  getWorldDocuments: campaignDMProcedure
+    .query(async ({ input }) => {
+      return prisma.campaignDocument.findMany({
+        where: { campaignId: input.campaignId },
+        orderBy: [{ type: 'asc' }, { title: 'asc' }],
+        select: { id: true, title: true, slug: true, type: true, content: true, tags: true },
+      });
     }),
 });

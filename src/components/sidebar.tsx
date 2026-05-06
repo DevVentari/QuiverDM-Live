@@ -22,6 +22,7 @@ import {
   Skull,
   ChevronLeft,
   BookOpen,
+  Library,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -155,6 +156,7 @@ export function Sidebar() {
 
             <SectionLabel label="World" collapsed={collapsed} />
             <CompendiumSection label="NPCs"      entityType="npc"      icon={Drama}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/npcs`}       collapsed={collapsed} />
+            <NavItem href={`/campaigns/${campaignSlug}/world`} label="World Lore" icon={Library} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/world`)} collapsed={collapsed} />
             <NavItem href={`/campaigns/${campaignSlug}/brain`} label="DM Brain" icon={Brain} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/brain`)} collapsed={collapsed} />
             <CompendiumSection label="Encounters" entityType="encounter" icon={Swords} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/encounters`}  collapsed={collapsed} />
 
