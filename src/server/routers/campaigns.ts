@@ -314,4 +314,18 @@ export const campaignsRouter = router({
         select: { id: true, title: true, slug: true, type: true, content: true, tags: true },
       });
     }),
+
+  getWorldHomebrew: campaignDMProcedure
+    .query(async ({ input }) => {
+      const links = await prisma.campaignHomebrewContent.findMany({
+        where: { campaignId: input.campaignId },
+        include: {
+          homebrew: {
+            select: { id: true, name: true, type: true, data: true, tags: true, imageUrl: true },
+          },
+        },
+        orderBy: { homebrew: { name: 'asc' } },
+      });
+      return links.map((l) => l.homebrew);
+    }),
 });

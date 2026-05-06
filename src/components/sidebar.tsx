@@ -161,10 +161,10 @@ export function Sidebar() {
             <CompendiumSection label="Encounters" entityType="encounter" icon={Swords} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/encounters`}  collapsed={collapsed} />
 
             <SectionLabel label="Library" collapsed={collapsed} />
-            <CompendiumSection label="Items"     entityType="item"     icon={Package}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
-            <CompendiumSection label="Locations" entityType="location" icon={MapPin}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
-            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
-            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}     campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/homebrew`}   collapsed={collapsed} />
+            <CompendiumSection label="Items"     entityType="item"     icon={Package}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
+            <CompendiumSection label="Locations" entityType="location" icon={MapPin}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
+            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
+            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}     campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
           </>
         )}
 

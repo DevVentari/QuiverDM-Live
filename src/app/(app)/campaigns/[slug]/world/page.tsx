@@ -3,136 +3,224 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { BookOpen, Flag, MapPin, Clock, ScrollText, ChevronDown, ChevronRight } from 'lucide-react';
+import {
+  BookOpen, Flag, MapPin, Clock, ScrollText,
+  ChevronDown, ChevronRight, Sword, Package, Dna,
+} from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { PageLayout } from '@/components/layout/page-layout';
 import { cn } from '@/lib/utils';
 
-type DocType = 'lore' | 'faction' | 'location' | 'timeline' | string;
+// ─── Type metadata ────────────────────────────────────────────────────────────
 
-const TYPE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  lore:     { label: 'Lore',      icon: ScrollText, color: 'text-amber-400/80' },
-  faction:  { label: 'Factions',  icon: Flag,       color: 'text-blue-400/80'  },
+const DOC_TYPE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  lore:     { label: 'Lore',      icon: ScrollText, color: 'text-amber-400/80'   },
+  faction:  { label: 'Factions',  icon: Flag,       color: 'text-blue-400/80'    },
   location: { label: 'Locations', icon: MapPin,      color: 'text-emerald-400/80' },
-  timeline: { label: 'Timeline',  icon: Clock,       color: 'text-violet-400/80' },
+  timeline: { label: 'Timelines', icon: Clock,       color: 'text-violet-400/80'  },
 };
 
-function typeMeta(type: string) {
-  return TYPE_META[type] ?? { label: type, icon: BookOpen, color: 'text-muted-foreground' };
+const HB_TYPE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  item:     { label: 'Items',     icon: Package, color: 'text-yellow-400/80'  },
+  creature: { label: 'Monsters',  icon: Sword,   color: 'text-red-400/80'     },
+  race:     { label: 'Races',     icon: Dna,     color: 'text-pink-400/80'    },
+};
+
+function getTypeMeta(type: string) {
+  return DOC_TYPE_META[type] ?? HB_TYPE_META[type] ?? { label: type, icon: BookOpen, color: 'text-muted-foreground' };
 }
 
 function TypeBadge({ type }: { type: string }) {
-  const meta = typeMeta(type);
-  const Icon = meta.icon;
+  const { icon: Icon, label, color } = getTypeMeta(type);
   return (
-    <span className={cn('inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-semibold', meta.color)}>
+    <span className={cn('inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-semibold', color)}>
       <Icon className="h-3 w-3" />
-      {meta.label}
+      {label}
     </span>
   );
 }
 
-function DocRow({
-  doc,
-  expanded,
-  onToggle,
-}: {
-  doc: { id: string; title: string; type: string; content: string; tags: string[] };
-  expanded: boolean;
-  onToggle: () => void;
-}) {
+// ─── Filter tabs ─────────────────────────────────────────────────────────────
+
+const ALL_TYPES = ['all', 'lore', 'faction', 'location', 'timeline', 'item', 'creature', 'race'] as const;
+type FilterType = (typeof ALL_TYPES)[number];
+
+// ─── Document row (markdown content) ─────────────────────────────────────────
+
+type Doc = { id: string; title: string; type: string; content: string; tags: string[] };
+
+function DocRow({ doc, expanded, onToggle }: { doc: Doc; expanded: boolean; onToggle: () => void }) {
   return (
     <div className={cn(
       'rounded-md border transition-colors',
-      expanded
-        ? 'border-amber-500/30 bg-card/60'
-        : 'border-border/40 bg-card/20 hover:border-border/60 hover:bg-card/30',
+      expanded ? 'border-amber-500/30 bg-card/60' : 'border-border/40 bg-card/20 hover:border-border/60 hover:bg-card/30',
     )}>
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left"
-      >
+      <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3 text-left">
         <span className="flex-1 min-w-0">
           <span className="block text-sm font-medium text-foreground/90 leading-snug">{doc.title}</span>
-          <span className="block mt-0.5">
-            <TypeBadge type={doc.type} />
-          </span>
+          <span className="block mt-0.5"><TypeBadge type={doc.type} /></span>
         </span>
         {expanded
           ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground/60" />
-          : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />
-        }
+          : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />}
       </button>
 
-      {expanded && doc.content && (
+      {expanded && (
         <div className="px-4 pb-4 border-t border-border/30 pt-3">
-          <div className="prose prose-sm max-w-none dark:prose-invert
-            prose-headings:font-display prose-headings:text-amber-200/90
-            prose-p:text-muted-foreground prose-p:leading-relaxed
-            prose-strong:text-foreground/80
-            prose-li:text-muted-foreground
-            prose-hr:border-border/30
-            prose-blockquote:border-amber-500/40 prose-blockquote:text-muted-foreground
-          ">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>
-          </div>
-
+          {doc.content ? (
+            <div className="prose prose-sm max-w-none dark:prose-invert
+              prose-headings:font-display prose-headings:text-amber-200/90
+              prose-p:text-muted-foreground prose-p:leading-relaxed
+              prose-strong:text-foreground/80 prose-li:text-muted-foreground
+              prose-hr:border-border/30
+              prose-blockquote:border-amber-500/40 prose-blockquote:text-muted-foreground"
+            >
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground/40 italic">No content yet.</p>
+          )}
           {doc.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-border/20">
               {doc.tags.map((tag) => (
-                <span key={tag} className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-muted-foreground/50">
-                  {tag}
-                </span>
+                <span key={tag} className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-muted-foreground/50">{tag}</span>
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {expanded && !doc.content && (
-        <div className="px-4 pb-4 border-t border-border/30 pt-3">
-          <p className="text-sm text-muted-foreground/40 italic">No content yet.</p>
         </div>
       )}
     </div>
   );
 }
 
-const FILTER_TYPES = ['all', 'lore', 'faction', 'location', 'timeline'] as const;
-type FilterType = (typeof FILTER_TYPES)[number];
+// ─── Homebrew row (structured data) ──────────────────────────────────────────
+
+type HbItem = { id: string; name: string; type: string; data: unknown; tags: string[] };
+
+function hbSummary(item: HbItem): string {
+  const d = item.data as Record<string, unknown>;
+  if (item.type === 'item') return String(d?.description ?? '').slice(0, 200);
+  if (item.type === 'creature') return String(d?.type_alignment ?? '');
+  if (item.type === 'race') {
+    const traits = d?.traits as Array<{ name?: string }> | undefined;
+    return traits?.map((t) => t.name).filter(Boolean).slice(0, 4).join(', ') ?? '';
+  }
+  return '';
+}
+
+function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; onToggle: () => void }) {
+  const summary = hbSummary(item);
+  return (
+    <div className={cn(
+      'rounded-md border transition-colors',
+      expanded ? 'border-amber-500/30 bg-card/60' : 'border-border/40 bg-card/20 hover:border-border/60 hover:bg-card/30',
+    )}>
+      <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-medium text-foreground/90 leading-snug">{item.name}</span>
+          {summary && <span className="block text-xs text-muted-foreground/60 mt-0.5 truncate">{summary}</span>}
+        </span>
+        {expanded
+          ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground/60" />
+          : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />}
+      </button>
+
+      {expanded && (
+        <div className="px-4 pb-4 border-t border-border/30 pt-3 space-y-2">
+          {(item.data as Record<string, unknown>)?.description && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {String((item.data as Record<string, unknown>).description)}
+            </p>
+          )}
+          {item.type === 'creature' && (() => {
+            const d = item.data as Record<string, unknown>;
+            const traits = d?.traits as Array<{ name?: string; description?: string }> | undefined;
+            return traits?.length ? (
+              <div className="space-y-1">
+                {traits.slice(0, 4).map((t, i) => (
+                  <div key={i} className="text-xs">
+                    <span className="font-semibold text-foreground/70">{t.name}</span>
+                    {t.description && <span className="text-muted-foreground/60"> — {String(t.description).slice(0, 120)}</span>}
+                  </div>
+                ))}
+              </div>
+            ) : null;
+          })()}
+          {item.type === 'race' && (() => {
+            const d = item.data as Record<string, unknown>;
+            const traits = d?.traits as Array<{ name?: string; description?: string }> | undefined;
+            return traits?.length ? (
+              <div className="space-y-1">
+                {traits.map((t, i) => (
+                  <div key={i} className="text-xs">
+                    <span className="font-semibold text-foreground/70">{t.name}</span>
+                    {t.description && <span className="text-muted-foreground/60"> — {String(t.description).slice(0, 120)}</span>}
+                  </div>
+                ))}
+              </div>
+            ) : null;
+          })()}
+          {item.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/20">
+              {item.tags.map((tag) => (
+                <span key={tag} className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-muted-foreground/50">{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function WorldPage() {
   const { campaignId } = useCampaign();
   const [filter, setFilter] = useState<FilterType>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data: docs = [], isLoading } = trpc.campaigns.getWorldDocuments.useQuery(
-    { campaignId },
-    { staleTime: 60_000 },
+  const { data: docs = [], isLoading: docsLoading } = trpc.campaigns.getWorldDocuments.useQuery(
+    { campaignId }, { staleTime: 60_000 },
+  );
+  const { data: homebrew = [], isLoading: hbLoading } = trpc.campaigns.getWorldHomebrew.useQuery(
+    { campaignId }, { staleTime: 60_000 },
   );
 
-  const filtered = filter === 'all' ? docs : docs.filter((d) => d.type === filter);
+  const isLoading = docsLoading || hbLoading;
+
+  // Merge into unified list with source tag
+  type AnyItem = { id: string; title: string; type: string; _kind: 'doc' | 'hb'; _raw: Doc | HbItem };
+
+  const allItems: AnyItem[] = [
+    ...docs.map((d) => ({ id: d.id, title: d.title, type: d.type, _kind: 'doc' as const, _raw: d })),
+    ...homebrew.map((h) => ({ id: h.id, title: h.name, type: h.type, _kind: 'hb' as const, _raw: h })),
+  ];
+
+  const filtered = filter === 'all' ? allItems : allItems.filter((i) => i.type === filter);
 
   const grouped = Object.entries(
-    filtered.reduce<Record<string, typeof filtered>>((acc, doc) => {
-      (acc[doc.type] ??= []).push(doc);
+    filtered.reduce<Record<string, AnyItem[]>>((acc, item) => {
+      (acc[item.type] ??= []).push(item);
       return acc;
     }, {}),
-  ).sort(([a], [b]) => a.localeCompare(b));
+  ).sort(([a], [b]) => {
+    const order = ['lore', 'faction', 'location', 'timeline', 'item', 'creature', 'race'];
+    return (order.indexOf(a) ?? 99) - (order.indexOf(b) ?? 99);
+  });
 
-  function toggle(id: string) {
-    setExpandedId((prev) => (prev === id ? null : id));
-  }
+  const typesPresent = [...new Set(allItems.map((i) => i.type))];
 
   return (
     <PageLayout overline="Campaign" title="World Lore" maxWidth="md">
-      {/* Type filter tabs */}
+      {/* Filter tabs */}
       <div className="flex flex-wrap gap-1.5">
-        {FILTER_TYPES.map((t) => {
+        {(['all', ...typesPresent] as FilterType[]).map((t) => {
           const isActive = filter === t;
-          const meta = t === 'all' ? { label: 'All', icon: BookOpen, color: '' } : typeMeta(t);
+          const meta = t === 'all' ? { label: 'All', icon: BookOpen, color: '' } : getTypeMeta(t);
           const Icon = meta.icon;
+          const count = t === 'all' ? allItems.length : allItems.filter((i) => i.type === t).length;
           return (
             <button
               key={t}
@@ -146,11 +234,7 @@ export default function WorldPage() {
             >
               <Icon className="h-3 w-3" />
               {meta.label}
-              {t !== 'all' && (
-                <span className="text-[10px] text-muted-foreground/50">
-                  {docs.filter((d) => d.type === t).length}
-                </span>
-              )}
+              <span className="text-[10px] text-muted-foreground/50">{count}</span>
             </button>
           );
         })}
@@ -158,35 +242,43 @@ export default function WorldPage() {
 
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-14 rounded-md bg-white/5 animate-pulse" />
-          ))}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-14 rounded-md bg-white/5 animate-pulse" />)}
         </div>
-      ) : docs.length === 0 ? (
+      ) : allItems.length === 0 ? (
         <div className="rounded-md border border-border/30 bg-card/20 px-6 py-12 text-center">
           <BookOpen className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
           <p className="text-sm text-muted-foreground/60">No world documents yet.</p>
           <p className="text-xs text-muted-foreground/40 mt-1">
-            Import a world sourcebook when creating or link documents from campaign settings.
+            Import a world sourcebook when creating a campaign or add content manually.
           </p>
         </div>
       ) : (
         <div className="space-y-6">
-          {grouped.map(([type, typeDocs]) => (
+          {grouped.map(([type, items]) => (
             <div key={type} className="space-y-2">
               <div className="flex items-center gap-2">
                 <TypeBadge type={type} />
                 <div className="h-px flex-1 bg-border/20" />
+                <span className="text-[10px] text-muted-foreground/40">{items.length}</span>
               </div>
               <div className="space-y-1.5">
-                {typeDocs.map((doc) => (
-                  <DocRow
-                    key={doc.id}
-                    doc={doc}
-                    expanded={expandedId === doc.id}
-                    onToggle={() => toggle(doc.id)}
-                  />
-                ))}
+                {items.map((item) =>
+                  item._kind === 'doc' ? (
+                    <DocRow
+                      key={item.id}
+                      doc={item._raw as Doc}
+                      expanded={expandedId === item.id}
+                      onToggle={() => setExpandedId((p) => (p === item.id ? null : item.id))}
+                    />
+                  ) : (
+                    <HbRow
+                      key={item.id}
+                      item={item._raw as HbItem}
+                      expanded={expandedId === item.id}
+                      onToggle={() => setExpandedId((p) => (p === item.id ? null : item.id))}
+                    />
+                  )
+                )}
               </div>
             </div>
           ))}
