@@ -16,8 +16,8 @@ export default function GlobalError({
   return (
     <html>
       <body>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '16px', textAlign: 'center', padding: '16px', fontFamily: 'system-ui, sans-serif' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Something went wrong</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: '16px', textAlign: 'center', padding: '16px', fontFamily: 'var(--font-bricolage), system-ui, sans-serif' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 600, fontFamily: 'var(--font-cinzel), Georgia, serif' }}>Something went wrong</h2>
           <p style={{ fontSize: '14px', color: '#6b7280', maxWidth: '360px' }}>
             A critical error occurred. Please reload the page.
           </p>
