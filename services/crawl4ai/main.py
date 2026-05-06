@@ -39,9 +39,14 @@ class ExtractResponse(BaseModel):
 
 
 CHARACTER_URL = "https://www.dndbeyond.com/characters/{character_id}"
+CAMPAIGN_URL = "https://www.dndbeyond.com/campaigns/{campaign_id}"
 CHARACTER_API_RE = re.compile(
     r"https://character-service\.dndbeyond\.com/character/v\d+/character/\d+"
 )
+CAMPAIGN_CHARS_API_RE = re.compile(
+    r"https://(?:www\.dndbeyond\.com|character-service\.dndbeyond\.com)/(?:api/)?(?:campaign|character)[^\s\"']*"
+)
+CHARACTER_ID_RE = re.compile(r"/characters/(\d+)")
 
 
 async def extract_character(character_id: str, cobalt_session: str) -> dict:
@@ -124,6 +129,92 @@ async def extract_character(character_id: str, cobalt_session: str) -> dict:
         )
 
     return intercepted
+
+
+class CampaignExtractRequest(BaseModel):
+    campaign_id: str
+    cobalt_session: str
+
+
+class CampaignExtractResponse(BaseModel):
+    success: bool
+    character_ids: list[str] = []
+    message: Optional[str] = None
+
+
+async def extract_campaign_characters(campaign_id: str, cobalt_session: str) -> list[str]:
+    """
+    Navigate to the DDB campaign page as the DM and collect character IDs by:
+    1. Intercepting character-service XHR responses
+    2. Scraping /characters/{id} links from the rendered HTML
+    """
+    intercepted_ids: set[str] = set()
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+        )
+        context = await browser.new_context(
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            extra_http_headers={"Accept-Language": "en-US,en;q=0.9"},
+        )
+        await context.add_cookies([{
+            "name": "CobaltSession",
+            "value": cobalt_session,
+            "domain": ".dndbeyond.com",
+            "path": "/",
+            "httpOnly": True,
+            "secure": True,
+            "sameSite": "None",
+        }])
+
+        page = await context.new_page()
+
+        async def handle_response(response):
+            url = response.url
+            if "character" in url and "dndbeyond.com" in url:
+                try:
+                    body = await response.text()
+                    for m in CHARACTER_ID_RE.finditer(body):
+                        intercepted_ids.add(m.group(1))
+                    # Also check URL itself
+                    for m in re.finditer(r"/character/v\d+/character/(\d+)", url):
+                        intercepted_ids.add(m.group(1))
+                except Exception:
+                    pass
+
+        page.on("response", handle_response)
+
+        url = CAMPAIGN_URL.format(campaign_id=campaign_id)
+        await page.goto(url, wait_until="networkidle", timeout=30000)
+
+        # Also scrape rendered HTML for character links
+        html = await page.content()
+        for m in CHARACTER_ID_RE.finditer(html):
+            intercepted_ids.add(m.group(1))
+
+        await browser.close()
+
+    return list(intercepted_ids)
+
+
+@app.post("/campaign/extract", response_model=CampaignExtractResponse)
+async def extract_campaign_endpoint(req: CampaignExtractRequest):
+    try:
+        ids = await extract_campaign_characters(req.campaign_id, req.cobalt_session)
+        if not ids:
+            return CampaignExtractResponse(
+                success=False,
+                message="No character IDs found. Session may be expired or campaign may be private.",
+            )
+        return CampaignExtractResponse(success=True, character_ids=ids)
+    except Exception as e:
+        return CampaignExtractResponse(success=False, message=str(e))
 
 
 @app.post("/character/extract", response_model=ExtractResponse)
