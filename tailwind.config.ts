@@ -59,8 +59,11 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-bricolage)", "system-ui", "sans-serif"],
+        serif: ["var(--font-cinzel)", "Georgia", "serif"],
         display: ["var(--font-cinzel)", "serif"],
-        mono: ["var(--font-mono, ui-monospace)", "monospace"],
+        cinzel: ["var(--font-cinzel)", "Georgia", "serif"],
+        bricolage: ["var(--font-bricolage)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       keyframes: {
         "accordion-down": {

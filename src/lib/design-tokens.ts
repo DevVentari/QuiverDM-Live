@@ -15,6 +15,7 @@ export const colors = {
 export const fonts = {
   display: 'var(--font-cinzel)', // Cinzel - D&D/historical headings
   body: 'var(--font-bricolage)', // Bricolage Grotesque - expressive body
+  mono: 'var(--font-mono)', // JetBrains Mono - stats, dice, and technical values
 } as const;
 
 export const spacing = {

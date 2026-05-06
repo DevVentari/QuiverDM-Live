@@ -176,4 +176,5 @@ node_modules/
 # tasks/ 
 .superpowers/
 scripts/.ddb-auth-state.json
+scripts/.quiverdm-dev-auth-state.json
 *.flac

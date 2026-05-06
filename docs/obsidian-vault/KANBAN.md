@@ -79,6 +79,7 @@ kanban-plugin: board
 - [x] Feedback widget screenshot shows "No screenshot" — html2canvas capture failing silently (Dana, 2026-03-02)
 - [x] campaigns.create returns HTTP 429 for tier-limit errors instead of semantic code (Nora, 2026-03-02)
 - [x] favicon.ico returns 404 (Nora, 2026-03-02)
+- [x] New campaign creation only seeded DM Brain from onboarding or adventure templates; `/campaigns` flow now captures world seed inputs and has real seed coverage (fixed 2026-05-05)
 
 
 
