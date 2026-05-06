@@ -53,7 +53,6 @@ export default function DashboardPage() {
       overline="Dashboard"
       title="Command Table"
       subtitle="A global view of your active worlds, pending invites, and the campaign most likely to need your attention next."
-      maxWidth="xl"
       actions={
         <Button asChild>
           <Link href="/campaigns/new">

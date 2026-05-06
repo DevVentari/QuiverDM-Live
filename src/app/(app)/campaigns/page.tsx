@@ -38,7 +38,6 @@ function CampaignsPageInner() {
       overline="Campaigns"
       title="Your Worlds"
       subtitle="Keep every table, faction, and unfinished thread within reach. Choose a campaign to step back into the world, or open a new frontier."
-      maxWidth="xl"
       actions={
         <Button onClick={openSheet}>
           <Plus className="mr-2 h-4 w-4" />
