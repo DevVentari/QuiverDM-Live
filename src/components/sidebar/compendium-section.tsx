@@ -17,6 +17,7 @@ interface CompendiumSectionProps {
   campaignId: string;
   slug: string;
   listHref: string;
+  createHref?: string;
   collapsed: boolean;
 }
 
@@ -29,6 +30,7 @@ export function CompendiumSection({
   campaignId,
   slug: _slug,
   listHref,
+  createHref,
   collapsed,
 }: CompendiumSectionProps) {
   const [expanded, setExpanded] = useState(false);
@@ -42,17 +44,17 @@ export function CompendiumSection({
 
   const npcs = trpc.npcs.getAll.useQuery(
     { campaignId, search: filter || undefined },
-    { enabled: expanded && entityType === 'npc', staleTime: 60_000 }
+    { enabled: !!campaignId && expanded && entityType === 'npc', staleTime: 60_000 }
   );
 
   const encounters = trpc.encounterPlans.getByCampaign.useQuery(
     { campaignId },
-    { enabled: expanded && entityType === 'encounter', staleTime: 60_000 }
+    { enabled: !!campaignId && expanded && entityType === 'encounter', staleTime: 60_000 }
   );
 
   const homebrew = trpc.homebrew.getContent.useQuery(
     { campaignId, type: entityType as 'item' | 'location' | 'spell' | 'monster', limit: 50 },
-    { enabled: expanded && HOMEBREW_TYPES.includes(entityType), staleTime: 60_000 }
+    { enabled: !!campaignId && expanded && HOMEBREW_TYPES.includes(entityType), staleTime: 60_000 }
   );
 
   type Item = { id: string; name: string };
@@ -196,7 +198,7 @@ export function CompendiumSection({
           {/* Footer */}
           <div className="flex items-center justify-between px-4 py-1.5">
             <Link
-              href={`${listHref}/new`}
+              href={createHref ?? `${listHref}/new`}
               className="text-[10px] text-amber-500/70 hover:text-amber-400 transition-colors"
             >
               + New {label.slice(0, -1)}

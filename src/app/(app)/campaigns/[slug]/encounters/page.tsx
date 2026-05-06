@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Plus, Swords, Sparkles, Trash2, Shield, Skull, Flame, Zap } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,10 +32,23 @@ const DIFF = {
 type DiffKey = keyof typeof DIFF;
 
 export default function EncountersPage() {
+  return (
+    <Suspense fallback={<div className="h-64 animate-pulse bg-white/5 rounded-lg" />}>
+      <EncountersPageInner />
+    </Suspense>
+  );
+}
+
+function EncountersPageInner() {
   const { campaignId, slug, isDM } = useCampaign();
   const utils = trpc.useUtils();
   const prefersReducedMotion = useReducedMotion();
-  const [newPlanOpen, setNewPlanOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const [newPlanOpen, setNewPlanOpen] = useState(searchParams.get('create') === 'true');
+
+  useEffect(() => {
+    if (searchParams.get('create') === 'true') setNewPlanOpen(true);
+  }, [searchParams]);
   const [newName, setNewName] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
