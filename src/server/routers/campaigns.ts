@@ -11,6 +11,7 @@ import { campaignService } from '../services/campaign.service';
 import { prisma } from '../db';
 import { serverTrack } from '@/lib/analytics.server';
 import { EVENTS } from '@/lib/analytics-events';
+import { extractEntitiesFromMarkdown } from '../services/markdown-extraction.service';
 
 // =============================================================================
 // Input Schemas
@@ -327,5 +328,109 @@ export const campaignsRouter = router({
         orderBy: { homebrew: { name: 'asc' } },
       });
       return links.map((l) => l.homebrew);
+    }),
+
+  importFromMarkdown: campaignDMProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      filename: z.string(),
+      content: z.string().max(55_000),
+      hint: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      return extractEntitiesFromMarkdown({
+        content: input.content,
+        hint: input.hint,
+      });
+    }),
+
+  confirmImport: campaignDMProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      entities: z.array(z.object({
+        type: z.enum(['location', 'npc', 'item', 'creature', 'faction', 'lore', 'timeline', 'spell', 'race']),
+        name: z.string(),
+        description: z.string().optional(),
+        data: z.record(z.unknown()).optional(),
+        tags: z.array(z.string()).optional(),
+      })),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { campaignId, entities } = input;
+      const userId = ctx.session.user.id;
+      let saved = 0;
+
+      for (const entity of entities) {
+        const tags = entity.tags ?? [];
+        const data = entity.data ?? {};
+
+        if (entity.type === 'npc') {
+          await prisma.nPC.create({
+            data: {
+              campaignId,
+              name: entity.name,
+              description: entity.description ?? null,
+              role: (data.role as string) ?? null,
+              tags,
+            },
+          });
+          saved++;
+          continue;
+        }
+
+        if (['location', 'faction', 'lore', 'timeline'].includes(entity.type)) {
+          const slug = entity.name
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+          const existing = await prisma.campaignDocument.findUnique({
+            where: { campaignId_slug: { campaignId, slug } },
+          });
+          if (!existing) {
+            await prisma.campaignDocument.create({
+              data: {
+                campaignId,
+                title: entity.name,
+                slug,
+                type: entity.type,
+                content: entity.description ?? '',
+                tags,
+                searchText: [entity.name, ...tags, entity.description ?? ''].join(' '),
+                brainIngestStatus: 'none',
+              },
+            });
+          }
+          saved++;
+          continue;
+        }
+
+        // item, creature, spell, race → HomebrewContent linked to campaign
+        let hb = await prisma.homebrewContent.findFirst({
+          where: { userId, name: entity.name, type: entity.type },
+        });
+        if (!hb) {
+          hb = await prisma.homebrewContent.create({
+            data: {
+              userId,
+              type: entity.type,
+              name: entity.name,
+              data: { description: entity.description ?? '', ...data },
+              tags,
+              searchText: [entity.name, ...tags, entity.description ?? ''].join(' '),
+              sourceType: 'manual',
+            },
+          });
+        }
+        await prisma.campaignHomebrewContent.upsert({
+          where: { campaignId_homebrewId: { campaignId, homebrewId: hb.id } },
+          update: {},
+          create: { campaignId, homebrewId: hb.id },
+        });
+        saved++;
+      }
+
+      return { saved };
     }),
 });
