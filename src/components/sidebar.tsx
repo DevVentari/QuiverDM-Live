@@ -88,7 +88,7 @@ export function Sidebar() {
 
   const campaignSlug = pathname.match(/\/campaigns\/([^/]+)/)?.[1];
   const campaignId = slot?.campaignId ?? '';
-  const inCampaign = !!campaignSlug && !!campaignId;
+  const inCampaign = !!campaignSlug;
 
   const baseVariant = useLogoVariant();
   const isLiveSession = pathname.match(/\/sessions\/[^/]+\/live$/) !== null;
@@ -158,13 +158,13 @@ export function Sidebar() {
             <CompendiumSection label="NPCs"      entityType="npc"      icon={Drama}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/npcs`}       collapsed={collapsed} />
             <NavItem href={`/campaigns/${campaignSlug}/world`} label="World Lore" icon={Library} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/world`)} collapsed={collapsed} />
             <NavItem href={`/campaigns/${campaignSlug}/brain`} label="DM Brain" icon={Brain} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/brain`)} collapsed={collapsed} />
-            <CompendiumSection label="Encounters" entityType="encounter" icon={Swords} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/encounters`}  collapsed={collapsed} />
+            <CompendiumSection label="Encounters" entityType="encounter" icon={Swords} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/encounters`} createHref={`/campaigns/${campaignSlug}/encounters?create=true`} collapsed={collapsed} />
 
             <SectionLabel label="Library" collapsed={collapsed} />
-            <CompendiumSection label="Items"     entityType="item"     icon={Package}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
-            <CompendiumSection label="Locations" entityType="location" icon={MapPin}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
-            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
-            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}     campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`}   collapsed={collapsed} />
+            <CompendiumSection label="Items"     entityType="item"     icon={Package}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew"   collapsed={collapsed} />
+            <CompendiumSection label="Locations" entityType="location" icon={MapPin}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew"   collapsed={collapsed} />
+            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew"   collapsed={collapsed} />
+            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}     campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew"   collapsed={collapsed} />
           </>
         )}
 
