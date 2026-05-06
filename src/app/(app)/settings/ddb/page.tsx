@@ -2,11 +2,11 @@ import { DdbLibraryGrid } from '@/components/settings/ddb/DdbLibraryGrid';
 
 export default function DdbSettingsPage() {
   return (
-    <div className="max-w-6xl space-y-8 px-4 sm:px-6 lg:px-8">
-      <div>
-        <p className="font-cinzel text-xs tracking-widest text-amber-400/70 uppercase mb-1">Integration</p>
-        <h1 className="text-2xl font-cinzel text-amber-400">D&D Beyond Library</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+    <div className="space-y-8">
+      <div className="rounded-[1.1rem] border border-border/60 bg-card/35 p-5">
+        <p className="label-overline">Integrations</p>
+        <h1 className="mt-2 font-display text-2xl font-bold tracking-wide text-foreground">D&amp;D Beyond Library</h1>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Import sourcebooks from your D&D Beyond account into your campaigns.
         </p>
       </div>
