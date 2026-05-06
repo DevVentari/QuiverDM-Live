@@ -120,20 +120,19 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
     }
     const adventure = readJson(file);
     const sessionNumber = (adventure.metadata?.weight ?? i + 1) as number;
-    const finalNumber = existingNumbers.has(sessionNumber) ? sessionNumber + 100 + i : sessionNumber;
 
-    if (existingNumbers.has(finalNumber)) continue;
+    if (existingNumbers.has(sessionNumber)) continue;
 
     await prisma.gameSession.create({
       data: {
         campaignId: campaign.id,
-        sessionNumber: finalNumber,
+        sessionNumber,
         title: adventure.metadata?.title ?? file,
         status: 'planning',
         prepData: { rawContent: adventure.content ?? '' },
       },
     });
-    existingNumbers.add(finalNumber);
+    existingNumbers.add(sessionNumber);
     sessionCount++;
   }
 
@@ -237,4 +236,84 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
   }
 
   console.log(`Seeded ${creatureCount} creatures, ${raceCount} races for Tales from the Bonfire Keep`);
+
+  // Campaign documents — factions, lore, locations, timeline
+  const documentSources: Array<{ file: string; type: string }> = [
+    { file: 'factions_factions.json', type: 'faction' },
+    { file: 'factions_solar-lie.json', type: 'faction' },
+    { file: 'factions_tidal-adaptation.json', type: 'faction' },
+    { file: 'factions_twelve-witnesses.json', type: 'faction' },
+    { file: 'factions_verdant-burden.json', type: 'faction' },
+    { file: 'world-lore_anchors-and-heartflame.json', type: 'lore' },
+    { file: 'world-lore_campaign-timeline.json', type: 'timeline' },
+    { file: 'world-lore_world-timeline.json', type: 'timeline' },
+    { file: 'world-lore_locations.json', type: 'location' },
+  ];
+
+  let docCount = 0;
+  for (const source of documentSources) {
+    if (!fs.existsSync(path.join(JSON_DIR, source.file))) {
+      console.warn(`[hameria-ire seed] Document file not found: ${source.file}`);
+      continue;
+    }
+    const doc = readJson(source.file);
+    const title = doc.metadata?.title ?? source.file.replace('.json', '');
+    const slug = toSlug(title);
+    const content = doc.content ?? '';
+    const tags: string[] = doc.metadata?.tags ?? [];
+
+    await prisma.campaignDocument.upsert({
+      where: { campaignId_slug: { campaignId: campaign.id, slug } },
+      update: {},
+      create: {
+        campaignId: campaign.id,
+        title,
+        slug,
+        type: source.type,
+        content,
+        data: Array.isArray(doc.data) && doc.data.length > 0 ? doc.data : undefined,
+        tags,
+        sourceFile: doc.source ?? source.file,
+        searchText: toSearchText(content, title, tags),
+        brainIngestStatus: 'none',
+      },
+    });
+    docCount++;
+  }
+
+  console.log(`Seeded ${docCount} campaign documents for Tales from the Bonfire Keep`);
+
+  // Players (pregenerated characters)
+  const playerFiles = [
+    'Player Characters_Norm Alfella.json',
+    'Player Characters_Oriyen Vale.json',
+    'Player Characters_Skreek Swicschnout.json',
+  ];
+  let playerCount = 0;
+  for (const file of playerFiles) {
+    if (!fs.existsSync(path.join(JSON_DIR, file))) continue;
+    const pc = readJson(file);
+    const rawTitle: string = pc.metadata?.title ?? file.replace('.json', '');
+    const characterName = rawTitle.includes('_') ? rawTitle.split('_').slice(1).join('_').trim() : rawTitle;
+    if (!characterName) continue;
+    const existing = await prisma.player.findFirst({ where: { campaignId: campaign.id, characterName } });
+    if (existing) continue;
+    const content: string = pc.content ?? '';
+    const raceMatch = content.match(/\*\*Race[:\*]+\*+\s*([^\n*|]+)/i);
+    const classMatch = content.match(/\*\*Class[:\*]+\*+\s*([^\n*|]+)/i);
+    const levelMatch = content.match(/\*\*Level[:\*]+\*+\s*(\d+)/i);
+    await prisma.player.create({
+      data: {
+        campaignId: campaign.id,
+        name: 'Demo Player',
+        characterName,
+        characterRace: raceMatch ? raceMatch[1].trim() : null,
+        characterClass: classMatch ? classMatch[1].trim() : null,
+        level: levelMatch ? parseInt(levelMatch[1], 10) : 1,
+        backstory: content.slice(0, 3000) || null,
+      },
+    });
+    playerCount++;
+  }
+  console.log(`Seeded ${playerCount} players for Tales from the Bonfire Keep`);
 }
