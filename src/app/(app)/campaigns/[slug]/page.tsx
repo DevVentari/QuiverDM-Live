@@ -123,7 +123,10 @@ export default function CampaignOverviewPage() {
     <PageLayout
       overline="Campaign"
       title={campaign?.name ?? 'Campaign'}
-      subtitle={`${sessions.length} sessions${memberCount > 0 ? ` · ${memberCount} members` : ''}${campaign?.createdAt ? ` · Active since ${format(new Date(campaign.createdAt), 'MMM yyyy')}` : ''}`}
+      stats={[
+        { label: 'Sessions', value: sessions.length },
+        { label: 'Members',  value: memberCount     },
+      ]}
       actions={
         isDM ? (
           <span className="rounded-full border border-amber-500/35 bg-amber-500/[0.08] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">
@@ -134,38 +137,31 @@ export default function CampaignOverviewPage() {
     >
       {isDM && <ContinueActionCard action={continueAction} slug={slug} />}
 
-      {nextSession && (
-        <Link href={`/campaigns/${slug}/sessions/${nextSession.id}`} className="block">
-          <div className="stone-card glass-panel flex items-center gap-3 px-4 py-3 transition-colors hover:border-foreground/20">
-            <div className="shrink-0 rounded border border-[hsl(240_20%_80%_/_0.1)] bg-[hsl(240_10%_14%)] px-2 py-1 text-[10px] font-bold tabular-nums text-[hsl(240_5%_55%)]">
-              {nextSession.date ? format(new Date(nextSession.date), 'EEE MMM d') : 'Upcoming'}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold">
-                Session {nextSession.sessionNumber}
-                {nextSession.title ? ` · ${nextSession.title}` : ''}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {nextSession.prepStatus === 'complete'
-                  ? 'Prep complete'
-                  : nextSession.prepStatus === 'draft'
-                    ? 'Prep in progress'
-                    : 'No prep yet'}
-              </p>
-            </div>
-            {nextSession.prepStatus !== 'none' && (
-              <span className="shrink-0 text-xs font-semibold text-amber-400/70">
-                {nextSession.prepStatus === 'complete' ? '100%' : 'Prep →'}
-              </span>
-            )}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {nextSession && (
+          <div className="md:col-span-1">
+            <Link href={`/campaigns/${slug}/sessions/${nextSession.id}`} className="block h-full">
+              <div className="stone-card glass-panel h-full flex items-center gap-3 px-4 py-4 transition-colors hover:border-foreground/20">
+                <div className="shrink-0 rounded border border-[hsl(240_20%_80%_/_0.1)] bg-[hsl(240_10%_14%)] px-2 py-1 text-[10px] font-bold tabular-nums text-[hsl(240_5%_55%)]">
+                  {nextSession.date ? format(new Date(nextSession.date), 'EEE MMM d') : 'Upcoming'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/60 mb-1">Next Session</p>
+                  <p className="text-sm font-semibold truncate">
+                    Session {nextSession.sessionNumber}{nextSession.title ? ` · ${nextSession.title}` : ''}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {nextSession.prepStatus === 'complete' ? 'Prep complete' : nextSession.prepStatus === 'draft' ? 'Prep in progress' : 'No prep yet'}
+                  </p>
+                </div>
+              </div>
+            </Link>
           </div>
-        </Link>
-      )}
+        )}
 
-      {isDM && (hasWorldPressure || openHooks.length > 0) && (
-        <div className="grid gap-4 md:grid-cols-2">
-          {hasWorldPressure && (
-            <div className="stone-card glass-panel">
+        {isDM && hasWorldPressure && (
+          <div className="md:col-span-1">
+            <div className="stone-card glass-panel h-full">
               <div className="stone-card-header pb-2">
                 <span className="stone-card-title text-xs">World Pressure</span>
               </div>
@@ -188,25 +184,19 @@ export default function CampaignOverviewPage() {
                 })}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {openHooks.length > 0 && (
-            <div className="stone-card glass-panel">
+        {isDM && openHooks.length > 0 && (
+          <div className="md:col-span-2 lg:col-span-1">
+            <div className="stone-card glass-panel h-full">
               <div className="stone-card-header pb-2">
                 <span className="stone-card-title text-xs">Open Hooks</span>
               </div>
               <div className="stone-card-body divide-y divide-border/50">
                 {openHooks.map((hook: any) => (
                   <div key={hook.id ?? hook.text} className="flex items-start gap-2.5 py-2 first:pt-0 last:pb-0">
-                    <span
-                      className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                        hook.urgency === 'high'
-                          ? 'bg-red-500'
-                          : hook.urgency === 'medium'
-                            ? 'bg-amber-400'
-                            : 'bg-muted-foreground/40'
-                      }`}
-                    />
+                    <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${hook.urgency === 'high' ? 'bg-red-500' : hook.urgency === 'medium' ? 'bg-amber-400' : 'bg-muted-foreground/40'}`} />
                     <div className="min-w-0">
                       <p className="line-clamp-2 text-xs text-muted-foreground">{hook.text}</p>
                       {hook.ageInSessions != null && (
@@ -217,9 +207,9 @@ export default function CampaignOverviewPage() {
                 ))}
               </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </PageLayout>
   );
 }
