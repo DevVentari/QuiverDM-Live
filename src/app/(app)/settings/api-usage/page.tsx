@@ -1,7 +1,6 @@
 'use client';
 
 import { trpc } from '@/lib/trpc';
-import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,7 +14,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  ArrowLeft,
   FileText,
   Brain,
   Search,
@@ -73,9 +71,9 @@ export default function ApiUsagePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-8 rounded" />
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-24" />
           <Skeleton className="h-8 w-48" />
         </div>
         {[1, 2, 3, 4].map((i) => (
@@ -86,18 +84,16 @@ export default function ApiUsagePage() {
   }
 
   return (
-    <div className="max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/settings">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">API Usage</h1>
-        <Badge variant="secondary" className="text-sm">
-          {formatCost(totalCost)} this period
-        </Badge>
+      <div className="space-y-2">
+        <p className="label-overline">AI &amp; Usage</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">API Usage</h1>
+          <Badge variant="secondary" className="text-sm">
+            {formatCost(totalCost)} this period
+          </Badge>
+        </div>
       </div>
 
       {/* Provider Summary Cards */}
