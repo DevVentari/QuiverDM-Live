@@ -24,7 +24,7 @@ export function CharacterBackground({ data }: { data: any }) {
       {data.backstory && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-display tracking-wide">Backstory</CardTitle>
+            <CardTitle className="text-sm tracking-wide">Backstory</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm whitespace-pre-wrap leading-relaxed">

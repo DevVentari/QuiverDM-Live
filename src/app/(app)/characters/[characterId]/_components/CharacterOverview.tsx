@@ -169,7 +169,7 @@ export function CharacterOverview({
         <Card>
           <CardHeader className="pb-2 pt-3 px-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-display tracking-wide flex items-center gap-2">
+              <CardTitle className="text-sm tracking-wide flex items-center gap-2">
                 <Swords className="h-4 w-4 text-primary" />
                 Quick Actions
               </CardTitle>
@@ -574,7 +574,7 @@ export function CharacterOverview({
           {(spellSaveDC != null || spellAttackBonus != null) && (
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-display tracking-wide">Spellcasting</CardTitle>
+                <CardTitle className="text-sm tracking-wide">Spellcasting</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">

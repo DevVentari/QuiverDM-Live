@@ -36,7 +36,6 @@ import { CharacterBackground } from './_components/CharacterBackground';
 import { AddToCampaignDialog } from '@/components/character/AddToCampaignDialog';
 import { ShortRestDialog } from '@/components/character/ShortRestDialog';
 import { LongRestDialog } from '@/components/character/LongRestDialog';
-import { PlayerCharacterCard } from '@/components/character/PlayerCharacterCard';
 import { CharacterHomebrewItems } from '@/components/character/CharacterHomebrewItems';
 import { CharacterHomebrewSpells } from '@/components/character/CharacterHomebrewSpells';
 import { CharacterHomebrewFeats } from '@/components/character/CharacterHomebrewFeats';
@@ -260,12 +259,6 @@ export default function CharacterDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* Player Character Card */}
-      <PlayerCharacterCard
-        character={data as any}
-        campaignId={(data.campaignCharacters?.[0]?.campaignId) ?? undefined}
-      />
 
       {/* Full Sheet — archived, collapsed by default */}
       <div className="rounded-lg border border-border/50">
