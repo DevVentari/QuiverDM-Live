@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import { ADVENTURE_TEMPLATES, type AdventureTemplate } from '@/lib/adventure-templates';
+import { WORLD_SOURCEBOOKS, type WorldSourcebook } from '@/lib/world-sourcebooks';
 
 type Props = {
   open: boolean;
@@ -83,6 +84,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
   // Step 2 state
   const [ddbUrl, setDdbUrl] = useState('');
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureTemplate | null>(null);
+  const [selectedWorldSourcebook, setSelectedWorldSourcebook] = useState<WorldSourcebook | null>(null);
   const [startingLocation, setStartingLocation] = useState('');
   const [antagonistName, setAntagonistName] = useState('');
   const [openingHook, setOpeningHook] = useState('');
@@ -116,6 +118,16 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     },
   });
 
+  const seedFromWorldSourcebook = trpc.campaigns.seedFromWorldSourcebook.useMutation({
+    onError: () => {
+      toast({
+        title: 'World sourcebook import failed',
+        description: 'Campaign created but world content could not be copied. Try again from campaign settings.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   function resetState() {
     setTimeout(() => {
       setStep(1);
@@ -125,6 +137,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       setNameError('');
       setDdbUrl('');
       setSelectedAdventure(null);
+      setSelectedWorldSourcebook(null);
       setStartingLocation('');
       setAntagonistName('');
       setOpeningHook('');
@@ -182,6 +195,10 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       importFromCampaign.mutate({ campaignUrl: ddbUrl.trim(), campaignId: campaign.id });
     }
 
+    if (selectedWorldSourcebook) {
+      seedFromWorldSourcebook.mutate({ campaignId: campaign.id, sourceSlug: selectedWorldSourcebook.sourceSlug });
+    }
+
     const shouldSeed =
       !!startingLocation.trim() ||
       !!antagonistName.trim() ||
@@ -220,7 +237,8 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
   // importFromCampaign is intentionally excluded — it's fire-and-forget after navigate
   const isCreating =
     createCampaign.isPending ||
-    seedFromCreation.isPending;
+    seedFromCreation.isPending ||
+    seedFromWorldSourcebook.isPending;
 
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
@@ -339,6 +357,45 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                   Links your party — imports characters automatically
                 </p>
               </div>
+
+              {WORLD_SOURCEBOOKS.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground/50">
+                    <div className="h-px flex-1 bg-border/30" />
+                    <span>or load a homebrew world</span>
+                    <div className="h-px flex-1 bg-border/30" />
+                  </div>
+
+                  <Label>Homebrew World Sourcebook</Label>
+                  <div className="flex flex-col gap-2">
+                    {WORLD_SOURCEBOOKS.map((wb) => (
+                      <button
+                        key={wb.id}
+                        onClick={() => setSelectedWorldSourcebook(selectedWorldSourcebook?.id === wb.id ? null : wb)}
+                        className={cn(
+                          'text-left p-3 rounded-md border text-xs transition-colors',
+                          selectedWorldSourcebook?.id === wb.id
+                            ? 'border-amber-500/60 bg-amber-500/10 text-amber-200'
+                            : 'border-border/40 bg-card/30 text-muted-foreground hover:border-amber-500/30'
+                        )}
+                      >
+                        <div className="font-medium text-foreground/80">{wb.title}</div>
+                        <div className="text-muted-foreground/60 mt-0.5 leading-snug">{wb.subtitle}</div>
+                        <div className="flex gap-1 mt-1.5 flex-wrap">
+                          {wb.tags.map((tag) => (
+                            <span key={tag} className="px-1.5 py-0.5 rounded bg-white/5 text-muted-foreground/50 text-[10px]">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Copies world lore, factions, locations, and NPCs into your campaign
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <div className="flex items-center gap-3 text-xs text-muted-foreground/50">

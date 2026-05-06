@@ -207,4 +207,71 @@ export const campaignsRouter = router({
         },
       });
     }),
+
+  seedFromWorldSourcebook: protectedProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      sourceSlug: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const target = await prisma.campaign.findFirst({
+        where: { id: input.campaignId, members: { some: { userId, role: { in: ['OWNER', 'CO_DM'] } } } },
+      });
+      if (!target) throw new Error('Campaign not found or insufficient permissions');
+
+      const source = await prisma.campaign.findUnique({
+        where: { slug: input.sourceSlug },
+        include: {
+          npcs: true,
+          documents: true,
+        },
+      });
+      if (!source) throw new Error(`World sourcebook "${input.sourceSlug}" not found`);
+
+      // Copy campaign documents (lore, factions, locations, timelines)
+      for (const doc of source.documents) {
+        const existing = await prisma.campaignDocument.findUnique({
+          where: { campaignId_slug: { campaignId: target.id, slug: doc.slug } },
+        });
+        if (existing) continue;
+        await prisma.campaignDocument.create({
+          data: {
+            campaignId: target.id,
+            title: doc.title,
+            slug: doc.slug,
+            type: doc.type,
+            content: doc.content,
+            data: doc.data ?? undefined,
+            tags: doc.tags,
+            sourceFile: doc.sourceFile ?? undefined,
+            searchText: doc.searchText,
+            brainIngestStatus: 'none',
+          },
+        });
+      }
+
+      // Copy NPCs
+      for (const npc of source.npcs) {
+        const existing = await prisma.nPC.findFirst({
+          where: { campaignId: target.id, name: npc.name },
+        });
+        if (existing) continue;
+        await prisma.nPC.create({
+          data: {
+            campaignId: target.id,
+            name: npc.name,
+            description: npc.description ?? undefined,
+            role: npc.role ?? undefined,
+            stats: npc.stats ?? undefined,
+            tags: npc.tags,
+          },
+        });
+      }
+
+      const docCount = source.documents.length;
+      const npcCount = source.npcs.length;
+      return { docCount, npcCount };
+    }),
 });
