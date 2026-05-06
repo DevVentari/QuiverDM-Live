@@ -14,6 +14,10 @@ export type ExtractedEntity = {
 
 const MAX_CONTENT_LENGTH = 50_000;
 
+const VALID_ENTITY_TYPES = new Set<string>([
+  'location', 'npc', 'item', 'creature', 'faction', 'lore', 'timeline', 'spell', 'race',
+]);
+
 const SYSTEM_PROMPT = `You are a D&D world content extractor. Extract named entities from the provided markdown and return a JSON array.
 
 Each entity must have:
@@ -41,23 +45,25 @@ export async function extractEntitiesFromMarkdown({
   content: string;
   hint?: string;
 }): Promise<ExtractedEntity[]> {
-  const truncated = content.slice(0, MAX_CONTENT_LENGTH);
-  const hintLine = hint
-    ? `\nThis file primarily contains: ${hint}. Prioritise those, but extract all other entity types too.\n`
-    : '';
-
-  const raw = await chatWithAI([
-    { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Extract all entities from this markdown:${hintLine}\n\n${truncated}` },
-  ]);
-
   try {
+    const truncated = content.slice(0, MAX_CONTENT_LENGTH);
+    const hintLine = hint
+      ? `\nThis file primarily contains: ${hint}. Prioritise those, but extract all other entity types too.\n`
+      : '';
+
+    const raw = await chatWithAI([
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: `Extract all entities from this markdown:${hintLine}\n\n${truncated}` },
+    ]);
+
     const json = (raw ?? '').trim().replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     const parsed = JSON.parse(json);
     if (!Array.isArray(parsed)) return [];
     return parsed.filter(
       (e): e is ExtractedEntity =>
-        typeof e.name === 'string' && e.name.trim() !== '' && typeof e.type === 'string',
+        typeof e.name === 'string' &&
+        e.name.trim() !== '' &&
+        VALID_ENTITY_TYPES.has(e.type),
     );
   } catch {
     return [];
