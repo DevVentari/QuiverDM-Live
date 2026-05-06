@@ -590,4 +590,26 @@ export const charactersRouter = router({
 
       return character;
     }),
+
+  getCharacterSheet: campaignMemberProcedure
+    .input(z.object({ campaignId: z.string(), characterId: z.string() }))
+    .query(async ({ input }) => {
+      const link = await prisma.campaignCharacter.findUnique({
+        where: {
+          campaignId_characterId: {
+            campaignId: input.campaignId,
+            characterId: input.characterId,
+          },
+        },
+      });
+      if (!link) throw new NotFoundError('character', input.characterId);
+      const character = await prisma.character.findUnique({
+        where: { id: input.characterId },
+        include: {
+          user: { select: { id: true, name: true, displayName: true, image: true } },
+        },
+      });
+      if (!character) throw new NotFoundError('character', input.characterId);
+      return character;
+    }),
 });

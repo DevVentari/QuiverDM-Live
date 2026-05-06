@@ -324,6 +324,23 @@ export interface DDBCampaignCharacterRef {
   isPublic: boolean;
 }
 
+async function getDDBBearerToken(cobaltToken: string): Promise<string | null> {
+  try {
+    const res = await fetch('https://auth-service.dndbeyond.com/v1/cobalt-token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': `CobaltSession=${cobaltToken}`,
+      },
+    });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json?.token ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchDDBCampaignCharacters(
   campaignUrl: string,
   cobaltToken: string
@@ -335,19 +352,20 @@ export async function fetchDDBCampaignCharacters(
     }
     const campaignId = match[1];
 
-    const response = await fetch(
-      `https://www.dndbeyond.com/api/campaign/${campaignId}/characters`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Origin': 'https://www.dndbeyond.com',
-          'Referer': 'https://www.dndbeyond.com/',
-          Cookie: `CobaltSession=${cobaltToken}`,
-        },
-      }
-    );
+    const bearer = await getDDBBearerToken(cobaltToken);
+    if (!bearer) {
+      return { success: false, message: 'Could not exchange Cobalt token for bearer. Token may be expired.' };
+    }
+
+    const response = await fetch('https://www.dndbeyond.com/api/campaign/stt/user-campaigns', {
+      headers: {
+        'Authorization': `Bearer ${bearer}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Cookie': `CobaltSession=${cobaltToken}`,
+      },
+    });
 
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
@@ -356,13 +374,35 @@ export async function fetchDDBCampaignCharacters(
       return { success: false, message: `DDB returned ${response.status}` };
     }
 
+    // Verify campaign belongs to this user
     const json = await response.json();
-    const rawChars: any[] = json?.data?.characters ?? json?.data ?? [];
-    const characters: DDBCampaignCharacterRef[] = rawChars.map((c: any) => ({
-      characterId: String(c.id ?? c.characterId),
-      isPublic: !!c.shareable,
-    }));
+    const campaigns: any[] = json.data ?? [];
+    if (!campaigns.some((c: any) => String(c.id) === campaignId)) {
+      return { success: false, message: `Campaign ${campaignId} not found in your DDB account.` };
+    }
 
+    // DDB has no REST endpoint for campaign characters.
+    // Use the crawl4ai browser service to render the campaign page and scrape character IDs.
+    const crawlRes = await fetch(`${CRAWL4AI_URL}/campaign/extract`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ campaign_id: campaignId, cobalt_session: cobaltToken }),
+      signal: AbortSignal.timeout(45_000),
+    });
+
+    if (!crawlRes.ok) {
+      return { success: false, message: `crawl4ai service error: ${crawlRes.statusText}` };
+    }
+
+    const crawlData = await crawlRes.json();
+    if (!crawlData.success || !crawlData.character_ids?.length) {
+      return { success: false, message: crawlData.message ?? 'No characters found in campaign page.' };
+    }
+
+    const characters: DDBCampaignCharacterRef[] = crawlData.character_ids.map((id: string) => ({
+      characterId: id,
+      isPublic: true,
+    }));
     return { success: true, characters };
   } catch (error) {
     return {
