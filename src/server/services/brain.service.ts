@@ -42,6 +42,96 @@ export class BrainService {
     return entity;
   }
 
+  async seedFromCreation(
+    campaignId: string,
+    userId: string,
+    input: {
+      worldSetup?: {
+        startingLocation?: string;
+        antagonistName?: string;
+        antagonistMotivation?: string;
+        openingHook?: string;
+        factions?: Array<{
+          name: string;
+          stance: 'ally' | 'neutral' | 'hostile';
+        }>;
+      };
+      storyText?: string;
+    }
+  ) {
+    const campaign = await prisma.campaign.findFirst({
+      where: { id: campaignId, userId },
+      select: { id: true },
+    });
+    if (!campaign) {
+      throw ForbiddenError.forPermission('manage', 'campaign');
+    }
+
+    const { worldSetup, storyText } = input;
+
+    if (worldSetup?.startingLocation?.trim()) {
+      await brainRepository.upsertEntity(campaignId, {
+        type: WorldEntityType.LOCATION,
+        name: worldSetup.startingLocation.trim(),
+        sourceType: 'campaign_creation',
+      });
+    }
+
+    if (worldSetup?.antagonistName?.trim()) {
+      await brainRepository.upsertEntity(campaignId, {
+        type: WorldEntityType.THREAT,
+        name: worldSetup.antagonistName.trim(),
+        description: worldSetup.antagonistMotivation?.trim() || undefined,
+        sourceType: 'campaign_creation',
+      });
+    }
+
+    if (worldSetup?.factions) {
+      for (const faction of worldSetup.factions) {
+        if (!faction.name.trim()) continue;
+        await brainRepository.upsertEntity(campaignId, {
+          type: WorldEntityType.FACTION,
+          name: faction.name.trim(),
+          properties: { stance: faction.stance },
+          sourceType: 'campaign_creation',
+        });
+      }
+    }
+
+    if (worldSetup?.openingHook?.trim()) {
+      const state = await brainRepository.getOrCreateState(campaignId);
+      const existingHooks = Array.isArray(state.hooks)
+        ? (state.hooks as Record<string, unknown>[])
+        : [];
+      await brainRepository.updateState(campaignId, {
+        hooks: [
+          ...existingHooks,
+          {
+            id: `hook-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            text: worldSetup.openingHook.trim(),
+            createdSessionId: null,
+            ageInSessions: 0,
+            urgency: 'medium',
+            status: 'open',
+            linkedEntityNames: [],
+          },
+        ],
+      });
+    }
+
+    if (storyText?.trim()) {
+      await addBrainIngestionJob({
+        campaignId,
+        sessionId: null,
+        summary: storyText.trim(),
+        highlights: [],
+        source: 'campaign_creation',
+      });
+    }
+
+    return { success: true };
+  }
+
   async updateEntity(entityId: string, campaignId: string, userId: string, data: Parameters<typeof brainRepository.updateEntity>[1]) {
     await this.requireDM(campaignId, userId);
     const existing = await brainRepository.findEntityById(entityId);

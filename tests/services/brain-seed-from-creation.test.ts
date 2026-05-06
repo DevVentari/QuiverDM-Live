@@ -1,15 +1,29 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { prisma } from '@/lib/prisma';
 
-describe('brain.seedFromCreation logic', () => {
+const { addBrainIngestionJob } = vi.hoisted(() => ({
+  addBrainIngestionJob: vi.fn(),
+}));
+
+vi.mock('@/lib/queue/brain-ingestion-queue', () => ({
+  addBrainIngestionJob,
+}));
+
+import { brainService } from '@/server/services/brain.service';
+
+describe('brain.seedFromCreation', () => {
   let campaignId: string;
   let userId: string;
 
   beforeEach(async () => {
+    addBrainIngestionJob.mockReset();
+    addBrainIngestionJob.mockResolvedValue(undefined);
+
     const user = await prisma.user.create({
       data: { email: `brain-seed-test-${Date.now()}@test.local` },
     });
     userId = user.id;
+
     const campaign = await prisma.campaign.create({
       data: { name: 'Test Seed Campaign', slug: `test-seed-${Date.now()}`, userId },
     });
@@ -17,72 +31,72 @@ describe('brain.seedFromCreation logic', () => {
   });
 
   afterEach(async () => {
+    await prisma.worldStateChange.deleteMany({ where: { campaignId } });
+    await prisma.worldRelationship.deleteMany({ where: { campaignId } });
     await prisma.worldEntity.deleteMany({ where: { campaignId } });
     await prisma.worldState.deleteMany({ where: { campaignId } });
     await prisma.campaign.delete({ where: { id: campaignId } });
     await prisma.user.delete({ where: { id: userId } });
   });
 
-  it('creates a LOCATION entity from startingLocation', async () => {
-    const { brainRepository } = await import('@/server/repositories/brain.repository');
-    await brainRepository.upsertEntity(campaignId, {
-      type: 'LOCATION' as any,
-      name: 'Waterdeep',
-      description: undefined,
-      properties: {},
-      confidence: 1.0,
+  it('creates entities, hooks, and ingestion jobs from creation input', async () => {
+    await brainService.seedFromCreation(campaignId, userId, {
+      worldSetup: {
+        startingLocation: 'Waterdeep',
+        antagonistName: 'Xanathar',
+        antagonistMotivation: 'Seize the cache of dragons',
+        openingHook: 'A tavern brawl pulls the party into a citywide conspiracy.',
+        factions: [
+          { name: 'Harpers', stance: 'ally' },
+          { name: "Xanathar's Guild", stance: 'hostile' },
+        ],
+      },
+      storyText: 'The campaign opens in Waterdeep after rumors of hidden gold spread.',
     });
-    const entities = await brainRepository.findEntities(campaignId, { limit: 10 });
+
+    const entities = await prisma.worldEntity.findMany({
+      where: { campaignId },
+      orderBy: { name: 'asc' },
+    });
+    const state = await prisma.worldState.findUnique({ where: { campaignId } });
+
     expect(entities.some((e) => e.name === 'Waterdeep' && e.type === 'LOCATION')).toBe(true);
+    expect(
+      entities.some(
+        (e) =>
+          e.name === 'Xanathar' &&
+          e.type === 'THREAT' &&
+          e.description?.includes('cache of dragons')
+      )
+    ).toBe(true);
+    expect(
+      entities.some(
+        (e) =>
+          e.name === 'Harpers' &&
+          e.type === 'FACTION' &&
+          (e.properties as Record<string, unknown>)?.stance === 'ally'
+      )
+    ).toBe(true);
+    expect(Array.isArray(state?.hooks)).toBe(true);
+    expect(
+      (state?.hooks as Array<{ text: string }>).some((hook) =>
+        hook.text.includes('citywide conspiracy')
+      )
+    ).toBe(true);
+    expect(addBrainIngestionJob).toHaveBeenCalledWith({
+      campaignId,
+      sessionId: null,
+      summary: 'The campaign opens in Waterdeep after rumors of hidden gold spread.',
+      highlights: [],
+      source: 'campaign_creation',
+    });
   });
 
-  it('creates a THREAT entity from antagonistName + antagonistMotivation', async () => {
-    const { brainRepository } = await import('@/server/repositories/brain.repository');
-    await brainRepository.upsertEntity(campaignId, {
-      type: 'THREAT' as any,
-      name: 'Strahd von Zarovich',
-      description: 'Seeks to break the curse of Barovia by claiming Tatyana',
-      properties: {},
-      confidence: 1.0,
-    });
-    const entities = await brainRepository.findEntities(campaignId, { limit: 10 });
-    const threat = entities.find((e) => e.type === 'THREAT');
-    expect(threat).toBeDefined();
-    expect(threat!.description).toContain('Tatyana');
-  });
-
-  it('creates a FACTION entity with stance in properties', async () => {
-    const { brainRepository } = await import('@/server/repositories/brain.repository');
-    await brainRepository.upsertEntity(campaignId, {
-      type: 'FACTION' as any,
-      name: 'The Harpers',
-      description: undefined,
-      properties: { stance: 'ally' },
-      confidence: 1.0,
-    });
-    const entities = await brainRepository.findEntities(campaignId, { limit: 10 });
-    const faction = entities.find((e) => e.type === 'FACTION');
-    expect(faction).toBeDefined();
-    expect((faction!.properties as any).stance).toBe('ally');
-  });
-
-  it('adds openingHook to WorldState hooks array', async () => {
-    const { brainRepository } = await import('@/server/repositories/brain.repository');
-    const state = await brainRepository.getOrCreateState(campaignId);
-    const existingHooks = Array.isArray(state.hooks) ? state.hooks : [];
-    await brainRepository.updateState(campaignId, {
-      hooks: [...existingHooks, {
-        id: `hook-test-${Date.now()}`,
-        text: 'A mysterious letter arrives from the Underdark',
-        createdSessionId: null,
-        ageInSessions: 0,
-        urgency: 'medium',
-        status: 'open',
-        linkedEntityNames: [],
-      }],
-    });
-    const updated = await brainRepository.getOrCreateState(campaignId);
-    const hooks = updated.hooks as any[];
-    expect(hooks.some((h) => h.text.includes('Underdark'))).toBe(true);
+  it('rejects non-owners', async () => {
+    await expect(
+      brainService.seedFromCreation(campaignId, 'not-the-owner', {
+        worldSetup: { startingLocation: 'Neverwinter' },
+      })
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 });

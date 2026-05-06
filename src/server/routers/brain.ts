@@ -1,16 +1,13 @@
-import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure, campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
 import { brainService } from '../services/brain.service';
 import { prisma } from '../db';
-import { brainRepository } from '../repositories/brain.repository';
 import { worldSimulationService } from '../services/world-simulation.service';
 import { answerBrainQuery } from '@/lib/voice/brain-query';
 import { WorldEntityType, WorldEntityStatus } from '@prisma/client';
 import { redis } from '@/lib/queue/queue';
 import { coDMQueue } from '@/lib/queue/co-dm-queue';
 import type { CoDMSuggestion } from '@/lib/co-dm/types';
-import { addBrainIngestionJob } from '@/lib/queue/brain-ingestion-queue';
 import { buildBrainSectionPrompt } from '@/lib/ai/prep-prompts';
 import { chatWithAI } from '@/lib/ai/chat';
 
@@ -183,75 +180,12 @@ export const brainRouter = router({
       }).optional(),
       storyText: z.string().max(20000).optional(),
     }))
-    .mutation(async ({ input, ctx }) => {
-      const campaign = await prisma.campaign.findFirst({
-        where: { id: input.campaignId, userId: ctx.session.user.id },
-        select: { id: true },
-      });
-      if (!campaign) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'Not campaign owner' });
-      }
-
-      const { worldSetup, storyText, campaignId } = input;
-
-      if (worldSetup?.startingLocation?.trim()) {
-        await brainService.createOrUpdateEntity(campaignId, ctx.session.user.id, {
-          type: WorldEntityType.LOCATION,
-          name: worldSetup.startingLocation.trim(),
-          sourceType: 'campaign_creation',
-        });
-      }
-
-      if (worldSetup?.antagonistName?.trim()) {
-        await brainService.createOrUpdateEntity(campaignId, ctx.session.user.id, {
-          type: WorldEntityType.THREAT,
-          name: worldSetup.antagonistName.trim(),
-          description: worldSetup.antagonistMotivation?.trim() || undefined,
-          sourceType: 'campaign_creation',
-        });
-      }
-
-      if (worldSetup?.factions) {
-        for (const faction of worldSetup.factions) {
-          if (faction.name.trim()) {
-            await brainService.createOrUpdateEntity(campaignId, ctx.session.user.id, {
-              type: WorldEntityType.FACTION,
-              name: faction.name.trim(),
-              properties: { stance: faction.stance },
-              sourceType: 'campaign_creation',
-            });
-          }
-        }
-      }
-
-      if (worldSetup?.openingHook?.trim()) {
-        const state = await brainRepository.getOrCreateState(campaignId);
-        const existingHooks = Array.isArray(state.hooks) ? state.hooks as Record<string, unknown>[] : [];
-        await brainRepository.updateState(campaignId, {
-          hooks: [...existingHooks, {
-            id: `hook-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            text: worldSetup.openingHook.trim(),
-            createdSessionId: null,
-            ageInSessions: 0,
-            urgency: 'medium',
-            status: 'open',
-            linkedEntityNames: [],
-          }],
-        });
-      }
-
-      if (storyText?.trim()) {
-        await addBrainIngestionJob({
-          campaignId,
-          sessionId: null,
-          summary: storyText.trim(),
-          highlights: [],
-          source: 'campaign_creation',
-        });
-      }
-
-      return { success: true };
-    }),
+    .mutation(({ input, ctx }) =>
+      brainService.seedFromCreation(input.campaignId, ctx.session.user.id, {
+        worldSetup: input.worldSetup,
+        storyText: input.storyText,
+      })
+    ),
 
   coDM: router({
     suggestions: protectedProcedure
