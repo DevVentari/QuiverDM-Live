@@ -213,7 +213,7 @@ export default function WorldPage() {
   const typesPresent = [...new Set(allItems.map((i) => i.type))];
 
   return (
-    <PageLayout overline="Campaign" title="World Lore" maxWidth="md">
+    <PageLayout overline="Campaign" title="World Lore">
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-1.5">
         {(['all', ...typesPresent] as FilterType[]).map((t) => {

@@ -76,7 +76,6 @@ export default function RecapDashboardPage() {
       overline="Recaps"
       title="All Campaigns"
       subtitle="Review recap output across your worlds, filter by campaign or status, and jump directly into approval work."
-      maxWidth="lg"
       actions={
         <Button asChild size="sm" className="gap-1.5 text-xs">
           <Link href="/recap/upload">

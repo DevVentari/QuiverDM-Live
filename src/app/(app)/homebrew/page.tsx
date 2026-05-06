@@ -52,7 +52,6 @@ export default function HomebrewPage() {
       overline="Library"
       title="Homebrew"
       subtitle="Your spells, creatures, items, and imported fragments live here. Search fast, filter by type, and add new lore without leaving the archive."
-      maxWidth="xl"
       actions={
         <>
           <Button asChild variant="outline" size="sm">

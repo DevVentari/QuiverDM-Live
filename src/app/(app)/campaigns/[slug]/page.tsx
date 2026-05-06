@@ -124,7 +124,6 @@ export default function CampaignOverviewPage() {
       overline="Campaign"
       title={campaign?.name ?? 'Campaign'}
       subtitle={`${sessions.length} sessions${memberCount > 0 ? ` · ${memberCount} members` : ''}${campaign?.createdAt ? ` · Active since ${format(new Date(campaign.createdAt), 'MMM yyyy')}` : ''}`}
-      maxWidth="lg"
       actions={
         isDM ? (
           <span className="rounded-full border border-amber-500/35 bg-amber-500/[0.08] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">

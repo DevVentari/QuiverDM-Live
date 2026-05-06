@@ -70,7 +70,6 @@ export default function SessionHubPage() {
       overline={`Session ${sessionNumber}`}
       title={sessionTitle ?? `Session ${sessionNumber}`}
       subtitle={sessionDate ? format(sessionDate, 'EEEE, MMMM d yyyy') : undefined}
-      maxWidth={phase === 'prep' ? 'lg' : 'md'}
     >
       {/* Pipeline */}
       <SessionPipeline currentPhase={phase} />
