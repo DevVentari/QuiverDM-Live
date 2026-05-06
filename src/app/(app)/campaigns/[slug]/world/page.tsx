@@ -5,11 +5,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
   BookOpen, Flag, MapPin, Clock, ScrollText,
-  ChevronDown, ChevronRight, Sword, Package, Dna,
+  ChevronDown, ChevronRight, Sword, Package, Dna, Upload,
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { PageLayout } from '@/components/layout/page-layout';
+import { Button } from '@/components/ui/button';
+import { ImportSheet } from '@/components/world/import-sheet';
 import { cn } from '@/lib/utils';
 
 // ─── Type metadata ────────────────────────────────────────────────────────────
@@ -180,6 +182,8 @@ export default function WorldPage() {
   const { campaignId } = useCampaign();
   const [filter, setFilter] = useState<FilterType>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const utils = trpc.useUtils();
 
   const { data: docs = [], isLoading: docsLoading } = trpc.campaigns.getWorldDocuments.useQuery(
     { campaignId }, { staleTime: 60_000 },
@@ -213,7 +217,21 @@ export default function WorldPage() {
   const typesPresent = [...new Set(allItems.map((i) => i.type))];
 
   return (
-    <PageLayout overline="Campaign" title="World Lore">
+    <PageLayout
+      overline="Campaign"
+      title="World Lore"
+      actions={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setImportOpen(true)}
+          className="gap-1.5 border-border/40 text-muted-foreground hover:text-foreground"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          Import
+        </Button>
+      }
+    >
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-1.5">
         {(['all', ...typesPresent] as FilterType[]).map((t) => {
@@ -284,6 +302,16 @@ export default function WorldPage() {
           ))}
         </div>
       )}
+      <ImportSheet
+        campaignId={campaignId}
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onSuccess={() => {
+          setImportOpen(false);
+          void utils.campaigns.getWorldDocuments.invalidate({ campaignId });
+          void utils.campaigns.getWorldHomebrew.invalidate({ campaignId });
+        }}
+      />
     </PageLayout>
   );
 }
