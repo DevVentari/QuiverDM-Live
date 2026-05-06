@@ -148,11 +148,10 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
     const items: any[] = file.data ?? [];
     for (const item of items) {
       if (!item.name || item.name.startsWith('...') || item.name === '') continue;
-      const existing = await prisma.homebrewContent.findFirst({
+      let existing = await prisma.homebrewContent.findFirst({
         where: { userId, name: item.name, type: 'item' },
       });
-      if (existing) continue;
-      await prisma.homebrewContent.create({
+      if (!existing) existing = await prisma.homebrewContent.create({
         data: {
           userId,
           type: 'item',
@@ -162,6 +161,11 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
           searchText: toSearchText(item.description ?? '', item.name, file.metadata?.tags ?? []),
           sourceType: 'manual',
         },
+      });
+      await prisma.campaignHomebrewContent.upsert({
+        where: { campaignId_homebrewId: { campaignId: campaign.id, homebrewId: existing.id } },
+        update: {},
+        create: { campaignId: campaign.id, homebrewId: existing.id },
       });
       itemCount++;
     }
@@ -176,12 +180,10 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
   for (const monster of monsters) {
     if (!monster.name || monster.name.startsWith('...') || monster.name === '') continue;
 
-    const existing = await prisma.homebrewContent.findFirst({
+    let existing = await prisma.homebrewContent.findFirst({
       where: { userId, name: monster.name, type: 'creature' },
     });
-    if (existing) continue;
-
-    await prisma.homebrewContent.create({
+    if (!existing) existing = await prisma.homebrewContent.create({
       data: {
         userId,
         type: 'creature',
@@ -202,6 +204,11 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
         sourceType: 'manual',
       },
     });
+    await prisma.campaignHomebrewContent.upsert({
+      where: { campaignId_homebrewId: { campaignId: campaign.id, homebrewId: existing.id } },
+      update: {},
+      create: { campaignId: campaign.id, homebrewId: existing.id },
+    });
     creatureCount++;
   }
 
@@ -213,12 +220,10 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
   for (const race of races) {
     if (!race.name || race.name.startsWith('...') || race.name === '') continue;
 
-    const existing = await prisma.homebrewContent.findFirst({
+    let existing = await prisma.homebrewContent.findFirst({
       where: { userId, name: race.name, type: 'race' },
     });
-    if (existing) continue;
-
-    await prisma.homebrewContent.create({
+    if (!existing) existing = await prisma.homebrewContent.create({
       data: {
         userId,
         type: 'race',
@@ -231,6 +236,11 @@ export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
         searchText: toSearchText(race.description ?? '', race.name, racesFile.metadata?.tags ?? []),
         sourceType: 'manual',
       },
+    });
+    await prisma.campaignHomebrewContent.upsert({
+      where: { campaignId_homebrewId: { campaignId: campaign.id, homebrewId: existing.id } },
+      update: {},
+      create: { campaignId: campaign.id, homebrewId: existing.id },
     });
     raceCount++;
   }
