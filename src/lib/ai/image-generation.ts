@@ -1,7 +1,7 @@
 /**
  * Image Generation Abstraction Layer
  *
- * Provider fallback chain: ComfyUI (local) -> RunPod Serverless -> fal.ai Flux Dev -> Replicate SDXL -> DALL-E 3
+ * Provider fallback chain: ComfyUI (local) -> Higgsfield nano-banana-2 -> RunPod Serverless -> fal.ai Flux Dev -> Replicate SDXL -> DALL-E 3
  */
 import OpenAI from 'openai';
 import Replicate from 'replicate';
@@ -23,7 +23,7 @@ export interface ImageGenerationRequest {
 
 export interface ImageGenerationResult {
   url: string;
-  provider: 'comfyui' | 'runpod' | 'fal' | 'replicate' | 'dalle';
+  provider: 'comfyui' | 'higgsfield' | 'runpod' | 'fal' | 'replicate' | 'dalle';
   metadata: {
     prompt: string;
     generationTimeMs: number;
@@ -92,6 +92,40 @@ async function generateWithComfyUI(request: ImageGenerationRequest): Promise<Ima
     url,
     provider: 'comfyui',
     metadata: { prompt, generationTimeMs: Date.now() - start, model, seed, width: 1024, height: 1024, cfg: 7, steps: 20 },
+  };
+}
+
+// NOTE: platform.higgsfield.ai REST API was deprecated May 2026.
+// Using the `higgsfield` CLI (npm i -g @higgsfield/cli) as a bridge.
+// TODO: migrate to https://mcp.higgsfield.ai REST endpoints once documented.
+async function generateWithHiggsfield(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
+  const start = Date.now();
+  const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
+
+  const { spawnSync } = await import('child_process');
+  const result = spawnSync(
+    'higgsfield',
+    ['generate', 'create', 'flux_2', '--prompt', prompt, '--aspect_ratio', '1:1', '--resolution', '2k', '--model', 'pro', '--wait'],
+    { encoding: 'utf8', timeout: 180_000 },
+  );
+
+  if (result.error) throw new Error(`Higgsfield CLI unavailable: ${result.error.message}`);
+  if (result.status !== 0) throw new Error(`Higgsfield CLI failed: ${(result.stderr ?? '').slice(0, 300)}`);
+
+  const imageUrl = result.stdout.trim();
+  if (!imageUrl.startsWith('http')) throw new Error(`Higgsfield CLI unexpected output: ${imageUrl.slice(0, 200)}`);
+
+  const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(60_000) });
+  if (!imgRes.ok) throw new Error(`Failed to fetch Higgsfield image: ${imgRes.status}`);
+  const buffer = Buffer.from(await imgRes.arrayBuffer());
+
+  const key = storageKey(request.userId, resolveEntityId(request));
+  const url = await storage.upload(key, buffer, 'image/png');
+
+  return {
+    url,
+    provider: 'higgsfield',
+    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'flux_2', width: 1024, height: 1024 },
   };
 }
 
@@ -234,6 +268,11 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
       name: 'comfyui',
       enabled: process.env.COMFYUI_ENABLED === 'true' || !!process.env.COMFYUI_URL,
       fn: () => generateWithComfyUI(request),
+    },
+    {
+      name: 'higgsfield',
+      enabled: !!(process.env.HF_API_KEY && process.env.HF_API_SECRET),
+      fn: () => generateWithHiggsfield(request),
     },
     {
       name: 'runpod',

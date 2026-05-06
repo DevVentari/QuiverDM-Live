@@ -77,6 +77,9 @@ test-results/
 __pycache__/
 *.pyc
 
+# ComfyUI local install (GPU image generation)
+/ComfyUI/
+
 # Windows artifacts
 nul
 
