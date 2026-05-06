@@ -68,7 +68,7 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
         <Card>
           <CardHeader className="pb-3 flex items-center gap-2">
             <Coins className="h-4 w-4 text-amber-500" />
-            <CardTitle className="text-sm font-display tracking-wide">Currency</CardTitle>
+            <CardTitle className="text-sm tracking-wide">Currency</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-5 gap-2 text-center">
@@ -136,7 +136,7 @@ export function CharacterInventory({ data, onUpdate, isUpdating }: CharacterInve
       {sorted.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-display tracking-wide">Equipment</CardTitle>
+            <CardTitle className="text-sm tracking-wide">Equipment</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>

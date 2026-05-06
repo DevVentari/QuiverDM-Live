@@ -47,7 +47,7 @@ export function CharacterFeatures({ data }: { data: any }) {
       {sources.map((source) => (
         <Card key={source}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-display tracking-wide flex items-center gap-2">
+            <CardTitle className="text-sm tracking-wide flex items-center gap-2">
               {source}
               <Badge variant="secondary" className="text-xs font-sans">
                 {grouped[source].length}

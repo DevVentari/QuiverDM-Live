@@ -101,7 +101,7 @@ export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: Characte
       {localSlots && Object.keys(localSlots).length > 0 && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-display tracking-wide">Spell Slots</CardTitle>
+            <CardTitle className="text-sm tracking-wide">Spell Slots</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -149,7 +149,7 @@ export function CharacterSpells({ data, onUpdate, onRoll, isUpdating }: Characte
       {sortedLevels.map((level) => (
         <Card key={level}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-display tracking-wide flex items-center gap-2">
+            <CardTitle className="text-sm tracking-wide flex items-center gap-2">
               {LEVEL_LABELS[level] || `Level ${level}`}
               <Badge variant="secondary" className="text-xs font-sans">
                 {grouped[level].length}
