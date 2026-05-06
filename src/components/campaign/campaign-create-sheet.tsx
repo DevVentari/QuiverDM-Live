@@ -83,6 +83,10 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
   // Step 2 state
   const [ddbUrl, setDdbUrl] = useState('');
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureTemplate | null>(null);
+  const [startingLocation, setStartingLocation] = useState('');
+  const [antagonistName, setAntagonistName] = useState('');
+  const [openingHook, setOpeningHook] = useState('');
+  const [storyText, setStoryText] = useState('');
 
   const createCampaign = trpc.campaigns.create.useMutation({
     onError: (err) => {
@@ -121,6 +125,10 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       setNameError('');
       setDdbUrl('');
       setSelectedAdventure(null);
+      setStartingLocation('');
+      setAntagonistName('');
+      setOpeningHook('');
+      setStoryText('');
     }, 300);
   }
 
@@ -174,17 +182,29 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       importFromCampaign.mutate({ campaignUrl: ddbUrl.trim(), campaignId: campaign.id });
     }
 
-    if (selectedAdventure) {
-      seedFromCreation.mutate({
-        campaignId: campaign.id,
-        worldSetup: {
-          startingLocation: selectedAdventure.startingLocation,
-          antagonistName: selectedAdventure.antagonistName,
-          antagonistMotivation: selectedAdventure.antagonistMotivation,
-          openingHook: selectedAdventure.openingHook,
-          factions: selectedAdventure.factions.slice(0, 3),
-        },
-      });
+    const shouldSeed =
+      !!startingLocation.trim() ||
+      !!antagonistName.trim() ||
+      !!openingHook.trim() ||
+      !!storyText.trim() ||
+      selectedAdventure !== null;
+
+    if (shouldSeed) {
+      try {
+        await seedFromCreation.mutateAsync({
+          campaignId: campaign.id,
+          worldSetup: {
+            startingLocation: startingLocation.trim() || undefined,
+            antagonistName: antagonistName.trim() || undefined,
+            antagonistMotivation: selectedAdventure?.antagonistMotivation,
+            openingHook: openingHook.trim() || undefined,
+            factions: selectedAdventure?.factions.slice(0, 3),
+          },
+          storyText: storyText.trim() || undefined,
+        });
+      } catch {
+        // Mutation-level toast already communicates the failure.
+      }
     }
 
     await utils.campaigns.getAll.invalidate();
@@ -332,7 +352,16 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                   {ADVENTURE_TEMPLATES.map((t) => (
                     <button
                       key={t.id}
-                      onClick={() => setSelectedAdventure(selectedAdventure?.id === t.id ? null : t)}
+                      onClick={() => {
+                        const nextAdventure = selectedAdventure?.id === t.id ? null : t;
+                        setSelectedAdventure(nextAdventure);
+                        if (nextAdventure) {
+                          setStartingLocation(nextAdventure.startingLocation);
+                          setAntagonistName(nextAdventure.antagonistName);
+                          setOpeningHook(nextAdventure.openingHook);
+                          setStoryText(nextAdventure.description);
+                        }
+                      }}
                       className={cn(
                         'text-left p-2.5 rounded-md border text-xs transition-colors',
                         selectedAdventure?.id === t.id
@@ -347,6 +376,55 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Seeds your campaign with NPCs, locations, and encounters
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="startingLocation">Starting Location</Label>
+                <Input
+                  id="startingLocation"
+                  value={startingLocation}
+                  onChange={(e) => setStartingLocation(e.target.value)}
+                  maxLength={200}
+                  placeholder="e.g. Waterdeep, the City of Splendors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="antagonistName">Main Antagonist</Label>
+                <Input
+                  id="antagonistName"
+                  value={antagonistName}
+                  onChange={(e) => setAntagonistName(e.target.value)}
+                  maxLength={200}
+                  placeholder="e.g. Xanathar"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="openingHook">Opening Hook</Label>
+                <Textarea
+                  id="openingHook"
+                  value={openingHook}
+                  onChange={(e) => setOpeningHook(e.target.value)}
+                  maxLength={200}
+                  rows={3}
+                  placeholder="What pulls the party into the first problem?"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="storyText">Story So Far</Label>
+                <Textarea
+                  id="storyText"
+                  value={storyText}
+                  onChange={(e) => setStoryText(e.target.value)}
+                  maxLength={20000}
+                  rows={4}
+                  placeholder="Optional notes to queue for DM Brain ingestion."
+                />
+                <p className="text-right text-xs text-muted-foreground">
+                  {storyText.length}/20000
                 </p>
               </div>
             </div>
