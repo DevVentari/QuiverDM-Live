@@ -4,9 +4,10 @@ import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Eye, EyeOff, Shield } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { trpc } from '@/lib/trpc';
 
 export function SignUpForm() {
   const router = useRouter();
@@ -17,6 +18,31 @@ export function SignUpForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [inviteStatus, setInviteStatus] = useState<string | null>(null);
+
+  const validateInvite = trpc.invites.validate.useMutation({
+    onSuccess: () => {
+      setInviteStatus('Invite code is valid.');
+    },
+    onError: (mutationError) => {
+      setInviteStatus(mutationError.message);
+    },
+  });
+
+  function normalizeInviteCode(value: string) {
+    return value.trim().toUpperCase();
+  }
+
+  async function handleInviteBlur() {
+    const normalizedCode = normalizeInviteCode(inviteCode);
+    if (!normalizedCode) {
+      setInviteStatus(null);
+      return;
+    }
+
+    setInviteCode(normalizedCode);
+    await validateInvite.mutateAsync({ code: normalizedCode }).catch(() => undefined);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,7 +53,12 @@ export function SignUpForm() {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, inviteCode }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          inviteCode: normalizeInviteCode(inviteCode),
+        }),
       });
 
       const data = await res.json();
@@ -130,9 +161,26 @@ export function SignUpForm() {
             id="inviteCode"
             placeholder="Enter your invite code"
             value={inviteCode}
-            onChange={(e) => setInviteCode(e.target.value)}
+            onChange={(e) => {
+              setInviteCode(e.target.value);
+              setInviteStatus(null);
+            }}
+            onBlur={handleInviteBlur}
             required
+            className="uppercase"
           />
+          <div className="min-h-5 text-[11px]">
+            {validateInvite.isPending ? (
+              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Checking invite code...
+              </span>
+            ) : inviteStatus ? (
+              <span className={inviteStatus === 'Invite code is valid.' ? 'text-emerald-400' : 'text-destructive'}>
+                {inviteStatus}
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <Button type="submit" className="w-full gap-2" disabled={loading}>

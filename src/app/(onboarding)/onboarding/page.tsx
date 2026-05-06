@@ -324,15 +324,27 @@ function FirstCampaignStep({
         description: description.trim() || undefined,
       });
 
-      void seedBrain.mutateAsync({
-        campaignId: campaign.id,
-        worldSetup: {
-          startingLocation: startingLocation.trim() || undefined,
-          antagonistName: antagonistName.trim() || undefined,
-          openingHook: openingHook.trim() || undefined,
-        },
-        storyText: storyText.trim() || undefined,
-      });
+      const shouldSeed =
+        !!startingLocation.trim() ||
+        !!antagonistName.trim() ||
+        !!openingHook.trim() ||
+        !!storyText.trim();
+
+      if (shouldSeed) {
+        try {
+          await seedBrain.mutateAsync({
+            campaignId: campaign.id,
+            worldSetup: {
+              startingLocation: startingLocation.trim() || undefined,
+              antagonistName: antagonistName.trim() || undefined,
+              openingHook: openingHook.trim() || undefined,
+            },
+            storyText: storyText.trim() || undefined,
+          });
+        } catch {
+          // Mutation-level error handling already surfaces the failure.
+        }
+      }
 
       await completeFirstCampaign.mutateAsync();
       void utils.onboarding.needsOnboarding.invalidate();

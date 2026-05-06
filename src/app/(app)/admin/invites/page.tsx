@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -29,7 +30,10 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function AdminInvitesPage() {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('generate');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'unused' | 'used' | 'expired'>('all');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [recentCodes, setRecentCodes] = useState<string[]>([]);
   const [singleEmail, setSingleEmail] = useState('');
   const [bulkCount, setBulkCount] = useState(10);
   const [bulkExpireDays, setBulkExpireDays] = useState<number | undefined>();
@@ -37,8 +41,8 @@ export default function AdminInvitesPage() {
 
   // Queries
   const { data: stats, refetch: refetchStats } = trpc.invites.getStats.useQuery(undefined, { staleTime: 10_000 });
-  const { data: unusedCodes, refetch: refetchUnused } = trpc.invites.getUnused.useQuery({
-    limit: 100
+  const { data: allCodes, refetch: refetchCodes } = trpc.invites.getAll.useQuery({
+    limit: 200
   }, { staleTime: 10_000 });
 
   // Mutations
@@ -53,7 +57,8 @@ export default function AdminInvitesPage() {
           : `Generated ${data.codes[0]}`,
       });
       refetchStats();
-      refetchUnused();
+      refetchCodes();
+      setRecentCodes(data.codes);
       setSingleEmail('');
     },
     onError: (error) => {
@@ -76,7 +81,8 @@ export default function AdminInvitesPage() {
           : `Generated ${data.created} invite codes`,
       });
       refetchStats();
-      refetchUnused();
+      refetchCodes();
+      setRecentCodes(data.codes);
       setBulkEmails('');
     },
     onError: (error) => {
@@ -95,7 +101,7 @@ export default function AdminInvitesPage() {
         description: `Deleted ${data.deletedCount} expired codes`,
       });
       refetchStats();
-      refetchUnused();
+      refetchCodes();
     },
     onError: (error) => {
       toast({
@@ -154,6 +160,30 @@ export default function AdminInvitesPage() {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
+  const copyAllCodes = async (codes: string[]) => {
+    if (codes.length === 0) return;
+    await navigator.clipboard.writeText(codes.join('\n'));
+    toast({
+      title: 'Copied!',
+      description: `${codes.length} invite code${codes.length === 1 ? '' : 's'} copied to clipboard`,
+    });
+  };
+
+  const filteredCodes = (allCodes ?? []).filter((code) => {
+    const isExpired = !!code.expiresAt && new Date(code.expiresAt) < new Date() && !code.usedBy;
+
+    switch (statusFilter) {
+      case 'unused':
+        return !code.usedBy && !isExpired;
+      case 'used':
+        return !!code.usedBy;
+      case 'expired':
+        return isExpired;
+      default:
+        return true;
+    }
+  });
+
   const formatDate = (date: Date | null) => {
     if (!date) return 'Never';
     return new Date(date).toLocaleDateString('en-US', {
@@ -175,7 +205,7 @@ export default function AdminInvitesPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="generate" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList role="tablist">
           <TabsTrigger value="generate" role="tab" aria-selected={undefined} aria-controls="panel-generate">
             <Plus className="h-4 w-4 mr-2" />
@@ -183,7 +213,7 @@ export default function AdminInvitesPage() {
           </TabsTrigger>
           <TabsTrigger value="codes" role="tab" aria-selected={undefined} aria-controls="panel-codes">
             <Ticket className="h-4 w-4 mr-2" />
-            All Codes ({stats?.unused || 0})
+            Codes ({allCodes?.length || 0})
           </TabsTrigger>
         </TabsList>
 
@@ -307,11 +337,12 @@ export default function AdminInvitesPage() {
                   <Label htmlFor="bulk-emails">
                     Email recipients (optional, comma/newline separated)
                   </Label>
-                  <Input
+                  <Textarea
                     id="bulk-emails"
                     placeholder="alice@example.com, bob@example.com"
                     value={bulkEmails}
                     onChange={(e) => setBulkEmails(e.target.value)}
+                    rows={5}
                   />
                 </div>
 
@@ -337,6 +368,64 @@ export default function AdminInvitesPage() {
             </Card>
           </div>
 
+          {recentCodes.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Latest Generated Codes</CardTitle>
+                <CardDescription>
+                  Keep these visible while you distribute them.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => copyAllCodes(recentCodes)}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setActiveTab('codes')}
+                  >
+                    <Ticket className="h-4 w-4 mr-2" />
+                    View in Codes Table
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {recentCodes.map((code) => (
+                    <div
+                      key={code}
+                      className="rounded-lg border border-border/60 bg-card/50 p-4"
+                    >
+                      <div className="font-mono text-sm font-semibold">{code}</div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 px-0"
+                        onClick={() => copyToClipboard(code)}
+                      >
+                        {copiedCode === code ? (
+                          <>
+                            <Check className="h-4 w-4 mr-2 text-green-600" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4 mr-2" />
+                            Copy code
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -349,7 +438,7 @@ export default function AdminInvitesPage() {
                   variant="outline"
                   onClick={() => {
                     refetchStats();
-                    refetchUnused();
+                    refetchCodes();
                   }}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -377,31 +466,74 @@ export default function AdminInvitesPage() {
         <TabsContent value="codes" role="tabpanel" id="panel-codes">
           <Card>
             <CardHeader>
-              <CardTitle>Unused Invite Codes</CardTitle>
+              <CardTitle>Invite Codes</CardTitle>
               <CardDescription>
-                Available codes ready for distribution (showing latest 100)
+                Filter and copy recent codes from the latest 200 records.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!unusedCodes || unusedCodes.length === 0 ? (
+              <div className="mb-4 flex flex-wrap gap-2">
+                <Button variant={statusFilter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setStatusFilter('all')}>
+                  All
+                </Button>
+                <Button variant={statusFilter === 'unused' ? 'default' : 'outline'} size="sm" onClick={() => setStatusFilter('unused')}>
+                  Unused
+                </Button>
+                <Button variant={statusFilter === 'used' ? 'default' : 'outline'} size="sm" onClick={() => setStatusFilter('used')}>
+                  Used
+                </Button>
+                <Button variant={statusFilter === 'expired' ? 'default' : 'outline'} size="sm" onClick={() => setStatusFilter('expired')}>
+                  Expired
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => copyAllCodes(filteredCodes.map((code) => code.code))}
+                  disabled={filteredCodes.length === 0}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  Copy Visible
+                </Button>
+              </div>
+
+              {!allCodes || filteredCodes.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No unused codes available. Generate some codes to get started.
+                  No codes match this filter.
                 </div>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Code</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Expires</TableHead>
+                      <TableHead>Used</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {unusedCodes.map((code) => (
+                    {filteredCodes.map((code) => {
+                      const isExpired = !!code.expiresAt && new Date(code.expiresAt) < new Date() && !code.usedBy;
+                      const status = code.usedBy ? 'Used' : isExpired ? 'Expired' : 'Unused';
+
+                      return (
                       <TableRow key={code.id}>
                         <TableCell className="font-mono font-semibold">
                           {code.code}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              status === 'Used'
+                                ? 'secondary'
+                                : status === 'Expired'
+                                  ? 'destructive'
+                                  : 'outline'
+                            }
+                          >
+                            {status}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(code.createdAt)}
@@ -409,7 +541,7 @@ export default function AdminInvitesPage() {
                         <TableCell>
                           {code.expiresAt ? (
                             <Badge variant={
-                              new Date(code.expiresAt) < new Date()
+                              new Date(code.expiresAt) < new Date() && !code.usedBy
                                 ? 'destructive'
                                 : 'secondary'
                             }>
@@ -418,6 +550,9 @@ export default function AdminInvitesPage() {
                           ) : (
                             <Badge variant="outline">Never</Badge>
                           )}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(code.usedAt)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -434,7 +569,7 @@ export default function AdminInvitesPage() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    )})}
                   </TableBody>
                 </Table>
               )}
