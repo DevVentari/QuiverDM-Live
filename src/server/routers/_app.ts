@@ -43,6 +43,7 @@ import { multiTrackUploadRouter } from './multi-track-upload';
 import { speakerMappingRouter } from './speaker-mapping';
 import { recapRouter } from './recap';
 import { campaignContextRouter } from './campaign-context';
+import { worldMapRouter } from './world-map';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -89,6 +90,7 @@ export const appRouter = router({
   ddbSync: ddbSyncRouter,
   sourcebookScenes: sourcebookScenesRouter,
   campaignContext: campaignContextRouter,
+  worldMap: worldMapRouter,
 });
 
 export type AppRouter = typeof appRouter;
