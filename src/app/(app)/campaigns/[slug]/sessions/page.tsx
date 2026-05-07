@@ -1,8 +1,7 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -25,30 +24,11 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string 
 type FilterStatus = 'all' | 'planning' | 'in_progress' | 'completed';
 
 export default function SessionsPage() {
-  return (
-    <Suspense fallback={<div className="h-[calc(100vh-220px)] animate-pulse bg-white/5" />}>
-      <SessionsPageInner />
-    </Suspense>
-  );
-}
-
-function SessionsPageInner() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { campaignId, slug, isDM } = useCampaign();
   const prefersReducedMotion = useReducedMotion();
   const sessionsQuery = trpc.sessions.getAll.useQuery({ campaignId }, { staleTime: 30_000 });
   const [filter, setFilter] = useState<FilterStatus>('all');
-
-  const selectedId = searchParams.get('session');
-
-  function setSelectedSession(id: string | null) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (id) params.set('session', id);
-    else params.delete('session');
-    router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
-  }
+  const [selectedId, setSelectedSession] = useState<string | null>(null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const allSessions = (sessionsQuery.data ?? []) as any[];

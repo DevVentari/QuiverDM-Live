@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { signInAsTestUser } from './helpers/auth';
 
+const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
+const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_CARD = 'a[href^="/campaigns/"]:not([href="/campaigns/new"])';
 
 async function getCampaignHref(page: Parameters<typeof signInAsTestUser>[0]): Promise<string | null> {
@@ -13,7 +15,7 @@ async function getCampaignHref(page: Parameters<typeof signInAsTestUser>[0]): Pr
 
 test.describe('Member invites', () => {
   test('members tab loads for DMs', async ({ page }) => {
-    await signInAsTestUser(page);
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
     const href = await getCampaignHref(page);
     if (!href) { test.skip(); return; }
 
@@ -23,7 +25,7 @@ test.describe('Member invites', () => {
   });
 
   test('invite dialog opens', async ({ page }) => {
-    await signInAsTestUser(page);
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
     const href = await getCampaignHref(page);
     if (!href) { test.skip(); return; }
 

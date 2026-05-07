@@ -1,7 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
@@ -22,17 +21,6 @@ const roleLabels: Record<string, string> = {
 };
 
 export default function MembersPage() {
-  return (
-    <Suspense fallback={<div className="h-[calc(100vh-220px)] animate-pulse bg-white/5" />}>
-      <MembersPageInner />
-    </Suspense>
-  );
-}
-
-function MembersPageInner() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { campaignId, isOwner, isDM } = useCampaign();
   const { toast } = useToast();
 
@@ -48,14 +36,7 @@ function MembersPageInner() {
     { label: memberCount === 1 ? 'member' : 'members', value: memberCount },
   ]);
 
-  const selectedId = searchParams.get('member');
-
-  function setSelectedMember(id: string | null) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (id) params.set('member', id);
-    else params.delete('member');
-    router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
-  }
+  const [selectedId, setSelectedMember] = useState<string | null>(null);
 
   const selectedMember = memberList.find((m) => m.id === selectedId) ?? null;
 
