@@ -1853,7 +1853,7 @@ model WorldEntry {
   tags           String[]
 
   worldEntityId  String?        @unique
-  worldEntity    WorldEntity?   @relation("WorldEntryBrain", fields: [worldEntityId], references: [id])
+  worldEntity    WorldEntity?   @relation("WorldEntryBrain", fields: [worldEntityId], references: [id], onDelete: SetNull)
 
   sourceFile     String?
   createdAt      DateTime       @default(now())
