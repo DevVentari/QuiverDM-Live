@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { storage, generateFileKey } from '@/lib/storage';
 import { auth } from '@/lib/auth';
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();

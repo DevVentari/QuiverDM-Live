@@ -72,8 +72,12 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
       const form = new FormData();
       form.append('file', uploadFile);
       const res = await fetch('/api/upload/map-background', { method: 'POST', body: form });
+      if (!res.ok) {
+        let errMsg = 'Upload failed';
+        try { errMsg = (await res.json()).error ?? errMsg; } catch {}
+        throw new Error(errMsg);
+      }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
       await uploadMutation.mutateAsync({ mapId: targetMapId, campaignId, backgroundUrl: data.url });
       router.refresh();
       onDone();
