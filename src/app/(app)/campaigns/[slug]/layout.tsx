@@ -47,6 +47,8 @@ export default function CampaignLayout({
   useEffect(() => {
     if (!campaign.data) return;
     const data = campaign.data as any;
+    const role = data.myRole || data.myPermissions?.role || 'PLAYER';
+    const isDM = role === 'OWNER' || role === 'CO_DM';
 
     const pendingCount = (characters.data as any[] | undefined)?.filter(
       (cc) => cc.status === 'PENDING'
@@ -73,7 +75,7 @@ export default function CampaignLayout({
       title: data.name,
       campaignSlug: slug,
       campaignId: data.id,
-      stats: statItems,
+      isDM,
     });
   }, [campaign.data, stats.data, characters.data, setSlot]);
 
@@ -83,7 +85,7 @@ export default function CampaignLayout({
 
   if (campaign.isLoading) {
     return (
-      <div className="space-y-4 max-w-6xl 2xl:max-w-[1500px]">
+      <div className="space-y-4 p-6">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -93,7 +95,7 @@ export default function CampaignLayout({
 
   if (campaign.error || !campaign.data) {
     return (
-      <div className="max-w-6xl 2xl:max-w-[1500px]">
+      <div className="p-6">
         <p className="text-destructive">
           {campaign.error?.message || 'Campaign not found'}
         </p>
@@ -116,9 +118,7 @@ export default function CampaignLayout({
         isDM,
       }}
     >
-      <div className="w-full max-w-[1400px]">
-        {children}
-      </div>
+      {children}
     </CampaignProvider>
   );
 }
