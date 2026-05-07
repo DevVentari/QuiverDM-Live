@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Check, ChevronDown, Plus } from 'lucide-react';
-import { useHeaderStore } from '@/store/header-store';
+import { useHeaderStore, type HeaderSlot } from '@/store/header-store';
 import { UserMenu } from '@/components/user-menu';
 import { Button } from '@/components/ui/button';
 import { trpc } from '@/lib/trpc';
@@ -26,21 +26,21 @@ function pressureColor(value: number): string {
 }
 
 function PressureGauges({ campaignId }: { campaignId: string }) {
-  const stateQuery = trpc.brain.state.get.useQuery({ campaignId }, { staleTime: 60_000 });
-  const state = stateQuery.data as Record<string, number> | undefined;
+  const { data: state } = trpc.brain.state.get.useQuery({ campaignId }, { staleTime: 60_000 });
   if (!state) return null;
 
-  const active = PRESSURE_TRACKS.filter(({ key }) => (state[key] ?? 0) > 0);
+  const active = PRESSURE_TRACKS
+    .map(({ key, label }) => ({ label, value: state[key] as number ?? 0 }))
+    .filter(({ value }) => value > 0);
   if (!active.length) return null;
 
   return (
     <div className="flex items-center gap-4 px-4 flex-1">
-      {active.map(({ key, label }) => {
-        const raw = state[key] ?? 0;
+      {active.map(({ label, value: raw }) => {
         const pct = Math.round(raw * 100);
         const color = pressureColor(raw);
         return (
-          <div key={key} className="flex flex-col gap-0.5">
+          <div key={label} className="flex flex-col gap-0.5">
             <span
               className="text-[9px] uppercase tracking-[0.2em] leading-none"
               style={{ color: 'hsl(240 5% 30%)' }}
@@ -71,7 +71,7 @@ function PressureGauges({ campaignId }: { campaignId: string }) {
   );
 }
 
-function CampaignDropdown({ slot }: { slot: { title: string; campaignSlug: string; isDM?: boolean; campaignId?: string } }) {
+function CampaignDropdown({ slot }: { slot: NonNullable<HeaderSlot> }) {
   const router = useRouter();
   const campaigns = trpc.campaigns.getMyMemberships.useQuery(undefined, { staleTime: 300_000 });
 
@@ -139,10 +139,10 @@ export function CommandBar() {
         }}
       />
 
-      {inCampaign && slot?.campaignSlug ? (
+      {slot?.campaignSlug ? (
         <>
           {/* Campaign dropdown */}
-          <CampaignDropdown slot={slot as { title: string; campaignSlug: string; isDM?: boolean; campaignId?: string }} />
+          <CampaignDropdown slot={slot} />
 
           {/* Vertical divider */}
           <div className="h-6 w-px flex-shrink-0" style={{ background: 'hsl(240 10% 18%)' }} />
