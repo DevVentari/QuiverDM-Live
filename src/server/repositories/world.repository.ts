@@ -81,6 +81,8 @@ export const worldRepository = {
         sourceFile: data.sourceFile,
       },
       update: {
+        name: data.name,
+        type: data.type,
         content: data.content,
         summary: data.summary,
         structuredData: data.structuredData
