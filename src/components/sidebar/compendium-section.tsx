@@ -53,7 +53,7 @@ export function CompendiumSection({
   );
 
   const homebrew = trpc.homebrew.getContent.useQuery(
-    { campaignId, type: entityType as 'item' | 'location' | 'spell' | 'monster', limit: 50 },
+    { campaignId, type: entityType as 'item' | 'location' | 'spell' | 'creature', limit: 50 },
     { enabled: !!campaignId && expanded && HOMEBREW_TYPES.includes(entityType), staleTime: 60_000 }
   );
 

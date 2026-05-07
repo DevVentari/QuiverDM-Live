@@ -109,4 +109,4 @@ export const settingsNavItems = [
     match: (pathname: string) => pathname === '/settings/admin',
     adminOnly: true,
   },
-] as const;
+];

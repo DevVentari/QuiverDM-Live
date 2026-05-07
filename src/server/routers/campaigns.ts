@@ -8,6 +8,7 @@
 import { router, protectedProcedure, campaignOwnerProcedure, campaignMemberProcedure, campaignDMProcedure } from '../trpc';
 import { z } from 'zod';
 import { campaignService } from '../services/campaign.service';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { serverTrack } from '@/lib/analytics.server';
 import { EVENTS } from '@/lib/analytics-events';
@@ -285,7 +286,7 @@ export const campaignsRouter = router({
               userId,
               type: hb.type,
               name: hb.name,
-              data: hb.data,
+              data: hb.data ?? Prisma.JsonNull,
               tags: hb.tags,
               searchText: hb.searchText,
               sourceType: 'manual',

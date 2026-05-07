@@ -1,6 +1,8 @@
 import { router, protectedProcedure, campaignDMProcedure } from '../trpc';
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { brainService } from '../services/brain.service';
+import { brainRepository } from '../repositories/brain.repository';
 import { prisma } from '../db';
 import { worldSimulationService } from '../services/world-simulation.service';
 import { answerBrainQuery } from '@/lib/voice/brain-query';
