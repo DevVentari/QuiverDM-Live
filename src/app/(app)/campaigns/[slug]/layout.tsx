@@ -34,6 +34,12 @@ export default function CampaignLayout({
     }
   }, [campaign.data]);
 
+  // Set campaignSlug immediately from URL so rail shows campaign nav before data loads
+  useEffect(() => {
+    setSlot({ label: 'Campaign', title: '', campaignSlug: slug, campaignId: '', isDM: false });
+  }, [slug, setSlot]);
+
+  // Update with full campaign details once loaded
   useEffect(() => {
     if (!campaign.data) return;
     const data = campaign.data as any;
@@ -47,7 +53,7 @@ export default function CampaignLayout({
       campaignId: data.id,
       isDM,
     });
-  }, [campaign.data, setSlot]);
+  }, [campaign.data, setSlot, slug]);
 
   useEffect(() => {
     return () => setSlot(null);
