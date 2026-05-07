@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation';
 
-export default function UploadRedirectPage({
+export default async function UploadRedirectPage({
   searchParams,
 }: {
-  searchParams: { sessionId?: string; slug?: string };
+  searchParams: Promise<{ sessionId?: string; slug?: string }>;
 }) {
-  if (searchParams.sessionId && searchParams.slug) {
-    redirect(`/campaigns/${searchParams.slug}/sessions/${searchParams.sessionId}`);
+  const { sessionId, slug } = await searchParams;
+  if (sessionId && slug) {
+    redirect(`/campaigns/${slug}/sessions/${sessionId}`);
   }
   redirect('/campaigns');
 }
