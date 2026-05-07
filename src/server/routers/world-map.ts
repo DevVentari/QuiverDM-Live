@@ -161,6 +161,10 @@ export const worldMapRouter = router({
   updatePinPosition: campaignDMProcedure
     .input(z.object({ pinId: z.string().min(1), campaignId: z.string().min(1), x: z.number(), y: z.number() }))
     .mutation(async ({ input }) => {
+      const pin = await prisma.mapPin.findFirst({
+        where: { id: input.pinId, map: { campaignId: input.campaignId } },
+      });
+      if (!pin) throw new TRPCError({ code: 'NOT_FOUND', message: 'Pin not found' });
       return prisma.mapPin.update({
         where: { id: input.pinId },
         data: { x: input.x, y: input.y, unplaced: false },
@@ -170,6 +174,10 @@ export const worldMapRouter = router({
   deletePin: campaignDMProcedure
     .input(z.object({ pinId: z.string().min(1), campaignId: z.string().min(1) }))
     .mutation(async ({ input }) => {
+      const pin = await prisma.mapPin.findFirst({
+        where: { id: input.pinId, map: { campaignId: input.campaignId } },
+      });
+      if (!pin) throw new TRPCError({ code: 'NOT_FOUND', message: 'Pin not found' });
       await prisma.mapPin.delete({ where: { id: input.pinId } });
       return { success: true };
     }),
@@ -177,6 +185,10 @@ export const worldMapRouter = router({
   uploadMapBackground: campaignDMProcedure
     .input(z.object({ mapId: z.string().min(1), campaignId: z.string().min(1), backgroundUrl: z.string().url() }))
     .mutation(async ({ input }) => {
+      const map = await prisma.campaignMap.findFirst({
+        where: { id: input.mapId, campaignId: input.campaignId },
+      });
+      if (!map) throw new TRPCError({ code: 'NOT_FOUND', message: 'Map not found' });
       return prisma.campaignMap.update({
         where: { id: input.mapId },
         data: { backgroundType: 'UPLOADED', backgroundUrl: input.backgroundUrl },
@@ -186,6 +198,10 @@ export const worldMapRouter = router({
   setBlankBackground: campaignDMProcedure
     .input(z.object({ mapId: z.string().min(1), campaignId: z.string().min(1) }))
     .mutation(async ({ input }) => {
+      const map = await prisma.campaignMap.findFirst({
+        where: { id: input.mapId, campaignId: input.campaignId },
+      });
+      if (!map) throw new TRPCError({ code: 'NOT_FOUND', message: 'Map not found' });
       return prisma.campaignMap.update({
         where: { id: input.mapId },
         data: { backgroundType: 'BLANK', backgroundUrl: null },
