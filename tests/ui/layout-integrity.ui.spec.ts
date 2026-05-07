@@ -97,7 +97,7 @@ test.describe('homebrew library', () => {
     await signInAsTestUser(page, DANA_EMAIL, PASSWORD);
     await page.goto('/homebrew');
     await page.waitForLoadState('domcontentloaded');
-    await expect(page.getByRole('button', { name: /create/i })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: 'Create', exact: true })).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText(/something went wrong|500/i)).toHaveCount(0);
   });
 
