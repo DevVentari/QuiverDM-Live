@@ -65,15 +65,25 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
   };
 
   const handleUpload = async () => {
-    if (!uploadFile || !mapId) return;
+    if (!uploadFile) return;
     setUploading(true);
     try {
+      let targetMapId = mapId;
+      if (!targetMapId) {
+        const newMap = await new Promise<{ id: string }>((resolve, reject) => {
+          createRootMutation.mutate(
+            { campaignId, backgroundType: 'BLANK' },
+            { onSuccess: resolve, onError: reject }
+          );
+        });
+        targetMapId = newMap.id;
+      }
       const form = new FormData();
       form.append('file', uploadFile);
       const res = await fetch('/api/upload/map-background', { method: 'POST', body: form });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error ?? 'Upload failed'); return; }
-      uploadMutation.mutate({ mapId, campaignId, backgroundUrl: data.url });
+      uploadMutation.mutate({ mapId: targetMapId, campaignId, backgroundUrl: data.url });
     } catch {
       toast.error('Upload failed');
     } finally {
@@ -131,7 +141,7 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
             <Button
               className="w-full"
               onClick={handleUpload}
-              disabled={!uploadFile || !mapId || uploading || uploadMutation.isPending}
+              disabled={!uploadFile || uploading || uploadMutation.isPending || createRootMutation.isPending}
             >
               {uploading ? 'Uploading…' : 'Set background'}
             </Button>
