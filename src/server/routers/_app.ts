@@ -33,6 +33,8 @@ import { obsidianRouter } from './obsidian';
 import { apiUsageRouter } from './api-usage';
 import { adminUsersRouter } from './admin-users';
 import { adminApiUsageRouter } from './admin-api-usage';
+import { adminOverviewRouter } from './admin-overview';
+import { adminHealthRouter } from './admin-health';
 import { brainRouter } from './brain';
 import { playRouter } from './play';
 import { ddbSyncRouter } from './ddb-sync';
@@ -78,8 +80,10 @@ export const appRouter = router({
   foundry: foundryRouter,
   obsidian: obsidianRouter,
   apiUsage: apiUsageRouter,
+  adminOverview: adminOverviewRouter,
   adminUsers: adminUsersRouter,
   adminApiUsage: adminApiUsageRouter,
+  adminHealth: adminHealthRouter,
   brain: brainRouter,
   play: playRouter,
   ddbSync: ddbSyncRouter,
