@@ -21,16 +21,6 @@ export default function CampaignLayout({
 
   const campaignId = (campaign.data as any)?.id as string | undefined;
 
-  const stats = trpc.campaigns.getStats.useQuery(
-    { campaignId: campaignId! },
-    { enabled: !!campaignId, staleTime: 120_000 }
-  );
-
-  const characters = trpc.characters.getCampaignCharacters.useQuery(
-    { campaignId: campaignId! },
-    { enabled: !!campaignId, staleTime: 120_000 }
-  );
-
   useEffect(() => {
     if (!campaignId) return;
     utils.npcs.getAll.prefetch({ campaignId });
@@ -50,26 +40,6 @@ export default function CampaignLayout({
     const role = data.myRole || data.myPermissions?.role || 'PLAYER';
     const isDM = role === 'OWNER' || role === 'CO_DM';
 
-    const pendingCount = (characters.data as any[] | undefined)?.filter(
-      (cc) => cc.status === 'PENDING'
-    ).length ?? 0;
-
-    const statItems = stats.data
-      ? [
-          {
-            label: stats.data.sessionCount === 1 ? 'session' : 'sessions',
-            value: stats.data.sessionCount,
-          },
-          {
-            label: stats.data.npcCount === 1 ? 'NPC' : 'NPCs',
-            value: stats.data.npcCount,
-          },
-          ...(pendingCount > 0
-            ? [{ label: pendingCount === 1 ? 'pending' : 'pending', value: pendingCount, alert: true }]
-            : []),
-        ]
-      : undefined;
-
     setSlot({
       label: 'Campaign',
       title: data.name,
@@ -77,7 +47,7 @@ export default function CampaignLayout({
       campaignId: data.id,
       isDM,
     });
-  }, [campaign.data, stats.data, characters.data, setSlot]);
+  }, [campaign.data, setSlot]);
 
   useEffect(() => {
     return () => setSlot(null);
