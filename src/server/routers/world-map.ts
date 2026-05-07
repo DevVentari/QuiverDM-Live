@@ -33,10 +33,10 @@ export const worldMapRouter = router({
     }),
 
   getMap: campaignDMProcedure
-    .input(z.object({ mapId: z.string().min(1) }))
+    .input(z.object({ mapId: z.string().min(1), campaignId: z.string().min(1) }))
     .query(async ({ input }) => {
-      const map = await prisma.campaignMap.findUnique({
-        where: { id: input.mapId },
+      const map = await prisma.campaignMap.findFirst({
+        where: { id: input.mapId, campaignId: input.campaignId },
         include: {
           pins: {
             include: {
@@ -57,11 +57,11 @@ export const worldMapRouter = router({
       return { ...map, ancestorPath };
     }),
 
-  getLocationEvents: protectedProcedure
-    .input(z.object({ entityId: z.string().min(1) }))
+  getLocationEvents: campaignDMProcedure
+    .input(z.object({ entityId: z.string().min(1), campaignId: z.string().min(1) }))
     .query(async ({ input }) => {
       return prisma.worldStateChange.findMany({
-        where: { entityId: input.entityId },
+        where: { entityId: input.entityId, campaignId: input.campaignId },
         orderBy: { createdAt: 'desc' },
         take: 50,
         select: {
