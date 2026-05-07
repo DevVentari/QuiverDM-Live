@@ -15,7 +15,6 @@ interface MapBackgroundPickerProps {
   onDone: () => void;
   campaignId: string;
   mapId?: string;
-  slug: string;
 }
 
 export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBackgroundPickerProps) {
@@ -58,10 +57,9 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
   const handleGenerate = () => {
     if (!mapId) {
       createRootMutation.mutate({ campaignId, backgroundType: 'BLANK' });
+      return;
     }
-    if (mapId) {
-      generateMutation.mutate({ mapId, campaignId, customPrompt: customPrompt || undefined });
-    }
+    generateMutation.mutate({ mapId, campaignId, customPrompt: customPrompt || undefined });
   };
 
   const handleUpload = () => {
