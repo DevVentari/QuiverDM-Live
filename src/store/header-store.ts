@@ -11,6 +11,7 @@ export type HeaderSlot = {
   title: string;
   campaignSlug?: string;
   campaignId?: string;
+  isDM?: boolean;
   badge?: { text: string; color: 'amber' | 'sky' };
   stats?: HeaderStat[];
 } | null;
