@@ -91,21 +91,9 @@ export default function CampaignOverviewPage() {
   const hasWorldPressure = PRESSURE_TRACKS.some(([, field]) => (state?.[field] ?? 0) > 0);
   const memberCount = (campaign as any)?._count?.members ?? 0;
 
-  if (campaignQuery.isLoading || sessionsQuery.isLoading) {
-    return (
-      <div className="space-y-5">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-16 rounded-lg" />
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Skeleton className="h-40 rounded-lg" />
-          <Skeleton className="h-40 rounded-lg" />
-          <Skeleton className="h-40 rounded-lg" />
-        </div>
-      </div>
-    );
-  }
+  const isLoading = campaignQuery.isLoading || sessionsQuery.isLoading;
 
-  const heroStats = [
+  const heroStats = isLoading ? [] : [
     { label: sessions.length === 1 ? 'session' : 'sessions', value: sessions.length },
     ...(memberCount > 0 ? [{ label: memberCount === 1 ? 'member' : 'members', value: memberCount }] : []),
   ];
@@ -123,6 +111,13 @@ export default function CampaignOverviewPage() {
         ) : undefined
       }
     >
+      {isLoading ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-40 rounded-lg" />
+          <Skeleton className="h-40 rounded-lg" />
+          <Skeleton className="h-40 rounded-lg" />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isDM && continueAction && (
           <div className="col-span-full">
@@ -213,6 +208,7 @@ export default function CampaignOverviewPage() {
           </div>
         )}
       </div>
+      )}
     </BentoCanvas>
   );
 }
