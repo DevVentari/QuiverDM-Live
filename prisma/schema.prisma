@@ -224,6 +224,7 @@ enum WorldEntityType {
   THREAT
   SECRET
   CUSTOM
+  NOTE
 }
 
 enum WorldEntityStatus {
@@ -231,6 +232,19 @@ enum WorldEntityStatus {
   dormant
   destroyed
   resolved
+}
+
+enum WorldEntryType {
+  LOCATION
+  NPC
+  PC
+  MONSTER
+  ITEM
+  FACTION
+  RACE
+  LORE
+  TIMELINE
+  SPELL
 }
 
 enum WorldStateChangeType {
@@ -247,6 +261,12 @@ enum WorldStateChangeSource {
   inference
   manual
   dm_edit
+}
+
+enum MapBgType {
+  UPLOADED
+  GENERATED
+  BLANK
 }
 
 enum CampaignRole {
@@ -305,6 +325,7 @@ model Campaign {
 
   obsidianImports          ObsidianImportJob[]
   worldEntities            WorldEntity[]
+  worldEntries             WorldEntry[]
   worldRelationships       WorldRelationship[]
   worldStateChanges        WorldStateChange[]
   worldState               WorldState?
@@ -316,6 +337,7 @@ model Campaign {
   entityMergeCandidates    EntityMergeCandidate[]
   entityMergeRules         EntityMergeRule[]
   pressureHistory          WorldPressureHistory[]
+  campaignMaps             CampaignMap[]
 
   // RecapForge
   campaignContexts  CampaignContext[]
@@ -1415,6 +1437,8 @@ model WorldEntity {
   firstSeenSessionId String?
   lastSeenSessionId  String?
   confidence         Float             @default(1.0)
+  worldEntryId       String?
+  worldEntry         WorldEntry?       @relation("WorldEntryBrain")
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
@@ -1427,6 +1451,7 @@ model WorldEntity {
   mergeCandidatesB   EntityMergeCandidate[]   @relation("MergeCandidateB")
   mergeRulesA        EntityMergeRule[]        @relation("MergeRuleA")
   mergeRulesB        EntityMergeRule[]        @relation("MergeRuleB")
+  mapPins            MapPin[]                 @relation("LocationMaps")
 
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
@@ -1490,6 +1515,36 @@ model WorldState {
   lastInferenceAt       DateTime?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+}
+
+model CampaignMap {
+  id           String    @id @default(cuid())
+  campaignId   String
+  campaign     Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  backgroundUrl String?
+  bgType       MapBgType @default(BLANK)
+  locationName String?
+  locationDesc String? @db.Text
+  mapPins      MapPin[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([campaignId])
+}
+
+model MapPin {
+  id        String      @id @default(cuid())
+  mapId     String
+  map       CampaignMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  entityId  String?
+  entity    WorldEntity? @relation("LocationMaps", fields: [entityId], references: [id], onDelete: SetNull)
+  x         Int
+  y         Int
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([mapId])
+  @@index([entityId])
 }
 
 model SessionEntityAppearance {
@@ -1774,4 +1829,30 @@ enum ContextType {
   CAMPAIGN_BRIEF
   SESSION_EXTRACT
   SOURCEBOOK_LABEL
+}
+
+model WorldEntry {
+  id             String         @id @default(cuid())
+  campaignId     String
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  type           WorldEntryType
+  name           String
+  slug           String
+
+  content        String         @db.Text
+  summary        String?
+
+  structuredData Json?
+  tags           String[]
+
+  worldEntityId  String?        @unique
+  worldEntity    WorldEntity?   @relation("WorldEntryBrain", fields: [worldEntityId], references: [id])
+
+  sourceFile     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([campaignId, slug])
+  @@index([campaignId, type])
 }
