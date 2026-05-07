@@ -130,7 +130,7 @@ function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; 
 
       {expanded && (
         <div className="px-4 pb-4 border-t border-border/30 pt-3 space-y-2">
-          {(item.data as Record<string, unknown>)?.description && (
+          {Boolean((item.data as Record<string, unknown>)?.description) && (
             <p className="text-sm text-muted-foreground leading-relaxed">
               {String((item.data as Record<string, unknown>).description)}
             </p>
