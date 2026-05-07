@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -194,7 +194,6 @@ function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; 
 
 export default function WorldPage() {
   const { campaignId, slug } = useCampaign();
-  const router = useRouter();
   const [filter, setFilter] = useState<FilterType>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -230,7 +229,8 @@ export default function WorldPage() {
     }, {}),
   ).sort(([a], [b]) => {
     const order = ['lore', 'faction', 'location', 'timeline', 'item', 'creature', 'race'];
-    return (order.indexOf(a) ?? 99) - (order.indexOf(b) ?? 99);
+    const ai = order.indexOf(a); const bi = order.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
   });
 
   const typesPresent = [...new Set(allItems.map((i) => i.type))];
@@ -303,10 +303,10 @@ export default function WorldPage() {
                   const meta = ENTRY_TYPE_META[entry.type as string];
                   const Icon = meta?.icon ?? BookOpen;
                   return (
-                    <button
+                    <Link
                       key={entry.id}
-                      onClick={() => router.push(`/campaigns/${slug}/world/${entry.slug}`)}
-                      className="text-left rounded-md border border-border/40 bg-card/20 hover:border-amber-500/30 hover:bg-card/40 transition-colors p-3 space-y-1"
+                      href={`/campaigns/${slug}/world/${entry.slug}`}
+                      className="block text-left rounded-md border border-border/40 bg-card/20 hover:border-amber-500/30 hover:bg-card/40 transition-colors p-3 space-y-1"
                     >
                       <div className={cn('inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold', meta?.color)}>
                         <Icon className="h-2.5 w-2.5" />
@@ -316,7 +316,7 @@ export default function WorldPage() {
                       {entry.summary && (
                         <p className="text-xs text-muted-foreground/60 line-clamp-2">{entry.summary}</p>
                       )}
-                    </button>
+                    </Link>
                   );
                 })}
             </div>
@@ -404,6 +404,7 @@ export default function WorldPage() {
           setImportOpen(false);
           void utils.campaigns.getWorldDocuments.invalidate({ campaignId });
           void utils.campaigns.getWorldHomebrew.invalidate({ campaignId });
+          void utils.world.getEntries.invalidate({ campaignId });
         }}
       />
     </PageLayout>
