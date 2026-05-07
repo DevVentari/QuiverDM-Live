@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { BentoCanvas } from '@/components/layout/bento-canvas';
 
 const DIFF = {
   easy:   { label: 'Easy',   bar: 'bg-emerald-500',  badge: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10', icon: Shield,  pct: 25 },
@@ -105,31 +106,18 @@ function EncountersPageInner() {
   };
 
   return (
-    <div className="space-y-6">
-
-      {/* Header */}
-      <motion.div
-        className="flex items-end justify-between"
-        initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.3 }}
-      >
-        <div>
-          <h1 className="font-display text-2xl font-bold tracking-wide">Encounter Plans</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {plans.length > 0
-              ? `${plans.length} plan${plans.length !== 1 ? 's' : ''} — design before you run`
-              : 'Design and balance encounters before your session'}
-          </p>
-        </div>
-        {isDM && (
+    <BentoCanvas
+      overline="Encounters"
+      title="Encounter Plans"
+      actions={
+        isDM ? (
           <Button onClick={() => setNewPlanOpen(true)} size="sm" className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
             New Encounter
           </Button>
-        )}
-      </motion.div>
-
+        ) : undefined
+      }
+    >
       {/* Cards */}
       {plansQuery.isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -300,6 +288,6 @@ function EncountersPageInner() {
         }}
         loading={deleteMutation.isPending}
       />
-    </div>
+    </BentoCanvas>
   );
 }
