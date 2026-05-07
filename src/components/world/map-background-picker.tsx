@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
-import { Upload, Sparkles, Square } from 'lucide-react';
+import { Upload, Sparkles, Square, ImageUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface MapBackgroundPickerProps {
@@ -21,7 +20,9 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
   const router = useRouter();
   const [tab, setTab] = useState<'upload' | 'generate' | 'blank'>('blank');
   const [customPrompt, setCustomPrompt] = useState('');
-  const [uploadUrl, setUploadUrl] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const createRootMutation = trpc.worldMap.createRoot.useMutation({
     onSuccess: () => {
@@ -62,9 +63,21 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
     generateMutation.mutate({ mapId, campaignId, customPrompt: customPrompt || undefined });
   };
 
-  const handleUpload = () => {
-    if (!uploadUrl || !mapId) return;
-    uploadMutation.mutate({ mapId, campaignId, backgroundUrl: uploadUrl });
+  const handleUpload = async () => {
+    if (!uploadFile || !mapId) return;
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append('file', uploadFile);
+      const res = await fetch('/api/upload/map-background', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) { toast.error(data.error ?? 'Upload failed'); return; }
+      uploadMutation.mutate({ mapId, campaignId, backgroundUrl: data.url });
+    } catch {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -98,19 +111,28 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
             </Button>
           </TabsContent>
           <TabsContent value="upload" className="mt-4 flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">Upload a PNG or JPG (Inkarnate export, hand-drawn scan, etc.).</p>
-            <p className="text-sm text-muted-foreground">Use the campaign file uploader to get an R2 URL, then paste it below.</p>
-            <Input
-              placeholder="https://..."
-              value={uploadUrl}
-              onChange={(e) => setUploadUrl(e.target.value)}
+            <p className="text-sm text-muted-foreground">Upload a PNG, JPG, or WebP (Inkarnate export, hand-drawn scan, etc.). Max 20 MB.</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp"
+              className="hidden"
+              onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
             />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/30 py-6 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+            >
+              <ImageUp className="h-5 w-5" />
+              {uploadFile ? uploadFile.name : 'Choose a file…'}
+            </button>
             <Button
               className="w-full"
               onClick={handleUpload}
-              disabled={!uploadUrl || !mapId || uploadMutation.isPending}
+              disabled={!uploadFile || !mapId || uploading || uploadMutation.isPending}
             >
-              Set background
+              {uploading ? 'Uploading…' : 'Set background'}
             </Button>
           </TabsContent>
         </Tabs>
