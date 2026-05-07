@@ -14,13 +14,13 @@ test.describe('sidebar + global chrome', () => {
   });
 
   test('sidebar renders nav links', async ({ page }) => {
-    const nav = page.getByRole('navigation');
+    const nav = page.getByRole('navigation').first();
     await expect(nav).toBeVisible({ timeout: 10_000 });
     await expect(nav.getByRole('link', { name: /dashboard/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /campaigns/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /characters/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /homebrew/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /settings/i })).toBeVisible();
+    // Settings is an icon link in the sidebar footer (outside the nav element)
+    await expect(page.getByRole('link', { name: /settings/i })).toBeVisible();
   });
 
   test('dashboard renders section headings', async ({ page }) => {

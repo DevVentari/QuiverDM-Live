@@ -59,12 +59,18 @@ export default function HomebrewPage() {
       subtitle="Your spells, creatures, items, and imported fragments live here."
       stats={heroStats}
       actions={
-        <Button asChild variant="outline" size="sm">
-          <Link href="/homebrew/pdfs">
-            <FileText className="mr-2 h-4 w-4" />
-            PDFs
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/homebrew/pdfs">
+              <FileText className="mr-2 h-4 w-4" />
+              PDFs
+            </Link>
+          </Button>
+        </div>
       }
     >
       <div className="flex gap-6 items-start">
