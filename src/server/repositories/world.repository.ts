@@ -85,7 +85,7 @@ export const worldRepository = {
         summary: data.summary,
         structuredData: data.structuredData
           ? (data.structuredData as Prisma.InputJsonValue)
-          : undefined,
+          : Prisma.JsonNull,
         tags: data.tags ?? [],
         sourceFile: data.sourceFile,
       },

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { WorldEntryType } from '@prisma/client';
+import { Prisma, WorldEntryType } from '@prisma/client';
 
 const mocks = vi.hoisted(() => ({
   prisma: {
@@ -78,6 +78,19 @@ describe('worldRepository', () => {
         })
       );
       expect(result).toEqual(entry);
+    });
+
+    it('passes Prisma.JsonNull for structuredData when not provided', async () => {
+      mocks.prisma.worldEntry.upsert.mockResolvedValue({});
+      await worldRepository.upsertEntry('campaign-1', {
+        type: WorldEntryType.LOCATION,
+        name: 'Keep',
+        slug: 'keep',
+        content: '# Keep',
+      });
+      const call = mocks.prisma.worldEntry.upsert.mock.calls[0][0];
+      expect(call.create.structuredData).toBe(Prisma.JsonNull);
+      expect(call.update.structuredData).toBe(Prisma.JsonNull);
     });
   });
 
