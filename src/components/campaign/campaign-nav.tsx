@@ -16,6 +16,7 @@ import {
   UserCog,
   Settings2,
   Brain,
+  Map,
 } from 'lucide-react';
 
 const tabs = [
@@ -27,6 +28,7 @@ const tabs = [
   { label: 'Search',     href: '/search',    icon: Search,          dmOnly: false },
   { label: 'Homebrew',   href: '/homebrew',  icon: BookOpen,        dmOnly: false },
   { label: 'Encounters', href: '/encounters',icon: Swords,          dmOnly: false },
+  { label: 'World Map',  href: '/world-map', icon: Map,             dmOnly: false },
   { label: 'DM Brain',   href: '/brain',     icon: Brain,           dmOnly: true },
   { label: 'Members',    href: '/members',   icon: UserCog,         dmOnly: true },
   { label: 'Settings',   href: '/settings',  icon: Settings2,       dmOnly: true },
