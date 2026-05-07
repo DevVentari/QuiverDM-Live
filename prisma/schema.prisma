@@ -1529,7 +1529,7 @@ model CampaignMap {
   updatedAt        DateTime     @updatedAt
 
   campaign         Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  parentLocation   WorldEntity? @relation("LocationMap", fields: [parentLocationId], references: [id])
+  parentLocation   WorldEntity? @relation("LocationMap", fields: [parentLocationId], references: [id], onDelete: SetNull)
   pins             MapPin[]
 
   @@index([campaignId])
