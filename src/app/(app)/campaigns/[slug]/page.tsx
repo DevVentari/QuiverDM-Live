@@ -7,7 +7,7 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ContinueActionCard, type ContinueAction } from '@/components/campaign/continue-action-card';
 import { deriveSessionPhase } from '@/lib/session-lifecycle';
-import { PageLayout } from '@/components/layout/page-layout';
+import { BentoCanvas } from '@/components/layout/bento-canvas';
 
 function computeContinueAction(sessions: any[], slug: string): ContinueAction | null {
   if (!sessions.length) return null;
@@ -111,10 +111,9 @@ export default function CampaignOverviewPage() {
   ];
 
   return (
-    <PageLayout
+    <BentoCanvas
       overline="Campaign"
       title={(campaign as any)?.name ?? 'Campaign'}
-      subtitle={campaign ? `Active since ${format(new Date((campaign as any).createdAt), 'MMM yyyy')}` : undefined}
       stats={heroStats}
       actions={
         isDM ? (
@@ -214,6 +213,6 @@ export default function CampaignOverviewPage() {
           </div>
         )}
       </div>
-    </PageLayout>
+    </BentoCanvas>
   );
 }
