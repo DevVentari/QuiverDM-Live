@@ -14,12 +14,17 @@ async function getAncestorPath(mapId: string): Promise<Array<{ mapId: string; na
   while (current) {
     path.unshift({ mapId: current.id, name: current.name, entityId: current.parentLocationId });
     if (!current.parentLocationId) break;
-    const parent = await prisma.campaignMap.findFirst({
-      where: { parentLocationId: current.parentLocationId },
+    // Find the map that contains a pin for the parent location entity
+    const parentPin = await prisma.mapPin.findFirst({
+      where: { entityId: current.parentLocationId },
+      select: { mapId: true },
+    });
+    if (!parentPin) break;
+    current = await prisma.campaignMap.findUnique({
+      where: { id: parentPin.mapId },
       select: { id: true, name: true, parentLocationId: true },
     });
-    if (!parent || parent.id === current.id) break;
-    current = parent;
+    if (!current) break;
   }
   return path;
 }
