@@ -14,14 +14,14 @@ import { useRouter } from 'next/navigation';
 
 interface LocationPanelProps {
   entityId: string;
-  pinId: string;
+  entityName: string;
   campaignId: string;
   mapId: string;
   slug: string;
   onClose: () => void;
 }
 
-export function LocationPanel({ entityId, campaignId, mapId, slug, onClose }: LocationPanelProps) {
+export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, onClose }: LocationPanelProps) {
   const router = useRouter();
   const [note, setNote] = useState('');
 
@@ -42,7 +42,6 @@ export function LocationPanel({ entityId, campaignId, mapId, slug, onClose }: Lo
   });
 
   const events = eventsQuery.data ?? [];
-  const entityName = events[0]?.session?.title ?? 'Location';
 
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>

@@ -44,7 +44,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
-  const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
+  const [selectedEntityName, setSelectedEntityName] = useState<string>('');
   const [placingType, setPlacingType] = useState<'location' | 'note' | null>(null);
   const [showPicker, setShowPicker] = useState(false);
 
@@ -91,7 +91,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           unplaced: (pin as unknown as { unplaced?: boolean }).unplaced,
           onSelect: () => {
             setSelectedEntityId(pin.entity.id);
-            setSelectedPinId(pin.id);
+            setSelectedEntityName(pin.entity.name);
           },
         },
       }))
@@ -192,11 +192,11 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
       {selectedEntityId && (
         <LocationPanel
           entityId={selectedEntityId}
-          pinId={selectedPinId!}
+          entityName={selectedEntityName}
           campaignId={campaignId}
           mapId={mapData!.id}
           slug={slug}
-          onClose={() => { setSelectedEntityId(null); setSelectedPinId(null); }}
+          onClose={() => { setSelectedEntityId(null); setSelectedEntityName(''); }}
         />
       )}
       {showPicker && (
