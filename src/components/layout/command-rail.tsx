@@ -71,14 +71,12 @@ function RailDivider() {
 export function CommandRail() {
   const pathname = usePathname();
   const slot = useHeaderStore((s) => s.slot);
-  const [pinned, setPinned] = useState(false);
+  const [pinned, setPinned] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(RAIL_KEY) === 'true';
+  });
   const logoVariant = useLogoVariant();
   const isLiveSession = pathname.match(/\/sessions\/[^/]+\/live$/) !== null;
-
-  useEffect(() => {
-    const saved = localStorage.getItem(RAIL_KEY);
-    if (saved === 'true') setPinned(true);
-  }, []);
 
   const togglePin = () => {
     const next = !pinned;
@@ -163,7 +161,7 @@ export function CommandRail() {
         ) : (
           <>
             <RailItem href="/dashboard" label="Dashboard" icon={LayoutDashboard} isActive={pathname === '/dashboard'}              pinned={pinned} />
-            <RailItem href="/campaigns" label="Campaigns" icon={Swords}          isActive={pathname.startsWith('/campaigns')}       pinned={pinned} />
+            <RailItem href="/campaigns" label="Campaigns" icon={Swords}          isActive={pathname === '/campaigns'}               pinned={pinned} />
             <RailItem href="/homebrew"  label="Homebrew"  icon={BookOpen}         isActive={pathname.startsWith('/homebrew')}        pinned={pinned} />
             <RailItem href="/recap"     label="Recaps"    icon={ScrollText}       isActive={pathname.startsWith('/recap')}           pinned={pinned} />
           </>
