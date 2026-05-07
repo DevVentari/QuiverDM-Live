@@ -144,11 +144,16 @@ export function EntityDetail({ entry }: { entry: EntryData }) {
                 {secretsVisible ? 'Hide' : 'Reveal'}
               </button>
             </SectionLabel>
-            <div className={cn('text-sm text-muted-foreground/60 italic transition-all', !secretsVisible && 'blur-sm select-none')}>
-              {secretsVisible
-                ? 'No secrets recorded for this entity yet.'
-                : 'Click Reveal to view DM secrets.'}
-            </div>
+            {(() => {
+              const secrets = typeof d.secrets === 'string' ? d.secrets : null;
+              return (
+                <div className={cn('text-sm text-muted-foreground/60 italic transition-all', !secretsVisible && 'blur-sm select-none')}>
+                  {secretsVisible
+                    ? (secrets ?? 'No secrets recorded for this entity yet.')
+                    : 'Click Reveal to view DM secrets.'}
+                </div>
+              );
+            })()}
           </>
         );
 

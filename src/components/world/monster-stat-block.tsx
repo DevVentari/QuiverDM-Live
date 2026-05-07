@@ -1,4 +1,3 @@
-import { cn } from '@/lib/utils';
 
 interface AbilityScores {
   str: number; dex: number; con: number;
