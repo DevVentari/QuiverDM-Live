@@ -87,4 +87,27 @@ export const adminApiUsageRouter = router({
 
       return { byFeature, byModel };
     }),
+
+  getCostTimeline: wardenProcedure
+    .input(z.object({ days: z.number().min(7).max(90).default(30) }))
+    .query(async ({ input }) => {
+      const since = new Date();
+      since.setDate(since.getDate() - input.days);
+
+      const rows = await prisma.$queryRaw<Array<{ date: Date; provider: string; cost: number }>>`
+        SELECT DATE_TRUNC('day', "createdAt") AS date,
+               provider,
+               COALESCE(SUM("estimatedCost"), 0)::float AS cost
+        FROM "ApiUsageLog"
+        WHERE "createdAt" >= ${since}
+        GROUP BY DATE_TRUNC('day', "createdAt"), provider
+        ORDER BY date ASC
+      `;
+
+      return rows.map((r) => ({
+        date: new Date(r.date).toISOString().slice(0, 10),
+        provider: r.provider,
+        cost: Number(r.cost),
+      }));
+    }),
 });
