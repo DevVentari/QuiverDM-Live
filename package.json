@@ -51,6 +51,7 @@
     "worker:ddb-review": "tsx src/lib/queue/ddb-sync-review-worker.ts",
     "worker:co-dm": "tsx src/lib/queue/co-dm-worker.ts",
     "worker:co-dm-prep": "tsx src/lib/queue/co-dm-prep-worker.ts",
+    "worker:map-generation": "tsx src/lib/queue/map-generation-worker.ts",
     "worker:world-simulation": "tsx src/lib/queue/world-simulation-worker.ts",
     "worker:multi-track": "tsx src/lib/queue/multi-track-worker.ts",
     "worker:transcript-cleanup": "tsx src/lib/queue/transcript-cleanup-worker.ts",

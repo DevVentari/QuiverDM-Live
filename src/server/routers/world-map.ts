@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../db';
 import { TRPCError } from '@trpc/server';
 import { WorldEntityType, WorldStateChangeSource, MapBgType } from '@prisma/client';
+import { addMapGenerationJob } from '@/lib/queue/map-generation-queue';
 
 async function getAncestorPath(mapId: string): Promise<Array<{ mapId: string; name: string; entityId: string | null }>> {
   const path: Array<{ mapId: string; name: string; entityId: string | null }> = [];
@@ -251,5 +252,24 @@ export const worldMapRouter = router({
           source: WorldStateChangeSource.dm_edit,
         },
       });
+    }),
+
+  generateMapBackground: campaignDMProcedure
+    .input(z.object({
+      mapId: z.string().min(1),
+      campaignId: z.string().min(1),
+      customPrompt: z.string().max(500).optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const map = await prisma.campaignMap.findFirst({
+        where: { id: input.mapId, campaignId: input.campaignId },
+        include: { campaign: { select: { name: true, description: true } } },
+      });
+      if (!map) throw new TRPCError({ code: 'NOT_FOUND', message: 'Map not found' });
+      const settingContext = map.campaign.description ?? map.campaign.name;
+      const prompt = input.customPrompt ??
+        `Fantasy world map, ${settingContext}, top-down cartographic style, parchment, ink lines, no labels, no text`;
+      await addMapGenerationJob({ mapId: input.mapId, campaignId: input.campaignId, prompt });
+      return { queued: true };
     }),
 });
