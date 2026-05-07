@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { useCampaignPageSlot } from '@/hooks/use-campaign-page-slot';
-import { PageLayout } from '@/components/layout/page-layout';
+import { SplitCanvas } from '@/components/layout/split-canvas';
 import { SessionInspectorPanel } from '@/components/session/session-inspector-panel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,11 +33,6 @@ export default function SessionsPage() {
   const allSessions = (sessionsQuery.data ?? []) as any[];
   const activeCount    = allSessions.filter((s) => s.status === 'in_progress' || s.status === 'active').length;
   const completedCount = allSessions.filter((s) => s.status === 'completed').length;
-
-  useCampaignPageSlot('Sessions', [
-    { label: allSessions.length === 1 ? 'session' : 'sessions', value: allSessions.length },
-    ...(activeCount > 0 ? [{ label: 'active', value: activeCount, alert: true }] : []),
-  ]);
 
   const sessions = filter === 'all'
     ? allSessions
@@ -84,10 +78,96 @@ export default function SessionsPage() {
     ...(activeCount > 0 ? [{ label: 'active', value: activeCount, alert: true }] : []),
   ];
 
+  const leftPane = (
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Filter pills */}
+      <div
+        className="flex flex-wrap gap-1 px-2 py-2 flex-shrink-0 border-b"
+        style={{ borderColor: 'hsl(35 35% 18%)' }}
+      >
+        {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${
+              filter === f
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+            }`}
+          >
+            {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
+            <span className="ml-1 opacity-70">{counts[f]}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Session list */}
+      <div className="flex-1 overflow-y-auto">
+        {sessionsQuery.isLoading ? (
+          <div className="space-y-1 p-2">
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-11 w-full rounded" />)}
+          </div>
+        ) : sessions.length > 0 ? (
+          <motion.div variants={listVariants} initial="hidden" animate="visible">
+            {sessions.map((session) => {
+              const sessionNum = session.sessionNumber ?? (allSessions.length - allSessions.indexOf(session));
+              const statusKey  = session.status === 'active' ? 'in_progress' : (session.status ?? 'planning');
+              const status     = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.planning;
+              const hasRec     = (session._count?.recordings ?? 0) > 0 || (session.recordings?.length ?? 0) > 0;
+              const hasTx      = (session._count?.transcriptions ?? 0) > 0 || (session.transcriptions?.length ?? 0) > 0;
+              const hasSumm    = !!session.aiSummary;
+              const isSelected = selectedId === session.id;
+
+              return (
+                <motion.button
+                  key={session.id}
+                  variants={itemVariants}
+                  onClick={() => setSelectedSession(isSelected ? null : session.id)}
+                  className={`w-full text-left px-3 py-2.5 border-b border-[hsl(35,35%,18%)] transition-colors hover:bg-white/[0.03] ${
+                    isSelected ? 'bg-amber-500/[0.06] border-l-2 border-l-amber-500/50' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold tabular-nums transition-colors ${
+                      isSelected ? 'border-primary/60 text-primary' : 'border-border text-muted-foreground'
+                    }`}>
+                      {String(sessionNum).padStart(2, '0')}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm truncate font-medium">
+                        {session.title || `Session ${sessionNum}`}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.dot}`} />
+                        <span className="text-[10px] text-muted-foreground">{status.label}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {hasRec  && <Mic      className="h-3 w-3 text-red-400/70" />}
+                      {hasTx   && <FileText  className="h-3 w-3 text-sky-400/70" />}
+                      {hasSumm && <Sparkles  className="h-3 w-3 text-purple-400/70" />}
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
+            <ScrollText className="h-8 w-8 text-muted-foreground/30 mb-3" />
+            <p className="text-sm text-muted-foreground">
+              {filter !== 'all' ? 'No sessions match this filter' : 'No sessions yet'}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <PageLayout overline="Sessions" title="Sessions" stats={heroStats} actions={newSessionAction}>
-      {/* Mobile list */}
-      <div className="md:hidden space-y-4">
+    <>
+      {/* Mobile: full-page list */}
+      <div className="md:hidden p-4 space-y-4">
         {allSessions.length > 0 && (
           <div className="flex gap-1.5 flex-wrap">
             {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
@@ -107,92 +187,15 @@ export default function SessionsPage() {
         <MobileSessionList sessions={sessions} allSessions={allSessions} slug={slug} isDM={isDM} filter={filter} />
       </div>
 
-      {/* Desktop master-detail */}
-      <div className="hidden md:grid h-[calc(100vh-220px)] overflow-hidden border-t border-[hsl(35,35%,18%)] -mx-8 grid-cols-[280px_1fr]">
-        {/* Left: filter + list */}
-        <div className="flex flex-col overflow-hidden border-r border-[hsl(35,35%,18%)]">
-          <div className="px-2 py-2 shrink-0 border-b border-[hsl(35,35%,18%)]">
-            <div className="flex flex-wrap gap-1">
-              {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${
-                    filter === f
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
-                  }`}
-                >
-                  {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
-                  <span className="ml-1 opacity-70">{counts[f]}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {sessionsQuery.isLoading ? (
-              <div className="space-y-1 p-2">
-                {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-11 w-full rounded" />)}
-              </div>
-            ) : sessions.length > 0 ? (
-              <motion.div variants={listVariants} initial="hidden" animate="visible">
-                {sessions.map((session) => {
-                  const sessionNum = session.sessionNumber ?? (allSessions.length - allSessions.indexOf(session));
-                  const statusKey  = session.status === 'active' ? 'in_progress' : (session.status ?? 'planning');
-                  const status     = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.planning;
-                  const hasRec     = (session._count?.recordings ?? 0) > 0 || (session.recordings?.length ?? 0) > 0;
-                  const hasTx      = (session._count?.transcriptions ?? 0) > 0 || (session.transcriptions?.length ?? 0) > 0;
-                  const hasSumm    = !!session.aiSummary;
-                  const isSelected = selectedId === session.id;
-
-                  return (
-                    <motion.button
-                      key={session.id}
-                      variants={itemVariants}
-                      onClick={() => setSelectedSession(isSelected ? null : session.id)}
-                      className={`w-full text-left px-3 py-2.5 border-b border-[hsl(35,35%,18%)] transition-colors hover:bg-white/[0.03] ${
-                        isSelected ? 'bg-amber-500/[0.06] border-l-2 border-l-amber-500/50' : ''
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <div className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold tabular-nums transition-colors ${
-                          isSelected ? 'border-primary/60 text-primary' : 'border-border text-muted-foreground'
-                        }`}>
-                          {String(sessionNum).padStart(2, '0')}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm truncate font-medium">
-                            {session.title || `Session ${sessionNum}`}
-                          </p>
-                          <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.dot}`} />
-                            <span className="text-[10px] text-muted-foreground">{status.label}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-0.5 shrink-0">
-                          {hasRec  && <Mic      className="h-3 w-3 text-red-400/70" />}
-                          {hasTx   && <FileText  className="h-3 w-3 text-sky-400/70" />}
-                          {hasSumm && <Sparkles  className="h-3 w-3 text-purple-400/70" />}
-                        </div>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-              </motion.div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
-                <ScrollText className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                <p className="text-sm text-muted-foreground">
-                  {filter !== 'all' ? 'No sessions match this filter' : 'No sessions yet'}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: inspector */}
-        <div className="overflow-hidden">
+      {/* Desktop: SplitCanvas */}
+      <div className="hidden md:flex h-full">
+        <SplitCanvas
+          overline="Sessions"
+          title="Sessions"
+          stats={heroStats}
+          actions={newSessionAction}
+          leftPane={leftPane}
+        >
           {selectedSession ? (
             <SessionInspectorPanel session={selectedSession} slug={slug} isDM={isDM} />
           ) : (
@@ -216,9 +219,9 @@ export default function SessionsPage() {
               )}
             </div>
           )}
-        </div>
+        </SplitCanvas>
       </div>
-    </PageLayout>
+    </>
   );
 }
 
