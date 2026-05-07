@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus, Shield, Users } from 'lucide-react';
 import { CampaignCreateSheet } from '@/components/campaign/campaign-create-sheet';
-import { PageLayout } from '@/components/layout/page-layout';
+import { BentoCanvas } from '@/components/layout/bento-canvas';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,10 +35,9 @@ function CampaignsPageInner() {
   ];
 
   return (
-    <PageLayout
+    <BentoCanvas
       overline="Campaigns"
       title="Your Worlds"
-      subtitle="Every table, faction, and unfinished thread — within reach."
       stats={heroStats}
       actions={
         <Button onClick={openSheet}>
@@ -146,7 +145,7 @@ function CampaignsPageInner() {
       </div>
 
       <CampaignCreateSheet open={sheetOpen} onOpenChange={(o) => { if (!o) closeSheet(); }} />
-    </PageLayout>
+    </BentoCanvas>
   );
 }
 
