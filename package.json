@@ -157,6 +157,7 @@
     "react-intersection-observer": "^9.13.1",
     "react-markdown": "^10.1.0",
     "react-pdf": "^10.4.1",
+    "recharts": "^2.15.4",
     "rehype-autolink-headings": "^7.1.0",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
