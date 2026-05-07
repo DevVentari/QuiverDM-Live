@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Check, Plus, Swords, X } from 'lucide-react';
 import { ActiveCampaignHero } from '@/components/dashboard/ActiveCampaignHero';
-import { PageLayout } from '@/components/layout/page-layout';
+import { BentoCanvas } from '@/components/layout/bento-canvas';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -55,10 +55,9 @@ export default function DashboardPage() {
   ];
 
   return (
-    <PageLayout
+    <BentoCanvas
       overline="Dashboard"
       title="Command Table"
-      subtitle="A global view of your active worlds, pending invites, and the campaign most likely to need your attention next."
       stats={heroStats}
       actions={
         <Button asChild>
@@ -192,6 +191,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </PageLayout>
+    </BentoCanvas>
   );
 }
