@@ -189,7 +189,7 @@ export const worldMapRouter = router({
     }),
 
   uploadMapBackground: campaignDMProcedure
-    .input(z.object({ mapId: z.string().min(1), campaignId: z.string().min(1), backgroundUrl: z.string().url() }))
+    .input(z.object({ mapId: z.string().min(1), campaignId: z.string().min(1), backgroundUrl: z.string().min(1) }))
     .mutation(async ({ input }) => {
       const map = await prisma.campaignMap.findFirst({
         where: { id: input.mapId, campaignId: input.campaignId },

@@ -211,7 +211,11 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
       {showPicker && (
         <MapBackgroundPicker
           open
-          onDone={() => setShowPicker(false)}
+          onDone={() => {
+            setShowPicker(false);
+            if (activeMapId) utils.worldMap.getMap.invalidate();
+            else utils.worldMap.getOrCreateRoot.invalidate();
+          }}
           campaignId={campaignId}
           mapId={mapData!.id}
         />
