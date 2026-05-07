@@ -4,28 +4,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PlatformRole } from '@prisma/client';
 import { cn } from '@/lib/utils';
-import { Users, Zap, Ticket, BookOpen, Shield } from 'lucide-react';
+import { Activity, BarChart3, BookOpen, LayoutDashboard, Ticket, Users } from 'lucide-react';
 
 const NAV_ITEMS = [
+  { href: '/admin', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/api-usage', label: 'API Usage', icon: Zap },
+  { href: '/admin/api-usage', label: 'Usage', icon: BarChart3 },
   { href: '/admin/invites', label: 'Invites', icon: Ticket },
   { href: '/admin/rules-sources', label: 'Rules Sources', icon: BookOpen },
+  { href: '/admin/health', label: 'Health', icon: Activity },
 ];
 
-export function AdminNav({ role }: { role: PlatformRole }) {
+export function AdminNav({ role: _role }: { role: PlatformRole }) {
   const pathname = usePathname();
 
   return (
-    <nav className="w-56 min-h-screen border-r border-border/50 bg-card/30 p-4 space-y-1">
-      <div className="flex items-center gap-2 px-3 py-2 mb-4">
-        <Shield className="h-5 w-5 text-primary" />
-        <span className="font-semibold text-sm tracking-wide uppercase text-primary">
-          Admin Panel
-        </span>
-      </div>
+    <nav className="space-y-1">
       {NAV_ITEMS.map((item) => {
-        const isActive = pathname.startsWith(item.href);
+        const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
         const Icon = item.icon;
         return (
           <Link
@@ -38,7 +34,7 @@ export function AdminNav({ role }: { role: PlatformRole }) {
                 : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
             )}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-4 w-4 shrink-0" />
             {item.label}
           </Link>
         );
