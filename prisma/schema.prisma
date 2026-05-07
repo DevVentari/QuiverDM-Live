@@ -337,7 +337,7 @@ model Campaign {
   entityMergeCandidates    EntityMergeCandidate[]
   entityMergeRules         EntityMergeRule[]
   pressureHistory          WorldPressureHistory[]
-  campaignMaps             CampaignMap[]
+  maps                     CampaignMap[]
 
   // RecapForge
   campaignContexts  CampaignContext[]
@@ -1451,7 +1451,8 @@ model WorldEntity {
   mergeCandidatesB   EntityMergeCandidate[]   @relation("MergeCandidateB")
   mergeRulesA        EntityMergeRule[]        @relation("MergeRuleA")
   mergeRulesB        EntityMergeRule[]        @relation("MergeRuleB")
-  mapPins            MapPin[]                 @relation("LocationMaps")
+  mapPins            MapPin[]
+  locationMaps       CampaignMap[]            @relation("LocationMap")
 
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
@@ -1518,31 +1519,36 @@ model WorldState {
 }
 
 model CampaignMap {
-  id           String    @id @default(cuid())
-  campaignId   String
-  campaign     Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  backgroundUrl String?
-  bgType       MapBgType @default(BLANK)
-  locationName String?
-  locationDesc String? @db.Text
-  mapPins      MapPin[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id               String       @id @default(cuid())
+  campaignId       String
+  name             String
+  backgroundType   MapBgType    @default(BLANK)
+  backgroundUrl    String?
+  parentLocationId String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  campaign         Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  parentLocation   WorldEntity? @relation("LocationMap", fields: [parentLocationId], references: [id])
+  pins             MapPin[]
 
   @@index([campaignId])
 }
 
 model MapPin {
-  id        String      @id @default(cuid())
-  mapId     String
-  map       CampaignMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
-  entityId  String?
-  entity    WorldEntity? @relation("LocationMaps", fields: [entityId], references: [id], onDelete: SetNull)
-  x         Int
-  y         Int
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id          String      @id @default(cuid())
+  mapId       String
+  entityId    String
+  x           Float
+  y           Float
+  unplaced    Boolean     @default(false)
+  lastEventAt DateTime?
+  createdAt   DateTime    @default(now())
 
+  map         CampaignMap @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  entity      WorldEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@unique([mapId, entityId])
   @@index([mapId])
   @@index([entityId])
 }
