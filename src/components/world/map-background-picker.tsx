@@ -25,43 +25,39 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const createRootMutation = trpc.worldMap.createRoot.useMutation({
-    onSuccess: () => {
+  const createRootMutation = trpc.worldMap.createRoot.useMutation();
+  const setBlankMutation = trpc.worldMap.setBlankBackground.useMutation();
+  const generateMutation = trpc.worldMap.generateMapBackground.useMutation();
+  const uploadMutation = trpc.worldMap.uploadMapBackground.useMutation();
+
+  const handleStartBlank = async () => {
+    try {
+      if (!mapId) {
+        await createRootMutation.mutateAsync({ campaignId, backgroundType: 'BLANK' });
+      } else {
+        await setBlankMutation.mutateAsync({ mapId, campaignId });
+      }
       router.refresh();
       onDone();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const setBlankMutation = trpc.worldMap.setBlankBackground.useMutation({
-    onSuccess: () => { router.refresh(); onDone(); },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const generateMutation = trpc.worldMap.generateMapBackground.useMutation({
-    onSuccess: () => { toast.info('Map generation queued — background will update when ready'); onDone(); },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const uploadMutation = trpc.worldMap.uploadMapBackground.useMutation({
-    onSuccess: () => { router.refresh(); onDone(); },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const handleStartBlank = () => {
-    if (!mapId) {
-      createRootMutation.mutate({ campaignId, backgroundType: 'BLANK' });
-    } else {
-      setBlankMutation.mutate({ mapId, campaignId });
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Failed to set background');
     }
   };
 
-  const handleGenerate = () => {
-    if (!mapId) {
-      createRootMutation.mutate({ campaignId, backgroundType: 'BLANK' });
-      return;
+  const handleGenerate = async () => {
+    try {
+      if (!mapId) {
+        await createRootMutation.mutateAsync({ campaignId, backgroundType: 'BLANK' });
+        router.refresh();
+        onDone();
+        return;
+      }
+      await generateMutation.mutateAsync({ mapId, campaignId, customPrompt: customPrompt || undefined });
+      toast.info('Map generation queued — background will update when ready');
+      onDone();
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Failed to queue generation');
     }
-    generateMutation.mutate({ mapId, campaignId, customPrompt: customPrompt || undefined });
   };
 
   const handleUpload = async () => {
@@ -70,22 +66,19 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
     try {
       let targetMapId = mapId;
       if (!targetMapId) {
-        const newMap = await new Promise<{ id: string }>((resolve, reject) => {
-          createRootMutation.mutate(
-            { campaignId, backgroundType: 'BLANK' },
-            { onSuccess: resolve, onError: reject }
-          );
-        });
+        const newMap = await createRootMutation.mutateAsync({ campaignId, backgroundType: 'BLANK' });
         targetMapId = newMap.id;
       }
       const form = new FormData();
       form.append('file', uploadFile);
       const res = await fetch('/api/upload/map-background', { method: 'POST', body: form });
       const data = await res.json();
-      if (!res.ok) { toast.error(data.error ?? 'Upload failed'); return; }
-      uploadMutation.mutate({ mapId: targetMapId, campaignId, backgroundUrl: data.url });
-    } catch {
-      toast.error('Upload failed');
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      await uploadMutation.mutateAsync({ mapId: targetMapId, campaignId, backgroundUrl: data.url });
+      router.refresh();
+      onDone();
+    } catch (err: any) {
+      toast.error(err?.message ?? 'Upload failed');
     } finally {
       setUploading(false);
     }
