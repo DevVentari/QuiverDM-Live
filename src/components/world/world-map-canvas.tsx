@@ -143,7 +143,6 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           else utils.worldMap.getOrCreateRoot.invalidate();
         }}
         campaignId={campaignId}
-        slug={slug}
       />
     );
   }
@@ -205,7 +204,6 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           onDone={() => setShowPicker(false)}
           campaignId={campaignId}
           mapId={mapData!.id}
-          slug={slug}
         />
       )}
     </div>
