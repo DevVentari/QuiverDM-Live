@@ -44,6 +44,7 @@ import { speakerMappingRouter } from './speaker-mapping';
 import { recapRouter } from './recap';
 import { campaignContextRouter } from './campaign-context';
 import { worldMapRouter } from './world-map';
+import { worldRouter } from './world';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -91,6 +92,7 @@ export const appRouter = router({
   sourcebookScenes: sourcebookScenesRouter,
   campaignContext: campaignContextRouter,
   worldMap: worldMapRouter,
+  world: worldRouter,
 });
 
 export type AppRouter = typeof appRouter;
