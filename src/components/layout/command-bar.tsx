@@ -1,14 +1,15 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronDown, Plus } from 'lucide-react';
 import { useHeaderStore } from '@/store/header-store';
 import { UserMenu } from '@/components/user-menu';
-import { VoiceButton } from '@/components/voice/voice-button';
+import { Button } from '@/components/ui/button';
 import { trpc } from '@/lib/trpc';
 
 const PRESSURE_TRACKS = [
@@ -41,7 +42,7 @@ function PressureGauges({ campaignId }: { campaignId: string }) {
         return (
           <div key={key} className="flex flex-col gap-0.5">
             <span
-              className="text-[8px] uppercase tracking-[0.2em] leading-none"
+              className="text-[9px] uppercase tracking-[0.2em] leading-none"
               style={{ color: 'hsl(240 5% 30%)' }}
             >
               {label}
@@ -49,7 +50,7 @@ function PressureGauges({ campaignId }: { campaignId: string }) {
             <div className="flex items-center gap-1.5">
               <div
                 className="rounded-full overflow-hidden"
-                style={{ width: 40, height: 3, background: 'hsl(255 10% 100% / 0.05)' }}
+                style={{ width: 36, height: 3, background: 'hsl(255 10% 100% / 0.05)' }}
               >
                 <div
                   className="h-full rounded-full"
@@ -86,12 +87,12 @@ function CampaignDropdown({ slot }: { slot: { title: string; campaignSlug: strin
           </span>
           <div className="flex items-center gap-1">
             <span
-              className="text-[13px] font-bold leading-tight"
+              className="text-sm font-bold leading-tight"
               style={{ color: 'hsl(35 30% 90%)' }}
             >
               {slot.title}
             </span>
-            <ChevronsUpDown className="h-3 w-3 flex-shrink-0" style={{ color: 'hsl(35 20% 45%)' }} strokeWidth={1.8} />
+            <ChevronDown className="h-3 w-3 flex-shrink-0" style={{ color: 'hsl(35 20% 45%)' }} strokeWidth={1.8} />
           </div>
         </button>
       </DropdownMenuTrigger>
@@ -120,6 +121,7 @@ function CampaignDropdown({ slot }: { slot: { title: string; campaignSlug: strin
 export function CommandBar() {
   const slot = useHeaderStore((s) => s.slot);
   const inCampaign = !!slot?.campaignSlug;
+  const pathname = usePathname();
 
   return (
     <header
@@ -150,14 +152,42 @@ export function CommandBar() {
             <PressureGauges campaignId={slot.campaignId} />
           )}
           {(!slot.isDM || !slot.campaignId) && <div className="flex-1" />}
+
+          {/* Vertical divider */}
+          <div className="h-6 w-px flex-shrink-0" style={{ background: 'hsl(240 10% 18%)' }} />
+
+          {/* Quick actions — campaign context */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button size="sm" className="h-7 px-3 text-xs gap-1.5" asChild>
+              <Link href={`/campaigns/${slot.campaignSlug}/sessions/prep`}>
+                <Plus className="h-3 w-3" />
+                New Session
+              </Link>
+            </Button>
+            <Button size="sm" variant="ghost" className="h-7 px-3 text-xs">
+              Import
+            </Button>
+          </div>
         </>
       ) : (
-        <div className="flex-1" />
+        <>
+          <div className="flex-1" />
+          {pathname === '/campaigns' && (
+            <>
+              <div className="h-6 w-px flex-shrink-0" style={{ background: 'hsl(240 10% 18%)' }} />
+              <Button size="sm" className="h-7 px-3 text-xs gap-1.5 flex-shrink-0" asChild>
+                <Link href="/campaigns/new">
+                  <Plus className="h-3 w-3" />
+                  New Campaign
+                </Link>
+              </Button>
+            </>
+          )}
+        </>
       )}
 
-      {/* Right: voice + user */}
+      {/* Right: user */}
       <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
-        <VoiceButton />
         <UserMenu />
       </div>
     </header>
