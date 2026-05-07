@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -27,6 +28,19 @@ const HB_TYPE_META: Record<string, { label: string; icon: React.ElementType; col
   item:     { label: 'Items',     icon: Package, color: 'text-yellow-400/80'  },
   creature: { label: 'Monsters',  icon: Sword,   color: 'text-red-400/80'     },
   race:     { label: 'Races',     icon: Dna,     color: 'text-pink-400/80'    },
+};
+
+const ENTRY_TYPE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
+  LOCATION:  { label: 'Locations',         icon: MapPin,     color: 'text-emerald-400/80' },
+  NPC:       { label: 'NPCs',              icon: BookOpen,   color: 'text-blue-400/80'    },
+  PC:        { label: 'Player Characters', icon: BookOpen,   color: 'text-violet-400/80'  },
+  MONSTER:   { label: 'Monsters',          icon: Sword,      color: 'text-red-400/80'     },
+  ITEM:      { label: 'Items',             icon: Package,    color: 'text-yellow-400/80'  },
+  FACTION:   { label: 'Factions',          icon: Flag,       color: 'text-purple-400/80'  },
+  RACE:      { label: 'Races',             icon: Dna,        color: 'text-pink-400/80'    },
+  LORE:      { label: 'Lore',              icon: ScrollText, color: 'text-amber-400/80'   },
+  TIMELINE:  { label: 'Timelines',         icon: Clock,      color: 'text-violet-400/80'  },
+  SPELL:     { label: 'Spells',            icon: Sword,      color: 'text-cyan-400/80'    },
 };
 
 function getTypeMeta(type: string) {
@@ -179,10 +193,12 @@ function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function WorldPage() {
-  const { campaignId } = useCampaign();
+  const { campaignId, slug } = useCampaign();
+  const router = useRouter();
   const [filter, setFilter] = useState<FilterType>('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [entryFilter, setEntryFilter] = useState<string>('all');
   const utils = trpc.useUtils();
 
   const { data: docs = [], isLoading: docsLoading } = trpc.campaigns.getWorldDocuments.useQuery(
@@ -191,8 +207,11 @@ export default function WorldPage() {
   const { data: homebrew = [], isLoading: hbLoading } = trpc.campaigns.getWorldHomebrew.useQuery(
     { campaignId }, { staleTime: 60_000 },
   );
+  const { data: entries = [], isLoading: entriesLoading } = trpc.world.getEntries.useQuery(
+    { campaignId }, { staleTime: 60_000 },
+  );
 
-  const isLoading = docsLoading || hbLoading;
+  const isLoading = docsLoading || hbLoading || entriesLoading;
 
   // Merge into unified list with source tag
   type AnyItem = { id: string; title: string; type: string; _kind: 'doc' | 'hb'; _raw: Doc | HbItem };
@@ -232,6 +251,81 @@ export default function WorldPage() {
         </Button>
       }
     >
+      {/* ─── World Entities section ─────────────────────────────────────── */}
+      {(entriesLoading || entries.length > 0) && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <p className="text-xs uppercase tracking-widest text-amber-400/70">World Entities</p>
+            <div className="h-px flex-1 bg-border/20" />
+            <span className="text-[10px] text-muted-foreground/40">{entries.length}</span>
+          </div>
+
+          {/* Entry type filter */}
+          {entries.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {(['all', ...new Set(entries.map(e => e.type as string))]).map((t) => {
+                const isActive = entryFilter === t;
+                const meta = t === 'all' ? { label: 'All', icon: BookOpen, color: '' } : ENTRY_TYPE_META[t];
+                const Icon = meta?.icon ?? BookOpen;
+                const count = t === 'all' ? entries.length : entries.filter(e => e.type === t).length;
+                return (
+                  <button
+                    key={t}
+                    onClick={() => setEntryFilter(t)}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
+                      isActive
+                        ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
+                        : 'border-border/40 bg-card/20 text-muted-foreground hover:border-border/60',
+                    )}
+                  >
+                    <Icon className="h-3 w-3" />
+                    {meta?.label ?? t}
+                    <span className="text-[10px] text-muted-foreground/50">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Entry cards */}
+          {entriesLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-20 rounded-md bg-white/5 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {entries
+                .filter(e => entryFilter === 'all' || e.type === entryFilter)
+                .map((entry) => {
+                  const meta = ENTRY_TYPE_META[entry.type as string];
+                  const Icon = meta?.icon ?? BookOpen;
+                  return (
+                    <button
+                      key={entry.id}
+                      onClick={() => router.push(`/campaigns/${slug}/world/${entry.slug}`)}
+                      className="text-left rounded-md border border-border/40 bg-card/20 hover:border-amber-500/30 hover:bg-card/40 transition-colors p-3 space-y-1"
+                    >
+                      <div className={cn('inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold', meta?.color)}>
+                        <Icon className="h-2.5 w-2.5" />
+                        {meta?.label ?? entry.type}
+                      </div>
+                      <p className="text-sm font-medium text-foreground/90 leading-snug line-clamp-1">{entry.name}</p>
+                      {entry.summary && (
+                        <p className="text-xs text-muted-foreground/60 line-clamp-2">{entry.summary}</p>
+                      )}
+                    </button>
+                  );
+                })}
+            </div>
+          )}
+
+          <div className="border-t border-border/20" />
+        </div>
+      )}
+
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-1.5">
         {(['all', ...typesPresent] as FilterType[]).map((t) => {
