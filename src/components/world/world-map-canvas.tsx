@@ -25,6 +25,9 @@ import { LocationPanel } from './location-panel';
 import { MapBackgroundPicker } from './map-background-picker';
 import { MapBreadcrumb } from './map-breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 
 const nodeTypes: NodeTypes = {
@@ -47,6 +50,8 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const [selectedEntityName, setSelectedEntityName] = useState<string>('');
   const [placingType, setPlacingType] = useState<'location' | 'note' | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [pendingPlacement, setPendingPlacement] = useState<{ type: 'location' | 'note'; x: number; y: number } | null>(null);
+  const [placingName, setPlacingName] = useState('');
 
   const utils = trpc.useUtils();
 
@@ -89,6 +94,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           type: pin.entity.type,
           lastEventAt: (pin as unknown as { lastEventAt?: string | null }).lastEventAt,
           unplaced: (pin as unknown as { unplaced?: boolean }).unplaced,
+          source: 'dm' as const,
           onSelect: () => {
             setSelectedEntityId(pin.entity.id);
             setSelectedEntityName(pin.entity.name);
@@ -113,19 +119,23 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
       const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      if (placingType === 'location') {
-        const name = window.prompt('Location name:');
-        if (!name) { setPlacingType(null); return; }
-        createLocationPin.mutate({ mapId: mapData.id, campaignId, name, x, y });
-      } else {
-        const content = window.prompt('Note:');
-        if (!content) { setPlacingType(null); return; }
-        createNotePin.mutate({ mapId: mapData.id, campaignId, content, x, y });
-      }
+      setPendingPlacement({ type: placingType, x, y });
+      setPlacingName('');
       setPlacingType(null);
     },
-    [placingType, mapData, campaignId, createLocationPin, createNotePin]
+    [placingType, mapData]
   );
+
+  const confirmPlacement = useCallback(() => {
+    if (!pendingPlacement || !mapData || !placingName.trim()) return;
+    if (pendingPlacement.type === 'location') {
+      createLocationPin.mutate({ mapId: mapData.id, campaignId, name: placingName.trim(), x: pendingPlacement.x, y: pendingPlacement.y });
+    } else {
+      createNotePin.mutate({ mapId: mapData.id, campaignId, content: placingName.trim(), x: pendingPlacement.x, y: pendingPlacement.y });
+    }
+    setPendingPlacement(null);
+    setPlacingName('');
+  }, [pendingPlacement, mapData, placingName, campaignId, createLocationPin, createNotePin]);
 
   const onNodeDragStop = useCallback(
     (_: React.MouseEvent, node: { id: string; position: { x: number; y: number } }) => {
@@ -205,6 +215,32 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           campaignId={campaignId}
           mapId={mapData!.id}
         />
+      )}
+      {pendingPlacement && (
+        <Dialog open onOpenChange={() => setPendingPlacement(null)}>
+          <DialogContent className="max-w-xs border-border bg-card">
+            <DialogHeader>
+              <DialogTitle className="font-display text-sm">
+                {pendingPlacement.type === 'location' ? 'Location name' : 'Note'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-3">
+              <Input
+                autoFocus
+                value={placingName}
+                onChange={(e) => setPlacingName(e.target.value)}
+                placeholder={pendingPlacement.type === 'location' ? 'e.g. Ravenloft Castle' : 'Enter note…'}
+                onKeyDown={(e) => e.key === 'Enter' && confirmPlacement()}
+              />
+              <div className="flex gap-2 justify-end">
+                <Button variant="ghost" size="sm" onClick={() => setPendingPlacement(null)}>Cancel</Button>
+                <Button size="sm" disabled={!placingName.trim()} onClick={confirmPlacement}>
+                  {pendingPlacement.type === 'location' ? 'Place' : 'Add note'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
