@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 
-export default function RecapRedirectPage({ params }: { params: { slug: string; sessionId: string } }) {
-  redirect(`/campaigns/${params.slug}/sessions/${params.sessionId}`);
+export default async function RecapRedirectPage({ params }: { params: Promise<{ slug: string; sessionId: string }> }) {
+  const { slug, sessionId } = await params;
+  redirect(`/campaigns/${slug}/sessions/${sessionId}`);
 }
