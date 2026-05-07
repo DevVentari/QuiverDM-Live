@@ -394,6 +394,51 @@ export async function processBrainIngestionJob(data: BrainIngestionJobData): Pro
     });
   }
 
+  // Map notification pass — update lastEventAt for any pins touched in this job
+  try {
+    const touchedEntityIds = [
+      ...extracted.newEntities.map((e: any) => e.name),
+      ...extracted.entityUpdates.map((e: any) => e.name),
+    ];
+
+    if (touchedEntityIds.length > 0) {
+      const touchedEntities = await prisma.worldEntity.findMany({
+        where: {
+          campaignId: data.campaignId,
+          name: { in: touchedEntityIds },
+        },
+        select: { id: true, type: true, name: true },
+      });
+      const touchedIds = touchedEntities.map(e => e.id);
+
+      if (touchedIds.length > 0) {
+        await prisma.mapPin.updateMany({
+          where: { entityId: { in: touchedIds } },
+          data: { lastEventAt: new Date() },
+        });
+      }
+
+      // Auto-create unplaced pins for new LOCATION entities
+      const rootMap = await prisma.campaignMap.findFirst({
+        where: { campaignId: data.campaignId, parentLocationId: null },
+        select: { id: true },
+      });
+      if (rootMap) {
+        const locationEntities = touchedEntities.filter(e => e.type === 'LOCATION');
+        for (const loc of locationEntities) {
+          const existingPin = await prisma.mapPin.findFirst({ where: { mapId: rootMap.id, entityId: loc.id } });
+          if (!existingPin) {
+            await prisma.mapPin.create({
+              data: { mapId: rootMap.id, entityId: loc.id, x: 50, y: 50, unplaced: true },
+            });
+          }
+        }
+      }
+    }
+  } catch (mapErr) {
+    console.warn('[brain-ingestion] Map notification pass failed (non-fatal):', mapErr);
+  }
+
   result.success = true;
   return result;
 }
