@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
-  BookOpen, Flag, MapPin, Clock, ScrollText,
+  BookOpen, Flag, MapPin, Clock, ScrollText, Sparkles,
   ChevronDown, ChevronRight, Sword, Package, Dna, Upload,
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -40,7 +40,7 @@ const ENTRY_TYPE_META: Record<string, { label: string; icon: React.ElementType; 
   RACE:      { label: 'Races',             icon: Dna,        color: 'text-pink-400/80'    },
   LORE:      { label: 'Lore',              icon: ScrollText, color: 'text-amber-400/80'   },
   TIMELINE:  { label: 'Timelines',         icon: Clock,      color: 'text-violet-400/80'  },
-  SPELL:     { label: 'Spells',            icon: Sword,      color: 'text-cyan-400/80'    },
+  SPELL:     { label: 'Spells',            icon: Sparkles,   color: 'text-cyan-400/80'    },
 };
 
 function getTypeMeta(type: string) {
