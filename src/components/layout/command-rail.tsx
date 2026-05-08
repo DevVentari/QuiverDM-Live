@@ -2,16 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard, Swords, BookOpen, ScrollText,
   Home, CalendarDays, Drama, Library, Brain,
   Shield, Settings, PanelLeft, PanelLeftClose,
+  Package, MapPin, Sparkles, Skull,
 } from 'lucide-react';
 import { QuiverLogo } from '@/components/logo/quiver-logo';
 import { useHeaderStore } from '@/store/header-store';
 import { useLogoVariant } from '@/hooks/use-logo-variant';
+import { CompendiumSection } from '@/components/sidebar/compendium-section';
+import { CompendiumSearch } from '@/components/sidebar/compendium-search';
 
 const RAIL_KEY = 'quiver.rail.pinned';
 
@@ -53,10 +56,7 @@ function RailItem({
       />
       <span
         className="text-sm font-medium font-sans leading-none transition-all duration-200 overflow-hidden whitespace-nowrap"
-        style={{
-          maxWidth: pinned ? 160 : 0,
-          opacity: pinned ? 1 : 0,
-        }}
+        style={{ maxWidth: pinned ? 160 : 0, opacity: pinned ? 1 : 0 }}
       >
         {label}
       </span>
@@ -68,6 +68,18 @@ function RailDivider() {
   return <div className="mx-3 my-1.5 border-t" style={{ borderColor: 'hsl(35 35% 14%)' }} />;
 }
 
+function RailSectionLabel({ label, pinned }: { label: string; pinned: boolean }) {
+  if (!pinned) return <RailDivider />;
+  return (
+    <p
+      className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] overflow-hidden whitespace-nowrap"
+      style={{ color: 'hsl(35 10% 45%)' }}
+    >
+      {label}
+    </p>
+  );
+}
+
 export function CommandRail() {
   const pathname = usePathname();
   const slot = useHeaderStore((s) => s.slot);
@@ -75,6 +87,7 @@ export function CommandRail() {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem(RAIL_KEY) === 'true';
   });
+  const [searchActive, setSearchActive] = useState(false);
   const logoVariant = useLogoVariant();
   const isLiveSession = pathname.match(/\/sessions\/[^/]+\/live$/) !== null;
 
@@ -85,8 +98,10 @@ export function CommandRail() {
   };
 
   const campaignSlug = slot?.campaignSlug;
+  const campaignId = slot?.campaignId ?? '';
   const inCampaign = !!campaignSlug;
   const width = pinned ? 260 : 72;
+  const collapsed = !pinned;
 
   return (
     <aside
@@ -146,24 +161,63 @@ export function CommandRail() {
         )}
       </div>
 
+      {/* Search — only when expanded and in campaign */}
+      {inCampaign && (
+        <div className="relative z-10">
+          <CompendiumSearch
+            campaignId={campaignId}
+            slug={campaignSlug!}
+            collapsed={collapsed}
+            onSearchActive={setSearchActive}
+          />
+        </div>
+      )}
+
       {/* Nav */}
-      <nav className="relative z-10 flex-1 overflow-y-auto overflow-x-hidden py-1">
+      <nav
+        className={cn('relative z-10 flex-1 overflow-y-auto overflow-x-hidden py-1', searchActive && 'invisible h-0 overflow-hidden')}
+      >
         {inCampaign ? (
           <>
-            <RailItem href={`/campaigns/${campaignSlug}`}            label="Overview"   icon={Home}         isActive={pathname === `/campaigns/${campaignSlug}`}                              pinned={pinned} />
-            <RailItem href={`/campaigns/${campaignSlug}/sessions`}   label="Sessions"   icon={CalendarDays} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/sessions`)}           pinned={pinned} />
-            <RailItem href={`/campaigns/${campaignSlug}/npcs`}       label="NPCs"       icon={Drama}        isActive={pathname.startsWith(`/campaigns/${campaignSlug}/npcs`)}               pinned={pinned} />
-            <RailItem href={`/campaigns/${campaignSlug}/encounters`} label="Encounters" icon={Swords}       isActive={pathname.startsWith(`/campaigns/${campaignSlug}/encounters`)}          pinned={pinned} />
-            <RailDivider />
-            <RailItem href={`/campaigns/${campaignSlug}/world`}      label="World Lore" icon={Library}      isActive={pathname.startsWith(`/campaigns/${campaignSlug}/world`)}               pinned={pinned} />
-            <RailItem href={`/campaigns/${campaignSlug}/brain`}      label="DM Brain"   icon={Brain}        isActive={pathname.startsWith(`/campaigns/${campaignSlug}/brain`)}               pinned={pinned} />
+            <RailSectionLabel label="Campaign" pinned={pinned} />
+            <RailItem href={`/campaigns/${campaignSlug}`}            label="Overview"   icon={Home}         isActive={pathname === `/campaigns/${campaignSlug}`}                    pinned={pinned} />
+            <RailItem href={`/campaigns/${campaignSlug}/sessions`}   label="Sessions"   icon={CalendarDays} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/sessions`)}   pinned={pinned} />
+
+            <RailSectionLabel label="World" pinned={pinned} />
+            <CompendiumSection
+              label="NPCs"
+              entityType="npc"
+              icon={Drama}
+              campaignId={campaignId}
+              slug={campaignSlug!}
+              listHref={`/campaigns/${campaignSlug}/npcs`}
+              collapsed={collapsed}
+            />
+            <RailItem href={`/campaigns/${campaignSlug}/world`}      label="World Lore" icon={Library}      isActive={pathname.startsWith(`/campaigns/${campaignSlug}/world`)}      pinned={pinned} />
+            <RailItem href={`/campaigns/${campaignSlug}/brain`}      label="DM Brain"   icon={Brain}        isActive={pathname.startsWith(`/campaigns/${campaignSlug}/brain`)}      pinned={pinned} />
+            <CompendiumSection
+              label="Encounters"
+              entityType="encounter"
+              icon={Swords}
+              campaignId={campaignId}
+              slug={campaignSlug!}
+              listHref={`/campaigns/${campaignSlug}/encounters`}
+              createHref={`/campaigns/${campaignSlug}/encounters?create=true`}
+              collapsed={collapsed}
+            />
+
+            <RailSectionLabel label="Library" pinned={pinned} />
+            <CompendiumSection label="Items"     entityType="item"     icon={Package}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
+            <CompendiumSection label="Locations" entityType="location" icon={MapPin}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
+            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
+            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
           </>
         ) : (
           <>
             <RailItem href="/dashboard" label="Dashboard" icon={LayoutDashboard} isActive={pathname === '/dashboard'}              pinned={pinned} />
             <RailItem href="/campaigns" label="Campaigns" icon={Swords}          isActive={pathname === '/campaigns'}               pinned={pinned} />
-            <RailItem href="/homebrew"  label="Homebrew"  icon={BookOpen}         isActive={pathname.startsWith('/homebrew')}        pinned={pinned} />
-            <RailItem href="/recap"     label="Recaps"    icon={ScrollText}       isActive={pathname.startsWith('/recap')}           pinned={pinned} />
+            <RailItem href="/homebrew"  label="Homebrew"  icon={BookOpen}        isActive={pathname.startsWith('/homebrew')}        pinned={pinned} />
+            <RailItem href="/recap"     label="Recaps"    icon={ScrollText}      isActive={pathname.startsWith('/recap')}           pinned={pinned} />
           </>
         )}
       </nav>
@@ -200,7 +254,7 @@ export function CommandRail() {
         </Link>
       </div>
 
-      {/* Pin toggle — bottommost */}
+      {/* Pin toggle */}
       <button
         onClick={togglePin}
         title={pinned ? 'Collapse rail' : 'Pin rail'}
