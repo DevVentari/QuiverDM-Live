@@ -8,6 +8,7 @@ import {
   MiniMap,
   useNodesState,
   useEdgesState,
+  useViewport,
   addEdge,
   type Connection,
   type NodeTypes,
@@ -24,11 +25,33 @@ import { MapToolbar } from './map-toolbar';
 import { LocationPanel } from './location-panel';
 import { MapBackgroundPicker } from './map-background-picker';
 import { MapBreadcrumb } from './map-breadcrumb';
+import { FoundryPanel } from './foundry-panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
+
+function ViewportBackground({ url }: { url: string }) {
+  const { x, y, zoom } = useViewport();
+  return (
+    <img
+      src={url}
+      draggable={false}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        transformOrigin: '0 0',
+        transform: `translate(${x}px, ${y}px) scale(${zoom})`,
+        zIndex: -1,
+        pointerEvents: 'none',
+        userSelect: 'none',
+        maxWidth: 'none',
+      }}
+    />
+  );
+}
 
 const nodeTypes: NodeTypes = {
   location: LocationNode,
@@ -50,6 +73,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const [selectedEntityName, setSelectedEntityName] = useState<string>('');
   const [placingType, setPlacingType] = useState<'location' | 'note' | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [showFoundry, setShowFoundry] = useState(false);
   const [pendingPlacement, setPendingPlacement] = useState<{ type: 'location' | 'note'; x: number; y: number } | null>(null);
   const [placingName, setPlacingName] = useState('');
 
@@ -161,10 +185,6 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
     return <Skeleton className="h-full w-full rounded-lg" />;
   }
 
-  const bgStyle = mapData?.backgroundUrl
-    ? { backgroundImage: `url(${mapData.backgroundUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : {};
-
   const ancestorPath = (mapData as unknown as { ancestorPath?: Array<{ mapId: string; name: string; entityId: string | null }> })?.ancestorPath ?? [];
 
   return (
@@ -182,12 +202,16 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
         onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         fitView
-        style={{ cursor: placingType ? 'crosshair' : 'default', ...bgStyle }}
+        zoomOnScroll
+        panOnDrag
+        zoomOnPinch
+        style={placingType ? { cursor: 'crosshair' } : undefined}
         className="bg-[var(--background)]"
       >
-        {!mapData?.backgroundUrl && (
-          <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="hsl(240 20% 80% / 0.08)" />
-        )}
+        {mapData?.backgroundUrl
+          ? <ViewportBackground url={mapData.backgroundUrl} />
+          : <Background variant={BackgroundVariant.Dots} gap={24} size={1} color="hsl(240 20% 80% / 0.08)" />
+        }
         <Controls className="!bg-card !border-border" />
         <MiniMap className="!bg-card !border-border" />
       </ReactFlow>
@@ -195,6 +219,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
         onPlaceLocation={() => setPlacingType('location')}
         onPlaceNote={() => setPlacingType('note')}
         onOpenSettings={() => setShowPicker(true)}
+        onToggleFoundry={() => setShowFoundry(true)}
         mapId={mapData!.id}
         campaignId={campaignId}
       />
@@ -206,6 +231,12 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           mapId={mapData!.id}
           slug={slug}
           onClose={() => { setSelectedEntityId(null); setSelectedEntityName(''); }}
+        />
+      )}
+      {showFoundry && (
+        <FoundryPanel
+          campaignId={campaignId}
+          onClose={() => setShowFoundry(false)}
         />
       )}
       {showPicker && (

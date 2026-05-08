@@ -191,6 +191,7 @@ export const campaignsRouter = router({
       campaignId: z.string(),
       sourcebook: z.string().optional(),
       discordWebhookUrl: z.string().optional(),
+      foundryUrl: z.string().url().optional().or(z.literal('')),
     }))
     .mutation(async ({ input }) => {
       const campaign = await prisma.campaign.findUnique({
@@ -205,6 +206,7 @@ export const campaignsRouter = router({
             ...current,
             ...(input.sourcebook !== undefined && { sourcebook: input.sourcebook }),
             ...(input.discordWebhookUrl !== undefined && { discordWebhookUrl: input.discordWebhookUrl }),
+            ...(input.foundryUrl !== undefined && { foundryUrl: input.foundryUrl || null }),
           },
         },
       });
