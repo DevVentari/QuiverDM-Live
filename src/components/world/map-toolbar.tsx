@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin, StickyNote, Settings, Sparkles } from 'lucide-react';
+import { MapPin, StickyNote, Settings, Sparkles, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { trpc } from '@/lib/trpc';
@@ -10,11 +10,12 @@ interface MapToolbarProps {
   onPlaceLocation: () => void;
   onPlaceNote: () => void;
   onOpenSettings: () => void;
+  onToggleFoundry: () => void;
   mapId: string;
   campaignId: string;
 }
 
-export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, mapId, campaignId }: MapToolbarProps) {
+export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onToggleFoundry, mapId, campaignId }: MapToolbarProps) {
   const generateMutation = trpc.worldMap.generateMapBackground.useMutation({
     onSuccess: () => toast.info('Map generation queued — background will update when ready'),
     onError: (err) => toast.error(err.message),
@@ -52,6 +53,14 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, mapId
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right">Generate map with AI</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleFoundry}>
+              <Monitor className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">FoundryVTT</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>

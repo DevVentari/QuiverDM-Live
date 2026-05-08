@@ -1,0 +1,13 @@
+{
+  "id": "quiver-embed",
+  "title": "QuiverDM — Embed",
+  "description": "Removes iframe restrictions and hides Foundry UI chrome when embedded in QuiverDM.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "11",
+    "verified": "12"
+  },
+  "esmodules": ["scripts/quiver-embed.mjs"],
+  "authors": [{ "name": "QuiverDM" }],
+  "url": "https://quiverdm.com"
+}
