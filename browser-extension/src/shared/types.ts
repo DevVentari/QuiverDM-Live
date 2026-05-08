@@ -9,6 +9,7 @@ export type MessageToServiceWorker =
   | { type: 'import.encounter'; payload: import('./extension-types').DdbEncounterImportPayload; campaignId: string }
   | { type: 'live.event'; extMessage: import('./extension-types').ExtIncomingMessage }
   | { type: 'network.intercept'; url: string; body: unknown }
+  | { type: 'set.ddb.vtt.url'; campaignId: string; url: string }
   | { type: 'get.campaigns' }
   | { type: 'get.cobalt' };
 

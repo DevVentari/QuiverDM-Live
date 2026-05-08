@@ -170,6 +170,13 @@ async function handleMessage(message: MessageToServiceWorker): Promise<ImportRes
     return;
   }
 
+  if (message.type === 'set.ddb.vtt.url') {
+    return trpcMutate('foundry.setDdbVttUrl', {
+      campaignId: message.campaignId,
+      ddbVttUrl: message.url,
+    });
+  }
+
   if (message.type === 'get.campaigns') {
     return fetchUserCampaigns();
   }
