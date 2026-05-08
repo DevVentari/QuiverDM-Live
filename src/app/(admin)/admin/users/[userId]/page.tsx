@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 import { PlatformRole } from '@prisma/client';
 import { ArrowLeft, Ban, KeyRound, RefreshCw, Shield, UserCog } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
@@ -50,10 +50,11 @@ function formatDate(value: Date | string | null | undefined): string {
 }
 
 export default function AdminUserDetailPage({
-  params,
+  params: paramsPromise,
 }: {
-  params: { userId: string };
+  params: Promise<{ userId: string }>;
 }) {
+  const params = use(paramsPromise);
   const { toast } = useToast();
   const [selectedRole, setSelectedRole] = useState<PlatformRole>(PlatformRole.ADVENTURER);
   const [selectedTier, setSelectedTier] = useState<PlanValue>('alpha');
