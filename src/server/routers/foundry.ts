@@ -18,9 +18,10 @@ export const foundryRouter = router({
         where: { id: input.campaignId },
         select: { settings: true },
       });
-      const settings = (campaign?.settings ?? {}) as Record<string, unknown>;
+      const s = (campaign?.settings ?? {}) as Record<string, unknown>;
       return {
-        foundryUrl: (settings.foundryUrl as string | null | undefined) ?? null,
+        foundryUrl: (s.foundryUrl as string | null | undefined) ?? null,
+        ddbVttUrl: (s.ddbVttUrl as string | null | undefined) ?? null,
       };
     }),
 
@@ -35,6 +36,21 @@ export const foundryRouter = router({
       await prisma.campaign.update({
         where: { id: input.campaignId },
         data: { settings: { ...current, foundryUrl: input.foundryUrl || null } },
+      });
+      return { ok: true };
+    }),
+
+  setDdbVttUrl: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), ddbVttUrl: z.string().url().or(z.literal('')) }))
+    .mutation(async ({ input }) => {
+      const campaign = await prisma.campaign.findUnique({
+        where: { id: input.campaignId },
+        select: { settings: true },
+      });
+      const current = (campaign?.settings ?? {}) as Record<string, unknown>;
+      await prisma.campaign.update({
+        where: { id: input.campaignId },
+        data: { settings: { ...current, ddbVttUrl: input.ddbVttUrl || null } },
       });
       return { ok: true };
     }),
