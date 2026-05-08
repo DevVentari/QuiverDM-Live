@@ -14,6 +14,7 @@ export async function findById(id: string) {
         select: {
           id: true,
           name: true,
+          slug: true,
         },
       },
       recordings: true,
