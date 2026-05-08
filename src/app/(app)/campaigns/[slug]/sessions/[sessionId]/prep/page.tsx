@@ -1,6 +1,9 @@
-import { redirect } from 'next/navigation';
-
-export default async function PrepRedirectPage({ params }: { params: Promise<{ slug: string; sessionId: string }> }) {
-  const { slug, sessionId } = await params;
-  redirect(`/campaigns/${slug}/sessions/${sessionId}`);
+import { permanentRedirect } from 'next/navigation'
+export default async function OldPrepPage({
+  params,
+}: {
+  params: Promise<{ sessionId: string }>
+}) {
+  const { sessionId } = await params
+  permanentRedirect(`/session/${sessionId}`)
 }
