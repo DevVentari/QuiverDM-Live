@@ -26,6 +26,7 @@ import { LocationPanel } from './location-panel';
 import { MapBackgroundPicker } from './map-background-picker';
 import { MapBreadcrumb } from './map-breadcrumb';
 import { FoundryPanel } from './foundry-panel';
+import { DdbVttPanel } from './ddb-vtt-panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -74,6 +75,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const [placingType, setPlacingType] = useState<'location' | 'note' | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showFoundry, setShowFoundry] = useState(false);
+  const [showDdb, setShowDdb] = useState(false);
   const [pendingPlacement, setPendingPlacement] = useState<{ type: 'location' | 'note'; x: number; y: number } | null>(null);
   const [placingName, setPlacingName] = useState('');
 
@@ -220,6 +222,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
         onPlaceNote={() => setPlacingType('note')}
         onOpenSettings={() => setShowPicker(true)}
         onToggleFoundry={() => setShowFoundry(true)}
+        onToggleDdb={() => setShowDdb(true)}
         mapId={mapData!.id}
         campaignId={campaignId}
       />
@@ -237,6 +240,12 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
         <FoundryPanel
           campaignId={campaignId}
           onClose={() => setShowFoundry(false)}
+        />
+      )}
+      {showDdb && (
+        <DdbVttPanel
+          campaignId={campaignId}
+          onClose={() => setShowDdb(false)}
         />
       )}
       {showPicker && (
