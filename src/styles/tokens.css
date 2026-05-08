@@ -1,0 +1,72 @@
+/* tokens.css — single source of truth for all design tokens.
+   Shadcn compatibility vars use the hsl-number format expected by shadcn.
+   QuiverDM semantic vars use the --q-* prefix in OKLCH. */
+
+/* ── Shadcn compatibility (dark mode only — QuiverDM is dark-first) ── */
+:root {
+  --background: 240 10% 4%;
+  --foreground: 35 10% 92%;
+  --card: 35 5% 10%;
+  --card-foreground: 35 10% 92%;
+  --popover: 240 10% 6%;
+  --popover-foreground: 35 10% 92%;
+  --primary: 35 80% 55%;
+  --primary-foreground: 240 10% 4%;
+  --secondary: 35 5% 14%;
+  --secondary-foreground: 35 10% 85%;
+  --muted: 35 5% 14%;
+  --muted-foreground: 35 5% 55%;
+  --accent: 35 80% 55%;
+  --accent-foreground: 240 10% 4%;
+  --destructive: 0 62% 45%;
+  --destructive-foreground: 35 10% 92%;
+  --border: 35 8% 22%;
+  --input: 35 8% 18%;
+  --ring: 35 80% 55%;
+  --radius: 0.375rem;
+  --chart-1: 35 80% 55%;
+  --chart-2: 280 50% 55%;
+  --chart-3: 200 60% 50%;
+  --chart-4: 160 50% 45%;
+  --chart-5: 0 62% 45%;
+}
+
+/* ── QuiverDM OKLCH semantic tokens ── */
+:root {
+  /* Backgrounds */
+  --q-bg:             oklch(0.12 0.005 265);
+  --q-surface-flat:   oklch(0.16 0.01 60);
+  --q-surface-raised: oklch(0.19 0.012 60);
+  --q-surface-sunken: oklch(0.10 0.005 265);
+
+  /* Card */
+  --q-card-bg:        oklch(0.17 0.012 60);
+  --q-card-border:    oklch(0.7 0.16 55 / 0.18);
+
+  /* Amber (primary accent — precious, use once per screen) */
+  --q-amber:          oklch(0.7 0.16 55);
+  --q-amber-dim:      oklch(0.7 0.16 55 / 0.5);
+  --q-amber-trace:    oklch(0.7 0.16 55 / 0.08);
+  --q-amber-border:   oklch(0.7 0.16 55 / 0.22);
+
+  /* Borders */
+  --q-border:         oklch(0.28 0.02 60 / 0.4);
+  --q-border-subtle:  oklch(0.28 0.02 60 / 0.18);
+
+  /* Text */
+  --q-text:           oklch(0.92 0.005 60);
+  --q-text-dim:       oklch(0.65 0.01 60);
+  --q-text-faint:     oklch(0.45 0.01 60);
+
+  /* Grimoire grain/glow */
+  --q-glow-amber:     oklch(0.7 0.16 55 / 0.12);
+  --q-glow-mystic:    oklch(0.55 0.15 280 / 0.08);
+
+  /* Typography */
+  --q-font-display:   'Cinzel', serif;
+  --q-font-body:      'Bricolage Grotesque', system-ui, sans-serif;
+  --q-font-mono:      'JetBrains Mono', monospace;
+
+  /* Motion */
+  --q-ease-out-quart: cubic-bezier(0.16, 1, 0.3, 1);
+}
