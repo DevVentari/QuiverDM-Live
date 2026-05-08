@@ -1,9 +1,17 @@
 {
   "manifest_version": 3,
   "name": "QuiverDM — D&D Beyond Bridge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Import D&D Beyond content into QuiverDM and stream live session data.",
-  "permissions": ["cookies", "storage", "alarms", "offscreen", "identity"],
+  "permissions": [
+    "cookies",
+    "storage",
+    "alarms",
+    "offscreen",
+    "identity",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
+  ],
   "host_permissions": [
     "https://*.dndbeyond.com/*",
     "https://character-service.dndbeyond.com/*",
@@ -24,12 +32,26 @@
       "matches": ["https://www.dndbeyond.com/*"],
       "js": ["src/content/content-main.ts"],
       "run_at": "document_end"
+    },
+    {
+      "matches": ["https://maps.dndbeyond.com/*"],
+      "js": ["src/content/ddb-maps-main.ts"],
+      "run_at": "document_end"
     }
   ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "dndbeyond-embed",
+        "enabled": true,
+        "path": "rules/dndbeyond-embed.json"
+      }
+    ]
+  },
   "web_accessible_resources": [
     {
       "resources": ["src/content/page-world.ts", "auth-callback.html", "offscreen.html"],
-      "matches": ["https://www.dndbeyond.com/*"]
+      "matches": ["https://www.dndbeyond.com/*", "https://maps.dndbeyond.com/*"]
     }
   ]
 }
