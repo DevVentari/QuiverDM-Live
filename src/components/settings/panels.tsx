@@ -10,12 +10,17 @@ import {
   ExternalLink,
   Loader2,
   MonitorPlay,
+  Moon,
+  Palette,
   Save,
+  Sun,
   Ticket,
   Trash2,
   Zap,
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { trpc } from '@/lib/trpc';
+import { cn } from '@/lib/utils';
 import { hasMinimumRole } from '@/lib/platform';
 import { useToast } from '@/hooks/use-toast';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -411,6 +416,12 @@ export function AppearanceSettingsPanel() {
   const updatePreferences = trpc.userSettings.updatePreferences.useMutation({
     onSuccess: () => void utils.userSettings.getSettings.invalidate(),
   });
+  const { theme, setTheme } = useTheme();
+
+  const setThemeAndSave = (next: 'dark' | 'light') => {
+    setTheme(next);
+    updatePreferences.mutate({ theme: next });
+  };
 
   return (
     <SettingsCard title="Appearance" description="Tune the mood of the archive without sacrificing readability.">
@@ -429,6 +440,44 @@ export function AppearanceSettingsPanel() {
           onCheckedChange={(checked) => updatePreferences.mutate({ videoBackground: checked })}
           disabled={updatePreferences.isPending}
         />
+      </div>
+
+      <div className="flex items-center justify-between rounded-md border border-border/60 bg-card/30 p-4">
+        <div className="flex items-center gap-3">
+          <Palette className="h-5 w-5 text-muted-foreground" />
+          <div>
+            <div className="font-medium text-sm">Theme</div>
+            <div className="text-xs text-muted-foreground">
+              Choose between the dark grimoire and the parchment manuscript.
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 rounded-md border border-border/60 p-1">
+          <button
+            onClick={() => setThemeAndSave('dark')}
+            className={cn(
+              'flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+              theme === 'dark'
+                ? 'bg-amber-500/20 text-amber-400'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Moon className="h-3.5 w-3.5" strokeWidth={1.8} />
+            Dark
+          </button>
+          <button
+            onClick={() => setThemeAndSave('light')}
+            className={cn(
+              'flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors',
+              theme === 'light'
+                ? 'bg-amber-500/20 text-amber-400'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Sun className="h-3.5 w-3.5" strokeWidth={1.8} />
+            Light
+          </button>
+        </div>
       </div>
     </SettingsCard>
   );
