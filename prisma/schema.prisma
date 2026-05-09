@@ -118,6 +118,7 @@ model UserSettings {
   // Display preferences
   videoBackground Boolean @default(true)
   dmExperience    String?
+  theme           String  @default("dark")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
