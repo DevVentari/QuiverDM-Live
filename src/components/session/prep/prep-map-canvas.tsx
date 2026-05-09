@@ -276,6 +276,7 @@ export function PrepMapCanvas({ campaignId, cards, onCardChange, onCardDrop }: P
 
   return (
     <div
+      data-testid="prep-map-canvas"
       className="relative w-full h-full flex flex-col"
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
