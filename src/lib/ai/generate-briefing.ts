@@ -96,7 +96,8 @@ export async function generateBriefingCards(input: GenerateBriefingInput): Promi
       id: crypto.randomUUID(),
       status: 'proposed' as const,
     }));
-  } catch {
+  } catch (err) {
+    console.warn('[generateBriefingCards] failed to parse AI response', err instanceof Error ? err.message : err, raw.slice(0, 300));
     return [];
   }
 }

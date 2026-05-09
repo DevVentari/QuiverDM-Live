@@ -524,7 +524,7 @@ export function AdminSettingsPanel() {
           </div>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href="/admin/users">
+          <Link href="/admin">
             Open
             <ExternalLink className="ml-2 h-4 w-4" />
           </Link>

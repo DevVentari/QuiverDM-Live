@@ -573,13 +573,17 @@ export const sessionsRouter = router({
       ]);
 
       const hooks = Array.isArray(state.hooks)
-        ? (state.hooks as Array<{ text: string; urgency: string; status?: string }>).filter(
-            (h) => h.status === 'open' || !h.status
-          )
+        ? (state.hooks as Array<Record<string, unknown>>)
+            .filter((h) => h.status === 'open' || !h.status)
+            .filter((h) => typeof h.text === 'string' && h.text.length > 0)
+            .map((h) => ({ text: String(h.text), urgency: String(h.urgency ?? 'unknown') }))
         : [];
 
       const threats = Array.isArray(state.threats)
-        ? (state.threats as Array<{ name?: string; description?: string }>)
+        ? (state.threats as Array<Record<string, unknown>>).map((t) => ({
+            name: typeof t.name === 'string' ? t.name : undefined,
+            description: typeof t.description === 'string' ? t.description : undefined,
+          }))
         : [];
 
       const recentChanges = (() => {

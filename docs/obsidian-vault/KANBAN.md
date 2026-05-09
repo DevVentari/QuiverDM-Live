@@ -7,6 +7,7 @@ kanban-plugin: board
 ## 🔴 Now — Alpha Launch Blockers
 
 - [x] **E2E — DM Brain** — Three-layer test coverage. (1) Playwright `brain.workflow.spec.ts`: extend with seed→entities-appear flow, entity detail page (relationships + properties sections), hook resolve removes from list, entity list navigation — add `data-testid` attrs to EntityCard/HookList/seed button. (2) Vitest integration test `tests/services/brain-ingestion.test.ts`: call `processBrainIngestionJob` directly with mocked `chatWithAI` returning deterministic JSON, assert entities/hooks created in DB. (3) `veteran-dm.persona.spec.ts`: add brain-seeded-and-accessible checkpoint. Session Cockpit E2E tabled — cockpit deprioritised. Persona: veteran-dm (Vic) primary.
+- [ ] **Admin Console** — Standalone `/admin` surface outside the main app shell. Needs platform overview, account detail drill-down, role/plan controls, suspension/reset actions, and API usage visibility tied to database state. Workflow coverage: `tests/workflows/admin-console.workflow.spec.ts`.
 
 
 ## 🟡 Next — Post-Alpha

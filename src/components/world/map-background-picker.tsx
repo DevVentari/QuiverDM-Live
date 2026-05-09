@@ -119,7 +119,7 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
             </Button>
           </TabsContent>
           <TabsContent value="upload" className="mt-4 flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">Upload a PNG, JPG, or WebP (Inkarnate export, hand-drawn scan, etc.). Max 20 MB.</p>
+            <p className="text-sm text-muted-foreground">Upload a PNG, JPG, or WebP (Inkarnate export, hand-drawn scan, etc.). Max 30 MB.</p>
             <input
               ref={fileInputRef}
               type="file"
