@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ReactFlow,
   useNodesState,
@@ -12,7 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { trpc } from '@/lib/trpc';
-import { Loader2, ChevronDown } from 'lucide-react';
+import { Loader2, ChevronDown, ImagePlus } from 'lucide-react';
 import { CanonPinNode, type CanonPinData } from './canon-pin-node';
 import { BriefingPinNode, type BriefingPinData } from './briefing-pin-node';
 import { BriefingPinCard } from './briefing-pin-card';
@@ -182,10 +182,46 @@ export function PrepMapCanvas({ campaignId, cards, onCardChange, onCardDrop }: P
   const maps = mapsQuery.data ?? [];
   const rootMap = maps.find((m) => !m.parentLocationId);
   const [activeMapId, setActiveMapId] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const createRoot = trpc.worldMap.createRoot.useMutation({
+    onSuccess: () => mapsQuery.refetch(),
+  });
+  const uploadMapBackground = trpc.worldMap.uploadMapBackground.useMutation({
+    onSuccess: () => mapsQuery.refetch(),
+  });
 
   useEffect(() => {
     if (rootMap && !activeMapId) setActiveMapId(rootMap.id);
   }, [rootMap, activeMapId]);
+
+  async function handleMapImageFile(file: File) {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload/map-background', { method: 'POST', body: fd });
+      if (!res.ok) throw new Error('Upload failed');
+      const { url } = await res.json() as { url: string };
+
+      let mapId = rootMap?.id;
+      if (!mapId) {
+        const created = await createRoot.mutateAsync({
+          campaignId,
+          name: 'World Map',
+          backgroundType: 'UPLOADED',
+          backgroundUrl: url,
+        });
+        mapId = created.id;
+        setActiveMapId(created.id);
+      } else {
+        await uploadMapBackground.mutateAsync({ mapId, campaignId, backgroundUrl: url });
+      }
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function handleDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
@@ -199,13 +235,41 @@ export function PrepMapCanvas({ campaignId, cards, onCardChange, onCardDrop }: P
     onCardDrop(card, x, y, activeMapId);
   }
 
+  if (!activeMapId && !mapsQuery.isLoading) {
+    return (
+      <div
+        className="w-full h-full flex flex-col items-center justify-center gap-3 cursor-pointer group"
+        style={{ background: 'oklch(0.1 0.005 265)' }}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleMapImageFile(f);
+          }}
+        />
+        {uploading ? (
+          <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'oklch(0.7 0.16 55)' }} />
+        ) : (
+          <>
+            <ImagePlus className="h-8 w-8 opacity-30 group-hover:opacity-60 transition-opacity" style={{ color: 'oklch(0.7 0.16 55)' }} />
+            <p className="text-xs font-[family-name:var(--q-font-display)] tracking-widest uppercase" style={{ color: 'oklch(0.4 0.01 270)' }}>
+              Click to set world map
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
+
   if (!activeMapId) {
     return (
       <div className="w-full h-full flex items-center justify-center" style={{ background: 'oklch(0.1 0.005 265)' }}>
-        {mapsQuery.isLoading
-          ? <Loader2 className="h-5 w-5 animate-spin" style={{ color: 'oklch(0.7 0.16 55)' }} />
-          : <p className="text-xs" style={{ color: 'oklch(0.4 0.01 270)' }}>No world map yet. Create one on the World page.</p>
-        }
+        <Loader2 className="h-5 w-5 animate-spin" style={{ color: 'oklch(0.7 0.16 55)' }} />
       </div>
     );
   }
@@ -216,6 +280,30 @@ export function PrepMapCanvas({ campaignId, cards, onCardChange, onCardDrop }: P
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) handleMapImageFile(f);
+        }}
+      />
+
+      {/* Replace background button */}
+      <button
+        className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center rounded-sm opacity-0 hover:opacity-100 transition-opacity"
+        style={{ background: 'oklch(0.16 0.008 265 / 0.85)', border: '1px solid oklch(0.3 0.01 270)' }}
+        onClick={() => fileInputRef.current?.click()}
+        title="Set map background"
+      >
+        {uploading
+          ? <Loader2 className="h-3 w-3 animate-spin" style={{ color: 'oklch(0.7 0.16 55)' }} />
+          : <ImagePlus className="h-3 w-3" style={{ color: 'oklch(0.6 0.01 270)' }} />
+        }
+      </button>
+
       {maps.length > 1 && (
         <div className="absolute top-2 left-2 z-10 flex items-center gap-1">
           <div className="relative">
