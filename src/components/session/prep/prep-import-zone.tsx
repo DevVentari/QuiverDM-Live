@@ -136,7 +136,10 @@ export function PrepImportZone({ sessionId, campaignId, onExtracted, lastImporte
                 e.preventDefault();
                 setDragging(false);
                 const file = e.dataTransfer.files[0];
-                if (file) handleFile(file);
+                if (!file) return;
+                const ok = file.type === 'application/pdf' || file.type.startsWith('image/');
+                if (!ok) { setError('Only PDF or image files are supported here.'); return; }
+                handleFile(file);
               }}
               onClick={() => fileRef.current?.click()}
             >
