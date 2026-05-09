@@ -231,7 +231,7 @@ export function PrepWorkspace({
           {focusedCard ? (
             <BriefingPinCard
               card={focusedCard}
-              onUpdate={updateCard}
+              onChange={updateCard}
               onClose={() => setFocusedCardId(null)}
             />
           ) : (
