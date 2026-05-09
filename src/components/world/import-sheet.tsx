@@ -114,6 +114,9 @@ export function ImportSheet({
     setEntities([]); setEntityChecked(new Set());
     setJsonFiles([]); setJsonPreviews([]); setJsonChecked(new Set());
     setPdfFilename('');
+    if (jsonFileRef.current) jsonFileRef.current.value = '';
+    if (mdFileRef.current) mdFileRef.current.value = '';
+    if (pdfFileRef.current) pdfFileRef.current.value = '';
   }
 
   function handleClose() { reset(); onOpenChange(false); }
@@ -268,7 +271,7 @@ export function ImportSheet({
                   className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border/40 rounded-md py-10 cursor-pointer hover:border-amber-500/40 hover:bg-white/[0.02] transition-colors"
                 >
                   <FileJson className="h-6 w-6 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground/60">Click to choose JSON files (up to 30)</p>
+                  <p className="text-sm text-muted-foreground/60">Click to choose JSON files (up to 50)</p>
                   <p className="text-xs text-muted-foreground/40">200KB per file · multi-select supported</p>
                 </div>
                 <input
@@ -318,7 +321,7 @@ export function ImportSheet({
             {format === 'pdf' && (
               <>
                 <div
-                  onClick={() => pdfFileRef.current?.click()}
+                  onClick={() => !pdfUploading && pdfFileRef.current?.click()}
                   className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border/40 rounded-md py-10 cursor-pointer hover:border-amber-500/40 hover:bg-white/[0.02] transition-colors"
                 >
                   <Upload className="h-6 w-6 text-muted-foreground/40" />
@@ -327,7 +330,7 @@ export function ImportSheet({
                   </p>
                   <p className="text-xs text-muted-foreground/40">Converted via Docling · max 25MB</p>
                 </div>
-                <input ref={pdfFileRef} type="file" accept=".pdf" className="hidden" onChange={handlePdfFileChange} />
+                <input ref={pdfFileRef} type="file" accept=".pdf" className="hidden" onChange={handlePdfFileChange} disabled={pdfUploading} />
               </>
             )}
           </div>
@@ -339,7 +342,7 @@ export function ImportSheet({
             <Loader2 className="h-6 w-6 animate-spin text-amber-400/60" />
             <p className="text-sm text-center">{loadingLabel}</p>
             <p className="text-xs text-muted-foreground/40 text-center">
-              {format === 'json' ? 'Parsing all files…' : 'This can take 15–30 seconds'}
+              {format === 'json' ? 'No AI needed — parsing directly' : 'This can take 15–30 seconds'}
             </p>
           </div>
         )}
