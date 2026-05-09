@@ -11,9 +11,10 @@ interface BriefingBoardProps {
   campaignId: string;
   cards: BriefingCard[];
   onCardsChange: (cards: BriefingCard[]) => void;
+  onPlaceCard?: (cardId: string) => void;
 }
 
-export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange }: BriefingBoardProps) {
+export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onPlaceCard }: BriefingBoardProps) {
   const [addingCard, setAddingCard] = useState(false);
   const [newCardText, setNewCardText] = useState('');
 
@@ -63,7 +64,7 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange }: B
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col h-full" data-testid="briefing-rail">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span
@@ -98,7 +99,18 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange }: B
 
       <div className="space-y-2">
         {cards.map((card) => (
-          <PressureCard key={card.id} card={card} onChange={updateCard} />
+          <div key={card.id}>
+            <PressureCard card={card} onChange={updateCard} />
+            {onPlaceCard && card.status !== 'accepted' && card.status !== 'dismissed' && (
+              <button
+                onClick={() => onPlaceCard(card.id)}
+                className="mt-0.5 w-full text-left text-[10px] px-2 py-1 rounded-sm opacity-45 hover:opacity-100 transition-opacity"
+                style={{ color: 'oklch(0.7 0.16 55)' }}
+              >
+                + Place on map
+              </button>
+            )}
+          </div>
         ))}
       </div>
 

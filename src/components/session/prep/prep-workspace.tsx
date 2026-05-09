@@ -7,9 +7,11 @@ import { useAutoSave } from '@/hooks/use-auto-save';
 import { trpc } from '@/lib/trpc';
 import { emptyPrepData, type SessionPrepData } from '@/lib/prep-types';
 import { PrepHeader } from './prep-header';
-import { PrepImportZone } from './prep-import-zone';
+import { PrepImportButton } from './prep-import-button';
 import { BriefingBoard } from './briefing-board';
 import { PartyStateSection } from './party-state-section';
+import { PrepMapCanvas } from './prep-map-canvas';
+import { BriefingPinCard } from './briefing-pin-card';
 import type { BriefingCard } from '@/lib/briefing-types';
 
 type CampaignContext = {
@@ -20,11 +22,13 @@ type CampaignContext = {
 };
 
 function migrateNpcIds(data: SessionPrepData): SessionPrepData {
-  const needsMigration = data.npcs.some(npc => !npc.id);
+  const needsMigration = data.npcs.some((npc) => !npc.id);
   if (!needsMigration) return data;
   return {
     ...data,
-    npcs: data.npcs.map(npc => npc.id ? npc : { ...npc, id: npc.npcId ?? crypto.randomUUID() }),
+    npcs: data.npcs.map((npc) =>
+      npc.id ? npc : { ...npc, id: npc.npcId ?? crypto.randomUUID() }
+    ),
   };
 }
 
@@ -54,8 +58,12 @@ export function PrepWorkspace({
   const router = useRouter();
   const { toast } = useToast();
 
-  const [prepData, setPrepData] = useState<SessionPrepData>(() => migrateNpcIds(initialData ?? emptyPrepData()));
+  const [prepData, setPrepData] = useState<SessionPrepData>(() =>
+    migrateNpcIds(initialData ?? emptyPrepData())
+  );
   const [title, setTitle] = useState(initialTitle);
+  const [focusedCardId, setFocusedCardId] = useState<string | null>(null);
+  const [placingCardId, setPlacingCardId] = useState<string | null>(null);
 
   const updatePrep = trpc.sessions.updatePrep.useMutation();
   const updateSession = trpc.sessions.update.useMutation();
@@ -69,18 +77,21 @@ export function PrepWorkspace({
       }
     },
     onError: (error) =>
-      toast({ title: 'Failed to complete prep', description: error.message, variant: 'destructive' }),
+      toast({
+        title: 'Failed to complete prep',
+        description: error.message,
+        variant: 'destructive',
+      }),
   });
 
   useEffect(() => {
     const needsMigration = initialData.npcs.some((npc) => !npc.id);
     if (!needsMigration) return;
     updatePrep.mutate({ id: sessionId, prepData: migrateNpcIds(initialData) });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   const savePayload = useMemo(() => ({ prepData, title }), [prepData, title]);
-
   const onSave = useCallback(
     async (payload: typeof savePayload) => {
       await updatePrep.mutateAsync({ id: sessionId, prepData: payload.prepData });
@@ -88,16 +99,28 @@ export function PrepWorkspace({
     },
     [sessionId, updatePrep, updateSession]
   );
-
   const { status: saveStatus } = useAutoSave(savePayload, onSave, 2000);
 
-  function handleExtracted(extracted: Partial<SessionPrepData>) {
-    const parts: string[] = [];
-    if (extracted.strongStart) parts.push(`Strong start: ${extracted.strongStart}`);
-    if (extracted.scenes?.length) parts.push(`Scenes: ${extracted.scenes.map((s) => s.title).join(', ')}`);
-    if (extracted.npcs?.length) parts.push(`NPCs: ${extracted.npcs.map((n) => n.name).join(', ')}`);
-    if (extracted.looseThreads?.length) parts.push(`Threads: ${extracted.looseThreads.map((t) => t.text.slice(0, 60)).join(', ')}`);
+  function updateCard(updated: BriefingCard) {
+    setPrepData((p) => ({
+      ...p,
+      briefingCards: (p.briefingCards ?? []).map((c) =>
+        c.id === updated.id ? updated : c
+      ),
+    }));
+  }
 
+  function handleExtracted(data: Partial<SessionPrepData>, _sectionCounts: Record<string, number>) {
+    const parts: string[] = [];
+    if (data.strongStart) parts.push(`Strong start: ${data.strongStart}`);
+    if (data.scenes?.length)
+      parts.push(`Scenes: ${data.scenes.map((s) => s.title).join(', ')}`);
+    if (data.npcs?.length)
+      parts.push(`NPCs: ${data.npcs.map((n) => n.name).join(', ')}`);
+    if (data.looseThreads?.length)
+      parts.push(
+        `Threads: ${data.looseThreads.map((t) => t.text.slice(0, 60)).join(', ')}`
+      );
     if (parts.length === 0) return;
 
     const card: BriefingCard = {
@@ -113,14 +136,45 @@ export function PrepWorkspace({
     setPrepData((p) => ({
       ...p,
       briefingCards: [...(p.briefingCards ?? []), card],
-      importedNotes: [...(p.importedNotes ?? []), { extractedAt: importedAt, sectionCounts: {} }],
+      importedNotes: [
+        ...(p.importedNotes ?? []),
+        { extractedAt: importedAt, sectionCounts: {} },
+      ],
     }));
   }
+
+  function handlePinFocus(cardId: string) {
+    setFocusedCardId(cardId);
+    setPlacingCardId(null);
+  }
+
+  function handlePlaceCard(cardId: string, x: number, y: number, mapId: string) {
+    setPrepData((p) => ({
+      ...p,
+      briefingCards: (p.briefingCards ?? []).map((c) =>
+        c.id === cardId
+          ? { ...c, mapCoords: { placement: 'proposed' as const, mapId, x, y } }
+          : c
+      ),
+    }));
+    setPlacingCardId(null);
+  }
+
+  const allCards = prepData.briefingCards ?? [];
+  const spatialCards = allCards.filter((c) => !!c.mapCoords);
+  const railCards = allCards.filter((c) => !c.mapCoords);
+
+  const focusedCard = focusedCardId
+    ? allCards.find((c) => c.id === focusedCardId) ?? null
+    : null;
 
   const lastImport = prepData.importedNotes?.[prepData.importedNotes.length - 1];
 
   return (
-    <div className={inline ? 'flex flex-col' : 'flex flex-col min-h-screen'}>
+    <div
+      className={inline ? 'flex flex-col' : 'flex flex-col h-screen'}
+      style={inline ? { minHeight: '65vh' } : undefined}
+    >
       {!inline && (
         <PrepHeader
           title={title}
@@ -136,53 +190,76 @@ export function PrepWorkspace({
         />
       )}
 
-      <div className="flex flex-1">
-        <main className="flex-1 min-w-0">
-          <div className="px-6 py-4">
-            <PrepImportZone
-              sessionId={sessionId}
+      <div className="flex flex-1 overflow-hidden min-h-0">
+        {/* Left: map + party strip */}
+        <div className="flex flex-col flex-1 overflow-hidden min-w-0">
+          <div className="flex-1 relative min-h-0">
+            <PrepMapCanvas
               campaignId={campaignId}
-              onExtracted={(data) => handleExtracted(data)}
-              lastImportedAt={lastImport?.extractedAt}
+              spatialCards={spatialCards}
+              focusedCardId={focusedCardId}
+              onPinFocus={handlePinFocus}
+              placingCardId={placingCardId}
+              onPlaceCard={handlePlaceCard}
             />
           </div>
-
-          <div className="px-6 pb-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            {/* Left — Party State */}
-            <PartyStateSection
-              characterNotes={prepData.characterNotes}
-              campaignCharacters={(campaignContext.characters ?? []) as Array<{ id: string; name: string; race?: string | null; class?: string | null; subclass?: string | null; level?: number | null; portraitUrl?: string | null }>}
-              onChange={(notes) => setPrepData((p) => ({ ...p, characterNotes: notes }))}
-            />
-
-            {/* Right — World Pressure */}
-            <BriefingBoard
-              sessionId={sessionId}
-              campaignId={campaignId}
-              cards={prepData.briefingCards ?? []}
-              onCardsChange={(cards) => setPrepData((p) => ({ ...p, briefingCards: cards }))}
-            />
-          </div>
-        </main>
-      </div>
-
-      {!inline && (
-        <div className="md:hidden border-t border-border/50 px-4 py-3 flex items-center justify-between"
-          style={{ background: 'hsl(240 10% 5% / 0.97)', backdropFilter: 'blur(12px)' }}>
-          <span className="text-xs" style={{ color: 'hsl(35 10% 48%)' }}>
-            {(prepData.briefingCards ?? []).filter((c) => c.status !== 'proposed').length} /{' '}
-            {(prepData.briefingCards ?? []).length} reviewed
-          </span>
-          <button
-            onClick={() => completePrep.mutate({ id: sessionId })}
-            disabled={completePrep.isPending}
-            className="text-xs font-semibold px-3 py-1.5 rounded-sm"
-            style={{ background: 'hsl(35 70% 18%)', border: '1px solid hsl(35 60% 32%)', color: 'hsl(35 80% 65%)' }}
-          >
-            {completePrep.isPending ? 'Saving…' : 'Mark Complete'}
-          </button>
+          <PartyStateSection
+            characterNotes={prepData.characterNotes}
+            campaignCharacters={
+              (campaignContext.characters ?? []) as Array<{
+                id: string;
+                name: string;
+                race?: string | null;
+                class?: string | null;
+                subclass?: string | null;
+                level?: number | null;
+                portraitUrl?: string | null;
+              }>
+            }
+            onChange={(notes) => setPrepData((p) => ({ ...p, characterNotes: notes }))}
+          />
         </div>
-      )}
+
+        {/* Right: rail or focused card */}
+        <div
+          className="w-[300px] xl:w-[320px] shrink-0 flex flex-col border-l overflow-hidden"
+          style={{
+            borderColor: 'oklch(0.2 0.005 270)',
+            background: 'oklch(0.115 0.005 265)',
+          }}
+        >
+          {focusedCard ? (
+            <BriefingPinCard
+              card={focusedCard}
+              onUpdate={updateCard}
+              onClose={() => setFocusedCardId(null)}
+            />
+          ) : (
+            <>
+              <PrepImportButton
+                sessionId={sessionId}
+                campaignId={campaignId}
+                lastImportedAt={lastImport?.extractedAt}
+                onExtracted={handleExtracted}
+              />
+              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 p-3">
+                <BriefingBoard
+                  sessionId={sessionId}
+                  campaignId={campaignId}
+                  cards={railCards}
+                  onCardsChange={(updatedRailCards) => {
+                    setPrepData((p) => ({
+                      ...p,
+                      briefingCards: [...spatialCards, ...updatedRailCards],
+                    }));
+                  }}
+                  onPlaceCard={(cardId) => setPlacingCardId(cardId)}
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
