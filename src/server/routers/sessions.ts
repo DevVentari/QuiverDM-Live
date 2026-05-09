@@ -107,9 +107,59 @@ export const sessionsRouter = router({
    */
   completePrep: protectedProcedure
     .input(z.object({ id: z.string().min(1) }))
-    .mutation(({ input, ctx }) =>
-      sessionService.completePrep(input.id, ctx.session.user.id)
-    ),
+    .mutation(async ({ input, ctx }) => {
+      const session = await prisma.gameSession.findUniqueOrThrow({
+        where: { id: input.id },
+        select: { prepData: true, campaignId: true },
+      });
+
+      const parsed = SessionPrepDataSchema.safeParse(session.prepData);
+      if (parsed.success) {
+        const acceptedSpatial = (parsed.data.briefingCards ?? []).filter(
+          (c) => (c.status === 'accepted' || c.status === 'edited') && c.mapCoords
+        );
+
+        await Promise.all(
+          acceptedSpatial.map(async (card) => {
+            const coords = card.mapCoords!;
+            if (!card.entityId) return;
+
+            const existing = await prisma.mapPin.findFirst({
+              where: { entityId: card.entityId, mapId: coords.mapId },
+            });
+            if (existing) {
+              await prisma.mapPin.update({
+                where: { id: existing.id },
+                data: { lastEventAt: new Date() },
+              });
+            } else {
+              await prisma.mapPin.create({
+                data: {
+                  mapId: coords.mapId,
+                  entityId: card.entityId,
+                  x: coords.x,
+                  y: coords.y,
+                  lastEventAt: new Date(),
+                },
+              });
+            }
+
+            await prisma.sessionEntityAppearance.upsert({
+              where: { sessionId_entityId: { sessionId: input.id, entityId: card.entityId } },
+              create: {
+                sessionId: input.id,
+                entityId: card.entityId,
+                campaignId: session.campaignId,
+                role: card.type,
+              },
+              update: {},
+            });
+          })
+        );
+      }
+
+      return sessionService.completePrep(input.id, ctx.session.user.id);
+    }),
 
   /**
    * Get context needed for the prep wizard (characters, NPCs, recent sessions, homebrew).
@@ -611,14 +661,102 @@ export const sessionsRouter = router({
           threats,
         },
         recentChanges,
-        entities: entities.map((e) => ({
-          name: e.name,
-          type: e.type,
-          description: e.description,
-        })),
+        entities: entities.map((e) => {
+          const pin = e.mapPins?.[0];
+          return {
+            name: e.name,
+            type: e.type,
+            description: e.description,
+            mapPin: pin ? { mapId: pin.mapId, x: pin.x, y: pin.y } : null,
+          };
+        }),
       });
 
-      return { cards };
+      // Deterministic auto-placement: match entityName → entity, assign mapCoords
+      const enriched = cards.map((card) => {
+        const entity = entities.find(
+          (e) => e.name.toLowerCase() === card.entityName.toLowerCase()
+        );
+
+        if (!entity) return card;
+
+        const pin = entity.mapPins?.[0];
+
+        if (pin) {
+          return {
+            ...card,
+            entityId: entity.id,
+            mapCoords: {
+              placement: 'auto' as const,
+              mapId: pin.mapId,
+              x: pin.x,
+              y: pin.y,
+            },
+          };
+        }
+
+        return { ...card, entityId: entity.id };
+      });
+
+      return { cards: enriched };
+    }),
+
+  acceptBriefingCards: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const session = await prisma.gameSession.findUnique({
+        where: { id: input.sessionId },
+        select: { prepData: true },
+      });
+      if (!session) throw new TRPCError({ code: 'NOT_FOUND', message: 'Session not found' });
+
+      const { BriefingCardSchema } = await import('@/lib/briefing-types');
+      const prepDataRaw = session.prepData as Record<string, unknown> | null;
+      const cardsRaw = Array.isArray(prepDataRaw?.briefingCards) ? prepDataRaw.briefingCards : [];
+      const cards = cardsRaw
+        .map((c) => BriefingCardSchema.safeParse(c))
+        .filter((r) => r.success)
+        .map((r) => r.data!);
+
+      const accepted = cards.filter((c) => c.status === 'accepted');
+
+      let pinsUpserted = 0;
+      let appearancesRecorded = 0;
+
+      for (const card of accepted) {
+        if (card.entityId) {
+          await brainRepository.recordAppearance({
+            sessionId: input.sessionId,
+            entityId: card.entityId,
+            campaignId: input.campaignId,
+            role: card.type,
+          });
+          appearancesRecorded++;
+        }
+
+        const coords = card.mapCoords;
+        if (card.entityId && coords) {
+          await prisma.mapPin.upsert({
+            where: { mapId_entityId: { mapId: coords.mapId, entityId: card.entityId } },
+            create: {
+              mapId: coords.mapId,
+              entityId: card.entityId,
+              x: coords.x,
+              y: coords.y,
+              lastEventAt: new Date(),
+            },
+            update: { lastEventAt: new Date() },
+          });
+          pinsUpserted++;
+        }
+      }
+
+      return { pinsUpserted, appearancesRecorded };
     }),
 
   updateActiveScene: campaignDMProcedure
