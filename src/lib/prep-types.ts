@@ -117,6 +117,7 @@ export type PrepMonster = z.infer<typeof MonsterSchema>;
 export type PrepReward = z.infer<typeof RewardSchema>;
 export type PrepLooseThread = z.infer<typeof LooseThreadSchema>;
 export type ImportedNote = z.infer<typeof ImportedNoteSchema>;
+export type { BriefingCard } from './briefing-types';
 
 // ---------------------------------------------------------------------------
 // Default empty prep data
