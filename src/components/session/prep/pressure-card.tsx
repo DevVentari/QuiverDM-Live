@@ -2,45 +2,68 @@
 
 import { useState } from 'react';
 import { Check, X, Pencil, Plus, ChevronDown, ChevronUp } from 'lucide-react';
+import { DndIcon } from '@/components/ui/dnd-icon';
+import type { DndIconName } from '@/components/ui/dnd-icon';
 import type { BriefingCard, BriefingCardType } from '@/lib/briefing-types';
 
-const TYPE_META: Record<BriefingCardType | 'CUSTOM', { label: string; color: string; bg: string; border: string; bar: string }> = {
+const TYPE_META: Record<BriefingCardType | 'CUSTOM', {
+  label: string; color: string; bg: string; border: string; bar: string; icon: DndIconName;
+}> = {
   FACTION: {
     label: 'Faction',
     color: 'oklch(0.65 0.2 25)',
-    bg: 'oklch(0.65 0.2 25 / 0.08)',
+    bg: 'oklch(0.65 0.2 25 / 0.1)',
     border: 'oklch(0.65 0.2 25 / 0.4)',
     bar: 'oklch(0.65 0.2 25)',
+    icon: 'entity/faction',
   },
   NPC: {
     label: 'NPC',
     color: 'oklch(0.65 0.12 290)',
-    bg: 'oklch(0.65 0.12 290 / 0.08)',
+    bg: 'oklch(0.65 0.12 290 / 0.1)',
     border: 'oklch(0.65 0.12 290 / 0.4)',
     bar: 'oklch(0.6 0.1 200)',
+    icon: 'entity/npc',
   },
   HOOK: {
     label: 'Hook',
     color: 'oklch(0.7 0.16 55)',
-    bg: 'oklch(0.7 0.16 55 / 0.08)',
+    bg: 'oklch(0.7 0.16 55 / 0.1)',
     border: 'oklch(0.7 0.16 55 / 0.4)',
     bar: 'oklch(0.7 0.16 55)',
+    icon: 'game/quest',
   },
   REGION: {
     label: 'Region',
     color: 'oklch(0.6 0.12 170)',
-    bg: 'oklch(0.6 0.12 170 / 0.08)',
+    bg: 'oklch(0.6 0.12 170 / 0.1)',
     border: 'oklch(0.6 0.12 170 / 0.4)',
     bar: 'oklch(0.6 0.12 170)',
+    icon: 'entity/location',
   },
   CUSTOM: {
     label: 'Custom',
     color: 'oklch(0.55 0.01 270)',
-    bg: 'oklch(0.55 0.01 270 / 0.08)',
+    bg: 'oklch(0.55 0.01 270 / 0.1)',
     border: 'oklch(0.55 0.01 270 / 0.4)',
     bar: 'oklch(0.45 0.01 270)',
+    icon: 'util/star',
   },
 };
+
+function TypeBadge({ meta }: { meta: (typeof TYPE_META)[keyof typeof TYPE_META] }) {
+  return (
+    <span
+      className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm border shrink-0"
+      style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
+    >
+      <DndIcon name={meta.icon} className="w-3 h-3" style={{ filter: `drop-shadow(0 0 2px ${meta.color})` }} />
+      <span className="text-[8px] font-[family-name:var(--q-font-display)] uppercase tracking-wider">
+        {meta.label}
+      </span>
+    </span>
+  );
+}
 
 function UrgencyPips({ level }: { level: number }) {
   const pipColor = (filled: boolean, lvl: number) => {
@@ -84,28 +107,21 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
         <div className="h-[2px]" style={{ background: `linear-gradient(to right, ${meta.bar}, transparent)` }} />
         <div className="px-3 py-2 flex items-center gap-2.5">
           <Check className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.65 0.15 145)' }} />
-          <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-            <span
-              className="font-[family-name:var(--q-font-display)] text-[11.5px]"
-              style={{ color: 'oklch(0.7 0.01 270)' }}
-            >
-              {card.entityName}
+          <span
+            className="font-[family-name:var(--q-font-display)] text-[11.5px] flex-1 min-w-0 truncate"
+            style={{ color: 'oklch(0.7 0.01 270)' }}
+          >
+            {card.entityName}
+          </span>
+          <TypeBadge meta={meta} />
+          {card.status === 'edited' && (
+            <span className="text-[9px] uppercase tracking-wider" style={{ color: 'oklch(0.5 0.01 270)' }}>
+              edited
             </span>
-            <span
-              className="text-[8.5px] px-1.5 py-0.5 rounded-sm border font-[family-name:var(--q-font-display)] uppercase tracking-wider"
-              style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
-            >
-              {meta.label}
-            </span>
-            {card.status === 'edited' && (
-              <span className="text-[9px] uppercase tracking-wider" style={{ color: 'oklch(0.5 0.01 270)' }}>
-                edited
-              </span>
-            )}
-          </div>
+          )}
           <button
             onClick={() => onChange({ ...card, status: 'proposed', dmNote: undefined })}
-            className="text-[10px] shrink-0"
+            className="text-[10px] shrink-0 ml-1"
             style={{ color: 'oklch(0.4 0.01 270)' }}
           >
             Undo
@@ -176,12 +192,7 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
         onClick={() => setExpanded((v) => !v)}
         className="w-full px-3 py-2.5 flex items-center gap-2 text-left"
       >
-        <span
-          className="text-[8px] px-1.5 py-0.5 rounded-sm border font-[family-name:var(--q-font-display)] uppercase tracking-wider shrink-0"
-          style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
-        >
-          {meta.label}
-        </span>
+        <TypeBadge meta={meta} />
         <span
           className="font-[family-name:var(--q-font-display)] text-[12px] font-semibold flex-1 min-w-0 truncate"
           style={{ color: 'oklch(0.88 0.01 270)' }}
