@@ -100,6 +100,7 @@ export const userSettingsRouter = router({
         hasGeminiApiKey: !!settings.geminiApiKey,
         maskedGeminiApiKey: settings.geminiApiKey ? (() => { try { return maskApiKey(decrypt(settings.geminiApiKey!)); } catch { return null; } })() : null,
         videoBackground: settings.videoBackground,
+        theme: settings.theme ?? 'dark',
         createdAt: settings.createdAt,
         updatedAt: settings.updatedAt,
       };
@@ -190,6 +191,7 @@ export const userSettingsRouter = router({
     .input(
       z.object({
         videoBackground: z.boolean().optional(),
+        theme: z.enum(['dark', 'light']).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
