@@ -37,18 +37,20 @@ export type DndIconName =
   // Dice
   | 'dice/d4' | 'dice/d6' | 'dice/d8' | 'dice/d10' | 'dice/d12' | 'dice/d20' | 'dice/d100'
   | 'dice/coin' | 'dice/generic'
-  // Entities
+  // Entities (actual files: archive armor book location loot magic-item map mount object organization pack person pet potion ring scroll ship spellbook summon time tool trinket vehicle wand weapon world)
   | 'entity/beast' | 'entity/character' | 'entity/deity' | 'entity/dragon'
   | 'entity/elemental' | 'entity/faction' | 'entity/fey' | 'entity/fiend' | 'entity/giant'
   | 'entity/humanoid' | 'entity/item' | 'entity/location' | 'entity/monstrosity'
   | 'entity/npc' | 'entity/ooze' | 'entity/organization' | 'entity/party' | 'entity/pc'
   | 'entity/plant' | 'entity/quest' | 'entity/session' | 'entity/undead' | 'entity/vehicle'
   | 'entity/aberration' | 'entity/construct' | 'entity/celestial'
-  // Game
+  | 'entity/person' | 'entity/archive' | 'entity/world'
+  // Game (actual files: adventure-book campaign character combat concentration dm explore hazard inspiration lock monster party puzzle rest social source-book spell trap)
   | 'game/adventure' | 'game/backstory' | 'game/campaign' | 'game/character-sheet'
   | 'game/combat' | 'game/encounter' | 'game/inspiration' | 'game/lore' | 'game/magic'
   | 'game/map' | 'game/npc' | 'game/quest' | 'game/rest' | 'game/reward'
   | 'game/roleplay' | 'game/session' | 'game/tavern' | 'game/treasure'
+  | 'game/character' | 'game/explore' | 'game/hazard' | 'game/social' | 'game/trap'
   // HP
   | 'hp/bloodied' | 'hp/dead' | 'hp/full' | 'hp/hurt' | 'hp/unconscious'
   // Locations

@@ -96,7 +96,7 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange }: B
         </p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="space-y-2">
         {cards.map((card) => (
           <PressureCard key={card.id} card={card} onChange={updateCard} />
         ))}

@@ -138,25 +138,29 @@ export function PrepWorkspace({
 
       <div className="flex flex-1">
         <main className="flex-1 min-w-0">
-          <div className="px-6 py-6 space-y-6">
+          <div className="px-6 py-4">
             <PrepImportZone
               sessionId={sessionId}
               campaignId={campaignId}
               onExtracted={(data) => handleExtracted(data)}
               lastImportedAt={lastImport?.extractedAt}
             />
+          </div>
 
+          <div className="px-6 pb-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {/* Left — Party State */}
+            <PartyStateSection
+              characterNotes={prepData.characterNotes}
+              campaignCharacters={(campaignContext.characters ?? []) as Array<{ id: string; name: string; race?: string | null; class?: string | null; subclass?: string | null; level?: number | null; portraitUrl?: string | null }>}
+              onChange={(notes) => setPrepData((p) => ({ ...p, characterNotes: notes }))}
+            />
+
+            {/* Right — World Pressure */}
             <BriefingBoard
               sessionId={sessionId}
               campaignId={campaignId}
               cards={prepData.briefingCards ?? []}
               onCardsChange={(cards) => setPrepData((p) => ({ ...p, briefingCards: cards }))}
-            />
-
-            <PartyStateSection
-              characterNotes={prepData.characterNotes}
-              campaignCharacters={(campaignContext.characters ?? []) as Array<{ id: string; name: string; class?: string | null }>}
-              onChange={(notes) => setPrepData((p) => ({ ...p, characterNotes: notes }))}
             />
           </div>
         </main>
