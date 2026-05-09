@@ -167,7 +167,7 @@ export function parseJsonFile(filename: string, raw: string): ParsedFile | null 
     const desc = (entry.description ?? entry.content ?? '').slice(0, 600);
 
     if (jsonType === 'actor') {
-      const isNpc = tagSet.has('npc') || tagSet.has('major');
+      const isNpc = tagSet.has('npc') || tagSet.has('major') || tagSet.has('minor');
       const isMonster = tagSet.has('monsters') || tagSet.has('bestiary');
 
       if (isNpc) {
