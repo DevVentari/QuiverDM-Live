@@ -214,8 +214,12 @@ export class SessionService {
             select: {
               id: true,
               name: true,
+              race: true,
               class: true,
+              subclass: true,
+              level: true,
               background: true,
+              portraitUrl: true,
             },
           },
         },
