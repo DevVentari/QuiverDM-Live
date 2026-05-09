@@ -13,6 +13,8 @@ import { prisma } from '../db';
 import { serverTrack } from '@/lib/analytics.server';
 import { EVENTS } from '@/lib/analytics-events';
 import { extractEntitiesFromMarkdown } from '../services/markdown-extraction.service';
+import { parseJsonFile, buildPreview } from '../services/json-import.service';
+import { brainRepository } from '../repositories/brain.repository';
 
 // =============================================================================
 // Input Schemas
@@ -441,5 +443,140 @@ export const campaignsRouter = router({
       });
 
       return { saved };
+    }),
+
+  importFromJson: campaignDMProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      files: z.array(z.object({
+        filename: z.string(),
+        content: z.string().max(250_000),
+      })).max(50),
+    }))
+    .mutation(async ({ input }) => {
+      const previews = buildPreview(input.files);
+      return { previews };
+    }),
+
+  confirmJsonImport: campaignDMProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      files: z.array(z.object({
+        filename: z.string(),
+        content: z.string().max(250_000),
+      })).max(50),
+      selectedSlugs: z.array(z.string()),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { campaignId, files, selectedSlugs } = input;
+      const userId = ctx.session.user.id;
+      const slugSet = new Set(selectedSlugs);
+
+      let docsCreated = 0;
+      let entitiesCreated = 0;
+      let homebrewCreated = 0;
+      let jobsQueued = 0;
+
+      const { addBrainIngestionJob } = await import('@/lib/queue/brain-ingestion-queue');
+
+      for (const file of files) {
+        const parsed = parseJsonFile(file.filename, file.content);
+        if (!parsed || !slugSet.has(parsed.document.slug)) continue;
+
+        // 1 — CampaignDocument (upsert by slug)
+        await prisma.campaignDocument.upsert({
+          where: { campaignId_slug: { campaignId, slug: parsed.document.slug } },
+          create: {
+            campaignId,
+            title: parsed.document.title,
+            slug: parsed.document.slug,
+            type: parsed.document.type,
+            content: parsed.document.content,
+            data: parsed.document.data as Prisma.InputJsonValue,
+            tags: parsed.document.tags,
+            sourceFile: parsed.document.sourceFile,
+            searchText: parsed.document.searchText,
+            brainIngestStatus: 'pending',
+          },
+          update: {
+            title: parsed.document.title,
+            content: parsed.document.content,
+            data: parsed.document.data as Prisma.InputJsonValue,
+            tags: parsed.document.tags,
+            brainIngestStatus: 'pending',
+          },
+        });
+        docsCreated++;
+
+        // 2 — NPC records
+        for (const npc of parsed.npcs) {
+          const existingNpc = await prisma.nPC.findFirst({
+            where: { campaignId, name: npc.name },
+          });
+          if (!existingNpc) {
+            await prisma.nPC.create({
+              data: {
+                campaignId,
+                name: npc.name,
+                description: npc.description ?? undefined,
+                role: npc.role ?? undefined,
+                stats: npc.stats as Prisma.InputJsonValue,
+                tags: npc.tags,
+              },
+            });
+          }
+          entitiesCreated++;
+        }
+
+        // 3 — Homebrew records (item, creature, race)
+        for (const hb of parsed.homebrew) {
+          let existing = await prisma.homebrewContent.findFirst({
+            where: { userId, name: hb.name, type: hb.type },
+          });
+          if (!existing) {
+            existing = await prisma.homebrewContent.create({
+              data: {
+                userId,
+                type: hb.type,
+                name: hb.name,
+                data: hb.data as Prisma.InputJsonValue,
+                tags: hb.tags,
+                searchText: hb.searchText,
+                sourceType: 'json_import',
+              },
+            });
+            homebrewCreated++;
+          }
+          await prisma.campaignHomebrewContent.upsert({
+            where: { campaignId_homebrewId: { campaignId, homebrewId: existing.id } },
+            update: {},
+            create: { campaignId, homebrewId: existing.id },
+          });
+        }
+
+        // 4 — WorldEntity records (Brain)
+        for (const entity of parsed.entities) {
+          await brainRepository.upsertEntity(campaignId, {
+            type: entity.type,
+            name: entity.name,
+            description: entity.description,
+            properties: entity.properties,
+            sourceType: 'json_import',
+          });
+          entitiesCreated++;
+        }
+
+        // 5 — Queue brain ingestion job
+        const docText = [parsed.document.title, ...parsed.document.tags, parsed.document.content.slice(0, 2000)].join(' ');
+        await addBrainIngestionJob({
+          sessionId: null,
+          campaignId,
+          summary: docText,
+          source: parsed.document.sourceFile,
+        });
+        jobsQueued++;
+      }
+
+      return { docsCreated, entitiesCreated, homebrewCreated, jobsQueued };
     }),
 });
