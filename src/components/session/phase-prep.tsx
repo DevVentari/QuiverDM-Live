@@ -73,7 +73,7 @@ export function PhasePrep({ session, slug, campaignId, onStatusChange }: PhasePr
   if (!contextQuery.data) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col flex-1 min-h-0">
       <PrepWorkspace
         sessionId={sessionId}
         initialData={initialData}
@@ -85,20 +85,22 @@ export function PhasePrep({ session, slug, campaignId, onStatusChange }: PhasePr
         inline
         onComplete={onStatusChange}
       />
-      <button
-        onClick={handleReadyToRun}
-        disabled={acceptCards.isPending || startSession.isPending}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-sm font-[var(--q-font-display)] text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
-        style={{
-          background: 'linear-gradient(180deg, hsl(35 60% 22%) 0%, hsl(35 55% 17%) 100%)',
-          border: '1px solid hsl(35 60% 32%)',
-          color: 'hsl(35 85% 65%)',
-          boxShadow: '0 0 24px hsl(35 60% 20% / 0.5), inset 0 1px 0 hsl(35 80% 50% / 0.15)',
-        }}
-      >
-        <Play className="h-4 w-4" />
-        Ready to Run
-      </button>
+      <div className="shrink-0 px-4 py-2 border-t" style={{ borderColor: 'oklch(0.2 0.005 270)', background: 'oklch(0.11 0.005 265)' }}>
+        <button
+          onClick={handleReadyToRun}
+          disabled={acceptCards.isPending || startSession.isPending}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-sm font-[var(--q-font-display)] text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
+          style={{
+            background: 'linear-gradient(180deg, hsl(35 60% 22%) 0%, hsl(35 55% 17%) 100%)',
+            border: '1px solid hsl(35 60% 32%)',
+            color: 'hsl(35 85% 65%)',
+            boxShadow: '0 0 24px hsl(35 60% 20% / 0.5), inset 0 1px 0 hsl(35 80% 50% / 0.15)',
+          }}
+        >
+          <Play className="h-4 w-4" />
+          Ready to Run
+        </button>
+      </div>
     </div>
   );
 }

@@ -93,7 +93,7 @@ export default function SessionPage({
   return (
     <div className="flex flex-col h-full">
       <PhasePillBar current={phase} />
-      <div className="flex-1 overflow-y-auto">
+      <div className={`flex-1 ${phase === 'prep' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
         {phase === 'prep' && campaign && (
           <PrepWorkspace
             session={session as unknown as Record<string, unknown>}
