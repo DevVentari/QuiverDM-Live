@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import superjson from 'superjson';
 import { Toaster } from '@/components/ui/sonner';
+import { ThemeInitializer } from '@/components/theme-initializer';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 
@@ -82,6 +83,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
               disableTransitionOnChange
             >
               <PostHogUserIdentifier />
+              <ThemeInitializer />
               {children}
               <Toaster />
             </ThemeProvider>
