@@ -11,7 +11,6 @@ import { PrepImportButton } from './prep-import-button';
 import { BriefingBoard } from './briefing-board';
 import { PartyStateSection } from './party-state-section';
 import { PrepMapCanvas } from './prep-map-canvas';
-import { BriefingPinCard } from './briefing-pin-card';
 import type { BriefingCard } from '@/lib/briefing-types';
 
 type CampaignContext = {
@@ -62,7 +61,6 @@ export function PrepWorkspace({
     migrateNpcIds(initialData ?? emptyPrepData())
   );
   const [title, setTitle] = useState(initialTitle);
-  const [focusedCardId, setFocusedCardId] = useState<string | null>(null);
 
   const updatePrep = trpc.sessions.updatePrep.useMutation();
   const updateSession = trpc.sessions.update.useMutation();
@@ -154,12 +152,7 @@ export function PrepWorkspace({
   }
 
   const allCards = prepData.briefingCards ?? [];
-  const spatialCards = allCards.filter((c) => !!c.mapCoords);
   const railCards = allCards.filter((c) => !c.mapCoords);
-
-  const focusedCard = focusedCardId
-    ? allCards.find((c) => c.id === focusedCardId) ?? null
-    : null;
 
   const lastImport = prepData.importedNotes?.[prepData.importedNotes.length - 1];
 
@@ -216,35 +209,25 @@ export function PrepWorkspace({
             background: 'oklch(0.115 0.005 265)',
           }}
         >
-          {focusedCard ? (
-            <BriefingPinCard
-              card={focusedCard}
-              onChange={updateCard}
-              onClose={() => setFocusedCardId(null)}
+          <PrepImportButton
+            sessionId={sessionId}
+            campaignId={campaignId}
+            lastImportedAt={lastImport?.extractedAt}
+            onExtracted={handleExtracted}
+          />
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 p-3">
+            <BriefingBoard
+              sessionId={sessionId}
+              campaignId={campaignId}
+              cards={railCards}
+              onCardsChange={(updatedRailCards) => {
+                setPrepData((p) => ({
+                  ...p,
+                  briefingCards: [...allCards.filter((c) => !!c.mapCoords), ...updatedRailCards],
+                }));
+              }}
             />
-          ) : (
-            <>
-              <PrepImportButton
-                sessionId={sessionId}
-                campaignId={campaignId}
-                lastImportedAt={lastImport?.extractedAt}
-                onExtracted={handleExtracted}
-              />
-              <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 p-3">
-                <BriefingBoard
-                  sessionId={sessionId}
-                  campaignId={campaignId}
-                  cards={railCards}
-                  onCardsChange={(updatedRailCards) => {
-                    setPrepData((p) => ({
-                      ...p,
-                      briefingCards: [...spatialCards, ...updatedRailCards],
-                    }));
-                  }}
-                />
-              </div>
-            </>
-          )}
+          </div>
         </div>
       </div>
     </div>
