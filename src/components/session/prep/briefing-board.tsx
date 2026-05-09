@@ -1,20 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Plus, Loader2, RefreshCw } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { PressureCard } from './pressure-card';
 import type { BriefingCard } from '@/lib/briefing-types';
 
-interface BriefingBoardProps {
+interface WorldPulseRailProps {
   sessionId: string;
   campaignId: string;
   cards: BriefingCard[];
   onCardsChange: (cards: BriefingCard[]) => void;
-  onPlaceCard?: (cardId: string) => void;
+  activeMapId?: string;
 }
 
-export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onPlaceCard }: BriefingBoardProps) {
+export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, activeMapId }: WorldPulseRailProps) {
   const [addingCard, setAddingCard] = useState(false);
   const [newCardText, setNewCardText] = useState('');
 
@@ -22,12 +22,11 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onP
     onSuccess: (data) => onCardsChange(data.cards),
   });
 
-  useEffect(() => {
-    if (cards.length === 0 && !generateMutation.isPending) {
-      generateMutation.mutate({ sessionId, campaignId });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Rail = cards with no mapCoords, OR mapCoords on a different map
+  const railCards = cards.filter(
+    (c) => !c.mapCoords || c.mapCoords.mapId !== activeMapId
+  );
+  const hasAny = cards.length > 0;
 
   function updateCard(updated: BriefingCard) {
     onCardsChange(cards.map((c) => (c.id === updated.id ? updated : c)));
@@ -49,9 +48,6 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onP
     setAddingCard(false);
   }
 
-  const reviewed = cards.filter((c) => c.status !== 'proposed').length;
-  const total = cards.length;
-
   if (generateMutation.isPending) {
     return (
       <div className="flex items-center justify-center gap-3 py-16">
@@ -64,52 +60,62 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onP
   }
 
   return (
-    <div className="flex flex-col h-full" data-testid="briefing-rail">
+    <div className="space-y-2">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span
             className="font-[family-name:var(--q-font-display)] text-[9px] uppercase tracking-[0.2em]"
             style={{ color: 'oklch(0.7 0.16 55)' }}
           >
-            World Pressure
+            World Pulse
           </span>
           <div
-            className="h-px w-16"
+            className="h-px w-10"
             style={{ background: 'linear-gradient(to right, oklch(0.7 0.16 55 / 0.4), transparent)' }}
           />
         </div>
-        {total > 0 && (
-          <button
-            onClick={() => generateMutation.mutate({ sessionId, campaignId })}
-            disabled={generateMutation.isPending}
-            className="flex items-center gap-1 text-[10px]"
-            style={{ color: 'oklch(0.4 0.01 270)' }}
-          >
-            <RefreshCw className="h-3 w-3" /> Regenerate
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {!hasAny && (
+            <button
+              onClick={() => generateMutation.mutate({ sessionId, campaignId })}
+              disabled={generateMutation.isPending}
+              className="flex items-center gap-1 text-[10px]"
+              style={{ color: 'oklch(0.55 0.01 270)' }}
+            >
+              <RefreshCw className="h-3 w-3" /> Generate
+            </button>
+          )}
+          {hasAny && (
+            <button
+              onClick={() => generateMutation.mutate({ sessionId, campaignId })}
+              disabled={generateMutation.isPending}
+              className="flex items-center gap-1 text-[10px]"
+              style={{ color: 'oklch(0.4 0.01 270)' }}
+            >
+              <RefreshCw className="h-3 w-3" /> Regen
+            </button>
+          )}
+        </div>
       </div>
 
-      {(generateMutation.isError || (generateMutation.isSuccess && total === 0)) && total === 0 && (
-        <p className="text-xs py-6 text-center" style={{ color: 'oklch(0.45 0.01 270)' }}>
-          No world data yet — Brain has no pressure points to surface. Run a few sessions and process summaries to build up Brain context,
-          or use the import zone above to brief Brain with your notes.
+      {(generateMutation.isError || (!hasAny && generateMutation.isIdle)) && railCards.length === 0 && (
+        <p className="text-xs py-4 text-center" style={{ color: 'oklch(0.4 0.01 270)' }}>
+          No world data yet. Run a few sessions or import notes.
         </p>
       )}
 
       <div className="space-y-2">
-        {cards.map((card) => (
-          <div key={card.id}>
-            <PressureCard card={card} onChange={updateCard} />
-            {onPlaceCard && card.status !== 'accepted' && card.status !== 'dismissed' && (
-              <button
-                onClick={() => onPlaceCard(card.id)}
-                className="mt-0.5 w-full text-left text-[10px] px-2 py-1 rounded-sm opacity-45 hover:opacity-100 transition-opacity"
-                style={{ color: 'oklch(0.7 0.16 55)' }}
+        {railCards.map((card) => (
+          <div key={card.id} draggable onDragStart={(e) => e.dataTransfer.setData('briefing-card-id', card.id)}>
+            {card.mapCoords && card.mapCoords.mapId !== activeMapId && (
+              <div
+                className="text-[9px] px-2 py-0.5 rounded-t-sm border-x border-t"
+                style={{ borderColor: 'oklch(0.28 0.01 270)', color: 'oklch(0.45 0.01 270)', background: 'oklch(0.15 0.005 265)' }}
               >
-                + Place on map
-              </button>
+                Pinned on sub-map
+              </div>
             )}
+            <PressureCard card={card} onChange={updateCard} />
           </div>
         ))}
       </div>
@@ -120,16 +126,12 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onP
           style={{ borderColor: 'oklch(0.25 0.01 270)', background: 'oklch(0.14 0.005 265)' }}
         >
           <textarea
-            placeholder="Describe a scene, NPC, or element you want to include this session…"
+            placeholder="Describe a scene, NPC, or element you want to include…"
             value={newCardText}
             onChange={(e) => setNewCardText(e.target.value)}
             rows={3}
             className="w-full resize-none text-sm rounded-sm px-3 py-2 outline-none focus:ring-1 ring-amber-500/30"
-            style={{
-              background: 'oklch(0.11 0.005 265)',
-              border: '1px solid oklch(0.3 0.01 270)',
-              color: 'oklch(0.78 0.01 270)',
-            }}
+            style={{ background: 'oklch(0.11 0.005 265)', border: '1px solid oklch(0.3 0.01 270)', color: 'oklch(0.78 0.01 270)' }}
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
           />
@@ -137,11 +139,7 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onP
             <button
               onClick={addDmCard}
               className="text-xs px-3 py-1.5 rounded-sm border"
-              style={{
-                background: 'oklch(0.2 0.04 55 / 0.3)',
-                borderColor: 'oklch(0.35 0.1 55)',
-                color: 'oklch(0.7 0.16 55)',
-              }}
+              style={{ background: 'oklch(0.2 0.04 55 / 0.3)', borderColor: 'oklch(0.35 0.1 55)', color: 'oklch(0.7 0.16 55)' }}
             >
               Add
             </button>
@@ -157,33 +155,11 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, onP
       ) : (
         <button
           onClick={() => setAddingCard(true)}
-          className="w-full flex items-center gap-2 px-4 py-2.5 rounded-sm border text-xs transition-colors"
-          style={{
-            borderStyle: 'dashed',
-            borderColor: 'oklch(0.28 0.01 270)',
-            color: 'oklch(0.4 0.01 270)',
-          }}
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-sm border text-xs"
+          style={{ borderStyle: 'dashed', borderColor: 'oklch(0.28 0.01 270)', color: 'oklch(0.4 0.01 270)' }}
         >
-          <Plus className="h-3.5 w-3.5" />
-          Add something Brain missed
+          <Plus className="h-3.5 w-3.5" /> Add something Brain missed
         </button>
-      )}
-
-      {total > 0 && (
-        <div
-          className="flex items-center justify-between pt-3 border-t"
-          style={{ borderColor: 'oklch(0.2 0.005 270)' }}
-        >
-          <span className="text-xs" style={{ color: 'oklch(0.45 0.01 270)' }}>
-            {reviewed} of {total} reviewed
-          </span>
-          <span
-            className="text-[10px]"
-            style={{ color: reviewed === total ? 'oklch(0.65 0.15 145)' : 'oklch(0.4 0.01 270)' }}
-          >
-            {reviewed === total ? '✓ All cards reviewed' : 'Review all cards to unlock Ready to Run'}
-          </span>
-        </div>
       )}
     </div>
   );
