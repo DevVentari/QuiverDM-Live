@@ -21,12 +21,14 @@ export interface GenerateBriefingInput {
     name: string;
     type: string;
     description?: string | null;
+    mapPin?: { mapId: string; x: number; y: number } | null;
   }>;
 }
 
 const SYSTEM_PROMPT = `You are the DM Brain for a D&D campaign. Generate a session prep briefing.
 Identify 3-7 pressure points from the world state that need the DM's attention this session.
 For each, write a specific scene or NPC behavior proposal the DM can use directly at the table.
+When an entity has a known location, ground your proposal in that place.
 Return ONLY valid JSON — no markdown, no explanation.`;
 
 function buildPrompt(input: GenerateBriefingInput): string {
@@ -48,8 +50,11 @@ Active threats: ${input.worldState.threats.map((t) => t.name ?? t.description ??
 Recent world changes:
 ${input.recentChanges.map((c) => `- ${c.entityName} (${c.entityType}): ${c.changeType}`).join('\n') || 'none'}
 
-Notable entities:
-${input.entities.slice(0, 15).map((e) => `- ${e.name} (${e.type})${e.description ? `: ${e.description.slice(0, 100)}` : ''}`).join('\n') || 'none'}
+Notable entities (marked [mapped] if they have a location on the world map):
+${input.entities.slice(0, 15).map((e) => {
+  const loc = e.mapPin ? ' [mapped]' : '';
+  return `- ${e.name} (${e.type})${loc}${e.description ? `: ${e.description.slice(0, 100)}` : ''}`;
+}).join('\n') || 'none'}
 
 Generate 3-7 pressure point cards as JSON:
 {
