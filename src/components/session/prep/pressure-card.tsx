@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, X, Pencil, Plus } from 'lucide-react';
+import { Check, X, Pencil, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import type { BriefingCard, BriefingCardType } from '@/lib/briefing-types';
 
 const TYPE_META: Record<BriefingCardType | 'CUSTOM', { label: string; color: string; bg: string; border: string; bar: string }> = {
@@ -43,10 +43,10 @@ const TYPE_META: Record<BriefingCardType | 'CUSTOM', { label: string; color: str
 };
 
 function UrgencyPips({ level }: { level: number }) {
-  const pipColor = (filled: boolean, level: number) => {
+  const pipColor = (filled: boolean, lvl: number) => {
     if (!filled) return 'oklch(0.25 0.01 270)';
-    if (level >= 4) return 'oklch(0.65 0.2 25)';
-    if (level >= 3) return 'oklch(0.7 0.16 55)';
+    if (lvl >= 4) return 'oklch(0.65 0.2 25)';
+    if (lvl >= 3) return 'oklch(0.7 0.16 55)';
     return 'oklch(0.6 0.1 200)';
   };
 
@@ -55,7 +55,7 @@ function UrgencyPips({ level }: { level: number }) {
       {Array.from({ length: 5 }, (_, i) => (
         <div
           key={i}
-          className="w-[5px] h-[5px] rounded-full"
+          className="w-[4px] h-[4px] rounded-full"
           style={{ background: pipColor(i < level, level) }}
         />
       ))}
@@ -69,10 +69,12 @@ interface PressureCardProps {
 }
 
 export function PressureCard({ card, onChange }: PressureCardProps) {
+  const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(card.dmNote ?? card.proposal);
   const meta = TYPE_META[card.type] ?? TYPE_META.CUSTOM;
 
+  // Accepted / edited — always compact
   if (card.status === 'accepted' || card.status === 'edited') {
     return (
       <div
@@ -80,31 +82,26 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
         style={{ borderColor: 'oklch(0.45 0.12 145 / 0.5)', background: 'oklch(0.13 0.008 160)' }}
       >
         <div className="h-[2px]" style={{ background: `linear-gradient(to right, ${meta.bar}, transparent)` }} />
-        <div className="px-4 py-2.5 flex items-center gap-3">
-          <Check className="h-3.5 w-3.5 shrink-0" style={{ color: 'oklch(0.65 0.15 145)' }} />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span
-                className="font-[family-name:var(--q-font-display)] text-xs"
-                style={{ color: 'oklch(0.7 0.01 270)' }}
-              >
-                {card.entityName}
+        <div className="px-3 py-2 flex items-center gap-2.5">
+          <Check className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.65 0.15 145)' }} />
+          <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+            <span
+              className="font-[family-name:var(--q-font-display)] text-[11.5px]"
+              style={{ color: 'oklch(0.7 0.01 270)' }}
+            >
+              {card.entityName}
+            </span>
+            <span
+              className="text-[8.5px] px-1.5 py-0.5 rounded-sm border font-[family-name:var(--q-font-display)] uppercase tracking-wider"
+              style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
+            >
+              {meta.label}
+            </span>
+            {card.status === 'edited' && (
+              <span className="text-[9px] uppercase tracking-wider" style={{ color: 'oklch(0.5 0.01 270)' }}>
+                edited
               </span>
-              <span
-                className="text-[9px] px-1.5 py-0.5 rounded-sm border font-[family-name:var(--q-font-display)] uppercase tracking-wider"
-                style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
-              >
-                {meta.label}
-              </span>
-              {card.status === 'edited' && (
-                <span className="text-[9px] uppercase tracking-wider" style={{ color: 'oklch(0.5 0.01 270)' }}>
-                  edited
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] mt-0.5 truncate" style={{ color: 'oklch(0.5 0.01 270)' }}>
-              {card.dmNote ?? card.proposal}
-            </p>
+            )}
           </div>
           <button
             onClick={() => onChange({ ...card, status: 'proposed', dmNote: undefined })}
@@ -118,14 +115,15 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
     );
   }
 
+  // Dismissed — always compact
   if (card.status === 'dismissed') {
     return (
       <div
-        className="rounded-sm border px-4 py-2 flex items-center gap-3 opacity-40"
+        className="rounded-sm border px-3 py-2 flex items-center gap-2.5 opacity-40"
         style={{ borderColor: 'oklch(0.2 0.005 270)', background: 'oklch(0.12 0.005 265)' }}
       >
         <X className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.4 0.01 270)' }} />
-        <span className="text-xs flex-1 truncate" style={{ color: 'oklch(0.45 0.01 270)' }}>
+        <span className="text-[11.5px] flex-1 truncate" style={{ color: 'oklch(0.45 0.01 270)' }}>
           {card.entityName} — dismissed
         </span>
         <button
@@ -139,6 +137,7 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
     );
   }
 
+  // DM-added — always compact
   if (card.status === 'dm-added') {
     return (
       <div
@@ -146,9 +145,9 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
         style={{ borderColor: meta.border, background: 'oklch(0.14 0.005 265)' }}
       >
         <div className="h-[2px]" style={{ background: `linear-gradient(to right, ${meta.bar}, transparent)` }} />
-        <div className="px-4 py-2.5 flex items-center gap-3">
-          <Plus className="h-3.5 w-3.5 shrink-0" style={{ color: 'oklch(0.55 0.01 270)' }} />
-          <p className="text-[12.5px] flex-1" style={{ color: 'oklch(0.72 0.01 270)' }}>{card.proposal}</p>
+        <div className="px-3 py-2 flex items-center gap-2.5">
+          <Plus className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.55 0.01 270)' }} />
+          <p className="text-[12px] flex-1 truncate" style={{ color: 'oklch(0.72 0.01 270)' }}>{card.proposal}</p>
           <button
             onClick={() => onChange({ ...card, status: 'dismissed' })}
             className="text-[10px] shrink-0"
@@ -161,53 +160,66 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
     );
   }
 
-  // proposed state
+  // Proposed — compact header, expands on click
   return (
     <div
-      className="rounded-sm border overflow-hidden"
-      style={{ borderColor: 'oklch(0.25 0.01 270)', background: 'oklch(0.14 0.005 265)' }}
+      className="rounded-sm border overflow-hidden transition-colors"
+      style={{
+        borderColor: expanded ? 'oklch(0.35 0.05 55 / 0.6)' : 'oklch(0.25 0.01 270)',
+        background: 'oklch(0.14 0.005 265)',
+      }}
     >
       <div className="h-[2px]" style={{ background: `linear-gradient(to right, ${meta.bar}, transparent)` }} />
-      <div className="px-4 py-3.5">
-        <div className="flex items-center gap-2 mb-2.5">
-          <span
-            className="text-[9px] px-1.5 py-0.5 rounded-sm border font-[family-name:var(--q-font-display)] uppercase tracking-wider shrink-0"
-            style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
-          >
-            {meta.label}
-          </span>
-          <span
-            className="font-[family-name:var(--q-font-display)] text-[13px] font-semibold flex-1 min-w-0 truncate"
-            style={{ color: 'oklch(0.88 0.01 270)' }}
-          >
-            {card.entityName}
-          </span>
-          <UrgencyPips level={card.urgencyLevel} />
-        </div>
 
-        {card.context && (
-          <p className="text-[12.5px] mb-3 leading-relaxed line-clamp-3" style={{ color: 'oklch(0.65 0.01 270)' }}>
-            {card.context}
-          </p>
-        )}
+      {/* Header row — always visible, click to expand */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full px-3 py-2.5 flex items-center gap-2 text-left"
+      >
+        <span
+          className="text-[8px] px-1.5 py-0.5 rounded-sm border font-[family-name:var(--q-font-display)] uppercase tracking-wider shrink-0"
+          style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
+        >
+          {meta.label}
+        </span>
+        <span
+          className="font-[family-name:var(--q-font-display)] text-[12px] font-semibold flex-1 min-w-0 truncate"
+          style={{ color: 'oklch(0.88 0.01 270)' }}
+        >
+          {card.entityName}
+        </span>
+        <UrgencyPips level={card.urgencyLevel} />
+        {expanded
+          ? <ChevronUp className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.4 0.01 270)' }} />
+          : <ChevronDown className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.4 0.01 270)' }} />
+        }
+      </button>
 
-        <div className="flex items-center gap-2 mb-2">
-          <span
-            className="text-[8.5px] uppercase tracking-[0.2em] font-[family-name:var(--q-font-display)] whitespace-nowrap"
-            style={{ color: 'oklch(0.7 0.16 55 / 0.7)' }}
-          >
-            Brain proposes
-          </span>
-          <div className="flex-1 h-px" style={{ background: 'oklch(0.7 0.16 55 / 0.2)' }} />
-        </div>
+      {/* Expanded content */}
+      {expanded && (
+        <div className="px-3 pb-3 space-y-3">
+          {card.context && (
+            <p className="text-[12px] leading-relaxed" style={{ color: 'oklch(0.65 0.01 270)' }}>
+              {card.context}
+            </p>
+          )}
 
-        {editing ? (
-          <div className="mb-3">
+          <div className="flex items-center gap-2">
+            <span
+              className="text-[8px] uppercase tracking-[0.2em] font-[family-name:var(--q-font-display)] whitespace-nowrap"
+              style={{ color: 'oklch(0.7 0.16 55 / 0.7)' }}
+            >
+              Brain proposes
+            </span>
+            <div className="flex-1 h-px" style={{ background: 'oklch(0.7 0.16 55 / 0.2)' }} />
+          </div>
+
+          {editing ? (
             <textarea
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
               rows={4}
-              className="w-full resize-none text-[13px] rounded-sm px-3 py-2 outline-none focus:ring-1 ring-amber-500/30"
+              className="w-full resize-none text-[12.5px] rounded-sm px-3 py-2 outline-none focus:ring-1 ring-amber-500/30"
               style={{
                 background: 'oklch(0.11 0.005 265)',
                 border: '1px solid oklch(0.35 0.08 55 / 0.5)',
@@ -216,82 +228,65 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
               // eslint-disable-next-line jsx-a11y/no-autofocus
               autoFocus
             />
-          </div>
-        ) : (
-          <p
-            className="text-[13px] mb-3 leading-relaxed px-3 py-2 rounded-sm border-l-2 line-clamp-5"
-            style={{
-              background: 'oklch(0.11 0.005 265)',
-              borderColor: 'oklch(0.7 0.16 55 / 0.3)',
-              color: 'oklch(0.78 0.01 270)',
-            }}
-          >
-            {card.dmNote ?? card.proposal}
-          </p>
-        )}
-
-        <div className="flex gap-2 flex-wrap">
-          {editing ? (
-            <>
-              <button
-                onClick={() => {
-                  onChange({ ...card, status: 'edited', dmNote: editText });
-                  setEditing(false);
-                }}
-                className="flex items-center gap-1 text-[11.5px] px-3 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
-                style={{
-                  background: 'oklch(0.45 0.12 145 / 0.15)',
-                  borderColor: 'oklch(0.55 0.15 145 / 0.4)',
-                  color: 'oklch(0.7 0.15 145)',
-                }}
-              >
-                <Check className="h-3 w-3" /> Save
-              </button>
-              <button
-                onClick={() => {
-                  setEditText(card.dmNote ?? card.proposal);
-                  setEditing(false);
-                }}
-                className="text-[11.5px] px-3 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
-                style={{ borderColor: 'oklch(0.3 0.01 270)', color: 'oklch(0.55 0.01 270)' }}
-              >
-                Cancel
-              </button>
-            </>
           ) : (
-            <>
-              <button
-                onClick={() => onChange({ ...card, status: 'accepted' })}
-                className="flex items-center gap-1 text-[11.5px] px-3 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
-                style={{
-                  background: 'oklch(0.45 0.12 145 / 0.15)',
-                  borderColor: 'oklch(0.55 0.15 145 / 0.4)',
-                  color: 'oklch(0.7 0.15 145)',
-                }}
-              >
-                <Check className="h-3 w-3" /> Use this
-              </button>
-              <button
-                onClick={() => {
-                  setEditText(card.dmNote ?? card.proposal);
-                  setEditing(true);
-                }}
-                className="flex items-center gap-1 text-[11.5px] px-3 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
-                style={{ borderColor: 'oklch(0.3 0.01 270)', color: 'oklch(0.55 0.01 270)' }}
-              >
-                <Pencil className="h-3 w-3" /> Edit
-              </button>
-              <button
-                onClick={() => onChange({ ...card, status: 'dismissed' })}
-                className="text-[11.5px] px-3 py-1 rounded-sm border font-[family-name:var(--q-font-display)] ml-auto"
-                style={{ borderColor: 'oklch(0.25 0.01 270)', color: 'oklch(0.4 0.01 270)' }}
-              >
-                Dismiss
-              </button>
-            </>
+            <p
+              className="text-[12.5px] leading-relaxed px-3 py-2 rounded-sm border-l-2"
+              style={{
+                background: 'oklch(0.11 0.005 265)',
+                borderColor: 'oklch(0.7 0.16 55 / 0.3)',
+                color: 'oklch(0.78 0.01 270)',
+              }}
+            >
+              {card.dmNote ?? card.proposal}
+            </p>
           )}
+
+          <div className="flex gap-2 flex-wrap">
+            {editing ? (
+              <>
+                <button
+                  onClick={() => { onChange({ ...card, status: 'edited', dmNote: editText }); setEditing(false); }}
+                  className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
+                  style={{ background: 'oklch(0.45 0.12 145 / 0.15)', borderColor: 'oklch(0.55 0.15 145 / 0.4)', color: 'oklch(0.7 0.15 145)' }}
+                >
+                  <Check className="h-3 w-3" /> Save
+                </button>
+                <button
+                  onClick={() => { setEditText(card.dmNote ?? card.proposal); setEditing(false); }}
+                  className="text-[11px] px-2.5 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
+                  style={{ borderColor: 'oklch(0.3 0.01 270)', color: 'oklch(0.55 0.01 270)' }}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => { onChange({ ...card, status: 'accepted' }); setExpanded(false); }}
+                  className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
+                  style={{ background: 'oklch(0.45 0.12 145 / 0.15)', borderColor: 'oklch(0.55 0.15 145 / 0.4)', color: 'oklch(0.7 0.15 145)' }}
+                >
+                  <Check className="h-3 w-3" /> Use this
+                </button>
+                <button
+                  onClick={() => { setEditText(card.dmNote ?? card.proposal); setEditing(true); }}
+                  className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-sm border font-[family-name:var(--q-font-display)]"
+                  style={{ borderColor: 'oklch(0.3 0.01 270)', color: 'oklch(0.55 0.01 270)' }}
+                >
+                  <Pencil className="h-3 w-3" /> Edit
+                </button>
+                <button
+                  onClick={() => { onChange({ ...card, status: 'dismissed' }); setExpanded(false); }}
+                  className="text-[11px] px-2.5 py-1 rounded-sm border font-[family-name:var(--q-font-display)] ml-auto"
+                  style={{ borderColor: 'oklch(0.25 0.01 270)', color: 'oklch(0.4 0.01 270)' }}
+                >
+                  Dismiss
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
