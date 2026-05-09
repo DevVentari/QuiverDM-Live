@@ -60,7 +60,7 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange, act
   }
 
   return (
-    <div className="space-y-2">
+    <div data-testid="briefing-rail" className="space-y-2">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <span

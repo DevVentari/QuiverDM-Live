@@ -43,6 +43,7 @@ export function PartyStateSection({ characterNotes, campaignCharacters, onChange
 
   return (
     <div
+      data-testid="party-strip"
       className="flex items-stretch gap-2 px-3 py-2 overflow-x-auto"
       style={{ borderTop: '1px solid oklch(0.2 0.005 270)' }}
     >
