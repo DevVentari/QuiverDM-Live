@@ -7,6 +7,7 @@ import { deriveSessionPhase } from '@/lib/session-lifecycle'
 import { PhasePillBar } from './_components/PhasePillBar'
 import { PrepWorkspace } from './_components/PrepWorkspace'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 
 // getById returns a union (DM full view | player restricted view).
 // Hub page is DM-facing — cast to a loose shared shape.
@@ -39,6 +40,10 @@ export default function SessionPage({
   const invalidate = useCallback(() => {
     void utils.sessions.getById.invalidate({ id })
   }, [utils, id])
+
+  const backToPrep = trpc.sessions.update.useMutation({
+    onSuccess: invalidate,
+  })
 
   useEffect(() => {
     if (!session) return
@@ -109,6 +114,17 @@ export default function SessionPage({
             <p className="text-sm text-[var(--q-text-faint)]">
               Coming in a future slice
             </p>
+            {phase === 'ran' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => backToPrep.mutate({ id, status: 'planning' })}
+                disabled={backToPrep.isPending}
+                className="text-[var(--q-text-faint)] hover:text-[var(--q-text)]"
+              >
+                ← Back to prep
+              </Button>
+            )}
           </div>
         )}
       </div>
