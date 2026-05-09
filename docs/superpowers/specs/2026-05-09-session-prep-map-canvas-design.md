@@ -23,7 +23,7 @@ What's missing: a visual overlay layer for briefing pins, the binding between ca
 
 | # | Decision | Choice |
 |---|---|---|
-| 1 | Map role on prep page | **Map as the prep canvas** — the map IS the prep surface; briefing cards are pins on it |
+| 1 | Map role on prep page | **Map as the prep canvas** — the map IS the prep surface; briefing cards are pins on it. Root map shown by default; sub-maps accessible via toolbar dropdown + auto-navigation when a pin lives on a sub-map. |
 | 2 | Non-spatial cards (HOOK, FACTION, abstract pressure) | **Edge rail beside the map** — vertical rail on the right |
 | 3 | Party State placement | **Bottom strip** — horizontal strip across the bottom of the map |
 | 4 | Pin click interaction | **Map zooms + card opens inline** — cinematic focus, one card at a time, click "back" to return |
@@ -172,7 +172,7 @@ Trade-off: pin-position-dragging logic gets duplicated. Mitigation: extract the 
 
 ## Open assumptions flagged for spec review
 
-1. **Multiple maps per campaign** — `CampaignMap` supports sub-maps via `parentLocationId`. Assumption: prep shows ONE map (the campaign root map by default; user can switch via a dropdown if multiple exist). Confirm this is OK for v1, or if we need a multi-map prep view.
+1. **Multiple maps per campaign** — `CampaignMap` supports sub-maps via `parentLocationId`. **Decision: sub-maps are supported in v1.** Prep shows the root map by default; a compact map-selector dropdown in the prep map toolbar lets the DM switch between root and sub-maps. When a briefing pin lives on a sub-map (its `MapPin.mapId` ≠ root), clicking that pin auto-navigates the prep canvas to that sub-map before zooming and opening the card. A breadcrumb in the toolbar shows the current map and allows returning to root. Sub-map navigation within prep does NOT affect the persistent world-map canvas (`world-map-canvas.tsx`).
 2. **What happens if there are zero `WorldEntity` rows yet** — fresh campaign, Brain has no world to draw from. Assumption: map renders blank backdrop, all cards fall to rail, DM places manually. The current empty-state copy ("No world data yet — Brain has no pressure points to surface") still applies.
 3. **PCs as pins** — option C from the Party State question said "PCs as pins on the map." The user picked bottom strip instead. Assumption: PCs are NOT pins in v1; party state stays in the bottom strip. A "Where's the party?" pin could be a v2 add.
 4. **Existing prep features kept** — the "Add something Brain missed" textarea (`briefing-board.tsx:147`) and "Regenerate" button stay in the right rail header.
