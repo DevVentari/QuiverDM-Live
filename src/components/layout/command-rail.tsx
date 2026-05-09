@@ -15,6 +15,7 @@ import { useHeaderStore } from '@/store/header-store';
 import { useLogoVariant } from '@/hooks/use-logo-variant';
 import { CompendiumSection } from '@/components/sidebar/compendium-section';
 import { CompendiumSearch } from '@/components/sidebar/compendium-search';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const RAIL_KEY = 'quiver.rail.pinned';
 
@@ -242,6 +243,7 @@ export function CommandRail() {
             {pinned && <span>Party</span>}
           </Link>
         )}
+        <ThemeToggle />
         <Link
           href="/settings"
           title="Settings"
