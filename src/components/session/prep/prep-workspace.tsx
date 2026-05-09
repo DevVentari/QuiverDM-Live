@@ -155,6 +155,7 @@ export function PrepWorkspace({
 
             <PartyStateSection
               characterNotes={prepData.characterNotes}
+              campaignCharacters={(campaignContext.characters ?? []) as Array<{ id: string; name: string; class?: string | null }>}
               onChange={(notes) => setPrepData((p) => ({ ...p, characterNotes: notes }))}
             />
           </div>

@@ -186,7 +186,7 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
         </div>
 
         {card.context && (
-          <p className="text-[12.5px] mb-3 leading-relaxed" style={{ color: 'oklch(0.65 0.01 270)' }}>
+          <p className="text-[12.5px] mb-3 leading-relaxed line-clamp-3" style={{ color: 'oklch(0.65 0.01 270)' }}>
             {card.context}
           </p>
         )}
@@ -219,7 +219,7 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
           </div>
         ) : (
           <p
-            className="text-[13px] mb-3 leading-relaxed px-3 py-2 rounded-sm border-l-2"
+            className="text-[13px] mb-3 leading-relaxed px-3 py-2 rounded-sm border-l-2 line-clamp-5"
             style={{
               background: 'oklch(0.11 0.005 265)',
               borderColor: 'oklch(0.7 0.16 55 / 0.3)',
