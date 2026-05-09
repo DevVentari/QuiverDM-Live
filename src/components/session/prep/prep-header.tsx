@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Brain, CheckCircle2, Loader2, Maximize2, Minimize2, Save } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, Maximize2, Minimize2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -19,8 +19,6 @@ export function PrepHeader({
   isFullscreen,
   onToggleFullscreen,
   sessionId,
-  brainDrawerOpen,
-  onBrainDrawerToggle,
 }: {
   title: string;
   onTitleChange: (value: string) => void;
@@ -32,8 +30,6 @@ export function PrepHeader({
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   sessionId?: string;
-  brainDrawerOpen?: boolean;
-  onBrainDrawerToggle?: () => void;
 }) {
   return (
     <div
@@ -129,26 +125,6 @@ export function PrepHeader({
         >
           Prep Complete
         </Badge>
-      )}
-
-      {/* Brain drawer toggle */}
-      {onBrainDrawerToggle && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBrainDrawerToggle}
-          title="DM Brain context"
-          className={cn(
-            'h-8 w-8 shrink-0',
-            brainDrawerOpen
-              ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-900/20'
-              : isFullscreen
-              ? 'text-amber-200/40 hover:text-amber-200/80 hover:bg-amber-900/20'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <Brain className="h-3.5 w-3.5" />
-        </Button>
       )}
 
       {/* Fullscreen toggle */}

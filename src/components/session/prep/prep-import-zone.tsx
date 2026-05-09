@@ -18,7 +18,7 @@ interface PrepImportZoneProps {
 }
 
 export function PrepImportZone({ sessionId, campaignId, onExtracted, lastImportedAt }: PrepImportZoneProps) {
-  const [collapsed, setCollapsed] = useState(!!lastImportedAt);
+  const [collapsed, setCollapsed] = useState(true);
   const [state, setState] = useState<ImportState>('idle');
   const [pastedText, setPastedText] = useState('');
   const [error, setError] = useState('');
@@ -89,13 +89,18 @@ export function PrepImportZone({ sessionId, campaignId, onExtracted, lastImporte
 
   if (collapsed) {
     return (
-      <div className="flex items-center justify-between px-4 py-2.5 rounded-sm"
+      <div className="flex items-center justify-between px-4 py-2 rounded-sm"
         style={{ border: '1px solid hsl(35 35% 18%)', background: 'hsl(240 10% 10%)' }}>
-        <span className="text-xs" style={{ color: 'hsl(35 10% 48%)' }}>
-          {lastImportedAt ? `Notes imported · ${new Date(lastImportedAt).toLocaleTimeString()}` : 'Notes imported'}
-        </span>
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-3.5 w-3.5" style={{ color: 'hsl(35 80% 55%)' }} />
+          <span className="text-xs" style={{ color: 'hsl(35 10% 55%)' }}>
+            {lastImportedAt
+              ? `Notes imported · ${new Date(lastImportedAt).toLocaleTimeString()}`
+              : 'Import prep notes — Brain will extract and fill sections'}
+          </span>
+        </div>
         <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setCollapsed(false)}>
-          Re-import
+          {lastImportedAt ? 'Re-import' : 'Import'}
         </Button>
       </div>
     );

@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { trpc } from '@/lib/trpc';
 import { useToast } from '@/hooks/use-toast';
@@ -70,20 +69,26 @@ export function PhasePrep({ session, slug, campaignId, onStatusChange }: PhasePr
         initialData={initialData}
         campaignContext={contextQuery.data as any}
         slug={slug}
+        campaignId={campaignId}
         initialTitle={(session as any).title ?? 'Session'}
         prepStatus={(session as any).prepStatus ?? 'draft'}
         inline
         onComplete={onStatusChange}
       />
-      <Button
-        size="sm"
+      <button
         onClick={() => startSession.mutate({ id: sessionId, status: 'in_progress' })}
         disabled={startSession.isPending}
-        className="w-full"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-sm font-[var(--q-font-display)] text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
+        style={{
+          background: 'linear-gradient(180deg, hsl(35 60% 22%) 0%, hsl(35 55% 17%) 100%)',
+          border: '1px solid hsl(35 60% 32%)',
+          color: 'hsl(35 85% 65%)',
+          boxShadow: '0 0 24px hsl(35 60% 20% / 0.5), inset 0 1px 0 hsl(35 80% 50% / 0.15)',
+        }}
       >
-        <Play className="mr-1.5 h-3.5 w-3.5" />
+        <Play className="h-4 w-4" />
         Ready to Run
-      </Button>
+      </button>
     </div>
   );
 }

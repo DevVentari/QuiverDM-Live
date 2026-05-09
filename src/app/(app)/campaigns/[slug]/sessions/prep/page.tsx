@@ -87,6 +87,7 @@ function PrepPageInner() {
       initialData={initialData}
       campaignContext={contextQuery.data as any}
       slug={slug}
+      campaignId={campaignId}
       initialTitle={(sessionQuery.data as any).title ?? 'Session'}
       prepStatus={(sessionQuery.data as any).prepStatus ?? 'draft'}
     />

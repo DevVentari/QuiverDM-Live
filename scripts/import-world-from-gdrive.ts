@@ -10,7 +10,7 @@ import { WorldEntryType } from '@prisma/client';
 import { prisma } from '../src/server/db';
 import { worldRepository } from '../src/server/repositories/world.repository';
 
-const CAMPAIGN_SLUG = 'tales-from-the-bonfire-keep';
+const CAMPAIGN_SLUG = 'tales-from-the-bonfire-keep-1';
 const GDRIVE_ROOT = 'G:\\My Drive\\Notebooks\\Dungeons and Dragons\\Campaigns\\Tales from The Bonfire Keep - AI Edits';
 const TBFK = path.join(GDRIVE_ROOT, 'Tales From The Bonfire Keep');
 

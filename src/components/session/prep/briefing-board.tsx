@@ -89,10 +89,10 @@ export function BriefingBoard({ sessionId, campaignId, cards, onCardsChange }: B
         )}
       </div>
 
-      {generateMutation.isError && total === 0 && (
+      {(generateMutation.isError || (generateMutation.isSuccess && total === 0)) && total === 0 && (
         <p className="text-xs py-6 text-center" style={{ color: 'oklch(0.45 0.01 270)' }}>
-          No world data yet. Run a few sessions and process summaries to build up Brain context —
-          or use the import zone below to brief Brain with your notes.
+          No world data yet — Brain has no pressure points to surface. Run a few sessions and process summaries to build up Brain context,
+          or use the import zone above to brief Brain with your notes.
         </p>
       )}
 
