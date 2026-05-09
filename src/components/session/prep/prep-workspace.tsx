@@ -63,7 +63,6 @@ export function PrepWorkspace({
   );
   const [title, setTitle] = useState(initialTitle);
   const [focusedCardId, setFocusedCardId] = useState<string | null>(null);
-  const [placingCardId, setPlacingCardId] = useState<string | null>(null);
 
   const updatePrep = trpc.sessions.updatePrep.useMutation();
   const updateSession = trpc.sessions.update.useMutation();
@@ -143,21 +142,15 @@ export function PrepWorkspace({
     }));
   }
 
-  function handlePinFocus(cardId: string) {
-    setFocusedCardId(cardId);
-    setPlacingCardId(null);
-  }
-
-  function handlePlaceCard(cardId: string, x: number, y: number, mapId: string) {
+  function handleCardDrop(card: BriefingCard, x: number, y: number, mapId: string) {
     setPrepData((p) => ({
       ...p,
       briefingCards: (p.briefingCards ?? []).map((c) =>
-        c.id === cardId
+        c.id === card.id
           ? { ...c, mapCoords: { placement: 'proposed' as const, mapId, x, y } }
           : c
       ),
     }));
-    setPlacingCardId(null);
   }
 
   const allCards = prepData.briefingCards ?? [];
@@ -171,10 +164,7 @@ export function PrepWorkspace({
   const lastImport = prepData.importedNotes?.[prepData.importedNotes.length - 1];
 
   return (
-    <div
-      className={inline ? 'flex flex-col' : 'flex flex-col h-screen'}
-      style={inline ? { minHeight: '65vh' } : undefined}
-    >
+    <div className={inline ? 'flex flex-col flex-1 min-h-0' : 'flex flex-col h-screen'}>
       {!inline && (
         <PrepHeader
           title={title}
@@ -196,11 +186,9 @@ export function PrepWorkspace({
           <div className="flex-1 relative min-h-0">
             <PrepMapCanvas
               campaignId={campaignId}
-              spatialCards={spatialCards}
-              focusedCardId={focusedCardId}
-              onPinFocus={handlePinFocus}
-              placingCardId={placingCardId}
-              onPlaceCard={handlePlaceCard}
+              cards={allCards}
+              onCardChange={updateCard}
+              onCardDrop={handleCardDrop}
             />
           </div>
           <PartyStateSection
@@ -253,7 +241,6 @@ export function PrepWorkspace({
                       briefingCards: [...spatialCards, ...updatedRailCards],
                     }));
                   }}
-                  onPlaceCard={(cardId) => setPlacingCardId(cardId)}
                 />
               </div>
             </>
