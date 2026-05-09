@@ -18,6 +18,8 @@ import { postSummaryToDiscord } from '@/lib/discord/post-summary';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
 import { sessionStateService } from '../services/session-state.service';
 import { extractPrepNotes } from '@/lib/ai/extract-prep-notes';
+import { generateBriefingCards } from '@/lib/ai/generate-briefing';
+import { brainRepository } from '../repositories/brain.repository';
 import { addTranscriptCleanupJob } from '@/lib/queue/transcript-cleanup-queue';
 
 interface OocReviewItem {
@@ -554,6 +556,65 @@ export const sessionsRouter = router({
           })),
         },
       });
+    }),
+
+  generateBriefing: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const [state, timeline, entities] = await Promise.all([
+        brainRepository.getOrCreateState(input.campaignId),
+        brainRepository.getTimeline(input.campaignId, 20),
+        brainRepository.findEntities(input.campaignId, { status: 'active', limit: 20 }),
+      ]);
+
+      const hooks = Array.isArray(state.hooks)
+        ? (state.hooks as Array<{ text: string; urgency: string; status?: string }>).filter(
+            (h) => h.status === 'open' || !h.status
+          )
+        : [];
+
+      const threats = Array.isArray(state.threats)
+        ? (state.threats as Array<{ name?: string; description?: string }>)
+        : [];
+
+      const recentChanges = (() => {
+        const seen = new Map<string, { entityName: string; entityType: string; changeType: string }>();
+        for (const change of timeline) {
+          if (change.entityId && change.entity && !seen.has(change.entityId)) {
+            seen.set(change.entityId, {
+              entityName: change.entity.name,
+              entityType: change.entity.type,
+              changeType: change.changeType,
+            });
+          }
+        }
+        return [...seen.values()].slice(0, 10);
+      })();
+
+      const cards = await generateBriefingCards({
+        worldState: {
+          pressurePolitical: state.pressurePolitical,
+          pressureSupernatural: state.pressureSupernatural,
+          pressureEconomic: state.pressureEconomic,
+          pressureCosmic: state.pressureCosmic,
+          pressureSocial: state.pressureSocial,
+          hooks,
+          threats,
+        },
+        recentChanges,
+        entities: entities.map((e) => ({
+          name: e.name,
+          type: e.type,
+          description: e.description,
+        })),
+      });
+
+      return { cards };
     }),
 
   updateActiveScene: campaignDMProcedure
