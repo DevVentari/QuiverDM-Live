@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   parseJsonFile,
   slugifyFilename,
-  SKIP_NAMES,
+  buildPreview,
 } from '@/server/services/json-import.service';
 
 const actorNpcFile = {
@@ -100,5 +100,48 @@ describe('parseJsonFile', () => {
   it('returns null for malformed JSON', () => {
     const result = parseJsonFile('bad.json', '{ not valid json }');
     expect(result).toBeNull();
+  });
+
+  it('extracts NPCs from actor+minor file', () => {
+    const minorActorFile = {
+      metadata: { title: 'Minor NPCs', date: '2025-07-21T00:00:00+00:00', tags: ['minor'] },
+      source: 'NPCs\\Minor.md',
+      type: 'actor',
+      data: [{ name: 'Town Crier', description: 'A loud fellow.', mechanics: { hp: 5 } }],
+    };
+    const result = parseJsonFile('minor-npcs.json', JSON.stringify(minorActorFile));
+    expect(result!.npcs).toHaveLength(1);
+    expect(result!.npcs[0].name).toBe('Town Crier');
+    expect(result!.entities[0].type).toBe('NPC');
+  });
+
+  it('skips entry whose name is in SKIP_NAMES (overview)', () => {
+    const fileWithOverview = {
+      metadata: { title: 'Locations', date: '2025-07-21T00:00:00+00:00', tags: ['location'] },
+      source: 'Locations\\Overview.md',
+      type: 'location',
+      data: [
+        { name: 'Overview', description: 'This is the overview.', mechanics: {} },
+        { name: 'Ironkeep', description: 'A sturdy fortress.', mechanics: { pop: 200 } },
+      ],
+    };
+    const result = parseJsonFile('locations.json', JSON.stringify(fileWithOverview));
+    expect(result!.entities.map((e) => e.name)).not.toContain('Overview');
+    expect(result!.entities.map((e) => e.name)).toContain('Ironkeep');
+  });
+});
+
+describe('buildPreview', () => {
+  it('returns valid preview for valid file and invalid for malformed', () => {
+    const files = [
+      { filename: 'factions.json', content: JSON.stringify(factionFile) },
+      { filename: 'bad.json', content: '{ not json }' },
+    ];
+    const previews = buildPreview(files);
+    expect(previews).toHaveLength(2);
+    expect(previews[0].valid).toBe(true);
+    expect(previews[0].title).toBe('Factions');
+    expect(previews[0].entityCount).toBe(1);
+    expect(previews[1].valid).toBe(false);
   });
 });
