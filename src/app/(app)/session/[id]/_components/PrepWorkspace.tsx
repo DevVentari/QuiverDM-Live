@@ -12,7 +12,7 @@ interface PrepWorkspaceProps {
 
 export function PrepWorkspace({ session, slug, campaignId, onStatusChange }: PrepWorkspaceProps) {
   return (
-    <Surface variant="flat" className="rounded-none border-0 min-h-full">
+    <Surface variant="flat" className="rounded-none border-0 flex-1 flex flex-col min-h-0">
       <PhasePrep
         session={session}
         slug={slug}
