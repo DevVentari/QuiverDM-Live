@@ -277,4 +277,13 @@ export const worldMapRouter = router({
       await addMapGenerationJob({ mapId: input.mapId, campaignId: input.campaignId, prompt });
       return { queued: true };
     }),
+
+  listMaps: campaignDMProcedure
+    .query(async ({ input }) => {
+      return prisma.campaignMap.findMany({
+        where: { campaignId: input.campaignId },
+        select: { id: true, name: true, parentLocationId: true, backgroundType: true, backgroundUrl: true },
+        orderBy: { name: 'asc' },
+      });
+    }),
 });
