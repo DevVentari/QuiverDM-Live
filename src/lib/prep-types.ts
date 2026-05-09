@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BriefingCardSchema } from './briefing-types';
 
 // ---------------------------------------------------------------------------
 // Per-step item schemas
@@ -102,6 +103,9 @@ export const SessionPrepDataSchema = z.object({
 
   // Imported Notes
   importedNotes: z.array(ImportedNoteSchema).optional().default([]),
+
+  // World Briefing Board
+  briefingCards: z.array(BriefingCardSchema).optional().default([]),
 });
 
 export type SessionPrepData = z.infer<typeof SessionPrepDataSchema>;
