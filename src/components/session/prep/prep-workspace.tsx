@@ -73,7 +73,7 @@ export function PrepWorkspace({
   });
 
   useEffect(() => {
-    const needsMigration = initialData.npcs.some((npc: any) => !npc.id);
+    const needsMigration = initialData.npcs.some((npc) => !npc.id);
     if (!needsMigration) return;
     updatePrep.mutate({ id: sessionId, prepData: migrateNpcIds(initialData) });
   // eslint-disable-next-line react-hooks/exhaustive-deps
