@@ -21,6 +21,14 @@
       /* Base near-black */
       linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
   }
+
+  html.light body {
+    background-image:
+      radial-gradient(ellipse 60% 45% at 20% -5%, hsl(35 60% 82% / 0.6), transparent),
+      radial-gradient(ellipse 40% 35% at 80% -5%, hsl(45 40% 90% / 0.5), transparent),
+      radial-gradient(ellipse 80% 50% at 50% 105%, hsl(35 30% 88% / 0.4), transparent),
+      linear-gradient(hsl(35 25% 93%), hsl(40 20% 91%));
+  }
 }
 
 @layer utilities {

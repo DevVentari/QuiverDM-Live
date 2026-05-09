@@ -70,3 +70,43 @@
   /* Motion */
   --q-ease-out-quart: cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ── Light theme (Parchment Manuscript) ── */
+html.light {
+  /* Shadcn compatibility */
+  --background: 35 30% 93%;
+  --foreground: 35 25% 12%;
+  --card: 35 20% 97%;
+  --card-foreground: 35 25% 12%;
+  --popover: 35 25% 96%;
+  --popover-foreground: 35 25% 12%;
+  --primary: 35 80% 45%;
+  --primary-foreground: 35 10% 98%;
+  --secondary: 35 20% 88%;
+  --secondary-foreground: 35 25% 20%;
+  --muted: 35 15% 88%;
+  --muted-foreground: 35 15% 42%;
+  --accent: 35 80% 45%;
+  --accent-foreground: 35 10% 98%;
+  --destructive: 0 62% 40%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 35 20% 76%;
+  --input: 35 18% 80%;
+  --ring: 35 80% 45%;
+
+  /* QuiverDM Q-tokens */
+  --q-bg:             oklch(0.96 0.012 80);
+  --q-surface-flat:   oklch(0.93 0.014 80);
+  --q-surface-raised: oklch(0.97 0.010 80);
+  --q-surface-sunken: oklch(0.92 0.014 80);
+  --q-card-bg:        oklch(0.97 0.010 80);
+  --q-card-border:    oklch(0.55 0.10 60 / 0.25);
+  --q-border:         oklch(0.55 0.04 60 / 0.3);
+  --q-border-subtle:  oklch(0.55 0.04 60 / 0.15);
+  --q-text:           oklch(0.20 0.025 60);
+  --q-text-dim:       oklch(0.42 0.020 60);
+  --q-text-faint:     oklch(0.55 0.018 60);
+  --q-glow-amber:     oklch(0.7 0.16 55 / 0.08);
+  --q-glow-mystic:    oklch(0.55 0.15 280 / 0.04);
+  /* --q-amber* variants unchanged — amber is the same in both themes */
+}
