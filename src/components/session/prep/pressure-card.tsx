@@ -15,7 +15,7 @@ const TYPE_META: Record<BriefingCardType | 'CUSTOM', {
     bg: 'oklch(0.65 0.2 25 / 0.1)',
     border: 'oklch(0.65 0.2 25 / 0.4)',
     bar: 'oklch(0.65 0.2 25)',
-    icon: 'entity/faction',
+    icon: 'entity/organization',
   },
   NPC: {
     label: 'NPC',
@@ -23,7 +23,7 @@ const TYPE_META: Record<BriefingCardType | 'CUSTOM', {
     bg: 'oklch(0.65 0.12 290 / 0.1)',
     border: 'oklch(0.65 0.12 290 / 0.4)',
     bar: 'oklch(0.6 0.1 200)',
-    icon: 'entity/npc',
+    icon: 'entity/person',
   },
   HOOK: {
     label: 'Hook',
@@ -31,7 +31,7 @@ const TYPE_META: Record<BriefingCardType | 'CUSTOM', {
     bg: 'oklch(0.7 0.16 55 / 0.1)',
     border: 'oklch(0.7 0.16 55 / 0.4)',
     bar: 'oklch(0.7 0.16 55)',
-    icon: 'game/quest',
+    icon: 'game/hazard',
   },
   REGION: {
     label: 'Region',
@@ -187,11 +187,8 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
     >
       <div className="h-[2px]" style={{ background: `linear-gradient(to right, ${meta.bar}, transparent)` }} />
 
-      {/* Header row — always visible, click to expand */}
-      <button
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full px-3 py-2.5 flex items-center gap-2 text-left"
-      >
+      {/* Header row — always visible */}
+      <div className="px-3 pt-2.5 pb-1 flex items-center gap-2">
         <TypeBadge meta={meta} />
         <span
           className="font-[family-name:var(--q-font-display)] text-[12px] font-semibold flex-1 min-w-0 truncate"
@@ -200,30 +197,36 @@ export function PressureCard({ card, onChange }: PressureCardProps) {
           {card.entityName}
         </span>
         <UrgencyPips level={card.urgencyLevel} />
+      </div>
+
+      {/* Context — always visible */}
+      {card.context && (
+        <p className="px-3 pb-2 text-[11.5px] leading-relaxed" style={{ color: 'oklch(0.62 0.01 270)' }}>
+          {card.context}
+        </p>
+      )}
+
+      {/* Brain proposal — toggled by chevron */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full px-3 py-1.5 flex items-center gap-2"
+        style={{ borderTop: '1px solid oklch(0.2 0.005 270)' }}
+      >
+        <span
+          className="text-[8px] uppercase tracking-[0.2em] font-[family-name:var(--q-font-display)] whitespace-nowrap"
+          style={{ color: 'oklch(0.7 0.16 55 / 0.7)' }}
+        >
+          Brain proposes
+        </span>
+        <div className="flex-1 h-px" style={{ background: 'oklch(0.7 0.16 55 / 0.15)' }} />
         {expanded
           ? <ChevronUp className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.4 0.01 270)' }} />
           : <ChevronDown className="h-3 w-3 shrink-0" style={{ color: 'oklch(0.4 0.01 270)' }} />
         }
       </button>
 
-      {/* Expanded content */}
       {expanded && (
         <div className="px-3 pb-3 space-y-3">
-          {card.context && (
-            <p className="text-[12px] leading-relaxed" style={{ color: 'oklch(0.65 0.01 270)' }}>
-              {card.context}
-            </p>
-          )}
-
-          <div className="flex items-center gap-2">
-            <span
-              className="text-[8px] uppercase tracking-[0.2em] font-[family-name:var(--q-font-display)] whitespace-nowrap"
-              style={{ color: 'oklch(0.7 0.16 55 / 0.7)' }}
-            >
-              Brain proposes
-            </span>
-            <div className="flex-1 h-px" style={{ background: 'oklch(0.7 0.16 55 / 0.2)' }} />
-          </div>
 
           {editing ? (
             <textarea
