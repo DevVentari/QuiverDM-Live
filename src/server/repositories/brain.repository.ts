@@ -16,6 +16,9 @@ export const brainRepository = {
       where,
       orderBy: { name: 'asc' },
       take: opts?.limit ?? 100,
+      include: {
+        mapPins: { select: { id: true, mapId: true, x: true, y: true }, take: 1 },
+      },
     });
   },
 

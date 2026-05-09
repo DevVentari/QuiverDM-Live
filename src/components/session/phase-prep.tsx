@@ -25,6 +25,7 @@ export function PhasePrep({ session, slug, campaignId, onStatusChange }: PhasePr
     { enabled: !!campaignId }
   );
 
+  const acceptCards = trpc.sessions.acceptBriefingCards.useMutation();
   const startSession = trpc.sessions.update.useMutation({
     onSuccess: () => {
       void utils.sessions.getById.invalidate({ id: sessionId });
@@ -32,6 +33,15 @@ export function PhasePrep({ session, slug, campaignId, onStatusChange }: PhasePr
     },
     onError: (e) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
+
+  async function handleReadyToRun() {
+    try {
+      await acceptCards.mutateAsync({ sessionId, campaignId });
+    } catch {
+      // Non-fatal — proceed even if no spatial cards
+    }
+    startSession.mutate({ id: sessionId, status: 'in_progress' });
+  }
 
   const initialData = useMemo(() => {
     const parsed = SessionPrepDataSchema.safeParse((session as any).prepData);
@@ -76,8 +86,8 @@ export function PhasePrep({ session, slug, campaignId, onStatusChange }: PhasePr
         onComplete={onStatusChange}
       />
       <button
-        onClick={() => startSession.mutate({ id: sessionId, status: 'in_progress' })}
-        disabled={startSession.isPending}
+        onClick={handleReadyToRun}
+        disabled={acceptCards.isPending || startSession.isPending}
         className="w-full flex items-center justify-center gap-2 py-3 rounded-sm font-[var(--q-font-display)] text-sm tracking-widest uppercase transition-colors disabled:opacity-50"
         style={{
           background: 'linear-gradient(180deg, hsl(35 60% 22%) 0%, hsl(35 55% 17%) 100%)',

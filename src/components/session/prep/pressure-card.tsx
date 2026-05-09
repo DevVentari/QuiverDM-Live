@@ -53,15 +53,11 @@ const TYPE_META: Record<BriefingCardType | 'CUSTOM', {
 
 function TypeBadge({ meta }: { meta: (typeof TYPE_META)[keyof typeof TYPE_META] }) {
   return (
-    <span
-      className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm border shrink-0"
-      style={{ color: meta.color, borderColor: meta.border, background: meta.bg }}
-    >
-      <DndIcon name={meta.icon} className="w-3 h-3" style={{ filter: `drop-shadow(0 0 2px ${meta.color})` }} />
-      <span className="text-[8px] font-[family-name:var(--q-font-display)] uppercase tracking-wider">
-        {meta.label}
-      </span>
-    </span>
+    <DndIcon
+      name={meta.icon}
+      className="w-3.5 h-3.5 shrink-0"
+      style={{ filter: `drop-shadow(0 0 3px ${meta.color}) drop-shadow(0 0 1px ${meta.color})` }}
+    />
   );
 }
 
