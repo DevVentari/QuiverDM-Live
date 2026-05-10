@@ -38,10 +38,10 @@
   --q-surface-flat:   oklch(0.16 0.01 60);
   --q-surface-raised: oklch(0.19 0.012 60);
   --q-surface-sunken: oklch(0.12 0.018 225);
-  --q-surface-utility: oklch(0.15 0.008 265 / 0.9);
-  --q-surface-feature: oklch(0.17 0.01 60 / 0.72);
-  --q-surface-hero:    oklch(0.18 0.014 60 / 0.84);
-  --q-surface-signature: oklch(0.13 0.012 265 / 0.9);
+  --q-surface-utility: oklch(0.16 0.012 230 / 0.92);
+  --q-surface-feature: oklch(0.22 0.018 230 / 0.78);
+  --q-surface-hero:    oklch(0.24 0.022 230 / 0.86);
+  --q-surface-signature: oklch(0.17 0.018 230 / 0.92);
   --q-shell-rail:     oklch(0.11 0.006 265 / 0.96);
   --q-shell-bar:      oklch(0.11 0.005 265 / 0.92);
 
@@ -56,11 +56,11 @@
   --q-amber-border:   oklch(0.7 0.16 55 / 0.22);
 
   /* Borders */
-  --q-border:         oklch(0.28 0.02 60 / 0.4);
-  --q-border-subtle:  oklch(0.28 0.02 60 / 0.18);
-  --q-border-feature: oklch(0.75 0.02 60 / 0.14);
-  --q-border-hero:    oklch(0.7 0.16 55 / 0.24);
-  --q-border-signature: oklch(0.7 0.16 55 / 0.32);
+  --q-border:         oklch(0.42 0.025 60 / 0.55);
+  --q-border-subtle:  oklch(0.42 0.025 60 / 0.32);
+  --q-border-feature: oklch(0.75 0.04 60 / 0.22);
+  --q-border-hero:    oklch(0.7 0.16 55 / 0.42);
+  --q-border-signature: oklch(0.7 0.16 55 / 0.5);
 
   /* Text */
   --q-text:           oklch(0.92 0.005 60);
@@ -71,10 +71,10 @@
   --q-text-danger:    oklch(0.75 0.15 25);
 
   /* Grimoire grain/glow */
-  --q-glow-amber:     oklch(0.7 0.16 55 / 0.12);
-  --q-glow-mystic:    oklch(0.55 0.15 280 / 0.08);
-  --q-glow-hero:      oklch(0.7 0.16 55 / 0.16);
-  --q-glow-signature: oklch(0.62 0.18 280 / 0.12);
+  --q-glow-amber:     oklch(0.7 0.16 55 / 0.22);
+  --q-glow-mystic:    oklch(0.55 0.15 280 / 0.16);
+  --q-glow-hero:      oklch(0.7 0.16 55 / 0.3);
+  --q-glow-signature: oklch(0.62 0.18 280 / 0.22);
 
   /* Typography */
   --q-font-display:   'Cinzel', serif;
