@@ -12,6 +12,7 @@ import {
 import { Surface } from '@/components/primitives'
 import { QuickAddSheet } from './QuickAddSheet'
 import { CalendarSheet } from './CalendarSheet'
+import { DMToolsSheet } from './DMToolsSheet'
 import { cn } from '@/lib/utils'
 
 type QuickAction = {
@@ -28,12 +29,6 @@ const PLACEHOLDER_ACTIONS: QuickAction[] = [
     icon: Dices,
     description: 'Roll on tables, generate names, fates, and oracles — coming in Slice D5.',
   },
-  {
-    id: 'dm-tools',
-    label: 'DM Tools',
-    icon: Wand2,
-    description: 'Initiative tracker, condition co-pilot, encounter helper — coming in Slice D7.',
-  },
 ]
 
 const TOOLBAR_BUTTON_CLASS = cn(
@@ -45,6 +40,7 @@ const TOOLBAR_BUTTON_CLASS = cn(
 export function QuickActionButtons() {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  const [dmToolsOpen, setDmToolsOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const active = PLACEHOLDER_ACTIONS.find((a) => a.id === activeId) ?? null
 
@@ -83,7 +79,7 @@ export function QuickActionButtons() {
 
         <button
           type="button"
-          onClick={() => setActiveId('dm-tools')}
+          onClick={() => setDmToolsOpen(true)}
           data-testid="quick-action-dm-tools"
           className={TOOLBAR_BUTTON_CLASS}
         >
@@ -94,6 +90,7 @@ export function QuickActionButtons() {
 
       <QuickAddSheet open={quickAddOpen} onOpenChange={setQuickAddOpen} />
       <CalendarSheet open={calendarOpen} onOpenChange={setCalendarOpen} />
+      <DMToolsSheet open={dmToolsOpen} onOpenChange={setDmToolsOpen} />
 
       <Dialog open={!!active} onOpenChange={(o) => !o && setActiveId(null)}>
         <DialogContent className="border-[var(--q-border-feature)] bg-[var(--q-surface-feature)] text-[var(--q-text)]">
