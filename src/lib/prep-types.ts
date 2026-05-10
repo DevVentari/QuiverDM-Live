@@ -73,6 +73,14 @@ export const ImportedNoteSchema = z.object({
 // Full SessionPrepData schema
 // ---------------------------------------------------------------------------
 
+export const PrepReminderSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1).max(200),
+  description: z.string().max(500).default(''),
+  completed: z.boolean().default(false),
+  createdAt: z.string().optional(),
+});
+
 export const SessionPrepDataSchema = z.object({
   currentStep: z.number().int().min(0).max(7).default(0),
   lastSavedAt: z.string().optional(),
@@ -106,6 +114,9 @@ export const SessionPrepDataSchema = z.object({
 
   // World Briefing Board
   briefingCards: z.array(BriefingCardSchema).optional().default([]),
+
+  // Home-page Prep Reminders (Slice D2) — ad-hoc todos for the next session
+  reminders: z.array(PrepReminderSchema).optional().default([]),
 });
 
 export type SessionPrepData = z.infer<typeof SessionPrepDataSchema>;
@@ -113,6 +124,7 @@ export type CharacterNote = z.infer<typeof CharacterNoteSchema>;
 export type PrepScene = z.infer<typeof SceneSchema>;
 export type PrepSecret = z.infer<typeof SecretSchema>;
 export type PrepNpc = z.infer<typeof PrepNpcSchema>;
+export type PrepReminder = z.infer<typeof PrepReminderSchema>;
 export type PrepMonster = z.infer<typeof MonsterSchema>;
 export type PrepReward = z.infer<typeof RewardSchema>;
 export type PrepLooseThread = z.infer<typeof LooseThreadSchema>;

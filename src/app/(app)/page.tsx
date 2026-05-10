@@ -10,7 +10,8 @@ import { HomeHero } from '@/components/home/HomeHero'
 import { ActiveCampaignSummary } from '@/components/home/ActiveCampaignSummary'
 import { RecentSessionsList } from '@/components/home/RecentSessionsList'
 import { WorldActivityFeed } from '@/components/home/WorldActivityFeed'
-import { PrepRemindersStub } from '@/components/home/PrepRemindersStub'
+import { PrepReminders } from '@/components/home/PrepReminders'
+import { SessionPrepDataSchema } from '@/lib/prep-types'
 
 export default function HomePage() {
   const { setSlot } = useHeaderStore()
@@ -72,6 +73,15 @@ export default function HomePage() {
 
   const planningSession = recentSessions.find((s) => s.status === 'planning') ?? recentSessions[0] ?? null
 
+  const prepReminders = planningSession
+    ? (() => {
+        const parsed = SessionPrepDataSchema.safeParse(
+          (planningSession as { prepData?: unknown }).prepData,
+        )
+        return parsed.success ? parsed.data.reminders ?? [] : []
+      })()
+    : []
+
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -95,7 +105,7 @@ export default function HomePage() {
         </div>
         <div className="space-y-6 lg:col-span-4">
           <WorldActivityFeed campaignId={active.id} />
-          <PrepRemindersStub />
+          <PrepReminders sessionId={planningSession?.id ?? null} reminders={prepReminders} />
         </div>
       </div>
     </div>
