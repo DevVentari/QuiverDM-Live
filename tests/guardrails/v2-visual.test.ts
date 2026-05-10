@@ -21,7 +21,7 @@ const MIGRATED_ROUTES = [
   'src/components/home/ActiveCampaignSummary.tsx',
   'src/components/home/RecentSessionsList.tsx',
   'src/components/home/WorldActivityFeed.tsx',
-  'src/components/home/PrepRemindersStub.tsx',
+  'src/components/home/PrepReminders.tsx',
 ]
 
 const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
