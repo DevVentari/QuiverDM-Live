@@ -55,6 +55,7 @@ module.exports = {
     worker('worker-webhooks',         'src/lib/queue/webhooks-worker.ts'),
     worker('worker-feedback',         'src/lib/queue/feedback-triage-worker.ts'),
     worker('worker-obsidian',         'src/lib/queue/obsidian-import-worker.ts'),
+    worker('worker-meili-sync',       'src/lib/queue/meili-sync-worker.ts'),
 
     // --- WebSocket server ---
     {
