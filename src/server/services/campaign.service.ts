@@ -86,6 +86,9 @@ export interface DashboardCampaign {
   };
   sessionCount: number;
   memberCount: number;
+  npcCount: number;
+  locationCount: number;
+  itemCount: number;
   nextSession: {
     id: string;
     date: Date;
@@ -251,10 +254,16 @@ export class CampaignService {
     const memberships = await campaignRepository.getUserMemberships(userId);
     const campaignIds = memberships.map((m) => m.campaignId);
 
-    // Get user's characters and last session dates in parallel
-    const [characters, lastSessions] = await Promise.all([
+    const [characters, lastSessions, entityCounts] = await Promise.all([
       campaignRepository.getUserCharactersInCampaigns(userId, campaignIds),
       campaignRepository.getLastSessionDates(campaignIds),
+      campaignIds.length === 0
+        ? Promise.resolve([] as Array<{ campaignId: string; type: string; _count: { _all: number } }>)
+        : prisma.worldEntity.groupBy({
+            by: ['campaignId', 'type'],
+            where: { campaignId: { in: campaignIds } },
+            _count: { _all: true },
+          }),
     ]);
 
     const charMap = new Map(
@@ -263,6 +272,12 @@ export class CampaignService {
     const lastSessionMap = new Map(
       lastSessions.map((s) => [s.campaignId, s.date])
     );
+    const locationMap = new Map<string, number>();
+    const itemMap = new Map<string, number>();
+    for (const row of entityCounts) {
+      if (row.type === 'LOCATION') locationMap.set(row.campaignId, row._count._all);
+      else if (row.type === 'ITEM') itemMap.set(row.campaignId, row._count._all);
+    }
 
     return memberships.map((m) => ({
       id: m.campaign.id,
@@ -278,6 +293,9 @@ export class CampaignService {
       },
       sessionCount: m.campaign._count.gameSessions,
       memberCount: m.campaign._count.members,
+      npcCount: m.campaign._count.npcs,
+      locationCount: locationMap.get(m.campaignId) ?? 0,
+      itemCount: itemMap.get(m.campaignId) ?? 0,
       nextSession: m.campaign.gameSessions[0] ?? null,
       lastSessionDate: lastSessionMap.get(m.campaignId) ?? null,
       myCharacter: charMap.get(m.campaignId) ?? null,

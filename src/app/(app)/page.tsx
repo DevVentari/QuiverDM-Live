@@ -25,7 +25,9 @@ export default function HomePage() {
     { enabled: !!active?.id, staleTime: 60_000 },
   )
 
-  const recentSessions = sessions?.slice(0, 5) ?? []
+  const completedSessions = sessions?.filter((s) => s.status !== 'planning') ?? []
+  const recentSessions = completedSessions.slice(0, 5)
+  const planningFromList = sessions?.find((s) => s.status === 'planning') ?? null
 
   useEffect(() => {
     if (!active) return
@@ -61,7 +63,7 @@ export default function HomePage() {
     )
   }
 
-  const planningSession = recentSessions.find((s) => s.status === 'planning') ?? recentSessions[0] ?? null
+  const planningSession = planningFromList ?? recentSessions[0] ?? null
 
   const prepReminders = planningSession
     ? (() => {
@@ -90,6 +92,9 @@ export default function HomePage() {
               slug={active.slug}
               ongoingSince={active.createdAt}
               sessionCount={active.sessionCount}
+              npcCount={active.npcCount}
+              locationCount={active.locationCount}
+              itemCount={active.itemCount}
             />
           </div>
         </div>

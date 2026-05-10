@@ -322,6 +322,7 @@ export async function getUserMemberships(userId: string) {
             select: {
               gameSessions: true,
               members: true,
+              npcs: true,
             },
           },
           gameSessions: {
