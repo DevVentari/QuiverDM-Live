@@ -75,6 +75,8 @@ export function CommandRail() {
     localStorage.setItem(STORAGE_KEY, String(next))
   }
 
+  const campaignSlug = slot?.campaignSlug
+
   const resolvedHrefs = NAV_ITEMS.map((item) => ({
     id: item.id,
     path: resolveHref(item, campaignSlug).split('?')[0],
@@ -87,8 +89,6 @@ export function CommandRail() {
     return matches.reduce((best, cur) => (cur.path.length > best.path.length ? cur : best)).id
   })()
   const isActive = (id: string) => activeId === id
-
-  const campaignSlug = slot?.campaignSlug
 
   return (
     <nav
