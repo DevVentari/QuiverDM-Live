@@ -45,6 +45,7 @@ import { recapRouter } from './recap';
 import { campaignContextRouter } from './campaign-context';
 import { worldMapRouter } from './world-map';
 import { worldRouter } from './world';
+import { randomizerRouter } from './randomizer';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -93,6 +94,7 @@ export const appRouter = router({
   campaignContext: campaignContextRouter,
   worldMap: worldMapRouter,
   world: worldRouter,
+  randomizer: randomizerRouter,
 });
 
 export type AppRouter = typeof appRouter;

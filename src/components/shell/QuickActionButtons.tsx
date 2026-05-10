@@ -1,35 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { PlusCircle, Dices, Calendar, Wand2, type LucideIcon } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import { Surface } from '@/components/primitives'
+import { PlusCircle, Dices, Calendar, Wand2 } from 'lucide-react'
 import { QuickAddSheet } from './QuickAddSheet'
 import { CalendarSheet } from './CalendarSheet'
 import { DMToolsSheet } from './DMToolsSheet'
+import { RandomizerSheet } from './RandomizerSheet'
 import { cn } from '@/lib/utils'
-
-type QuickAction = {
-  id: string
-  label: string
-  icon: LucideIcon
-  description: string
-}
-
-const PLACEHOLDER_ACTIONS: QuickAction[] = [
-  {
-    id: 'randomizer',
-    label: 'Randomizer',
-    icon: Dices,
-    description: 'Roll on tables, generate names, fates, and oracles — coming in Slice D5.',
-  },
-]
 
 const TOOLBAR_BUTTON_CLASS = cn(
   'inline-flex items-center gap-2 rounded-sm border border-[var(--q-border-subtle)]',
@@ -39,10 +16,9 @@ const TOOLBAR_BUTTON_CLASS = cn(
 
 export function QuickActionButtons() {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [randomizerOpen, setRandomizerOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [dmToolsOpen, setDmToolsOpen] = useState(false)
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const active = PLACEHOLDER_ACTIONS.find((a) => a.id === activeId) ?? null
 
   return (
     <>
@@ -59,7 +35,7 @@ export function QuickActionButtons() {
 
         <button
           type="button"
-          onClick={() => setActiveId('randomizer')}
+          onClick={() => setRandomizerOpen(true)}
           data-testid="quick-action-randomizer"
           className={TOOLBAR_BUTTON_CLASS}
         >
@@ -89,28 +65,9 @@ export function QuickActionButtons() {
       </div>
 
       <QuickAddSheet open={quickAddOpen} onOpenChange={setQuickAddOpen} />
+      <RandomizerSheet open={randomizerOpen} onOpenChange={setRandomizerOpen} />
       <CalendarSheet open={calendarOpen} onOpenChange={setCalendarOpen} />
       <DMToolsSheet open={dmToolsOpen} onOpenChange={setDmToolsOpen} />
-
-      <Dialog open={!!active} onOpenChange={(o) => !o && setActiveId(null)}>
-        <DialogContent className="border-[var(--q-border-feature)] bg-[var(--q-surface-feature)] text-[var(--q-text)]">
-          {active && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-[var(--q-font-display)] tracking-wide">
-                  {active.label}
-                </DialogTitle>
-                <DialogDescription className="text-[var(--q-text-dim)]">
-                  {active.description}
-                </DialogDescription>
-              </DialogHeader>
-              <Surface variant="utility" className="p-4 text-xs text-[var(--q-text-faint)]">
-                <p>Press <span className="font-mono">Esc</span> to close.</p>
-              </Surface>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   )
 }
