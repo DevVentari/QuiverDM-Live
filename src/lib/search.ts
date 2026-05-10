@@ -1,20 +1,41 @@
 /**
  * MeiliSearch client and indexing utilities.
  *
- * Indexes: homebrew_content, npcs
- * All indexing operations are fire-and-forget (errors logged, never thrown)
+ * Indexes: homebrew_content, npcs, campaigns, sessions, world_entities, world_entries
+ * All direct indexing operations are fire-and-forget (errors logged, never thrown)
  * so search failures never block core CRUD paths.
+ *
+ * Real-time sync for the four newer indexes (campaigns/sessions/world_*) flows
+ * through the meili-sync BullMQ queue — see src/lib/queue/meili-sync-queue.ts.
+ * The two original indexes (homebrew_content, npcs) still use direct calls.
  */
 
 import { MeiliSearch } from 'meilisearch';
 
-const client = new MeiliSearch({
+export const meiliClient = new MeiliSearch({
   host: process.env.MEILI_URL ?? 'http://localhost:7701',
   apiKey: process.env.MEILI_MASTER_KEY,
 });
 
+const client = meiliClient;
+
 export const HOMEBREW_INDEX = 'homebrew_content';
 export const NPC_INDEX = 'npcs';
+export const CAMPAIGN_INDEX = 'campaigns';
+export const SESSION_INDEX = 'sessions';
+export const WORLD_ENTITY_INDEX = 'world_entities';
+export const WORLD_ENTRY_INDEX = 'world_entries';
+
+export const GLOBAL_SEARCH_INDEXES = [
+  CAMPAIGN_INDEX,
+  SESSION_INDEX,
+  NPC_INDEX,
+  WORLD_ENTITY_INDEX,
+  WORLD_ENTRY_INDEX,
+  HOMEBREW_INDEX,
+] as const;
+
+export type GlobalSearchIndex = (typeof GLOBAL_SEARCH_INDEXES)[number];
 
 // ---------------------------------------------------------------------------
 // Document shapes
@@ -39,6 +60,53 @@ export interface NpcSearchDoc {
   tags: string[];
 }
 
+export interface CampaignSearchDoc {
+  id: string;
+  ownerUserId: string;
+  memberUserIds: string[];
+  name: string;
+  slug: string;
+  description: string | null;
+  status: string;
+  updatedAt: number;
+}
+
+export interface SessionSearchDoc {
+  id: string;
+  campaignId: string;
+  sessionNumber: number;
+  title: string | null;
+  recap: string | null;
+  aiSummary: string | null;
+  playerRecap: string | null;
+  status: string;
+  date: number;
+  updatedAt: number;
+}
+
+export interface WorldEntitySearchDoc {
+  id: string;
+  campaignId: string;
+  name: string;
+  entityType: string;
+  description: string | null;
+  aliases: string[];
+  status: string;
+  updatedAt: number;
+}
+
+export interface WorldEntrySearchDoc {
+  id: string;
+  campaignId: string;
+  slug: string;
+  name: string;
+  entryType: string;
+  summary: string | null;
+  content: string;
+  tags: string[];
+  updatedAt: number;
+}
+
 // ---------------------------------------------------------------------------
 // Index initialisation (called once at startup or on demand)
 // ---------------------------------------------------------------------------
@@ -55,6 +123,30 @@ export async function initSearchIndexes(): Promise<void> {
       searchableAttributes: ['name', 'description', 'faction', 'tags'],
       filterableAttributes: ['campaignId', 'faction', 'tags'],
       sortableAttributes: ['name'],
+    });
+
+    await client.index(CAMPAIGN_INDEX).updateSettings({
+      searchableAttributes: ['name', 'description', 'slug'],
+      filterableAttributes: ['ownerUserId', 'memberUserIds', 'status'],
+      sortableAttributes: ['updatedAt', 'name'],
+    });
+
+    await client.index(SESSION_INDEX).updateSettings({
+      searchableAttributes: ['title', 'recap', 'aiSummary', 'playerRecap'],
+      filterableAttributes: ['campaignId', 'status'],
+      sortableAttributes: ['updatedAt', 'date', 'sessionNumber'],
+    });
+
+    await client.index(WORLD_ENTITY_INDEX).updateSettings({
+      searchableAttributes: ['name', 'aliases', 'description'],
+      filterableAttributes: ['campaignId', 'entityType', 'status'],
+      sortableAttributes: ['updatedAt', 'name'],
+    });
+
+    await client.index(WORLD_ENTRY_INDEX).updateSettings({
+      searchableAttributes: ['name', 'summary', 'content', 'tags'],
+      filterableAttributes: ['campaignId', 'entryType', 'tags'],
+      sortableAttributes: ['updatedAt', 'name'],
     });
   } catch (err) {
     console.warn('[Search] Failed to initialise indexes:', err);
@@ -145,4 +237,41 @@ export async function searchNpcs(
   });
 
   return results.hits.map((h) => h.id as string);
+}
+
+// ---------------------------------------------------------------------------
+// Campaign / Session / World indexes – upsert + delete helpers
+// (called by the meili-sync worker; do not call directly from request paths)
+// ---------------------------------------------------------------------------
+
+export async function upsertCampaignDoc(doc: CampaignSearchDoc): Promise<void> {
+  await client.index(CAMPAIGN_INDEX).addDocuments([doc]);
+}
+
+export async function deleteCampaignDoc(id: string): Promise<void> {
+  await client.index(CAMPAIGN_INDEX).deleteDocument(id);
+}
+
+export async function upsertSessionDoc(doc: SessionSearchDoc): Promise<void> {
+  await client.index(SESSION_INDEX).addDocuments([doc]);
+}
+
+export async function deleteSessionDoc(id: string): Promise<void> {
+  await client.index(SESSION_INDEX).deleteDocument(id);
+}
+
+export async function upsertWorldEntityDoc(doc: WorldEntitySearchDoc): Promise<void> {
+  await client.index(WORLD_ENTITY_INDEX).addDocuments([doc]);
+}
+
+export async function deleteWorldEntityDoc(id: string): Promise<void> {
+  await client.index(WORLD_ENTITY_INDEX).deleteDocument(id);
+}
+
+export async function upsertWorldEntryDoc(doc: WorldEntrySearchDoc): Promise<void> {
+  await client.index(WORLD_ENTRY_INDEX).addDocuments([doc]);
+}
+
+export async function deleteWorldEntryDoc(id: string): Promise<void> {
+  await client.index(WORLD_ENTRY_INDEX).deleteDocument(id);
 }
