@@ -16,19 +16,9 @@ import { SessionPrepDataSchema } from '@/lib/prep-types'
 export default function HomePage() {
   const { setSlot } = useHeaderStore()
 
-  const { data: campaigns, isLoading } = trpc.campaigns.getMyMemberships.useQuery(undefined, {
+  const { data: active, isLoading } = trpc.campaigns.getActive.useQuery(undefined, {
     staleTime: 120_000,
   })
-
-  // Derive active campaign: most recent session date, fall back to most recently updated
-  const active =
-    campaigns
-      ?.slice()
-      .sort((a, b) => {
-        const aDate = a.lastSessionDate ?? a.updatedAt
-        const bDate = b.lastSessionDate ?? b.updatedAt
-        return new Date(bDate).getTime() - new Date(aDate).getTime()
-      })[0] ?? null
 
   const { data: sessions } = trpc.sessions.getAll.useQuery(
     { campaignId: active?.id ?? '' },

@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Home, Globe, BookOpen, Users, Settings, Menu, X } from 'lucide-react'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { CampaignSwitcher } from './CampaignSwitcher'
 
 const NAV_ITEMS = [
   { id: 'home',       href: '/',           icon: Home,     label: 'Home' },
@@ -51,6 +52,9 @@ export function MobileHeader() {
             <button onClick={() => setOpen(false)} aria-label="Close navigation" className="p-1">
               <X size={16} className="text-[var(--q-text-faint)]" />
             </button>
+          </div>
+          <div className="px-3 pt-3">
+            <CampaignSwitcher mobile onNavigate={() => setOpen(false)} />
           </div>
           <nav className="flex flex-col gap-1 p-2">
             {NAV_ITEMS.map(({ id, href, icon: Icon, label }) => (
