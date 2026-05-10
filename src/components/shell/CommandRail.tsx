@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { trpc } from '@/lib/trpc'
 import {
   Home,
   ScrollText,
@@ -69,7 +70,14 @@ export function CommandRail() {
     localStorage.setItem(STORAGE_KEY, String(next))
   }
 
-  const campaignSlug = slot?.campaignSlug
+  // Fall back to the user's active campaign when the slot hasn't been
+  // populated yet (e.g., on first paint before a page useEffect sets it).
+  // Without this, scoped nav links resolve to /campaigns and the user gets
+  // bounced through the campaign list on every cold click.
+  const { data: activeCampaign } = trpc.campaigns.getActive.useQuery(undefined, {
+    staleTime: 5 * 60_000,
+  })
+  const campaignSlug = slot?.campaignSlug ?? activeCampaign?.slug ?? undefined
 
   const resolvedHrefs = NAV_ITEMS.map((item) => ({
     id: item.id,

@@ -254,14 +254,38 @@ export class CampaignService {
     const memberships = await campaignRepository.getUserMemberships(userId);
     const campaignIds = memberships.map((m) => m.campaignId);
 
-    const [characters, lastSessions, entityCounts] = await Promise.all([
+    const [characters, lastSessions, entityCounts, knownNpcCounts] = await Promise.all([
       campaignRepository.getUserCharactersInCampaigns(userId, campaignIds),
       campaignRepository.getLastSessionDates(campaignIds),
+      // Count only "known" entities: DM-created (no DDB chapter source) OR
+      // entities the party has actually encountered in a session. This filters
+      // out the flood of sourcebook entities that ingestion creates but the
+      // campaign hasn't touched yet.
       campaignIds.length === 0
         ? Promise.resolve([] as Array<{ campaignId: string; type: string; _count: { _all: number } }>)
         : prisma.worldEntity.groupBy({
             by: ['campaignId', 'type'],
-            where: { campaignId: { in: campaignIds } },
+            where: {
+              campaignId: { in: campaignIds },
+              OR: [
+                { ddbChapterId: null },
+                { firstSeenSessionId: { not: null } },
+              ],
+            },
+            _count: { _all: true },
+          }),
+      campaignIds.length === 0
+        ? Promise.resolve([] as Array<{ campaignId: string; _count: { _all: number } }>)
+        : prisma.worldEntity.groupBy({
+            by: ['campaignId'],
+            where: {
+              campaignId: { in: campaignIds },
+              type: 'NPC',
+              OR: [
+                { ddbChapterId: null },
+                { firstSeenSessionId: { not: null } },
+              ],
+            },
             _count: { _all: true },
           }),
     ]);
@@ -278,6 +302,12 @@ export class CampaignService {
       if (row.type === 'LOCATION') locationMap.set(row.campaignId, row._count._all);
       else if (row.type === 'ITEM') itemMap.set(row.campaignId, row._count._all);
     }
+    // NPC count = NPC table rows + "known" WorldEntity NPCs (DDB-imported NPCs
+    // that the party has encountered, or DM-created NPC entities).
+    const knownNpcEntityMap = new Map<string, number>();
+    for (const row of knownNpcCounts) {
+      knownNpcEntityMap.set(row.campaignId, row._count._all);
+    }
 
     return memberships.map((m) => ({
       id: m.campaign.id,
@@ -293,7 +323,7 @@ export class CampaignService {
       },
       sessionCount: m.campaign._count.gameSessions,
       memberCount: m.campaign._count.members,
-      npcCount: m.campaign._count.npcs,
+      npcCount: m.campaign._count.npcs + (knownNpcEntityMap.get(m.campaignId) ?? 0),
       locationCount: locationMap.get(m.campaignId) ?? 0,
       itemCount: itemMap.get(m.campaignId) ?? 0,
       nextSession: m.campaign.gameSessions[0] ?? null,
