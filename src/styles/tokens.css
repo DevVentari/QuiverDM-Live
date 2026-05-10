@@ -34,10 +34,10 @@
 /* ── QuiverDM OKLCH semantic tokens ── */
 :root {
   /* Backgrounds */
-  --q-bg:             oklch(0.12 0.005 265);
+  --q-bg:             oklch(0.14 0.022 225);
   --q-surface-flat:   oklch(0.16 0.01 60);
   --q-surface-raised: oklch(0.19 0.012 60);
-  --q-surface-sunken: oklch(0.10 0.005 265);
+  --q-surface-sunken: oklch(0.12 0.018 225);
   --q-surface-utility: oklch(0.15 0.008 265 / 0.9);
   --q-surface-feature: oklch(0.17 0.01 60 / 0.72);
   --q-surface-hero:    oklch(0.18 0.014 60 / 0.84);

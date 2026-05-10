@@ -202,7 +202,8 @@
     radial-gradient(ellipse 60% 50% at 25% -10%, hsl(35 70% 15% / 0.7), transparent),
     radial-gradient(ellipse 50% 45% at 75% -5%, hsl(258 40% 12% / 0.6), transparent),
     radial-gradient(ellipse 70% 40% at 50% 110%, hsl(35 50% 10% / 0.4), transparent),
-    linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
+    url('/textures/cartography-bg.webp') center / cover no-repeat,
+    linear-gradient(hsl(215 28% 7%), hsl(215 28% 7%));
 }
 
 html.light {
