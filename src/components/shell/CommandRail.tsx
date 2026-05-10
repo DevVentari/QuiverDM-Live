@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useHeaderStore } from '@/store/header-store'
+import { CampaignSwitcher } from './CampaignSwitcher'
 
 type NavItem = {
   id: string
@@ -115,6 +116,10 @@ export function CommandRail() {
           </span>
         )}
       </Link>
+
+      <div className={cn('shrink-0', collapsed ? 'pt-2' : '')}>
+        <CampaignSwitcher collapsed={collapsed} />
+      </div>
 
       <div className="flex flex-col gap-0.5 px-2 pt-3 flex-1 overflow-y-auto">
         {NAV_ITEMS.map(({ id, icon: Icon, label, ...item }) => {

@@ -8,6 +8,7 @@
 import { TRPCError } from '@trpc/server';
 import { NotFoundError, ValidationError } from '../errors';
 import { CampaignRole } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import { campaignRepository } from '../repositories/campaign.repository';
 import { authz, type CampaignAccess } from './authorization.service';
 import { generateUniqueSlug } from '@/lib/utils/slugify';
@@ -283,6 +284,42 @@ export class CampaignService {
       createdAt: m.campaign.createdAt,
       updatedAt: m.campaign.updatedAt,
     }));
+  }
+
+  /**
+   * Resolve the active campaign for a user.
+   *
+   * Priority:
+   *   1. UserSettings.activeCampaignId, if set AND user is still a member of that campaign
+   *   2. Most-recent-activity auto-derive (lastSessionDate ?? updatedAt)
+   *   3. null when the user has no campaigns
+   *
+   * Returns the same DashboardCampaign shape as getDashboardCampaigns so the
+   * client doesn't need to map between two types.
+   */
+  async getActiveCampaign(userId: string): Promise<DashboardCampaign | null> {
+    const settings = await (prisma.userSettings as any).findUnique({
+      where: { userId },
+      select: { activeCampaignId: true },
+    }) as { activeCampaignId: string | null } | null;
+
+    const dashboard = await this.getDashboardCampaigns(userId);
+    if (dashboard.length === 0) return null;
+
+    const explicitId = settings?.activeCampaignId ?? null;
+    if (explicitId) {
+      const explicit = dashboard.find((c) => c.id === explicitId);
+      if (explicit) return explicit;
+      // Stored id is stale (left/removed). Fall through to auto-derive.
+    }
+
+    return dashboard
+      .slice()
+      .sort((a, b) => {
+        const aDate = a.lastSessionDate ?? a.updatedAt;
+        const bDate = b.lastSessionDate ?? b.updatedAt;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      })[0];
   }
 
   /**
