@@ -13,6 +13,7 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { ImportSheet } from '@/components/world/import-sheet';
+import { Canvas } from '@/components/primitives';
 import { cn } from '@/lib/utils';
 
 // ─── Type metadata ────────────────────────────────────────────────────────────
@@ -236,6 +237,7 @@ export default function WorldPage() {
   const typesPresent = [...new Set(allItems.map((i) => i.type))];
 
   return (
+    <Canvas variant="world">
     <PageLayout
       overline="Campaign"
       title="World Lore"
@@ -408,5 +410,6 @@ export default function WorldPage() {
         }}
       />
     </PageLayout>
+    </Canvas>
   );
 }

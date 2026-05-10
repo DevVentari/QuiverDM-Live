@@ -8,6 +8,7 @@ import { PhasePillBar } from './_components/PhasePillBar'
 import { PrepWorkspace } from './_components/PrepWorkspace'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
+import { Canvas } from '@/components/primitives'
 
 // getById returns a union (DM full view | player restricted view).
 // Hub page is DM-facing — cast to a loose shared shape.
@@ -91,7 +92,7 @@ export default function SessionPage({
   const campaign = s.campaign ?? null
 
   return (
-    <div className="flex flex-col h-full">
+    <Canvas variant="prep" className="!min-h-0 h-full flex flex-col">
       <PhasePillBar current={phase} />
       <div className={`flex-1 ${phase === 'prep' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
         {phase === 'prep' && campaign && (
@@ -128,6 +129,6 @@ export default function SessionPage({
           </div>
         )}
       </div>
-    </div>
+    </Canvas>
   )
 }

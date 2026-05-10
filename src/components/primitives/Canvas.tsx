@@ -46,7 +46,7 @@ export function Canvas({
         />
       )}
       {grain && <div aria-hidden className="pointer-events-none absolute inset-0 q-panel-grain" />}
-      <div className="relative z-10">{children}</div>
+      <div className="relative z-10 h-full">{children}</div>
     </div>
   )
 }
