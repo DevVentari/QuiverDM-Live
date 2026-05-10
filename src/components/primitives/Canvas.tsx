@@ -1,32 +1,51 @@
 import { cn } from '@/lib/utils'
 
 interface CanvasProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'base' | 'world' | 'prep' | 'recap' | 'summon'
+  grain?: boolean
+  vignette?: boolean
+  glow?: boolean
   children?: React.ReactNode
 }
 
-export function Canvas({ className, children, ...props }: CanvasProps) {
+const variantGlows = {
+  base: null,
+  world:
+    'radial-gradient(circle at 18% 18%, var(--q-glow-signature), transparent 34%), radial-gradient(circle at 78% 72%, var(--q-glow-amber), transparent 24%)',
+  prep:
+    'radial-gradient(circle at 20% 12%, var(--q-glow-amber), transparent 28%), radial-gradient(circle at 84% 82%, var(--q-glow-mystic), transparent 30%)',
+  recap:
+    'radial-gradient(circle at 50% 0%, var(--q-glow-hero), transparent 42%), radial-gradient(circle at 50% 100%, var(--q-glow-mystic), transparent 38%)',
+  summon:
+    'radial-gradient(circle at 50% 0%, var(--q-glow-hero), transparent 38%), radial-gradient(circle at 50% 100%, var(--q-glow-signature), transparent 46%)',
+} as const
+
+export function Canvas({
+  variant = 'base',
+  grain = true,
+  vignette = true,
+  glow = true,
+  className,
+  children,
+  ...props
+}: CanvasProps) {
   return (
     <div
-      className={cn('relative bg-[var(--q-bg)] min-h-screen overflow-hidden', className)}
+      className={cn(
+        'relative bg-[var(--q-bg)] min-h-screen overflow-hidden',
+        vignette && 'q-signature-vignette',
+        className,
+      )}
       {...props}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: [
-            'radial-gradient(ellipse at 15% 0%, var(--q-glow-amber), transparent 50%)',
-            'radial-gradient(ellipse at 85% 100%, var(--q-glow-mystic), transparent 50%)',
-          ].join(', '),
-        }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>")`,
-        }}
-      />
+      {glow && variantGlows[variant] && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ background: variantGlows[variant] }}
+        />
+      )}
+      {grain && <div aria-hidden className="pointer-events-none absolute inset-0 q-panel-grain" />}
       <div className="relative z-10">{children}</div>
     </div>
   )

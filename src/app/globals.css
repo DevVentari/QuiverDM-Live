@@ -11,27 +11,58 @@
 
   body {
     @apply bg-background text-foreground;
-    background-image:
-      /* Warm amber glow from upper-left (candlelight) */
-      radial-gradient(ellipse 60% 50% at 25% -10%, hsl(35 70% 15% / 0.7), transparent),
-      /* Cool purple glow from upper-right (mystical) */
-      radial-gradient(ellipse 50% 45% at 75% -5%, hsl(258 40% 12% / 0.6), transparent),
-      /* Faint amber warmth from bottom-center */
-      radial-gradient(ellipse 70% 40% at 50% 110%, hsl(35 50% 10% / 0.4), transparent),
-      /* Base near-black */
-      linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
+    background-image: var(--q-body-atmosphere);
   }
 
   html.light body {
-    background-image:
-      radial-gradient(ellipse 60% 45% at 20% -5%, hsl(35 60% 82% / 0.6), transparent),
-      radial-gradient(ellipse 40% 35% at 80% -5%, hsl(45 40% 90% / 0.5), transparent),
-      radial-gradient(ellipse 80% 50% at 50% 105%, hsl(35 30% 88% / 0.4), transparent),
-      linear-gradient(hsl(35 25% 93%), hsl(40 20% 91%));
+    background-image: var(--q-body-atmosphere);
   }
 }
 
 @layer utilities {
+  .q-body-atmosphere {
+    background-image: var(--q-body-atmosphere);
+  }
+
+  .q-signature-vignette {
+    position: relative;
+    isolation: isolate;
+  }
+  .q-signature-vignette::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background:
+      radial-gradient(circle at center, transparent 45%, hsl(240 15% 4% / 0.28) 100%),
+      linear-gradient(180deg, transparent, hsl(240 18% 4% / 0.22));
+    z-index: 0;
+  }
+
+  .q-hero-glow {
+    background:
+      radial-gradient(ellipse 68% 62% at 50% -6%, var(--q-glow-hero), transparent 55%),
+      radial-gradient(ellipse 44% 36% at 84% 110%, var(--q-glow-mystic), transparent 60%);
+  }
+
+  .q-panel-grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .q-panel-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.022;
+    mix-blend-mode: overlay;
+    z-index: 1;
+  }
+
   .pdf-grid-bg {
     background-image:
       linear-gradient(to right, color-mix(in oklab, var(--border) 35%, transparent) 1px, transparent 1px),
@@ -141,20 +172,7 @@
 
   /* Subtle grain texture on glass surfaces */
   .glass-grain {
-    position: relative;
-    isolation: isolate;
-  }
-  .glass-grain::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 180px 180px;
-    opacity: 0.022;
-    mix-blend-mode: overlay;
-    z-index: 1;
+    @apply q-panel-grain;
   }
 }
 
@@ -177,4 +195,20 @@
 @keyframes briefing-pulse {
   0%, 100% { opacity: 0.6; transform: scale(1); }
   50%       { opacity: 1;   transform: scale(1.08); }
+}
+
+:root {
+  --q-body-atmosphere:
+    radial-gradient(ellipse 60% 50% at 25% -10%, hsl(35 70% 15% / 0.7), transparent),
+    radial-gradient(ellipse 50% 45% at 75% -5%, hsl(258 40% 12% / 0.6), transparent),
+    radial-gradient(ellipse 70% 40% at 50% 110%, hsl(35 50% 10% / 0.4), transparent),
+    linear-gradient(hsl(240 10% 4%), hsl(240 10% 4%));
+}
+
+html.light {
+  --q-body-atmosphere:
+    radial-gradient(ellipse 60% 45% at 20% -5%, hsl(35 60% 82% / 0.6), transparent),
+    radial-gradient(ellipse 40% 35% at 80% -5%, hsl(45 40% 90% / 0.5), transparent),
+    radial-gradient(ellipse 80% 50% at 50% 105%, hsl(35 30% 88% / 0.4), transparent),
+    linear-gradient(hsl(35 25% 93%), hsl(40 20% 91%));
 }

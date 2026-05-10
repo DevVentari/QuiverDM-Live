@@ -1,18 +1,19 @@
 'use client'
 
-import { useHeaderStore } from '@/store/header-store'
-import { PressureGauges } from './PressureGauges'
+import { ChevronDown } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Surface } from '@/components/primitives'
 import { UserMenu } from '@/components/user-menu'
 import { trpc } from '@/lib/trpc'
-import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useHeaderStore } from '@/store/header-store'
+import { PressureGauges } from './PressureGauges'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ChevronDown } from 'lucide-react'
 
 export function CommandBar() {
   const { slot, setBrainOpen } = useHeaderStore()
@@ -23,62 +24,62 @@ export function CommandBar() {
   })
 
   return (
-    <header
+    <Surface
+      asChild
+      variant="utility"
       className={cn(
-        'hidden md:flex items-center h-12 shrink-0 px-4 gap-4',
-        'border-b border-[var(--q-border-subtle)]',
-        'bg-[var(--q-surface-sunken)]',
+        'hidden h-[var(--q-command-bar-h)] shrink-0 items-center gap-4 rounded-none border-x-0 border-t-0 px-4 md:flex',
+        'bg-[var(--q-shell-bar)] backdrop-blur-md',
       )}
     >
-      {/* Campaign switcher */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className={cn(
-              'flex items-center gap-2 text-sm text-[var(--q-text)] max-w-[200px]',
-              'hover:text-[var(--q-amber)] transition-colors',
-            )}
-          >
-            <span className="font-[var(--q-font-display)] text-[10px] tracking-[2px] text-[var(--q-amber)] uppercase truncate">
-              {slot?.title ?? 'No campaign'}
-            </span>
-            <ChevronDown size={12} className="shrink-0 text-[var(--q-text-faint)]" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="bg-[var(--q-surface-flat)] border-[var(--q-border)]">
-          {campaigns?.map((c) => (
-            <DropdownMenuItem
-              key={c.id}
-              onSelect={() => router.push(`/campaigns/${c.slug}`)}
-              className="text-[var(--q-text)] hover:text-[var(--q-amber)] cursor-pointer"
+      <header>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(
+                'flex max-w-[200px] items-center gap-2 text-sm text-[var(--q-text)] transition-colors hover:text-[var(--q-amber)]',
+              )}
             >
-              {c.name}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <span className="truncate font-[var(--q-font-display)] text-[10px] uppercase tracking-[2px] text-[var(--q-amber)]">
+                {slot?.title ?? 'No campaign'}
+              </span>
+              <ChevronDown size={12} className="shrink-0 text-[var(--q-text-faint)]" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="start"
+            className="border-[var(--q-border-feature)] bg-[var(--q-surface-feature)] text-[var(--q-text)]"
+          >
+            {campaigns?.map((c) => (
+              <DropdownMenuItem
+                key={c.id}
+                onSelect={() => router.push(`/campaigns/${c.slug}`)}
+                className="cursor-pointer text-[var(--q-text)] hover:text-[var(--q-amber)]"
+              >
+                {c.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-      {/* Pressure gauges (DM only — self-contained) */}
-      <div className="flex-1 flex justify-center">
-        <PressureGauges />
-      </div>
+        <div className="flex flex-1 justify-center">
+          <PressureGauges />
+        </div>
 
-      {/* Brain trigger */}
-      <button
-        onClick={() => setBrainOpen(true)}
-        aria-label="Open Brain (Ctrl+K)"
-        className={cn(
-          'flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs',
-          'bg-[var(--q-amber-trace)] border border-[var(--q-border-subtle)]',
-          'text-[var(--q-text-dim)] hover:text-[var(--q-text)] transition-colors',
-        )}
-      >
-        <span>&#x2318;K</span>
-        <span className="hidden lg:inline">Ask the Brain</span>
-      </button>
+        <button
+          onClick={() => setBrainOpen(true)}
+          aria-label="Open Brain (Ctrl+K)"
+          className={cn(
+            'flex items-center gap-2 rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-amber-trace)] px-3 py-1.5 text-xs',
+            'text-[var(--q-text-dim)] transition-colors hover:text-[var(--q-text)]',
+          )}
+        >
+          <span>&#x2318;K</span>
+          <span className="hidden lg:inline">Ask the Brain</span>
+        </button>
 
-      {/* User menu */}
-      <UserMenu />
-    </header>
+        <UserMenu />
+      </header>
+    </Surface>
   )
 }

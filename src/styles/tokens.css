@@ -38,6 +38,12 @@
   --q-surface-flat:   oklch(0.16 0.01 60);
   --q-surface-raised: oklch(0.19 0.012 60);
   --q-surface-sunken: oklch(0.10 0.005 265);
+  --q-surface-utility: oklch(0.15 0.008 265 / 0.9);
+  --q-surface-feature: oklch(0.17 0.01 60 / 0.72);
+  --q-surface-hero:    oklch(0.18 0.014 60 / 0.84);
+  --q-surface-signature: oklch(0.13 0.012 265 / 0.9);
+  --q-shell-rail:     oklch(0.11 0.006 265 / 0.96);
+  --q-shell-bar:      oklch(0.11 0.005 265 / 0.92);
 
   /* Card */
   --q-card-bg:        oklch(0.17 0.012 60);
@@ -52,20 +58,36 @@
   /* Borders */
   --q-border:         oklch(0.28 0.02 60 / 0.4);
   --q-border-subtle:  oklch(0.28 0.02 60 / 0.18);
+  --q-border-feature: oklch(0.75 0.02 60 / 0.14);
+  --q-border-hero:    oklch(0.7 0.16 55 / 0.24);
+  --q-border-signature: oklch(0.7 0.16 55 / 0.32);
 
   /* Text */
   --q-text:           oklch(0.92 0.005 60);
   --q-text-dim:       oklch(0.65 0.01 60);
   --q-text-faint:     oklch(0.45 0.01 60);
+  --q-text-info:      oklch(0.78 0.08 55);
+  --q-text-warning:   oklch(0.8 0.14 55);
+  --q-text-danger:    oklch(0.75 0.15 25);
 
   /* Grimoire grain/glow */
   --q-glow-amber:     oklch(0.7 0.16 55 / 0.12);
   --q-glow-mystic:    oklch(0.55 0.15 280 / 0.08);
+  --q-glow-hero:      oklch(0.7 0.16 55 / 0.16);
+  --q-glow-signature: oklch(0.62 0.18 280 / 0.12);
 
   /* Typography */
   --q-font-display:   'Cinzel', serif;
   --q-font-body:      'Bricolage Grotesque', system-ui, sans-serif;
   --q-font-mono:      'JetBrains Mono', monospace;
+
+  /* Layout */
+  --q-rail-collapsed-w: 56px;
+  --q-rail-expanded-w: 260px;
+  --q-command-bar-h: 48px;
+  --q-panel-pad-sm: 0.75rem;
+  --q-panel-pad-md: 1rem;
+  --q-panel-pad-lg: 1.25rem;
 
   /* Motion */
   --q-ease-out-quart: cubic-bezier(0.16, 1, 0.3, 1);
@@ -99,14 +121,28 @@ html.light {
   --q-surface-flat:   oklch(0.93 0.014 80);
   --q-surface-raised: oklch(0.97 0.010 80);
   --q-surface-sunken: oklch(0.92 0.014 80);
+  --q-surface-utility: oklch(0.95 0.012 80 / 0.92);
+  --q-surface-feature: oklch(0.97 0.01 80 / 0.96);
+  --q-surface-hero:    oklch(0.985 0.012 80 / 0.98);
+  --q-surface-signature: oklch(0.94 0.016 80 / 0.98);
+  --q-shell-rail:     oklch(0.94 0.012 80 / 0.98);
+  --q-shell-bar:      oklch(0.95 0.01 80 / 0.96);
   --q-card-bg:        oklch(0.97 0.010 80);
   --q-card-border:    oklch(0.55 0.10 60 / 0.25);
   --q-border:         oklch(0.55 0.04 60 / 0.3);
   --q-border-subtle:  oklch(0.55 0.04 60 / 0.15);
+  --q-border-feature: oklch(0.55 0.04 60 / 0.2);
+  --q-border-hero:    oklch(0.55 0.1 60 / 0.28);
+  --q-border-signature: oklch(0.55 0.1 60 / 0.34);
   --q-text:           oklch(0.20 0.025 60);
   --q-text-dim:       oklch(0.42 0.020 60);
   --q-text-faint:     oklch(0.55 0.018 60);
+  --q-text-info:      oklch(0.38 0.08 55);
+  --q-text-warning:   oklch(0.42 0.12 55);
+  --q-text-danger:    oklch(0.45 0.14 25);
   --q-glow-amber:     oklch(0.7 0.16 55 / 0.08);
   --q-glow-mystic:    oklch(0.55 0.15 280 / 0.04);
+  --q-glow-hero:      oklch(0.7 0.16 55 / 0.1);
+  --q-glow-signature: oklch(0.55 0.15 280 / 0.06);
   /* --q-amber* variants unchanged — amber is the same in both themes */
 }

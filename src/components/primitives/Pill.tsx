@@ -1,16 +1,18 @@
 import { cn } from '@/lib/utils'
 
-type PillVariant = 'info' | 'warning' | 'danger' | 'primary'
+type PillVariant = 'neutral' | 'info' | 'warning' | 'danger' | 'primary' | 'phase'
 
 interface PillProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: PillVariant
 }
 
 const variants: Record<PillVariant, string> = {
-  info:    'bg-[var(--q-amber-trace)] border border-[oklch(0.7_0.16_55_/_0.25)] text-[oklch(0.8_0.1_55)]',
-  warning: 'bg-[oklch(0.65_0.16_55_/_0.15)] border border-[oklch(0.65_0.16_55_/_0.4)] text-[oklch(0.8_0.14_55)]',
-  danger:  'bg-[oklch(0.55_0.2_25_/_0.15)] border border-[oklch(0.55_0.2_25_/_0.4)] text-[oklch(0.75_0.15_25)]',
+  neutral: 'bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] text-[var(--q-text-dim)]',
+  info:    'bg-[var(--q-amber-trace)] border border-[var(--q-border-hero)] text-[var(--q-text-info)]',
+  warning: 'bg-[oklch(0.65_0.16_55_/_0.15)] border border-[oklch(0.65_0.16_55_/_0.4)] text-[var(--q-text-warning)]',
+  danger:  'bg-[oklch(0.55_0.2_25_/_0.15)] border border-[oklch(0.55_0.2_25_/_0.4)] text-[var(--q-text-danger)]',
   primary: 'bg-[var(--q-amber)] border border-[var(--q-amber)] text-[var(--q-bg)] font-semibold',
+  phase:   'bg-[var(--q-surface-feature)] border border-[var(--q-border-feature)] text-[var(--q-text)]',
 }
 
 export function Pill({ variant = 'info', className, children, ...props }: PillProps) {
