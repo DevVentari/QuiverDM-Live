@@ -15,8 +15,9 @@ npm ci
 echo "[deploy] Pushing schema changes..."
 npx prisma db push --skip-generate
 
-echo "[deploy] Restarting workers..."
-pm2 restart all
+echo "[deploy] Restarting workers (and starting any new ones)..."
+pm2 startOrRestart "$APP_DIR/deploy/homelab/ecosystem.config.js"
+pm2 save
 
 echo "[deploy] Done. pm2 status:"
 pm2 list
