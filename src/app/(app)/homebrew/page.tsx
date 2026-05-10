@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,14 +23,42 @@ const TYPE_FILTERS = [
   { value: 'feat',     label: 'Feats' },
 ] as const;
 
+const CREATE_TYPES = ['item', 'creature', 'spell', 'location'] as const;
+type CreateType = (typeof CREATE_TYPES)[number];
+const isCreateType = (s: string | null | undefined): s is CreateType =>
+  !!s && (CREATE_TYPES as readonly string[]).includes(s);
+
 export default function HomebrewPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string | undefined>(undefined);
+  const VALID_TYPES = ['item', 'spell', 'creature', 'class', 'feat'] as const;
+  const initialType = searchParams?.get('type');
+  const [typeFilter, setTypeFilter] = useState<string | undefined>(
+    initialType && (VALID_TYPES as readonly string[]).includes(initialType) ? initialType : undefined
+  );
   const [createOpen, setCreateOpen] = useState(false);
+  const [createInitialType, setCreateInitialType] = useState<CreateType | undefined>(undefined);
   const [ddbImportOpen, setDdbImportOpen] = useState(false);
   const [mediaImportOpen, setMediaImportOpen] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (searchParams?.get('create') === 'true') {
+      const t = searchParams.get('type');
+      setCreateInitialType(isCreateType(t) ? t : undefined);
+      setCreateOpen(true);
+      router.replace('/homebrew', { scroll: false });
+      return;
+    }
+    const t = searchParams?.get('type');
+    if (t && (VALID_TYPES as readonly string[]).includes(t)) {
+      setTypeFilter(t);
+    } else if (!t) {
+      setTypeFilter(undefined);
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     debounceTimer.current = setTimeout(() => setDebouncedSearch(search), 300);
@@ -205,7 +234,7 @@ export default function HomebrewPage() {
         {contentGrid}
       </div>
 
-      <CreateHomebrewDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => content.refetch()} />
+      <CreateHomebrewDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => content.refetch()} initialType={createInitialType} />
       <ImportFromDDBDialog
         open={ddbImportOpen}
         onOpenChange={setDdbImportOpen}

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -195,10 +196,23 @@ function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; 
 
 export default function WorldPage() {
   const { campaignId, slug } = useCampaign();
-  const [filter, setFilter] = useState<FilterType>('all');
+  const searchParams = useSearchParams();
+  const initialFilter = (() => {
+    const f = searchParams?.get('filter');
+    return (f && (ALL_TYPES as readonly string[]).includes(f) ? f : 'all') as FilterType;
+  })();
+  const [filter, setFilter] = useState<FilterType>(initialFilter);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
-  const [entryFilter, setEntryFilter] = useState<string>('all');
+  const [entryFilter, setEntryFilter] = useState<string>(() => searchParams?.get('type') ?? 'all');
+  useEffect(() => {
+    const t = searchParams?.get('type');
+    setEntryFilter(t && t.length > 0 ? t : 'all');
+    const f = searchParams?.get('filter');
+    if (f && (ALL_TYPES as readonly string[]).includes(f)) {
+      setFilter(f as FilterType);
+    }
+  }, [searchParams]);
   const utils = trpc.useUtils();
 
   const { data: docs = [], isLoading: docsLoading } = trpc.campaigns.getWorldDocuments.useQuery(

@@ -38,14 +38,14 @@ type NavItem = {
 const NAV_ITEMS: readonly NavItem[] = [
   { id: 'home',       label: 'Home',       icon: Home,       globalHref: '/' },
   { id: 'campaigns',  label: 'Campaigns',  icon: ScrollText, globalHref: '/campaigns' },
-  { id: 'sessions',   label: 'Sessions',   icon: Calendar,   scopedPath: '/sessions',  fallbackHref: '/campaigns' },
-  { id: 'locations',  label: 'Locations',  icon: MapPin,     scopedPath: '/world',     fallbackHref: '/campaigns' },
-  { id: 'npcs',       label: 'NPCs',       icon: Users,      scopedPath: '/npcs',      fallbackHref: '/campaigns' },
-  { id: 'monsters',   label: 'Monsters',   icon: Skull,      globalHref: '/homebrew' },
-  { id: 'items',      label: 'Items',      icon: Package,    globalHref: '/homebrew' },
-  { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map', fallbackHref: '/campaigns' },
-  { id: 'lore',       label: 'Lore',       icon: BookOpen,   scopedPath: '/world',     fallbackHref: '/campaigns' },
-  { id: 'quests',     label: 'Quests',     icon: Compass,    globalHref: '/campaigns' },
+  { id: 'sessions',   label: 'Sessions',   icon: Calendar,   scopedPath: '/sessions',          fallbackHref: '/campaigns' },
+  { id: 'locations',  label: 'Locations',  icon: MapPin,     scopedPath: '/world?filter=location', fallbackHref: '/campaigns' },
+  { id: 'npcs',       label: 'NPCs',       icon: Users,      scopedPath: '/npcs',              fallbackHref: '/campaigns' },
+  { id: 'monsters',   label: 'Monsters',   icon: Skull,      globalHref: '/homebrew?type=creature' },
+  { id: 'items',      label: 'Items',      icon: Package,    globalHref: '/homebrew?type=item' },
+  { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map',         fallbackHref: '/campaigns' },
+  { id: 'lore',       label: 'Lore',       icon: BookOpen,   scopedPath: '/world?filter=lore', fallbackHref: '/campaigns' },
+  { id: 'quests',     label: 'Quests',     icon: Compass,    scopedPath: '/quests',            fallbackHref: '/campaigns' },
   { id: 'assets',     label: 'Assets',     icon: Boxes,      globalHref: '/homebrew' },
 ] as const
 
@@ -76,8 +76,9 @@ export function CommandRail() {
   }
 
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/'
-    return pathname.startsWith(href)
+    const path = href.split('?')[0]
+    if (path === '/') return pathname === '/'
+    return pathname.startsWith(path)
   }
 
   const campaignSlug = slot?.campaignSlug
