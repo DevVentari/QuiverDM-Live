@@ -21,7 +21,8 @@ export function BrainSummon() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      // ⌘/Ctrl+B opens the Brain — ⌘/Ctrl+K is owned by global search now.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
         e.preventDefault()
         setBrainOpen(true)
       }
