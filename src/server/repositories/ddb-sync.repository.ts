@@ -34,8 +34,18 @@ export const ddbSyncRepository = {
       chapters.map(c =>
         prisma.ddbSourcebookChapter.upsert({
           where: { sourcebookId_slug: { sourcebookId, slug: c.slug } },
-          create: { sourcebookId, ...c },
-          update: { title: c.title, chapterIndex: c.chapterIndex },
+          create: {
+            sourcebookId,
+            slug: c.slug,
+            title: c.title,
+            chapterIndex: c.chapterIndex,
+            parentSlug: c.parentSlug ?? null,
+          },
+          update: {
+            title: c.title,
+            chapterIndex: c.chapterIndex,
+            parentSlug: c.parentSlug ?? null,
+          },
         })
       )
     );

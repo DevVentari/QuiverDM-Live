@@ -75,19 +75,22 @@ export async function chatWithAI(
     return callGemini(prompt, userGeminiKey, { userId });
   }
 
-  const providers: Array<[string, () => Promise<string>]> = userGeminiKey
-    ? [
-        ['gemini-user', tryGeminiWithUserKey],
-        ['groq', () => tryGroq(messages, temperature)],
-        ['openai', () => tryOpenAI(messages, temperature, openAiModel)],
-        ['ollama', () => tryOllama(messages, temperature)],
-      ]
-    : [
-        ['groq', () => tryGroq(messages, temperature)],
-        ['openai', () => tryOpenAI(messages, temperature, openAiModel)],
-        ['gemini', () => tryGemini(messages, temperature)],
-        ['ollama', () => tryOllama(messages, temperature)],
-      ];
+  const allProviders: Record<string, [string, () => Promise<string>]> = {
+    'gemini-user': ['gemini-user', tryGeminiWithUserKey],
+    groq: ['groq', () => tryGroq(messages, temperature)],
+    openai: ['openai', () => tryOpenAI(messages, temperature, openAiModel)],
+    gemini: ['gemini', () => tryGemini(messages, temperature)],
+    ollama: ['ollama', () => tryOllama(messages, temperature)],
+  };
+
+  const envOrder = process.env.AI_PROVIDER_ORDER?.split(',').map(s => s.trim()).filter(Boolean);
+  const defaultOrder = userGeminiKey
+    ? ['gemini-user', 'groq', 'openai', 'ollama']
+    : ['groq', 'openai', 'gemini', 'ollama'];
+  const order = envOrder ?? defaultOrder;
+  const providers: Array<[string, () => Promise<string>]> = order
+    .map(name => allProviders[name])
+    .filter((entry): entry is [string, () => Promise<string>] => !!entry);
 
   const errors: string[] = [];
   for (const [name, fn] of providers) {
