@@ -1,5 +1,6 @@
 import { Prisma, WorldEntityType, WorldEntityStatus, WorldStateChangeType, WorldStateChangeSource } from '@prisma/client';
 import { prisma } from '../db';
+import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 
 export const brainRepository = {
   async findEntities(campaignId: string, opts?: { type?: WorldEntityType; status?: WorldEntityStatus; search?: string; limit?: number }) {
@@ -46,7 +47,7 @@ export const brainRepository = {
     lastSeenSessionId?: string;
     confidence?: number;
   }) {
-    return prisma.worldEntity.upsert({
+    const entity = await prisma.worldEntity.upsert({
       where: { campaignId_name_type: { campaignId, name: data.name, type: data.type } },
       create: { campaignId, ...data, aliases: data.aliases ?? [], properties: (data.properties ?? {}) as Prisma.InputJsonValue },
       update: {
@@ -60,6 +61,8 @@ export const brainRepository = {
         // firstSeenSessionId is intentionally excluded — never overwrite on update
       },
     });
+    enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id: entity.id });
+    return entity;
   },
 
   async updateEntity(id: string, data: Partial<{
@@ -71,17 +74,21 @@ export const brainRepository = {
     lastSeenSessionId: string;
     confidence: number;
   }>) {
-    return prisma.worldEntity.update({
+    const entity = await prisma.worldEntity.update({
       where: { id },
       data: {
         ...data,
         properties: data.properties ? (data.properties as Prisma.InputJsonValue) : undefined,
       },
     });
+    enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id });
+    return entity;
   },
 
   async deleteEntity(id: string) {
-    return prisma.worldEntity.delete({ where: { id } });
+    const entity = await prisma.worldEntity.delete({ where: { id } });
+    enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'delete', id });
+    return entity;
   },
 
   async findRelationships(campaignId: string, entityId?: string) {

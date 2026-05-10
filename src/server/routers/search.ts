@@ -73,7 +73,8 @@ function buildHref(
       return slug && entrySlug ? `/campaigns/${slug}/world/${entrySlug}` : null;
     }
     case 'homebrew': {
-      return `/homebrew?id=${encodeURIComponent(String(hit.id ?? ''))}`;
+      const id = String(hit.id ?? '');
+      return id ? `/homebrew/${id}` : null;
     }
   }
 }
