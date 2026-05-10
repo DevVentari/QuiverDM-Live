@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Surface } from '@/components/primitives'
 import { QuickAddSheet } from './QuickAddSheet'
+import { CalendarSheet } from './CalendarSheet'
 import { cn } from '@/lib/utils'
 
 type QuickAction = {
@@ -28,12 +29,6 @@ const PLACEHOLDER_ACTIONS: QuickAction[] = [
     description: 'Roll on tables, generate names, fates, and oracles — coming in Slice D5.',
   },
   {
-    id: 'calendar',
-    label: 'Calendar',
-    icon: Calendar,
-    description: 'See upcoming sessions and schedule the next play night — coming in Slice D6.',
-  },
-  {
     id: 'dm-tools',
     label: 'DM Tools',
     icon: Wand2,
@@ -49,6 +44,7 @@ const TOOLBAR_BUTTON_CLASS = cn(
 
 export function QuickActionButtons() {
   const [quickAddOpen, setQuickAddOpen] = useState(false)
+  const [calendarOpen, setCalendarOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const active = PLACEHOLDER_ACTIONS.find((a) => a.id === activeId) ?? null
 
@@ -65,21 +61,39 @@ export function QuickActionButtons() {
           <span className="hidden md:inline">Quick Add</span>
         </button>
 
-        {PLACEHOLDER_ACTIONS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setActiveId(id)}
-            data-testid={`quick-action-${id}`}
-            className={TOOLBAR_BUTTON_CLASS}
-          >
-            <Icon size={13} className="shrink-0" />
-            <span className="hidden md:inline">{label}</span>
-          </button>
-        ))}
+        <button
+          type="button"
+          onClick={() => setActiveId('randomizer')}
+          data-testid="quick-action-randomizer"
+          className={TOOLBAR_BUTTON_CLASS}
+        >
+          <Dices size={13} className="shrink-0" />
+          <span className="hidden md:inline">Randomizer</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setCalendarOpen(true)}
+          data-testid="quick-action-calendar"
+          className={TOOLBAR_BUTTON_CLASS}
+        >
+          <Calendar size={13} className="shrink-0" />
+          <span className="hidden md:inline">Calendar</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveId('dm-tools')}
+          data-testid="quick-action-dm-tools"
+          className={TOOLBAR_BUTTON_CLASS}
+        >
+          <Wand2 size={13} className="shrink-0" />
+          <span className="hidden md:inline">DM Tools</span>
+        </button>
       </div>
 
       <QuickAddSheet open={quickAddOpen} onOpenChange={setQuickAddOpen} />
+      <CalendarSheet open={calendarOpen} onOpenChange={setCalendarOpen} />
 
       <Dialog open={!!active} onOpenChange={(o) => !o && setActiveId(null)}>
         <DialogContent className="border-[var(--q-border-feature)] bg-[var(--q-surface-feature)] text-[var(--q-text)]">
