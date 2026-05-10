@@ -17,6 +17,11 @@ const MIGRATED_ROUTES = [
   'src/app/(app)/campaigns/[slug]/world/page.tsx',
   'src/app/(app)/session/[id]/page.tsx',
   'src/app/(app)/session/[id]/_components/PrepWorkspace.tsx',
+  'src/components/home/HomeHero.tsx',
+  'src/components/home/ActiveCampaignSummary.tsx',
+  'src/components/home/RecentSessionsList.tsx',
+  'src/components/home/WorldActivityStub.tsx',
+  'src/components/home/PrepRemindersStub.tsx',
 ]
 
 const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
@@ -29,8 +34,10 @@ const FORBIDDEN_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
     reason: 'raw page bg token — use Canvas variant for atmospheric layer',
   },
   {
-    pattern: /border-\[var\(--q-border-(?:subtle|feature|hero|signature)\)/g,
-    reason: 'raw border token — use Surface/Card variant',
+    // Catch surface-style border tokens, but allow directional dividers
+    // (border-t/b/l/r/x/y followed by the same token).
+    pattern: /(?<!border-[tblrxy]\s)\bborder-\[var\(--q-border-(?:subtle|feature|hero|signature)\)/g,
+    reason: 'raw border token used as surface treatment — use Surface/Card variant (directional dividers like `border-t border-[var(--q-border-subtle)]` are exempt)',
   },
   {
     pattern: /\bclass(?:Name)?=["'][^"']*\bglass-(?:flat|raised|sunken|grimoire)/g,

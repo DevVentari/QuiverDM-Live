@@ -99,6 +99,7 @@ export interface DashboardCampaign {
     level: number;
     portraitUrl: string | null;
   } | null;
+  createdAt: Date;
   updatedAt: Date;
 }
 
@@ -279,6 +280,7 @@ export class CampaignService {
       nextSession: m.campaign.gameSessions[0] ?? null,
       lastSessionDate: lastSessionMap.get(m.campaignId) ?? null,
       myCharacter: charMap.get(m.campaignId) ?? null,
+      createdAt: m.campaign.createdAt,
       updatedAt: m.campaign.updatedAt,
     }));
   }
