@@ -319,7 +319,7 @@ export async function getUserMemberships(userId: string) {
           gameSessions: {
             where: {
               date: { gte: new Date() },
-              status: 'active',
+              status: { notIn: ['completed', 'cancelled'] },
             },
             orderBy: { date: 'asc' },
             take: 1,
