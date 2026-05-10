@@ -1,29 +1,9 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Bricolage_Grotesque, Cinzel, JetBrains_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import { PostHogPageView } from '@/components/analytics/posthog-page-view';
 import { AnalyticsErrorBoundary } from '@/components/analytics/error-boundary';
 import './globals.css';
-
-const bricolage = Bricolage_Grotesque({
-  subsets: ['latin'],
-  variable: '--font-bricolage',
-  display: 'swap',
-});
-
-const cinzel = Cinzel({
-  subsets: ['latin'],
-  variable: '--font-cinzel',
-  weight: ['400', '700'],
-  display: 'swap',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: 'QuiverDM — AI-Powered D&D Session Management',
@@ -39,7 +19,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bricolage.variable} ${cinzel.variable} ${jetbrainsMono.variable}`}
+      style={{
+        '--font-bricolage': '"Bricolage Grotesque", system-ui, sans-serif',
+        '--font-cinzel': '"Cinzel", Georgia, serif',
+        '--font-mono': '"JetBrains Mono", Consolas, "Liberation Mono", monospace',
+      } as React.CSSProperties}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background font-sans antialiased">
