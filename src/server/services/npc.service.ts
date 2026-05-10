@@ -5,6 +5,7 @@ import { indexNpc, deleteNpc, searchNpcs } from '@/lib/search';
 import { addEmbeddingJob } from '@/lib/queue/embeddings-queue';
 import { deleteEntityEmbeddings } from '../repositories/embedding.repository';
 import { NotFoundError, ValidationError } from '../errors';
+import { prisma } from '@/lib/prisma';
 
 function validateNpcName(name: string | undefined, required: boolean) {
   if (required && (!name || !name.trim())) {
@@ -18,23 +19,54 @@ function validateNpcName(name: string | undefined, required: boolean) {
 
 export class NPCService {
   async getById(npcId: string, userId: string) {
-    const access = await authz.npc(npcId, userId).verify();
+    // First try the NPC table (DM-managed records)
     const npc = await npcRepository.findById(npcId);
+    if (npc) {
+      const access = await authz.npc(npcId, userId).verify();
+      const canViewSecrets =
+        access.isDM || access.member?.permissions.canViewNPCSecrets;
+      return canViewSecrets ? npc : { ...npc, secrets: null };
+    }
 
-    if (!npc) {
+    // Fall back to WorldEntity (sourcebook-imported NPCs live here)
+    const entity = await prisma.worldEntity.findUnique({
+      where: { id: npcId },
+      select: {
+        id: true,
+        campaignId: true,
+        type: true,
+        name: true,
+        description: true,
+        properties: true,
+        ddbChapterId: true,
+        firstSeenSessionId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    if (!entity || entity.type !== 'NPC') {
       throw new NotFoundError('npc', npcId);
     }
-
-    const canViewSecrets =
-      access.isDM || access.member?.permissions.canViewNPCSecrets;
-    if (!canViewSecrets) {
-      return {
-        ...npc,
-        secrets: null,
-      };
-    }
-
-    return npc;
+    await authz.campaign(entity.campaignId, userId).verify();
+    const props = (entity.properties ?? {}) as Record<string, unknown>;
+    return {
+      id: entity.id,
+      campaignId: entity.campaignId,
+      name: entity.name,
+      description: entity.description,
+      faction: typeof props.faction === 'string' ? (props.faction as string) : null,
+      role: typeof props.role === 'string' ? (props.role as string) : null,
+      imageUrl: null,
+      stats: null,
+      tags: [] as string[],
+      secrets: null,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      _source: 'entity' as const,
+      _readonly: true,
+      _fromSourcebook: entity.ddbChapterId !== null,
+      _seen: entity.firstSeenSessionId !== null,
+    };
   }
 
   async getByCampaignId(
