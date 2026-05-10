@@ -3,36 +3,83 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Globe, BookOpen, Users, Settings } from 'lucide-react'
+import {
+  Home,
+  ScrollText,
+  Calendar,
+  MapPin,
+  Users,
+  Skull,
+  Package,
+  Map,
+  BookOpen,
+  Compass,
+  Boxes,
+  Settings,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useHeaderStore } from '@/store/header-store'
 
-const NAV_ITEMS = [
-  { id: 'home',       href: '/',            icon: Home,     label: 'Home' },
-  { id: 'world',      href: '/world',       icon: Globe,    label: 'World' },
-  { id: 'compendium', href: '/compendium',  icon: BookOpen, label: 'Compendium' },
-  { id: 'characters', href: '/characters',  icon: Users,    label: 'Characters' },
-  { id: 'settings',   href: '/settings',    icon: Settings, label: 'Settings' },
+type NavItem = {
+  id: string
+  label: string
+  icon: React.ComponentType<{ size?: number | string; className?: string }>
+  /** When set, the href is global (not campaign-scoped). */
+  globalHref?: string
+  /** Path appended to /campaigns/[slug] when an active campaign is in the slot. */
+  scopedPath?: string
+  /** Fallback href when no campaign is active. */
+  fallbackHref?: string
+}
+
+const NAV_ITEMS: readonly NavItem[] = [
+  { id: 'home',       label: 'Home',       icon: Home,       globalHref: '/' },
+  { id: 'campaigns',  label: 'Campaigns',  icon: ScrollText, globalHref: '/campaigns' },
+  { id: 'sessions',   label: 'Sessions',   icon: Calendar,   scopedPath: '/sessions',  fallbackHref: '/campaigns' },
+  { id: 'locations',  label: 'Locations',  icon: MapPin,     scopedPath: '/world',     fallbackHref: '/campaigns' },
+  { id: 'npcs',       label: 'NPCs',       icon: Users,      scopedPath: '/npcs',      fallbackHref: '/campaigns' },
+  { id: 'monsters',   label: 'Monsters',   icon: Skull,      globalHref: '/homebrew' },
+  { id: 'items',      label: 'Items',      icon: Package,    globalHref: '/homebrew' },
+  { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map', fallbackHref: '/campaigns' },
+  { id: 'lore',       label: 'Lore',       icon: BookOpen,   scopedPath: '/world',     fallbackHref: '/campaigns' },
+  { id: 'quests',     label: 'Quests',     icon: Compass,    globalHref: '/campaigns' },
+  { id: 'assets',     label: 'Assets',     icon: Boxes,      globalHref: '/homebrew' },
 ] as const
+
+const STORAGE_KEY = 'quiver.rail.collapsed'
+const RAIL_WIDTH_EXPANDED = 200
+const RAIL_WIDTH_COLLAPSED = 56
+
+function resolveHref(item: NavItem, campaignSlug: string | undefined): string {
+  if (item.globalHref) return item.globalHref
+  if (item.scopedPath && campaignSlug) return `/campaigns/${campaignSlug}${item.scopedPath}`
+  return item.fallbackHref ?? '/'
+}
 
 export function CommandRail() {
   const pathname = usePathname()
-  const [pinned, setPinned] = useState(false)
+  const slot = useHeaderStore((s) => s.slot)
+  const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('quiver.rail.pinned')
-    if (saved === 'true') setPinned(true)
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved === 'true') setCollapsed(true)
   }, [])
 
-  const togglePin = () => {
-    const next = !pinned
-    setPinned(next)
-    localStorage.setItem('quiver.rail.pinned', String(next))
+  const toggleCollapsed = () => {
+    const next = !collapsed
+    setCollapsed(next)
+    localStorage.setItem(STORAGE_KEY, String(next))
   }
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
     return pathname.startsWith(href)
   }
+
+  const campaignSlug = slot?.campaignSlug
 
   return (
     <nav
@@ -42,54 +89,107 @@ export function CommandRail() {
         'hidden md:flex flex-col h-full shrink-0',
         'border-r border-[var(--q-border-subtle)]',
         'bg-[var(--q-surface-sunken)]',
-        'transition-[width] duration-200 ease-out',
-        pinned ? 'w-[260px]' : 'w-[56px]',
-        'overflow-hidden',
+        'transition-[width] duration-200 ease-out overflow-hidden',
       )}
+      style={{ width: collapsed ? RAIL_WIDTH_COLLAPSED : RAIL_WIDTH_EXPANDED }}
     >
-      {/* Logo mark */}
-      <div className="h-12 flex items-center justify-center border-b border-[var(--q-border-subtle)] shrink-0">
-        <span className="text-[var(--q-amber)] text-lg font-[var(--q-font-display)]">&#x2316;</span>
-      </div>
-
-      {/* Nav items */}
-      <div className="flex flex-col gap-1 p-2 flex-1">
-        {NAV_ITEMS.map(({ id, href, icon: Icon, label }) => (
-          <Link
-            key={id}
-            href={href}
-            data-testid={`rail-nav-${id}`}
-            aria-label={label}
-            aria-current={isActive(href) ? 'page' : undefined}
-            className={cn(
-              'flex items-center gap-3 px-3 py-3 rounded-sm min-h-[44px]',
-              'transition-colors duration-150',
-              isActive(href)
-                ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
-                : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)] hover:bg-[var(--q-border-subtle)]',
-            )}
-          >
-            <Icon size={18} className="shrink-0" />
-            {pinned && (
-              <span className="text-sm font-[var(--q-font-body)] truncate">{label}</span>
-            )}
-          </Link>
-        ))}
-      </div>
-
-      {/* Pin toggle */}
-      <button
-        onClick={togglePin}
-        aria-label={pinned ? 'Collapse rail' : 'Pin rail open'}
+      <Link
+        href="/"
+        aria-label="QuiverDM home"
         className={cn(
-          'h-10 flex items-center justify-center shrink-0',
-          'border-t border-[var(--q-border-subtle)]',
-          'text-[var(--q-text-faint)] hover:text-[var(--q-text)]',
-          'transition-colors text-xs',
+          'h-16 flex items-center gap-3 border-b border-[var(--q-border-subtle)] shrink-0',
+          collapsed ? 'justify-center px-0' : 'px-5',
         )}
       >
-        {pinned ? '‹' : '›'}
-      </button>
+        <span className="font-[var(--q-font-display)] text-2xl text-[var(--q-amber)] leading-none">
+          &#x2316;
+        </span>
+        {!collapsed && (
+          <span className="flex flex-col leading-tight">
+            <span className="font-[var(--q-font-display)] text-base tracking-wide text-[var(--q-text)]">
+              QuiverDM
+            </span>
+            <span className="text-[9px] uppercase tracking-[3px] text-[var(--q-amber-dim)]">
+              V2
+            </span>
+          </span>
+        )}
+      </Link>
+
+      <div className="flex flex-col gap-0.5 px-2 pt-3 flex-1 overflow-y-auto">
+        {NAV_ITEMS.map(({ id, icon: Icon, label, ...item }) => {
+          const href = resolveHref({ id, icon: Icon, label, ...item }, campaignSlug)
+          const active = isActive(href)
+          return (
+            <Link
+              key={id}
+              href={href}
+              data-testid={`rail-nav-${id}`}
+              aria-label={label}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-sm min-h-[40px]',
+                'transition-colors duration-150',
+                active
+                  ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+                  : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)] hover:bg-white/[0.03]',
+                collapsed && 'justify-center px-0',
+              )}
+              title={collapsed ? label : undefined}
+            >
+              <Icon size={18} className="shrink-0" />
+              {!collapsed && (
+                <span className="text-sm font-[var(--q-font-body)] truncate">{label}</span>
+              )}
+            </Link>
+          )
+        })}
+      </div>
+
+      <div className="flex flex-col border-t border-[var(--q-border-subtle)] shrink-0">
+        <Link
+          href="/settings"
+          data-testid="rail-nav-settings"
+          aria-label="Settings"
+          aria-current={isActive('/settings') ? 'page' : undefined}
+          className={cn(
+            'flex items-center gap-3 px-3 py-3 min-h-[44px]',
+            'transition-colors duration-150',
+            isActive('/settings')
+              ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+              : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)]',
+            collapsed && 'justify-center px-0',
+          )}
+        >
+          <Settings size={18} className="shrink-0" />
+          {!collapsed && <span className="text-sm">Settings</span>}
+        </Link>
+
+        <button
+          onClick={toggleCollapsed}
+          aria-label={collapsed ? 'Expand rail' : 'Collapse rail'}
+          aria-pressed={collapsed}
+          className={cn(
+            'flex items-center gap-3 px-3 py-3 min-h-[44px]',
+            'text-[var(--q-text-faint)] hover:text-[var(--q-text)]',
+            'transition-colors text-left',
+            collapsed && 'justify-center px-0',
+          )}
+        >
+          {collapsed ? (
+            <ChevronsRight size={18} className="shrink-0" />
+          ) : (
+            <ChevronsLeft size={18} className="shrink-0" />
+          )}
+          {!collapsed && <span className="text-sm">Collapse</span>}
+        </button>
+
+        {!collapsed && (
+          <div className="px-5 py-3 border-t border-[var(--q-border-subtle)] text-[10px] tracking-wider text-[var(--q-text-faint)]">
+            QuiverDM v2.0.0
+          </div>
+        )}
+      </div>
     </nav>
   )
 }

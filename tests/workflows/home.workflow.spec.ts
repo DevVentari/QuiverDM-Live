@@ -22,14 +22,16 @@ test.describe('Home — session-first', () => {
     await expect(hero).toContainText(/tonight|tomorrow|\b\w{3}\s+\d{1,2}\s+\w{3}\b/i)
   })
 
-  test('renders CommandRail with 5 nav items', async ({ page }) => {
+  test('renders CommandRail with V2 nav set', async ({ page }) => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD)
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await expect(page.getByTestId('command-rail')).toBeVisible()
+    // Spot-check a representative subset of the V2 mockup nav items.
     await expect(page.getByTestId('rail-nav-home')).toBeVisible()
-    await expect(page.getByTestId('rail-nav-world')).toBeVisible()
-    await expect(page.getByTestId('rail-nav-compendium')).toBeVisible()
-    await expect(page.getByTestId('rail-nav-characters')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-campaigns')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-sessions')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-npcs')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-lore')).toBeVisible()
     await expect(page.getByTestId('rail-nav-settings')).toBeVisible()
   })
 
