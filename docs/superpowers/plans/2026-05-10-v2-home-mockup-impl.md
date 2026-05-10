@@ -96,7 +96,7 @@ Next.js 15, React, Tailwind, shadcn/ui, V2 primitives (Surface/Card/Section/Canv
 | D6 | ✓ done | `a27e114` | Calendar Sheet — derives upcoming sessions from getMyMemberships |
 | D7 | ✓ done | `ca75910` | DM Tools Sheet — inline d20 + tool launcher cards |
 | D5 | ✓ done | `d94fda9` | Randomizer Sheet — dice/oracle/coin/d100/names + AI NPC/Location/Hook generators |
-| D3 | ⚠ TODO | — | ⌘K global search — see expanded plan below |
+| D3 | ✓ done | `2aa511a`, `229e3b3`, `c0abc96` | ⌘K global search — Meili sync infra, search.global tRPC, cmdk modal |
 
 ### Slice D3 — ⌘K global search (next-session pickup)
 
