@@ -147,7 +147,8 @@ export class PrismaWriteSink implements WriteSink {
           data: monster as any,
           searchText: monster.name,
           tags: [sourceSlug],
-          images: [],
+          images: monster.imageUrl ? [monster.imageUrl] : [],
+          imageUrl: monster.imageUrl ?? null,
         },
       });
       return { created: true, id: created.id };
