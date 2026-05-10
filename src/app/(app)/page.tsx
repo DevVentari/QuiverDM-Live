@@ -7,7 +7,6 @@ import { useHeaderStore } from '@/store/header-store'
 import { Section, Card, Pill } from '@/components/primitives'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import { format, isToday, isTomorrow } from 'date-fns'
 
 export default function HomePage() {
@@ -82,14 +81,10 @@ export default function HomePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
-      {/* Next session hero */}
-      <div
+      <Card
+        variant="hero"
         data-testid="next-session-hero"
-        className={cn(
-          'relative rounded-sm border border-[var(--q-amber-border)] p-6 mb-8',
-          'bg-gradient-to-br from-[var(--q-amber-trace)] to-[var(--q-surface-sunken)]',
-          '[clip-path:polygon(0_0,calc(100%_-_14px)_0,100%_14px,100%_100%,14px_100%,0_calc(100%_-_14px))]',
-        )}
+        className="mb-8 [clip-path:polygon(0_0,calc(100%_-_14px)_0,100%_14px,100%_100%,14px_100%,0_calc(100%_-_14px))]"
       >
         <div className="font-[var(--q-font-display)] text-[10px] tracking-[2.5px] text-[var(--q-amber)] uppercase mb-2">
           {nextLabel}
@@ -115,7 +110,7 @@ export default function HomePage() {
             </Button>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Recent sessions */}
       <Section label="Recent sessions">
