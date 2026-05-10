@@ -4,10 +4,13 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { trpc } from '@/lib/trpc'
 import { useHeaderStore } from '@/store/header-store'
-import { Section, Card, Pill } from '@/components/primitives'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { format, isToday, isTomorrow } from 'date-fns'
+import { HomeHero } from '@/components/home/HomeHero'
+import { ActiveCampaignSummary } from '@/components/home/ActiveCampaignSummary'
+import { RecentSessionsList } from '@/components/home/RecentSessionsList'
+import { WorldActivityStub } from '@/components/home/WorldActivityStub'
+import { PrepRemindersStub } from '@/components/home/PrepRemindersStub'
 
 export default function HomePage() {
   const { setSlot } = useHeaderStore()
@@ -31,7 +34,7 @@ export default function HomePage() {
     { enabled: !!active?.id, staleTime: 60_000 },
   )
 
-  const recentSessions = sessions?.slice(0, 3) ?? []
+  const recentSessions = sessions?.slice(0, 5) ?? []
 
   useEffect(() => {
     if (!active) return
@@ -67,79 +70,34 @@ export default function HomePage() {
     )
   }
 
-  const nextSession = active.nextSession
-  const nextDate = nextSession?.date ? new Date(nextSession.date) : null
-  const nextLabel = nextDate
-    ? isToday(nextDate)
-      ? 'Tonight'
-      : isTomorrow(nextDate)
-      ? 'Tomorrow'
-      : format(nextDate, 'EEE d MMM')
-    : 'No session scheduled'
-
-  const planningSession = recentSessions.find((s) => s.status === 'planning') ?? recentSessions[0]
+  const planningSession = recentSessions.find((s) => s.status === 'planning') ?? recentSessions[0] ?? null
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
-      <Card
-        variant="hero"
-        data-testid="next-session-hero"
-        className="mb-8 [clip-path:polygon(0_0,calc(100%_-_14px)_0,100%_14px,100%_100%,14px_100%,0_calc(100%_-_14px))]"
-      >
-        <div className="font-[var(--q-font-display)] text-[10px] tracking-[2.5px] text-[var(--q-amber)] uppercase mb-2">
-          {nextLabel}
+    <div className="mx-auto max-w-[1600px] px-6 py-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="space-y-6 lg:col-span-8">
+          <HomeHero
+            campaignName={active.name}
+            campaignSlug={active.slug}
+            bannerUrl={active.bannerUrl}
+            nextSession={active.nextSession}
+            planningSession={planningSession}
+          />
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
+            <RecentSessionsList sessions={recentSessions} />
+            <ActiveCampaignSummary
+              name={active.name}
+              slug={active.slug}
+              ongoingSince={active.createdAt}
+              sessionCount={active.sessionCount}
+            />
+          </div>
         </div>
-
-        <h1 className="font-[var(--q-font-display)] text-2xl text-[var(--q-text)] mb-4">
-          {planningSession?.title ?? nextSession?.title ?? `${active.name} — next session`}
-        </h1>
-
-        <div className="flex flex-wrap gap-3">
-          {planningSession ? (
-            <>
-              <Button asChild variant="default" size="sm" data-testid="hero-cta-prep">
-                <Link href={`/session/${planningSession.id}`}>▣ Continue prep</Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/world">⌖ Open the world</Link>
-              </Button>
-            </>
-          ) : (
-            <Button asChild variant="default" size="sm">
-              <Link href={`/campaigns/${active.slug}/sessions/new`}>+ Schedule session</Link>
-            </Button>
-          )}
+        <div className="space-y-6 lg:col-span-4">
+          <WorldActivityStub />
+          <PrepRemindersStub />
         </div>
-      </Card>
-
-      {/* Recent sessions */}
-      <Section label="Recent sessions">
-        <div className="flex flex-col gap-2">
-          {recentSessions.length === 0 && (
-            <p className="text-[var(--q-text-faint)] text-sm">No sessions yet.</p>
-          )}
-          {recentSessions.map((s, i) => (
-            <Link key={s.id} href={`/session/${s.id}`} data-testid={`recent-session-${i}`}>
-              <Card
-                variant="list"
-                className="flex items-center justify-between hover:border-[var(--q-amber-border)] transition-colors cursor-pointer"
-              >
-                <div>
-                  <span className="text-sm text-[var(--q-text)]">
-                    {s.title ?? `Session ${s.sessionNumber}`}
-                  </span>
-                  {s.date && (
-                    <span className="text-xs text-[var(--q-text-faint)] ml-2">
-                      {format(new Date(s.date), 'd MMM yyyy')}
-                    </span>
-                  )}
-                </div>
-                <Pill variant="info">{s.status}</Pill>
-              </Card>
-            </Link>
-          ))}
-        </div>
-      </Section>
+      </div>
     </div>
   )
 }
