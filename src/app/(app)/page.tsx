@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { HomeHero } from '@/components/home/HomeHero'
 import { ActiveCampaignSummary } from '@/components/home/ActiveCampaignSummary'
 import { RecentSessionsList } from '@/components/home/RecentSessionsList'
-import { WorldActivityStub } from '@/components/home/WorldActivityStub'
+import { WorldActivityFeed } from '@/components/home/WorldActivityFeed'
 import { PrepRemindersStub } from '@/components/home/PrepRemindersStub'
 
 export default function HomePage() {
@@ -94,7 +94,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="space-y-6 lg:col-span-4">
-          <WorldActivityStub />
+          <WorldActivityFeed campaignId={active.id} />
           <PrepRemindersStub />
         </div>
       </div>

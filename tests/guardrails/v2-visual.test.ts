@@ -20,7 +20,7 @@ const MIGRATED_ROUTES = [
   'src/components/home/HomeHero.tsx',
   'src/components/home/ActiveCampaignSummary.tsx',
   'src/components/home/RecentSessionsList.tsx',
-  'src/components/home/WorldActivityStub.tsx',
+  'src/components/home/WorldActivityFeed.tsx',
   'src/components/home/PrepRemindersStub.tsx',
 ]
 
