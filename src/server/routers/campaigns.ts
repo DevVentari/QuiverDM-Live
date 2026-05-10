@@ -134,6 +134,14 @@ export const campaignsRouter = router({
   ),
 
   /**
+   * Get the user's active campaign (persisted in UserSettings, with
+   * auto-derive fallback). Returns null when the user has no campaigns.
+   */
+  getActive: protectedProcedure.query(({ ctx }) =>
+    campaignService.getActiveCampaign(ctx.session.user.id)
+  ),
+
+  /**
    * Get pending campaign invites for current user
    */
   getPendingInvites: protectedProcedure.query(({ ctx }) =>
