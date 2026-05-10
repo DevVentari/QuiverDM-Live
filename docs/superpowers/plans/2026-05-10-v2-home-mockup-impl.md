@@ -81,14 +81,19 @@ Next.js 15, React, Tailwind, shadcn/ui, V2 primitives (Surface/Card/Section/Canv
 
 **Goal:** Replace stubs with real data; ship the four utility-button features and ⌘K global search.
 
-Sub-slices:
-- D1: World Activity feed (recent WorldEntity/WorldEntry changes by `updatedAt`, with type-aware status: Added / Updated / Revamped)
-- D2: Prep Reminders (likely derives from `GameSession.prepData` JSON or new `SessionPrepTodo` model)
-- D3: ⌘K global search (Meili-backed, multi-entity)
-- D4: Quick Add modal (entity-type picker → Sheet)
-- D5: Randomizer (existing AI features, packaged as a modal)
-- D6: Calendar (next-session view + scheduling)
-- D7: DM Tools (existing tools surfaced — dice, initiative, etc.)
+**Decisions locked from the 2026-05-10 brainstorm:**
+- Prep Reminders model = **option B** (derive from `GameSession.prepData` JSON, shape: `{ reminders: [{id, title, description, completed}] }`). Migration to a dedicated `SessionPrepReminder` table is reserved for a future slice once the feature proves out.
+- World Activity statuses = **`Added` + `Updated` only** for the MVP. `Revamped` is dropped until there's a real derivation signal (manual flag, AI re-extraction, or content-diff heuristic).
+- Sub-slice order = **D1 → D2 → D4 → D6 → D7 → D5 → D3** (activity feed → reminders → quick add → calendar → DM tools → randomizer → global search). Search lands last because it's the biggest plumbing effort.
+
+**Sub-slices:**
+- D1: World Activity feed — union over `WorldEntity` (+ `NPC`, possibly `WorldEntry` once that model lands), status derived from `createdAt` vs `updatedAt` window, type-aware icon. Replaces `WorldActivityStub`.
+- D2: Prep Reminders — read/write `GameSession.prepData.reminders[]`. Replaces `PrepRemindersStub`.
+- D4: Quick Add modal — single Sheet with entity-type picker (NPC / location / item / session / etc.) → opens entity-specific create flow.
+- D6: Calendar — narrow scope: upcoming sessions across campaigns + simple scheduling.
+- D7: DM Tools — wire existing tools (initiative tracker, condition co-pilot, derailment detector) into a global tray.
+- D5: Randomizer — design-heavy; defer until D1–D7 land and UX is clearer.
+- D3: ⌘K global search — federated multi-search across per-entity Meili indexes; needs backfill + write-side sync. Largest commit.
 
 Each sub-slice is its own commit/session.
 
