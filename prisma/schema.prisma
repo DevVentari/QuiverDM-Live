@@ -178,6 +178,8 @@ model DdbSourcebookChapter {
   slug              String
   title             String
   chapterIndex      Int
+  /// Slug of the parent chapter when this is a sub-page (e.g. "ten-towns" for Bremen). Null for top-level chapters.
+  parentSlug        String?
   contentHash       String?
   syncStatus        String        @default("idle")
   hasPendingChanges Boolean       @default(false)
@@ -188,6 +190,7 @@ model DdbSourcebookChapter {
 
   @@unique([sourcebookId, slug])
   @@index([sourcebookId])
+  @@index([sourcebookId, parentSlug])
 }
 
 // Invite-only registration system

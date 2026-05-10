@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/prisma';
 
-export type EmbeddingEntityType = 'transcript' | 'npc' | 'quest' | 'rules' | 'world_entity';
+export type EmbeddingEntityType = 'transcript' | 'npc' | 'quest' | 'rules' | 'world_entity' | 'ddb_chapter';
 
 export async function upsertEmbeddings(
   entityId: string,
