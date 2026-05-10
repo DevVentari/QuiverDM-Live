@@ -120,10 +120,15 @@ model UserSettings {
   dmExperience    String?
   theme           String  @default("dark")
 
+  // Active campaign - user's persisted choice for the V2 home & rail switcher
+  activeCampaignId String?
+  activeCampaign   Campaign? @relation("UserSettingsActiveCampaign", fields: [activeCampaignId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([activeCampaignId])
 }
 
 model VerificationToken {
@@ -304,10 +309,11 @@ model Campaign {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Multi-user collaboration
-  members    CampaignMember[] // All campaign members with roles
-  invites    CampaignInvite[] // Pending invites
-  inviteCode String?          @unique // Quick join code
-  isPublic   Boolean          @default(false) // Discoverable in search
+  members               CampaignMember[] // All campaign members with roles
+  invites               CampaignInvite[] // Pending invites
+  activeForUserSettings UserSettings[]   @relation("UserSettingsActiveCampaign")
+  inviteCode            String?          @unique // Quick join code
+  isPublic              Boolean          @default(false) // Discoverable in search
 
   // Campaign settings (JSON for flexibility)
   settings             Json? // { allowPlayerNotes, shareRecaps, etc. }

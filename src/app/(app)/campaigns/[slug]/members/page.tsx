@@ -38,6 +38,7 @@ export default function MembersPage() {
   const updateRole = trpc.members.updateRole.useMutation({
     onSuccess: () => {
       utils.members.getAll.invalidate({ campaignId });
+      void utils.campaigns.getActive.invalidate();
       toast({ title: 'Role updated' });
     },
     onError: (error) => {

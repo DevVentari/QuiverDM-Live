@@ -2,6 +2,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { router, protectedProcedure } from '../trpc';
 import { prisma } from '@/lib/prisma';
+import { TRPCError } from '@trpc/server';
 import { encrypt, decrypt, maskApiKey } from '@/lib/encryption';
 import { ValidationError, BadRequestError } from '../errors';
 
@@ -202,6 +203,31 @@ export const userSettingsRouter = router({
         update: input,
       });
       return { success: true };
+    }),
+
+  setActiveCampaign: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const membership = await prisma.campaignMember.findFirst({
+        where: { userId, campaignId: input.campaignId },
+        select: { id: true },
+      });
+      if (!membership) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You are not a member of this campaign.',
+        });
+      }
+
+      await (prisma.userSettings as any).upsert({
+        where: { userId },
+        create: { userId, activeCampaignId: input.campaignId },
+        update: { activeCampaignId: input.campaignId },
+      });
+
+      return { ok: true as const };
     }),
 
   // Delete specific API key
