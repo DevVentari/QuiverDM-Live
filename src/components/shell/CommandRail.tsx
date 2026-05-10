@@ -75,11 +75,18 @@ export function CommandRail() {
     localStorage.setItem(STORAGE_KEY, String(next))
   }
 
-  const isActive = (href: string) => {
-    const path = href.split('?')[0]
-    if (path === '/') return pathname === '/'
-    return pathname.startsWith(path)
-  }
+  const resolvedHrefs = NAV_ITEMS.map((item) => ({
+    id: item.id,
+    path: resolveHref(item, campaignSlug).split('?')[0],
+  }))
+  const activeId = (() => {
+    const matches = resolvedHrefs.filter(({ path }) =>
+      path === '/' ? pathname === '/' : pathname === path || pathname.startsWith(path + '/'),
+    )
+    if (matches.length === 0) return null
+    return matches.reduce((best, cur) => (cur.path.length > best.path.length ? cur : best)).id
+  })()
+  const isActive = (id: string) => activeId === id
 
   const campaignSlug = slot?.campaignSlug
 
@@ -125,7 +132,7 @@ export function CommandRail() {
       <div className="flex flex-col gap-0.5 px-2 pt-3 flex-1 overflow-y-auto">
         {NAV_ITEMS.map(({ id, icon: Icon, label, ...item }) => {
           const href = resolveHref({ id, icon: Icon, label, ...item }, campaignSlug)
-          const active = isActive(href)
+          const active = isActive(id)
           return (
             <Link
               key={id}
