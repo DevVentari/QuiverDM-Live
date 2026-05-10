@@ -11,6 +11,17 @@ test.describe('Home — session-first', () => {
     await expect(page.getByTestId('next-session-hero')).toBeVisible()
   })
 
+  test('next-session hero shows a real date label for an upcoming planning session', async ({ page }) => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD)
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const hero = page.getByTestId('next-session-hero')
+    await expect(hero).toBeVisible()
+    // Seed creates a planning session for tomorrow 19:00 — hero must surface
+    // it as the next session, not fall through to "no session scheduled".
+    await expect(hero).not.toContainText(/no session scheduled/i)
+    await expect(hero).toContainText(/tonight|tomorrow|\b\w{3}\s+\d{1,2}\s+\w{3}\b/i)
+  })
+
   test('renders CommandRail with 5 nav items', async ({ page }) => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD)
     await page.goto('/', { waitUntil: 'domcontentloaded' })
