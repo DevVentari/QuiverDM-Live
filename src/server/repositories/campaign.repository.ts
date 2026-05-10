@@ -7,6 +7,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { CampaignRole, Prisma } from '@prisma/client';
+import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 
 // =============================================================================
 // Types
@@ -222,6 +223,9 @@ export async function create(data: {
     }
 
     return campaign;
+  }).then((campaign) => {
+    enqueueMeiliSyncSafe({ kind: 'campaign', op: 'upsert', id: campaign.id });
+    return campaign;
   });
 }
 
@@ -239,19 +243,23 @@ export async function update(
     glossary?: Record<string, string>;
   }
 ) {
-  return prisma.campaign.update({
+  const campaign = await prisma.campaign.update({
     where: { id },
     data,
   });
+  enqueueMeiliSyncSafe({ kind: 'campaign', op: 'upsert', id });
+  return campaign;
 }
 
 /**
  * Delete a campaign
  */
 export async function remove(id: string) {
-  return prisma.campaign.delete({
+  const campaign = await prisma.campaign.delete({
     where: { id },
   });
+  enqueueMeiliSyncSafe({ kind: 'campaign', op: 'delete', id });
+  return campaign;
 }
 
 /**
@@ -464,7 +472,7 @@ export async function acceptInvite(
   userId: string,
   role: CampaignRole
 ) {
-  return prisma.$transaction([
+  const result = await prisma.$transaction([
     prisma.campaignMember.create({
       data: {
         campaignId,
@@ -477,6 +485,8 @@ export async function acceptInvite(
       data: { usedAt: new Date(), usedBy: userId },
     }),
   ]);
+  enqueueMeiliSyncSafe({ kind: 'campaign', op: 'upsert', id: campaignId });
+  return result;
 }
 
 /**

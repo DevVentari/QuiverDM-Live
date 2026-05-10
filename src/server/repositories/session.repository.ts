@@ -5,6 +5,7 @@
 
 import { prisma } from '../db';
 import type { Prisma } from '@prisma/client';
+import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 
 export async function findById(id: string) {
   return prisma.gameSession.findUnique({
@@ -98,7 +99,9 @@ export async function create(data: {
   prepData?: Prisma.InputJsonValue;
   prepStatus?: string;
 }) {
-  return prisma.gameSession.create({ data });
+  const session = await prisma.gameSession.create({ data });
+  enqueueMeiliSyncSafe({ kind: 'session', op: 'upsert', id: session.id });
+  return session;
 }
 
 export async function update(
@@ -121,7 +124,9 @@ export async function update(
     shareToken?: string;
   }
 ) {
-  return prisma.gameSession.update({ where: { id }, data });
+  const session = await prisma.gameSession.update({ where: { id }, data });
+  enqueueMeiliSyncSafe({ kind: 'session', op: 'upsert', id });
+  return session;
 }
 
 export async function updatePrep(
@@ -131,11 +136,15 @@ export async function updatePrep(
     prepStatus: string;
   }
 ) {
-  return prisma.gameSession.update({ where: { id }, data });
+  const session = await prisma.gameSession.update({ where: { id }, data });
+  enqueueMeiliSyncSafe({ kind: 'session', op: 'upsert', id });
+  return session;
 }
 
 export async function remove(id: string) {
-  return prisma.gameSession.delete({ where: { id } });
+  const session = await prisma.gameSession.delete({ where: { id } });
+  enqueueMeiliSyncSafe({ kind: 'session', op: 'delete', id });
+  return session;
 }
 
 export async function getNextSessionNumber(campaignId: string) {
@@ -157,7 +166,11 @@ export async function updateSummaryStatus(
     aiSummaryAt?: Date | null;
   }
 ) {
-  return prisma.gameSession.update({ where: { id }, data });
+  const session = await prisma.gameSession.update({ where: { id }, data });
+  if (data.aiSummary) {
+    enqueueMeiliSyncSafe({ kind: 'session', op: 'upsert', id });
+  }
+  return session;
 }
 
 export async function findByShareToken(shareToken: string) {

@@ -1,5 +1,6 @@
 import { Prisma, WorldEntryType } from '@prisma/client';
 import { prisma } from '../db';
+import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 
 export const worldRepository = {
   async findEntries(
@@ -67,7 +68,7 @@ export const worldRepository = {
     const sd = data.structuredData
       ? (data.structuredData as Prisma.InputJsonValue)
       : Prisma.JsonNull;
-    return prisma.worldEntry.upsert({
+    const entry = await prisma.worldEntry.upsert({
       where: { campaignId_slug: { campaignId, slug: data.slug } },
       create: {
         campaignId,
@@ -92,6 +93,8 @@ export const worldRepository = {
         sourceFile: data.sourceFile,
       },
     });
+    enqueueMeiliSyncSafe({ kind: 'world_entry', op: 'upsert', id: entry.id });
+    return entry;
   },
 
   async linkToWorldEntity(entryId: string, worldEntityId: string) {
