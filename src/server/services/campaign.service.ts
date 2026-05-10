@@ -298,10 +298,10 @@ export class CampaignService {
    * client doesn't need to map between two types.
    */
   async getActiveCampaign(userId: string): Promise<DashboardCampaign | null> {
-    const settings = await (prisma.userSettings as any).findUnique({
+    const settings = await prisma.userSettings.findUnique({
       where: { userId },
       select: { activeCampaignId: true },
-    }) as { activeCampaignId: string | null } | null;
+    });
 
     const dashboard = await this.getDashboardCampaigns(userId);
     if (dashboard.length === 0) return null;
