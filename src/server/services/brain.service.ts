@@ -4,6 +4,7 @@ import { authz } from './authorization.service';
 import { ForbiddenError, NotFoundError } from '../errors';
 import { prisma } from '../db';
 import { addBrainIngestionJob } from '@/lib/queue/brain-ingestion-queue';
+import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 import { callGeminiVision } from '@/lib/ai/gemini';
 
 export class BrainService {
@@ -400,6 +401,8 @@ export class BrainService {
       properties: { ...aProps, ...bProps },
     });
     await prisma.worldEntity.delete({ where: { id: candidate.entityAId } });
+    enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'delete', id: candidate.entityAId });
+    enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id: candidate.entityBId });
 
     await prisma.entityMergeRule.upsert({
       where: { campaignId_entityAId_entityBId: { campaignId, entityAId: candidate.entityAId, entityBId: candidate.entityBId } },

@@ -4,6 +4,7 @@ import { prisma } from '../db';
 import { TRPCError } from '@trpc/server';
 import { WorldEntityType, WorldStateChangeSource, MapBgType } from '@prisma/client';
 import { addMapGenerationJob } from '@/lib/queue/map-generation-queue';
+import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 
 async function getAncestorPath(mapId: string): Promise<Array<{ mapId: string; name: string; entityId: string | null }>> {
   const path: Array<{ mapId: string; name: string; entityId: string | null }> = [];
@@ -129,6 +130,7 @@ export const worldMapRouter = router({
           properties: {},
         },
       });
+      enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id: entity.id });
       return prisma.mapPin.create({
         data: { mapId: input.mapId, entityId: entity.id, x: input.x, y: input.y },
         include: { entity: { select: { id: true, name: true, type: true } } },
@@ -158,6 +160,7 @@ export const worldMapRouter = router({
           properties: { content: input.content },
         },
       });
+      enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id: entity.id });
       return prisma.mapPin.create({
         data: { mapId: input.mapId, entityId: entity.id, x: input.x, y: input.y },
         include: { entity: { select: { id: true, name: true, type: true } } },
