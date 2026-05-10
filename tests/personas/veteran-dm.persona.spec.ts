@@ -52,6 +52,14 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
     await assertNoErrorPage();
   }, 50_000);
 
+  await checkpoint(testInfo, 'campaign-switcher', async () => {
+    await page.goto('/');
+    await page.getByTestId('campaign-switcher-trigger').click();
+    const switcherItems = page.locator('[data-testid^="campaign-switcher-item-"]');
+    expect(await switcherItems.count()).toBeGreaterThanOrEqual(2);
+    await page.keyboard.press('Escape');
+  }, 15_000);
+
   const npcName = `QA Veteran NPC ${Date.now()}`;
 
   await checkpoint(testInfo, 'create-stat-block-npc', async () => {
