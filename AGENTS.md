@@ -183,14 +183,6 @@ A feature is not shipped until it has a workflow spec.
 - `mobile-dm` — critical flows on phone viewport
 - `error-resilience` — API failures surface clean errors, not crashes
 
-## Task Tracking
-
-Kanban board lives at `docs/obsidian-vault/KANBAN.md` (Obsidian Kanban plugin format).
-
-- **Check it** when starting new feature work to pick up the next task
-- **Update it** when completing a feature (move card to Done) or starting work (move to In Progress)
-- Columns: Backlog → In Progress → Review → Done
-
 ## Skills
 
 Project skills live in `.Codex/skills/` and are auto-loaded. Available: `quiverdm-worker`, `quiverdm-repository`, `quiverdm-auth`, `homebrew-schema`, `trpc-architect`, `pipeline-debugger`, `d5e-rules`.

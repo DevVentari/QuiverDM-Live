@@ -289,7 +289,9 @@ async function main() {
   const artifactsDir = join(runDir, 'artifacts');
   mkdirSync(rawReportDir, { recursive: true });
 
-  const baseUrl = process.env.BASE_URL ?? process.env.QA_APP_URL ?? 'http://localhost:3847';
+  const baseUrl =
+    process.env.BASE_URL ??
+    (!process.env.CI ? 'http://localhost:3847' : process.env.QA_APP_URL ?? 'http://localhost:3847');
   const smoke = await runPhase('smoke', 'tests/smoke', rawReportDir);
   const workflows = await runPhase('workflows', 'tests/workflows', rawReportDir);
   const failures = [...smoke.failures, ...workflows.failures];

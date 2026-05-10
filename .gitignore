@@ -121,6 +121,9 @@ docs/agents/results/
 docs/screenshots/
 tests/qa/screenshots/
 
+# Dry-run / diagnostic artifacts (large, regenerable)
+docs/test-results/
+
 # Playwright MCP temp dir
 .playwright-mcp/
 
@@ -180,4 +183,5 @@ node_modules/
 .superpowers/
 scripts/.ddb-auth-state.json
 scripts/.quiverdm-dev-auth-state.json
+tests/.auth/
 *.flac
