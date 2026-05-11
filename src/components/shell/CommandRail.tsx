@@ -14,6 +14,7 @@ import {
   BookOpen,
   Compass,
   Settings,
+  Sparkles,
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react'
@@ -42,6 +43,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map', fallbackHref: '/campaigns' },
   { id: 'world',      label: 'World',      icon: BookOpen,   scopedPath: '/world',     fallbackHref: '/campaigns' },
   { id: 'quests',     label: 'Quests',     icon: Compass,    scopedPath: '/quests',    fallbackHref: '/campaigns' },
+  { id: 'mechanics',  label: 'Mechanics',  icon: Sparkles,   scopedPath: '/mechanics', fallbackHref: '/campaigns' },
 ] as const
 
 const STORAGE_KEY = 'quiver.rail.collapsed'
