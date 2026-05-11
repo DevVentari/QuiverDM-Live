@@ -5,6 +5,14 @@ import { generateEmbedding } from '@/lib/ai/embeddings';
 import type { ChapterContent, DdbMonsterData } from '@/lib/ddb-sourcebook';
 import type { ProseChunk } from './ddb-chapter-chunker';
 
+function inferImageKind(url: string, alt?: string, section?: string): 'portrait' | 'map' | 'scene' | 'generic' {
+  const haystack = `${url} ${alt ?? ''} ${section ?? ''}`.toLowerCase();
+  if (/\b(map|floor|tactical|hideout|cave|cavern|dungeon)\b/.test(haystack)) return 'map';
+  if (/\b(portrait|character|headshot)\b/.test(haystack)) return 'portrait';
+  if (/\b(cover|splash|landscape|scene|spread)\b/.test(haystack)) return 'scene';
+  return 'generic';
+}
+
 export interface PendingChange {
   entityType: 'HomebrewContent' | 'EncounterPlan' | 'WorldEntity';
   entityId: string;
@@ -112,6 +120,21 @@ export interface WriteSink {
     description: string;
     properties?: Record<string, unknown>;
     imageUrl?: string;
+  }): Promise<UpsertResult>;
+
+  /**
+   * Persist a chapter-level illustration (full-page art, NPC spread, map).
+   * Distinct from SourcebookEntity images — these are not tied to a named
+   * entity. Idempotent on (sourcebookId, chapterId, url).
+   */
+  upsertChapterImage(args: {
+    sourcebookId: string;
+    chapterId: string;
+    url: string;
+    alt?: string;
+    sectionHeading?: string;
+    isHero: boolean;
+    position: number;
   }): Promise<UpsertResult>;
 
   setChapterStatus(chapterId: string, status: 'running' | 'idle' | 'error'): Promise<void>;
@@ -430,6 +453,48 @@ export class PrismaWriteSink implements WriteSink {
         confidence: 0.7,
         imageUrl: args.imageUrl ?? null,
       } as any,
+    });
+    return { created: true, id: created.id };
+  }
+
+  async upsertChapterImage(args: {
+    sourcebookId: string;
+    chapterId: string;
+    url: string;
+    alt?: string;
+    sectionHeading?: string;
+    isHero: boolean;
+    position: number;
+  }): Promise<UpsertResult> {
+    const kind = inferImageKind(args.url, args.alt, args.sectionHeading);
+    const existing = await prisma.sourcebookChapterImage.findUnique({
+      where: { sourcebookId_chapterId_url: { sourcebookId: args.sourcebookId, chapterId: args.chapterId, url: args.url } },
+      select: { id: true },
+    });
+    if (existing) {
+      await prisma.sourcebookChapterImage.update({
+        where: { id: existing.id },
+        data: {
+          alt: args.alt ?? null,
+          sectionHeading: args.sectionHeading ?? null,
+          isHero: args.isHero,
+          position: args.position,
+          kind,
+        },
+      });
+      return { created: false, id: existing.id };
+    }
+    const created = await prisma.sourcebookChapterImage.create({
+      data: {
+        sourcebookId: args.sourcebookId,
+        chapterId: args.chapterId,
+        url: args.url,
+        alt: args.alt ?? null,
+        sectionHeading: args.sectionHeading ?? null,
+        isHero: args.isHero,
+        position: args.position,
+        kind,
+      },
     });
     return { created: true, id: created.id };
   }

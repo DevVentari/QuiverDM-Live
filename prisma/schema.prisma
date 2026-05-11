@@ -171,6 +171,7 @@ model DdbSourcebook {
   chapters      DdbSourcebookChapter[]
   campaigns     CampaignSourcebook[]
   entities      SourcebookEntity[]
+  chapterImages SourcebookChapterImage[]
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
 
@@ -228,6 +229,32 @@ model SourcebookEntity {
   @@index([statBlockId])
 }
 
+/// Per-chapter illustrations captured from DDB chapter HTML. Used for World
+/// Document banners, session scene reveals, and campaign banner suggestions.
+/// Distinct from SourcebookEntity images — these are full-page art assets
+/// not tied to a specific named entity.
+model SourcebookChapterImage {
+  id           String                @id @default(cuid())
+  sourcebookId String
+  sourcebook   DdbSourcebook         @relation(fields: [sourcebookId], references: [id], onDelete: Cascade)
+  chapterId    String
+  chapter      DdbSourcebookChapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  url            String
+  alt            String?
+  sectionHeading String?
+  isHero         Boolean             @default(false)
+  /// Best-guess from URL keywords: "portrait" | "map" | "scene" | "generic".
+  kind           String              @default("generic")
+  position       Int                 @default(0)
+
+  createdAt      DateTime            @default(now())
+
+  @@unique([sourcebookId, chapterId, url])
+  @@index([sourcebookId, kind])
+  @@index([chapterId, position])
+}
+
 model DdbSourcebookChapter {
   id                String        @id @default(cuid())
   sourcebookId      String
@@ -243,6 +270,7 @@ model DdbSourcebookChapter {
   pendingChanges    Json?
   lastSyncedAt      DateTime?
   entities          SourcebookEntity[]
+  illustrations     SourcebookChapterImage[]
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

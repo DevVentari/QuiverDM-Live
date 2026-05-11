@@ -177,6 +177,24 @@ export async function processChapterJob(
     // Build a fast lookup: entity name → image URL via section + alt heuristics.
     const findImage = makeImageMatcher(content.images);
 
+    // Chapter-level illustrations (full-page art, maps, NPC spreads). Stored
+    // independently of named entities so the UI can surface them as world-doc
+    // banners, scene reveals, or campaign banner suggestions.
+    if (sourcebookIdForMaster) {
+      for (let i = 0; i < content.images.length; i++) {
+        const img = content.images[i];
+        await sink.upsertChapterImage({
+          sourcebookId: sourcebookIdForMaster,
+          chapterId,
+          url: img.url,
+          alt: img.alt || undefined,
+          sectionHeading: img.sectionHeading || undefined,
+          isHero: img.isHero,
+          position: i,
+        });
+      }
+    }
+
     // Sourcebook-scoped master copy — independent of any user campaign.
     // Written once per chapter so deletes of user campaigns don't lose
     // the canonical extracted content.
