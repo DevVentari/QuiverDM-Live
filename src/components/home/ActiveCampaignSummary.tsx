@@ -1,10 +1,19 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { Card, Section } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
-import { Shield, BookOpen } from 'lucide-react'
+import { Shield, BookOpen, Users } from 'lucide-react'
 import { format } from 'date-fns'
+
+interface ActiveCampaignSummaryPartyMember {
+  id: string
+  characterId: string
+  name: string
+  portraitUrl?: string | null
+  level?: number | null
+}
 
 interface ActiveCampaignSummaryProps {
   name: string
@@ -17,6 +26,9 @@ interface ActiveCampaignSummaryProps {
   partyLevel?: number
   levelTarget?: number
   bannerUrl?: string | null
+  party?: ActiveCampaignSummaryPartyMember[]
+  pendingPartyCount?: number
+  isDM?: boolean
 }
 
 function StatTile({ value, label }: { value: number | string; label: string }) {
@@ -42,6 +54,9 @@ export function ActiveCampaignSummary({
   itemCount,
   partyLevel,
   levelTarget,
+  party,
+  pendingPartyCount,
+  isDM,
 }: ActiveCampaignSummaryProps) {
   const ongoingLabel = ongoingSince
     ? format(new Date(ongoingSince), 'MMMM d, yyyy')
@@ -69,6 +84,64 @@ export function ActiveCampaignSummary({
               </p>
             )}
           </div>
+        </div>
+
+        <div data-testid="party-row" className="space-y-2">
+          <div className="text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
+            PARTY
+            {party && party.length > 0 && <span>{` · ${party.length} active`}</span>}
+            {isDM && (pendingPartyCount ?? 0) > 0 && (
+              <span className="text-[var(--q-amber)]">{` · ${pendingPartyCount} pending`}</span>
+            )}
+          </div>
+          {party && party.length > 0 ? (
+            slug ? (
+              <Link
+                href={`/campaigns/${slug}/players`}
+                className="flex items-center gap-2"
+              >
+                {party.slice(0, 6).map((member) => (
+                  <div
+                    key={member.id}
+                    title={member.name}
+                    className="relative h-7 w-7 overflow-hidden rounded-full border border-[var(--q-amber-dim)] bg-[hsl(240,10%,8%)]"
+                  >
+                    {member.portraitUrl ? (
+                      <Image
+                        src={member.portraitUrl}
+                        alt={member.name}
+                        fill
+                        sizes="28px"
+                        className="object-cover object-top"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Users size={14} className="text-[var(--q-text-faint)]" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {party.length > 6 && (
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-[var(--q-amber-dim)] text-[10px] text-[var(--q-text-faint)]">
+                    +{party.length - 6}
+                  </div>
+                )}
+              </Link>
+            ) : null
+          ) : (
+            <div className="flex items-center gap-3 text-xs text-[var(--q-text-faint)]">
+              <span>No party yet</span>
+              {isDM && slug && (
+                <Link
+                  href={`/campaigns/${slug}/players?add=true`}
+                  className="text-[var(--q-amber)] hover:underline"
+                >
+                  Add character
+                </Link>
+              )}
+            </div>
+          )}
         </div>
 
         {progress !== null && (
