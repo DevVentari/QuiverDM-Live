@@ -103,8 +103,8 @@ export default function EntitiesPage() {
   if (!isDM) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <Brain className="mx-auto h-12 w-12 text-muted-foreground/40 mb-4" />
-        <p className="text-muted-foreground">DM Brain is only accessible to Dungeon Masters.</p>
+        <Brain className="mx-auto h-12 w-12 text-[var(--q-text-dim)]/40 mb-4" />
+        <p className="text-[var(--q-text-dim)]">DM Brain is only accessible to Dungeon Masters.</p>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export default function EntitiesPage() {
       <div className="flex items-center justify-between">
         <div>
           <p className="label-overline">DM Brain</p>
-          <h2 className="text-lg sm:text-xl font-semibold">Entities</h2>
+          <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Entities</h2>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -206,10 +206,10 @@ export default function EntitiesPage() {
             key={type}
             onClick={() => setActiveType(type as WorldEntityType | 'All')}
             className={cn(
-              'shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+              'shrink-0 rounded-sm px-3 py-1.5 text-xs font-medium border transition-colors',
               activeType === type
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+                : 'border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] text-[var(--q-text-dim)] hover:text-[var(--q-text)] hover:border-[var(--q-amber-border)]'
             )}
           >
             {type}
@@ -220,7 +220,7 @@ export default function EntitiesPage() {
       {/* Filters row */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--q-text-dim)]" />
           <Input
             placeholder="Search entities..."
             value={search}
@@ -252,14 +252,14 @@ export default function EntitiesPage() {
         </div>
       ) : entitiesQuery.isError ? (
         <Card className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">Failed to load entities. Please refresh.</p>
+          <p className="text-sm text-[var(--q-text-dim)]">Failed to load entities. Please refresh.</p>
         </Card>
       ) : entities.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Brain className="h-12 w-12 text-muted-foreground/40 mb-4" />
+            <Brain className="h-12 w-12 text-[var(--q-text-dim)]/40 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No entities found</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+            <p className="text-sm text-[var(--q-text-dim)] mb-6 max-w-sm">
               {search || activeType !== 'All' || activeStatus !== 'all'
                 ? 'Try adjusting your filters.'
                 : 'Start tracking the people, places, and powers that shape your world.'}

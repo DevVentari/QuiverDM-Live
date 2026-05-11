@@ -179,8 +179,8 @@ export default function BrainPage() {
   if (!isDM) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <Brain className="mx-auto h-12 w-12 text-muted-foreground/40 mb-4" />
-        <p className="text-muted-foreground">DM Brain is only accessible to Dungeon Masters.</p>
+        <Brain className="mx-auto h-12 w-12 text-[var(--q-text-dim)]/40 mb-4" />
+        <p className="text-[var(--q-text-dim)]">DM Brain is only accessible to Dungeon Masters.</p>
       </div>
     );
   }
@@ -296,7 +296,7 @@ export default function BrainPage() {
           <TabsTrigger value="events">
             Events
             {pendingEventCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-amber-600/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+              <span className="ml-1.5 rounded-full bg-[var(--q-amber)] px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                 {pendingEventCount}
               </span>
             )}
@@ -304,7 +304,7 @@ export default function BrainPage() {
           <TabsTrigger value="merge">
             Merge Queue
             {(mergeCandidatesQuery.data?.length ?? 0) > 0 && (
-              <span className="ml-1.5 rounded-full bg-amber-600/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+              <span className="ml-1.5 rounded-full bg-[var(--q-amber)] px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                 {mergeCandidatesQuery.data!.length}
               </span>
             )}
@@ -331,7 +331,7 @@ export default function BrainPage() {
                       ))}
                     </div>
                   ) : stateQuery.isError ? (
-                    <p className="text-sm text-muted-foreground">Failed to load world state.</p>
+                    <p className="text-sm text-[var(--q-text-dim)]">Failed to load world state.</p>
                   ) : state ? (
                     <PressureGauges
                       state={state}
@@ -380,7 +380,7 @@ export default function BrainPage() {
                     </div>
                   ) : !hasEntities ? (
                     <div className="py-8 text-center">
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-sm text-[var(--q-text-dim)] mb-4">
                         No entities tracked yet. Seed from existing NPCs and characters to get started.
                       </p>
                       <Button
@@ -423,14 +423,14 @@ export default function BrainPage() {
                       ))}
                     </div>
                   ) : Object.keys(typeCounts).length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">No entities yet.</p>
+                    <p className="text-sm text-[var(--q-text-dim)] italic">No entities yet.</p>
                   ) : (
                     <ul className="space-y-2">
                       {Object.entries(typeCounts).map(([type, count]) => (
                         <li key={type} className="flex items-center justify-between">
                           <Link
                             href={`/campaigns/${slug}/brain/entities?type=${type}`}
-                            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                            className="text-sm text-[var(--q-text-dim)] hover:text-foreground transition-colors"
                           >
                             {TYPE_LABELS[type] ?? type}
                           </Link>
@@ -481,7 +481,7 @@ export default function BrainPage() {
                       ))}
                     </div>
                   ) : timeline.length === 0 ? (
-                    <p className="text-sm text-muted-foreground italic">No changes recorded yet.</p>
+                    <p className="text-sm text-[var(--q-text-dim)] italic">No changes recorded yet.</p>
                   ) : (
                     <ul className="space-y-3">
                       {timeline.map((entry) => (
@@ -489,7 +489,7 @@ export default function BrainPage() {
                           <span className="text-xs font-medium capitalize">
                             {entry.changeType.replace(/_/g, ' ')}
                           </span>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[10px] text-[var(--q-text-dim)]">
                             {entry.source} &middot;{' '}
                             {new Date(entry.createdAt).toLocaleDateString()}
                           </span>
@@ -576,7 +576,7 @@ export default function BrainPage() {
                     {[1, 2].map((i) => <Skeleton key={i} className="h-24 w-full rounded" />)}
                   </div>
                 ) : !proposalsQuery.data?.length ? (
-                  <p className="text-sm text-muted-foreground italic">No pending proposals.</p>
+                  <p className="text-sm text-[var(--q-text-dim)] italic">No pending proposals.</p>
                 ) : (
                   <ul className="space-y-4">
                     {proposalsQuery.data
@@ -593,7 +593,7 @@ export default function BrainPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="text-green-500 border-green-500/40 hover:bg-green-500/10"
+                                  className="text-[var(--q-amber)] border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)]"
                                   disabled={approveProposalMutation.isPending || rejectProposalMutation.isPending}
                                   onClick={() =>
                                     approveProposalMutation.mutate({
@@ -627,7 +627,7 @@ export default function BrainPage() {
                                   {event.proposedEffects && event.proposedEffects.length > 0 && (
                                     <ul className="pl-4 space-y-0.5">
                                       {event.proposedEffects.map((effect, j) => (
-                                        <li key={j} className="text-xs text-muted-foreground list-disc">{effect}</li>
+                                        <li key={j} className="text-xs text-[var(--q-text-dim)] list-disc">{effect}</li>
                                       ))}
                                     </ul>
                                   )}
@@ -656,7 +656,7 @@ export default function BrainPage() {
                     {[1, 2].map((i) => <Skeleton key={i} className="h-20 w-full rounded" />)}
                   </div>
                 ) : !mergeCandidatesQuery.data?.length ? (
-                  <p className="text-sm text-muted-foreground italic">No pending merges.</p>
+                  <p className="text-sm text-[var(--q-text-dim)] italic">No pending merges.</p>
                 ) : (
                   <ul className="space-y-3">
                     {mergeCandidatesQuery.data.map((candidate) => (
@@ -664,13 +664,13 @@ export default function BrainPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-sm">{candidate.entityA.name}</span>
-                            <span className="text-muted-foreground text-xs">≈</span>
+                            <span className="text-[var(--q-text-dim)] text-xs">≈</span>
                             <span className="font-medium text-sm">{candidate.entityB.name}</span>
                             <Badge variant="outline" className="text-[10px]">
                               {Math.round(candidate.score * 100)}% match
                             </Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-xs text-[var(--q-text-dim)] mt-1">
                             Suggested canonical: <span className="font-mono">{candidate.suggestedCanonical}</span>
                           </p>
                         </div>
@@ -678,7 +678,7 @@ export default function BrainPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-green-500 border-green-500/40 hover:bg-green-500/10"
+                            className="text-[var(--q-amber)] border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)]"
                             disabled={approveMergeMutation.isPending || rejectMergeMutation.isPending}
                             onClick={() => approveMergeMutation.mutate({ campaignId, candidateId: candidate.id })}
                           >
@@ -721,7 +721,7 @@ export default function BrainPage() {
                     {[1, 2, 3].map((i) => <Skeleton key={i} className="h-20 w-full rounded" />)}
                   </div>
                 ) : !mergeCandidatesQuery.data?.length ? (
-                  <p className="text-sm text-muted-foreground italic">No merge candidates pending review.</p>
+                  <p className="text-sm text-[var(--q-text-dim)] italic">No merge candidates pending review.</p>
                 ) : (
                   <ul className="space-y-3">
                     {mergeCandidatesQuery.data.map((candidate) => (
@@ -729,13 +729,13 @@ export default function BrainPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-sm">{candidate.entityA.name}</span>
-                            <span className="text-muted-foreground text-xs">≈</span>
+                            <span className="text-[var(--q-text-dim)] text-xs">≈</span>
                             <span className="font-medium text-sm">{candidate.entityB.name}</span>
                             <Badge variant="outline" className="text-[10px]">
                               {Math.round(candidate.score * 100)}% match
                             </Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
+                          <p className="text-xs text-[var(--q-text-dim)] mt-1">
                             Suggested canonical: <span className="font-mono">{candidate.suggestedCanonical}</span>
                           </p>
                         </div>
@@ -743,7 +743,7 @@ export default function BrainPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-green-500 border-green-500/40 hover:bg-green-500/10"
+                            className="text-[var(--q-amber)] border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)]"
                             disabled={approveMergeMutation.isPending || rejectMergeMutation.isPending}
                             onClick={() => approveMergeMutation.mutate({ campaignId, candidateId: candidate.id })}
                           >
@@ -779,14 +779,14 @@ export default function BrainPage() {
                     {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full rounded" />)}
                   </div>
                 ) : !ingestSourcesQuery.data?.length ? (
-                  <p className="text-sm text-muted-foreground italic">No ingestion jobs yet.</p>
+                  <p className="text-sm text-[var(--q-text-dim)] italic">No ingestion jobs yet.</p>
                 ) : (
                   <ul className="space-y-2">
                     {ingestSourcesQuery.data.map((src) => (
                       <li key={src.id} className="flex items-center justify-between gap-3 text-sm">
                         <div className="flex items-center gap-2 min-w-0">
                           <Badge variant="outline" className="shrink-0 text-[10px] uppercase">{src.type}</Badge>
-                          <span className="truncate text-muted-foreground">{src.sourceLabel}</span>
+                          <span className="truncate text-[var(--q-text-dim)]">{src.sourceLabel}</span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <Badge
@@ -795,7 +795,7 @@ export default function BrainPage() {
                           >
                             {src.status}
                           </Badge>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-[10px] text-[var(--q-text-dim)]">
                             {new Date(src.createdAt).toLocaleDateString()}
                           </span>
                         </div>

@@ -23,7 +23,7 @@ export default function WorldEntryPage() {
       variant="ghost"
       size="sm"
       onClick={() => router.back()}
-      className="gap-1.5 text-muted-foreground hover:text-foreground -ml-2"
+      className="gap-1.5 text-[var(--q-text-dim)] hover:text-[var(--q-text)] -ml-2"
     >
       <ChevronLeft className="h-4 w-4" />
       World Lore
@@ -35,7 +35,7 @@ export default function WorldEntryPage() {
       <PageLayout overline="World" title="Loading..." actions={backAction}>
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 rounded-md bg-white/5 animate-pulse" />
+            <div key={i} className="h-16 rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] animate-pulse" />
           ))}
         </div>
       </PageLayout>
@@ -45,7 +45,7 @@ export default function WorldEntryPage() {
   if (isError || !entry) {
     return (
       <PageLayout overline="World" title="Not Found" actions={backAction}>
-        <p className="text-sm text-muted-foreground/60">
+        <p className="text-sm text-[var(--q-text-faint)]">
           This entity could not be found. It may have been removed.
         </p>
       </PageLayout>
