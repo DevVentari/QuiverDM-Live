@@ -43,7 +43,19 @@ export default function HomebrewPage() {
   const [createInitialType, setCreateInitialType] = useState<CreateType | undefined>(undefined);
   const [ddbImportOpen, setDdbImportOpen] = useState(false);
   const [mediaImportOpen, setMediaImportOpen] = useState(false);
+  const [scope, setScope] = useState<'campaign' | 'library'>('campaign');
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const { data: activeCampaign } = trpc.campaigns.getActive.useQuery(undefined, {
+    staleTime: 5 * 60_000,
+  });
+  const activeCampaignId = activeCampaign?.id ?? null;
+  const activeCampaignName = activeCampaign?.name ?? null;
+
+  // Force library scope when there's no active campaign — nothing to scope to.
+  useEffect(() => {
+    if (!activeCampaignId && scope === 'campaign') setScope('library');
+  }, [activeCampaignId, scope]);
 
   useEffect(() => {
     if (searchParams?.get('create') === 'true') {
@@ -66,11 +78,19 @@ export default function HomebrewPage() {
     return () => clearTimeout(debounceTimer.current);
   }, [search]);
 
+  const inCampaignScope = scope === 'campaign' && !!activeCampaignId;
   const content = trpc.homebrew.getContent.useQuery(
-    { search: debouncedSearch || undefined, type: typeFilter as any },
+    {
+      search: debouncedSearch || undefined,
+      type: typeFilter as any,
+      campaignId: inCampaignScope ? activeCampaignId! : undefined,
+    },
     { staleTime: 300_000 },
   );
-  const stats = trpc.homebrew.getContentStats.useQuery({}, { staleTime: 300_000 });
+  const stats = trpc.homebrew.getContentStats.useQuery(
+    inCampaignScope ? { campaignId: activeCampaignId! } : {},
+    { staleTime: 300_000 },
+  );
 
   const totalItems = stats.data
     ? Object.values((stats.data as any).byType || {}).reduce((a: number, b) => a + (b as number), 0)
@@ -95,7 +115,13 @@ export default function HomebrewPage() {
               {items.length}
             </div>
             <div className="text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
-              {items.length === totalItems ? 'in library' : `of ${totalItems}`}
+              {inCampaignScope
+                ? items.length === totalItems
+                  ? 'in campaign'
+                  : `of ${totalItems} in campaign`
+                : items.length === totalItems
+                  ? 'in library'
+                  : `of ${totalItems}`}
             </div>
           </div>
           <Button asChild variant="outline" size="sm">
@@ -109,6 +135,46 @@ export default function HomebrewPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="flex flex-col gap-5 w-full">
+          {activeCampaignId && (
+            <div
+              role="tablist"
+              aria-label="Compendium scope"
+              className="grid grid-cols-2 gap-0 rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-0.5"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={scope === 'campaign'}
+                onClick={() => setScope('campaign')}
+                title={activeCampaignName ? `Items in ${activeCampaignName}` : 'Items in this campaign'}
+                className={cn(
+                  'rounded-sm px-2 py-1.5 text-[11px] uppercase tracking-[1.5px] transition-colors truncate',
+                  scope === 'campaign'
+                    ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+                    : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)]',
+                )}
+                data-testid="hb-scope-campaign"
+              >
+                In Campaign
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={scope === 'library'}
+                onClick={() => setScope('library')}
+                className={cn(
+                  'rounded-sm px-2 py-1.5 text-[11px] uppercase tracking-[1.5px] transition-colors',
+                  scope === 'library'
+                    ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+                    : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)]',
+                )}
+                data-testid="hb-scope-library"
+              >
+                Full Library
+              </button>
+            </div>
+          )}
+
           <div className="relative">
             <Search
               size={14}
