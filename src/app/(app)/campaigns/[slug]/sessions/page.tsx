@@ -10,14 +10,15 @@ import { SessionInspectorPanel } from '@/components/session/session-inspector-pa
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Surface } from '@/components/primitives';
 import { Plus, ScrollText, Mic, FileText, Sparkles, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
-  planning:    { label: 'Planning',    color: 'text-slate-400 border-slate-500/30 bg-slate-500/10',       dot: 'bg-slate-500' },
-  in_progress: { label: 'In Progress', color: 'text-amber-400 border-amber-500/30 bg-amber-500/10',       dot: 'bg-amber-400' },
-  active:      { label: 'Active',      color: 'text-amber-400 border-amber-500/30 bg-amber-500/10',       dot: 'bg-amber-400' },
-  completed:   { label: 'Completed',   color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10', dot: 'bg-emerald-500' },
+  planning:    { label: 'Planning',    color: 'text-[var(--q-text-faint)] border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)]',  dot: 'bg-[var(--q-text-faint)]' },
+  in_progress: { label: 'In Progress', color: 'text-[var(--q-amber)] border-[var(--q-amber-border)] bg-[var(--q-amber-trace)]',             dot: 'bg-[var(--q-amber)]' },
+  active:      { label: 'Active',      color: 'text-[var(--q-amber)] border-[var(--q-amber-border)] bg-[var(--q-amber-trace)]',             dot: 'bg-[var(--q-amber)]' },
+  completed:   { label: 'Completed',   color: 'text-[var(--q-text-dim)] border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)]',    dot: 'bg-[var(--q-text-dim)]' },
 };
 
 type FilterStatus = 'all' | 'planning' | 'in_progress' | 'completed';
@@ -81,18 +82,15 @@ export default function SessionsPage() {
   const leftPane = (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Filter pills */}
-      <div
-        className="flex flex-wrap gap-1 px-2 py-2 flex-shrink-0 border-b"
-        style={{ borderColor: 'hsl(35 35% 18%)' }}
-      >
+      <div className="flex flex-wrap gap-1 px-2 py-2 flex-shrink-0 border-b border-[var(--q-border-subtle)]">
         {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${
               filter === f
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                ? 'bg-[var(--q-amber-trace)] border border-[var(--q-amber-border)] text-[var(--q-amber)]'
+                : 'text-[var(--q-text-dim)] hover:text-[var(--q-text)] hover:bg-[var(--q-amber-trace)]'
             }`}
           >
             {f === 'all' ? 'All' : STATUS_CONFIG[f]?.label ?? f}
@@ -123,29 +121,29 @@ export default function SessionsPage() {
                   key={session.id}
                   variants={itemVariants}
                   onClick={() => setSelectedSession(isSelected ? null : session.id)}
-                  className={`w-full text-left px-3 py-2.5 border-b border-[hsl(35,35%,18%)] transition-colors hover:bg-white/[0.03] ${
-                    isSelected ? 'bg-amber-500/[0.06] border-l-2 border-l-amber-500/50' : ''
+                  className={`w-full text-left px-3 py-2.5 border-b border-[var(--q-border-subtle)] transition-colors hover:bg-[var(--q-amber-trace)] ${
+                    isSelected ? 'bg-[var(--q-amber-trace)] border-l-2 border-l-[var(--q-amber)]' : ''
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <div className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold tabular-nums transition-colors ${
-                      isSelected ? 'border-primary/60 text-primary' : 'border-border text-muted-foreground'
+                      isSelected ? 'border-[var(--q-amber-border)] text-[var(--q-amber)]' : 'border-[var(--q-border-subtle)] text-[var(--q-text-dim)]'
                     }`}>
                       {String(sessionNum).padStart(2, '0')}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate font-medium">
+                      <p className="text-sm truncate font-medium text-[var(--q-text)]">
                         {session.title || `Session ${sessionNum}`}
                       </p>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.dot}`} />
-                        <span className="text-[10px] text-muted-foreground">{status.label}</span>
+                        <span className="text-[10px] text-[var(--q-text-dim)]">{status.label}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-0.5 shrink-0">
-                      {hasRec  && <Mic      className="h-3 w-3 text-red-400/70" />}
-                      {hasTx   && <FileText  className="h-3 w-3 text-sky-400/70" />}
-                      {hasSumm && <Sparkles  className="h-3 w-3 text-purple-400/70" />}
+                    <div className="flex items-center gap-0.5 shrink-0 text-[var(--q-text-faint)]">
+                      {hasRec  && <Mic      className="h-3 w-3" />}
+                      {hasTx   && <FileText  className="h-3 w-3" />}
+                      {hasSumm && <Sparkles  className="h-3 w-3" />}
                     </div>
                   </div>
                 </motion.button>
@@ -154,8 +152,8 @@ export default function SessionsPage() {
           </motion.div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
-            <ScrollText className="h-8 w-8 text-muted-foreground/30 mb-3" />
-            <p className="text-sm text-muted-foreground">
+            <ScrollText className="h-8 w-8 text-[var(--q-text-faint)] mb-3" />
+            <p className="text-sm text-[var(--q-text-dim)]">
               {filter !== 'all' ? 'No sessions match this filter' : 'No sessions yet'}
             </p>
           </div>
@@ -200,11 +198,11 @@ export default function SessionsPage() {
             <SessionInspectorPanel session={selectedSession} slug={slug} isDM={isDM} />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center px-8">
-              <div className="h-16 w-16 rounded-full flex items-center justify-center mb-4 bg-[hsl(240,10%,11%)]">
-                <ScrollText className="h-7 w-7 text-muted-foreground/40" />
+              <div className="h-16 w-16 rounded-full flex items-center justify-center mb-4 bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)]">
+                <ScrollText className="h-7 w-7 text-[var(--q-text-faint)]" />
               </div>
-              <p className="text-sm font-medium text-muted-foreground">Select a session to inspect</p>
-              <p className="text-xs text-muted-foreground/50 mt-1">
+              <p className="text-sm font-medium text-[var(--q-text-dim)]">Select a session to inspect</p>
+              <p className="text-xs text-[var(--q-text-faint)] mt-1">
                 {allSessions.length > 0
                   ? `${allSessions.length} session${allSessions.length !== 1 ? 's' : ''} in this campaign`
                   : 'No sessions yet'}
@@ -236,9 +234,9 @@ function MobileSessionList({
 }) {
   if (sessions.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border p-12 text-center">
-        <ScrollText className="h-8 w-8 text-muted-foreground/40 mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground">
+      <div className="rounded-sm border border-dashed border-[var(--q-border-subtle)] p-12 text-center">
+        <ScrollText className="h-8 w-8 text-[var(--q-text-faint)] mx-auto mb-3" />
+        <p className="text-sm text-[var(--q-text-dim)]">
           {filter !== 'all' ? `No ${STATUS_CONFIG[filter]?.label} sessions` : 'No sessions yet'}
         </p>
         {isDM && filter === 'all' && (
@@ -265,17 +263,17 @@ function MobileSessionList({
 
         return (
           <Link key={session.id} href={`/campaigns/${slug}/sessions/${session.id}`}>
-            <div className="glass-panel rounded-lg border border-border hover:border-foreground/20 transition-all overflow-hidden">
+            <Surface variant="utility" className="overflow-hidden hover:border-[var(--q-amber-border)]">
               <div className={`h-1 w-full ${status.dot}`} />
               <div className="px-4 py-3 flex items-center gap-3">
-                <div className="shrink-0 w-8 h-8 rounded-full border border-border flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-muted-foreground">{sessionNum}</span>
+                <div className="shrink-0 w-8 h-8 rounded-full border border-[var(--q-border-subtle)] flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-[var(--q-text-dim)]">{sessionNum}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{session.title || `Session ${sessionNum}`}</p>
+                  <p className="font-semibold text-sm truncate text-[var(--q-text)]">{session.title || `Session ${sessionNum}`}</p>
                   <div className="flex items-center gap-3 mt-0.5">
                     {session.createdAt && (
-                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1 text-xs text-[var(--q-text-dim)]">
                         <Clock className="h-3 w-3" />
                         {format(new Date(session.createdAt), 'MMM d, yyyy')}
                       </span>
@@ -285,13 +283,13 @@ function MobileSessionList({
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  {hasRec  && <Mic      className="h-3.5 w-3.5 text-red-400/70" />}
-                  {hasTx   && <FileText  className="h-3.5 w-3.5 text-sky-400/70" />}
-                  {hasSumm && <Sparkles  className="h-3.5 w-3.5 text-purple-400/70" />}
+                <div className="flex items-center gap-1 shrink-0 text-[var(--q-text-faint)]">
+                  {hasRec  && <Mic      className="h-3.5 w-3.5" />}
+                  {hasTx   && <FileText  className="h-3.5 w-3.5" />}
+                  {hasSumm && <Sparkles  className="h-3.5 w-3.5" />}
                 </div>
               </div>
-            </div>
+            </Surface>
           </Link>
         );
       })}
