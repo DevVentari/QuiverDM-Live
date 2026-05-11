@@ -5,11 +5,13 @@ import Image from 'next/image'
 import { Calendar, Clock, Users } from 'lucide-react'
 import { Card } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
+import { RegenerateAssetButton } from './RegenerateAssetButton'
 import { format, isToday, isTomorrow } from 'date-fns'
 
 interface HomeHeroProps {
   campaignName: string
   campaignSlug?: string | null
+  campaignId?: string
   bannerUrl?: string | null
   nextSession: { id: string; title: string | null; date: Date | string } | null
   planningSession?: { id: string; title: string | null } | null
@@ -28,6 +30,7 @@ function formatNextDate(date: Date | string | null | undefined) {
 export function HomeHero({
   campaignName,
   campaignSlug,
+  campaignId,
   bannerUrl,
   nextSession,
   planningSession,
@@ -127,6 +130,11 @@ export function HomeHero({
             aria-hidden
             className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[var(--q-surface-hero)] to-transparent"
           />
+          {campaignId && (
+            <div className="absolute top-2 right-2 z-10">
+              <RegenerateAssetButton kind="banner" campaignId={campaignId} />
+            </div>
+          )}
         </div>
       </div>
     </Card>

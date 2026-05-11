@@ -77,6 +77,7 @@ export interface DashboardCampaign {
   name: string;
   slug: string;
   bannerUrl: string | null;
+  emblemUrl: string | null;
   role: CampaignRole;
   permissions: {
     canViewNPCSecrets: boolean;
@@ -314,6 +315,7 @@ export class CampaignService {
       name: m.campaign.name,
       slug: m.campaign.slug,
       bannerUrl: m.campaign.bannerUrl,
+      emblemUrl: (m.campaign as { emblemUrl?: string | null }).emblemUrl ?? null,
       role: m.role,
       permissions: {
         canViewNPCSecrets: m.canViewNPCSecrets,

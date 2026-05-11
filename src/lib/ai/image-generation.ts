@@ -10,6 +10,15 @@ import { storage } from '../storage';
 import { isComfyUIAvailable, queueComfyUIPrompt, waitForComfyUIResult } from './comfyui';
 import { isRunPodConfigured, queueRunPodJob, waitForRunPodResult } from './runpod-comfyui';
 
+export type ImageProvider = 'comfyui' | 'higgsfield' | 'runpod' | 'fal' | 'replicate' | 'dalle';
+
+export class ProviderUnavailableError extends Error {
+  constructor(public providersAllowed: ImageProvider[], public reason: string) {
+    super(`No allowed providers available (${providersAllowed.join(',')}): ${reason}`);
+    this.name = 'ProviderUnavailableError';
+  }
+}
+
 export interface ImageGenerationRequest {
   homebrewId?: string;
   npcId?: string;
@@ -19,11 +28,16 @@ export interface ImageGenerationRequest {
   description?: string;
   imagePromptHint?: string; // Visual description extracted from source PDF
   prompt?: string; // Custom prompt override
+  providersAllowed?: ImageProvider[];
+  width?: number;
+  height?: number;
+  workflow?: 'sdxl' | 'flux';
+  storageKeyPrefix?: string;
 }
 
 export interface ImageGenerationResult {
   url: string;
-  provider: 'comfyui' | 'higgsfield' | 'runpod' | 'fal' | 'replicate' | 'dalle';
+  provider: ImageProvider;
   metadata: {
     prompt: string;
     generationTimeMs: number;
@@ -65,33 +79,35 @@ export function buildPrompt(type: string, name: string, description?: string, im
   return `${base}${desc}, high quality, digital art, professional illustration`;
 }
 
-function storageKey(userId: string, homebrewId: string): string {
-  return `homebrew-images/generated/${userId}/${homebrewId}/${Date.now()}.png`;
-}
-
-function resolveEntityId(request: ImageGenerationRequest): string {
+function storageKey(request: ImageGenerationRequest): string {
+  if (request.storageKeyPrefix) {
+    return `${request.storageKeyPrefix}/${Date.now()}.png`;
+  }
   const entityId = request.homebrewId ?? request.npcId;
   if (!entityId) {
-    throw new Error('Image generation requires homebrewId or npcId');
+    throw new Error('Image generation requires homebrewId, npcId, or storageKeyPrefix');
   }
-  return entityId;
+  return `homebrew-images/generated/${request.userId}/${entityId}/${Date.now()}.png`;
 }
 
 async function generateWithComfyUI(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const start = Date.now();
   const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
+  const width = request.width ?? 1024;
+  const height = request.height ?? 1024;
+  const workflow = request.workflow ?? 'sdxl';
 
-  const { promptId, seed } = await queueComfyUIPrompt(prompt, NEGATIVE_PROMPT);
+  const { promptId, seed } = await queueComfyUIPrompt(prompt, NEGATIVE_PROMPT, { workflow, width, height });
   const imageBuffer = await waitForComfyUIResult(promptId);
 
-  const key = storageKey(request.userId, resolveEntityId(request));
+  const key = storageKey(request);
   const url = await storage.upload(key, imageBuffer, 'image/png');
-  const model = process.env.COMFYUI_MODEL || 'sd_xl_base_1.0.safetensors';
+  const model = process.env.COMFYUI_MODEL || (workflow === 'flux' ? 'flux2-dev.safetensors' : 'sd_xl_base_1.0.safetensors');
 
   return {
     url,
     provider: 'comfyui',
-    metadata: { prompt, generationTimeMs: Date.now() - start, model, seed, width: 1024, height: 1024, cfg: 7, steps: 20 },
+    metadata: { prompt, generationTimeMs: Date.now() - start, model, seed, width, height, cfg: workflow === 'flux' ? 3.5 : 7, steps: workflow === 'flux' ? 28 : 20 },
   };
 }
 
@@ -119,7 +135,7 @@ async function generateWithHiggsfield(request: ImageGenerationRequest): Promise<
   if (!imgRes.ok) throw new Error(`Failed to fetch Higgsfield image: ${imgRes.status}`);
   const buffer = Buffer.from(await imgRes.arrayBuffer());
 
-  const key = storageKey(request.userId, resolveEntityId(request));
+  const key = storageKey(request);
   const url = await storage.upload(key, buffer, 'image/png');
 
   return {
@@ -136,7 +152,7 @@ async function generateWithRunPod(request: ImageGenerationRequest): Promise<Imag
   const { jobId, seed } = await queueRunPodJob(prompt, NEGATIVE_PROMPT);
   const imageBuffer = await waitForRunPodResult(jobId);
 
-  const key = storageKey(request.userId, resolveEntityId(request));
+  const key = storageKey(request);
   const url = await storage.upload(key, imageBuffer, 'image/png');
   const model = process.env.COMFYUI_MODEL || 'sd_xl_base_1.0.safetensors';
 
@@ -169,8 +185,7 @@ async function generateWithFal(request: ImageGenerationRequest): Promise<ImageGe
   if (!imgRes.ok) throw new Error(`Failed to fetch fal.ai image: ${imgRes.status}`);
   const buffer = Buffer.from(await imgRes.arrayBuffer());
 
-  const entityId = resolveEntityId(request);
-  const key = storageKey(request.userId, entityId);
+  const key = storageKey(request);
   const url = await storage.upload(key, buffer, 'image/png');
 
   return {
@@ -213,7 +228,7 @@ async function generateWithReplicate(request: ImageGenerationRequest): Promise<I
   if (!imgRes.ok) throw new Error(`Failed to fetch Replicate image: ${imgRes.status}`);
   const buffer = Buffer.from(await imgRes.arrayBuffer());
 
-  const key = storageKey(request.userId, resolveEntityId(request));
+  const key = storageKey(request);
   const url = await storage.upload(key, buffer, 'image/png');
 
   return {
@@ -244,7 +259,7 @@ async function generateWithDALLE(request: ImageGenerationRequest): Promise<Image
   if (!imgRes.ok) throw new Error(`Failed to fetch DALL-E image: ${imgRes.status}`);
   const buffer = Buffer.from(await imgRes.arrayBuffer());
 
-  const key = storageKey(request.userId, resolveEntityId(request));
+  const key = storageKey(request);
   const url = await storage.upload(key, buffer, 'image/png');
 
   return {
@@ -259,8 +274,9 @@ async function generateWithDALLE(request: ImageGenerationRequest): Promise<Image
  * Tries: ComfyUI -> fal.ai -> Replicate -> DALL-E
  */
 export async function generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
+  const allowed = request.providersAllowed;
   const providers: Array<{
-    name: string;
+    name: ImageProvider;
     enabled: boolean;
     fn: () => Promise<ImageGenerationResult>;
   }> = [
@@ -297,8 +313,13 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
   ];
 
   const errors: string[] = [];
+  const filtered = allowed ? providers.filter((p) => allowed.includes(p.name)) : providers;
 
-  for (const p of providers) {
+  if (allowed && filtered.length === 0) {
+    throw new ProviderUnavailableError(allowed, 'no providers from allowed list are registered');
+  }
+
+  for (const p of filtered) {
     if (!p.enabled) continue;
 
     // Extra health check for ComfyUI before trying
@@ -317,5 +338,8 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
     }
   }
 
+  if (allowed) {
+    throw new ProviderUnavailableError(allowed, errors.length ? errors.join(' | ') : 'no allowed provider was enabled');
+  }
   throw new Error(`All image generation providers failed. ${errors.join(' | ')}`);
 }

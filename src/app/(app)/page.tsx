@@ -124,6 +124,7 @@ export default function HomePage() {
           <HomeHero
             campaignName={active.name}
             campaignSlug={active.slug}
+            campaignId={active.id}
             bannerUrl={active.bannerUrl}
             nextSession={active.nextSession}
             planningSession={planningSession}
@@ -139,6 +140,8 @@ export default function HomePage() {
             <ActiveCampaignSummary
               name={active.name}
               slug={active.slug}
+              id={active.id}
+              emblemUrl={(active as { emblemUrl?: string | null }).emblemUrl ?? null}
               ongoingSince={active.createdAt}
               sessionCount={active.sessionCount}
               npcCount={active.npcCount}

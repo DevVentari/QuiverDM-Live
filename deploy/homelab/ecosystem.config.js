@@ -33,6 +33,7 @@ module.exports = {
 
     // --- AI features ---
     worker('worker-image',            'src/lib/queue/image-generation-worker.ts'),
+    worker('worker-visual-assets',    'src/lib/queue/visual-asset-worker.ts'),
     worker('worker-context',          'src/lib/queue/context-extraction-worker.ts'),
     worker('worker-co-dm',            'src/lib/queue/co-dm-worker.ts'),
     worker('worker-co-dm-prep',       'src/lib/queue/co-dm-prep-worker.ts'),

@@ -329,6 +329,39 @@ export const campaignsRouter = router({
       });
     }),
 
+  regenerateBanner: campaignDMProcedure
+    .mutation(async ({ ctx, input }) => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Visual asset regeneration is dev-only');
+      }
+      const { enqueueVisualAsset } = await import('@/lib/queue/visual-asset-queue');
+      const campaign = await prisma.campaign.findUnique({
+        where: { id: input.campaignId },
+        select: { description: true },
+      });
+      await enqueueVisualAsset({
+        kind: 'campaign-banner',
+        campaignId: input.campaignId,
+        userId: ctx.session.user.id,
+        promptHint: campaign?.description ?? undefined,
+      });
+      return { queued: true };
+    }),
+
+  regenerateEmblem: campaignDMProcedure
+    .mutation(async ({ ctx, input }) => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Visual asset regeneration is dev-only');
+      }
+      const { enqueueVisualAsset } = await import('@/lib/queue/visual-asset-queue');
+      await enqueueVisualAsset({
+        kind: 'campaign-emblem',
+        campaignId: input.campaignId,
+        userId: ctx.session.user.id,
+      });
+      return { queued: true };
+    }),
+
   getWorldHomebrew: campaignDMProcedure
     .query(async ({ input }) => {
       const links = await prisma.campaignHomebrewContent.findMany({

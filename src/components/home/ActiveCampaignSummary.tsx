@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Card, Section } from '@/components/primitives'
 import { Button } from '@/components/ui/button'
 import { Shield, BookOpen, Users } from 'lucide-react'
+import { RegenerateAssetButton } from './RegenerateAssetButton'
 import { format } from 'date-fns'
 
 interface ActiveCampaignSummaryPartyMember {
@@ -18,6 +19,7 @@ interface ActiveCampaignSummaryPartyMember {
 interface ActiveCampaignSummaryProps {
   name: string
   slug?: string | null
+  id?: string
   ongoingSince?: Date | string | null
   sessionCount: number
   npcCount?: number
@@ -26,6 +28,7 @@ interface ActiveCampaignSummaryProps {
   partyLevel?: number
   levelTarget?: number
   bannerUrl?: string | null
+  emblemUrl?: string | null
   party?: ActiveCampaignSummaryPartyMember[]
   pendingPartyCount?: number
   isDM?: boolean
@@ -47,6 +50,7 @@ function StatTile({ value, label }: { value: number | string; label: string }) {
 export function ActiveCampaignSummary({
   name,
   slug,
+  id,
   ongoingSince,
   sessionCount,
   npcCount,
@@ -54,6 +58,7 @@ export function ActiveCampaignSummary({
   itemCount,
   partyLevel,
   levelTarget,
+  emblemUrl,
   party,
   pendingPartyCount,
   isDM,
@@ -71,13 +76,20 @@ export function ActiveCampaignSummary({
     <Section label="Active Campaign">
       <Card variant="detail" className="space-y-5">
         <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-sm border border-[var(--q-amber-dim)] bg-[linear-gradient(160deg,var(--q-amber-trace),transparent)]">
-            <Shield size={24} className="text-[var(--q-amber)]" />
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[var(--q-amber-dim)] bg-[linear-gradient(160deg,var(--q-amber-trace),transparent)]">
+            {emblemUrl ? (
+              <Image src={emblemUrl} alt="" fill sizes="56px" className="object-cover" unoptimized />
+            ) : (
+              <Shield size={24} className="text-[var(--q-amber)]" />
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-[var(--q-font-display)] text-xl text-[var(--q-text)] truncate">
-              {name}
-            </h3>
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-[var(--q-font-display)] text-xl text-[var(--q-text)] truncate">
+                {name}
+              </h3>
+              {id && <RegenerateAssetButton kind="emblem" campaignId={id} />}
+            </div>
             {ongoingLabel && (
               <p className="mt-1 text-xs text-[var(--q-text-faint)]">
                 Ongoing since {ongoingLabel}
