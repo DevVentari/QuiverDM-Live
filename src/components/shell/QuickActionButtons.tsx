@@ -1,7 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { PlusCircle, Dices, Calendar, Wand2 } from 'lucide-react'
+import {
+  CalendarDays,
+  ChevronDown,
+  CirclePlus,
+  Dices,
+  Map,
+} from 'lucide-react'
 import { QuickAddSheet } from './QuickAddSheet'
 import { CalendarSheet } from './CalendarSheet'
 import { DMToolsSheet } from './DMToolsSheet'
@@ -9,9 +15,10 @@ import { RandomizerSheet } from './RandomizerSheet'
 import { cn } from '@/lib/utils'
 
 const TOOLBAR_BUTTON_CLASS = cn(
-  'inline-flex items-center gap-2 rounded-sm border border-[var(--q-border-subtle)]',
-  'px-3 py-1.5 text-xs text-[var(--q-text-dim)]',
-  'transition-colors hover:border-[var(--q-amber-dim)] hover:text-[var(--q-text)]',
+  'inline-flex h-11 items-center gap-2.5 rounded-xl border border-[var(--q-border-subtle)]',
+  'bg-[var(--q-surface-utility)]/80 px-4 text-[13px] text-[var(--q-text-dim)]',
+  'shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.03)] transition-colors',
+  'hover:border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)]/60 hover:text-[var(--q-text)]',
 )
 
 export function QuickActionButtons() {
@@ -22,15 +29,15 @@ export function QuickActionButtons() {
 
   return (
     <>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
           onClick={() => setQuickAddOpen(true)}
           data-testid="quick-action-quick-add"
           className={TOOLBAR_BUTTON_CLASS}
         >
-          <PlusCircle size={13} className="shrink-0" />
-          <span className="hidden md:inline">Quick Add</span>
+          <CirclePlus size={16} className="shrink-0 text-[var(--q-text-faint)]" strokeWidth={1.8} />
+          <span className="hidden lg:inline">Quick Add</span>
         </button>
 
         <button
@@ -39,8 +46,8 @@ export function QuickActionButtons() {
           data-testid="quick-action-randomizer"
           className={TOOLBAR_BUTTON_CLASS}
         >
-          <Dices size={13} className="shrink-0" />
-          <span className="hidden md:inline">Randomizer</span>
+          <Dices size={16} className="shrink-0 text-[var(--q-text-faint)]" strokeWidth={1.8} />
+          <span className="hidden lg:inline">Randomizer</span>
         </button>
 
         <button
@@ -49,8 +56,8 @@ export function QuickActionButtons() {
           data-testid="quick-action-calendar"
           className={TOOLBAR_BUTTON_CLASS}
         >
-          <Calendar size={13} className="shrink-0" />
-          <span className="hidden md:inline">Calendar</span>
+          <CalendarDays size={16} className="shrink-0 text-[var(--q-text-faint)]" strokeWidth={1.8} />
+          <span className="hidden lg:inline">Calendar</span>
         </button>
 
         <button
@@ -59,8 +66,13 @@ export function QuickActionButtons() {
           data-testid="quick-action-dm-tools"
           className={TOOLBAR_BUTTON_CLASS}
         >
-          <Wand2 size={13} className="shrink-0" />
-          <span className="hidden md:inline">DM Tools</span>
+          <Map size={16} className="shrink-0 text-[var(--q-text-faint)]" strokeWidth={1.8} />
+          <span className="hidden lg:inline">DM Tools</span>
+          <ChevronDown
+            size={14}
+            className="hidden lg:inline shrink-0 text-[var(--q-text-faint)]"
+            strokeWidth={1.8}
+          />
         </button>
       </div>
 

@@ -3,9 +3,9 @@
  * Run against prod: DATABASE_URL="<neon-url>" ANTHROPIC_API_KEY="..." npx tsx scripts/seed-yord-sessions.ts
  */
 import dotenv from 'dotenv';
-// Only load .env.local if DATABASE_URL not already set (allows prod override via env var)
+// Only load .env if DATABASE_URL not already set (allows prod override via env var)
 if (!process.env.DATABASE_URL) {
-  dotenv.config({ path: '.env.local' });
+  dotenv.config();
 }
 
 import { PrismaClient, CharacterStatus } from '@prisma/client';

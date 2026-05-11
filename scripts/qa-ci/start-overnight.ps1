@@ -19,10 +19,10 @@ try {
     exit 1
 }
 
-# Verify .env.local exists (needed for QA agent credentials)
-$EnvLocal = Join-Path (Split-Path -Parent (Split-Path -Parent $ScriptDir)) '.env.local'
+# Verify .env exists (needed for QA agent credentials)
+$EnvLocal = Join-Path (Split-Path -Parent (Split-Path -Parent $ScriptDir)) '.env'
 if (-not (Test-Path $EnvLocal)) {
-    Write-Warning ".env.local not found at $EnvLocal — QA agents may fail without credentials"
+    Write-Warning ".env not found at $EnvLocal — QA agents may fail without credentials"
 }
 
 # overnight.py manages fix_dispatcher internally — just launch the orchestrator

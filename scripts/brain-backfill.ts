@@ -3,7 +3,7 @@
 // Skips sessions with an existing BrainIngestSource status=done.
 
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { prisma } from '../src/lib/prisma';
 import { addBrainIngestionJob } from '../src/lib/queue/brain-ingestion-queue';

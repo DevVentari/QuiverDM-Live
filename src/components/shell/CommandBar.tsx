@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Sparkles, Sun, Bell } from 'lucide-react'
+import { Sparkles, Sun, Bell, type LucideIcon } from 'lucide-react'
 import { Surface } from '@/components/primitives'
 import { UserMenu } from '@/components/user-menu'
 import { useHeaderStore } from '@/store/header-store'
@@ -23,7 +23,7 @@ function ToolbarIconButton({
   testId,
 }: {
   label: string
-  icon: React.ComponentType<{ size?: number; className?: string }>
+  icon: LucideIcon
   onClick: () => void
   testId?: string
 }) {
@@ -34,12 +34,13 @@ function ToolbarIconButton({
       aria-label={label}
       data-testid={testId}
       className={cn(
-        'inline-flex h-8 w-8 items-center justify-center rounded-sm',
-        'text-[var(--q-text-faint)] transition-colors',
-        'hover:text-[var(--q-text)] hover:bg-white/[0.04]',
+        'inline-flex size-11 items-center justify-center rounded-full',
+        'bg-[var(--q-surface-utility)]/80 text-[var(--q-text-faint)]',
+        'shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.03)] transition-colors',
+        'hover:text-[var(--q-text)]',
       )}
     >
-      <Icon size={16} />
+      <Icon size={18} strokeWidth={1.8} />
     </button>
   )
 }
@@ -53,34 +54,36 @@ export function CommandBar() {
       asChild
       variant="utility"
       className={cn(
-        'hidden h-[var(--q-command-bar-h,56px)] shrink-0 items-center gap-3 rounded-none border-x-0 border-t-0 px-4 md:flex',
-        'bg-[var(--q-shell-bar)] backdrop-blur-md',
+        'hidden h-[72px] shrink-0 items-center rounded-none border-x-0 border-t-0 px-8 md:flex',
+        'bg-[var(--q-shell-bar)]/95 backdrop-blur-md',
       )}
     >
       <header>
-        <div className="flex flex-1 items-center">
+        <div className="flex min-w-0 flex-1 items-center">
           <SearchTrigger />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex flex-1 items-center justify-center">
+          <QuickActionButtons />
+        </div>
+
+        <div className="flex shrink-0 items-center gap-3">
           <button
             type="button"
             onClick={() => setBrainOpen(true)}
             aria-label="Open Brain (Ctrl+B)"
             data-testid="brain-trigger"
             className={cn(
-              'inline-flex items-center gap-2 rounded-sm border border-[var(--q-amber-dim)]',
-              'bg-[var(--q-amber-trace)] px-3 py-1.5 text-xs',
-              'text-[var(--q-amber)] transition-colors hover:bg-[var(--q-amber-trace)]/70',
+              'inline-flex h-11 items-center gap-2 rounded-xl',
+              'bg-[var(--q-amber-trace)] px-4 text-[13px] text-[var(--q-amber)]',
+              'shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.04)] transition-colors hover:bg-[var(--q-amber-trace)]/80',
             )}
           >
-            <Sparkles size={13} className="shrink-0" />
-            <span className="hidden lg:inline">Ask the Brain</span>
+            <Sparkles size={15} className="shrink-0" strokeWidth={1.8} />
+            <span className="hidden xl:inline">Ask the Brain</span>
           </button>
 
-          <QuickActionButtons />
-
-          <div className="ml-2 flex items-center gap-1 border-l border-[var(--q-border-subtle)] pl-3">
+          <div className="ml-1 flex items-center gap-2 pl-2">
             <ToolbarIconButton
               label="Toggle theme"
               icon={Sun}

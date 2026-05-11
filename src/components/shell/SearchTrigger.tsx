@@ -162,16 +162,17 @@ export function SearchTrigger() {
         aria-label="Search everything (Ctrl+K)"
         data-testid="search-trigger"
         className={cn(
-          'group inline-flex w-full max-w-md items-center gap-3 rounded-sm',
-          'border border-[var(--q-border-subtle)] bg-[var(--q-amber-trace)]/30',
-          'px-3 py-1.5 text-sm text-[var(--q-text-faint)]',
-          'transition-colors hover:border-[var(--q-amber-dim)] hover:text-[var(--q-text-dim)]',
+          'group inline-flex h-11 w-full max-w-[25rem] items-center gap-3 rounded-xl',
+          'border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)]/80 px-4',
+          'text-[15px] text-[var(--q-text-faint)] shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.03)]',
+          'transition-colors hover:border-[var(--q-amber-border)] hover:text-[var(--q-text-dim)]',
         )}
       >
-        <Search size={14} className="shrink-0" />
+        <Search size={17} className="shrink-0 text-[var(--q-text-faint)]" strokeWidth={1.8} />
         <span className="flex-1 text-left">Search everything…</span>
-        <span className="hidden sm:inline-flex shrink-0 items-center gap-1 rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)]/50 px-1.5 py-0.5 text-[10px] tracking-wide text-[var(--q-text-faint)]">
-          &#x2318;K
+        <span className="hidden shrink-0 items-center gap-1 rounded-lg border border-[var(--q-border-subtle)] bg-black/10 px-2.5 py-1 text-[11px] text-[var(--q-text-faint)] sm:inline-flex">
+          <span className="text-[10px]">⌘</span>
+          <span>K</span>
         </span>
       </button>
 

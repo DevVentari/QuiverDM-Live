@@ -208,10 +208,10 @@ export function CommandRail() {
             />
 
             <RailSectionLabel label="Library" pinned={pinned} />
-            <CompendiumSection label="Items"     entityType="item"     icon={Package}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
-            <CompendiumSection label="Locations" entityType="location" icon={MapPin}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
-            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
-            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world`} createHref="/homebrew" collapsed={collapsed} />
+            <CompendiumSection label="Items"     entityType="item"     icon={Package}  campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world?type=ITEM`}     createHref="/homebrew?create=true&type=item"     collapsed={collapsed} />
+            <CompendiumSection label="Locations" entityType="location" icon={MapPin}   campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world?type=LOCATION`} createHref="/homebrew?create=true&type=location" collapsed={collapsed} />
+            <CompendiumSection label="Spells"    entityType="spell"    icon={Sparkles} campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world?type=SPELL`}    createHref="/homebrew?create=true&type=spell"    collapsed={collapsed} />
+            <CompendiumSection label="Monsters"  entityType="monster"  icon={Skull}    campaignId={campaignId} slug={campaignSlug!} listHref={`/campaigns/${campaignSlug}/world?type=MONSTER`}  createHref="/homebrew?create=true&type=creature" collapsed={collapsed} />
           </>
         ) : (
           <>

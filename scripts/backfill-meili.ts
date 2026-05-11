@@ -13,12 +13,12 @@
  */
 
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 // IMPORTANT: dynamic imports below — static imports run BEFORE the
 // dotenv.config() above, which causes @/lib/search to capture
 // MEILI_URL='http://localhost:7701' (the default) instead of the
-// homelab URL from .env.local. By the time these dynamic imports
+// homelab URL from .env. By the time these dynamic imports
 // resolve, process.env is populated.
 
 type Kind = 'campaigns' | 'sessions' | 'world_entities' | 'world_entries' | 'all';

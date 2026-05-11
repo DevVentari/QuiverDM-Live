@@ -10,7 +10,7 @@
  */
 
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { extractContent, extractWithFallback, getAvailableProviders } from '../src/lib/ai/extraction';
 import { saveExtractedContent } from '../src/server/repositories/homebrew-extraction.repository';

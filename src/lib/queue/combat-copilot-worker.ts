@@ -3,7 +3,7 @@
  * Processes combat-copilot queue jobs: extracts structured combat events via Ollama.
  */
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { Worker } from 'bullmq';
 import { Prisma } from '@prisma/client';

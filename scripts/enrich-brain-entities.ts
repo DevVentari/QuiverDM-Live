@@ -6,7 +6,7 @@
  * Run: DATABASE_URL="<neon-url>" npx tsx scripts/enrich-brain-entities.ts
  */
 import dotenv from 'dotenv';
-if (!process.env.DATABASE_URL) dotenv.config({ path: '.env.local' });
+if (!process.env.DATABASE_URL) dotenv.config();
 
 import { PrismaClient } from '@prisma/client';
 
