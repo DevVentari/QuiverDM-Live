@@ -76,8 +76,19 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-6">
+      {/*
+        2D grid (rows × cols) so each row's top/bottom y is shared across
+        columns. Row 1 = Hero (left, span 8) + WorldActivity (right, span 4).
+        Row 2 = Recent+ActiveCampaign (left, span 8) + PrepReminders (right, span 4).
+        Row heights auto-equalize to the tallest item per row, so the
+        Row-2 overlines start at the same y on both sides.
+
+        The lg:pt-8 on the WorldActivity wrapper mirrors the Hero card's
+        internal p-8 so the WORLD ACTIVITY overline aligns vertically with
+        the NEXT SESSION overline inside the hero card.
+      */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="space-y-6 lg:col-span-8">
+        <div className="lg:col-span-8">
           <HomeHero
             campaignName={active.name}
             campaignSlug={active.slug}
@@ -85,6 +96,12 @@ export default function HomePage() {
             nextSession={active.nextSession}
             planningSession={planningSession}
           />
+        </div>
+        <div className="lg:col-span-4 lg:pt-8">
+          <WorldActivityFeed campaignId={active.id} />
+        </div>
+
+        <div className="lg:col-span-8">
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
             <RecentSessionsList sessions={recentSessions} />
             <ActiveCampaignSummary
@@ -98,8 +115,7 @@ export default function HomePage() {
             />
           </div>
         </div>
-        <div className="space-y-6 lg:col-span-4">
-          <WorldActivityFeed campaignId={active.id} />
+        <div className="lg:col-span-4">
           <PrepReminders sessionId={planningSession?.id ?? null} reminders={prepReminders} />
         </div>
       </div>
