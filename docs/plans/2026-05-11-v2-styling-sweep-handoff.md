@@ -58,15 +58,19 @@ Remaining high-traffic surfaces:
 - `settings/{page,account,admin,ai,api-usage,appearance,ddb,integrations,profile}/page.tsx` (9 files)
 - `admin/{page,api-usage,health,invites,rules-sources,users,users/[userId]}/page.tsx` (7 files)
 
-### Missing rail pages — build these from scratch
-Routes referenced by `src/components/shell/CommandRail.tsx` but with no `page.tsx`:
-- `/campaigns/[slug]/locations/page.tsx`
-- `/campaigns/[slug]/monsters/page.tsx`
-- `/campaigns/[slug]/items/page.tsx`
-- `/campaigns/[slug]/lore/page.tsx`
-- `/campaigns/[slug]/assets/page.tsx`
+### Missing rail pages — NOT needed (re-audit on 2026-05-11)
+The original audit claimed 5 missing routes (locations, monsters, items, lore,
+assets). On verification this was a false positive — the audit compared against
+the `dev/home-shell` preview's 11-item nav, NOT the production
+`src/components/shell/CommandRail.tsx` which has 10 items and references only
+existing routes. The production rail is already consolidated:
 
-Use `dev/home-shell/page.tsx` and the migrated `world/page.tsx` as templates.
+- Locations / Lore → folded into `/campaigns/[slug]/world` (filterable)
+- Monsters / Items / Spells → folded into `/homebrew` (compendium with type filter)
+- Maps → `/campaigns/[slug]/world-map`
+- Assets → not in production rail; deferred until a real upload feature exists
+
+Skip this task.
 
 ### Delete (don't migrate)
 - `src/app/(app)/campaigns/[slug]/sidebar-test/page.tsx` (dev artifact, breaks type-check)
