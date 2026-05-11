@@ -64,19 +64,36 @@ export function NpcInspectorPanel({ npcId, slug, isDM }: NpcInspectorPanelProps)
         </div>
       </div>
 
-      {/* Stat pills */}
+      {/* Stat pills — handles both the legacy npc.stats shape (armorClass / hitPoints)
+          and the DDB monster stat block shape (ac / hp) that's linked via statBlockId. */}
       {stats && (
         <div className="flex divide-x" style={{ borderBottom: '1px solid hsl(35 35% 18%)', borderColor: 'hsl(35 35% 18%)' }}>
           {[
             { label: 'CR', value: stats.cr ?? '—' },
-            { label: 'HP', value: typeof stats.hitPoints === 'object' ? stats.hitPoints?.max : (stats.hitPoints ?? '—') },
-            { label: 'AC', value: stats.armorClass ?? '—' },
+            { label: 'HP', value: stats.hp ?? (typeof stats.hitPoints === 'object' ? stats.hitPoints?.max : stats.hitPoints) ?? '—' },
+            { label: 'AC', value: stats.ac ?? stats.armorClass ?? '—' },
           ].map(({ label, value }) => (
             <div key={label} className="stone-card-body flex-1 text-center py-3" style={{ borderColor: 'hsl(35 35% 18%)' }}>
               <div className="stat-value text-base">{value}</div>
               <div className="stat-label">{label}</div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Action block — surfaced when the linked DDB stat block carries one. */}
+      {stats && Array.isArray(stats.actions) && stats.actions.length > 0 && (
+        <div className="px-4 pt-4 pb-2">
+          <p className="label-overline mb-2">Actions</p>
+          <div className="section-rule mb-3" />
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            {(stats.actions as Array<{ name: string; description?: string }>).slice(0, 8).map((a) => (
+              <li key={a.name}>
+                <span className="text-foreground font-medium">{a.name}.</span>{' '}
+                <span>{a.description ?? ''}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

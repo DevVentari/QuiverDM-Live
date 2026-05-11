@@ -85,6 +85,9 @@ export async function findByCampaignId(
       updatedAt: true,
       ddbChapterId: true,
       firstSeenSessionId: true,
+      statBlock: {
+        select: { id: true, name: true, data: true, imageUrl: true },
+      },
     },
   });
 
@@ -97,8 +100,8 @@ export async function findByCampaignId(
       description: e.description,
       faction: typeof props.faction === 'string' ? (props.faction as string) : null,
       role: typeof props.role === 'string' ? (props.role as string) : null,
-      imageUrl: e.imageUrl,
-      stats: null,
+      imageUrl: e.imageUrl ?? e.statBlock?.imageUrl ?? null,
+      stats: e.statBlock?.data ?? null,
       tags: [] as string[],
       // entity-source NPCs have no editable secrets
       ...(includeSecrets ? { secrets: null } : {}),

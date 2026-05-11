@@ -75,7 +75,7 @@ export const ddbSyncRepository = {
       select: {
         type: true, name: true, description: true, properties: true,
         aliases: true, status: true, chapterId: true, sourceType: true,
-        confidence: true, imageUrl: true,
+        confidence: true, imageUrl: true, statBlockId: true,
       },
     });
 
@@ -99,6 +99,7 @@ export const ddbSyncRepository = {
           sourceType: e.sourceType,
           confidence: e.confidence,
           imageUrl: e.imageUrl,
+          statBlockId: e.statBlockId,
         })),
         skipDuplicates: true,
       });

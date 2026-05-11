@@ -185,3 +185,4 @@ scripts/.ddb-auth-state.json
 scripts/.quiverdm-dev-auth-state.json
 tests/.auth/
 *.flac
+.gstack/

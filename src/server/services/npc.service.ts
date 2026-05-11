@@ -38,10 +38,14 @@ export class NPCService {
         name: true,
         description: true,
         properties: true,
+        imageUrl: true,
         ddbChapterId: true,
         firstSeenSessionId: true,
         createdAt: true,
         updatedAt: true,
+        statBlock: {
+          select: { id: true, name: true, data: true, imageUrl: true },
+        },
       },
     });
     if (!entity || entity.type !== 'NPC') {
@@ -56,8 +60,8 @@ export class NPCService {
       description: entity.description,
       faction: typeof props.faction === 'string' ? (props.faction as string) : null,
       role: typeof props.role === 'string' ? (props.role as string) : null,
-      imageUrl: null,
-      stats: null,
+      imageUrl: entity.imageUrl ?? entity.statBlock?.imageUrl ?? null,
+      stats: entity.statBlock?.data ?? null,
       tags: [] as string[],
       secrets: null,
       createdAt: entity.createdAt,
