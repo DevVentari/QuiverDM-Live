@@ -175,10 +175,22 @@ export interface ChapterSection {
   text: string;
 }
 
+export interface ChapterImage {
+  /** Absolute URL of the image. */
+  url: string;
+  /** Alt text from <img alt="…">. Often empty on DDB; useful when present. */
+  alt: string;
+  /** The H2 heading the image was found under (or '(intro)' if before the first H2). */
+  sectionHeading: string;
+  /** True when the image immediately follows a heading or sits in a sidebar — typically a portrait/key art for the section's entity. */
+  isHero: boolean;
+}
+
 export interface ChapterContent {
   monsterLinks: MonsterLink[];
   encounterAreas: string[];
   sections: ChapterSection[];
+  images: ChapterImage[];
   prose: string;
   contentHash: string;
 }
@@ -208,23 +220,57 @@ export function parseChapterContent(html: string): ChapterContent {
 
   // Walk content elements in document order, splitting into sections at each H2.
   // H3+ headings are kept inline as markdown so the AI can use them as cues.
+  // Images are captured with their section context so we can match them back
+  // to extracted entities (NPCs/locations/items) by name + section proximity.
   const sections: ChapterSection[] = [];
+  const images: ChapterImage[] = [];
   let current: ChapterSection = { heading: '(intro)', text: '' };
+  let sawHeadingButNoBody = true; // true when the next image is the section's hero
   const flush = () => {
     if (current.text.trim()) sections.push({ heading: current.heading, text: current.text.trim() });
   };
-  content.find('h2, h3, h4, p, ul, ol, table, blockquote').each((_, el) => {
+  const ABS_URL_RE = /^https?:\/\//i;
+  content.find('h2, h3, h4, p, ul, ol, table, blockquote, img, figure').each((_, el) => {
     const $el = $(el);
     if ($el.is('h2')) {
       flush();
       current = { heading: $el.text().trim() || '(untitled)', text: '' };
+      sawHeadingButNoBody = true;
     } else if ($el.is('h3')) {
       current.text += `\n\n### ${$el.text().trim()}\n`;
+      sawHeadingButNoBody = true;
     } else if ($el.is('h4')) {
       current.text += `\n\n#### ${$el.text().trim()}\n`;
+      sawHeadingButNoBody = true;
+    } else if ($el.is('img')) {
+      const rawSrc = $el.attr('src') ?? $el.attr('data-src') ?? '';
+      const src = rawSrc.trim();
+      if (src && ABS_URL_RE.test(src)) {
+        images.push({
+          url: src,
+          alt: ($el.attr('alt') ?? '').trim(),
+          sectionHeading: current.heading,
+          isHero: sawHeadingButNoBody,
+        });
+      }
+    } else if ($el.is('figure')) {
+      const $img = $el.find('img').first();
+      const rawSrc = $img.attr('src') ?? $img.attr('data-src') ?? '';
+      const src = rawSrc.trim();
+      if (src && ABS_URL_RE.test(src)) {
+        images.push({
+          url: src,
+          alt: ($img.attr('alt') ?? $el.find('figcaption').text() ?? '').trim(),
+          sectionHeading: current.heading,
+          isHero: sawHeadingButNoBody,
+        });
+      }
     } else {
       const t = $el.text().replace(/\s+/g, ' ').trim();
-      if (t) current.text += `\n${t}`;
+      if (t) {
+        current.text += `\n${t}`;
+        sawHeadingButNoBody = false;
+      }
     }
   });
   flush();
@@ -232,7 +278,7 @@ export function parseChapterContent(html: string): ChapterContent {
   const prose = content.text().replace(/\s+/g, ' ').trim();
   const contentHash = crypto.createHash('sha256').update(prose).digest('hex');
 
-  return { monsterLinks: Array.from(monsterMap.values()), encounterAreas, sections, prose, contentHash };
+  return { monsterLinks: Array.from(monsterMap.values()), encounterAreas, sections, images, prose, contentHash };
 }
 
 export async function fetchChapterContent(
