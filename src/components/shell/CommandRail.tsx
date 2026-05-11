@@ -14,6 +14,7 @@ import {
   BookOpen,
   Compass,
   Settings,
+  Shield,
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react'
@@ -37,6 +38,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: 'home',       label: 'Home',       icon: Home,       globalHref: '/' },
   { id: 'campaigns',  label: 'Campaigns',  icon: ScrollText, globalHref: '/campaigns' },
   { id: 'sessions',   label: 'Sessions',   icon: Calendar,   scopedPath: '/sessions',  fallbackHref: '/campaigns' },
+  { id: 'party',      label: 'Party',      icon: Shield,     scopedPath: '/players',   fallbackHref: '/campaigns' },
   { id: 'npcs',       label: 'NPCs',       icon: Users,      scopedPath: '/npcs',      fallbackHref: '/campaigns' },
   { id: 'compendium', label: 'Compendium', icon: Library,    globalHref: '/homebrew' },
   { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map', fallbackHref: '/campaigns' },

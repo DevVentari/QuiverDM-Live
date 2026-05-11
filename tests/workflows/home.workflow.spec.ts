@@ -31,6 +31,7 @@ test.describe('Home — session-first', () => {
     await expect(page.getByTestId('rail-nav-campaigns')).toBeVisible()
     await expect(page.getByTestId('rail-nav-sessions')).toBeVisible()
     await expect(page.getByTestId('rail-nav-npcs')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-party')).toBeVisible()
     await expect(page.getByTestId('rail-nav-lore')).toBeVisible()
     await expect(page.getByTestId('rail-nav-settings')).toBeVisible()
   })
@@ -51,5 +52,13 @@ test.describe('Home — session-first', () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD)
     await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
     await expect(page).toHaveURL('/')
+  })
+
+  test('home shows the Party row with PARTY overline', async ({ page }) => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD)
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    const partyRow = page.getByTestId('party-row')
+    await expect(partyRow).toBeVisible()
+    await expect(partyRow).toContainText(/PARTY/)
   })
 })
