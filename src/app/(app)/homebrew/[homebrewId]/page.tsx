@@ -42,8 +42,8 @@ export default function HomebrewDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center space-y-4">
-          <p className="text-destructive font-medium">Failed to load content</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[var(--q-text-danger)] font-medium">Failed to load content</p>
+          <p className="text-sm text-[var(--q-text-dim)]">
             {content.error?.message || 'An unexpected error occurred'}
           </p>
           <Button variant="outline" onClick={() => content.refetch()}>
@@ -56,7 +56,7 @@ export default function HomebrewDetailPage() {
 
   const item = content.data as any;
   if (!item) {
-    return <p className="text-destructive">Content not found</p>;
+    return <p className="text-[var(--q-text-danger)]">Content not found</p>;
   }
 
   const style = getTypeStyle(item.type);
@@ -91,7 +91,7 @@ export default function HomebrewDetailPage() {
         </Button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <TypeIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+            <TypeIcon className="h-5 w-5 text-[var(--q-text-dim)] shrink-0" />
             <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide truncate">{item.name}</h1>
           </div>
           <div className="flex items-center gap-2 mt-1">
@@ -99,7 +99,7 @@ export default function HomebrewDetailPage() {
               {style.label}
             </Badge>
             {item.sourceType && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-[var(--q-text-dim)]">
                 {item.sourceType === 'pdf_extraction' && item.sourcePdf
                   ? `PDF · ${formatPdfName(item.sourcePdf.filename)}`
                   : getSourceLabel(item.sourceType)}
@@ -179,7 +179,7 @@ export default function HomebrewDetailPage() {
             </div>
             <div className="stone-card-body">
               <details className="text-sm">
-                <summary className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors py-1">
+                <summary className="cursor-pointer text-[var(--q-text-dim)] hover:text-foreground transition-colors py-1">
                   View JSON
                 </summary>
                 <pre className="mt-2 p-3 rounded-lg bg-muted/50 border overflow-x-auto text-xs">

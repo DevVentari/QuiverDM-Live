@@ -99,8 +99,8 @@ export default function CharacterDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center space-y-4">
-          <p className="text-destructive font-medium">Failed to load data</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[var(--q-text-danger)] font-medium">Failed to load data</p>
+          <p className="text-sm text-[var(--q-text-dim)]">
             {character.error?.message || 'An unexpected error occurred'}
           </p>
           <Button variant="outline" onClick={() => character.refetch()}>
@@ -112,7 +112,7 @@ export default function CharacterDetailPage() {
   }
 
   if (!character.data) {
-    return <p className="text-destructive">Character not found</p>;
+    return <p className="text-[var(--q-text-danger)]">Character not found</p>;
   }
 
   const data = character.data as any;
@@ -160,7 +160,7 @@ export default function CharacterDetailPage() {
               />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-b from-purple-950 to-blue-950 flex items-center justify-center">
-                <Users className="h-10 w-10 text-muted-foreground" />
+                <Users className="h-10 w-10 text-[var(--q-text-dim)]" />
               </div>
             )}
             {/* Fade right edge into card bg */}
@@ -233,7 +233,7 @@ export default function CharacterDetailPage() {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0">
                 <h1 className="text-2xl sm:text-3xl font-bold font-display tracking-wide leading-tight">{data.name}</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+                <p className="text-sm text-[var(--q-text-dim)] mt-0.5">{subtitle}</p>
                 {data.background && (
                   <Badge variant="outline" className="mt-1.5 border-primary/30 text-primary/80">
                     {data.background}

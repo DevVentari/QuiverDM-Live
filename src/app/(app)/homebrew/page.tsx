@@ -157,7 +157,7 @@ export default function HomebrewPage() {
             <div
               role="tablist"
               aria-label="Compendium scope"
-              className="grid grid-cols-2 gap-0 rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-0.5"
+              className="grid grid-cols-2 gap-0 rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] p-0.5"
             >
               <button
                 type="button"
@@ -222,7 +222,7 @@ export default function HomebrewPage() {
                     'flex w-full items-center rounded-sm px-3 py-2 text-sm transition-colors text-left',
                     active
                       ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
-                      : 'text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)]',
+                      : 'text-[var(--q-text-dim)] hover:bg-[var(--q-amber-trace)] hover:text-[var(--q-text)]',
                   )}
                   data-testid={`hb-filter-${filter.value ?? 'all'}`}
                 >
@@ -238,21 +238,21 @@ export default function HomebrewPage() {
             </p>
             <button
               onClick={() => setCreateOpen(true)}
-              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)] transition-colors"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-[var(--q-amber-trace)] hover:text-[var(--q-text)] transition-colors"
             >
               <Plus size={14} className="shrink-0" />
               Create manually
             </button>
             <button
               onClick={() => setDdbImportOpen(true)}
-              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)] transition-colors"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-[var(--q-amber-trace)] hover:text-[var(--q-text)] transition-colors"
             >
               <Globe size={14} className="shrink-0" />
               Import from D&amp;D Beyond
             </button>
             <button
               onClick={() => setMediaImportOpen(true)}
-              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)] transition-colors"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-[var(--q-amber-trace)] hover:text-[var(--q-text)] transition-colors"
             >
               <ImageUp size={14} className="shrink-0" />
               Import from photo / notes
@@ -278,7 +278,7 @@ export default function HomebrewPage() {
             </div>
           ) : items.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-[var(--q-text-dim)] max-w-md mx-auto">
-              <BookOpen size={32} className="text-[var(--q-text-faint)]/40" />
+              <BookOpen size={32} className="text-[var(--q-text-faint)]" />
               {inCampaignScope && linkedSourcebooks.length === 0 ? (
                 <>
                   <p className="text-sm">

@@ -35,7 +35,7 @@ function CharactersPageInner() {
   return (
     <div className="space-y-6 max-w-6xl 2xl:max-w-[1500px] px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Characters</h1>
+        <h1 className="text-xl sm:text-2xl font-[var(--q-font-display)] font-bold tracking-wide text-[var(--q-text)]">Characters</h1>
         <Button onClick={() => router.push('?create=true')}>
           <Plus className="mr-2 h-4 w-4" />
           Add Character
@@ -63,11 +63,11 @@ function CharactersPageInner() {
                       className="object-cover object-top"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-b from-[hsl(240,10%,8%)] via-[hsl(240,8%,6%)] to-[hsl(35,15%,5%)] flex items-center justify-center">
-                      <Users className="h-7 w-7 text-muted-foreground/30" />
+                    <div className="absolute inset-0 bg-[var(--q-surface-utility)] flex items-center justify-center">
+                      <Users className="h-7 w-7 text-[var(--q-text-faint)]" />
                     </div>
                   )}
-                  <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[hsl(240,10%,11%)] to-transparent pointer-events-none" />
+                  <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--q-surface-utility)] to-transparent pointer-events-none" />
                 </div>
                 <div className="flex-1 min-w-0 px-4 py-3 flex flex-col gap-1.5">
                   <div className="flex items-start justify-between gap-2">
@@ -76,7 +76,7 @@ function CharactersPageInner() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="relative z-10 h-6 w-6 p-0 shrink-0 text-muted-foreground/50 hover:text-foreground"
+                        className="relative z-10 h-6 w-6 p-0 shrink-0 text-[var(--q-text-dim)]/50 hover:text-foreground"
                         disabled={syncCharacter.isPending}
                         onClick={(e: MouseEvent) => {
                           e.preventDefault();
@@ -92,17 +92,17 @@ function CharactersPageInner() {
                       </Button>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground leading-snug">
+                  <p className="text-xs text-[var(--q-text-dim)] leading-snug">
                     {[char.race, char.class, char.level && `Level ${char.level}`]
                       .filter(Boolean)
                       .join(' · ') || 'No details'}
                   </p>
                   {char.backstory ? (
-                    <p className="text-xs text-muted-foreground/60 line-clamp-2 mt-auto leading-relaxed">
+                    <p className="text-xs text-[var(--q-text-dim)]/60 line-clamp-2 mt-auto leading-relaxed">
                       {char.backstory}
                     </p>
                   ) : (
-                    <p className="text-xs text-muted-foreground/40 mt-auto italic">No backstory yet</p>
+                    <p className="text-xs text-[var(--q-text-dim)]/40 mt-auto italic">No backstory yet</p>
                   )}
                 </div>
               </div>
@@ -112,9 +112,9 @@ function CharactersPageInner() {
       ) : (
         <div className="stone-card">
           <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
-            <Sword className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <Sword className="h-12 w-12 text-[var(--q-text-dim)]/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">No characters yet</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-sm">
+            <p className="text-sm text-[var(--q-text-dim)] mb-6 max-w-sm">
               Import a character from D&D Beyond or create one manually.
             </p>
             <Button size="sm" onClick={() => router.push('?create=true')}>

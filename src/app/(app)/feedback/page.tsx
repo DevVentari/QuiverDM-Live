@@ -110,7 +110,7 @@ export default function FeedbackPage() {
           <div className="stone-card">
             <div className="stone-card-header">
               <span className="stone-card-title">Share Feedback</span>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-[var(--q-text-dim)]">
                 Report issues, request features, or suggest improvements.
               </p>
             </div>
@@ -169,7 +169,7 @@ export default function FeedbackPage() {
                     required
                     aria-describedby="feedback-title-hint"
                   />
-                  <p id="feedback-title-hint" className="text-xs text-muted-foreground">
+                  <p id="feedback-title-hint" className="text-xs text-[var(--q-text-dim)]">
                     3 to 200 characters required.
                   </p>
                 </div>
@@ -186,7 +186,7 @@ export default function FeedbackPage() {
                     required
                     aria-describedby="feedback-description-hint"
                   />
-                  <p id="feedback-description-hint" className="text-xs text-muted-foreground">
+                  <p id="feedback-description-hint" className="text-xs text-[var(--q-text-dim)]">
                     Minimum 10 characters. Include steps, expected behavior, and actual behavior.
                   </p>
                 </div>
@@ -206,13 +206,13 @@ export default function FeedbackPage() {
                       >
                         <Star
                           className={`h-4 w-4 ${
-                            value <= rating ? 'fill-foreground text-foreground' : 'text-muted-foreground'
+                            value <= rating ? 'fill-foreground text-foreground' : 'text-[var(--q-text-dim)]'
                           }`}
                         />
                       </Button>
                     ))}
                     {rating > 0 && (
-                      <span className="text-sm text-muted-foreground">{rating} / 5</span>
+                      <span className="text-sm text-[var(--q-text-dim)]">{rating} / 5</span>
                     )}
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export default function FeedbackPage() {
           <div className="stone-card">
             <div className="stone-card-header">
               <span className="stone-card-title">My Feedback</span>
-              <p className="text-sm text-muted-foreground">Your recent submissions</p>
+              <p className="text-sm text-[var(--q-text-dim)]">Your recent submissions</p>
             </div>
             <div className="stone-card-body">
               {feedbackList.isLoading ? (
@@ -246,20 +246,20 @@ export default function FeedbackPage() {
                           {formatLabel(item.status)}
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--q-text-dim)]">
                         <span>{formatLabel(item.type)}</span>
                         {item.category && <span>| {formatLabel(item.category)}</span>}
                         {item.rating && <span>| Rating {item.rating}/5</span>}
                         <span>| {new Date(item.createdAt).toLocaleDateString()}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                      <p className="text-sm text-[var(--q-text-dim)] whitespace-pre-wrap">
                         {item.description}
                       </p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-[var(--q-text-dim)]">
                   You have not submitted feedback yet.
                 </p>
               )}
@@ -272,7 +272,7 @@ export default function FeedbackPage() {
           <div className="stone-card-header">
             <span className="stone-card-title">What we look for</span>
           </div>
-          <div className="stone-card-body space-y-3 text-sm text-muted-foreground">
+          <div className="stone-card-body space-y-3 text-sm text-[var(--q-text-dim)]">
             <p>Bug reports with reproduction steps</p>
             <p>Missing features you need at the table</p>
             <p>UX friction — things that slow you down mid-session</p>
