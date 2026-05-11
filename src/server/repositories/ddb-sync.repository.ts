@@ -24,8 +24,32 @@ export const ddbSyncRepository = {
   },
 
   async createSourcebook(userId: string, entitlementId: string, slug: string, title: string, campaignIds: string[]) {
-    return prisma.ddbSourcebook.create({
+    const sourcebook = await prisma.ddbSourcebook.create({
       data: { userId, entitlementId, slug, title, campaignIds },
+    });
+    // Mirror the campaignIds array into the CampaignSourcebook join table so
+    // Compendium / homebrew queries can resolve "this campaign uses sourcebook X"
+    // via a proper FK relation. Idempotent on the (campaignId, sourcebookId) unique.
+    if (campaignIds.length > 0) {
+      await prisma.campaignSourcebook.createMany({
+        data: campaignIds.map((campaignId) => ({ campaignId, sourcebookId: sourcebook.id })),
+        skipDuplicates: true,
+      });
+    }
+    return sourcebook;
+  },
+
+  async linkSourcebookToCampaigns(sourcebookId: string, campaignIds: string[]) {
+    if (campaignIds.length === 0) return;
+    await prisma.campaignSourcebook.createMany({
+      data: campaignIds.map((campaignId) => ({ campaignId, sourcebookId })),
+      skipDuplicates: true,
+    });
+  },
+
+  async unlinkSourcebookFromCampaign(sourcebookId: string, campaignId: string) {
+    await prisma.campaignSourcebook.deleteMany({
+      where: { sourcebookId, campaignId },
     });
   },
 
