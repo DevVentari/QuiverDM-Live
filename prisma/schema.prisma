@@ -169,11 +169,25 @@ model DdbSourcebook {
   lastSyncedAt  DateTime?
   contentHash   String?
   chapters      DdbSourcebookChapter[]
+  campaigns     CampaignSourcebook[]
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
 
   @@unique([userId, slug])
   @@index([userId])
+}
+
+model CampaignSourcebook {
+  id           String         @id @default(cuid())
+  campaignId   String
+  campaign     Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sourcebookId String
+  sourcebook   DdbSourcebook  @relation(fields: [sourcebookId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+
+  @@unique([campaignId, sourcebookId])
+  @@index([campaignId])
+  @@index([sourcebookId])
 }
 
 model DdbSourcebookChapter {
@@ -357,6 +371,7 @@ model Campaign {
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
 
   mechanics            CampaignMechanic[]
+  sourcebooks          CampaignSourcebook[]
 
   // Campaign Documents
   documents         CampaignDocument[]

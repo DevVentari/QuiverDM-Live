@@ -51,11 +51,14 @@ export async function findContent(params: {
   }
 
   if (params.campaignId) {
-    where.campaigns = {
-      some: {
-        campaignId: params.campaignId,
-      },
-    };
+    // Content is "in this campaign" when it's either:
+    //   (a) explicitly linked via CampaignHomebrewContent, OR
+    //   (b) imported from a chapter of a sourcebook linked to this campaign.
+    const chapterIds = await chapterIdsForCampaign(params.campaignId);
+    where.OR = [
+      { campaigns: { some: { campaignId: params.campaignId } } },
+      ...(chapterIds.length > 0 ? [{ ddbChapterId: { in: chapterIds } }] : []),
+    ];
   }
 
   return prisma.homebrewContent.findMany({
@@ -78,6 +81,19 @@ export async function findContent(params: {
       },
     },
   });
+}
+
+async function chapterIdsForCampaign(campaignId: string): Promise<string[]> {
+  const links = await prisma.campaignSourcebook.findMany({
+    where: { campaignId },
+    select: { sourcebookId: true },
+  });
+  if (links.length === 0) return [];
+  const chapters = await prisma.ddbSourcebookChapter.findMany({
+    where: { sourcebookId: { in: links.map((l) => l.sourcebookId) } },
+    select: { id: true },
+  });
+  return chapters.map((c) => c.id);
 }
 
 export async function findByIds(ids: string[]) {
@@ -149,11 +165,11 @@ export async function findByType(params: {
   };
 
   if (params.campaignId) {
-    where.campaigns = {
-      some: {
-        campaignId: params.campaignId,
-      },
-    };
+    const chapterIds = await chapterIdsForCampaign(params.campaignId);
+    where.OR = [
+      { campaigns: { some: { campaignId: params.campaignId } } },
+      ...(chapterIds.length > 0 ? [{ ddbChapterId: { in: chapterIds } }] : []),
+    ];
   }
 
   return prisma.homebrewContent.findMany({
@@ -180,11 +196,11 @@ export async function getStats(params: { userId: string; campaignId?: string }) 
   const where: any = { userId: params.userId };
 
   if (params.campaignId) {
-    where.campaigns = {
-      some: {
-        campaignId: params.campaignId,
-      },
-    };
+    const chapterIds = await chapterIdsForCampaign(params.campaignId);
+    where.OR = [
+      { campaigns: { some: { campaignId: params.campaignId } } },
+      ...(chapterIds.length > 0 ? [{ ddbChapterId: { in: chapterIds } }] : []),
+    ];
   }
 
   const [stats, total] = await Promise.all([
