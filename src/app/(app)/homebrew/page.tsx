@@ -51,6 +51,24 @@ export default function HomebrewPage() {
   });
   const activeCampaignId = activeCampaign?.id ?? null;
   const activeCampaignName = activeCampaign?.name ?? null;
+  const isDM = activeCampaign?.role === 'OWNER' || activeCampaign?.role === 'CO_DM';
+
+  const sourcebooksQuery = trpc.ddbSync.listSourcebooksForCampaign.useQuery(
+    activeCampaignId ? { campaignId: activeCampaignId } : (undefined as any),
+    { enabled: !!activeCampaignId, staleTime: 5 * 60_000 },
+  );
+  const sourcebooks = (sourcebooksQuery.data ?? []) as Array<{ id: string; slug: string; title: string; linked: boolean }>;
+  const linkedSourcebooks = sourcebooks.filter((s) => s.linked);
+  const unlinkedSourcebooks = sourcebooks.filter((s) => !s.linked);
+
+  const utils = trpc.useUtils();
+  const linkSourcebook = trpc.ddbSync.linkSourcebookToCampaign.useMutation({
+    onSuccess: () => {
+      void sourcebooksQuery.refetch();
+      void utils.homebrew.getContent.invalidate();
+      void utils.homebrew.getContentStats.invalidate();
+    },
+  });
 
   // Force library scope when there's no active campaign — nothing to scope to.
   useEffect(() => {
@@ -259,15 +277,45 @@ export default function HomebrewPage() {
               <p className="text-sm">Failed to load homebrew content.</p>
             </div>
           ) : items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-[var(--q-text-dim)]">
+            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-[var(--q-text-dim)] max-w-md mx-auto">
               <BookOpen size={32} className="text-[var(--q-text-faint)]/40" />
-              <p className="text-sm">
-                {totalItems === 0 ? 'No homebrew yet' : 'No entries match those filters'}
-              </p>
-              {totalItems === 0 && (
-                <Button asChild size="sm" variant="outline">
-                  <Link href="/homebrew/pdfs">Upload PDF</Link>
-                </Button>
+              {inCampaignScope && linkedSourcebooks.length === 0 ? (
+                <>
+                  <p className="text-sm">
+                    No sourcebook linked to <span className="text-[var(--q-text)]">{activeCampaignName}</span>.
+                  </p>
+                  <p className="text-xs text-[var(--q-text-faint)]">
+                    Link a sourcebook you own to populate this campaign&apos;s compendium, or browse the full library.
+                  </p>
+                  {isDM && unlinkedSourcebooks.length > 0 && (
+                    <div className="flex flex-col gap-2 mt-3 w-full max-w-xs">
+                      {unlinkedSourcebooks.map((s) => (
+                        <Button
+                          key={s.id}
+                          size="sm"
+                          variant="outline"
+                          disabled={linkSourcebook.isPending}
+                          onClick={() => linkSourcebook.mutate({ campaignId: activeCampaignId!, sourcebookId: s.id })}
+                          data-testid={`hb-link-sb-${s.slug}`}
+                        >
+                          Link {s.title}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => setScope('library')} className="mt-2">
+                    Browse Full Library
+                  </Button>
+                </>
+              ) : totalItems === 0 ? (
+                <>
+                  <p className="text-sm">No homebrew yet</p>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/homebrew/pdfs">Upload PDF</Link>
+                  </Button>
+                </>
+              ) : (
+                <p className="text-sm">No entries match those filters</p>
               )}
             </div>
           ) : (

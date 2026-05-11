@@ -93,6 +93,64 @@ export const ddbSyncRouter = router({
       );
       return { resolved: true };
     }),
+
+  listSourcebooksForCampaign: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const member = await prisma.campaignMember.findFirst({
+        where: { campaignId: input.campaignId, userId: ctx.session.user.id },
+        select: { role: true },
+      });
+      if (!member) throw new TRPCError({ code: 'FORBIDDEN' });
+
+      const owned = await prisma.ddbSourcebook.findMany({
+        where: { userId: ctx.session.user.id },
+        orderBy: { title: 'asc' },
+        select: { id: true, slug: true, title: true },
+      });
+      const linked = await prisma.campaignSourcebook.findMany({
+        where: { campaignId: input.campaignId },
+        select: { sourcebookId: true },
+      });
+      const linkedSet = new Set(linked.map((l) => l.sourcebookId));
+      return owned.map((s) => ({ ...s, linked: linkedSet.has(s.id) }));
+    }),
+
+  linkSourcebookToCampaign: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), sourcebookId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await prisma.campaignMember.findFirst({
+        where: { campaignId: input.campaignId, userId: ctx.session.user.id },
+        select: { role: true },
+      });
+      const isDM = member?.role === 'OWNER' || member?.role === 'CO_DM';
+      if (!isDM) throw new TRPCError({ code: 'FORBIDDEN' });
+
+      const sourcebook = await prisma.ddbSourcebook.findUnique({
+        where: { id: input.sourcebookId },
+        select: { userId: true },
+      });
+      if (!sourcebook || sourcebook.userId !== ctx.session.user.id) {
+        throw new TRPCError({ code: 'NOT_FOUND' });
+      }
+
+      await ddbSyncRepository.linkSourcebookToCampaigns(input.sourcebookId, [input.campaignId]);
+      return { ok: true };
+    }),
+
+  unlinkSourcebookFromCampaign: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), sourcebookId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await prisma.campaignMember.findFirst({
+        where: { campaignId: input.campaignId, userId: ctx.session.user.id },
+        select: { role: true },
+      });
+      const isDM = member?.role === 'OWNER' || member?.role === 'CO_DM';
+      if (!isDM) throw new TRPCError({ code: 'FORBIDDEN' });
+
+      await ddbSyncRepository.unlinkSourcebookFromCampaign(input.sourcebookId, input.campaignId);
+      return { ok: true };
+    }),
 });
 
 export type DdbSyncRouter = typeof ddbSyncRouter;
