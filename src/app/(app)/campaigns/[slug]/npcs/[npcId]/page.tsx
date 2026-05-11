@@ -10,12 +10,37 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { Card } from '@/components/primitives';
 import { Trash2, ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { ImageGallery } from '@/components/homebrew/image-gallery';
 import { ExportToFoundryButton } from '@/components/foundry/ExportToFoundryButton';
 import { NpcWorldState } from '@/components/brain/npc-world-state';
+
+function NpcCard({
+  title,
+  meta,
+  amber = false,
+  children,
+}: {
+  title: string
+  meta?: React.ReactNode
+  amber?: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Card variant="detail" className={amber ? 'border-[var(--q-amber-border)]' : undefined}>
+      <div className="flex items-center gap-2 border-b border-[var(--q-border-subtle)] pb-3 mb-3">
+        <span className="font-[var(--q-font-display)] text-sm tracking-wide text-[var(--q-text)]">
+          {title}
+        </span>
+        {meta && <div className="ml-auto">{meta}</div>}
+      </div>
+      {children}
+    </Card>
+  )
+}
 
 export default function NPCDetailPage() {
   const params = useParams();
@@ -40,15 +65,15 @@ export default function NPCDetailPage() {
   });
 
   if (npc.isLoading) {
-    return <Skeleton className="h-64 rounded-lg" />;
+    return <Skeleton className="h-64 rounded-sm" />;
   }
 
   if (npc.isError) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center space-y-4">
-          <p className="text-destructive font-medium">Failed to load data</p>
-          <p className="text-sm text-muted-foreground">{npc.error?.message || 'An unexpected error occurred'}</p>
+          <p className="text-[var(--q-text-danger)] font-medium">Failed to load data</p>
+          <p className="text-sm text-[var(--q-text-dim)]">{npc.error?.message || 'An unexpected error occurred'}</p>
           <Button variant="outline" onClick={() => npc.refetch()}>Try Again</Button>
         </div>
       </div>
@@ -56,11 +81,48 @@ export default function NPCDetailPage() {
   }
 
   if (!npc.data) {
-    return <p className="text-destructive">NPC not found</p>;
+    return <p className="text-[var(--q-text-danger)]">NPC not found</p>;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const data = npc.data as any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const stats = data.stats as any;
+
+  const statBlockMeta = (stats?.size || stats?.creatureType || stats?.cr || stats?.alignment) ? (
+    <span className="text-xs text-[var(--q-text-dim)]">
+      {[stats.size, stats.creatureType, stats.alignment, stats.cr ? `CR ${stats.cr}` : null]
+        .filter(Boolean)
+        .join(' · ')}
+    </span>
+  ) : undefined;
+
+  const imageBlock = (
+    <div className="space-y-2">
+      <p className="label-overline">IMAGE</p>
+      <div className="section-rule mb-4" />
+      <ImageGallery
+        entityType="npc"
+        entityId={data.id}
+        currentImageUrl={data.imageUrl}
+        currentJobId={data.imageJobId}
+        canGenerate={isDM}
+        entityName={data.name}
+      />
+    </div>
+  )
+
+  const descriptionBlock = data.description ? (
+    <NpcCard title="Description">
+      <p className="text-sm text-[var(--q-text)] whitespace-pre-wrap">{data.description}</p>
+    </NpcCard>
+  ) : null
+
+  const secretsBlock = isDM && data.secrets ? (
+    <NpcCard title="DM Secrets" amber>
+      <p className="text-sm text-[var(--q-text)] whitespace-pre-wrap">{data.secrets}</p>
+    </NpcCard>
+  ) : null
 
   return (
     <div className="space-y-6 max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -72,9 +134,9 @@ export default function NPCDetailPage() {
           </Link>
         </Button>
         <div className="flex-1 min-w-0">
-          <h2 className="text-xl sm:text-2xl font-display font-bold tracking-wide">{data.name}</h2>
+          <h2 className="text-xl sm:text-2xl font-[var(--q-font-display)] font-bold tracking-wide text-[var(--q-text)]">{data.name}</h2>
           {data.faction && (
-            <Badge variant="outline" className="mt-1">{data.faction}</Badge>
+            <Badge variant="outline" className="mt-1 border-[var(--q-border-subtle)] text-[var(--q-text-dim)]">{data.faction}</Badge>
           )}
         </div>
         {isDM && (
@@ -84,7 +146,7 @@ export default function NPCDetailPage() {
                 checked={data.playerVisible ?? false}
                 onCheckedChange={(val) => updateNpc.mutate({ id: npcId, playerVisible: val })}
               />
-              <span className="text-xs text-muted-foreground">Visible to players</span>
+              <span className="text-xs text-[var(--q-text-dim)]">Visible to players</span>
             </div>
             <ExportToFoundryButton
               type="npc"
@@ -110,43 +172,10 @@ export default function NPCDetailPage() {
       {/* Main content — two-column when stats exist on desktop */}
       {stats ? (
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] items-start gap-6">
-          {/* Left column */}
           <div className="space-y-6">
-            <div className="space-y-2">
-              <p className="label-overline">IMAGE</p>
-              <div className="section-rule mb-4" />
-              <ImageGallery
-                entityType="npc"
-                entityId={data.id}
-                currentImageUrl={data.imageUrl}
-                currentJobId={data.imageJobId}
-                canGenerate={isDM}
-                entityName={data.name}
-              />
-            </div>
-
-            {data.description && (
-              <div className="stone-card">
-                <div className="stone-card-header">
-                  <span className="stone-card-title">Description</span>
-                </div>
-                <div className="stone-card-body">
-                  <p className="text-sm whitespace-pre-wrap">{data.description}</p>
-                </div>
-              </div>
-            )}
-
-            {isDM && data.secrets && (
-              <div className="stone-card border-amber-500/30">
-                <div className="stone-card-header">
-                  <span className="stone-card-title">DM Secrets</span>
-                </div>
-                <div className="stone-card-body">
-                  <p className="text-sm whitespace-pre-wrap">{data.secrets}</p>
-                </div>
-              </div>
-            )}
-
+            {imageBlock}
+            {descriptionBlock}
+            {secretsBlock}
             {isDM && (
               <NpcWorldState
                 npcId={npcId}
@@ -157,142 +186,97 @@ export default function NPCDetailPage() {
             )}
           </div>
 
-          {/* Right column — stat block */}
-          <div className="stone-card">
-            <div className="stone-card-header">
-              <span className="stone-card-title">Stat Block</span>
-              {(stats.size || stats.creatureType || stats.cr || stats.alignment) && (
-                <span className="text-xs text-muted-foreground ml-auto">
-                  {[stats.size, stats.creatureType, stats.alignment, stats.cr ? `CR ${stats.cr}` : null]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </span>
+          <NpcCard title="Stat Block" meta={statBlockMeta}>
+            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm mb-4 text-[var(--q-text)]">
+              {stats.armorClass != null && (
+                <p><span className="font-semibold">AC</span> {stats.armorClass}</p>
+              )}
+              {stats.hitPoints != null && (
+                <p>
+                  <span className="font-semibold">HP</span>{' '}
+                  {typeof stats.hitPoints === 'object' ? stats.hitPoints.max : stats.hitPoints}
+                </p>
+              )}
+              {stats.speed && (
+                <p><span className="font-semibold">Speed</span> {stats.speed}</p>
+              )}
+              {stats.savingThrows && (
+                <p><span className="font-semibold">Saving Throws</span> {stats.savingThrows}</p>
+              )}
+              {stats.skills && (
+                <p><span className="font-semibold">Skills</span> {stats.skills}</p>
+              )}
+              {stats.senses && (
+                <p><span className="font-semibold">Senses</span> {stats.senses}</p>
+              )}
+              {stats.languages && (
+                <p><span className="font-semibold">Languages</span> {stats.languages}</p>
+              )}
+              {stats.damageResistances && (
+                <p><span className="font-semibold">Damage Resistances</span> {stats.damageResistances}</p>
+              )}
+              {stats.damageImmunities && (
+                <p><span className="font-semibold">Damage Immunities</span> {stats.damageImmunities}</p>
+              )}
+              {stats.conditionImmunities && (
+                <p><span className="font-semibold">Condition Immunities</span> {stats.conditionImmunities}</p>
+              )}
+              {stats.damageVulnerabilities && (
+                <p><span className="font-semibold">Damage Vulnerabilities</span> {stats.damageVulnerabilities}</p>
               )}
             </div>
-            <div className="stone-card-body">
-              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm mb-4">
-                {stats.armorClass != null && (
-                  <p><span className="font-semibold">AC</span> {stats.armorClass}</p>
-                )}
-                {stats.hitPoints != null && (
-                  <p>
-                    <span className="font-semibold">HP</span>{' '}
-                    {typeof stats.hitPoints === 'object' ? stats.hitPoints.max : stats.hitPoints}
-                  </p>
-                )}
-                {stats.speed && (
-                  <p><span className="font-semibold">Speed</span> {stats.speed}</p>
-                )}
-                {stats.savingThrows && (
-                  <p><span className="font-semibold">Saving Throws</span> {stats.savingThrows}</p>
-                )}
-                {stats.skills && (
-                  <p><span className="font-semibold">Skills</span> {stats.skills}</p>
-                )}
-                {stats.senses && (
-                  <p><span className="font-semibold">Senses</span> {stats.senses}</p>
-                )}
-                {stats.languages && (
-                  <p><span className="font-semibold">Languages</span> {stats.languages}</p>
-                )}
-                {stats.damageResistances && (
-                  <p><span className="font-semibold">Damage Resistances</span> {stats.damageResistances}</p>
-                )}
-                {stats.damageImmunities && (
-                  <p><span className="font-semibold">Damage Immunities</span> {stats.damageImmunities}</p>
-                )}
-                {stats.conditionImmunities && (
-                  <p><span className="font-semibold">Condition Immunities</span> {stats.conditionImmunities}</p>
-                )}
-                {stats.damageVulnerabilities && (
-                  <p><span className="font-semibold">Damage Vulnerabilities</span> {stats.damageVulnerabilities}</p>
-                )}
-              </div>
-              {stats.abilityScores && (
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm border-t border-b border-border py-3 mb-4">
-                  {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => {
-                    const key = ability.toLowerCase();
-                    const score = stats.abilityScores?.[key] ?? stats[key] ?? '—';
-                    const mod = typeof score === 'number' ? Math.floor((score - 10) / 2) : 0;
-                    return (
-                      <div key={ability}>
-                        <div className="font-semibold text-xs text-muted-foreground">
-                          {ability}
-                        </div>
-                        <div className="text-lg font-bold">{score}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {typeof score === 'number' ? `(${mod >= 0 ? '+' : ''}${mod})` : ''}
-                        </div>
+            {stats.abilityScores && (
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 text-center text-sm border-t border-b border-[var(--q-border-subtle)] py-3 mb-4">
+                {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => {
+                  const key = ability.toLowerCase();
+                  const score = stats.abilityScores?.[key] ?? stats[key] ?? '—';
+                  const mod = typeof score === 'number' ? Math.floor((score - 10) / 2) : 0;
+                  return (
+                    <div key={ability}>
+                      <div className="font-semibold text-xs text-[var(--q-text-dim)]">
+                        {ability}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-              {stats.traits && (
-                <div className="mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Traits</p>
-                  <p className="text-sm whitespace-pre-wrap">{stats.traits}</p>
-                </div>
-              )}
-              {stats.actions && (
-                <div className="mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Actions</p>
-                  <p className="text-sm whitespace-pre-wrap">{stats.actions}</p>
-                </div>
-              )}
-              {stats.reactions && (
-                <div className="mb-3">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Reactions</p>
-                  <p className="text-sm whitespace-pre-wrap">{stats.reactions}</p>
-                </div>
-              )}
-              {stats.legendaryActions && (
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Legendary Actions</p>
-                  <p className="text-sm whitespace-pre-wrap">{stats.legendaryActions}</p>
-                </div>
-              )}
-            </div>
-          </div>
+                      <div className="font-[var(--q-font-mono)] text-lg font-bold tabular-nums text-[var(--q-text)]">{score}</div>
+                      <div className="text-xs text-[var(--q-text-faint)]">
+                        {typeof score === 'number' ? `(${mod >= 0 ? '+' : ''}${mod})` : ''}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {stats.traits && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--q-amber-dim)] mb-1">Traits</p>
+                <p className="text-sm whitespace-pre-wrap text-[var(--q-text)]">{stats.traits}</p>
+              </div>
+            )}
+            {stats.actions && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--q-amber-dim)] mb-1">Actions</p>
+                <p className="text-sm whitespace-pre-wrap text-[var(--q-text)]">{stats.actions}</p>
+              </div>
+            )}
+            {stats.reactions && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--q-amber-dim)] mb-1">Reactions</p>
+                <p className="text-sm whitespace-pre-wrap text-[var(--q-text)]">{stats.reactions}</p>
+              </div>
+            )}
+            {stats.legendaryActions && (
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--q-amber-dim)] mb-1">Legendary Actions</p>
+                <p className="text-sm whitespace-pre-wrap text-[var(--q-text)]">{stats.legendaryActions}</p>
+              </div>
+            )}
+          </NpcCard>
         </div>
       ) : (
         /* No stats — single column stacked layout */
         <div className="space-y-6">
-          <div className="space-y-2">
-            <p className="label-overline">IMAGE</p>
-            <div className="section-rule mb-4" />
-            <ImageGallery
-              entityType="npc"
-              entityId={data.id}
-              currentImageUrl={data.imageUrl}
-              currentJobId={data.imageJobId}
-              canGenerate={isDM}
-              entityName={data.name}
-            />
-          </div>
-
-          {data.description && (
-            <div className="stone-card">
-              <div className="stone-card-header">
-                <span className="stone-card-title">Description</span>
-              </div>
-              <div className="stone-card-body">
-                <p className="text-sm whitespace-pre-wrap">{data.description}</p>
-              </div>
-            </div>
-          )}
-
-          {isDM && data.secrets && (
-            <div className="stone-card border-amber-500/30">
-              <div className="stone-card-header">
-                <span className="stone-card-title">DM Secrets</span>
-              </div>
-              <div className="stone-card-body">
-                <p className="text-sm whitespace-pre-wrap">{data.secrets}</p>
-              </div>
-            </div>
-          )}
-
+          {imageBlock}
+          {descriptionBlock}
+          {secretsBlock}
           {isDM && (
             <NpcWorldState
               npcId={npcId}

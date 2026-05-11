@@ -11,6 +11,7 @@ import { NpcFilterRail, type NpcSourceFilter } from '@/components/npc/npc-filter
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/primitives';
 import { Users } from 'lucide-react';
 
 interface ApiNpc extends NpcCardData {
@@ -19,7 +20,7 @@ interface ApiNpc extends NpcCardData {
 
 export default function NPCsPage() {
   return (
-    <Suspense fallback={<div className="h-[calc(100vh-220px)] animate-pulse bg-white/5" />}>
+    <Suspense fallback={<div className="h-[calc(100vh-220px)] animate-pulse rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)]" />}>
       <NPCsPageInner />
     </Suspense>
   );
@@ -136,9 +137,9 @@ function NPCsPageInner() {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-[var(--q-text-dim)]">
-              <Users size={32} className="text-[var(--q-text-faint)]/40" />
-              <p className="text-sm">
+            <Card variant="detail" className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+              <Users size={32} className="text-[var(--q-text-faint)]" />
+              <p className="text-sm text-[var(--q-text-dim)]">
                 {npcList.length === 0 ? 'No NPCs yet' : 'No NPCs match those filters'}
               </p>
               {isDM && npcList.length === 0 && (
@@ -146,7 +147,7 @@ function NPCsPageInner() {
                   Add First NPC
                 </Button>
               )}
-            </div>
+            </Card>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
               {filtered.map((npc) => (
