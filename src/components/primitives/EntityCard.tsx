@@ -49,7 +49,7 @@ export function EntityCard({
       onClick={onClick}
       data-testid={testId}
       className={cn(
-        'group relative flex items-stretch text-left h-32',
+        'group relative flex w-full min-w-0 items-stretch text-left h-32',
         'rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)]',
         'transition-all duration-150',
         'hover:border-[var(--q-amber-dim)] hover:bg-[var(--q-surface-elevated)]',
