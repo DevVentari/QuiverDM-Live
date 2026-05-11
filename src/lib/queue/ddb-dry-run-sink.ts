@@ -243,6 +243,20 @@ export class DryRunWriteSink implements WriteSink {
     return { created: true, id };
   }
 
+  async upsertChapterImage(args: {
+    sourcebookId: string;
+    chapterId: string;
+    url: string;
+    alt?: string;
+    sectionHeading?: string;
+    isHero: boolean;
+    position: number;
+  }): Promise<UpsertResult> {
+    const id = `dry-ci-${randomUUID()}`;
+    void args;
+    return { created: true, id };
+  }
+
   async setChapterStatus(chapterId: string, status: 'running' | 'idle' | 'error'): Promise<void> {
     const cap = this.chapters.get(chapterId);
     if (cap) cap.status = status;
