@@ -12,35 +12,44 @@ function norm(s: string | null | undefined): string {
 }
 
 /**
- * Heuristic image matcher: given the chapter's images, returns a function that
- * matches an entity name to the best image URL. Strategy:
- *   1. Image whose alt text contains the entity name (substring, normalised).
- *   2. The hero image of the section whose heading equals the entity name.
- *   3. The hero image of a section containing the entity name in its heading.
- * Returns undefined when nothing reasonable matches — entities without images
- * are fine; the renderer falls back to initials.
+ * Heuristic image matcher: returns a function mapping an entity name to its
+ * best image URL among the chapter's <img> tags. Strategy, in order:
+ *   1. Alt-text contains the entity name (substring, normalised).
+ *   2. Section heading equals the entity name → first image in that section.
+ *   3. Section heading contains the entity name → first image in that section.
+ *   4. Section heading is contained IN the entity name (entity names can include
+ *      qualifiers like "Cragmaw Hideout — Goblin Trail").
+ * isHero is no longer required — DDB maps often appear after section text.
  */
 function makeImageMatcher(images: ChapterImage[]) {
-  const heroBySection = new Map<string, ChapterImage>();
+  const bySection = new Map<string, ChapterImage[]>();
   for (const img of images) {
     const key = norm(img.sectionHeading);
-    if (img.isHero && !heroBySection.has(key)) heroBySection.set(key, img);
+    const arr = bySection.get(key) ?? [];
+    arr.push(img);
+    bySection.set(key, arr);
   }
   return (entityName: string | null | undefined): string | undefined => {
     const target = norm(entityName);
     if (!target) return undefined;
 
-    // (1) Alt-text match — most accurate when DDB sets alt.
-    const byAlt = images.find((img) => norm(img.alt).includes(target));
+    // (1) Alt-text match — strongest signal when DDB sets it.
+    const byAlt = images.find((img) => {
+      const a = norm(img.alt);
+      return a.length > 0 && a.includes(target);
+    });
     if (byAlt) return byAlt.url;
 
-    // (2) Exact section heading match.
-    const exact = heroBySection.get(target);
-    if (exact) return exact.url;
+    // (2) Exact section match.
+    const exactImgs = bySection.get(target);
+    if (exactImgs && exactImgs.length > 0) return exactImgs[0].url;
 
-    // (3) Section heading contains the entity name.
-    for (const [heading, img] of heroBySection.entries()) {
-      if (heading.includes(target)) return img.url;
+    // (3) + (4) Bidirectional substring match on section headings.
+    for (const [heading, imgs] of bySection.entries()) {
+      if (heading.length === 0 || imgs.length === 0) continue;
+      if (heading.includes(target) || target.includes(heading)) {
+        return imgs[0].url;
+      }
     }
     return undefined;
   };
