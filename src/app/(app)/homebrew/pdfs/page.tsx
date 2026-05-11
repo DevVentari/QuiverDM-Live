@@ -183,14 +183,14 @@ function PDFListCard({
             </CircularProgress>
           ) : (
             <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full border bg-muted/30">
-              <FileText className="h-7 w-7 text-muted-foreground" />
+              <FileText className="h-7 w-7 text-[var(--q-text-dim)]" />
             </div>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-base font-semibold">{pdf.filename}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-[var(--q-text-dim)]">
             <span>{formatFileSize(pdf.fileSize)}</span>
             <span>•</span>
             <span>{formatUploadDate(pdf.createdAt)}</span>
@@ -206,7 +206,7 @@ function PDFListCard({
       {isActive && pdf.processingStatus !== 'completed' ? (
         <div className="stone-card-body space-y-2 px-5 pb-4 pt-0">
           <Progress value={progress} className="h-2" indicatorClassName="bg-blue-500" />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[var(--q-text-dim)]">
             {currentStage}
             {estimated ? ` • ${estimated}` : ''}
           </p>
@@ -224,7 +224,7 @@ function PDFListCard({
             className="h-1.5"
             indicatorClassName="bg-amber-500"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[var(--q-text-dim)]">
             Extracting content… chunk {pdf.aiExtractionProgress?.chunk ?? 0} of {pdf.aiExtractionProgress?.totalChunks ?? '?'}
             {pdf.aiExtractionProgress?.itemsFound ? ` • ${pdf.aiExtractionProgress.itemsFound} items found` : ''}
           </p>
@@ -233,7 +233,7 @@ function PDFListCard({
 
       {pdf.aiExtractionStatus === 'done' && pdf.aiExtractionProgress?.itemsFound ? (
         <div className="stone-card-body px-5 pb-3 pt-0">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[var(--q-text-dim)]">
             {pdf.aiExtractionProgress.itemsFound} items extracted
             {Object.keys(pdf.aiExtractionProgress.byType ?? {}).length > 0
               ? ' · ' + Object.entries(pdf.aiExtractionProgress.byType)
@@ -462,7 +462,7 @@ export default function PDFsPage() {
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold">PDF Processing</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-sm text-[var(--q-text-dim)]">
               Track every stage in real time from upload to extraction.
             </p>
           </div>
@@ -483,7 +483,7 @@ export default function PDFsPage() {
               )}
               {uploading ? 'Uploading...' : 'Upload PDF'}
             </Button>
-            <p className="text-xs text-muted-foreground">PDF only · Max 50 MB</p>
+            <p className="text-xs text-[var(--q-text-dim)]">PDF only · Max 50 MB</p>
           </div>
         </div>
       </div>
@@ -547,9 +547,9 @@ export default function PDFsPage() {
       ) : (
         <div className="stone-card border-dashed">
           <div className="stone-card-body flex flex-col items-center py-14 text-center">
-            <FileText className="mb-4 h-12 w-12 text-muted-foreground" />
+            <FileText className="mb-4 h-12 w-12 text-[var(--q-text-dim)]" />
             <h2 className="text-lg font-semibold">No PDFs found</h2>
-            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+            <p className="mt-1 max-w-md text-sm text-[var(--q-text-dim)]">
               Upload your first PDF to start live processing with stage tracking, activity logs, and extraction status.
             </p>
             <Button className="mt-5 gap-2" onClick={() => fileInputRef.current?.click()}>
@@ -560,7 +560,7 @@ export default function PDFsPage() {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-[var(--q-text-dim)]">
         Need campaign-level browsing? Open <Link href="/homebrew" className="underline">Homebrew Library</Link> to manage extracted content.
       </p>
     </div>

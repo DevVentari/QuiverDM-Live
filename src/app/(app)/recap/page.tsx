@@ -85,15 +85,15 @@ export default function RecapDashboardPage() {
         </Button>
       }
     >
-      <div className="stone-card glass-panel">
+      <div className="stone-card">
         <div className="stone-card-body space-y-4">
           <div className="flex flex-wrap gap-3">
             {campaignsLoading ? (
               [1, 2, 3].map((i) => (
-                <div key={i} className="h-20 w-44 animate-pulse rounded-sm bg-[hsl(240_10%_11%)]" />
+                <div key={i} className="h-20 w-44 animate-pulse rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)]" />
               ))
             ) : !campaigns?.length ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-[var(--q-text-dim)]">
                 No campaigns found. Create a campaign to get started.
               </p>
             ) : (
@@ -113,7 +113,7 @@ export default function RecapDashboardPage() {
                     <p className={cn('truncate text-xs font-semibold', isSelected ? 'text-amber-200' : 'text-foreground/85')}>
                       {campaign.campaignName}
                     </p>
-                    <p className="mt-1 text-[10px] text-muted-foreground">
+                    <p className="mt-1 text-[10px] text-[var(--q-text-dim)]">
                       {campaign.totalRecaps} recap{campaign.totalRecaps !== 1 ? 's' : ''}
                     </p>
                     {campaign.pendingReview > 0 && (
@@ -153,8 +153,8 @@ export default function RecapDashboardPage() {
         </div>
       ) : allRecaps.length === 0 ? (
         <div className="rounded-sm border border-border/40 bg-[linear-gradient(180deg,hsl(240_10%_11%)_0%,hsl(240_8%_9%)_100%)] px-6 py-12 text-center">
-          <ScrollText className="mx-auto mb-3 h-7 w-7 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
+          <ScrollText className="mx-auto mb-3 h-7 w-7 text-[var(--q-text-dim)]/40" />
+          <p className="text-sm text-[var(--q-text-dim)]">
             {statusFilter !== 'ALL'
               ? 'No recaps match this filter.'
               : 'No recaps yet. Generate one from any session page.'}
@@ -177,7 +177,7 @@ export default function RecapDashboardPage() {
                 <p className="truncate text-sm font-medium text-foreground/85">
                   {recap.sessionTitle}
                 </p>
-                <p className="mt-0.5 text-[10px] text-muted-foreground">
+                <p className="mt-0.5 text-[10px] text-[var(--q-text-dim)]">
                   {recap.campaignName}
                   {recap.sessionDate ? ` · ${format(new Date(recap.sessionDate), 'd MMM yyyy')}` : ''}
                 </p>

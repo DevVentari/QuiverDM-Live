@@ -110,7 +110,7 @@ export default function PDFDetailPage() {
               <AlertCircle className="h-12 w-12 text-destructive" />
               <div>
                 <h2 className="text-lg font-semibold text-destructive">PDF Not Found</h2>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-sm text-[var(--q-text-dim)]">
                   This PDF may have been deleted or you do not have permission to view it.
                 </p>
               </div>
@@ -187,7 +187,7 @@ export default function PDFDetailPage() {
             {items.length > 0 ? (
               <div className="flex flex-wrap items-center gap-2 text-sm">
                 <span className="font-medium">{items.length} items extracted</span>
-                <span className="text-muted-foreground">•</span>
+                <span className="text-[var(--q-text-dim)]">•</span>
                 {Object.entries(typeCounts).map(([type, count]) => {
                   const style = getTypeStyle(type);
                   return (
@@ -223,7 +223,7 @@ export default function PDFDetailPage() {
                         className="h-2"
                         indicatorClassName="bg-amber-500"
                       />
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-[var(--q-text-dim)]">
                         Chunk {extractionProgress.chunk} of {extractionProgress.totalChunks}
                         {extractionProgress.itemsFound > 0 ? ` • ${extractionProgress.itemsFound} items found so far` : ''}
                       </p>
@@ -234,8 +234,8 @@ export default function PDFDetailPage() {
             ) : extractionPdf?.aiExtractionStatus === 'done' ? (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Sparkles className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-                  <p className="mb-2 text-muted-foreground">
+                  <Sparkles className="mx-auto mb-4 h-10 w-10 text-[var(--q-text-dim)]" />
+                  <p className="mb-2 text-[var(--q-text-dim)]">
                     No extractable D&D content was found in this PDF.
                   </p>
                   <Button
@@ -257,8 +257,8 @@ export default function PDFDetailPage() {
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Sparkles className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-                  <p className="mb-4 text-muted-foreground">
+                  <Sparkles className="mx-auto mb-4 h-10 w-10 text-[var(--q-text-dim)]" />
+                  <p className="mb-4 text-[var(--q-text-dim)]">
                     No D&D content has been extracted from this PDF yet.
                   </p>
                   <Button
@@ -287,7 +287,7 @@ export default function PDFDetailPage() {
             ) : (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No markdown content available.</p>
+                  <p className="text-[var(--q-text-dim)]">No markdown content available.</p>
                 </CardContent>
               </Card>
             )}

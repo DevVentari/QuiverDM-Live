@@ -71,8 +71,8 @@ export default function CharacterEditPage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center space-y-4">
-          <p className="text-destructive font-medium">Failed to load data</p>
-          <p className="text-sm text-muted-foreground">{character.error?.message || 'An unexpected error occurred'}</p>
+          <p className="text-[var(--q-text-danger)] font-medium">Failed to load data</p>
+          <p className="text-sm text-[var(--q-text-dim)]">{character.error?.message || 'An unexpected error occurred'}</p>
           <Button variant="outline" onClick={() => character.refetch()}>Try Again</Button>
         </div>
       </div>
@@ -80,7 +80,7 @@ export default function CharacterEditPage() {
   }
 
   if (!character.data) {
-    return <p className="text-destructive">Character not found</p>;
+    return <p className="text-[var(--q-text-danger)]">Character not found</p>;
   }
 
   function handleSave(e: React.FormEvent) {
@@ -110,7 +110,7 @@ export default function CharacterEditPage() {
         </Button>
         <div>
           <p className="label-overline mb-0.5">Character</p>
-          <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide">Edit Character</h1>
+          <h1 className="text-xl sm:text-2xl font-[var(--q-font-display)] font-bold tracking-wide">Edit Character</h1>
         </div>
       </div>
 
