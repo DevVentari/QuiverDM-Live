@@ -91,6 +91,8 @@ nul
 /test-documents/
 .archive/test-documents/
 docs/D&D/
+docs/DriveThruRPG/
+docs/Recordings/
 tests/fixtures/
 
 # Build outputs
