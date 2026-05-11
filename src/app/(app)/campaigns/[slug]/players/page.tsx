@@ -27,6 +27,7 @@ import { Users, Plus, Link2, RefreshCw, X, Loader2, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CharacterAddSheet } from '@/components/character/CharacterAddSheet';
 import { usePinnedItems } from '@/store/pinned-items-store';
+import { Card, Surface } from '@/components/primitives';
 
 const STATUS_OPTIONS = ['ACTIVE', 'RETIRED', 'DECEASED', 'REMOVED'] as const;
 type CharacterStatusValue = (typeof STATUS_OPTIONS)[number] | 'PENDING';
@@ -56,7 +57,7 @@ function CharacterCard({
   const player = cc.character?.user;
 
   return (
-    <div className="stone-card overflow-hidden min-h-[120px]" style={cardStyle}>
+    <Surface variant="utility" className="overflow-hidden min-h-[120px]" style={cardStyle}>
       <div className="flex h-full min-h-[120px]">
         <div className="relative w-[28%] shrink-0 self-stretch">
           {char.portraitUrl ? (
@@ -68,33 +69,33 @@ function CharacterCard({
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-b from-[hsl(240,10%,8%)] via-[hsl(240,8%,6%)] to-[hsl(35,15%,5%)] flex items-center justify-center">
-              <Users className="h-7 w-7 text-muted-foreground/30" />
+            <div className="absolute inset-0 bg-[var(--q-surface-utility)] flex items-center justify-center">
+              <Users className="h-7 w-7 text-[var(--q-text-faint)]" />
             </div>
           )}
-          <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[hsl(240,10%,11%)] to-transparent pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--q-surface-utility)] to-transparent pointer-events-none" />
         </div>
 
         <div className="flex-1 min-w-0 px-4 py-3 flex flex-col gap-1">
           <div className="flex items-start justify-between gap-2">
-            <span className="stone-card-title leading-snug">{char.name}</span>
+            <span className="font-[var(--q-font-display)] text-sm tracking-wide text-[var(--q-text)] leading-snug">{char.name}</span>
             <button
               onClick={onView}
-              className="shrink-0 text-muted-foreground/50 hover:text-amber-400 transition-colors mt-0.5"
+              className="shrink-0 text-[var(--q-text-faint)] hover:text-[var(--q-amber)] transition-colors mt-0.5"
               title="View character sheet"
             >
               <Eye className="h-3.5 w-3.5" />
             </button>
           </div>
 
-          <p className="text-xs text-muted-foreground leading-snug">
+          <p className="text-xs text-[var(--q-text-dim)] leading-snug">
             {[char.race, char.class, char.level && `Level ${char.level}`]
               .filter(Boolean)
               .join(' · ') || 'No details'}
           </p>
 
           {player && (
-            <p className="text-xs text-muted-foreground/60">
+            <p className="text-xs text-[var(--q-text-faint)]">
               {player.displayName || player.name}
             </p>
           )}
@@ -136,7 +137,7 @@ function CharacterCard({
           )}
         </div>
       </div>
-    </div>
+    </Surface>
   );
 }
 
@@ -250,7 +251,7 @@ function PlayersPageInner() {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-[120px] rounded-lg" />
+          <Skeleton key={i} className="h-[120px] rounded-sm" />
         ))}
       </div>
     );
@@ -259,7 +260,7 @@ function PlayersPageInner() {
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
       {isDdbImporting && (
-        <div className="flex items-center gap-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+        <div className="flex items-center gap-3 rounded-sm border border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] px-4 py-3 text-sm text-[var(--q-amber)]">
           <Loader2 className="h-4 w-4 animate-spin shrink-0" />
           <span>Syncing characters from D&amp;D Beyond — this may take a moment</span>
         </div>
@@ -272,7 +273,7 @@ function PlayersPageInner() {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                className="border-[var(--q-amber-border)] text-[var(--q-amber)] hover:bg-[var(--q-amber-trace)]"
                 onClick={() => syncDdb.mutate({ campaignUrl: ddbUrl.data.url!, campaignId })}
                 disabled={syncDdb.isPending || isDdbImporting}
               >
@@ -286,7 +287,7 @@ function PlayersPageInner() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 p-0 text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
                 onClick={() => setDdbUrl.mutate({ campaignId, url: null })}
                 title="Unlink D&D Beyond"
               >
@@ -297,10 +298,10 @@ function PlayersPageInner() {
             <Button
               size="sm"
               variant="outline"
-              className="border-border text-muted-foreground hover:text-foreground"
+              className="border-[var(--q-border-subtle)] text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
               onClick={() => setLinkDialogOpen(true)}
             >
-              <Link2 className="mr-2 h-3.5 w-3.5 text-amber-500/70" />
+              <Link2 className="mr-2 h-3.5 w-3.5 text-[var(--q-amber)]" />
               Link D&amp;D Beyond
             </Button>
           )}
@@ -312,29 +313,27 @@ function PlayersPageInner() {
       )}
 
       {chars.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border">
-          <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-            <div className="w-14 h-14 rounded-full bg-card border border-border flex items-center justify-center mb-4">
-              <Users className="h-6 w-6 text-muted-foreground/40" />
-            </div>
-            <h3 className="font-semibold text-base mb-1">No players in this campaign yet</h3>
-            <p className="text-sm text-muted-foreground mb-5 max-w-xs">
-              Players appear here once they join this campaign with an invite code.
-            </p>
-            {isDM && (
-              <Button size="sm" onClick={() => router.push('?add=true')}>
-                Add Character
-              </Button>
-            )}
+        <Card variant="detail" className="flex flex-col items-center justify-center py-16 text-center border-dashed">
+          <div className="w-14 h-14 rounded-full bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] flex items-center justify-center mb-4">
+            <Users className="h-6 w-6 text-[var(--q-text-faint)]" />
           </div>
-        </div>
+          <h3 className="font-[var(--q-font-display)] text-base text-[var(--q-text)] mb-1">No players in this campaign yet</h3>
+          <p className="text-sm text-[var(--q-text-dim)] mb-5 max-w-xs">
+            Players appear here once they join this campaign with an invite code.
+          </p>
+          {isDM && (
+            <Button size="sm" onClick={() => router.push('?add=true')}>
+              Add Character
+            </Button>
+          )}
+        </Card>
       ) : (
         <>
           {pending.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-semibold">Pending Approval</h2>
-                <span className="rounded-full bg-amber-500/10 text-amber-400 text-xs px-2 py-0.5 font-semibold">
+                <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Pending Approval</h2>
+                <span className="rounded-full bg-[var(--q-amber-trace)] border border-[var(--q-amber-border)] text-[var(--q-amber)] text-xs px-2 py-0.5 font-semibold">
                   {pending.length}
                 </span>
               </div>
@@ -358,7 +357,7 @@ function PlayersPageInner() {
                       iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
                       order: 0,
                     })}
-                    cardStyle={{ borderStyle: 'dashed', borderColor: 'hsl(35 80% 55% / 0.35)' }}
+                    cardStyle={{ borderStyle: 'dashed', borderColor: 'var(--q-amber-border)' }}
                   />
                 ))}
               </div>
@@ -366,9 +365,9 @@ function PlayersPageInner() {
           )}
 
           <div className="space-y-3">
-            <h2 className="text-lg sm:text-xl font-semibold">Party</h2>
+            <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Party</h2>
             {active.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No active characters yet.</p>
+              <p className="text-sm text-[var(--q-text-dim)]">No active characters yet.</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {active.map((cc) => (
@@ -398,7 +397,7 @@ function PlayersPageInner() {
 
           {retired.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-semibold text-muted-foreground">Retired</h2>
+              <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text-dim)]">Retired</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-[0.65]">
                 {retired.map((cc) => (
                   <CharacterCard
@@ -427,7 +426,7 @@ function PlayersPageInner() {
 
           {deceased.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-semibold text-muted-foreground">Deceased</h2>
+              <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text-dim)]">Deceased</h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-[0.65]">
                 {deceased.map((cc) => (
                   <CharacterCard
@@ -449,8 +448,8 @@ function PlayersPageInner() {
                       order: 0,
                     })}
                     cardStyle={{
-                      background: 'linear-gradient(180deg, hsl(0 20% 8%) 0%, hsl(0 15% 5%) 100%)',
-                      borderColor: 'hsl(0 25% 14%)',
+                      background: 'linear-gradient(180deg, oklch(0.18 0.04 25 / 0.4), oklch(0.14 0.03 25 / 0.6))',
+                      borderColor: 'oklch(0.35 0.06 25 / 0.4)',
                     }}
                   />
                 ))}

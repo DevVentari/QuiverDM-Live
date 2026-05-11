@@ -7,8 +7,7 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { trpc } from '@/lib/trpc';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Surface, Pill } from '@/components/primitives';
 
 const ENTITY_ICONS: Record<string, ElementType> = {
   transcript: FileText,
@@ -67,8 +66,8 @@ export default function SearchPage() {
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
-      <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
-        <SearchIcon className="h-5 w-5" />
+      <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)] flex items-center gap-2">
+        <SearchIcon className="h-5 w-5 text-[var(--q-amber)]" />
         Search
       </h2>
 
@@ -90,28 +89,34 @@ export default function SearchPage() {
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {ENTITY_TYPES.map((type) => (
-          <Badge
-            key={type}
-            variant={selectedTypes.includes(type) ? 'default' : 'outline'}
-            className="cursor-pointer"
-            onClick={() => toggleType(type)}
-          >
-            {ENTITY_LABELS[type]}
-          </Badge>
-        ))}
+        {ENTITY_TYPES.map((type) => {
+          const isActive = selectedTypes.includes(type);
+          return (
+            <button
+              key={type}
+              onClick={() => toggleType(type)}
+              className={`inline-flex items-center px-2.5 py-1 rounded-sm text-[11px] tracking-wide border transition-colors ${
+                isActive
+                  ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+                  : 'border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] text-[var(--q-text-dim)] hover:text-[var(--q-text)] hover:border-[var(--q-amber-border)]'
+              }`}
+            >
+              {ENTITY_LABELS[type]}
+            </button>
+          );
+        })}
       </div>
 
       {isFetching && (
         <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-20 animate-pulse bg-muted rounded-lg" />
+            <div key={index} className="h-20 animate-pulse bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] rounded-sm" />
           ))}
         </div>
       )}
 
       {!isFetching && submittedQuery.length >= 2 && searchResults.length === 0 && (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-[var(--q-text-dim)] text-sm">
           No results found for &quot;{submittedQuery}&quot;.
         </p>
       )}
@@ -128,29 +133,25 @@ export default function SearchPage() {
 
           return (
             <Link key={`${result.entityType}-${result.entityId}-${index}`} href={href}>
-              <Card className="hover:border-primary transition-colors cursor-pointer">
-                <CardContent className="pt-4">
-                  <div className="flex items-start gap-3">
-                    <Icon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline" className="text-xs">
-                          {ENTITY_LABELS[result.entityType]}
-                        </Badge>
-                        {result.metadata?.title && (
-                          <span className="text-xs text-muted-foreground truncate">
-                            {result.metadata.title}
-                          </span>
-                        )}
-                        <span className="text-xs text-muted-foreground ml-auto">
-                          {Math.round(result.score * 100)}% match
+              <Surface variant="utility" className="hover:border-[var(--q-amber-border)] transition-colors cursor-pointer p-4">
+                <div className="flex items-start gap-3">
+                  <Icon className="h-4 w-4 mt-0.5 text-[var(--q-text-faint)] shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Pill variant="neutral">{ENTITY_LABELS[result.entityType]}</Pill>
+                      {result.metadata?.title && (
+                        <span className="text-xs text-[var(--q-text-dim)] truncate">
+                          {result.metadata.title}
                         </span>
-                      </div>
-                      <p className="text-sm line-clamp-3">{result.chunkText}</p>
+                      )}
+                      <span className="text-xs text-[var(--q-text-faint)] ml-auto tabular-nums">
+                        {Math.round(result.score * 100)}% match
+                      </span>
                     </div>
+                    <p className="text-sm line-clamp-3 text-[var(--q-text)]">{result.chunkText}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </Surface>
             </Link>
           );
         })}
