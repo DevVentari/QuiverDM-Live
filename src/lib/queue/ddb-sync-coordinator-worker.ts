@@ -104,6 +104,26 @@ async function processCoordinatorJob(data: DdbSyncCoordinatorJobData) {
     if (pending === 0) break;
   }
 
+  // Post-sync: link named NPCs/threats in this sourcebook to their matching
+  // creature stat blocks (HomebrewContent type='creature') by name. Allows
+  // the NPC inspector to render AC/HP/actions inline when a stat block
+  // exists from the dedicated /monsters/<id>-<slug> scrape.
+  const linked = await prisma.$executeRawUnsafe(`
+    UPDATE "SourcebookEntity" se
+    SET "statBlockId" = hc.id
+    FROM "HomebrewContent" hc, "DdbSourcebookChapter" ch
+    WHERE se."sourcebookId" = ch."sourcebookId"
+      AND hc."ddbChapterId" = ch.id
+      AND hc.type = 'creature'
+      AND LOWER(hc.name) = LOWER(se.name)
+      AND se.type IN ('NPC', 'THREAT')
+      AND se."sourcebookId" = $1
+      AND se."statBlockId" IS NULL
+  `, sourcebookId);
+  if (linked > 0) {
+    console.log(`[ddb-coordinator] linked ${linked} entities to stat blocks (sourcebook ${sourcebookId})`);
+  }
+
   await ddbSyncReviewQueue.add(`review-${sourcebookId}`, {
     sourcebookId,
     userId,

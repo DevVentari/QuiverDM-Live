@@ -212,6 +212,12 @@ model SourcebookEntity {
   sourceType   String?
   confidence   Float                  @default(1.0)
 
+  /// Optional FK to a HomebrewContent row holding the canonical stat block
+  /// (used when an NPC has a matching DDB monster page). Set at sync time
+  /// by name match; the NPC inspector reads this to render stats inline.
+  statBlockId  String?
+  statBlock    HomebrewContent?       @relation("EntityStatBlock", fields: [statBlockId], references: [id], onDelete: SetNull)
+
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
 
@@ -219,6 +225,7 @@ model SourcebookEntity {
   @@index([sourcebookId])
   @@index([sourcebookId, type])
   @@index([chapterId])
+  @@index([statBlockId])
 }
 
 model DdbSourcebookChapter {
@@ -1098,6 +1105,9 @@ model HomebrewContent {
   characterItems    CharacterItem[]
   characterSpells   CharacterSpell[]
   characterFeats    CharacterFeat[]
+  // Reverse relations for entities that point to this row as their stat block.
+  sourcebookEntities SourcebookEntity[]       @relation("EntityStatBlock")
+  worldEntities      WorldEntity[]            @relation("WorldEntityStatBlock")
   sharedWithPlayers Boolean                   @default(false)
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
@@ -1501,6 +1511,12 @@ model WorldEntity {
   confidence         Float             @default(1.0)
   worldEntryId       String?
   worldEntry         WorldEntry?       @relation("WorldEntryBrain")
+
+  /// Optional FK to a HomebrewContent stat block (set when this entity has a
+  /// matching DDB monster page — typically named NPCs and threats).
+  statBlockId        String?
+  statBlock          HomebrewContent?  @relation("WorldEntityStatBlock", fields: [statBlockId], references: [id], onDelete: SetNull)
+
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
@@ -1520,6 +1536,7 @@ model WorldEntity {
   @@index([campaignId, type])
   @@index([campaignId, status])
   @@index([sourceType, sourceId])
+  @@index([statBlockId])
 }
 
 model WorldRelationship {

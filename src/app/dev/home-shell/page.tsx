@@ -67,14 +67,72 @@ const reminderItems = [
   { title: 'Random Encounter Table', note: 'Create for Shattered Spire' },
 ] as const
 
-const activeRailChrome = {
-  background:
-    'linear-gradient(90deg, hsl(37 90% 67% / 0.96) 0%, hsl(38 86% 60% / 0.5) 18%, hsl(38 82% 58% / 0.16) 42%, transparent 100%)',
-}
+const pillVariants = [
+  {
+    id: 'a',
+    label: 'A · Border-led',
+    outer:
+      'linear-gradient(90deg, hsl(37 94% 69% / 0.98) 0%, hsl(37 90% 63% / 0.78) 14%, hsl(37 88% 58% / 0.34) 36%, hsl(37 84% 56% / 0.12) 54%, transparent 70%)',
+    inner:
+      'linear-gradient(90deg, hsl(220 18% 8% / 0.82) 0%, hsl(220 18% 8% / 0.72) 22%, hsl(220 18% 8% / 0.52) 40%, hsl(220 18% 8% / 0.32) 60%, transparent 78%)',
+  },
+  {
+    id: 'b',
+    label: 'B · Almost Clear',
+    outer:
+      'linear-gradient(90deg, hsl(37 96% 70% / 1) 0%, hsl(37 92% 64% / 0.82) 12%, hsl(37 88% 58% / 0.28) 32%, hsl(37 84% 56% / 0.08) 48%, transparent 66%)',
+    inner:
+      'linear-gradient(90deg, hsl(220 18% 8% / 0.74) 0%, hsl(220 18% 8% / 0.6) 18%, hsl(220 18% 8% / 0.38) 42%, transparent 74%)',
+  },
+  {
+    id: 'c',
+    label: 'C · Warmer Amber',
+    outer:
+      'linear-gradient(90deg, hsl(33 96% 68% / 1) 0%, hsl(34 90% 60% / 0.8) 14%, hsl(35 84% 54% / 0.32) 34%, hsl(35 84% 54% / 0.1) 50%, transparent 70%)',
+    inner:
+      'linear-gradient(90deg, hsl(220 18% 8% / 0.05) 0%, hsl(220 18% 8% / 0.03) 22%, hsl(220 18% 8% / 0.015) 40%, transparent 60%)',
+  },
+  {
+    id: 'd',
+    label: 'D · Longer Border Fade',
+    outer:
+      'linear-gradient(90deg, hsl(37 94% 69% / 0.98) 0%, hsl(37 90% 63% / 0.72) 18%, hsl(37 88% 58% / 0.3) 42%, hsl(37 84% 56% / 0.11) 60%, transparent 82%)',
+    inner:
+      'linear-gradient(90deg, hsl(220 18% 8% / 0.78) 0%, hsl(220 18% 8% / 0.64) 26%, hsl(220 18% 8% / 0.4) 56%, transparent 82%)',
+  },
+  {
+    id: 'e',
+    label: 'E · Hot Left Edge',
+    outer:
+      'linear-gradient(90deg, hsl(38 98% 72% / 1) 0%, hsl(37 94% 66% / 0.9) 10%, hsl(37 88% 58% / 0.3) 28%, hsl(37 84% 56% / 0.08) 44%, transparent 68%)',
+    inner:
+      'linear-gradient(90deg, hsl(220 18% 8% / 0.78) 0%, hsl(220 18% 8% / 0.62) 18%, hsl(220 18% 8% / 0.36) 44%, transparent 72%)',
+  },
+] as const
 
-const activeRailFill = {
-  background:
-    'linear-gradient(90deg, hsl(37 78% 54% / 0.035) 0%, hsl(37 78% 54% / 0.012) 36%, transparent 100%), linear-gradient(180deg, hsl(220 18% 10% / 0.56) 0%, hsl(220 18% 8% / 0.42) 100%)',
+function PreviewRailPill({
+  label = 'Home',
+  outer,
+  inner,
+}: {
+  label?: string
+  outer: string
+  inner: string
+}) {
+  return (
+    <div
+      className="rounded-xl p-px"
+      style={{ background: outer, boxShadow: '0 10px 20px -22px hsl(38 92% 58% / 0.28)' }}
+    >
+      <div
+        className="flex min-h-[52px] items-center gap-4 rounded-[11px] px-5 text-sm text-[hsl(37_94%_69%)]"
+        style={{ background: inner }}
+      >
+        <Home size={20} strokeWidth={1.75} className="shrink-0" />
+        <span className="font-[var(--q-font-body)] text-[15px]">{label}</span>
+      </div>
+    </div>
+  )
 }
 
 function ShellButton({
@@ -147,6 +205,20 @@ export default function HomeShellPreviewPage() {
           </Link>
         </div>
 
+        <div className="mb-5 max-w-[360px] rounded-2xl border border-[var(--q-border-subtle)] bg-black/10 p-4">
+          <div className="mb-3 text-[11px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
+            Active Nav Pill Study
+          </div>
+          <div className="space-y-3">
+            {pillVariants.map((variant) => (
+              <div key={variant.id} className="space-y-1.5">
+                <div className="text-[11px] text-[var(--q-text-faint)]">{variant.label}</div>
+                <PreviewRailPill outer={variant.outer} inner={variant.inner} />
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div
           className="overflow-hidden rounded-[22px] border border-[var(--q-border-subtle)] bg-black/10 shadow-2xl"
           style={{
@@ -176,18 +248,7 @@ export default function HomeShellPreviewPage() {
                   {railItems.map(({ label, icon: Icon, active }) => (
                     <div key={label}>
                       {active ? (
-                        <div
-                          className="rounded-xl p-px shadow-[0_14px_30px_-24px_hsl(41_90%_58%_/_0.7)]"
-                          style={activeRailChrome}
-                        >
-                          <div
-                            className="flex min-h-[52px] items-center gap-4 rounded-[11px] px-5 text-sm text-[hsl(37_94%_69%)]"
-                            style={activeRailFill}
-                          >
-                            <Icon size={20} strokeWidth={1.75} className="shrink-0" />
-                            <span className="font-[var(--q-font-body)] text-[15px]">{label}</span>
-                          </div>
-                        </div>
+                        <PreviewRailPill outer={pillVariants[3].outer} inner={pillVariants[3].inner} />
                       ) : (
                         <div className="flex min-h-[52px] items-center gap-4 rounded-xl px-5 text-sm text-[var(--q-text-faint)]">
                           <Icon size={20} strokeWidth={1.75} className="shrink-0" />
