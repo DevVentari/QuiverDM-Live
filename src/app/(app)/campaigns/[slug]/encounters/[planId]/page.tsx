@@ -13,16 +13,16 @@ export default function EncounterBuilderPage() {
   return (
     <div className="space-y-4">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-        <Link href={`/campaigns/${slug}`} className="hover:text-foreground">
+      <nav className="flex items-center gap-1 text-sm text-[var(--q-text-dim)]">
+        <Link href={`/campaigns/${slug}`} className="hover:text-[var(--q-text)]">
           Campaign
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
-        <Link href={`/campaigns/${slug}/encounters`} className="hover:text-foreground">
+        <Link href={`/campaigns/${slug}/encounters`} className="hover:text-[var(--q-text)]">
           Encounters
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-foreground">Builder</span>
+        <span className="text-[var(--q-text)]">Builder</span>
       </nav>
 
       <EncounterBuilder

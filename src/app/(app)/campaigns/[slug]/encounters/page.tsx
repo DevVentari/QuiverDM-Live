@@ -8,7 +8,6 @@ import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import {
@@ -19,22 +18,29 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, Surface, Pill } from '@/components/primitives';
+import type { ComponentProps } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { BentoCanvas } from '@/components/layout/bento-canvas';
 
-const DIFF = {
-  easy:   { label: 'Easy',   bar: 'bg-emerald-500',  badge: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10', icon: Shield,  pct: 25 },
-  medium: { label: 'Medium', bar: 'bg-amber-500',    badge: 'text-amber-400 border-amber-500/30 bg-amber-500/10',       icon: Zap,    pct: 50 },
-  hard:   { label: 'Hard',   bar: 'bg-orange-500',   badge: 'text-orange-400 border-orange-500/30 bg-orange-500/10',    icon: Flame,  pct: 75 },
-  deadly: { label: 'Deadly', bar: 'bg-red-600',      badge: 'text-red-400 border-red-500/30 bg-red-500/10',             icon: Skull,  pct: 100 },
+type PillVariant = NonNullable<ComponentProps<typeof Pill>['variant']>;
+
+const DIFF: Record<
+  'easy' | 'medium' | 'hard' | 'deadly',
+  { label: string; pill: PillVariant; bar: string; icon: typeof Shield }
+> = {
+  easy:   { label: 'Easy',   pill: 'neutral', bar: 'bg-[var(--q-border-subtle)]',  icon: Shield },
+  medium: { label: 'Medium', pill: 'info',    bar: 'bg-[var(--q-amber-dim)]',      icon: Zap },
+  hard:   { label: 'Hard',   pill: 'warning', bar: 'bg-[var(--q-amber)]',          icon: Flame },
+  deadly: { label: 'Deadly', pill: 'danger',  bar: 'bg-[oklch(0.6_0.2_25_/_0.6)]', icon: Skull },
 } as const;
 
 type DiffKey = keyof typeof DIFF;
 
 export default function EncountersPage() {
   return (
-    <Suspense fallback={<div className="h-64 animate-pulse bg-white/5 rounded-lg" />}>
+    <Suspense fallback={<div className="h-64 animate-pulse rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)]" />}>
       <EncountersPageInner />
     </Suspense>
   );
@@ -121,31 +127,31 @@ function EncountersPageInner() {
       {/* Cards */}
       {plansQuery.isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-44 rounded-lg" />)}
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-44 rounded-sm" />)}
         </div>
       ) : plans.length === 0 ? (
         <motion.div
-          className="relative rounded-lg border border-dashed border-border overflow-hidden"
           initial={prefersReducedMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-red-950/15 via-transparent to-transparent pointer-events-none" />
-          <div className="relative flex flex-col items-center justify-center py-20 text-center px-4">
-            <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-5">
-              <Swords className="h-7 w-7 text-muted-foreground/40" />
+          <Card variant="detail" className="flex flex-col items-center justify-center gap-5 py-20 text-center">
+            <div className="w-16 h-16 rounded-full bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] flex items-center justify-center">
+              <Swords className="h-7 w-7 text-[var(--q-text-faint)]" />
             </div>
-            <h3 className="font-display text-xl font-bold mb-2">No encounters planned</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-xs">
-              Build encounters with AI assistance — monsters, tactics, scene descriptions, and XP calculations.
-            </p>
+            <div className="space-y-2 max-w-xs">
+              <h3 className="font-[var(--q-font-display)] text-xl text-[var(--q-text)]">No encounters planned</h3>
+              <p className="text-sm text-[var(--q-text-dim)]">
+                Build encounters with AI assistance — monsters, tactics, scene descriptions, and XP calculations.
+              </p>
+            </div>
             {isDM && (
               <Button onClick={() => setNewPlanOpen(true)} size="sm" className="gap-1.5">
                 <Sparkles className="h-3.5 w-3.5" />
                 Plan First Encounter
               </Button>
             )}
-          </div>
+          </Card>
         </motion.div>
       ) : (
         <motion.div
@@ -163,62 +169,63 @@ function EncountersPageInner() {
             return (
               <motion.div key={plan.id} variants={cardVariants} className="relative group">
                 <Link href={`/campaigns/${slug}/encounters/${plan.id}`} className="block h-full">
-                  <div className="relative h-full rounded-lg border border-border bg-card hover:border-foreground/25 transition-all duration-200 overflow-hidden flex flex-col">
-
+                  <Surface
+                    variant="utility"
+                    className="h-full overflow-hidden flex flex-col hover:border-[var(--q-amber-border)] transition-colors"
+                  >
                     {/* Portrait header OR difficulty bar */}
                     {plan.portraitUrl ? (
                       <div className="h-24 bg-cover bg-center relative" style={{ backgroundImage: `url(${plan.portraitUrl})` }}>
-                        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--q-surface-utility)] via-[var(--q-surface-utility)]/30 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-3">
-                          <p className="font-semibold text-sm leading-tight">{plan.name}</p>
+                          <p className="font-semibold text-sm leading-tight text-[var(--q-text)]">{plan.name}</p>
                         </div>
                       </div>
                     ) : (
-                      /* Thin difficulty colour bar + hover glow */
                       <div className="h-1 w-full overflow-hidden">
-                        <div className={`h-full w-full ${d.bar} opacity-60`} />
+                        <div className={`h-full w-full ${d.bar}`} />
                       </div>
                     )}
 
                     <div className="flex flex-col flex-1 p-4 gap-2.5">
                       {!plan.portraitUrl && (
-                        <h3 className="font-semibold text-sm leading-tight">{plan.name}</h3>
+                        <h3 className="font-semibold text-sm leading-tight text-[var(--q-text)]">{plan.name}</h3>
                       )}
 
-                      {/* Difficulty badge */}
-                      <Badge variant="outline" className={`w-fit text-xs flex items-center gap-1 ${d.badge}`}>
+                      {/* Difficulty pill */}
+                      <Pill variant={d.pill} className="w-fit gap-1">
                         <DiffIcon className="h-3 w-3" />
                         {d.label}
-                      </Badge>
+                      </Pill>
 
                       {/* Scene excerpt */}
                       {plan.sceneDescription && (
-                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-[var(--q-text-dim)] line-clamp-2 leading-relaxed">
                           {plan.sceneDescription}
                         </p>
                       )}
 
                       {/* Stats */}
-                      <div className="mt-auto pt-2.5 border-t border-border/40 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      <div className="mt-auto pt-2.5 border-t border-[var(--q-border-subtle)] flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[var(--q-text-dim)]">
                         {plan.partySize && plan.partyLevel && (
                           <span>{plan.partySize}p · Lv.{plan.partyLevel}</span>
                         )}
                         <span>{creatureCount} {creatureCount === 1 ? 'creature' : 'creatures'}</span>
                         {plan.adjustedXp > 0 && (
-                          <span className="text-amber-500/80 font-medium">{plan.adjustedXp.toLocaleString()} XP</span>
+                          <span className="text-[var(--q-amber)] font-medium">{plan.adjustedXp.toLocaleString()} XP</span>
                         )}
                       </div>
-                      <time className="text-xs text-muted-foreground/50">
+                      <time className="text-xs text-[var(--q-text-faint)]">
                         {format(new Date(plan.createdAt), 'MMM d, yyyy')}
                       </time>
                     </div>
-                  </div>
+                  </Surface>
                 </Link>
 
                 {/* Hover delete */}
                 {isDM && (
                   <button
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded bg-background/90 backdrop-blur-sm border border-border/50 hover:bg-destructive hover:text-destructive-foreground text-muted-foreground z-10"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-sm bg-[var(--q-surface-feature)]/90 backdrop-blur-sm border border-[var(--q-border-subtle)] hover:bg-destructive hover:text-destructive-foreground text-[var(--q-text-dim)] z-10"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -240,8 +247,8 @@ function EncountersPageInner() {
       <Dialog open={newPlanOpen} onOpenChange={setNewPlanOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display tracking-wide flex items-center gap-2">
-              <Swords className="h-4 w-4 text-red-400" />
+            <DialogTitle className="font-[var(--q-font-display)] tracking-wide flex items-center gap-2">
+              <Swords className="h-4 w-4 text-[var(--q-amber)]" />
               New Encounter Plan
             </DialogTitle>
           </DialogHeader>

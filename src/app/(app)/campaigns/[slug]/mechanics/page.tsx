@@ -6,6 +6,7 @@ import { trpc } from '@/lib/trpc'
 import { useCampaign } from '@/components/campaign/campaign-context'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card } from '@/components/primitives'
 import { Sparkles } from 'lucide-react'
 import { MechanicCard } from '@/components/mechanics/mechanic-card'
 import { MechanicFilterRail, type MechanicKindFilter } from '@/components/mechanics/mechanic-filter-rail'
@@ -14,7 +15,7 @@ import { MechanicCreateSheet } from '@/components/mechanics/mechanic-create-shee
 
 export default function MechanicsPage() {
   return (
-    <Suspense fallback={<div className="h-[calc(100vh-220px)] animate-pulse bg-white/5" />}>
+    <Suspense fallback={<div className="h-[calc(100vh-220px)] animate-pulse rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)]" />}>
       <MechanicsPageInner />
     </Suspense>
   )
@@ -111,12 +112,12 @@ function MechanicsPageInner() {
               {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-32 w-full" />)}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-[var(--q-text-dim)]">
-              <Sparkles size={32} className="text-[var(--q-text-faint)]/40" />
-              <p className="text-sm">
+            <Card variant="detail" className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+              <Sparkles size={32} className="text-[var(--q-text-faint)]" />
+              <p className="text-sm text-[var(--q-text-dim)]">
                 {rows.length === 0 ? 'No mechanics yet' : 'No mechanics match those filters'}
               </p>
-            </div>
+            </Card>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
               {filtered.map((m) => (
