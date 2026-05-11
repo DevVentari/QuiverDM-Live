@@ -80,6 +80,7 @@ export async function findByCampaignId(
       name: true,
       description: true,
       properties: true,
+      imageUrl: true,
       createdAt: true,
       updatedAt: true,
       ddbChapterId: true,
@@ -96,7 +97,7 @@ export async function findByCampaignId(
       description: e.description,
       faction: typeof props.faction === 'string' ? (props.faction as string) : null,
       role: typeof props.role === 'string' ? (props.role as string) : null,
-      imageUrl: null,
+      imageUrl: e.imageUrl,
       stats: null,
       tags: [] as string[],
       // entity-source NPCs have no editable secrets

@@ -75,7 +75,7 @@ export const ddbSyncRepository = {
       select: {
         type: true, name: true, description: true, properties: true,
         aliases: true, status: true, chapterId: true, sourceType: true,
-        confidence: true,
+        confidence: true, imageUrl: true,
       },
     });
 
@@ -98,6 +98,7 @@ export const ddbSyncRepository = {
           ddbChapterId: e.chapterId,
           sourceType: e.sourceType,
           confidence: e.confidence,
+          imageUrl: e.imageUrl,
         })),
         skipDuplicates: true,
       });
@@ -140,7 +141,7 @@ export const ddbSyncRepository = {
       select: {
         type: true, name: true, description: true, properties: true,
         aliases: true, status: true, ddbChapterId: true, sourceType: true,
-        confidence: true,
+        confidence: true, imageUrl: true,
       },
     });
     const toCreate = donorEntities.filter(
@@ -161,6 +162,7 @@ export const ddbSyncRepository = {
         ddbChapterId: e.ddbChapterId,
         sourceType: e.sourceType,
         confidence: e.confidence,
+        imageUrl: e.imageUrl,
       })),
       skipDuplicates: true,
     });

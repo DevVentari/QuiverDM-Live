@@ -58,6 +58,7 @@ export interface WriteSink {
     itemType?: string;
     rarity?: string;
     description: string;
+    imageUrl?: string;
   }): Promise<UpsertResult>;
 
   upsertSpell(args: {
@@ -96,6 +97,7 @@ export interface WriteSink {
     location?: string;
     locationType?: string;
     notable?: string;
+    imageUrl?: string;
   }): Promise<UpsertResult>;
 
   /**
@@ -109,6 +111,7 @@ export interface WriteSink {
     name: string;
     description: string;
     properties?: Record<string, unknown>;
+    imageUrl?: string;
   }): Promise<UpsertResult>;
 
   setChapterStatus(chapterId: string, status: 'running' | 'idle' | 'error'): Promise<void>;
@@ -239,7 +242,7 @@ export class PrismaWriteSink implements WriteSink {
     return { created: true, id: created.id };
   }
 
-  async upsertItem({ userId, chapterId, sourceSlug, name, itemType, rarity, description }: {
+  async upsertItem({ userId, chapterId, sourceSlug, name, itemType, rarity, description, imageUrl }: {
     userId: string;
     chapterId: string;
     sourceSlug: string;
@@ -247,11 +250,20 @@ export class PrismaWriteSink implements WriteSink {
     itemType?: string;
     rarity?: string;
     description: string;
+    imageUrl?: string;
   }): Promise<UpsertResult> {
     const existing = await prisma.homebrewContent.findFirst({
       where: { userId, type: 'item', name, ddbChapterId: chapterId },
     });
-    if (existing) return { created: false, id: existing.id, existingName: existing.name };
+    if (existing) {
+      if (imageUrl && !existing.imageUrl) {
+        await prisma.homebrewContent.update({
+          where: { id: existing.id },
+          data: { imageUrl, images: [imageUrl] },
+        });
+      }
+      return { created: false, id: existing.id, existingName: existing.name };
+    }
 
     const created = await prisma.homebrewContent.create({
       data: {
@@ -263,7 +275,8 @@ export class PrismaWriteSink implements WriteSink {
         data: { itemType, rarity, description } as any,
         searchText: `${name} ${description}`,
         tags: [sourceSlug, 'item', ...(rarity ? [rarity] : [])],
-        images: [],
+        images: imageUrl ? [imageUrl] : [],
+        imageUrl: imageUrl ?? null,
       },
     });
     return { created: true, id: created.id };
@@ -343,11 +356,20 @@ export class PrismaWriteSink implements WriteSink {
     location?: string;
     locationType?: string;
     notable?: string;
+    imageUrl?: string;
   }): Promise<UpsertResult> {
     const existing = await prisma.worldEntity.findFirst({
       where: { campaignId: args.campaignId, name: args.name },
     });
-    if (existing) return { created: false, id: existing.id, existingName: existing.name };
+    if (existing) {
+      if (args.imageUrl && !existing.imageUrl) {
+        await prisma.worldEntity.update({
+          where: { id: existing.id },
+          data: { imageUrl: args.imageUrl },
+        });
+      }
+      return { created: false, id: existing.id, existingName: existing.name };
+    }
 
     const properties: Record<string, unknown> = {};
     if (args.role) properties.role = args.role;
@@ -365,6 +387,7 @@ export class PrismaWriteSink implements WriteSink {
         status: 'active' as any,
         confidence: 0.7,
         properties,
+        imageUrl: args.imageUrl ?? null,
       } as any,
     });
     return { created: true, id: created.id };
@@ -377,10 +400,11 @@ export class PrismaWriteSink implements WriteSink {
     name: string;
     description: string;
     properties?: Record<string, unknown>;
+    imageUrl?: string;
   }): Promise<UpsertResult> {
     const existing = await prisma.sourcebookEntity.findUnique({
       where: { sourcebookId_type_name: { sourcebookId: args.sourcebookId, type: args.type as any, name: args.name } },
-      select: { id: true, name: true },
+      select: { id: true, name: true, imageUrl: true },
     });
     if (existing) {
       await prisma.sourcebookEntity.update({
@@ -389,6 +413,7 @@ export class PrismaWriteSink implements WriteSink {
           description: args.description,
           properties: (args.properties ?? {}) as any,
           chapterId: args.chapterId,
+          ...(args.imageUrl && !existing.imageUrl ? { imageUrl: args.imageUrl } : {}),
         },
       });
       return { created: false, id: existing.id, existingName: existing.name };
@@ -403,6 +428,7 @@ export class PrismaWriteSink implements WriteSink {
         properties: (args.properties ?? {}) as any,
         sourceType: 'dndbeyond_import',
         confidence: 0.7,
+        imageUrl: args.imageUrl ?? null,
       } as any,
     });
     return { created: true, id: created.id };

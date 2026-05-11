@@ -206,6 +206,7 @@ model SourcebookEntity {
   name         String
   aliases      String[]
   description  String?                @db.Text
+  imageUrl     String?
   properties   Json                   @default("{}")
   status       WorldEntityStatus      @default(active)
   sourceType   String?
@@ -1489,6 +1490,7 @@ model WorldEntity {
   name               String
   aliases            String[]
   description        String?           @db.Text
+  imageUrl           String?
   properties         Json              @default("{}")
   status             WorldEntityStatus @default(active)
   sourceType         String?

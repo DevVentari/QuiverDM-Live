@@ -1,11 +1,50 @@
 import { fetchChapterContentWithCookie, fetchMonsterData, delay } from '@/lib/ddb-sourcebook';
-import type { FetchMonsterResult } from '@/lib/ddb-sourcebook';
+import type { FetchMonsterResult, ChapterImage } from '@/lib/ddb-sourcebook';
 import { decrypt } from '@/lib/encryption';
 import { extractChapterEntities } from '@/lib/ai/extract-chapter-entities';
 import { prisma } from '@/lib/prisma';
 import type { WriteSink, PendingChange, AiAttemptRecord } from './ddb-write-sink';
 import type { DdbChapterExtractJobData } from './ddb-sync-queue';
 import { chunkChapterProse } from './ddb-chapter-chunker';
+
+function norm(s: string | null | undefined): string {
+  return (s ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/**
+ * Heuristic image matcher: given the chapter's images, returns a function that
+ * matches an entity name to the best image URL. Strategy:
+ *   1. Image whose alt text contains the entity name (substring, normalised).
+ *   2. The hero image of the section whose heading equals the entity name.
+ *   3. The hero image of a section containing the entity name in its heading.
+ * Returns undefined when nothing reasonable matches — entities without images
+ * are fine; the renderer falls back to initials.
+ */
+function makeImageMatcher(images: ChapterImage[]) {
+  const heroBySection = new Map<string, ChapterImage>();
+  for (const img of images) {
+    const key = norm(img.sectionHeading);
+    if (img.isHero && !heroBySection.has(key)) heroBySection.set(key, img);
+  }
+  return (entityName: string | null | undefined): string | undefined => {
+    const target = norm(entityName);
+    if (!target) return undefined;
+
+    // (1) Alt-text match — most accurate when DDB sets alt.
+    const byAlt = images.find((img) => norm(img.alt).includes(target));
+    if (byAlt) return byAlt.url;
+
+    // (2) Exact section heading match.
+    const exact = heroBySection.get(target);
+    if (exact) return exact.url;
+
+    // (3) Section heading contains the entity name.
+    for (const [heading, img] of heroBySection.entries()) {
+      if (heading.includes(target)) return img.url;
+    }
+    return undefined;
+  };
+}
 
 export interface ProcessChapterOptions {
   sink: WriteSink;
@@ -126,6 +165,9 @@ export async function processChapterJob(
 
     const merged = aiResult.merged;
 
+    // Build a fast lookup: entity name → image URL via section + alt heuristics.
+    const findImage = makeImageMatcher(content.images);
+
     // Sourcebook-scoped master copy — independent of any user campaign.
     // Written once per chapter so deletes of user campaigns don't lose
     // the canonical extracted content.
@@ -142,6 +184,7 @@ export async function processChapterJob(
             ...(npc.role ? { role: npc.role } : {}),
             ...(npc.location ? { location: npc.location } : {}),
           },
+          imageUrl: findImage(npc.name),
         });
       }
       for (const loc of merged.locations) {
@@ -156,6 +199,7 @@ export async function processChapterJob(
             ...(loc.type ? { locationType: loc.type } : {}),
             ...(loc.notable ? { notable: loc.notable } : {}),
           },
+          imageUrl: findImage(loc.name),
         });
       }
     }
@@ -171,6 +215,7 @@ export async function processChapterJob(
           description: npc.description,
           role: npc.role,
           location: npc.location,
+          imageUrl: findImage(npc.name),
         });
       }
       for (const loc of merged.locations) {
@@ -183,6 +228,7 @@ export async function processChapterJob(
           description: loc.description,
           locationType: loc.type,
           notable: loc.notable,
+          imageUrl: findImage(loc.name),
         });
       }
       for (const enc of merged.encounters) {
@@ -208,6 +254,7 @@ export async function processChapterJob(
         itemType: item.type,
         rarity: item.rarity,
         description: item.description,
+        imageUrl: findImage(item.name),
       });
     }
     for (const spell of merged.spells ?? []) {

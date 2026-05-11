@@ -26,7 +26,7 @@ interface ChapterCapture {
   encounters: Array<{ id: string; campaignId: string; areaName: string; description?: string; monsters?: string[]; difficulty?: string }>;
   npcs: Array<{ id: string; campaignId: string; name: string; role?: string; description: string; location?: string }>;
   locations: Array<{ id: string; campaignId: string; name: string; locationType?: string; description: string; notable?: string }>;
-  items: Array<{ id: string; userId: string; name: string; itemType?: string; rarity?: string; description: string }>;
+  items: Array<{ id: string; userId: string; name: string; itemType?: string; rarity?: string; description: string; imageUrl?: string }>;
   spells: Array<{ id: string; userId: string; name: string; level: number; school: string; castingTime: string; range: string; components: string; duration: string; description: string; higherLevels?: string; classes?: string[] }>;
   feats: Array<{ id: string; userId: string; name: string; prerequisite?: string; description: string; benefits: string[] }>;
   ai: AiAttemptRecord[];
@@ -156,7 +156,7 @@ export class DryRunWriteSink implements WriteSink {
     return { created: true, id };
   }
 
-  async upsertItem({ userId, chapterId, name, itemType, rarity, description }: {
+  async upsertItem({ userId, chapterId, name, itemType, rarity, description, imageUrl }: {
     userId: string;
     chapterId: string;
     sourceSlug: string;
@@ -164,10 +164,11 @@ export class DryRunWriteSink implements WriteSink {
     itemType?: string;
     rarity?: string;
     description: string;
+    imageUrl?: string;
   }): Promise<UpsertResult> {
     const cap = this.getCapture(chapterId);
     const id = `dry-item-${randomUUID()}`;
-    cap.items.push({ id, userId, name, itemType, rarity, description });
+    cap.items.push({ id, userId, name, itemType, rarity, description, imageUrl });
     return { created: true, id };
   }
 
