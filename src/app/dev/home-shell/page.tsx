@@ -192,8 +192,7 @@ export default function HomeShellPreviewPage() {
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 opacity-90"
         style={{
-          backgroundImage: 'var(--q-body-atmosphere-base), var(--q-body-texture-overlay)',
-          backgroundBlendMode: 'normal, normal',
+          backgroundImage: 'var(--q-body-atmosphere-base)',
         }}
       />
 
