@@ -131,9 +131,9 @@ export default function CampaignSettingsPage() {
   }
 
   function getStatusClass(status: string) {
-    if (status === 'delivered') return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30';
-    if (status === 'error') return 'bg-destructive/10 text-destructive border-destructive/30';
-    return 'bg-amber-500/10 text-amber-500 border-amber-500/30';
+    if (status === 'delivered') return 'bg-[var(--q-amber-trace)] text-[var(--q-amber)] border-[var(--q-amber-border)]';
+    if (status === 'error') return 'bg-destructive/10 text-[var(--q-text-danger)] border-destructive/30';
+    return 'bg-[var(--q-surface-utility)] text-[var(--q-text-dim)] border-[var(--q-border-subtle)]';
   }
 
   function getStatusLabel(status: string) {
@@ -179,8 +179,8 @@ export default function CampaignSettingsPage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="text-center space-y-4">
-          <p className="text-destructive font-medium">Failed to load data</p>
-          <p className="text-sm text-muted-foreground">{campaign.error?.message || 'An unexpected error occurred'}</p>
+          <p className="text-[var(--q-text-danger)] font-medium">Failed to load data</p>
+          <p className="text-sm text-[var(--q-text-dim)]">{campaign.error?.message || 'An unexpected error occurred'}</p>
           <Button variant="outline" onClick={() => campaign.refetch()}>Try Again</Button>
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function CampaignSettingsPage() {
           <div className="stone-card">
             <div className="stone-card-header">
               <span className="stone-card-title">Campaign Settings</span>
-              <p className="text-sm text-muted-foreground">Update your campaign details</p>
+              <p className="text-sm text-[var(--q-text-dim)]">Update your campaign details</p>
             </div>
             <div className="stone-card-body">
               <form onSubmit={handleSave} className="space-y-4">
@@ -228,7 +228,7 @@ export default function CampaignSettingsPage() {
                       {bannerUrl && (
                         <button
                           type="button"
-                          className="text-xs text-muted-foreground hover:text-destructive"
+                          className="text-xs text-[var(--q-text-dim)] hover:text-[var(--q-text-danger)]"
                           onClick={() => {
                             setBannerUrl(null);
                             update.mutate({ id: campaignId, bannerUrl: '' });
@@ -238,7 +238,7 @@ export default function CampaignSettingsPage() {
                         </button>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">Max 5MB — JPEG, PNG, WebP, or GIF</p>
+                    <p className="text-xs text-[var(--q-text-dim)]">Max 5MB — JPEG, PNG, WebP, or GIF</p>
                   </div>
                 )}
                 <div className="grid gap-4 md:grid-cols-2">
@@ -250,7 +250,7 @@ export default function CampaignSettingsPage() {
                       onChange={(e) => { setName(e.target.value); setNameError(null); }}
                       aria-invalid={!!nameError}
                     />
-                    {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+                    {nameError && <p className="text-sm text-[var(--q-text-danger)]">{nameError}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label>Status</Label>
@@ -289,7 +289,7 @@ export default function CampaignSettingsPage() {
             <div className="stone-card">
               <div className="stone-card-header">
                 <span className="stone-card-title">AI & Integrations</span>
-                <p className="text-sm text-muted-foreground">Configure AI context and external integrations</p>
+                <p className="text-sm text-[var(--q-text-dim)]">Configure AI context and external integrations</p>
               </div>
               <div className="stone-card-body space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -301,7 +301,7 @@ export default function CampaignSettingsPage() {
                       onChange={(e) => setSourcebook(e.target.value)}
                       placeholder="e.g. Curse of Strahd, Homebrew"
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-[var(--q-text-dim)]">
                       The rulebook or adventure module. Included in AI summaries for lore context.
                     </p>
                   </div>
@@ -313,7 +313,7 @@ export default function CampaignSettingsPage() {
                       onChange={(e) => setDiscordWebhookUrl(e.target.value)}
                       placeholder="https://discord.com/api/webhooks/..."
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-[var(--q-text-dim)]">
                       Session summaries auto-post here. Create a webhook in your Discord server settings.
                     </p>
                   </div>
@@ -339,17 +339,17 @@ export default function CampaignSettingsPage() {
                 <Separator className="my-6" />
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-sm font-semibold" style={{ color: 'hsl(35 20% 78%)' }}>
+                    <h3 className="text-sm font-semibold text-[var(--q-text)]">
                       Discord Integration
                     </h3>
-                    <p className="text-xs mt-1" style={{ color: 'hsl(35 5% 42%)' }}>
+                    <p className="text-xs mt-1 text-[var(--q-text-dim)]">
                       Link a Discord channel to share session recaps via the QuiverDM bot.
                       Add the bot to your server first, then paste the channel and server IDs below.
                     </p>
                   </div>
 
                   {(discordGuildId || discordChannelId) && (
-                    <p className="text-xs" style={{ color: 'hsl(35 50% 52%)' }}>
+                    <p className="text-xs text-[var(--q-amber)]">
                       Currently linked — channel ID: {discordChannelId || '—'}
                     </p>
                   )}
@@ -403,13 +403,13 @@ export default function CampaignSettingsPage() {
               <div className="stone-card-body space-y-3">
                 <Separator />
                 <div>
-                  <h3 className="text-sm font-medium text-white/80">Campaign Context</h3>
-                  <p className="text-xs text-white/40 mt-0.5">
+                  <h3 className="text-sm font-medium text-[var(--q-text)]">Campaign Context</h3>
+                  <p className="text-xs text-[var(--q-text-dim)] mt-0.5">
                     Seed AI context from synced sourcebooks to improve session summaries.
                   </p>
                 </div>
                 {sourcebooks.data && sourcebooks.data.length === 0 && (
-                  <p className="text-xs text-white/30">No sourcebooks synced to this campaign.</p>
+                  <p className="text-xs text-[var(--q-text-faint)]">No sourcebooks synced to this campaign.</p>
                 )}
                 <div className="flex flex-col gap-2">
                   {sourcebooks.data?.map((book) => (
@@ -440,7 +440,7 @@ export default function CampaignSettingsPage() {
                   <KeyRound className="h-4 w-4" />
                   Foundry Integration
                 </span>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-[var(--q-text-dim)]">
                   Use this API key in the QuiverDM Foundry module settings.
                 </p>
               </div>
@@ -459,14 +459,14 @@ export default function CampaignSettingsPage() {
                       </Button>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-[var(--q-text-dim)]">
                     Raw keys are only shown once after generation.
                   </p>
                 </div>
                 <div className="flex items-center justify-between gap-2 rounded-md border border-border p-3">
                   <div>
                     <p className="text-sm font-medium">Module ID</p>
-                    <p className="text-xs text-muted-foreground font-mono">quiverdm</p>
+                    <p className="text-xs text-[var(--q-text-dim)] font-mono">quiverdm</p>
                   </div>
                   <Button size="sm" variant="outline" onClick={() => copyValue('quiverdm', 'Module ID')}>
                     <Copy className="mr-1 h-3.5 w-3.5" />
@@ -494,7 +494,7 @@ export default function CampaignSettingsPage() {
                     <AccordionTrigger className="py-2">Recent Exports</AccordionTrigger>
                     <AccordionContent className="pt-1">
                       {importJobsQuery.isLoading ? (
-                        <p className="text-sm text-muted-foreground">Loading recent exports...</p>
+                        <p className="text-sm text-[var(--q-text-dim)]">Loading recent exports...</p>
                       ) : recentImportJobs.length > 0 ? (
                         <div className="space-y-2">
                           {recentImportJobs.map((job) => (
@@ -507,18 +507,18 @@ export default function CampaignSettingsPage() {
                                 <Badge variant="outline" className={getStatusClass(job.status)}>
                                   {getStatusLabel(job.status)}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-xs text-[var(--q-text-dim)]">
                                   {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
                                 </span>
                               </div>
                               {job.status === 'pending' && (
-                                <p className="mt-1 text-xs text-amber-500">waiting for Foundry module...</p>
+                                <p className="mt-1 text-xs text-[var(--q-amber)]">waiting for Foundry module...</p>
                               )}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-muted-foreground">No exports yet.</p>
+                        <p className="text-sm text-[var(--q-text-dim)]">No exports yet.</p>
                       )}
                     </AccordionContent>
                   </AccordionItem>
@@ -533,8 +533,8 @@ export default function CampaignSettingsPage() {
           {isOwner && (
             <div className="stone-card border-destructive/50">
               <div className="stone-card-header">
-                <span className="stone-card-title text-destructive">Danger Zone</span>
-                <p className="text-sm text-muted-foreground">
+                <span className="stone-card-title text-[var(--q-text-danger)]">Danger Zone</span>
+                <p className="text-sm text-[var(--q-text-dim)]">
                   Permanently delete this campaign and all its data.
                 </p>
               </div>

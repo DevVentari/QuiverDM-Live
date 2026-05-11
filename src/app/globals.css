@@ -11,8 +11,21 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--q-font-body);
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "liga" 1, "kern" 1;
     background-color: hsl(215 38% 4%);
     background-image: var(--q-body-atmosphere-base);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--q-font-display);
+    letter-spacing: 0.025em;
+    font-weight: 600;
+  }
+
+  code, kbd, pre, samp {
+    font-family: var(--q-font-mono);
   }
 
   html.light body {
@@ -164,17 +177,66 @@
 
   /* Overline label style — matches prep wizard "SESSION PREP" label */
   .label-overline {
+    font-family: var(--q-font-display);
     font-size: 0.625rem;
-    font-weight: 500;
-    letter-spacing: 0.25em;
+    font-weight: 600;
+    letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: hsl(35 80% 55% / 0.4);
+    color: hsl(35 80% 55% / 0.58);
     line-height: 1;
   }
 
   /* Subtle grain texture on glass surfaces */
   .glass-grain {
     @apply q-panel-grain;
+  }
+
+  /* Compat: stone-card maps the legacy stone-card vocabulary onto V2 tokens.
+     Pages using these classes render correctly without per-call migration.
+     Prefer Surface/Card primitives for new code. */
+  .stone-card {
+    position: relative;
+    isolation: isolate;
+    border-radius: 2px;
+    border: 1px solid var(--q-border-feature);
+    background: var(--q-stone-feature-bg, var(--q-surface-feature));
+    box-shadow: var(--q-stone-feature-shadow);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+  }
+  .stone-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.055;
+    mix-blend-mode: overlay;
+    z-index: 0;
+  }
+  .stone-card > * {
+    position: relative;
+    z-index: 1;
+  }
+  .stone-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 1px solid var(--q-border-subtle);
+  }
+  .stone-card-title {
+    font-family: var(--q-font-display);
+    font-size: 0.875rem;
+    letter-spacing: 0.025em;
+    color: var(--q-text);
+    font-weight: 600;
+  }
+  .stone-card-body {
+    padding: 1rem 1.25rem;
+    color: var(--q-text);
   }
 }
 
