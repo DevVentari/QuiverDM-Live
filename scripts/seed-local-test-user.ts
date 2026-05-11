@@ -4,7 +4,7 @@
  *
  * Seeds:
  *   - test@local.dev (primary test user, owner of all campaigns)
- *   - All QA persona emails from .env.local (nora, vic, dana, etc.)
+ *   - All QA persona emails from .env (nora, vic, dana, etc.)
  */
 import 'dotenv/config';
 import bcrypt from 'bcryptjs';

@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { prisma } from '../prisma';
 import { WorldEntityType, WorldStateChangeType, WorldStateChangeSource } from '@prisma/client';

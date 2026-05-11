@@ -12,7 +12,7 @@
 // stable identifier (slug, sessionNumber, name+type, etc.).
 
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { PrismaClient, WorldEntityType } from '@prisma/client';
 

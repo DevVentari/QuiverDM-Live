@@ -5,9 +5,9 @@
  * Run this as a separate process: `tsx src/lib/queue-worker.ts`
  */
 
-// Load environment variables from .env.local BEFORE anything else
+// Load environment variables from .env BEFORE anything else
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 console.log('[Worker] VERSION CHECK: queue-worker.ts loaded at', new Date().toISOString());
 

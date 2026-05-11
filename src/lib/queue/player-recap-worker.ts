@@ -3,7 +3,7 @@
  * Processes player-recap queue jobs: generates player-safe recaps via Ollama.
  */
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { Worker } from 'bullmq';
 import { prisma } from '../prisma';

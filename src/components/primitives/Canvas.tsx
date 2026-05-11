@@ -32,7 +32,7 @@ export function Canvas({
   return (
     <div
       className={cn(
-        'relative bg-[var(--q-bg)] min-h-screen overflow-hidden',
+        'relative min-h-screen overflow-hidden',
         vignette && 'q-signature-vignette',
         className,
       )}

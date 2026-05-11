@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ChevronRight, Pin, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
@@ -37,10 +37,15 @@ export function CompendiumSection({
   const [filter, setFilter] = useState('');
   const [sheetItem, setSheetItem] = useState<{ id: string; name: string } | null>(null);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { isPinned } = usePinnedItems();
 
-  const isActive = pathname.startsWith(listHref);
+  const [listPath, listQuery] = listHref.split('?');
+  const expectedType = listQuery ? new URLSearchParams(listQuery).get('type') : null;
+  const currentType = searchParams?.get('type') ?? null;
+  const isActive =
+    pathname.startsWith(listPath) && (expectedType ? currentType === expectedType : !currentType);
 
   const npcs = trpc.npcs.getAll.useQuery(
     { campaignId, search: filter || undefined },
@@ -165,7 +170,13 @@ export function CompendiumSection({
                   'group flex items-center justify-between px-4 py-1.5 cursor-pointer hover:bg-white/[0.04] transition-colors',
                   active && 'border-l-2 border-amber-500/70 bg-amber-500/[0.06] pl-[14px]'
                 )}
-                onClick={() => router.push(`${listHref}/${item.id}`)}
+                onClick={() =>
+                  router.push(
+                    HOMEBREW_TYPES.includes(entityType)
+                      ? `/homebrew/${item.id}`
+                      : `${listPath}/${item.id}`,
+                  )
+                }
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <EntityBadge entityType={entityType} name={item.name} />
@@ -198,7 +209,7 @@ export function CompendiumSection({
           {/* Footer */}
           <div className="flex items-center justify-between px-4 py-1.5">
             <Link
-              href={createHref ?? `${listHref}/new`}
+              href={createHref ?? `${listPath}/new`}
               className="text-[10px] text-amber-500/70 hover:text-amber-400 transition-colors"
             >
               + New {label.slice(0, -1)}

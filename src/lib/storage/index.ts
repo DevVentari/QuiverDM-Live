@@ -4,7 +4,7 @@
  * Provides a unified interface for file storage that can switch between
  * local filesystem (for development) and Cloudflare R2 (for production).
  *
- * Set STORAGE_MODE=local in .env.local for local development.
+ * Set STORAGE_MODE=local in .env for local development.
  * Set STORAGE_MODE=r2 for production with Cloudflare R2.
  */
 

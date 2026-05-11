@@ -3,7 +3,7 @@
  * Processes derailment-detection queue jobs: compares quick notes against transcript via Ollama.
  */
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { Worker } from 'bullmq';
 import { Prisma } from '@prisma/client';

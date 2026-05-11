@@ -1,6 +1,6 @@
 """
 One-time setup: creates the #qa-agent-runs forum channel in the QuiverDM Discord server.
-Run once, then add QA_DISCORD_FORUM_CHANNEL_ID to .env.local.
+Run once, then add QA_DISCORD_FORUM_CHANNEL_ID to .env.
 
 Usage:
   uv run python setup_discord.py
@@ -11,7 +11,7 @@ from pathlib import Path
 import httpx
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent.parent.parent / '.env.local')
+load_dotenv(Path(__file__).parent.parent.parent / '.env')
 
 DISCORD_API = 'https://discord.com/api/v10'
 TOKEN = os.environ['QUIVERDM_DISCORD_BOT_TOKEN']

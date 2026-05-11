@@ -2,7 +2,7 @@
 // Imports world content from Google Drive MD files into WorldEntry records.
 
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import fs from 'fs';
 import path from 'path';

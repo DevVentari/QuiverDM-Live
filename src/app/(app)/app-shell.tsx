@@ -19,10 +19,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <OnboardingCheck>
         <NavigationProgress />
 
-        <div className="flex h-screen overflow-hidden bg-[var(--q-bg)]">
+        <div className="relative flex h-screen overflow-hidden">
           <CommandRail />
 
-          <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+          <div className="relative flex flex-col flex-1 min-w-0 overflow-hidden">
             <CommandBar />
             <MobileHeader />
 

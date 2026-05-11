@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, KeyboardEvent, useState } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +29,7 @@ interface CreateHomebrewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: () => void;
+  initialType?: ContentType;
 }
 
 const CONTENT_TYPES = [
@@ -47,9 +48,12 @@ const CONTENT_TYPES = [
 
 type ContentType = (typeof CONTENT_TYPES)[number];
 
-export function CreateHomebrewDialog({ open, onOpenChange, onCreated }: CreateHomebrewDialogProps) {
+export function CreateHomebrewDialog({ open, onOpenChange, onCreated, initialType }: CreateHomebrewDialogProps) {
   const [name, setName] = useState('');
-  const [type, setType] = useState<ContentType>('item');
+  const [type, setType] = useState<ContentType>(initialType ?? 'item');
+  useEffect(() => {
+    if (open && initialType) setType(initialType);
+  }, [open, initialType]);
   const [content, setContent] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');

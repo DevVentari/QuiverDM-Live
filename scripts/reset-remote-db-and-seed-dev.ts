@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-config({ path: '.env.local', override: true });
+config();
 config({ path: '.env', override: false });
 import bcrypt from 'bcryptjs';
 import { PrismaClient, PlatformRole, CampaignRole } from '@prisma/client';

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Settings, LogOut } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export function UserMenu() {
   const { data: session } = useSession();
@@ -27,14 +28,24 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent transition-colors outline-none">
-        <Avatar className="h-7 w-7">
-          <AvatarImage src={user.image || undefined} alt={user.name || ''} />
-          <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-        </Avatar>
-        <span className="hidden sm:block text-sm font-medium truncate max-w-[120px]">
-          {user.name || user.email}
-        </span>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          aria-label="Open account menu"
+          className={cn(
+            'inline-flex size-11 items-center justify-center rounded-full',
+            'bg-[var(--q-amber-trace)] text-[var(--q-amber)]',
+            'shadow-[inset_0_1px_0_hsl(0_0%_100%_/_0.05)] transition-colors outline-none',
+            'hover:bg-[var(--q-amber-trace)]/80',
+          )}
+        >
+          <Avatar className="size-8">
+            <AvatarImage src={user.image || undefined} alt={user.name || ''} />
+            <AvatarFallback className="bg-transparent font-[var(--q-font-display)] text-[11px] text-[var(--q-amber)]">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem asChild>

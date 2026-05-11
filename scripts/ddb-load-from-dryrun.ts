@@ -15,7 +15,7 @@
  */
 
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local', override: true });
+dotenv.config();
 
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -335,6 +335,41 @@ async function main() {
     console.log(`[${(arts.chapterIndex + 1).toString().padStart(2)}/${dirNames.length}] ${arts.chapterSlug.padEnd(40)} ${(ms / 1000).toFixed(1)}s | mon=${arts.monsters.length} item=${arts.items.length} npc=${arts.npcs.length} loc=${arts.locations.length} enc=${arts.encounters.length} rag=${arts.ragChunks.length}`);
   }
 
+  // ── Final pass: link encounter monster names to imported HomebrewContent ──
+  // Done after all chapters so cross-chapter monsters resolve (e.g. Goblin
+  // referenced in chapter 3 but stat block landed in appendix-c-creatures).
+  console.log('');
+  console.log('[load] Linking encounter monsters to creatures...');
+  const linkStart = performance.now();
+  let totalLinked = 0;
+  let totalUnmatched = 0;
+  for (const dirName of dirNames) {
+    const arts = await readChapterArtifacts(path.join(chaptersDir, dirName));
+    if (arts.encounters.every(e => !e.monsters?.length)) continue;
+    const chapterRow = await prisma.ddbSourcebookChapter.findUnique({
+      where: { sourcebookId_slug: { sourcebookId, slug: arts.chapterSlug } },
+      select: { id: true },
+    });
+    if (!chapterRow) continue;
+    for (const enc of arts.encounters) {
+      if (!enc.monsters?.length) continue;
+      const plan = await prisma.encounterPlan.findFirst({
+        where: { campaignId: campaign.id, ddbChapterId: chapterRow.id, name: enc.areaName },
+        select: { id: true },
+      });
+      if (!plan) continue;
+      const result = await sink.linkEncounterCreatures({
+        planId: plan.id,
+        userId,
+        monsterNames: enc.monsters,
+      });
+      totalLinked += result.linked;
+      totalUnmatched += result.unmatched;
+    }
+  }
+  const linkSec = (performance.now() - linkStart) / 1000;
+  console.log(`[load] Linked ${totalLinked} creatures (+ ${totalUnmatched} SRD-only refs) in ${linkSec.toFixed(1)}s`);
+
   await prisma.ddbSourcebook.update({
     where: { id: sourcebookId },
     data: { syncStatus: 'idle', lastSyncedAt: new Date() },
@@ -344,6 +379,7 @@ async function main() {
   console.log('');
   console.log(`[load] DONE in ${totalSec.toFixed(1)}s`);
   console.log(`[load] Wrote: ${totals.monsters} monsters, ${totals.items} items, ${totals.npcs} npcs, ${totals.locations} locations, ${totals.encounters} encounters, ${totals.ragEmbedded}/${totals.ragChunks} RAG chunks`);
+  console.log(`[load] Encounter creatures linked: ${totalLinked} homebrew + ${totalUnmatched} SRD-only`);
   console.log(`[load] Campaign "${campaign.name}" is now seeded with sourcebook "${title}"`);
 
   await prisma.$disconnect();

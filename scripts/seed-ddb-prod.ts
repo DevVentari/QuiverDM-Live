@@ -8,7 +8,7 @@
  *   DDB_COBALT_SESSION — raw CobaltSession cookie value
  *   DDB_USER_ID        — prod user ID to seed for
  *
- * Or set them in .env.local and this script will pick them up.
+ * Or set them in .env and this script will pick them up.
  *
  * Books: edit BOOKS array to add/remove titles.
  * Campaign linkage: set campaignIds per book (empty = book syncs without campaign context).

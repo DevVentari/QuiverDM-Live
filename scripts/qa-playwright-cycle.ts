@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { config } from 'dotenv';
-config({ path: '.env.local', override: false });
+config();
 
 type PhaseName = 'smoke' | 'workflows';
 
