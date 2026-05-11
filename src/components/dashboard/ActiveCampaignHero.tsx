@@ -36,7 +36,7 @@ export function ActiveCampaignHero({ campaign }: { campaign: DashboardCampaign }
             <Link href={`/campaigns/${campaign.slug}/sessions`} className="flex items-center gap-2">Resume <ArrowRight className="h-4 w-4" /></Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href={`/campaigns/${campaign.slug}`}>Session Prep</Link>
+            <Link href={`/campaigns/${campaign.slug}/sessions/prep`}>Session Prep</Link>
           </Button>
           <Button variant="outline" asChild>
             <Link href={`/campaigns/${campaign.slug}/brain`}>Open Brain</Link>

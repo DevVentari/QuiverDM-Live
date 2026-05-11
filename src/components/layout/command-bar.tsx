@@ -100,7 +100,7 @@ function CampaignDropdown({ slot }: { slot: NonNullable<HeaderSlot> }) {
         {campaigns.data?.map((c) => (
           <DropdownMenuItem
             key={c.slug}
-            onClick={() => router.push(`/campaigns/${c.slug}`)}
+            onClick={() => router.push(`/campaigns/${c.slug}/sessions`)}
             className="gap-2"
           >
             {c.slug === slot.campaignSlug

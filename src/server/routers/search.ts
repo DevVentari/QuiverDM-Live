@@ -46,7 +46,7 @@ function buildHref(
   switch (type) {
     case 'campaign': {
       const slug = String(hit.slug ?? '');
-      return slug ? `/campaigns/${slug}` : null;
+      return slug ? `/campaigns/${slug}/sessions` : null;
     }
     case 'session': {
       const campaignId = String(hit.campaignId ?? '');
