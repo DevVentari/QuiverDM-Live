@@ -46,7 +46,7 @@ export function SignInForm() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-[var(--q-text-danger)]">
             {error}
           </div>
         )}
@@ -72,7 +72,7 @@ export function SignInForm() {
             </label>
             <Link
               href="/auth/forgot-password"
-              className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors"
+              className="text-[10px] text-[var(--q-text-dim)]/60 hover:text-primary transition-colors"
             >
               Forgot password?
             </Link>
@@ -88,7 +88,7 @@ export function SignInForm() {
             />
             <button
               type="button"
-              className="absolute right-0 top-0 h-full px-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              className="absolute right-0 top-0 h-full px-3 text-[var(--q-text-dim)]/50 hover:text-[var(--q-text-dim)] transition-colors"
               onClick={() => setShowPassword(!showPassword)}
               tabIndex={-1}
             >

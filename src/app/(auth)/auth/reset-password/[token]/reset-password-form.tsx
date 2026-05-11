@@ -33,7 +33,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   if (validate.isLoading) {
     return (
       <Card className="w-full max-w-md">
-        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+        <CardContent className="py-8 text-center text-sm text-[var(--q-text-dim)]">
           Validating reset link...
         </CardContent>
       </Card>
@@ -68,7 +68,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {(localError || resetPassword.error) && (
-            <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-[var(--q-text-danger)]">
               {localError || resetPassword.error?.message}
             </div>
           )}

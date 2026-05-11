@@ -110,7 +110,7 @@ export default function ApiUsagePage() {
                 <p className="text-2xl font-bold text-primary">
                   {formatCost(provider.estimatedCost)}
                 </p>
-                <div className="text-sm text-muted-foreground space-y-1">
+                <div className="text-sm text-[var(--q-text-dim)] space-y-1">
                   <p>{provider.requests.toLocaleString()} requests</p>
                   <p>
                     {formatTokens(provider.tokensIn)} tokens in / {formatTokens(provider.tokensOut)} tokens out
@@ -127,7 +127,7 @@ export default function ApiUsagePage() {
         </div>
       ) : (
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
+          <CardContent className="py-8 text-center text-[var(--q-text-dim)]">
             No API usage recorded yet. Usage will appear here once you use AI features.
           </CardContent>
         </Card>
@@ -158,7 +158,7 @@ export default function ApiUsagePage() {
                     <TableRow key={row.feature}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4 text-muted-foreground" />
+                          <Icon className="h-4 w-4 text-[var(--q-text-dim)]" />
                           <span>{config.label}</span>
                         </div>
                       </TableCell>
@@ -233,7 +233,7 @@ export default function ApiUsagePage() {
                   const Icon = config.icon;
                   return (
                     <TableRow key={call.id}>
-                      <TableCell className="text-muted-foreground text-sm">
+                      <TableCell className="text-[var(--q-text-dim)] text-sm">
                         {new Date(call.createdAt).toLocaleString(undefined, {
                           month: 'short',
                           day: 'numeric',
@@ -243,7 +243,7 @@ export default function ApiUsagePage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+                          <Icon className="h-3.5 w-3.5 text-[var(--q-text-dim)]" />
                           <span className="text-sm">{config.label}</span>
                         </div>
                       </TableCell>
@@ -263,7 +263,7 @@ export default function ApiUsagePage() {
 
       {/* Period info */}
       {summary.data && (
-        <div className="rounded-lg border bg-muted/50 p-3 text-sm text-muted-foreground text-center">
+        <div className="rounded-lg border bg-muted/50 p-3 text-sm text-[var(--q-text-dim)] text-center">
           Period: {new Date(summary.data.periodStart).toLocaleDateString()} — {new Date(summary.data.periodEnd).toLocaleDateString()}
         </div>
       )}
