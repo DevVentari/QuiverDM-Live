@@ -72,12 +72,48 @@ export async function isComfyUIAvailable(): Promise<boolean> {
   }
 }
 
+export interface ComfyUIQueueOptions {
+  workflow?: 'sdxl' | 'flux';
+  width?: number;
+  height?: number;
+}
+
+export function buildFluxTxt2ImgWorkflow(
+  prompt: string,
+  seed: number,
+  width: number,
+  height: number,
+): Record<string, unknown> {
+  const checkpoint = process.env.COMFYUI_MODEL || 'flux2-dev.safetensors';
+  return {
+    '10': { inputs: { unet_name: checkpoint, weight_dtype: 'default' }, class_type: 'UNETLoader' },
+    '11': { inputs: { clip_name1: 't5xxl_fp8_e4m3fn.safetensors', clip_name2: 'clip_l.safetensors', type: 'flux' }, class_type: 'DualCLIPLoader' },
+    '12': { inputs: { vae_name: 'flux_vae.safetensors' }, class_type: 'VAELoader' },
+    '6':  { inputs: { text: prompt, clip: ['11', 0] }, class_type: 'CLIPTextEncode' },
+    '5':  { inputs: { width, height, batch_size: 1 }, class_type: 'EmptySD3LatentImage' },
+    '13': { inputs: { noise_seed: seed }, class_type: 'RandomNoise' },
+    '14': { inputs: { sampler_name: 'euler' }, class_type: 'KSamplerSelect' },
+    '15': { inputs: { scheduler: 'simple', steps: 28, denoise: 1.0, model: ['10', 0] }, class_type: 'BasicScheduler' },
+    '16': { inputs: { conditioning: ['6', 0], guidance: 3.5 }, class_type: 'FluxGuidance' },
+    '17': { inputs: { model: ['10', 0], conditioning: ['16', 0] }, class_type: 'BasicGuider' },
+    '3':  { inputs: { noise: ['13', 0], guider: ['17', 0], sampler: ['14', 0], sigmas: ['15', 0], latent_image: ['5', 0] }, class_type: 'SamplerCustomAdvanced' },
+    '8':  { inputs: { samples: ['3', 0], vae: ['12', 0] }, class_type: 'VAEDecode' },
+    '9':  { inputs: { filename_prefix: 'quiverdm-flux', images: ['8', 0] }, class_type: 'SaveImage' },
+  };
+}
+
 export async function queueComfyUIPrompt(
   prompt: string,
-  negativePrompt = 'nsfw, gore, violence, low quality, blurry, watermark'
+  negativePrompt = 'nsfw, gore, violence, low quality, blurry, watermark',
+  options: ComfyUIQueueOptions = {}
 ): Promise<{ promptId: string; seed: number }> {
   const seed = Math.floor(Math.random() * 2 ** 32);
-  const workflow = buildTxt2ImgWorkflow(prompt, negativePrompt, seed);
+  const width = options.width ?? 1024;
+  const height = options.height ?? 1024;
+  const workflow =
+    options.workflow === 'flux'
+      ? buildFluxTxt2ImgWorkflow(prompt, seed, width, height)
+      : buildTxt2ImgWorkflow(prompt, negativePrompt, seed);
 
   const res = await fetch(`${COMFYUI_URL}/prompt`, {
     method: 'POST',

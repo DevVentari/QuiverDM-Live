@@ -15,6 +15,7 @@ export type WorldActivityItem = {
   status: 'Added' | 'Updated';
   changedAt: Date;
   href: string;
+  imageUrl?: string | null;
 };
 
 export const worldRouter = router({
@@ -102,6 +103,7 @@ export const worldRouter = router({
               name: true,
               type: true,
               slug: true,
+              imageUrl: true,
               createdAt: true,
               updatedAt: true,
             },
@@ -144,11 +146,35 @@ export const worldRouter = router({
           status: deriveStatus(e.createdAt, e.updatedAt),
           changedAt: e.updatedAt,
           href: `/campaigns/${slug}/world/${e.slug}`,
+          imageUrl: (e as { imageUrl?: string | null }).imageUrl ?? null,
         })),
       ];
 
       return items
         .sort((a, b) => b.changedAt.getTime() - a.changedAt.getTime())
         .slice(0, limit);
+    }),
+
+  regenerateActivityImage: protectedProcedure
+    .input(z.object({ worldEntryId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('Visual asset regeneration is dev-only');
+      }
+      const entry = await prisma.worldEntry.findUnique({
+        where: { id: input.worldEntryId },
+        select: { id: true, campaignId: true, name: true, content: true },
+      });
+      if (!entry) throw new Error('World entry not found');
+      await authz.campaign(entry.campaignId, ctx.session.user.id).requireRole('CO_DM');
+      const { enqueueVisualAsset } = await import('@/lib/queue/visual-asset-queue');
+      await enqueueVisualAsset({
+        kind: 'world-activity-thumb',
+        campaignId: entry.campaignId,
+        userId: ctx.session.user.id,
+        worldEntryId: entry.id,
+        promptHint: entry.content?.slice(0, 200),
+      });
+      return { queued: true };
     }),
 });

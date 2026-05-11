@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
+import { RegenerateAssetButton } from './RegenerateAssetButton'
 import {
   Users,
   MapPin,
@@ -97,8 +99,12 @@ export function WorldActivityFeed({ campaignId }: WorldActivityFeedProps) {
                     href={item.href}
                     className="group flex items-center gap-3 rounded-sm px-2 py-2 transition-colors hover:bg-white/[0.03]"
                   >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-white/5 bg-[var(--q-amber-trace)]/30 text-[var(--q-amber-dim)]">
-                      <Icon size={14} />
+                    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-white/5 bg-[var(--q-amber-trace)]/30 text-[var(--q-amber-dim)]">
+                      {item.imageUrl ? (
+                        <Image src={item.imageUrl} alt="" fill sizes="32px" className="object-cover" unoptimized />
+                      ) : (
+                        <Icon size={14} />
+                      )}
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm text-[var(--q-text)]">
@@ -111,6 +117,11 @@ export function WorldActivityFeed({ campaignId }: WorldActivityFeedProps) {
                     <Pill variant={item.status === 'Added' ? 'info' : 'neutral'}>
                       {item.status}
                     </Pill>
+                    {item.source === 'WorldEntry' && (
+                      <span onClick={(e) => e.preventDefault()} className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <RegenerateAssetButton kind="activity" worldEntryId={item.id} />
+                      </span>
+                    )}
                     <ChevronRight
                       size={12}
                       className="shrink-0 text-[var(--q-text-faint)] transition-colors group-hover:text-[var(--q-amber-dim)]"

@@ -34,6 +34,7 @@
     "worker:pdf": "tsx src/lib/queue/worker.ts",
     "worker:transcription": "tsx src/lib/queue/transcription-worker.ts",
     "worker:image": "tsx src/lib/queue/image-generation-worker.ts",
+    "worker:visual-assets": "tsx src/lib/queue/visual-asset-worker.ts",
     "worker:webhooks": "tsx src/lib/queue/webhooks-worker.ts",
     "worker:summary": "tsx src/lib/queue/ai-summary-worker.ts",
     "worker:derailment": "tsx src/lib/queue/derailment-worker.ts",

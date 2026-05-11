@@ -383,6 +383,7 @@ model Campaign {
   slug        String  @unique // URL-friendly slug generated from name
   description String? @db.Text
   bannerUrl   String?
+  emblemUrl   String?
   status      String  @default("active") // active, paused, completed
 
   // Legacy owner field (kept for backward compatibility during migration)
@@ -1983,6 +1984,7 @@ model WorldEntry {
 
   content        String         @db.Text
   summary        String?
+  imageUrl       String?
 
   structuredData Json?
   tags           String[]
