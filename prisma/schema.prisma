@@ -356,6 +356,8 @@ model Campaign {
   transcriptCorrections TranscriptCorrection[]
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
 
+  mechanics            CampaignMechanic[]
+
   // Campaign Documents
   documents         CampaignDocument[]
 
@@ -557,6 +559,8 @@ model CampaignCharacter {
 
   joinedAt  DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  assignedMechanics    CampaignMechanic[] @relation("AssignedMechanics")
 
   @@unique([campaignId, characterId])
   @@index([campaignId])
@@ -1755,6 +1759,34 @@ model CampaignContext {
   @@index([campaignId, type])
   @@index([campaignId, createdAt(sort: Desc)])
   @@index([sessionId])
+}
+
+model CampaignMechanic {
+  id          String   @id @default(cuid())
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  kind        String
+  sourcebook  String?
+  externalKey String?
+
+  name        String
+  description String?  @db.Text
+  content     Json
+
+  assignedToCharacterId String?
+  assignedToCharacter   CampaignCharacter? @relation("AssignedMechanics", fields: [assignedToCharacterId], references: [id], onDelete: SetNull)
+  revealedAtSessionId   String?
+  playerVisible         Boolean @default(false)
+
+  ddbChapterId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([campaignId, kind, externalKey])
+  @@index([campaignId, kind])
+  @@index([sourcebook, kind])
+  @@index([assignedToCharacterId])
 }
 
 // RecapForge — AI-generated clarification questions answered by DM before final summary
