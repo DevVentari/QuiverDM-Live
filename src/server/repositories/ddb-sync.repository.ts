@@ -47,6 +47,94 @@ export const ddbSyncRepository = {
     });
   },
 
+  /**
+   * Clone WorldEntity + NPC rows tied to a sourcebook's chapters from a donor
+   * campaign (any campaign owned by `userId` that has previously ingested this
+   * sourcebook) into `targetCampaignId`. Used after linking a sourcebook so
+   * the new campaign has its NPCs / locations / factions without re-running
+   * the heavyweight DDB sync. Idempotent — skips rows that already exist in
+   * the target via the (campaignId, name, type) unique constraint.
+   *
+   * Returns counts so the caller can surface "Seeded N NPCs, M locations…"
+   */
+  async seedCampaignFromSourcebook(
+    targetCampaignId: string,
+    sourcebookId: string,
+    userId: string,
+  ): Promise<{ entitiesSeeded: number; npcsSeeded: number; donorCampaignId: string | null }> {
+    const chapters = await prisma.ddbSourcebookChapter.findMany({
+      where: { sourcebookId },
+      select: { id: true },
+    });
+    const chapterIds = chapters.map((c) => c.id);
+    if (chapterIds.length === 0) {
+      return { entitiesSeeded: 0, npcsSeeded: 0, donorCampaignId: null };
+    }
+
+    const donorCampaign = await prisma.worldEntity.findFirst({
+      where: {
+        ddbChapterId: { in: chapterIds },
+        campaignId: { not: targetCampaignId },
+        campaign: { members: { some: { userId } } },
+      },
+      select: { campaignId: true },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    if (!donorCampaign) {
+      return { entitiesSeeded: 0, npcsSeeded: 0, donorCampaignId: null };
+    }
+
+    const donorEntities = await prisma.worldEntity.findMany({
+      where: {
+        campaignId: donorCampaign.campaignId,
+        ddbChapterId: { in: chapterIds },
+      },
+      select: {
+        type: true, name: true, description: true, properties: true,
+        aliases: true, status: true, ddbChapterId: true, sourceType: true,
+        confidence: true,
+      },
+    });
+
+    const existingEntities = await prisma.worldEntity.findMany({
+      where: { campaignId: targetCampaignId },
+      select: { name: true, type: true },
+    });
+    const existingKey = new Set(existingEntities.map((e) => `${e.type}:${e.name.toLowerCase()}`));
+
+    const toCreate = donorEntities.filter(
+      (e) => !existingKey.has(`${e.type}:${e.name.toLowerCase()}`),
+    );
+
+    if (toCreate.length === 0) {
+      return { entitiesSeeded: 0, npcsSeeded: 0, donorCampaignId: donorCampaign.campaignId };
+    }
+
+    const result = await prisma.worldEntity.createMany({
+      data: toCreate.map((e) => ({
+        campaignId: targetCampaignId,
+        type: e.type,
+        name: e.name,
+        description: e.description,
+        properties: e.properties as Prisma.InputJsonValue,
+        aliases: e.aliases,
+        status: e.status,
+        ddbChapterId: e.ddbChapterId,
+        sourceType: e.sourceType,
+        confidence: e.confidence,
+      })),
+      skipDuplicates: true,
+    });
+
+    const npcsSeeded = toCreate.filter((e) => e.type === 'NPC').length;
+    return {
+      entitiesSeeded: result.count,
+      npcsSeeded,
+      donorCampaignId: donorCampaign.campaignId,
+    };
+  },
+
   async unlinkSourcebookFromCampaign(sourcebookId: string, campaignId: string) {
     await prisma.campaignSourcebook.deleteMany({
       where: { sourcebookId, campaignId },

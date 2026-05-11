@@ -135,7 +135,12 @@ export const ddbSyncRouter = router({
       }
 
       await ddbSyncRepository.linkSourcebookToCampaigns(input.sourcebookId, [input.campaignId]);
-      return { ok: true };
+      const seedResult = await ddbSyncRepository.seedCampaignFromSourcebook(
+        input.campaignId,
+        input.sourcebookId,
+        ctx.session.user.id,
+      );
+      return { ok: true, ...seedResult };
     }),
 
   unlinkSourcebookFromCampaign: protectedProcedure
