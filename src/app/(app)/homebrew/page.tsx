@@ -11,8 +11,8 @@ import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
 import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
 import { ImportFromMediaDialog } from '@/components/homebrew/import-from-media-dialog';
-import { SplitCanvas } from '@/components/layout/split-canvas';
 import { BookOpen, FileText, Globe, ImageUp, Plus, Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const TYPE_FILTERS = [
   { value: undefined as string | undefined, label: 'All' },
@@ -28,15 +28,16 @@ type CreateType = (typeof CREATE_TYPES)[number];
 const isCreateType = (s: string | null | undefined): s is CreateType =>
   !!s && (CREATE_TYPES as readonly string[]).includes(s);
 
+const VALID_TYPES = ['item', 'spell', 'creature', 'class', 'feat'] as const;
+
 export default function HomebrewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const VALID_TYPES = ['item', 'spell', 'creature', 'class', 'feat'] as const;
   const initialType = searchParams?.get('type');
   const [typeFilter, setTypeFilter] = useState<string | undefined>(
-    initialType && (VALID_TYPES as readonly string[]).includes(initialType) ? initialType : undefined
+    initialType && (VALID_TYPES as readonly string[]).includes(initialType) ? initialType : undefined,
   );
   const [createOpen, setCreateOpen] = useState(false);
   const [createInitialType, setCreateInitialType] = useState<CreateType | undefined>(undefined);
@@ -67,184 +68,174 @@ export default function HomebrewPage() {
 
   const content = trpc.homebrew.getContent.useQuery(
     { search: debouncedSearch || undefined, type: typeFilter as any },
-    { staleTime: 300_000 }
+    { staleTime: 300_000 },
   );
   const stats = trpc.homebrew.getContentStats.useQuery({}, { staleTime: 300_000 });
 
   const totalItems = stats.data
     ? Object.values((stats.data as any).byType || {}).reduce((a: number, b) => a + (b as number), 0)
     : 0;
-  const pdfCount = (stats.data as any)?.pdfCount ?? 0;
 
-  const heroStats = [
-    { label: 'items', value: totalItems },
-    ...(pdfCount > 0 ? [{ label: 'PDFs', value: pdfCount }] : []),
-  ];
-
-  const actions = (
-    <div className="flex gap-2">
-      <Button size="sm" onClick={() => setCreateOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
-        Create
-      </Button>
-      <Button asChild variant="outline" size="sm">
-        <Link href="/homebrew/pdfs">
-          <FileText className="mr-2 h-4 w-4" />
-          PDFs
-        </Link>
-      </Button>
-    </div>
-  );
-
-  const leftPane = (
-    <div className="flex flex-col overflow-y-auto p-4 space-y-5">
-      <div>
-        <p className="text-[10px] uppercase tracking-[0.18em] text-amber-100/45 mb-3">Filter by type</p>
-        <div className="flex flex-col gap-0.5">
-          {TYPE_FILTERS.map((filter) => (
-            <button
-              key={filter.label}
-              onClick={() => setTypeFilter(filter.value)}
-              className={`text-left rounded-md px-3 py-2 text-sm transition-colors ${
-                typeFilter === filter.value
-                  ? 'bg-amber-500/[0.08] text-amber-200 border border-amber-500/20'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-white/[0.03]'
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <p className="text-[10px] uppercase tracking-[0.18em] text-amber-100/45 mb-3">Add content</p>
-        <div className="flex flex-col gap-0.5">
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="text-left rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.03] transition-colors flex items-center gap-2"
-          >
-            <Plus className="h-3.5 w-3.5 shrink-0" />
-            Create manually
-          </button>
-          <button
-            onClick={() => setDdbImportOpen(true)}
-            className="text-left rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.03] transition-colors flex items-center gap-2"
-          >
-            <Globe className="h-3.5 w-3.5 shrink-0" />
-            Import from D&amp;D Beyond
-          </button>
-          <button
-            onClick={() => setMediaImportOpen(true)}
-            className="text-left rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-white/[0.03] transition-colors flex items-center gap-2"
-          >
-            <ImageUp className="h-3.5 w-3.5 shrink-0" />
-            Import from photo / notes
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const contentGrid = (
-    <>
-      {content.isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-32 rounded-lg" />)}
-        </div>
-      ) : content.isError ? (
-        <div className="stone-card p-8 text-center">
-          <p className="text-sm text-muted-foreground">Failed to load homebrew content.</p>
-        </div>
-      ) : content.data && (content.data as any).items?.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {((content.data as any).items || []).map((item: any) => (
-            <HomebrewContentCard key={item.id} item={item} href={`/homebrew/${item.id}`} />
-          ))}
-        </div>
-      ) : (
-        <div className="stone-card">
-          <div className="stone-card-body flex flex-col items-center justify-center py-16 text-center">
-            <BookOpen className="mb-4 h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mb-2 text-lg font-semibold">No homebrew yet</h3>
-            <p className="mb-6 max-w-sm text-sm text-muted-foreground">
-              Upload a PDF to extract content, or create entries manually.
-            </p>
-            <Button asChild size="sm">
-              <Link href="/homebrew/pdfs">Upload PDF</Link>
-            </Button>
-          </div>
-        </div>
-      )}
-    </>
-  );
+  const items = ((content.data as any)?.items ?? []) as any[];
 
   return (
-    <>
-      {/* Desktop: SplitCanvas */}
-      <div className="hidden md:flex h-full">
-        <SplitCanvas
-          overline="Library"
-          title="Homebrew"
-          stats={heroStats}
-          actions={actions}
-          leftPane={leftPane}
-        >
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search homebrew..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
+    <div className="mx-auto max-w-[1600px] px-6 py-6">
+      <div className="mb-6 flex items-end justify-between gap-6">
+        <div>
+          <p className="font-[var(--q-font-display)] text-[10px] tracking-[2.5px] text-[var(--q-amber)] uppercase">
+            Library
+          </p>
+          <h1 className="font-[var(--q-font-display)] text-3xl md:text-4xl text-[var(--q-text)] mt-1">
+            Compendium
+          </h1>
+        </div>
+        <div className="flex items-end gap-4">
+          <div className="text-right">
+            <div className="font-[var(--q-font-display)] text-2xl text-[var(--q-text)] tabular-nums">
+              {items.length}
             </div>
-            {contentGrid}
+            <div className="text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
+              {items.length === totalItems ? 'in library' : `of ${totalItems}`}
+            </div>
           </div>
-        </SplitCanvas>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/homebrew/pdfs">
+              <FileText className="mr-2 h-4 w-4" />
+              PDFs
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      {/* Mobile: simple stack */}
-      <div className="md:hidden flex flex-col h-full overflow-y-auto p-4 space-y-4">
-        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          {TYPE_FILTERS.map((filter) => (
-            <Button
-              key={filter.label}
-              size="sm"
-              variant={typeFilter === filter.value ? 'default' : 'outline'}
-              onClick={() => setTypeFilter(filter.value)}
-              className="shrink-0 rounded-full h-7 px-3 text-xs"
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
+        <aside className="flex flex-col gap-5 w-full">
+          <div className="relative">
+            <Search
+              size={14}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--q-text-faint)]"
+            />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search compendium"
+              className="h-9 pl-9 text-sm"
+              data-testid="hb-filter-search"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)] mb-2">
+              Filter by type
+            </p>
+            {TYPE_FILTERS.map((filter) => {
+              const active = typeFilter === filter.value;
+              return (
+                <button
+                  key={filter.label}
+                  type="button"
+                  onClick={() => setTypeFilter(filter.value)}
+                  className={cn(
+                    'flex w-full items-center rounded-sm px-3 py-2 text-sm transition-colors text-left',
+                    active
+                      ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+                      : 'text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)]',
+                  )}
+                  data-testid={`hb-filter-${filter.value ?? 'all'}`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)] mb-2">
+              Add content
+            </p>
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)] transition-colors"
             >
-              {filter.label}
+              <Plus size={14} className="shrink-0" />
+              Create manually
+            </button>
+            <button
+              onClick={() => setDdbImportOpen(true)}
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)] transition-colors"
+            >
+              <Globe size={14} className="shrink-0" />
+              Import from D&amp;D Beyond
+            </button>
+            <button
+              onClick={() => setMediaImportOpen(true)}
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-white/[0.03] hover:text-[var(--q-text)] transition-colors"
+            >
+              <ImageUp size={14} className="shrink-0" />
+              Import from photo / notes
+            </button>
+          </div>
+
+          <div className="pt-2 border-t border-[var(--q-border-subtle)]">
+            <Button onClick={() => setCreateOpen(true)} size="sm" className="w-full justify-start">
+              <Plus size={14} className="mr-2" />
+              New Entry
             </Button>
-          ))}
-        </div>
+          </div>
+        </aside>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search homebrew..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        <div className="min-w-0">
+          {content.isLoading ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
+              {[0, 1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-32 w-full" />)}
+            </div>
+          ) : content.isError ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-[var(--q-text-dim)]">
+              <p className="text-sm">Failed to load homebrew content.</p>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-24 text-center text-[var(--q-text-dim)]">
+              <BookOpen size={32} className="text-[var(--q-text-faint)]/40" />
+              <p className="text-sm">
+                {totalItems === 0 ? 'No homebrew yet' : 'No entries match those filters'}
+              </p>
+              {totalItems === 0 && (
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/homebrew/pdfs">Upload PDF</Link>
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
+              {items.map((item) => (
+                <HomebrewContentCard key={item.id} item={item} href={`/homebrew/${item.id}`} />
+              ))}
+            </div>
+          )}
         </div>
-
-        {contentGrid}
       </div>
 
-      <CreateHomebrewDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={() => content.refetch()} initialType={createInitialType} />
+      <CreateHomebrewDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={() => content.refetch()}
+        initialType={createInitialType}
+      />
       <ImportFromDDBDialog
         open={ddbImportOpen}
         onOpenChange={setDdbImportOpen}
-        onImported={() => { content.refetch(); stats.refetch(); }}
+        onImported={() => {
+          content.refetch();
+          stats.refetch();
+        }}
       />
       <ImportFromMediaDialog
         open={mediaImportOpen}
         onOpenChange={setMediaImportOpen}
-        onSuccess={() => { content.refetch(); stats.refetch(); }}
+        onSuccess={() => {
+          content.refetch();
+          stats.refetch();
+        }}
       />
-    </>
+    </div>
   );
 }
