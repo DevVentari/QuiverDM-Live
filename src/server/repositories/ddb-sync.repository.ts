@@ -61,16 +61,65 @@ export const ddbSyncRepository = {
     targetCampaignId: string,
     sourcebookId: string,
     userId: string,
-  ): Promise<{ entitiesSeeded: number; npcsSeeded: number; donorCampaignId: string | null }> {
+  ): Promise<{ entitiesSeeded: number; npcsSeeded: number; source: 'master' | 'donor' | 'none'; donorCampaignId: string | null }> {
+    const existingEntities = await prisma.worldEntity.findMany({
+      where: { campaignId: targetCampaignId },
+      select: { name: true, type: true },
+    });
+    const existingKey = new Set(existingEntities.map((e) => `${e.type}:${e.name.toLowerCase()}`));
+
+    // 1. Master copy — SourcebookEntity rows written by the dev-managed sync.
+    //    This is the canonical, deletion-resistant source.
+    const masterEntities = await prisma.sourcebookEntity.findMany({
+      where: { sourcebookId },
+      select: {
+        type: true, name: true, description: true, properties: true,
+        aliases: true, status: true, chapterId: true, sourceType: true,
+        confidence: true,
+      },
+    });
+
+    if (masterEntities.length > 0) {
+      const toCreate = masterEntities.filter(
+        (e) => !existingKey.has(`${e.type}:${e.name.toLowerCase()}`),
+      );
+      if (toCreate.length === 0) {
+        return { entitiesSeeded: 0, npcsSeeded: 0, source: 'master', donorCampaignId: null };
+      }
+      const result = await prisma.worldEntity.createMany({
+        data: toCreate.map((e) => ({
+          campaignId: targetCampaignId,
+          type: e.type,
+          name: e.name,
+          description: e.description,
+          properties: e.properties as Prisma.InputJsonValue,
+          aliases: e.aliases,
+          status: e.status,
+          ddbChapterId: e.chapterId,
+          sourceType: e.sourceType,
+          confidence: e.confidence,
+        })),
+        skipDuplicates: true,
+      });
+      return {
+        entitiesSeeded: result.count,
+        npcsSeeded: toCreate.filter((e) => e.type === 'NPC').length,
+        source: 'master',
+        donorCampaignId: null,
+      };
+    }
+
+    // 2. Fallback — clone from a donor user-campaign that has the sourcebook's
+    //    chapters in its WorldEntity. Legacy path; will be eliminated once all
+    //    sourcebooks have been re-synced into the master table.
     const chapters = await prisma.ddbSourcebookChapter.findMany({
       where: { sourcebookId },
       select: { id: true },
     });
     const chapterIds = chapters.map((c) => c.id);
     if (chapterIds.length === 0) {
-      return { entitiesSeeded: 0, npcsSeeded: 0, donorCampaignId: null };
+      return { entitiesSeeded: 0, npcsSeeded: 0, source: 'none', donorCampaignId: null };
     }
-
     const donorCampaign = await prisma.worldEntity.findFirst({
       where: {
         ddbChapterId: { in: chapterIds },
@@ -80,11 +129,9 @@ export const ddbSyncRepository = {
       select: { campaignId: true },
       orderBy: { updatedAt: 'desc' },
     });
-
     if (!donorCampaign) {
-      return { entitiesSeeded: 0, npcsSeeded: 0, donorCampaignId: null };
+      return { entitiesSeeded: 0, npcsSeeded: 0, source: 'none', donorCampaignId: null };
     }
-
     const donorEntities = await prisma.worldEntity.findMany({
       where: {
         campaignId: donorCampaign.campaignId,
@@ -96,21 +143,12 @@ export const ddbSyncRepository = {
         confidence: true,
       },
     });
-
-    const existingEntities = await prisma.worldEntity.findMany({
-      where: { campaignId: targetCampaignId },
-      select: { name: true, type: true },
-    });
-    const existingKey = new Set(existingEntities.map((e) => `${e.type}:${e.name.toLowerCase()}`));
-
     const toCreate = donorEntities.filter(
       (e) => !existingKey.has(`${e.type}:${e.name.toLowerCase()}`),
     );
-
     if (toCreate.length === 0) {
-      return { entitiesSeeded: 0, npcsSeeded: 0, donorCampaignId: donorCampaign.campaignId };
+      return { entitiesSeeded: 0, npcsSeeded: 0, source: 'donor', donorCampaignId: donorCampaign.campaignId };
     }
-
     const result = await prisma.worldEntity.createMany({
       data: toCreate.map((e) => ({
         campaignId: targetCampaignId,
@@ -126,11 +164,10 @@ export const ddbSyncRepository = {
       })),
       skipDuplicates: true,
     });
-
-    const npcsSeeded = toCreate.filter((e) => e.type === 'NPC').length;
     return {
       entitiesSeeded: result.count,
-      npcsSeeded,
+      npcsSeeded: toCreate.filter((e) => e.type === 'NPC').length,
+      source: 'donor',
       donorCampaignId: donorCampaign.campaignId,
     };
   },
