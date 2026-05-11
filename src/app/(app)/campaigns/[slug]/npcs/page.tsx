@@ -130,7 +130,7 @@ function NPCsPageInner() {
 
         <div className="min-w-0">
           {npcs.isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-56 w-full" />
               ))}
@@ -148,7 +148,7 @@ function NPCsPageInner() {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
               {filtered.map((npc) => (
                 <NpcCard key={npc.id} npc={npc} onClick={() => setSelectedNpc(npc.id)} />
               ))}
