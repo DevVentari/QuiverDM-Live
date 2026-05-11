@@ -41,9 +41,10 @@ export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(
       <Comp
         ref={ref}
         className={cn(
-          // Tighter 3px radius matches the design system's "stone card" spec.
+          // 2px radius — tight enough that the rounded corner doesn't create
+          // a visible left-edge offset against neighboring section headers.
           // Utility surfaces keep the default to preserve toolbar/command-bar shape.
-          variant === 'utility' ? 'rounded-[var(--radius)]' : 'rounded-[3px]',
+          variant === 'utility' ? 'rounded-[var(--radius)]' : 'rounded-[2px]',
           'transition-colors',
           variants[variant],
           grain && 'q-panel-grain',
