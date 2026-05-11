@@ -14,45 +14,47 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { ImportSheet } from '@/components/world/import-sheet';
-import { Canvas } from '@/components/primitives';
+import { Canvas, Card, Section, Surface } from '@/components/primitives';
 import { cn } from '@/lib/utils';
 
 // ─── Type metadata ────────────────────────────────────────────────────────────
 
-const DOC_TYPE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  lore:     { label: 'Lore',      icon: ScrollText, color: 'text-amber-400/80'   },
-  faction:  { label: 'Factions',  icon: Flag,       color: 'text-blue-400/80'    },
-  location: { label: 'Locations', icon: MapPin,      color: 'text-emerald-400/80' },
-  timeline: { label: 'Timelines', icon: Clock,       color: 'text-violet-400/80'  },
+type TypeMeta = { label: string; icon: React.ElementType }
+
+const DOC_TYPE_META: Record<string, TypeMeta> = {
+  lore:     { label: 'Lore',      icon: ScrollText },
+  faction:  { label: 'Factions',  icon: Flag },
+  location: { label: 'Locations', icon: MapPin },
+  timeline: { label: 'Timelines', icon: Clock },
 };
 
-const HB_TYPE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  item:     { label: 'Items',     icon: Package, color: 'text-yellow-400/80'  },
-  creature: { label: 'Monsters',  icon: Sword,   color: 'text-red-400/80'     },
-  race:     { label: 'Races',     icon: Dna,     color: 'text-pink-400/80'    },
+const HB_TYPE_META: Record<string, TypeMeta> = {
+  item:     { label: 'Items',     icon: Package },
+  creature: { label: 'Monsters',  icon: Sword },
+  race:     { label: 'Races',     icon: Dna },
 };
 
-const ENTRY_TYPE_META: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  LOCATION:  { label: 'Locations',         icon: MapPin,     color: 'text-emerald-400/80' },
-  NPC:       { label: 'NPCs',              icon: BookOpen,   color: 'text-blue-400/80'    },
-  PC:        { label: 'Player Characters', icon: BookOpen,   color: 'text-violet-400/80'  },
-  MONSTER:   { label: 'Monsters',          icon: Sword,      color: 'text-red-400/80'     },
-  ITEM:      { label: 'Items',             icon: Package,    color: 'text-yellow-400/80'  },
-  FACTION:   { label: 'Factions',          icon: Flag,       color: 'text-purple-400/80'  },
-  RACE:      { label: 'Races',             icon: Dna,        color: 'text-pink-400/80'    },
-  LORE:      { label: 'Lore',              icon: ScrollText, color: 'text-amber-400/80'   },
-  TIMELINE:  { label: 'Timelines',         icon: Clock,      color: 'text-violet-400/80'  },
-  SPELL:     { label: 'Spells',            icon: Sparkles,   color: 'text-cyan-400/80'    },
+const ENTRY_TYPE_META: Record<string, TypeMeta> = {
+  LOCATION:  { label: 'Locations',         icon: MapPin },
+  NPC:       { label: 'NPCs',              icon: BookOpen },
+  PC:        { label: 'Player Characters', icon: BookOpen },
+  MONSTER:   { label: 'Monsters',          icon: Sword },
+  ITEM:      { label: 'Items',             icon: Package },
+  FACTION:   { label: 'Factions',          icon: Flag },
+  RACE:      { label: 'Races',             icon: Dna },
+  LORE:      { label: 'Lore',              icon: ScrollText },
+  TIMELINE:  { label: 'Timelines',         icon: Clock },
+  SPELL:     { label: 'Spells',            icon: Sparkles },
 };
 
-function getTypeMeta(type: string) {
-  return DOC_TYPE_META[type] ?? HB_TYPE_META[type] ?? { label: type, icon: BookOpen, color: 'text-muted-foreground' };
+function getTypeMeta(type: string): TypeMeta {
+  return DOC_TYPE_META[type] ?? HB_TYPE_META[type] ?? { label: type, icon: BookOpen };
 }
 
 function TypeBadge({ type }: { type: string }) {
-  const { icon: Icon, label, color } = getTypeMeta(type);
+  const { icon: Icon, label } = getTypeMeta(type);
   return (
-    <span className={cn('inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-semibold', color)}>
+    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-widest font-semibold text-[var(--q-text-faint)]">
       <Icon className="h-3 w-3" />
       {label}
     </span>
@@ -64,51 +66,69 @@ function TypeBadge({ type }: { type: string }) {
 const ALL_TYPES = ['all', 'lore', 'faction', 'location', 'timeline', 'item', 'creature', 'race'] as const;
 type FilterType = (typeof ALL_TYPES)[number];
 
+function filterChipClass(isActive: boolean) {
+  return cn(
+    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-medium border transition-colors',
+    isActive
+      ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
+      : 'border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] text-[var(--q-text-dim)] hover:border-[var(--q-amber-border)] hover:text-[var(--q-text)]',
+  );
+}
+
 // ─── Document row (markdown content) ─────────────────────────────────────────
 
 type Doc = { id: string; title: string; type: string; content: string; tags: string[] };
 
 function DocRow({ doc, expanded, onToggle }: { doc: Doc; expanded: boolean; onToggle: () => void }) {
   return (
-    <div className={cn(
-      'rounded-md border transition-colors',
-      expanded ? 'border-amber-500/30 bg-card/60' : 'border-border/40 bg-card/20 hover:border-border/60 hover:bg-card/30',
-    )}>
+    <Surface
+      variant={expanded ? 'feature' : 'utility'}
+      grain={expanded}
+      className={cn(
+        'transition-colors',
+        expanded ? 'border-[var(--q-amber-border)]' : 'hover:border-[var(--q-amber-trace)]',
+      )}
+    >
       <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3 text-left">
         <span className="flex-1 min-w-0">
-          <span className="block text-sm font-medium text-foreground/90 leading-snug">{doc.title}</span>
+          <span className="block text-sm font-medium text-[var(--q-text)] leading-snug">{doc.title}</span>
           <span className="block mt-0.5"><TypeBadge type={doc.type} /></span>
         </span>
         {expanded
-          ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground/60" />
-          : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />}
+          ? <ChevronDown className="h-4 w-4 shrink-0 text-[var(--q-text-dim)]" />
+          : <ChevronRight className="h-4 w-4 shrink-0 text-[var(--q-text-faint)]" />}
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-border/30 pt-3">
+        <div className="px-4 pb-4 border-t border-[var(--q-border-subtle)] pt-3">
           {doc.content ? (
             <div className="prose prose-sm max-w-none dark:prose-invert
-              prose-headings:font-display prose-headings:text-amber-200/90
-              prose-p:text-muted-foreground prose-p:leading-relaxed
-              prose-strong:text-foreground/80 prose-li:text-muted-foreground
-              prose-hr:border-border/30
-              prose-blockquote:border-amber-500/40 prose-blockquote:text-muted-foreground"
+              prose-headings:font-[var(--q-font-display)] prose-headings:text-[var(--q-text)]
+              prose-p:text-[var(--q-text-dim)] prose-p:leading-relaxed
+              prose-strong:text-[var(--q-text)] prose-li:text-[var(--q-text-dim)]
+              prose-hr:border-[var(--q-border-subtle)]
+              prose-blockquote:border-[var(--q-amber-dim)] prose-blockquote:text-[var(--q-text-dim)]"
             >
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground/40 italic">No content yet.</p>
+            <p className="text-sm text-[var(--q-text-faint)] italic">No content yet.</p>
           )}
           {doc.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-border/20">
+            <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-[var(--q-border-subtle)]">
               {doc.tags.map((tag) => (
-                <span key={tag} className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-muted-foreground/50">{tag}</span>
+                <span
+                  key={tag}
+                  className="px-2 py-0.5 rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] text-[10px] text-[var(--q-text-faint)]"
+                >
+                  {tag}
+                </span>
               ))}
             </div>
           )}
         </div>
       )}
-    </div>
+    </Surface>
   );
 }
 
@@ -130,24 +150,28 @@ function hbSummary(item: HbItem): string {
 function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; onToggle: () => void }) {
   const summary = hbSummary(item);
   return (
-    <div className={cn(
-      'rounded-md border transition-colors',
-      expanded ? 'border-amber-500/30 bg-card/60' : 'border-border/40 bg-card/20 hover:border-border/60 hover:bg-card/30',
-    )}>
+    <Surface
+      variant={expanded ? 'feature' : 'utility'}
+      grain={expanded}
+      className={cn(
+        'transition-colors',
+        expanded ? 'border-[var(--q-amber-border)]' : 'hover:border-[var(--q-amber-trace)]',
+      )}
+    >
       <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3 text-left">
         <span className="flex-1 min-w-0">
-          <span className="block text-sm font-medium text-foreground/90 leading-snug">{item.name}</span>
-          {summary && <span className="block text-xs text-muted-foreground/60 mt-0.5 truncate">{summary}</span>}
+          <span className="block text-sm font-medium text-[var(--q-text)] leading-snug">{item.name}</span>
+          {summary && <span className="block text-xs text-[var(--q-text-dim)] mt-0.5 truncate">{summary}</span>}
         </span>
         {expanded
-          ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground/60" />
-          : <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40" />}
+          ? <ChevronDown className="h-4 w-4 shrink-0 text-[var(--q-text-dim)]" />
+          : <ChevronRight className="h-4 w-4 shrink-0 text-[var(--q-text-faint)]" />}
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-border/30 pt-3 space-y-2">
+        <div className="px-4 pb-4 border-t border-[var(--q-border-subtle)] pt-3 space-y-2">
           {Boolean((item.data as Record<string, unknown>)?.description) && (
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-[var(--q-text-dim)] leading-relaxed">
               {String((item.data as Record<string, unknown>).description)}
             </p>
           )}
@@ -158,8 +182,8 @@ function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; 
               <div className="space-y-1">
                 {traits.slice(0, 4).map((t, i) => (
                   <div key={i} className="text-xs">
-                    <span className="font-semibold text-foreground/70">{t.name}</span>
-                    {t.description && <span className="text-muted-foreground/60"> — {String(t.description).slice(0, 120)}</span>}
+                    <span className="font-semibold text-[var(--q-text)]">{t.name}</span>
+                    {t.description && <span className="text-[var(--q-text-dim)]"> — {String(t.description).slice(0, 120)}</span>}
                   </div>
                 ))}
               </div>
@@ -172,23 +196,28 @@ function HbRow({ item, expanded, onToggle }: { item: HbItem; expanded: boolean; 
               <div className="space-y-1">
                 {traits.map((t, i) => (
                   <div key={i} className="text-xs">
-                    <span className="font-semibold text-foreground/70">{t.name}</span>
-                    {t.description && <span className="text-muted-foreground/60"> — {String(t.description).slice(0, 120)}</span>}
+                    <span className="font-semibold text-[var(--q-text)]">{t.name}</span>
+                    {t.description && <span className="text-[var(--q-text-dim)]"> — {String(t.description).slice(0, 120)}</span>}
                   </div>
                 ))}
               </div>
             ) : null;
           })()}
           {item.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/20">
+            <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[var(--q-border-subtle)]">
               {item.tags.map((tag) => (
-                <span key={tag} className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-muted-foreground/50">{tag}</span>
+                <span
+                  key={tag}
+                  className="px-2 py-0.5 rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] text-[10px] text-[var(--q-text-faint)]"
+                >
+                  {tag}
+                </span>
               ))}
             </div>
           )}
         </div>
       )}
-    </div>
+    </Surface>
   );
 }
 
@@ -260,7 +289,7 @@ export default function WorldPage() {
           variant="outline"
           size="sm"
           onClick={() => setImportOpen(true)}
-          className="gap-1.5 border-border/40 text-muted-foreground hover:text-foreground"
+          className="gap-1.5 border-[var(--q-border-subtle)] text-[var(--q-text-dim)] hover:text-[var(--q-text)] hover:border-[var(--q-amber-border)]"
         >
           <Upload className="h-3.5 w-3.5" />
           Import
@@ -269,35 +298,23 @@ export default function WorldPage() {
     >
       {/* ─── World Entities section ─────────────────────────────────────── */}
       {(entriesLoading || entries.length > 0) && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <p className="text-xs uppercase tracking-widest text-amber-400/70">World Entities</p>
-            <div className="h-px flex-1 bg-border/20" />
-            <span className="text-[10px] text-muted-foreground/40">{entries.length}</span>
-          </div>
-
+        <Section
+          label="World Entities"
+          action={<span className="text-[10px] text-[var(--q-text-faint)]">{entries.length}</span>}
+        >
           {/* Entry type filter */}
           {entries.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {(['all', ...new Set(entries.map(e => e.type as string))]).map((t) => {
                 const isActive = entryFilter === t;
-                const meta = t === 'all' ? { label: 'All', icon: BookOpen, color: '' } : ENTRY_TYPE_META[t];
+                const meta = t === 'all' ? { label: 'All', icon: BookOpen } : ENTRY_TYPE_META[t];
                 const Icon = meta?.icon ?? BookOpen;
                 const count = t === 'all' ? entries.length : entries.filter(e => e.type === t).length;
                 return (
-                  <button
-                    key={t}
-                    onClick={() => setEntryFilter(t)}
-                    className={cn(
-                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
-                      isActive
-                        ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-                        : 'border-border/40 bg-card/20 text-muted-foreground hover:border-border/60',
-                    )}
-                  >
+                  <button key={t} onClick={() => setEntryFilter(t)} className={filterChipClass(isActive)}>
                     <Icon className="h-3 w-3" />
                     {meta?.label ?? t}
-                    <span className="text-[10px] text-muted-foreground/50">{count}</span>
+                    <span className="text-[10px] text-[var(--q-text-faint)]">{count}</span>
                   </button>
                 );
               })}
@@ -308,7 +325,10 @@ export default function WorldPage() {
           {entriesLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-20 rounded-md bg-white/5 animate-pulse" />
+                <div
+                  key={i}
+                  className="h-20 rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] animate-pulse"
+                />
               ))}
             </div>
           ) : (
@@ -322,47 +342,40 @@ export default function WorldPage() {
                     <Link
                       key={entry.id}
                       href={`/campaigns/${slug}/world/${entry.slug}`}
-                      className="block text-left rounded-md border border-border/40 bg-card/20 hover:border-amber-500/30 hover:bg-card/40 transition-colors p-3 space-y-1"
+                      className="block text-left rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] hover:border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)] transition-colors p-3 space-y-1"
                     >
-                      <div className={cn('inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold', meta?.color)}>
+                      <div className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-[var(--q-text-faint)]">
                         <Icon className="h-2.5 w-2.5" />
                         {meta?.label ?? entry.type}
                       </div>
-                      <p className="text-sm font-medium text-foreground/90 leading-snug line-clamp-1">{entry.name}</p>
+                      <p className="text-sm font-medium text-[var(--q-text)] leading-snug line-clamp-1">{entry.name}</p>
                       {entry.summary && (
-                        <p className="text-xs text-muted-foreground/60 line-clamp-2">{entry.summary}</p>
+                        <p className="text-xs text-[var(--q-text-dim)] line-clamp-2">{entry.summary}</p>
                       )}
                     </Link>
                   );
                 })}
             </div>
           )}
-
-          <div className="border-t border-border/20" />
-        </div>
+        </Section>
       )}
 
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-1.5">
         {(['all', ...typesPresent] as FilterType[]).map((t) => {
           const isActive = filter === t;
-          const meta = t === 'all' ? { label: 'All', icon: BookOpen, color: '' } : getTypeMeta(t);
+          const meta = t === 'all' ? { label: 'All', icon: BookOpen } : getTypeMeta(t);
           const Icon = meta.icon;
           const count = t === 'all' ? allItems.length : allItems.filter((i) => i.type === t).length;
           return (
             <button
               key={t}
               onClick={() => { setFilter(t); setExpandedId(null); }}
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium border transition-colors',
-                isActive
-                  ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-                  : 'border-border/40 bg-card/20 text-muted-foreground hover:border-border/60',
-              )}
+              className={filterChipClass(isActive)}
             >
               <Icon className="h-3 w-3" />
               {meta.label}
-              <span className="text-[10px] text-muted-foreground/50">{count}</span>
+              <span className="text-[10px] text-[var(--q-text-faint)]">{count}</span>
             </button>
           );
         })}
@@ -370,24 +383,31 @@ export default function WorldPage() {
 
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-14 rounded-md bg-white/5 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="h-14 rounded-sm bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] animate-pulse"
+            />
+          ))}
         </div>
       ) : allItems.length === 0 ? (
-        <div className="rounded-md border border-border/30 bg-card/20 px-6 py-12 text-center">
-          <BookOpen className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
-          <p className="text-sm text-muted-foreground/60">No world documents yet.</p>
-          <p className="text-xs text-muted-foreground/40 mt-1">
-            Import a world sourcebook when creating a campaign or add content manually.
-          </p>
-        </div>
+        <Card variant="detail" className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+          <BookOpen className="h-8 w-8 text-[var(--q-text-faint)]" />
+          <div className="space-y-1">
+            <p className="text-sm text-[var(--q-text-dim)]">No world documents yet.</p>
+            <p className="text-xs text-[var(--q-text-faint)]">
+              Import a world sourcebook when creating a campaign or add content manually.
+            </p>
+          </div>
+        </Card>
       ) : (
         <div className="space-y-6">
           {grouped.map(([type, items]) => (
             <div key={type} className="space-y-2">
               <div className="flex items-center gap-2">
                 <TypeBadge type={type} />
-                <div className="h-px flex-1 bg-border/20" />
-                <span className="text-[10px] text-muted-foreground/40">{items.length}</span>
+                <div className="h-px flex-1 bg-[var(--q-border-subtle)]" />
+                <span className="text-[10px] text-[var(--q-text-faint)]">{items.length}</span>
               </div>
               <div className="space-y-1.5">
                 {items.map((item) =>
