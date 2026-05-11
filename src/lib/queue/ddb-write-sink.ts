@@ -60,6 +60,32 @@ export interface WriteSink {
     description: string;
   }): Promise<UpsertResult>;
 
+  upsertSpell(args: {
+    userId: string;
+    chapterId: string;
+    sourceSlug: string;
+    name: string;
+    level: number;
+    school: string;
+    castingTime: string;
+    range: string;
+    components: string;
+    duration: string;
+    description: string;
+    higherLevels?: string;
+    classes?: string[];
+  }): Promise<UpsertResult>;
+
+  upsertFeat(args: {
+    userId: string;
+    chapterId: string;
+    sourceSlug: string;
+    name: string;
+    prerequisite?: string;
+    description: string;
+    benefits: string[];
+  }): Promise<UpsertResult>;
+
   upsertWorldEntity(args: {
     campaignId: string;
     chapterId: string;
@@ -117,6 +143,17 @@ export interface WriteSink {
     campaignIds: string[];
     chunks: ProseChunk[];
   }): Promise<{ embedded: number; skipped: number }>;
+
+  /**
+   * Resolve monster names referenced by an EncounterPlan to the user's
+   * imported HomebrewContent rows and create EncounterPlanCreature children.
+   * Idempotent — skips creature names already linked to this plan.
+   */
+  linkEncounterCreatures(args: {
+    planId: string;
+    userId: string;
+    monsterNames: string[];
+  }): Promise<{ linked: number; unmatched: number }>;
 }
 
 export class PrismaWriteSink implements WriteSink {
@@ -219,6 +256,70 @@ export class PrismaWriteSink implements WriteSink {
     return { created: true, id: created.id };
   }
 
+  async upsertSpell({ userId, chapterId, sourceSlug, name, level, school, castingTime, range, components, duration, description, higherLevels, classes }: {
+    userId: string;
+    chapterId: string;
+    sourceSlug: string;
+    name: string;
+    level: number;
+    school: string;
+    castingTime: string;
+    range: string;
+    components: string;
+    duration: string;
+    description: string;
+    higherLevels?: string;
+    classes?: string[];
+  }): Promise<UpsertResult> {
+    const existing = await prisma.homebrewContent.findFirst({
+      where: { userId, type: 'spell', name, ddbChapterId: chapterId },
+    });
+    if (existing) return { created: false, id: existing.id, existingName: existing.name };
+
+    const created = await prisma.homebrewContent.create({
+      data: {
+        userId,
+        type: 'spell',
+        name,
+        ddbChapterId: chapterId,
+        sourceType: 'dndbeyond_import',
+        data: { level, school, castingTime, range, components, duration, description, higherLevels, classes } as any,
+        searchText: `${name} ${description}`.slice(0, 4000),
+        tags: [sourceSlug, `level-${level}`, school],
+      },
+    });
+    return { created: true, id: created.id };
+  }
+
+  async upsertFeat({ userId, chapterId, sourceSlug, name, prerequisite, description, benefits }: {
+    userId: string;
+    chapterId: string;
+    sourceSlug: string;
+    name: string;
+    prerequisite?: string;
+    description: string;
+    benefits: string[];
+  }): Promise<UpsertResult> {
+    const existing = await prisma.homebrewContent.findFirst({
+      where: { userId, type: 'feat', name, ddbChapterId: chapterId },
+    });
+    if (existing) return { created: false, id: existing.id, existingName: existing.name };
+
+    const created = await prisma.homebrewContent.create({
+      data: {
+        userId,
+        type: 'feat',
+        name,
+        ddbChapterId: chapterId,
+        sourceType: 'dndbeyond_import',
+        data: { prerequisite, description, benefits } as any,
+        searchText: `${name} ${description}`.slice(0, 4000),
+        tags: [sourceSlug],
+      },
+    });
+    return { created: true, id: created.id };
+  }
+
   async upsertWorldEntity(args: {
     campaignId: string;
     chapterId: string;
@@ -279,6 +380,58 @@ export class PrismaWriteSink implements WriteSink {
     if (severity !== 'info') {
       console.warn(`[ddb-chapter ${chapterId}] ${severity}: ${message}`);
     }
+  }
+
+  async linkEncounterCreatures({ planId, userId, monsterNames }: {
+    planId: string;
+    userId: string;
+    monsterNames: string[];
+  }): Promise<{ linked: number; unmatched: number }> {
+    const cleaned = [...new Set(monsterNames.map(n => n.trim()).filter(Boolean))];
+    if (cleaned.length === 0) return { linked: 0, unmatched: 0 };
+
+    const existing = await prisma.encounterPlanCreature.findMany({
+      where: { planId },
+      select: { name: true },
+    });
+    const alreadyLinked = new Set(existing.map(c => c.name.toLowerCase()));
+    const toAdd = cleaned.filter(n => !alreadyLinked.has(n.toLowerCase()));
+    if (toAdd.length === 0) return { linked: 0, unmatched: 0 };
+
+    const matches = await prisma.homebrewContent.findMany({
+      where: {
+        userId,
+        type: 'creature',
+        name: { in: toAdd, mode: 'insensitive' },
+      },
+      select: { id: true, name: true, data: true },
+    });
+    const byLowerName = new Map(matches.map(m => [m.name.toLowerCase(), m]));
+
+    let linked = 0;
+    let unmatched = 0;
+    for (const name of toAdd) {
+      const match = byLowerName.get(name.toLowerCase());
+      const data = (match?.data ?? null) as { cr?: string; xp?: number } | null;
+      try {
+        await prisma.encounterPlanCreature.create({
+          data: {
+            planId,
+            name,
+            count: 1,
+            cr: data?.cr ?? null,
+            xp: data?.xp ?? null,
+            sourceType: match ? 'homebrew' : 'srd',
+            sourceId: match?.id ?? null,
+            statBlock: (match?.data as any) ?? undefined,
+          },
+        });
+        if (match) linked++; else unmatched++;
+      } catch {
+        // Race or constraint — re-read to confirm
+      }
+    }
+    return { linked, unmatched };
   }
 
   async ingestChapterProse({ chapterId, chapterSlug, sourceSlug, campaignIds, chunks }: {

@@ -81,19 +81,10 @@ export async function processChapterJob(
     }
   }
 
-  // ── H2 area shells (still useful as scene anchors; AI fills the detail) ──
-  if (isFirstSync) {
-    if (content.encounterAreas.length === 0) {
-      await sink.recordIssue({ chapterId, severity: 'info', message: 'No H2 encounter areas detected.' });
-    }
-    for (const campaignId of campaignIds) {
-      for (const area of content.encounterAreas) {
-        await sink.upsertEncounter({ campaignId, chapterId, chapterSlug, areaName: area });
-      }
-    }
-  }
-
   // ── AI: section-aware structured extraction ─────────────────────────────
+  // Note: we no longer create EncounterPlan rows from H2 headings — those
+  // were scene anchors, not combat encounters, and produced 80%+ noise.
+  // Real EncounterPlans come from AI extraction (with monster lists).
   if (content.sections.length === 0 || content.prose.length < 200) {
     await sink.recordIssue({
       chapterId,
@@ -177,6 +168,36 @@ export async function processChapterJob(
         itemType: item.type,
         rarity: item.rarity,
         description: item.description,
+      });
+    }
+    for (const spell of merged.spells ?? []) {
+      if (!spell.name?.trim()) continue;
+      await sink.upsertSpell({
+        userId,
+        chapterId,
+        sourceSlug,
+        name: spell.name,
+        level: spell.level,
+        school: spell.school,
+        castingTime: spell.castingTime,
+        range: spell.range,
+        components: spell.components,
+        duration: spell.duration,
+        description: spell.description,
+        higherLevels: spell.higherLevels,
+        classes: spell.classes,
+      });
+    }
+    for (const feat of merged.feats ?? []) {
+      if (!feat.name?.trim()) continue;
+      await sink.upsertFeat({
+        userId,
+        chapterId,
+        sourceSlug,
+        name: feat.name,
+        prerequisite: feat.prerequisite,
+        description: feat.description,
+        benefits: feat.benefits ?? [],
       });
     }
   }
