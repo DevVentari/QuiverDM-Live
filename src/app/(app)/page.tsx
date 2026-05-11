@@ -24,10 +24,42 @@ export default function HomePage() {
     { campaignId: active?.id ?? '' },
     { enabled: !!active?.id, staleTime: 60_000 },
   )
+  const { data: characters } = trpc.characters.getCampaignCharacters.useQuery(
+    { campaignId: active?.id ?? '' },
+    { enabled: !!active?.id, staleTime: 60_000 },
+  )
 
   const completedSessions = sessions?.filter((s) => s.status !== 'planning') ?? []
   const recentSessions = completedSessions.slice(0, 5)
   const planningFromList = sessions?.find((s) => s.status === 'planning') ?? null
+  const charactersList = (characters ?? []) as Array<{
+    id: string
+    status: string
+    character: {
+      id: string
+      name: string
+      portraitUrl: string | null
+      level: number | null
+    }
+  }>
+  const activeParty = charactersList
+    .filter((cc) => cc.status === 'ACTIVE')
+    .map((cc) => ({
+      id: cc.id,
+      characterId: cc.character.id,
+      name: cc.character.name,
+      portraitUrl: cc.character.portraitUrl,
+      level: cc.character.level,
+    }))
+  const pendingPartyCount = charactersList.filter((cc) => cc.status === 'PENDING').length
+  const levelValues = activeParty
+    .map((p) => p.level)
+    .filter((lvl): lvl is number => typeof lvl === 'number' && lvl > 0)
+  const partyLevel =
+    levelValues.length > 0
+      ? Math.round(levelValues.reduce((a, b) => a + b, 0) / levelValues.length)
+      : undefined
+  const isDM = active?.role === 'OWNER' || active?.role === 'CO_DM'
 
   useEffect(() => {
     if (!active) return
@@ -112,6 +144,11 @@ export default function HomePage() {
               npcCount={active.npcCount}
               locationCount={active.locationCount}
               itemCount={active.itemCount}
+              partyLevel={partyLevel}
+              levelTarget={partyLevel ? 20 : undefined}
+              party={activeParty}
+              pendingPartyCount={pendingPartyCount}
+              isDM={isDM}
             />
           </div>
         </div>
