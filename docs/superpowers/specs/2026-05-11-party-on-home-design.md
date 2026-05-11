@@ -11,7 +11,7 @@ In the V2 home mockup, player characters (PCs) have no presence on the home dash
 Two gaps:
 
 1. **Visibility** — `src/app/(app)/page.tsx` renders Hero / WorldActivity / RecentSessions / ActiveCampaignSummary / PrepReminders. None of them show the PCs.
-2. **Navigation** — Party lives only in the rail footer (`src/components/layout/command-rail.tsx:231-245`). It's not in the Campaign nav section that contains Overview and Sessions.
+2. **Navigation** — The V2 shell rail (`src/components/shell/CommandRail.tsx`) renders nav items from the `NAV_ITEMS` array (`:36-45`); Party is not in it. The route `/campaigns/{slug}/players` exists but has no rail entry, so the only way in is direct URL or the players page being a child of some other nav item.
 
 The `ActiveCampaignSummary` component (`src/components/home/ActiveCampaignSummary.tsx`) already has a `Shield` icon and a stubbed `Level X → Y` progress bar — the props are accepted but no caller passes them. That card was designed to host party state and is currently half-implemented.
 
@@ -37,14 +37,17 @@ Stat tiles stay 4-wide. The Party row carries enough visual weight on its own; a
 
 ### B. Rail promotion
 
-In `src/components/layout/command-rail.tsx`:
+In `src/components/shell/CommandRail.tsx`:
 
-- Add a `RailItem` for Party in the Campaign section, between Overview (`:184`) and Sessions (`:185`).
-  - `href={\`/campaigns/${campaignSlug}/players\`}`
-  - `label="Party"`
-  - `icon={Shield}` (already imported on `:11`)
-  - `isActive` when `pathname.startsWith(\`/campaigns/${campaignSlug}/players\`)`
-- Remove the Party `Link` block from the footer (`:231-245`). The footer becomes `ThemeToggle` + Settings only.
+- Import `Shield` from `lucide-react` (alongside the existing icon imports at `:7-19`).
+- Add a new entry to `NAV_ITEMS` (`:36-45`) for Party, positioned after `sessions` and before `npcs`:
+  ```ts
+  { id: 'party', label: 'Party', icon: Shield, scopedPath: '/players', fallbackHref: '/campaigns' },
+  ```
+- The existing `resolveHref` + `isActive` logic handles the rest (scoped to campaign, active when pathname starts with the resolved path).
+- The Link generated for this entry will automatically receive `data-testid="rail-nav-party"` from the existing template at `:142`.
+
+No footer changes — the shell rail has no Party footer link to remove (the legacy `src/components/layout/command-rail.tsx` is not the rail rendered by the V2 shell).
 
 ## Data
 
@@ -139,18 +142,44 @@ The single call site at `:107-115` adds the new props:
 
 `isDM` is already derived inline at `:39` for the header slot; reuse the same expression.
 
-## Rail change — `src/components/layout/command-rail.tsx`
+## Rail change — `src/components/shell/CommandRail.tsx`
 
-Inside the `inCampaign` branch (`:181-215`):
+Imports (`:7-19`) gain `Shield`:
 
 ```tsx
-<RailSectionLabel label="Campaign" pinned={pinned} />
-<RailItem href={`/campaigns/${campaignSlug}`}          label="Overview" icon={Home}         isActive={pathname === `/campaigns/${campaignSlug}`}                  pinned={pinned} />
-<RailItem href={`/campaigns/${campaignSlug}/players`}  label="Party"    icon={Shield}       isActive={pathname.startsWith(`/campaigns/${campaignSlug}/players`)} pinned={pinned} />
-<RailItem href={`/campaigns/${campaignSlug}/sessions`} label="Sessions" icon={CalendarDays} isActive={pathname.startsWith(`/campaigns/${campaignSlug}/sessions`)} pinned={pinned} />
+import {
+  Home,
+  ScrollText,
+  Calendar,
+  Users,
+  Library,
+  Map,
+  BookOpen,
+  Compass,
+  Settings,
+  Shield,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-react'
 ```
 
-Footer block at `:231-245` (the Party `Link`) is removed entirely. Footer keeps only `ThemeToggle` and the Settings link.
+`NAV_ITEMS` (`:36-45`) gains a Party entry between Sessions and NPCs:
+
+```ts
+const NAV_ITEMS: readonly NavItem[] = [
+  { id: 'home',       label: 'Home',       icon: Home,       globalHref: '/' },
+  { id: 'campaigns',  label: 'Campaigns',  icon: ScrollText, globalHref: '/campaigns' },
+  { id: 'sessions',   label: 'Sessions',   icon: Calendar,   scopedPath: '/sessions',  fallbackHref: '/campaigns' },
+  { id: 'party',      label: 'Party',      icon: Shield,     scopedPath: '/players',   fallbackHref: '/campaigns' },
+  { id: 'npcs',       label: 'NPCs',       icon: Users,      scopedPath: '/npcs',      fallbackHref: '/campaigns' },
+  { id: 'compendium', label: 'Compendium', icon: Library,    globalHref: '/homebrew' },
+  { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map', fallbackHref: '/campaigns' },
+  { id: 'world',      label: 'World',      icon: BookOpen,   scopedPath: '/world',     fallbackHref: '/campaigns' },
+  { id: 'quests',     label: 'Quests',     icon: Compass,    scopedPath: '/quests',    fallbackHref: '/campaigns' },
+] as const
+```
+
+`resolveHref` (`:51-55`) and the `activeId` computation (`:86-92`) already handle scoped paths and longest-prefix matching, so no further changes. The Link rendered for `id: 'party'` will pick up `data-testid="rail-nav-party"` from the template at `:142` automatically.
 
 ## Files
 
@@ -158,7 +187,7 @@ Footer block at `:231-245` (the Party `Link`) is removed entirely. Footer keeps 
 |--------|------|---------|
 | Modify | `src/app/(app)/page.tsx` | Fetch characters; derive `activeParty`, `pendingCount`, `partyLevel`; pass new props |
 | Modify | `src/components/home/ActiveCampaignSummary.tsx` | New props + party row + uses existing level progress |
-| Modify | `src/components/layout/command-rail.tsx` | Promote Party to Campaign nav, remove footer entry |
+| Modify | `src/components/shell/CommandRail.tsx` | Add Party to NAV_ITEMS, import Shield icon |
 | Modify | `tests/workflows/home.workflow.spec.ts` | Add assertions for party row (populated and empty states) |
 
 No new files. No schema changes. No tRPC changes.
