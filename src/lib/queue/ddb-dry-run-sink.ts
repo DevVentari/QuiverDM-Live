@@ -27,6 +27,8 @@ interface ChapterCapture {
   npcs: Array<{ id: string; campaignId: string; name: string; role?: string; description: string; location?: string }>;
   locations: Array<{ id: string; campaignId: string; name: string; locationType?: string; description: string; notable?: string }>;
   items: Array<{ id: string; userId: string; name: string; itemType?: string; rarity?: string; description: string }>;
+  spells: Array<{ id: string; userId: string; name: string; level: number; school: string; castingTime: string; range: string; components: string; duration: string; description: string; higherLevels?: string; classes?: string[] }>;
+  feats: Array<{ id: string; userId: string; name: string; prerequisite?: string; description: string; benefits: string[] }>;
   ai: AiAttemptRecord[];
   ragChunks: ProseChunk[];
   issues: Array<{ severity: string; message: string }>;
@@ -44,6 +46,8 @@ export interface DryRunSummary {
     monstersSkipped: number;
     encounters: number;
     items: number;
+    spells: number;
+    feats: number;
     npcs: number;
     locations: number;
     sectionsTotal: number;
@@ -61,6 +65,8 @@ export interface DryRunSummary {
     monstersSkipped: number;
     encounters: number;
     items: number;
+    spells: number;
+    feats: number;
     npcs: number;
     locations: number;
     aiSections: number;
@@ -102,6 +108,8 @@ export class DryRunWriteSink implements WriteSink {
       npcs: [],
       locations: [],
       items: [],
+      spells: [],
+      feats: [],
       ai: [],
       ragChunks: [],
       issues: [],
@@ -160,6 +168,42 @@ export class DryRunWriteSink implements WriteSink {
     const cap = this.getCapture(chapterId);
     const id = `dry-item-${randomUUID()}`;
     cap.items.push({ id, userId, name, itemType, rarity, description });
+    return { created: true, id };
+  }
+
+  async upsertSpell({ userId, chapterId, name, level, school, castingTime, range, components, duration, description, higherLevels, classes }: {
+    userId: string;
+    chapterId: string;
+    sourceSlug: string;
+    name: string;
+    level: number;
+    school: string;
+    castingTime: string;
+    range: string;
+    components: string;
+    duration: string;
+    description: string;
+    higherLevels?: string;
+    classes?: string[];
+  }): Promise<UpsertResult> {
+    const cap = this.getCapture(chapterId);
+    const id = `dry-spell-${randomUUID()}`;
+    cap.spells.push({ id, userId, name, level, school, castingTime, range, components, duration, description, higherLevels, classes });
+    return { created: true, id };
+  }
+
+  async upsertFeat({ userId, chapterId, name, prerequisite, description, benefits }: {
+    userId: string;
+    chapterId: string;
+    sourceSlug: string;
+    name: string;
+    prerequisite?: string;
+    description: string;
+    benefits: string[];
+  }): Promise<UpsertResult> {
+    const cap = this.getCapture(chapterId);
+    const id = `dry-feat-${randomUUID()}`;
+    cap.feats.push({ id, userId, name, prerequisite, description, benefits });
     return { created: true, id };
   }
 
@@ -278,6 +322,16 @@ export class DryRunWriteSink implements WriteSink {
     return { embedded: 0, skipped: chunks.length };
   }
 
+  async linkEncounterCreatures(_args: {
+    planId: string;
+    userId: string;
+    monsterNames: string[];
+  }): Promise<{ linked: number; unmatched: number }> {
+    // Dry-run captures the monster name list on the encounter row already.
+    // No DB-side resolution to perform.
+    return { linked: 0, unmatched: 0 };
+  }
+
   async flushChapter(chapterId: string): Promise<void> {
     const cap = this.getCapture(chapterId);
     const dir = path.join(this.outDir, 'chapters', cap.dirName);
@@ -288,6 +342,8 @@ export class DryRunWriteSink implements WriteSink {
       fs.writeFile(path.join(dir, 'monsters-skipped.json'), JSON.stringify(cap.monstersSkipped, null, 2)),
       fs.writeFile(path.join(dir, 'encounters.json'), JSON.stringify(cap.encounters, null, 2)),
       fs.writeFile(path.join(dir, 'items.json'), JSON.stringify(cap.items, null, 2)),
+      fs.writeFile(path.join(dir, 'spells.json'), JSON.stringify(cap.spells, null, 2)),
+      fs.writeFile(path.join(dir, 'feats.json'), JSON.stringify(cap.feats, null, 2)),
       fs.writeFile(
         path.join(dir, 'world-entities.json'),
         JSON.stringify({ npcs: cap.npcs, locations: cap.locations }, null, 2)
@@ -317,7 +373,7 @@ export class DryRunWriteSink implements WriteSink {
       '',
       `Status: ${cap.status ?? 'unknown'}`,
       `Final hash: ${cap.finalHash ?? '(not finalized)'}`,
-      `Counts: monsters=${cap.monsters.length} (skipped ${cap.monstersSkipped.length}), encounters=${cap.encounters.length}, items=${cap.items.length}, npcs=${cap.npcs.length}, locations=${cap.locations.length}`,
+      `Counts: monsters=${cap.monsters.length} (skipped ${cap.monstersSkipped.length}), encounters=${cap.encounters.length}, items=${cap.items.length}, spells=${cap.spells.length}, feats=${cap.feats.length}, npcs=${cap.npcs.length}, locations=${cap.locations.length}`,
       '',
       '## Issues',
     ];
@@ -389,6 +445,8 @@ export class DryRunWriteSink implements WriteSink {
         monstersSkipped: chapters.reduce((n, c) => n + c.monstersSkipped.length, 0),
         encounters: chapters.reduce((n, c) => n + c.encounters.length, 0),
         items: chapters.reduce((n, c) => n + c.items.length, 0),
+        spells: chapters.reduce((n, c) => n + c.spells.length, 0),
+        feats: chapters.reduce((n, c) => n + c.feats.length, 0),
         npcs: chapters.reduce((n, c) => n + c.npcs.length, 0),
         locations: chapters.reduce((n, c) => n + c.locations.length, 0),
         sectionsTotal: chapters.reduce((n, c) => n + c.ai.length, 0),
@@ -406,6 +464,8 @@ export class DryRunWriteSink implements WriteSink {
         monstersSkipped: c.monstersSkipped.length,
         encounters: c.encounters.length,
         items: c.items.length,
+        spells: c.spells.length,
+        feats: c.feats.length,
         npcs: c.npcs.length,
         locations: c.locations.length,
         aiSections: c.ai.length,
@@ -436,6 +496,8 @@ export class DryRunWriteSink implements WriteSink {
       `- NPCs: ${s.totals.npcs}`,
       `- Locations: ${s.totals.locations}`,
       `- Items: ${s.totals.items}`,
+      `- Spells: ${s.totals.spells}`,
+      `- Feats: ${s.totals.feats}`,
       `- AI sections: ${s.totals.sectionsTotal} total, ${s.totals.sectionsParsed} parsed, ${s.totals.sectionsFailed} failed`,
       `- Issues logged: ${s.totals.issues}`,
       '',
