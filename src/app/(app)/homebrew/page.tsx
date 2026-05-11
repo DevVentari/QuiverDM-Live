@@ -107,7 +107,7 @@ export default function HomebrewPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="flex flex-col gap-5 w-full">
           <div className="relative">
             <Search
