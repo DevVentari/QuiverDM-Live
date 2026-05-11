@@ -95,7 +95,7 @@ export function SignUpForm() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && (
-          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+          <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-[var(--q-text-danger)]">
             {error}
           </div>
         )}
@@ -144,7 +144,7 @@ export function SignUpForm() {
             />
             <button
               type="button"
-              className="absolute right-0 top-0 h-full px-3 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+              className="absolute right-0 top-0 h-full px-3 text-[var(--q-text-dim)]/50 hover:text-[var(--q-text-dim)] transition-colors"
               onClick={() => setShowPassword(!showPassword)}
               tabIndex={-1}
             >
@@ -171,12 +171,12 @@ export function SignUpForm() {
           />
           <div className="min-h-5 text-[11px]">
             {validateInvite.isPending ? (
-              <span className="inline-flex items-center gap-1 text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-[var(--q-text-dim)]">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Checking invite code...
               </span>
             ) : inviteStatus ? (
-              <span className={inviteStatus === 'Invite code is valid.' ? 'text-emerald-400' : 'text-destructive'}>
+              <span className={inviteStatus === 'Invite code is valid.' ? 'text-emerald-400' : 'text-[var(--q-text-danger)]'}>
                 {inviteStatus}
               </span>
             ) : null}

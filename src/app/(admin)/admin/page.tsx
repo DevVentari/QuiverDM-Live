@@ -46,7 +46,7 @@ export default function AdminOverviewPage() {
 
   if (overview.isError) {
     return (
-      <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
+      <div className="rounded-sm border border-destructive/40 bg-destructive/10 p-6 text-sm text-[var(--q-text-danger)]">
         Failed to load overview data.{' '}
         <button onClick={() => void overview.refetch()} className="underline">
           Retry
@@ -66,7 +66,7 @@ export default function AdminOverviewPage() {
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               Admin control over accounts, roles, and platform usage.
             </h1>
-            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-2 max-w-3xl text-sm text-[var(--q-text-dim)]">
               This console is separate from the player-facing app shell. It exposes database-backed health,
               account controls, and usage visibility without dropping you into raw SQL.
             </p>
@@ -108,7 +108,7 @@ export default function AdminOverviewPage() {
                 <CardDescription>Total Accounts</CardDescription>
                 <CardTitle className="text-3xl">{formatNumber(data?.totals.totalUsers ?? 0)}</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">
+              <CardContent className="text-xs text-[var(--q-text-dim)]">
                 {formatNumber(data?.totals.newUsersLast30Days ?? 0)} joined in the last 30 days.
               </CardContent>
             </Card>
@@ -117,7 +117,7 @@ export default function AdminOverviewPage() {
                 <CardDescription>Active Subscriptions</CardDescription>
                 <CardTitle className="text-3xl">{formatNumber(data?.totals.activeSubscriptions ?? 0)}</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">
+              <CardContent className="text-xs text-[var(--q-text-dim)]">
                 {formatNumber(data?.totals.suspendedUsers ?? 0)} accounts are suspended.
               </CardContent>
             </Card>
@@ -126,7 +126,7 @@ export default function AdminOverviewPage() {
                 <CardDescription>Worlds In Archive</CardDescription>
                 <CardTitle className="text-3xl">{formatNumber(data?.totals.totalCampaigns ?? 0)}</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">
+              <CardContent className="text-xs text-[var(--q-text-dim)]">
                 {formatNumber(data?.totals.totalSessions ?? 0)} sessions and {formatNumber(data?.totals.totalHomebrew ?? 0)} homebrew entries.
               </CardContent>
             </Card>
@@ -135,7 +135,7 @@ export default function AdminOverviewPage() {
                 <CardDescription>30 Day API Cost</CardDescription>
                 <CardTitle className="text-3xl">{formatCost(data?.usage.totalCost ?? 0)}</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">
+              <CardContent className="text-xs text-[var(--q-text-dim)]">
                 {formatNumber(data?.usage.totalRequests ?? 0)} requests in the last 30 days.
               </CardContent>
             </Card>
@@ -272,13 +272,13 @@ export default function AdminOverviewPage() {
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-medium text-foreground">{campaign.name}</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-[var(--q-text-dim)]">
                               Owner: {campaign.user.displayName ?? campaign.user.name ?? 'Unknown'}
                             </p>
                           </div>
                           <Badge variant="outline">{campaign.slug}</Badge>
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground">Updated {formatDate(campaign.updatedAt)}</p>
+                        <p className="mt-2 text-xs text-[var(--q-text-dim)]">Updated {formatDate(campaign.updatedAt)}</p>
                       </div>
                     ))}
               </div>
@@ -301,13 +301,13 @@ export default function AdminOverviewPage() {
                             <p className="font-medium text-foreground">
                               {session.title ?? `Session ${session.sessionNumber}`}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-[var(--q-text-dim)]">
                               {session.campaign.name} ({session.campaign.slug})
                             </p>
                           </div>
                           <Badge variant="secondary">{session.status}</Badge>
                         </div>
-                        <p className="mt-2 text-xs text-muted-foreground">Updated {formatDate(session.updatedAt)}</p>
+                        <p className="mt-2 text-xs text-[var(--q-text-dim)]">Updated {formatDate(session.updatedAt)}</p>
                       </div>
                     ))}
               </div>
@@ -325,28 +325,28 @@ export default function AdminOverviewPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <p className="mb-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">Platform Roles</p>
+              <p className="mb-3 text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Platform Roles</p>
               <div className="space-y-2">
                 {overview.isLoading
                   ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)
                   : data?.roleBreakdown.map((item) => (
                       <div key={item.role} className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 px-3 py-2">
                         <RoleBadge role={item.role} />
-                        <span className="text-sm text-muted-foreground">{formatNumber(item.count)}</span>
+                        <span className="text-sm text-[var(--q-text-dim)]">{formatNumber(item.count)}</span>
                       </div>
                     ))}
               </div>
             </div>
 
             <div>
-              <p className="mb-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">Plans</p>
+              <p className="mb-3 text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Plans</p>
               <div className="space-y-2">
                 {overview.isLoading
                   ? Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)
                   : data?.tierBreakdown.map((item) => (
                       <div key={item.tier} className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 px-3 py-2">
                         <span className="text-sm font-medium text-foreground">{PLAN_LABELS[item.tier] ?? item.tier}</span>
-                        <span className="text-sm text-muted-foreground">{formatNumber(item.count)}</span>
+                        <span className="text-sm text-[var(--q-text-dim)]">{formatNumber(item.count)}</span>
                       </div>
                     ))}
               </div>
@@ -372,7 +372,7 @@ export default function AdminOverviewPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium capitalize text-foreground">{provider.provider}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-[var(--q-text-dim)]">
                           {formatNumber(provider._sum.requestCount ?? 0)} requests, {formatNumber(provider._sum.tokensIn ?? 0)} in / {formatNumber(provider._sum.tokensOut ?? 0)} out
                         </p>
                       </div>
@@ -401,7 +401,7 @@ export default function AdminOverviewPage() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-foreground">{feature.feature}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-[var(--q-text-dim)]">
                           {formatNumber(feature._sum.requestCount ?? 0)} requests
                         </p>
                       </div>
@@ -435,13 +435,13 @@ export default function AdminOverviewPage() {
                   >
                     <div>
                       <p className="font-medium text-foreground">{user.displayName ?? user.name ?? user.email ?? 'Unnamed'}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-[var(--q-text-dim)]">
                         {user.email ?? 'No email'} · {PLATFORM_ROLE_LABELS[user.platformRole]}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground">{PLAN_LABELS[user.tier] ?? user.tier}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(user.createdAt)}</p>
+                      <p className="text-xs text-[var(--q-text-dim)]">{PLAN_LABELS[user.tier] ?? user.tier}</p>
+                      <p className="text-xs text-[var(--q-text-dim)]">{formatDate(user.createdAt)}</p>
                     </div>
                   </Link>
                 ))}
@@ -466,13 +466,13 @@ export default function AdminOverviewPage() {
                       <p className="font-medium text-foreground">
                         {entry.user?.displayName ?? entry.user?.name ?? entry.user?.email ?? entry.userId}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-[var(--q-text-dim)]">
                         {entry.user?.platformRole ? PLATFORM_ROLE_LABELS[entry.user.platformRole] : 'Unknown role'}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-medium text-primary">{formatCost(entry.estimatedCost)}</p>
-                      <p className="text-xs text-muted-foreground">{formatNumber(entry.requestCount)} requests</p>
+                      <p className="text-xs text-[var(--q-text-dim)]">{formatNumber(entry.requestCount)} requests</p>
                     </div>
                   </Link>
                 ))}

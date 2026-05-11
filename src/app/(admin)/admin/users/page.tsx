@@ -154,7 +154,7 @@ export default function AdminUsersPage() {
           <div>
             <span className="stone-card-title">Account Control</span>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Users</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-[var(--q-text-dim)]">
               Full admin access to platform accounts: inspect profiles, change roles, adjust plans, suspend access,
               and force password resets.
             </p>
@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
       </div>
 
       {usersQuery.isError && (
-        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-[var(--q-text-danger)]">
           Failed to load users.{' '}
           <button onClick={() => void usersQuery.refetch()} className="underline">
             Retry
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--q-text-dim)]" />
           <Input
             placeholder="Search users..."
             value={search}
@@ -215,7 +215,7 @@ export default function AdminUsersPage() {
             {selectedIds.size} selected
           </span>
           <button
-            className="text-sm text-muted-foreground underline"
+            className="text-sm text-[var(--q-text-dim)] underline"
             onClick={() => setSelectedIds(new Set())}
           >
             Clear
@@ -347,7 +347,7 @@ export default function AdminUsersPage() {
                         )}
                         <div>
                           <div className="font-medium text-foreground">{user.displayName ?? user.name ?? 'Unnamed'}</div>
-                          <div className="text-sm text-muted-foreground">{user.email ?? 'No email'}</div>
+                          <div className="text-sm text-[var(--q-text-dim)]">{user.email ?? 'No email'}</div>
                         </div>
                       </div>
                     </TableCell>
@@ -357,13 +357,13 @@ export default function AdminUsersPage() {
                     <TableCell>
                       <PlanBadge tier={user.tier} />
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-[var(--q-text-dim)]">
                       {user.suspended ? 'Suspended' : user.subscriptionStatus ?? 'No subscription'}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-[var(--q-text-dim)]">
                       {user._count.campaigns} owned / {user._count.campaignMemberships} member
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-[var(--q-text-dim)]">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
@@ -412,7 +412,7 @@ export default function AdminUsersPage() {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            className="text-destructive"
+                            className="text-[var(--q-text-danger)]"
                             onClick={() => suspend.mutate({ userId: user.id, suspended: !user.suspended })}
                           >
                             <Ban className="mr-2 h-4 w-4" />

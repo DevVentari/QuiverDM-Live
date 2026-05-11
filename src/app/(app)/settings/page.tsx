@@ -52,7 +52,7 @@ export default function SettingsOverviewPage() {
                 <h2 className="font-display text-2xl font-bold tracking-[0.04em] text-foreground">
                   {profile.data?.displayName || profile.data?.name || 'Your archive'}
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--q-text-dim)]">
                   This is the quickest read on your QuiverDM setup: who you are, which engines are connected,
                   and whether the archive is ready for session prep.
                 </p>
@@ -126,7 +126,7 @@ export default function SettingsOverviewPage() {
           <div>
             <p className="label-overline">Recommended Path</p>
             <h3 className="mt-2 font-display text-xl font-semibold text-foreground">Configure the archive in this order</h3>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <p className="mt-2 max-w-2xl text-sm text-[var(--q-text-dim)]">
               Connect an AI provider first, link D&D Beyond if you use owned content, then tune appearance once the practical setup is done.
             </p>
           </div>
@@ -172,7 +172,7 @@ function OverviewCard({
           <p className="label-overline">{eyebrow}</p>
           <div>
             <h3 className="font-display text-xl font-semibold text-foreground">{title}</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+            <p className="mt-2 text-sm leading-relaxed text-[var(--q-text-dim)]">{description}</p>
           </div>
         </div>
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-amber-500/15 bg-amber-500/[0.05] text-amber-300 transition-transform group-hover:-translate-y-0.5">
@@ -180,7 +180,7 @@ function OverviewCard({
         </div>
       </div>
       <div className="mt-5 flex items-center justify-between border-t border-border/50 pt-4">
-        <span className="text-xs text-muted-foreground">{meta}</span>
+        <span className="text-xs text-[var(--q-text-dim)]">{meta}</span>
         <span className="inline-flex items-center gap-2 text-sm font-medium text-amber-300">
           Open
           <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -201,9 +201,9 @@ function StatusPill({
 }) {
   return (
     <div className="rounded-xl border border-border/50 bg-background/30 px-4 py-3">
-      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+      <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--q-text-dim)]">{label}</p>
       <div className="mt-2 font-display text-xl font-semibold text-foreground">{value}</div>
-      <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
+      <p className="mt-1 text-xs text-[var(--q-text-dim)]">{helper}</p>
     </div>
   );
 }

@@ -63,13 +63,13 @@ export default async function AdminLayout({
                 </div>
                 <div className="rounded-xl border border-border/60 bg-card/40 p-4">
                   <div className="mb-2 flex items-center justify-between gap-3">
-                    <span className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                    <span className="text-xs uppercase tracking-[0.24em] text-[var(--q-text-dim)]">
                       Signed In
                     </span>
                     <RoleBadge role={user.platformRole} />
                   </div>
                   <p className="text-sm font-medium text-foreground">{displayName}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-[var(--q-text-dim)]">
                     Platform-only controls, account authority, and database-backed usage visibility.
                   </p>
                 </div>
@@ -77,7 +77,7 @@ export default async function AdminLayout({
 
               <AdminNav role={user.platformRole} />
 
-              <div className="rounded-xl border border-primary/15 bg-primary/[0.05] p-4 text-sm text-muted-foreground">
+              <div className="rounded-xl border border-primary/15 bg-primary/[0.05] p-4 text-sm text-[var(--q-text-dim)]">
                 <div className="mb-2 flex items-center gap-2 text-primary">
                   <Sparkles className="h-4 w-4" />
                   <span className="font-medium">Admin Boundary</span>

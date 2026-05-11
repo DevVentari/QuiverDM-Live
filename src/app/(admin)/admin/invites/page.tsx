@@ -170,7 +170,7 @@ export default function AdminInvitesPage() {
               <Ticket className="h-7 w-7 text-primary" />
               Beta Invite Codes
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-[var(--q-text-dim)]">
               Generate and manage invite codes from the standalone admin console.
             </p>
           </div>
@@ -367,7 +367,7 @@ export default function AdminInvitesPage() {
               </div>
 
               {!allCodes || filteredCodes.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground">No codes match this filter.</div>
+                <div className="py-8 text-center text-[var(--q-text-dim)]">No codes match this filter.</div>
               ) : (
                 <Table>
                   <TableHeader>
@@ -393,7 +393,7 @@ export default function AdminInvitesPage() {
                               {status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{formatDate(code.createdAt)}</TableCell>
+                          <TableCell className="text-sm text-[var(--q-text-dim)]">{formatDate(code.createdAt)}</TableCell>
                           <TableCell>
                             {code.expiresAt ? (
                               <Badge variant={new Date(code.expiresAt) < new Date() && !code.usedBy ? 'destructive' : 'secondary'}>
@@ -403,7 +403,7 @@ export default function AdminInvitesPage() {
                               <Badge variant="outline">Never</Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{formatDate(code.usedAt)}</TableCell>
+                          <TableCell className="text-sm text-[var(--q-text-dim)]">{formatDate(code.usedAt)}</TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" onClick={() => copyToClipboard(code.code)} aria-label="Copy invite code">
                               {copiedCode === code.code ? (

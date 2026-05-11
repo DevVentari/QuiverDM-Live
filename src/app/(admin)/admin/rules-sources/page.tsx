@@ -33,12 +33,12 @@ export default function RulesSourcesPage() {
   });
 
   if (isLoading) {
-    return <div className="p-6 text-sm text-muted-foreground">Loading...</div>;
+    return <div className="p-6 text-sm text-[var(--q-text-dim)]">Loading...</div>;
   }
 
   if (isError) {
     return (
-      <div className="p-6 text-sm text-destructive">
+      <div className="p-6 text-sm text-[var(--q-text-danger)]">
         Failed to load rules sources. Ensure your account has admin access.
       </div>
     );
@@ -52,7 +52,7 @@ export default function RulesSourcesPage() {
             <BookOpen className="h-5 w-5 text-primary" />
             <h1 className="text-2xl font-bold">Rules Sources</h1>
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-[var(--q-text-dim)]">
             Mark PDFs as rules sources so the in-session Rules Companion can search them.
           </p>
         </div>
@@ -69,7 +69,7 @@ export default function RulesSourcesPage() {
                 <div>
                   <p className="text-sm font-medium">{pdf.filename}</p>
                   {pdf.indexedAt && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-[var(--q-text-dim)]">
                       Indexed {format(new Date(pdf.indexedAt), 'MMM d, yyyy')}
                     </p>
                   )}
@@ -113,7 +113,7 @@ export default function RulesSourcesPage() {
         })}
 
         {pdfs?.length === 0 && (
-          <p className="text-sm text-muted-foreground">No PDFs uploaded yet.</p>
+          <p className="text-sm text-[var(--q-text-dim)]">No PDFs uploaded yet.</p>
         )}
       </div>
     </div>

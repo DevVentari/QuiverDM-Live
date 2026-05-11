@@ -30,7 +30,7 @@ export default function AdminHealthPage() {
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               Queue Depths &amp; Database State
             </h1>
-            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-2 max-w-3xl text-sm text-[var(--q-text-dim)]">
               Live BullMQ queue status and database row counts. Auto-refreshes every 30 seconds.
             </p>
           </div>
@@ -47,7 +47,7 @@ export default function AdminHealthPage() {
       </section>
 
       {health.isError && (
-        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+        <div className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-[var(--q-text-danger)]">
           Failed to load health data.{' '}
           <button onClick={() => void health.refetch()} className="underline">
             Retry
@@ -59,7 +59,7 @@ export default function AdminHealthPage() {
         <div className="mb-4 flex items-center gap-2">
           <Layers className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">Queue Health</h2>
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-[var(--q-text-dim)]">
             ({health.data?.queues.length ?? 0} queues)
           </span>
         </div>
@@ -102,7 +102,7 @@ export default function AdminHealthPage() {
                         </Badge>
                       )}
                       {queue.delayed > 0 && (
-                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                        <Badge variant="outline" className="text-xs text-[var(--q-text-dim)]">
                           {queue.delayed} delayed
                         </Badge>
                       )}
@@ -148,7 +148,7 @@ export default function AdminHealthPage() {
               ))
             : health.data?.tableCounts.map((row) => (
                 <div key={row.table} className="rounded-lg border border-border/50 bg-card/40 p-3">
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">{row.table}</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">{row.table}</p>
                   <p className="mt-1 text-lg font-semibold text-foreground">{row.count.toLocaleString()}</p>
                 </div>
               ))}
@@ -157,7 +157,7 @@ export default function AdminHealthPage() {
 
       <section>
         <div className="mb-4 flex items-center gap-2">
-          <XCircle className="h-5 w-5 text-destructive" />
+          <XCircle className="h-5 w-5 text-[var(--q-text-danger)]" />
           <h2 className="text-lg font-semibold text-foreground">Recent Failed Jobs</h2>
         </div>
 
@@ -170,7 +170,7 @@ export default function AdminHealthPage() {
                 ))}
               </div>
             ) : !health.data?.recentFailed.length ? (
-              <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 py-4 text-sm text-[var(--q-text-dim)]">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
                 No failed jobs across all queues.
               </div>
@@ -181,10 +181,10 @@ export default function AdminHealthPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline" className="font-mono text-xs">{job.queue}</Badge>
                       <span className="text-sm font-medium text-foreground">{job.jobName}</span>
-                      <span className="ml-auto text-xs text-muted-foreground">{timeAgo(job.failedAt)}</span>
+                      <span className="ml-auto text-xs text-[var(--q-text-dim)]">{timeAgo(job.failedAt)}</span>
                     </div>
                     {job.error && (
-                      <p className="mt-2 font-mono text-xs text-destructive/80 line-clamp-2">{job.error}</p>
+                      <p className="mt-2 font-mono text-xs text-[var(--q-text-danger)]/80 line-clamp-2">{job.error}</p>
                     )}
                   </div>
                 ))}

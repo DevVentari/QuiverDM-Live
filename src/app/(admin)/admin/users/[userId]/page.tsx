@@ -127,7 +127,7 @@ export default function AdminUserDetailPage({
         <div>
           <Link
             href="/admin/users"
-            className="mb-3 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="mb-3 inline-flex items-center gap-2 text-sm text-[var(--q-text-dim)] transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to users
@@ -135,11 +135,11 @@ export default function AdminUserDetailPage({
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             {user?.displayName ?? user?.name ?? user?.email ?? 'User Detail'}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-[var(--q-text-dim)]">
             Database-backed account inspection, role authority, usage counters, and recent platform activity.
           </p>
           {detail.isError && (
-            <div className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-[var(--q-text-danger)]">
               Failed to load user details.{' '}
               <button onClick={() => void detail.refetch()} className="underline">
                 Retry
@@ -203,7 +203,7 @@ export default function AdminUserDetailPage({
                 <CardDescription>API Cost</CardDescription>
                 <CardTitle className="text-xl">{formatCost(apiSummary?.estimatedCost ?? 0)}</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">
+              <CardContent className="text-xs text-[var(--q-text-dim)]">
                 {(apiSummary?.requestCount ?? 0).toLocaleString()} requests across {(apiSummary?.logCount ?? 0).toLocaleString()} logs.
               </CardContent>
             </Card>
@@ -212,7 +212,7 @@ export default function AdminUserDetailPage({
                 <CardDescription>Account State</CardDescription>
                 <CardTitle className="text-xl">{user?.suspended ? 'Suspended' : 'Active'}</CardTitle>
               </CardHeader>
-              <CardContent className="text-xs text-muted-foreground">
+              <CardContent className="text-xs text-[var(--q-text-dim)]">
                 Subscription: {user?.subscriptionStatus ?? 'None'}
               </CardContent>
             </Card>
@@ -230,27 +230,27 @@ export default function AdminUserDetailPage({
             <div className="rounded-lg border border-border/50 bg-background/40 p-4">
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Email</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Email</p>
                   <p className="mt-1 text-foreground">{user?.email ?? 'None'}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Display Name</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Display Name</p>
                   <p className="mt-1 text-foreground">{user?.displayName ?? 'None'}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Joined</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Joined</p>
                   <p className="mt-1 text-foreground">{formatDate(user?.createdAt)}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Updated</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Updated</p>
                   <p className="mt-1 text-foreground">{formatDate(user?.updatedAt)}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Subscription Ends</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Subscription Ends</p>
                   <p className="mt-1 text-foreground">{formatDate(user?.subscriptionEndsAt)}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Onboarding</p>
+                  <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Onboarding</p>
                   <p className="mt-1 text-foreground">{user?.onboardingCompleted ? 'Completed' : 'Not completed'}</p>
                 </div>
               </div>
@@ -279,7 +279,7 @@ export default function AdminUserDetailPage({
               <div className="grid gap-2 md:grid-cols-2">
                 {detail.data?.apiKeys.map((key) => (
                   <div key={key.name} className="flex items-center justify-between rounded-md border border-border/50 px-3 py-2">
-                    <span className="text-muted-foreground">{key.label}</span>
+                    <span className="text-[var(--q-text-dim)]">{key.label}</span>
                     <Badge variant={key.present ? 'secondary' : 'outline'}>
                       {key.present ? 'Present' : 'Missing'}
                     </Badge>
@@ -298,17 +298,17 @@ export default function AdminUserDetailPage({
           <CardContent className="space-y-6">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               <div className="rounded-lg border border-border/50 bg-background/40 p-3">
-                <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Campaigns Owned</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Campaigns Owned</p>
                 <p className="mt-2 text-lg font-semibold text-foreground">{detail.data?.usage.campaignsOwned ?? 0}</p>
               </div>
               <div className="rounded-lg border border-border/50 bg-background/40 p-3">
-                <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">PDF Uploads</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">PDF Uploads</p>
                 <p className="mt-2 text-lg font-semibold text-foreground">
                   {detail.data?.usage.pdfUploads ?? 0} / {detail.data?.usage.pdfUploadLimit ?? -1}
                 </p>
               </div>
               <div className="rounded-lg border border-border/50 bg-background/40 p-3">
-                <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">AI Recaps</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">AI Recaps</p>
                 <p className="mt-2 text-lg font-semibold text-foreground">
                   {detail.data?.usage.aiRecaps ?? 0} / {detail.data?.usage.aiRecapLimit ?? -1}
                 </p>
@@ -328,11 +328,11 @@ export default function AdminUserDetailPage({
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-foreground">{campaign.name}</p>
-                        <p className="text-xs text-muted-foreground">{campaign.slug}</p>
+                        <p className="text-xs text-[var(--q-text-dim)]">{campaign.slug}</p>
                       </div>
                       <Badge variant="secondary">{campaign.status}</Badge>
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
+                    <p className="mt-2 text-xs text-[var(--q-text-dim)]">
                       {campaign._count.gameSessions} sessions · updated {formatDate(campaign.updatedAt)}
                     </p>
                   </div>
@@ -355,7 +355,7 @@ export default function AdminUserDetailPage({
                   <TableBody>
                     {detail.data?.recentApiUsage.map((log) => (
                       <TableRow key={log.id}>
-                        <TableCell className="text-xs text-muted-foreground">{formatDate(log.createdAt)}</TableCell>
+                        <TableCell className="text-xs text-[var(--q-text-dim)]">{formatDate(log.createdAt)}</TableCell>
                         <TableCell className="capitalize">{log.provider}</TableCell>
                         <TableCell>{log.feature}</TableCell>
                         <TableCell className="text-right text-primary">{formatCost(log.estimatedCost)}</TableCell>

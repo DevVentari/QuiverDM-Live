@@ -34,7 +34,7 @@ export function ForgotPasswordForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">
-          <Link href="/auth/signin" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/auth/signin" className="text-sm text-[var(--q-text-dim)] hover:text-foreground">
             Back to sign in
           </Link>
         </CardContent>
@@ -54,7 +54,7 @@ export function ForgotPasswordForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {requestReset.error && (
-            <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-md border border-destructive/20 bg-destructive/10 p-3 text-sm text-[var(--q-text-danger)]">
               {requestReset.error.message}
             </div>
           )}
@@ -73,7 +73,7 @@ export function ForgotPasswordForm() {
           <Button type="submit" className="w-full" disabled={requestReset.isPending}>
             {requestReset.isPending ? 'Sending...' : 'Send reset link'}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-[var(--q-text-dim)]">
             <Link href="/auth/signin" className="hover:text-foreground">
               Back to sign in
             </Link>

@@ -101,7 +101,7 @@ export default function AdminApiUsagePage() {
           <div>
             <span className="stone-card-title">Usage Tracker</span>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">Platform API Usage</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-[var(--q-text-dim)]">
               Cost and usage across all users, with quick drill-down into which accounts and features are consuming tokens.
             </p>
           </div>
@@ -121,8 +121,8 @@ export default function AdminApiUsagePage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card className="border-border/60 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Cost</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">Total Cost</CardTitle>
+            <DollarSign className="h-4 w-4 text-[var(--q-text-dim)]" />
           </CardHeader>
           <CardContent>
             {summary.isLoading ? (
@@ -134,8 +134,8 @@ export default function AdminApiUsagePage() {
         </Card>
         <Card className="border-border/60 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Requests</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">Total Requests</CardTitle>
+            <Zap className="h-4 w-4 text-[var(--q-text-dim)]" />
           </CardHeader>
           <CardContent>
             {summary.isLoading ? (
@@ -147,8 +147,8 @@ export default function AdminApiUsagePage() {
         </Card>
         <Card className="border-border/60 bg-card/50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Tracked Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">Tracked Users</CardTitle>
+            <Users className="h-4 w-4 text-[var(--q-text-dim)]" />
           </CardHeader>
           <CardContent>
             {byUser.isLoading ? (
@@ -160,7 +160,7 @@ export default function AdminApiUsagePage() {
         </Card>
         <Card className="border-border/60 bg-card/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">
               Top Provider{topProvider ? `: ${PROVIDER_LABELS[topProvider.provider] ?? topProvider.provider}` : ''}
             </CardTitle>
           </CardHeader>
@@ -170,10 +170,10 @@ export default function AdminApiUsagePage() {
             ) : topProvider ? (
               <>
                 <div className="text-2xl font-bold">{formatCost(topProvider._sum.estimatedCost ?? 0)}</div>
-                <div className="text-xs text-muted-foreground">{(topProvider._sum.requestCount ?? 0).toLocaleString()} requests</div>
+                <div className="text-xs text-[var(--q-text-dim)]">{(topProvider._sum.requestCount ?? 0).toLocaleString()} requests</div>
               </>
             ) : (
-              <div className="text-2xl font-bold text-muted-foreground">—</div>
+              <div className="text-2xl font-bold text-[var(--q-text-dim)]">—</div>
             )}
           </CardContent>
         </Card>
@@ -290,7 +290,7 @@ export default function AdminApiUsagePage() {
                         <TableCell>
                           <Link href={`/admin/users/${user.id}`} className="block">
                             <div className="font-medium text-foreground">{user.displayName ?? user.name ?? 'Unnamed'}</div>
-                            <div className="text-sm text-muted-foreground">{user.email}</div>
+                            <div className="text-sm text-[var(--q-text-dim)]">{user.email}</div>
                           </Link>
                         </TableCell>
                         <TableCell>{user.platformRole && <RoleBadge role={user.platformRole} />}</TableCell>
@@ -309,7 +309,7 @@ export default function AdminApiUsagePage() {
                                 <div className="space-y-1">
                                   {userDetail.data.byFeature.map((feature) => (
                                     <div key={feature.feature} className="flex justify-between text-sm">
-                                      <span className="text-muted-foreground">{feature.feature}</span>
+                                      <span className="text-[var(--q-text-dim)]">{feature.feature}</span>
                                       <span>{formatCost(feature._sum.estimatedCost ?? 0)}</span>
                                     </div>
                                   ))}
@@ -320,7 +320,7 @@ export default function AdminApiUsagePage() {
                                 <div className="space-y-1">
                                   {userDetail.data.byModel.map((model) => (
                                     <div key={`${model.model}-${model.provider}`} className="flex justify-between text-sm">
-                                      <span className="text-muted-foreground">{model.model}</span>
+                                      <span className="text-[var(--q-text-dim)]">{model.model}</span>
                                       <span>{formatCost(model._sum.estimatedCost ?? 0)}</span>
                                     </div>
                                   ))}
