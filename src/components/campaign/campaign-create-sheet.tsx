@@ -85,6 +85,24 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
   const [ddbUrl, setDdbUrl] = useState('');
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureTemplate | null>(null);
   const [selectedWorldSourcebook, setSelectedWorldSourcebook] = useState<WorldSourcebook | null>(null);
+  const [selectedDdbSourcebookId, setSelectedDdbSourcebookId] = useState<string | null>(null);
+
+  const ddbEntitlementsQuery = trpc.ddbSync.getEntitlements.useQuery(undefined, {
+    staleTime: 5 * 60_000,
+  });
+  const ddbSourcebooks = (ddbEntitlementsQuery.data ?? [])
+    .filter((e: any) => e.sourcebook?.id)
+    .map((e: any) => ({ id: e.sourcebook.id as string, title: e.title as string, slug: e.slug as string }));
+
+  const linkDdbSourcebook = trpc.ddbSync.linkSourcebookToCampaign.useMutation({
+    onError: () => {
+      toast({
+        title: 'Sourcebook link failed',
+        description: 'Campaign created but the sourcebook could not be linked. Try again from the Compendium.',
+        variant: 'destructive',
+      });
+    },
+  });
   const [startingLocation, setStartingLocation] = useState('');
   const [antagonistName, setAntagonistName] = useState('');
   const [openingHook, setOpeningHook] = useState('');
@@ -138,6 +156,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       setDdbUrl('');
       setSelectedAdventure(null);
       setSelectedWorldSourcebook(null);
+      setSelectedDdbSourcebookId(null);
       setStartingLocation('');
       setAntagonistName('');
       setOpeningHook('');
@@ -197,6 +216,10 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
 
     if (selectedWorldSourcebook) {
       seedFromWorldSourcebook.mutate({ campaignId: campaign.id, sourceSlug: selectedWorldSourcebook.sourceSlug });
+    }
+
+    if (selectedDdbSourcebookId) {
+      linkDdbSourcebook.mutate({ campaignId: campaign.id, sourcebookId: selectedDdbSourcebookId });
     }
 
     const shouldSeed =
@@ -357,6 +380,42 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                   Links your party — imports characters automatically
                 </p>
               </div>
+
+              {ddbSourcebooks.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground/50">
+                    <div className="h-px flex-1 bg-border/30" />
+                    <span>or use a sourcebook you own</span>
+                    <div className="h-px flex-1 bg-border/30" />
+                  </div>
+
+                  <Label>D&amp;D Beyond Sourcebook</Label>
+                  <div className="flex flex-col gap-2">
+                    {ddbSourcebooks.map((sb) => (
+                      <button
+                        key={sb.id}
+                        type="button"
+                        onClick={() => setSelectedDdbSourcebookId(selectedDdbSourcebookId === sb.id ? null : sb.id)}
+                        className={cn(
+                          'text-left p-3 rounded-md border text-xs transition-colors',
+                          selectedDdbSourcebookId === sb.id
+                            ? 'border-amber-500/60 bg-amber-500/10 text-amber-200'
+                            : 'border-border/40 bg-card/30 text-muted-foreground hover:border-amber-500/30',
+                        )}
+                        data-testid={`create-ddb-sb-${sb.slug}`}
+                      >
+                        <div className="font-medium text-foreground/80">{sb.title}</div>
+                        <div className="text-muted-foreground/60 mt-0.5 leading-snug">
+                          Links the new campaign to this sourcebook&apos;s imported items + creatures
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Links your owned D&amp;D Beyond sourcebook so the Compendium shows its content by default
+                  </p>
+                </div>
+              )}
 
               {WORLD_SOURCEBOOKS.length > 0 && (
                 <div className="space-y-2">
