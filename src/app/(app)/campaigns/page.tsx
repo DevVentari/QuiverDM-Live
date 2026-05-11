@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
 import { CampaignCreateSheet } from '@/components/campaign/campaign-create-sheet'
+import { Card, Section, Surface } from '@/components/primitives'
 import { cn } from '@/lib/utils'
 
 function CampaignsPageInner() {
@@ -93,71 +94,77 @@ function CampaignsPageInner() {
       )}
 
       <div className="mx-auto max-w-[1400px] px-6 py-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="font-[var(--q-font-display)] text-2xl tracking-wide text-[var(--q-text)]">
-            Campaigns
-          </h1>
-          <Button onClick={() => setCreateOpen(true)} data-testid="new-campaign-cta">
-            <Plus size={16} className="mr-2" />
-            New Campaign
-          </Button>
-        </div>
-
-        {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-44 w-full" />
-            ))}
-          </div>
-        ) : !memberships || memberships.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-sm border border-[var(--q-border-subtle)] py-24 text-center">
-            <p className="font-[var(--q-font-display)] text-sm uppercase tracking-[2px] text-[var(--q-text-faint)]">
-              No campaigns yet
-            </p>
-            <Button className="mt-6" onClick={() => setCreateOpen(true)}>
-              Create your first campaign
+        <Section
+          label="Library"
+          title="Campaigns"
+          tone="ceremonial"
+          action={
+            <Button onClick={() => setCreateOpen(true)} data-testid="new-campaign-cta">
+              <Plus size={16} className="mr-2" />
+              New Campaign
             </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {memberships.map((c) => {
-              const isActive = c.id === active?.id
-              const isOwner = c.role === 'OWNER'
-              return (
-                <div
-                  key={c.id}
-                  data-testid={`campaign-card-${c.slug}`}
-                  className={cn(
-                    'group relative flex flex-col overflow-hidden rounded-sm border bg-[var(--q-surface)] transition-colors',
-                    isActive
-                      ? 'border-[var(--q-amber-dim)]'
-                      : 'border-[var(--q-border-subtle)] hover:border-[var(--q-amber-trace)]',
-                  )}
-                >
-                  {isActive && (
-                    <span className="absolute right-3 top-3 rounded-sm bg-[var(--q-amber-trace)] px-2 py-0.5 text-[10px] uppercase tracking-[2px] text-[var(--q-amber)]">
-                      Active
-                    </span>
-                  )}
-
-                  <Link
-                    href={`/campaigns/${c.slug}/sessions`}
-                    className="flex flex-1 flex-col gap-2 p-5"
-                  >
-                    <p className="font-[var(--q-font-display)] text-lg text-[var(--q-text)]">
-                      {c.name}
-                    </p>
-                    <p className="text-xs text-[var(--q-text-faint)]">
-                      {c.role} · {c.sessionCount ?? 0} sessions
-                    </p>
-                    {c.lastSessionDate && (
-                      <p className="mt-auto text-[11px] text-[var(--q-text-faint)]">
-                        Last played {new Date(c.lastSessionDate).toLocaleDateString()}
-                      </p>
+          }
+        >
+          {isLoading ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-44 w-full" />
+              ))}
+            </div>
+          ) : !memberships || memberships.length === 0 ? (
+            <Card
+              variant="detail"
+              className="flex flex-col items-center justify-center gap-6 py-24 text-center"
+            >
+              <p className="font-[var(--q-font-display)] text-sm uppercase tracking-[2px] text-[var(--q-text-faint)]">
+                No campaigns yet
+              </p>
+              <Button onClick={() => setCreateOpen(true)}>
+                Create your first campaign
+              </Button>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {memberships.map((c) => {
+                const isActive = c.id === active?.id
+                const isOwner = c.role === 'OWNER'
+                return (
+                  <Surface
+                    key={c.id}
+                    variant={isActive ? 'feature' : 'utility'}
+                    grain={isActive}
+                    data-testid={`campaign-card-${c.slug}`}
+                    className={cn(
+                      'group relative flex flex-col overflow-hidden',
+                      isActive
+                        ? 'border-[var(--q-amber-border)]'
+                        : 'hover:border-[var(--q-amber-trace)]',
                     )}
-                  </Link>
+                  >
+                    {isActive && (
+                      <span className="absolute right-3 top-3 rounded-sm bg-[var(--q-amber-trace)] px-2 py-0.5 text-[10px] uppercase tracking-[2px] text-[var(--q-amber)]">
+                        Active
+                      </span>
+                    )}
 
-                  <div className="flex items-center justify-end border-t border-[var(--q-border-subtle)] px-3 py-2">
+                    <Link
+                      href={`/campaigns/${c.slug}/sessions`}
+                      className="flex flex-1 flex-col gap-2 p-5"
+                    >
+                      <p className="font-[var(--q-font-display)] text-lg text-[var(--q-text)]">
+                        {c.name}
+                      </p>
+                      <p className="text-xs text-[var(--q-text-faint)]">
+                        {c.role} · {c.sessionCount ?? 0} sessions
+                      </p>
+                      {c.lastSessionDate && (
+                        <p className="mt-auto text-[11px] text-[var(--q-text-faint)]">
+                          Last played {new Date(c.lastSessionDate).toLocaleDateString()}
+                        </p>
+                      )}
+                    </Link>
+
+                    <div className="flex items-center justify-end border-t border-[var(--q-border-subtle)] px-3 py-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
@@ -203,11 +210,12 @@ function CampaignsPageInner() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-                </div>
+                </Surface>
               )
             })}
           </div>
         )}
+        </Section>
       </div>
 
       <CampaignCreateSheet open={createOpen} onOpenChange={setCreateOpen} />
