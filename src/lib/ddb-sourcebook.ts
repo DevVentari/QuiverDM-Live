@@ -170,6 +170,13 @@ export interface MonsterLink {
   url: string;
 }
 
+export interface MagicItemLink {
+  ddbId: string;
+  slug: string;
+  name: string;
+  url: string;
+}
+
 export interface ChapterSection {
   heading: string;
   text: string;
@@ -188,6 +195,7 @@ export interface ChapterImage {
 
 export interface ChapterContent {
   monsterLinks: MonsterLink[];
+  magicItemLinks: MagicItemLink[];
   encounterAreas: string[];
   sections: ChapterSection[];
   images: ChapterImage[];
@@ -209,6 +217,17 @@ export function parseChapterContent(html: string): ChapterContent {
     const [, ddbId, slug] = match;
     if (!monsterMap.has(ddbId)) {
       monsterMap.set(ddbId, { ddbId, slug, name: $(el).text().trim(), url: href });
+    }
+  });
+
+  const magicItemMap = new Map<string, MagicItemLink>();
+  content.find('a[href*="/magic-items/"]').each((_, el) => {
+    const href = $(el).attr('href') ?? '';
+    const match = href.match(/\/magic-items\/(\d+)-([^/?#]+)/);
+    if (!match) return;
+    const [, ddbId, slug] = match;
+    if (!magicItemMap.has(ddbId)) {
+      magicItemMap.set(ddbId, { ddbId, slug, name: $(el).text().trim(), url: href });
     }
   });
 
@@ -278,7 +297,15 @@ export function parseChapterContent(html: string): ChapterContent {
   const prose = content.text().replace(/\s+/g, ' ').trim();
   const contentHash = crypto.createHash('sha256').update(prose).digest('hex');
 
-  return { monsterLinks: Array.from(monsterMap.values()), encounterAreas, sections, images, prose, contentHash };
+  return {
+    monsterLinks: Array.from(monsterMap.values()),
+    magicItemLinks: Array.from(magicItemMap.values()),
+    encounterAreas,
+    sections,
+    images,
+    prose,
+    contentHash,
+  };
 }
 
 export async function fetchChapterContent(
@@ -420,6 +447,59 @@ export async function fetchMonsterData(
   }
 
   return { ok: true, via, data: parsed };
+}
+
+// ─── Magic item page ─────────────────────────────────────────────────────────
+
+import { parseMagicItemHtml, type DdbMagicItemData } from './ddb-magic-item-parser';
+export type { DdbMagicItemData } from './ddb-magic-item-parser';
+
+export type FetchMagicItemResult =
+  | { ok: true; data: DdbMagicItemData; via: 'jwt' | 'cookie' }
+  | { ok: false; reason: string; via?: 'jwt' | 'cookie'; finalUrl?: string };
+
+/**
+ * Fetch a DDB magic item page. Mirrors fetchMonsterData's auth-fallback
+ * pattern: try JWT first (fast, no cookie roundtrip), fall back to cookie
+ * if the JWT path redirects or rejects.
+ */
+export async function fetchMagicItemData(
+  ddbId: string,
+  slug: string,
+  cobaltJwt: string,
+  cobaltSession?: string,
+): Promise<FetchMagicItemResult> {
+  const url = `https://www.dndbeyond.com/magic-items/${ddbId}-${slug}`;
+
+  // (1) JWT path.
+  try {
+    const html = await fetchWithAuth(url, cobaltJwt);
+    if (html.length > 500) {
+      const parsed = parseMagicItemHtml(html, url, ddbId);
+      if (parsed && parsed.name) {
+        return { ok: true, via: 'jwt', data: parsed };
+      }
+    }
+  } catch (e) {
+    // fall through to cookie
+    void e;
+  }
+
+  // (2) Cookie fallback.
+  if (cobaltSession) {
+    try {
+      const html = await fetchWithCookie(url, cobaltSession);
+      const parsed = parseMagicItemHtml(html, url, ddbId);
+      if (parsed && parsed.name) {
+        return { ok: true, via: 'cookie', data: parsed };
+      }
+      return { ok: false, reason: 'parse_empty', via: 'cookie', finalUrl: url };
+    } catch (e) {
+      return { ok: false, reason: `network error (cookie): ${(e as Error).message}`, via: 'cookie', finalUrl: url };
+    }
+  }
+
+  return { ok: false, reason: 'jwt_parse_empty_no_cookie', via: 'jwt', finalUrl: url };
 }
 
 // ─── Entitlement listing ──────────────────────────────────────────────────────

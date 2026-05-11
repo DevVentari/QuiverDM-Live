@@ -1,4 +1,4 @@
-import { fetchChapterContentWithCookie, fetchMonsterData, delay } from '@/lib/ddb-sourcebook';
+import { fetchChapterContentWithCookie, fetchMonsterData, fetchMagicItemData, delay } from '@/lib/ddb-sourcebook';
 import type { FetchMonsterResult, ChapterImage } from '@/lib/ddb-sourcebook';
 import { decrypt } from '@/lib/encryption';
 import { extractChapterEntities } from '@/lib/ai/extract-chapter-entities';
@@ -253,8 +253,25 @@ export async function processChapterJob(
         });
       }
     }
+    // Build a lookup of dedicated magic-item pages we discovered in this
+    // chapter. Each one gets fetched + parsed for its canonical image URL,
+    // mirroring the monster pipeline.
+    const itemImageByName = new Map<string, string>();
+    if (content.magicItemLinks.length > 0) {
+      for (const link of content.magicItemLinks) {
+        const fetched = await fetchMagicItemData(link.ddbId, link.slug, cobaltJwt, cobaltSession);
+        if (fetched.ok && fetched.data.imageUrl) {
+          itemImageByName.set(link.name.toLowerCase(), fetched.data.imageUrl);
+          // Also key by slug — sometimes the LLM extracts the slug form.
+          itemImageByName.set(link.slug.replace(/-/g, ' '), fetched.data.imageUrl);
+        }
+        await delay(150); // gentle rate limit
+      }
+    }
+
     for (const item of merged.items) {
       if (!item.name?.trim()) continue;
+      const linkImage = itemImageByName.get(item.name.toLowerCase());
       await sink.upsertItem({
         userId,
         chapterId,
@@ -263,7 +280,7 @@ export async function processChapterJob(
         itemType: item.type,
         rarity: item.rarity,
         description: item.description,
-        imageUrl: findImage(item.name),
+        imageUrl: linkImage ?? findImage(item.name),
       });
     }
     for (const spell of merged.spells ?? []) {
