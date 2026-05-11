@@ -33,11 +33,31 @@ export const EncounterSchema = z.object({
   monsters: z.array(z.string()).optional(),
   difficulty: DifficultyEnum.optional(),
 });
+export const SpellSchema = z.object({
+  name: z.string(),
+  level: z.number().int().min(0).max(9),
+  school: z.string(),
+  castingTime: z.string(),
+  range: z.string(),
+  components: z.string(),
+  duration: z.string(),
+  description: z.string().default(''),
+  higherLevels: z.string().optional(),
+  classes: z.array(z.string()).optional(),
+});
+export const FeatSchema = z.object({
+  name: z.string(),
+  prerequisite: z.string().optional(),
+  description: z.string().default(''),
+  benefits: z.array(z.string()).default([]),
+});
 export const ChapterExtractionSchema = z.object({
   npcs: z.array(NpcSchema).default([]),
   locations: z.array(LocationSchema).default([]),
   items: z.array(ItemSchema).default([]),
   encounters: z.array(EncounterSchema).default([]),
+  spells: z.array(SpellSchema).default([]),
+  feats: z.array(FeatSchema).default([]),
 });
 
 export type ChapterExtraction = z.infer<typeof ChapterExtractionSchema>;
@@ -45,6 +65,8 @@ export type ExtractedNpc = z.infer<typeof NpcSchema>;
 export type ExtractedLocation = z.infer<typeof LocationSchema>;
 export type ExtractedItem = z.infer<typeof ItemSchema>;
 export type ExtractedEncounter = z.infer<typeof EncounterSchema>;
+export type ExtractedSpell = z.infer<typeof SpellSchema>;
+export type ExtractedFeat = z.infer<typeof FeatSchema>;
 
 export interface SectionAttempt {
   sectionHeading: string;
@@ -83,6 +105,12 @@ Return ONLY a single JSON object (no commentary, no markdown fences) with exactl
   ],
   "encounters": [
     { "name": string, "description": string, "monsters"?: [string], "difficulty"?: "trivial"|"easy"|"medium"|"hard"|"deadly" }
+  ],
+  "spells": [
+    { "name": string, "level": 0-9, "school": string, "castingTime": string, "range": string, "components": string, "duration": string, "description": string, "higherLevels"?: string, "classes"?: [string] }
+  ],
+  "feats": [
+    { "name": string, "prerequisite"?: string, "description": string, "benefits"?: [string] }
   ]
 }
 
@@ -92,6 +120,8 @@ Rules:
 - "items" = magic items, artifacts, named treasure. Skip mundane gear.
 - "encounters" = combat or scripted events with named monsters/foes. Skip pure exploration descriptions.
 - "locations" = named places with their own identity (a tavern, a region, a dungeon room with a name). Skip generic features ("a forest", "the road").
+- "spells" = named magical spells with a level, school, and effect description. Skip cantrips that are just flavor (no game effect).
+- "feats" = D&D 5e feats with a name and benefit description. Skip racial features that aren't formally tagged as feats.
 - Keep descriptions concise (1-2 sentences) but specific to what the text says.
 
 Section text:
@@ -166,6 +196,8 @@ function mergeExtractions(parts: ChapterExtraction[]): ChapterExtraction {
     // Encounters are NOT deduped: two hobgoblin fights in different rooms
     // are legitimately different encounters even if the AI names them the same.
     encounters: parts.flatMap(p => p.encounters).filter(e => e.name?.trim()),
+    spells: dedupeByName(parts.flatMap(p => p.spells)),
+    feats: dedupeByName(parts.flatMap(p => p.feats)),
   };
 }
 
