@@ -38,10 +38,12 @@ export function Section({
   ...props
 }: SectionProps) {
   const styles = toneClasses[tone]
-  const displayTitle = title ?? label
+  // Only render an h2 when the caller explicitly passes a `title`. The previous
+  // `title ?? label` fallback produced a redundant double-header (overline + identical h2).
+  const displayTitle = title
 
   return (
-    <section className={cn('mt-8 space-y-4', className)} {...props}>
+    <section className={cn('space-y-4', className)} {...props}>
       {(label || displayTitle || action) && (
         <div className="space-y-3">
           <div className="flex items-center gap-3">
