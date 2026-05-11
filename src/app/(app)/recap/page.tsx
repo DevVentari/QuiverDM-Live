@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import type { RecapStatus } from '@prisma/client';
-import { ScrollText, Upload } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -76,14 +76,6 @@ export default function RecapDashboardPage() {
       overline="Recaps"
       title="All Campaigns"
       subtitle="Review recap output across your worlds, filter by campaign or status, and jump directly into approval work."
-      actions={
-        <Button asChild size="sm" className="gap-1.5 text-xs">
-          <Link href="/recap/upload">
-            <Upload className="h-3 w-3" />
-            New Upload
-          </Link>
-        </Button>
-      }
     >
       <div className="stone-card">
         <div className="stone-card-body space-y-4">
