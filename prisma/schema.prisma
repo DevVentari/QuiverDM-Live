@@ -170,6 +170,7 @@ model DdbSourcebook {
   contentHash   String?
   chapters      DdbSourcebookChapter[]
   campaigns     CampaignSourcebook[]
+  entities      SourcebookEntity[]
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
 
@@ -190,6 +191,35 @@ model CampaignSourcebook {
   @@index([sourcebookId])
 }
 
+/// Canonical sourcebook content. Written by the DDB sync pipeline as the
+/// "master" copy of extracted NPCs/locations/factions/etc. — independent of
+/// any user campaign. linkSourcebookToCampaign clones these rows into a
+/// target campaign's WorldEntity. Survives user campaign deletes.
+model SourcebookEntity {
+  id           String                 @id @default(cuid())
+  sourcebookId String
+  sourcebook   DdbSourcebook          @relation(fields: [sourcebookId], references: [id], onDelete: Cascade)
+  chapterId    String?
+  chapter      DdbSourcebookChapter?  @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  type         WorldEntityType
+  name         String
+  aliases      String[]
+  description  String?                @db.Text
+  properties   Json                   @default("{}")
+  status       WorldEntityStatus      @default(active)
+  sourceType   String?
+  confidence   Float                  @default(1.0)
+
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([sourcebookId, type, name])
+  @@index([sourcebookId])
+  @@index([sourcebookId, type])
+  @@index([chapterId])
+}
+
 model DdbSourcebookChapter {
   id                String        @id @default(cuid())
   sourcebookId      String
@@ -204,6 +234,7 @@ model DdbSourcebookChapter {
   hasPendingChanges Boolean       @default(false)
   pendingChanges    Json?
   lastSyncedAt      DateTime?
+  entities          SourcebookEntity[]
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

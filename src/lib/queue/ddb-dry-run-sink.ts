@@ -228,6 +228,20 @@ export class DryRunWriteSink implements WriteSink {
     return { created: true, id };
   }
 
+  async upsertSourcebookEntity(args: {
+    sourcebookId: string;
+    chapterId: string;
+    type: string;
+    name: string;
+    description: string;
+    properties?: Record<string, unknown>;
+  }): Promise<UpsertResult> {
+    const id = `dry-sbe-${randomUUID()}`;
+    // No-op artifact bucket for dry-run; full capture lives in upsertWorldEntity already.
+    void args;
+    return { created: true, id };
+  }
+
   async setChapterStatus(chapterId: string, status: 'running' | 'idle' | 'error'): Promise<void> {
     const cap = this.chapters.get(chapterId);
     if (cap) cap.status = status;

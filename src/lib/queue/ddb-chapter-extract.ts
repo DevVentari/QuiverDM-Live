@@ -37,9 +37,14 @@ export async function processChapterJob(
   });
 
   let priorHash: string | null = null;
+  let sourcebookIdForMaster: string | null = null;
   if (!skipChapterRead) {
-    const chapter = await prisma.ddbSourcebookChapter.findUnique({ where: { id: chapterId } });
+    const chapter = await prisma.ddbSourcebookChapter.findUnique({
+      where: { id: chapterId },
+      select: { contentHash: true, sourcebookId: true },
+    });
     priorHash = chapter?.contentHash ?? null;
+    sourcebookIdForMaster = chapter?.sourcebookId ?? null;
   }
   const isFirstSync = !priorHash;
   const isChanged = !isFirstSync && priorHash !== content.contentHash;
@@ -120,6 +125,41 @@ export async function processChapterJob(
     }
 
     const merged = aiResult.merged;
+
+    // Sourcebook-scoped master copy — independent of any user campaign.
+    // Written once per chapter so deletes of user campaigns don't lose
+    // the canonical extracted content.
+    if (sourcebookIdForMaster) {
+      for (const npc of merged.npcs) {
+        if (!npc.name?.trim()) continue;
+        await sink.upsertSourcebookEntity({
+          sourcebookId: sourcebookIdForMaster,
+          chapterId,
+          type: 'NPC',
+          name: npc.name,
+          description: npc.description,
+          properties: {
+            ...(npc.role ? { role: npc.role } : {}),
+            ...(npc.location ? { location: npc.location } : {}),
+          },
+        });
+      }
+      for (const loc of merged.locations) {
+        if (!loc.name?.trim()) continue;
+        await sink.upsertSourcebookEntity({
+          sourcebookId: sourcebookIdForMaster,
+          chapterId,
+          type: 'LOCATION',
+          name: loc.name,
+          description: loc.description,
+          properties: {
+            ...(loc.type ? { locationType: loc.type } : {}),
+            ...(loc.notable ? { notable: loc.notable } : {}),
+          },
+        });
+      }
+    }
+
     for (const campaignId of campaignIds) {
       for (const npc of merged.npcs) {
         if (!npc.name?.trim()) continue;

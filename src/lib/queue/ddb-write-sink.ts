@@ -98,6 +98,19 @@ export interface WriteSink {
     notable?: string;
   }): Promise<UpsertResult>;
 
+  /**
+   * Write the sourcebook-scoped master copy of an extracted entity.
+   * Independent of any user campaign — survives campaign deletes.
+   */
+  upsertSourcebookEntity(args: {
+    sourcebookId: string;
+    chapterId: string;
+    type: 'NPC' | 'LOCATION' | 'FACTION' | 'ITEM' | 'EVENT' | 'THREAT' | 'SECRET' | 'CUSTOM' | 'ARC' | 'NOTE' | 'PC';
+    name: string;
+    description: string;
+    properties?: Record<string, unknown>;
+  }): Promise<UpsertResult>;
+
   setChapterStatus(chapterId: string, status: 'running' | 'idle' | 'error'): Promise<void>;
 
   finalizeChapter(args: {
@@ -352,6 +365,44 @@ export class PrismaWriteSink implements WriteSink {
         status: 'active' as any,
         confidence: 0.7,
         properties,
+      } as any,
+    });
+    return { created: true, id: created.id };
+  }
+
+  async upsertSourcebookEntity(args: {
+    sourcebookId: string;
+    chapterId: string;
+    type: 'NPC' | 'LOCATION' | 'FACTION' | 'ITEM' | 'EVENT' | 'THREAT' | 'SECRET' | 'CUSTOM' | 'ARC' | 'NOTE' | 'PC';
+    name: string;
+    description: string;
+    properties?: Record<string, unknown>;
+  }): Promise<UpsertResult> {
+    const existing = await prisma.sourcebookEntity.findUnique({
+      where: { sourcebookId_type_name: { sourcebookId: args.sourcebookId, type: args.type as any, name: args.name } },
+      select: { id: true, name: true },
+    });
+    if (existing) {
+      await prisma.sourcebookEntity.update({
+        where: { id: existing.id },
+        data: {
+          description: args.description,
+          properties: (args.properties ?? {}) as any,
+          chapterId: args.chapterId,
+        },
+      });
+      return { created: false, id: existing.id, existingName: existing.name };
+    }
+    const created = await prisma.sourcebookEntity.create({
+      data: {
+        sourcebookId: args.sourcebookId,
+        chapterId: args.chapterId,
+        type: args.type as any,
+        name: args.name,
+        description: args.description,
+        properties: (args.properties ?? {}) as any,
+        sourceType: 'dndbeyond_import',
+        confidence: 0.7,
       } as any,
     });
     return { created: true, id: created.id };
