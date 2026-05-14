@@ -10,9 +10,10 @@ import { toast } from 'sonner';
 interface FoundryPanelProps {
   campaignId: string;
   onClose: () => void;
+  embedded?: boolean;
 }
 
-export function FoundryPanel({ campaignId, onClose }: FoundryPanelProps) {
+export function FoundryPanel({ campaignId, onClose, embedded = false }: FoundryPanelProps) {
   const [editingUrl, setEditingUrl] = useState(false);
   const [draft, setDraft] = useState('');
 
@@ -43,44 +44,46 @@ export function FoundryPanel({ campaignId, onClose }: FoundryPanelProps) {
   return (
     <div className="absolute inset-0 z-20 flex flex-col bg-background">
       {/* Header bar */}
-      <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border bg-card/90 px-3 backdrop-blur-sm">
-        <Monitor className="h-4 w-4 text-muted-foreground" />
-        <span className="font-display text-sm text-muted-foreground">FoundryVTT</span>
-        {foundryUrl && !editingUrl && (
-          <>
-            <span className="ml-1 truncate text-xs text-muted-foreground/60">{foundryUrl}</span>
-            <Button variant="ghost" size="icon" className="ml-auto h-7 w-7" onClick={startEdit}>
-              <Settings className="h-3.5 w-3.5" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-              <a href={foundryUrl} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </Button>
-          </>
-        )}
-        {editingUrl && (
-          <div className="ml-2 flex flex-1 items-center gap-2">
-            <Input
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="http://192.168.1.x:30000"
-              className="h-7 text-xs"
-              onKeyDown={(e) => e.key === 'Enter' && saveUrl()}
-            />
-            <Button size="sm" className="h-7 text-xs" onClick={saveUrl} disabled={!draft.trim() || setUrl.isPending}>
-              Save
-            </Button>
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditingUrl(false)}>
-              Cancel
-            </Button>
-          </div>
-        )}
-        <Button variant="ghost" size="icon" className={`h-7 w-7 ${foundryUrl && !editingUrl ? '' : 'ml-auto'}`} onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+      {!embedded && (
+        <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border bg-card/90 px-3 backdrop-blur-sm">
+          <Monitor className="h-4 w-4 text-muted-foreground" />
+          <span className="font-display text-sm text-muted-foreground">FoundryVTT</span>
+          {foundryUrl && !editingUrl && (
+            <>
+              <span className="ml-1 truncate text-xs text-muted-foreground/60">{foundryUrl}</span>
+              <Button variant="ghost" size="icon" className="ml-auto h-7 w-7" onClick={startEdit}>
+                <Settings className="h-3.5 w-3.5" />
+              </Button>
+              <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                <a href={foundryUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </Button>
+            </>
+          )}
+          {editingUrl && (
+            <div className="ml-2 flex flex-1 items-center gap-2">
+              <Input
+                autoFocus
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="http://192.168.1.x:30000"
+                className="h-7 text-xs"
+                onKeyDown={(e) => e.key === 'Enter' && saveUrl()}
+              />
+              <Button size="sm" className="h-7 text-xs" onClick={saveUrl} disabled={!draft.trim() || setUrl.isPending}>
+                Save
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditingUrl(false)}>
+                Cancel
+              </Button>
+            </div>
+          )}
+          <Button variant="ghost" size="icon" className={`h-7 w-7 ${foundryUrl && !editingUrl ? '' : 'ml-auto'}`} onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Content */}
       <div className="relative flex-1 overflow-hidden">
