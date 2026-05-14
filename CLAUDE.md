@@ -3,7 +3,7 @@
 Guidance for coding agents working in `E:\Projects\QuiverDM`.
 
 ## Project Overview
-AI-powered D&D session management app. Beta launch target: March 2026. Live at https://app.nerdt.au.
+AI-powered D&D session management app. Live at https://quiverdm.com (also https://app.nerdt.au).
 29 tRPC routers, 12+ services, 9 repositories. App Router (pages + API routes).
 
 ## Tech Stack
@@ -21,43 +21,43 @@ AI-powered D&D session management app. Beta launch target: March 2026. Live at h
 ## Quick Start
 
 ```bash
-docker-compose up -d
 npm install
-npm run db:push
-npm run dev
-npm run dev:ws
-npm run worker:pdf
+npm run dev     # all services run on homelab (192.168.1.21) — no local docker needed
 ```
 
-## Local Services
+All 25 BullMQ workers + WebSocket server run always-on via PM2 on homelab LXC 206. The dev machine only runs `npm run dev`.
+
+## Services (homelab LXC 206 — 192.168.1.21)
 
 | Service | Port | Purpose |
 | --- | --- | --- |
-| PostgreSQL (pgvector) | 5433 | Primary database — pgvector extension required |
-| Redis | 6380 | BullMQ queue + caching |
-| MeiliSearch | 7701 | Full-text search |
-| Docling | 5001 | PDF-to-markdown conversion |
+| PostgreSQL 16 | 5432 | Primary database (pgvector) |
+| Redis | 6379 | BullMQ queues + caching |
+| MeiliSearch | 7700 | Full-text search |
 | Ollama | 11434 | Local LLM for AI features |
+| crawl4ai | 5002 | Browser automation (Playwright) |
+| WebSocket server | 3004 | Live session sync |
 
 ## Dev Commands
 
 ```bash
 npm run dev                # Next.js on http://localhost:3847
-npm run dev:ws             # WebSocket server
-npm run worker:pdf         # PDF processing worker
-npm run worker:transcription   # Transcription worker
-npm run worker:summary     # AI session summary worker
-npm run worker:embeddings  # Narrative search embeddings worker
-npm run worker:image       # Image generation worker
-npm run worker:webhooks    # Outbound webhooks worker
 npm run lint               # ESLint
 npx tsc --noEmit           # Type checking
 npm run build              # Production build
-npm run db:push            # Prisma schema push
+npm run db:push            # Prisma schema push (targets .env.local DB — see gotchas)
 npm run db:studio          # Prisma Studio
 npm run setup:stripe       # Create/find Stripe products and prices
 npm run check:launch       # Pre-launch environment/integration checks
 npm run generate-beta-invites
+
+# D&D Beyond
+npm run ddb:login          # Interactive CobaltSession login (headed browser, first time)
+npm run ddb:refresh        # Headless refresh (uses saved .ddb-auth-state.json)
+
+# Sourcebook import CLI (one-shot, not BullMQ)
+npx tsx scripts/create-master-sourcebook.ts --slug <slug> --url <ddb-url>
+npx tsx scripts/create-master-sourcebook.ts --slug cos --skip-crawl   # re-extract only
 ```
 
 ## Architecture
@@ -131,6 +131,27 @@ Important:
 
 Use `Prisma.JsonNull` for Prisma JSON-null writes (not plain `null`) where required by model semantics.
 
+### AI Multi-Provider Chat
+
+`chatWithAI(messages, options)` in `src/lib/ai/chat.ts` tries providers in `AI_PROVIDER_ORDER` order (default: claude → groq → openai → ollama). Use `forceProvider` to bypass the fallback loop:
+
+```ts
+import { chatWithAI } from '@/lib/ai/chat';
+await chatWithAI(messages, { forceProvider: 'claude' });   // Claude only
+await chatWithAI(messages, { forceProvider: 'openai' });   // GPT-4o only
+```
+
+Valid provider keys: `claude`, `openai`, `gemini`, `gemini-user`, `groq`, `ollama`.
+
+### SourcebookEntity Type Enum
+
+`WorldEntityType` values: `NPC`, `PC`, `FACTION`, `LOCATION`, `ITEM`, `EVENT`, `ARC`, `THREAT`, `SECRET`, `CUSTOM`, `NOTE`.
+`ENCOUNTER`, `SPELL`, `FEAT` are **not** valid — map encounters to `EVENT`, skip spells/feats (SRD content).
+
+### Sourcebook Import CLI
+
+`scripts/create-master-sourcebook.ts` — dual-model (Claude + GPT-4o) chapter extraction with global dedup. Writes to `SourcebookEntity` and `SourcebookChapterImage`. Requires `DDB_COBALT_SESSION` in `.env` for chapter crawling. Use `--skip-crawl` to re-extract from stored `bodySections`.
+
 ## Billing and Email
 
 - Billing backend and UI are implemented (checkout, portal, cancel, usage tiers)
@@ -158,6 +179,16 @@ MEILI_URL=
 MEILI_MASTER_KEY=
 DOCLING_URL=
 OLLAMA_BASE_URL=
+
+# AI providers (all optional — chat.ts falls back in AI_PROVIDER_ORDER)
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
+GEMINI_API_KEY=
+GROQ_API_KEY=
+AI_PROVIDER_ORDER=claude,groq,openai,ollama
+
+# D&D Beyond
+DDB_COBALT_SESSION=   # JWE cookie — refresh with npm run ddb:refresh
 ```
 
 ## Operational Notes
@@ -165,6 +196,11 @@ OLLAMA_BASE_URL=
 - Local build may fail if Stripe environment variables are missing.
 - `scripts/stripe-webhook-local.sh` forwards Stripe events during local testing.
 - `npm run check:launch` performs DB/Redis/env/Stripe/invite readiness checks.
+- **No local docker** — all services on homelab. Never run `docker-compose up` locally.
+- **After pushing worker code** — SSH to homelab: `bash /opt/quiverdm/deploy/homelab/deploy.sh`
+- **Prisma db push** reads `.env` (localhost:5433, dead) not `.env.local`. Use `npx prisma db execute --url "<homelab-url>" --file <sql>` for direct pushes.
+- **After `prisma generate`** — restart `npm run dev`; Next.js holds the old client in memory.
+- **DDB_COBALT_SESSION expiry** — refresh with `npm run ddb:refresh`; first-time login needs `npm run ddb:login` (headed).
 
 ## Definition of Done
 
