@@ -466,6 +466,7 @@ export const ddbSyncRepository = {
     chapterId: string,
     contentHash: string,
     pendingChanges: object[],
+    bodySections: Array<{ heading: string | null; level: number; markdown: string }>,
   ) {
     return prisma.ddbSourcebookChapter.update({
       where: { id: chapterId },
@@ -475,7 +476,9 @@ export const ddbSyncRepository = {
         lastSyncedAt: new Date(),
         hasPendingChanges: pendingChanges.length > 0,
         pendingChanges:
-          pendingChanges.length > 0 ? pendingChanges : undefined,
+          pendingChanges.length > 0 ? pendingChanges : Prisma.JsonNull,
+        bodySections: bodySections as unknown as Prisma.InputJsonValue,
+        bodySyncedAt: new Date(),
       },
     });
   },

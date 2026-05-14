@@ -47,6 +47,7 @@ import { worldMapRouter } from './world-map';
 import { worldRouter } from './world';
 import { randomizerRouter } from './randomizer';
 import { campaignMechanicsRouter } from './campaign-mechanics';
+import { sourcebookReaderRouter } from './sourcebook-reader';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -97,6 +98,7 @@ export const appRouter = router({
   world: worldRouter,
   randomizer: randomizerRouter,
   mechanics: campaignMechanicsRouter,
+  sourcebookReader: sourcebookReaderRouter,
 });
 
 export type AppRouter = typeof appRouter;

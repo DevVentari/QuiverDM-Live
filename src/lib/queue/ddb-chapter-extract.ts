@@ -360,5 +360,14 @@ export async function processChapterJob(
     }
   }
 
-  await sink.finalizeChapter({ chapterId, contentHash: content.contentHash, pendingChanges });
+  await sink.finalizeChapter({
+    chapterId,
+    contentHash: content.contentHash,
+    pendingChanges,
+    bodySections: content.sections.map((section) => ({
+      heading: section.heading === '(intro)' ? null : section.heading,
+      level: section.heading === '(intro)' ? 1 : 2,
+      markdown: section.text,
+    })),
+  });
 }
