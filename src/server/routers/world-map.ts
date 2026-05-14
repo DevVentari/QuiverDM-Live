@@ -39,7 +39,7 @@ export const worldMapRouter = router({
         include: {
           pins: {
             include: {
-              entity: { select: { id: true, name: true, type: true } },
+              entity: { select: { id: true, name: true, type: true, properties: true } },
             },
           },
         },
@@ -60,6 +60,7 @@ export const worldMapRouter = router({
                   id: true,
                   name: true,
                   type: true,
+                  properties: true,
                   _count: { select: { stateChanges: true } },
                 },
               },
@@ -140,7 +141,7 @@ export const worldMapRouter = router({
       enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id: entity.id });
       return prisma.mapPin.create({
         data: { mapId: input.mapId, entityId: entity.id, x: input.x, y: input.y },
-        include: { entity: { select: { id: true, name: true, type: true } } },
+        include: { entity: { select: { id: true, name: true, type: true, properties: true } } },
       });
     }),
 
@@ -170,7 +171,7 @@ export const worldMapRouter = router({
       enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id: entity.id });
       return prisma.mapPin.create({
         data: { mapId: input.mapId, entityId: entity.id, x: input.x, y: input.y },
-        include: { entity: { select: { id: true, name: true, type: true } } },
+        include: { entity: { select: { id: true, name: true, type: true, properties: true } } },
       });
     }),
 

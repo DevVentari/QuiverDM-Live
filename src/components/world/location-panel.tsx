@@ -27,16 +27,17 @@ function formatEventValue(value: unknown): string {
 interface LocationPanelProps {
   entityId: string;
   entityName: string;
+  initialFoundrySceneId?: string | null;
   campaignId: string;
   mapId: string;
   slug: string;
   onClose: () => void;
 }
 
-export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, onClose }: LocationPanelProps) {
+export function LocationPanel({ entityId, entityName, initialFoundrySceneId, campaignId, mapId, slug, onClose }: LocationPanelProps) {
   const router = useRouter();
   const [note, setNote] = useState('');
-  const [foundrySceneId, setLocalFoundrySceneId] = useState<string | null>(null);
+  const [foundrySceneId, setLocalFoundrySceneId] = useState<string | null>(initialFoundrySceneId ?? null);
   const [sceneInput, setSceneInput] = useState('');
 
   const eventsQuery = trpc.worldMap.getLocationEvents.useQuery({ entityId, campaignId });
@@ -61,6 +62,7 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
   const setFoundryScene = trpc.worldMap.setFoundryScene.useMutation({
     onSuccess: (_, vars) => {
       setLocalFoundrySceneId(vars.foundrySceneId);
+      setSceneInput('');
       toast.success('Scene linked');
     },
     onError: (err) => toast.error(err.message),
