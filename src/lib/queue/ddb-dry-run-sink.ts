@@ -262,14 +262,16 @@ export class DryRunWriteSink implements WriteSink {
     if (cap) cap.status = status;
   }
 
-  async finalizeChapter({ chapterId, contentHash, pendingChanges }: {
+  async finalizeChapter({ chapterId, contentHash, pendingChanges, bodySections }: {
     chapterId: string;
     contentHash: string;
     pendingChanges: PendingChange[];
+    bodySections: Array<{ heading: string | null; level: number; markdown: string }>;
   }): Promise<void> {
     const cap = this.getCapture(chapterId);
     cap.finalHash = contentHash;
     cap.pendingChanges = pendingChanges;
+    void bodySections;
   }
 
   async recordFetched({ chapterId, content }: {

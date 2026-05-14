@@ -143,6 +143,7 @@ export interface WriteSink {
     chapterId: string;
     contentHash: string;
     pendingChanges: PendingChange[];
+    bodySections: Array<{ heading: string | null; level: number; markdown: string }>;
   }): Promise<void>;
 
   recordFetched(args: {
@@ -503,12 +504,13 @@ export class PrismaWriteSink implements WriteSink {
     await ddbSyncRepository.setChapterSyncStatus(chapterId, status);
   }
 
-  async finalizeChapter({ chapterId, contentHash, pendingChanges }: {
+  async finalizeChapter({ chapterId, contentHash, pendingChanges, bodySections }: {
     chapterId: string;
     contentHash: string;
     pendingChanges: PendingChange[];
+    bodySections: Array<{ heading: string | null; level: number; markdown: string }>;
   }): Promise<void> {
-    await ddbSyncRepository.updateChapterHash(chapterId, contentHash, pendingChanges);
+    await ddbSyncRepository.updateChapterHash(chapterId, contentHash, pendingChanges, bodySections);
   }
 
   async recordFetched(): Promise<void> { /* no-op in prod */ }
