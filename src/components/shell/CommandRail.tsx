@@ -42,6 +42,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: 'compendium', label: 'Compendium', icon: Library,    globalHref: '/homebrew' },
   { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map', fallbackHref: '/campaigns' },
   { id: 'world',      label: 'World',      icon: BookOpen,   scopedPath: '/world',     fallbackHref: '/campaigns' },
+  { id: 'sourcebook', label: 'Sourcebook', icon: BookOpen,   scopedPath: '/sourcebook', fallbackHref: '/campaigns' },
   { id: 'quests',     label: 'Quests',     icon: Compass,    scopedPath: '/quests',    fallbackHref: '/campaigns' },
   { id: 'mechanics',  label: 'Mechanics',  icon: Sparkles,   scopedPath: '/mechanics', fallbackHref: '/campaigns' },
 ] as const
