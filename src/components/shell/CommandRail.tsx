@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { trpc } from '@/lib/trpc'
 import {
   Home,
-  ScrollText,
   Calendar,
   Users,
   Library,
@@ -37,7 +36,6 @@ type NavItem = {
 
 const NAV_ITEMS: readonly NavItem[] = [
   { id: 'home',       label: 'Home',       icon: Home,       globalHref: '/' },
-  { id: 'campaigns',  label: 'Campaigns',  icon: ScrollText, globalHref: '/campaigns' },
   { id: 'sessions',   label: 'Sessions',   icon: Calendar,   scopedPath: '/sessions',  fallbackHref: '/campaigns' },
   { id: 'party',      label: 'Party',      icon: Shield,     scopedPath: '/players',   fallbackHref: '/campaigns' },
   { id: 'npcs',       label: 'NPCs',       icon: Users,      scopedPath: '/npcs',      fallbackHref: '/campaigns' },
@@ -102,8 +100,9 @@ export function CommandRail() {
       aria-label="Main navigation"
       className={cn(
         'hidden md:flex flex-col h-full shrink-0',
-        'border-r border-[var(--q-border-subtle)]',
-        'bg-[var(--q-surface-sunken)]',
+        'border-r border-[color-mix(in_oklab,var(--q-border-subtle)_70%,transparent)]',
+        'bg-[color-mix(in_oklab,var(--q-shell-rail)_74%,transparent)] backdrop-blur-xl',
+        'shadow-[inset_-1px_0_0_hsl(0_0%_100%_/_0.02)]',
         'transition-[width] duration-200 ease-out overflow-hidden',
       )}
       style={{ width: collapsed ? RAIL_WIDTH_COLLAPSED : RAIL_WIDTH_EXPANDED }}
@@ -112,7 +111,7 @@ export function CommandRail() {
         href="/"
         aria-label="QuiverDM home"
         className={cn(
-          'h-16 flex items-center gap-3 border-b border-[var(--q-border-subtle)] shrink-0',
+          'h-16 flex items-center gap-3 border-b border-[color-mix(in_oklab,var(--q-border-subtle)_70%,transparent)] shrink-0',
           collapsed ? 'justify-center px-0' : 'px-5',
         )}
       >
@@ -151,7 +150,7 @@ export function CommandRail() {
                 'transition-colors duration-150',
                 active
                   ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
-                  : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)] hover:bg-white/[0.03]',
+                  : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)] hover:bg-white/[0.025]',
                 collapsed && 'justify-center px-0',
               )}
               title={collapsed ? label : undefined}
@@ -165,7 +164,7 @@ export function CommandRail() {
         })}
       </div>
 
-      <div className="flex flex-col border-t border-[var(--q-border-subtle)] shrink-0">
+      <div className="flex flex-col border-t border-[color-mix(in_oklab,var(--q-border-subtle)_70%,transparent)] shrink-0">
         <Link
           href="/settings"
           data-testid="rail-nav-settings"
@@ -204,7 +203,7 @@ export function CommandRail() {
         </button>
 
         {!collapsed && (
-          <div className="px-5 py-3 border-t border-[var(--q-border-subtle)] text-[10px] tracking-wider text-[var(--q-text-faint)]">
+          <div className="px-5 py-3 border-t border-[color-mix(in_oklab,var(--q-border-subtle)_70%,transparent)] text-[10px] tracking-wider text-[var(--q-text-faint)]">
             QuiverDM v2.0.0
           </div>
         )}

@@ -41,7 +41,7 @@ export default function SummariesPage() {
       <div className="flex items-center gap-2">
         <Sparkles className="h-5 w-5 text-[var(--q-amber)]" />
         <h1 className="text-2xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Session Summaries</h1>
-        <Pill variant="neutral">{withSummaries.length} summaries</Pill>
+        <Pill variant="quest">{withSummaries.length} summaries</Pill>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -56,7 +56,7 @@ export default function SummariesPage() {
                   Session {session.sessionNumber}
                   {session.title ? `: ${session.title}` : ''}
                 </span>
-                <Pill variant="neutral" className="shrink-0">
+                <Pill variant="primary" className="shrink-0">
                   <Calendar className="h-3 w-3 mr-1" />
                   {format(new Date(session.date), 'MMM d')}
                 </Pill>
@@ -81,7 +81,7 @@ export default function SummariesPage() {
           <div className="flex flex-wrap gap-2">
             {pending.map((session) => (
               <Link key={session.id} href={`/campaigns/${slug}/sessions/${session.id}`}>
-                <Pill variant="neutral" className="cursor-pointer hover:bg-[var(--q-amber-trace)] hover:border-[var(--q-amber-border)]">
+                <Pill variant="quest" className="cursor-pointer hover:bg-[var(--q-accent-quest-trace)] hover:border-[var(--q-accent-quest-border)]">
                   Session {session.sessionNumber}
                 </Pill>
               </Link>

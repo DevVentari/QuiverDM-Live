@@ -72,9 +72,9 @@ export function CampaignSwitcher({
         aria-label={triggerLabel}
         title={triggerLabel}
         data-testid="campaign-switcher-trigger"
-        className={cn(
+          className={cn(
           'group mx-auto mb-1 flex h-10 w-10 items-center justify-center rounded-sm',
-          'border border-[var(--q-border-subtle)] bg-[var(--q-surface-feature)]',
+          'border border-[color-mix(in_oklab,var(--q-border-subtle)_70%,transparent)] bg-[color-mix(in_oklab,var(--q-surface-feature)_70%,transparent)] backdrop-blur-md',
           'text-[var(--q-text-faint)] transition-colors',
           'hover:border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)] hover:text-[var(--q-amber)]',
           'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--q-amber-border)]',
@@ -90,7 +90,7 @@ export function CampaignSwitcher({
         data-testid="campaign-switcher-trigger"
         className={cn(
           'group relative flex w-full items-center justify-between gap-2 overflow-hidden rounded-sm border px-3 py-2.5 text-left',
-          'border-[var(--q-border-subtle)] bg-[var(--q-surface-feature)] backdrop-blur-sm',
+          'border-[color-mix(in_oklab,var(--q-border-subtle)_70%,transparent)] bg-[color-mix(in_oklab,var(--q-surface-feature)_72%,transparent)] backdrop-blur-md',
           'transition-all duration-200',
           'hover:border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)]',
           'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--q-amber-border)]',
@@ -129,8 +129,8 @@ export function CampaignSwitcher({
         sideOffset={6}
         className={cn(
           'q-panel-grain relative w-64 overflow-hidden p-1',
-          'border-[var(--q-border-feature)] bg-[var(--q-surface-feature)]',
-          'backdrop-blur-md shadow-[0_8px_32px_-12px_rgba(0,0,0,0.6)]',
+          'border-[color-mix(in_oklab,var(--q-border-feature)_72%,transparent)] bg-[color-mix(in_oklab,var(--q-surface-feature)_78%,transparent)]',
+          'backdrop-blur-md shadow-[0_8px_32px_-12px_rgba(0,0,0,0.5)]',
         )}
       >
         {/* Top amber accent rule */}

@@ -12,18 +12,18 @@ interface SectionProps extends React.HTMLAttributes<HTMLElement> {
 const toneClasses = {
   utility: {
     label: 'text-[var(--q-text-faint)]',
-    title: 'text-lg font-semibold text-[var(--q-text)]',
-    rule: 'from-[var(--q-border)]',
+    title: 'font-[var(--q-font-display)] text-lg font-semibold tracking-[0.03em] text-[var(--q-text)]',
+    rule: 'from-[var(--q-border-subtle)]',
   },
   feature: {
-    label: 'text-[var(--q-amber-dim)]',
-    title: 'text-xl font-semibold text-[var(--q-text)]',
-    rule: 'from-[var(--q-amber-dim)]',
+    label: 'text-[var(--q-text-faint)]',
+    title: 'font-[var(--q-font-display)] text-xl font-semibold tracking-[0.04em] text-[var(--q-text)]',
+    rule: 'from-[var(--q-border-feature)]',
   },
   ceremonial: {
-    label: 'text-[var(--q-amber)]',
+    label: 'text-[var(--q-accent-primary-dim)]',
     title: 'font-[var(--q-font-display)] text-fluid-2xl text-[var(--q-text)] tracking-wide',
-    rule: 'from-[var(--q-amber)]',
+    rule: 'from-[var(--q-accent-primary-border)]',
   },
 } as const
 
@@ -50,8 +50,7 @@ export function Section({
             {label && (
               <span
                 className={cn(
-                  'text-[10px] font-medium tracking-[2.5px] uppercase whitespace-nowrap',
-                  tone === 'ceremonial' ? 'font-[var(--q-font-display)]' : '',
+                  'font-[var(--q-font-display)] text-[10px] font-medium tracking-[2.8px] uppercase whitespace-nowrap',
                   styles.label,
                 )}
               >

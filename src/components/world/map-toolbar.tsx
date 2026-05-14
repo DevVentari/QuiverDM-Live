@@ -24,10 +24,22 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onTog
 
   return (
     <TooltipProvider>
-      <div className="absolute left-4 top-4 z-10 flex flex-col gap-1 rounded-lg border border-border bg-card/80 p-1 backdrop-blur-sm">
+      <div
+        className="absolute left-5 top-5 z-20 flex flex-col gap-1 rounded-[1.1rem] border p-1.5 shadow-[0_24px_60px_rgba(0,0,0,0.35)] backdrop-blur-md"
+        style={{
+          borderColor: 'var(--wm-border)',
+          background: 'linear-gradient(180deg, var(--wm-raised), var(--wm-surface))',
+        }}
+      >
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPlaceLocation}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl hover:opacity-90"
+              style={{ color: 'var(--wm-soft-text)' }}
+              onClick={onPlaceLocation}
+            >
               <MapPin className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -35,7 +47,13 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onTog
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPlaceNote}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl hover:opacity-90"
+              style={{ color: 'var(--wm-soft-text)' }}
+              onClick={onPlaceNote}
+            >
               <StickyNote className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -46,7 +64,8 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onTog
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-9 w-9 rounded-xl hover:opacity-90"
+              style={{ color: 'var(--wm-soft-text)' }}
               onClick={() => generateMutation.mutate({ mapId, campaignId })}
               disabled={generateMutation.isPending}
             >
@@ -57,7 +76,13 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onTog
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleFoundry}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl hover:opacity-90"
+              style={{ color: 'var(--wm-soft-text)' }}
+              onClick={onToggleFoundry}
+            >
               <Monitor className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -65,7 +90,13 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onTog
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggleDdb}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl hover:opacity-90"
+              style={{ color: 'var(--wm-soft-text)' }}
+              onClick={onToggleDdb}
+            >
               <Map className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -73,7 +104,13 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onTog
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onOpenSettings}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl hover:opacity-90"
+              style={{ color: 'var(--wm-soft-text)' }}
+              onClick={onOpenSettings}
+            >
               <Settings className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

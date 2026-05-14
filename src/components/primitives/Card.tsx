@@ -32,7 +32,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         ref={ref}
         variant={surfaceVariant}
         grain={variant !== 'list'}
-        glow={variant === 'hero' || variant === 'grimoire'}
+        glow={false}
         ornament={variant === 'grimoire'}
         inset={variant === 'detail'}
         className={cn(

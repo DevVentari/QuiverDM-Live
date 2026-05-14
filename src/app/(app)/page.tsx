@@ -7,7 +7,7 @@ import { useHeaderStore } from '@/store/header-store'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { HomeHero } from '@/components/home/HomeHero'
-import { ActiveCampaignSummary } from '@/components/home/ActiveCampaignSummary'
+import { HomePartyStrip } from '@/components/home/HomePartyStrip'
 import { RecentSessionsList } from '@/components/home/RecentSessionsList'
 import { WorldActivityFeed } from '@/components/home/WorldActivityFeed'
 import { PrepReminders } from '@/components/home/PrepReminders'
@@ -102,9 +102,11 @@ export default function HomePage() {
         const parsed = SessionPrepDataSchema.safeParse(
           (planningSession as { prepData?: unknown }).prepData,
         )
-        return parsed.success ? parsed.data.reminders ?? [] : []
+        return parsed.success ? parsed.data : null
       })()
-    : []
+    : null
+  const prepItems = prepReminders?.prepItems ?? []
+  const reminders = prepReminders?.reminders ?? []
 
   return (
     <div className="mx-auto max-w-[1600px] px-6 py-6">
@@ -119,44 +121,39 @@ export default function HomePage() {
         internal p-8 so the WORLD ACTIVITY overline aligns vertically with
         the NEXT SESSION overline inside the hero card.
       */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-8">
-          <HomeHero
-            campaignName={active.name}
-            campaignSlug={active.slug}
-            campaignId={active.id}
-            bannerUrl={active.bannerUrl}
-            nextSession={active.nextSession}
-            planningSession={planningSession}
-          />
-        </div>
-        <div className="lg:col-span-4 lg:pt-8">
-          <WorldActivityFeed campaignId={active.id} />
-        </div>
-
-        <div className="lg:col-span-8">
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
-            <RecentSessionsList sessions={recentSessions} />
-            <ActiveCampaignSummary
-              name={active.name}
-              slug={active.slug}
-              id={active.id}
-              emblemUrl={(active as { emblemUrl?: string | null }).emblemUrl ?? null}
-              ongoingSince={active.createdAt}
-              sessionCount={active.sessionCount}
-              npcCount={active.npcCount}
-              locationCount={active.locationCount}
-              itemCount={active.itemCount}
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.83fr)]">
+        <div className="space-y-6">
+          <div className="space-y-6">
+            <HomeHero
+              campaignName={active.name}
+              campaignSlug={active.slug}
+              campaignId={active.id}
+              bannerUrl={active.bannerUrl}
+              nextSession={active.nextSession}
+              planningSession={planningSession}
+              playerCount={activeParty.length}
               partyLevel={partyLevel}
-              levelTarget={partyLevel ? 20 : undefined}
+            />
+            <HomePartyStrip
+              slug={active.slug}
               party={activeParty}
               pendingPartyCount={pendingPartyCount}
+              partyLevel={partyLevel}
               isDM={isDM}
             />
           </div>
+          <div className="grid grid-cols-1 items-start gap-6">
+            <RecentSessionsList sessions={recentSessions} />
+          </div>
         </div>
-        <div className="lg:col-span-4">
-          <PrepReminders sessionId={planningSession?.id ?? null} reminders={prepReminders} />
+        <div className="space-y-5">
+          <WorldActivityFeed campaignId={active.id} />
+          <PrepReminders
+            sessionId={planningSession?.id ?? null}
+            campaignSlug={active.slug}
+            reminders={reminders}
+            prepItems={prepItems}
+          />
         </div>
       </div>
     </div>

@@ -29,11 +29,11 @@ export function PageLayout({
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(35_70%_40%/.18),transparent_42%),radial-gradient(circle_at_85%_12%,hsl(262_55%_45%/.12),transparent_30%)]" />
         <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/[0.06] px-3 py-1 text-[11px] uppercase tracking-[0.24em] text-amber-200/70">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/[0.06] px-3 py-1 font-display text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-200/78">
               {overline}
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold tracking-[0.04em] text-amber-50 sm:text-3xl">
+              <h1 className="font-display text-2xl font-semibold tracking-[0.035em] text-amber-50 sm:text-3xl">
                 {title}
               </h1>
               {subtitle && (
@@ -58,13 +58,13 @@ export function PageLayout({
                     )}
                   >
                     <p className={cn(
-                      'text-[10px] uppercase tracking-[0.18em]',
+                      'font-display text-[10px] uppercase tracking-[0.22em]',
                       stat.alert ? 'text-emerald-200/60' : 'text-amber-100/45'
                     )}>
                       {stat.label}
                     </p>
                     <p className={cn(
-                      'font-display text-xl font-semibold mt-1',
+                      'font-display mt-1 text-xl font-semibold tracking-[0.03em]',
                       stat.alert ? 'text-emerald-300' : 'text-amber-50'
                     )}>
                       {stat.value}

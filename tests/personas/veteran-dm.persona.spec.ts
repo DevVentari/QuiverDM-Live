@@ -100,6 +100,75 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
   }, 10_000);
 });
 
+test('veteran-dm prep lifecycle: planned item can be worked to prepped', async ({ page }, testInfo) => {
+  test.slow();
+
+  await page.route('**/api/trpc/campaigns.getBySlug**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([{ result: { data: { id: 'campaign-1', name: 'Test Campaign', myRole: 'OWNER' } } }]),
+    });
+  });
+  await page.route('**/api/trpc/sessions.getPrepContext**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([{ result: { data: { characters: [], npcs: [], recentSessions: [], homebrew: [] } } }]),
+    });
+  });
+  await page.route('**/api/trpc/sessions.getById**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          result: {
+            data: {
+              id: 'test-session',
+              title: 'Test Session',
+              prepStatus: 'draft',
+              prepData: { prepItems: [] },
+            },
+          },
+        },
+      ]),
+    });
+  });
+  await page.route('**/api/trpc/sessions.updatePrep**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([{ result: { data: { ok: true } } }]),
+    });
+  });
+  await page.route('**/api/trpc/sessions.update**', async (route) => {
+    await route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([{ result: { data: { ok: true } } }]),
+    });
+  });
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 12_000);
+
+  await checkpoint(testInfo, 'open-prep-page', async () => {
+    await page.goto('/campaigns/test-slug/sessions/prep?sessionId=test-session');
+    await expect(page.getByText('Prep Plan')).toBeVisible({ timeout: 10_000 });
+  }, 15_000);
+
+  await checkpoint(testInfo, 'advance-prep-item', async () => {
+    await page.getByPlaceholder('Add a prep item').fill('Bandit ambush at the river ford');
+    await page.getByRole('button', { name: 'Add' }).click();
+
+    await expect(page.getByText('Bandit ambush at the river ford')).toBeVisible({ timeout: 8_000 });
+    await page.getByText('Bandit ambush at the river ford').click();
+
+    await page.getByRole('button', { name: 'Prep it' }).click();
+    await expect(page.getByText('Prepping')).toBeVisible({ timeout: 5_000 });
+
+    await page.getByRole('button', { name: 'Prepped' }).click();
+    await expect(page.getByText('Prepped')).toBeVisible({ timeout: 5_000 });
+  }, 20_000);
+});
+
 test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testInfo) => {
   test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {

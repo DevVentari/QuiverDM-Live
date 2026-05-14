@@ -52,6 +52,26 @@ test('campaign create sheet - published adventure seeds brain-visible data', asy
   }, 20_000);
 });
 
+test('campaign create sheet - featured preseed paths populate the wizard', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'open-sheet', async () => {
+    await page.goto('/campaigns/new');
+    await expect(page.getByRole('heading', { name: /new campaign/i })).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('textbox', { name: /campaign name/i }).fill(`Seed QA ${Date.now()}`);
+    await page.getByRole('button', { name: /continue/i }).click();
+  }, 12_000);
+
+  await checkpoint(testInfo, 'pick-featured-seed', async () => {
+    await page.getByTestId('featured-seed-lmop').click();
+    await expect(page.locator('input#startingLocation')).toHaveValue(/Phandalin/i);
+    await expect(page.locator('input#antagonistName')).toHaveValue(/Nezznar/i);
+    await expect(page.locator('textarea#openingHook')).toHaveValue(/Phandalin goes wrong/i);
+  }, 10_000);
+});
+
 test('campaign create sheet - create without name shows validation error', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);

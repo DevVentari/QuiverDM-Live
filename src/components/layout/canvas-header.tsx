@@ -38,13 +38,13 @@ export function CanvasHeader({ overline, title, stats, actions, className }: Can
         {/* Left: overline + title */}
         <div className="min-w-0">
           <p
-            className="mb-0.5 text-[10px] font-bold uppercase tracking-[0.22em] font-display"
+            className="mb-1 text-[10px] font-semibold uppercase tracking-[0.28em] font-display"
             style={{ color: 'hsl(35 80% 55% / 0.6)' }}
           >
             {overline}
           </p>
           <h1
-            className="text-lg font-bold leading-none tracking-[0.04em] font-display truncate"
+            className="text-lg font-semibold leading-none tracking-[0.035em] font-display truncate"
             style={{ color: 'hsl(35 30% 92%)' }}
           >
             {title}
@@ -70,7 +70,7 @@ export function CanvasHeader({ overline, title, stats, actions, className }: Can
                   {stat.value}
                 </p>
                 <p
-                  className="mt-0.5 text-[9px] uppercase tracking-[0.14em] leading-none"
+                  className="mt-0.5 font-display text-[9px] uppercase tracking-[0.18em] leading-none"
                   style={{ color: 'hsl(35 40% 45% / 0.6)' }}
                 >
                   {stat.label}

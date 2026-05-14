@@ -89,10 +89,6 @@ function CampaignsPageInner() {
 
   return (
     <>
-      {searchParams.get('fresh') !== '1' && (
-        <meta httpEquiv="refresh" content="0;url=/campaigns?fresh=1" />
-      )}
-
       <div className="mx-auto max-w-[1400px] px-6 py-8">
         <Section
           label="Library"

@@ -22,9 +22,9 @@ interface CalendarSheetProps {
   onOpenChange: (open: boolean) => void
 }
 
-function dateChip(d: Date): { label: string; tone: 'primary' | 'info' | 'neutral' } {
+function dateChip(d: Date): { label: string; tone: 'primary' | 'quest' | 'neutral' } {
   if (isToday(d)) return { label: 'Tonight', tone: 'primary' }
-  if (isTomorrow(d)) return { label: 'Tomorrow', tone: 'info' }
+  if (isTomorrow(d)) return { label: 'Tomorrow', tone: 'quest' }
   return { label: format(d, 'EEE d MMM'), tone: 'neutral' }
 }
 
