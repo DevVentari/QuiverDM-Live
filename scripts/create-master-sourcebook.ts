@@ -8,8 +8,7 @@ import { Prisma } from '@prisma/client';
 import { decrypt } from '../src/lib/encryption';
 import {
   DdbAuthError,
-  exchangeCobaltForJwt,
-  fetchChapterContent,
+  fetchChapterContentWithCookie,
   fetchSourcebookToc,
 } from '../src/lib/ddb-sourcebook';
 import { prisma } from '../src/lib/prisma';
@@ -348,8 +347,10 @@ async function upsertSourcebookEntities(
 ): Promise<number> {
   let total = 0;
 
+  // WorldEntityType enum: NPC, PC, FACTION, LOCATION, ITEM, EVENT, ARC, THREAT, SECRET, CUSTOM, NOTE
+  // ENCOUNTER/SPELL/FEAT are not valid enum values — encounters map to EVENT; spells/feats skipped (SRD content)
   const rows: Array<{
-    type: 'NPC' | 'LOCATION' | 'ITEM' | 'ENCOUNTER' | 'SPELL' | 'FEAT';
+    type: 'NPC' | 'LOCATION' | 'ITEM' | 'EVENT';
     name: string;
     description: string;
     properties: Record<string, unknown>;
@@ -382,36 +383,13 @@ async function upsertSourcebookEntities(
       },
     })),
     ...entities.encounters.map((encounter) => ({
-      type: 'ENCOUNTER' as const,
+      type: 'EVENT' as const,
       name: encounter.name,
       description: encounter.description,
       properties: {
+        subtype: 'encounter',
         ...(encounter.monsters?.length ? { monsters: encounter.monsters } : {}),
         ...(encounter.difficulty ? { difficulty: encounter.difficulty } : {}),
-      },
-    })),
-    ...entities.spells.map((spell) => ({
-      type: 'SPELL' as const,
-      name: spell.name,
-      description: spell.description,
-      properties: {
-        level: spell.level,
-        school: spell.school,
-        castingTime: spell.castingTime,
-        range: spell.range,
-        components: spell.components,
-        duration: spell.duration,
-        ...(spell.higherLevels ? { higherLevels: spell.higherLevels } : {}),
-        ...(spell.classes?.length ? { classes: spell.classes } : {}),
-      },
-    })),
-    ...entities.feats.map((feat) => ({
-      type: 'FEAT' as const,
-      name: feat.name,
-      description: feat.description,
-      properties: {
-        ...(feat.prerequisite ? { prerequisite: feat.prerequisite } : {}),
-        ...(feat.benefits?.length ? { benefits: feat.benefits } : {}),
       },
     })),
   ];
@@ -462,7 +440,6 @@ async function main() {
   const { sourcebook, sourceUrl, createdStub } = await resolveSourcebook(args);
   console.log(`[master-sourcebook] slug=${args.slug} sourceUrl=${sourceUrl} dryRun=${args.dryRun} skipCrawl=${args.skipCrawl}`);
   const cobaltSession = args.skipCrawl ? null : await resolveCobaltSession(sourcebook.userId);
-  const cobaltJwt = args.skipCrawl ? null : await resolveCobaltJwt(sourcebook.userId);
 
   let plannedChapters: ChapterPlan[] = [];
   if (args.skipCrawl) {
@@ -547,7 +524,7 @@ async function main() {
     try {
       const content = args.skipCrawl
         ? null
-        : await fetchChapterContent(args.slug, chapter.slug, cobaltJwt as string);
+        : await fetchChapterContentWithCookie(args.slug, chapter.slug, cobaltSession as string);
 
       const sections = args.skipCrawl
         ? toChapterSections(chapter.bodySections ?? [])
@@ -579,6 +556,16 @@ async function main() {
         extractChapterEntities(chapter.slug, sections, { provider: 'claude' }),
         extractChapterEntities(chapter.slug, sections, { provider: 'openai' }),
       ]);
+
+      if (claudeResult.status === 'rejected') {
+        console.warn(`  [claude] rejected: ${claudeResult.reason instanceof Error ? claudeResult.reason.message : claudeResult.reason}`);
+      } else {
+        const parseErrors = claudeResult.value.attempts.filter(a => a.parseError).map(a => `${a.sectionHeading}: ${a.parseError}`);
+        if (parseErrors.length > 0) console.warn(`  [claude] ${parseErrors.length} parse errors: ${parseErrors.slice(0, 3).join('; ')}`);
+      }
+      if (openaiResult.status === 'rejected') {
+        console.warn(`  [openai] rejected: ${openaiResult.reason instanceof Error ? openaiResult.reason.message : openaiResult.reason}`);
+      }
 
       const claudeExtraction = claudeResult.status === 'fulfilled' ? claudeResult.value.merged : null;
       const openaiExtraction = openaiResult.status === 'fulfilled' ? openaiResult.value.merged : null;
