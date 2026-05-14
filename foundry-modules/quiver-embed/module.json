@@ -1,0 +1,14 @@
+{
+  "id": "quiver-embed",
+  "title": "QuiverDM Embed",
+  "description": "Strips Foundry UI chrome for QuiverDM integration and bridges combat events bidirectionally.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "esmodules": ["scripts/quiver-embed.mjs"],
+  "authors": [{ "name": "QuiverDM", "url": "https://quiverdm.com" }],
+  "url": "https://foundry.nerdt.au/modules/quiver-embed/module.json",
+  "manifest": "https://foundry.nerdt.au/modules/quiver-embed/module.json"
+}
