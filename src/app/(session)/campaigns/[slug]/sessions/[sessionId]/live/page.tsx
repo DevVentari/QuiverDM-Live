@@ -15,6 +15,8 @@ import { NpcQuickRecall } from '@/components/cockpit/npc-quick-recall';
 import { BrainCockpitPanel } from '@/components/cockpit/brain-cockpit-panel';
 import { CoDMPanel } from '@/components/cockpit/co-dm-panel';
 import { CockpitToolbar } from '@/components/cockpit/cockpit-toolbar';
+import { BattleMapPanel } from '@/components/cockpit/battle-map-panel';
+import { InitiativePanel } from '@/components/cockpit/initiative-panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
@@ -176,7 +178,7 @@ export default function SessionCockpitPage() {
                 dmHints={transcription.dmHints}
               />
             ) : (
-              <CombatPanel sessionId={sessionId} />
+              <BattleMapPanel campaignId={campaign.id} sessionId={sessionId} />
             )}
           </div>
         </div>
@@ -189,6 +191,7 @@ export default function SessionCockpitPage() {
               <TabsTrigger value="npcs" className="flex-1 text-xs">NPCs</TabsTrigger>
               <TabsTrigger value="brain" className="flex-1 text-xs">Brain</TabsTrigger>
               <TabsTrigger value="co-dm" className="flex-1 text-xs">Co-DM</TabsTrigger>
+              <TabsTrigger value="initiative" className="flex-1 text-xs">Initiative</TabsTrigger>
             </TabsList>
             <TabsContent value="scene" className="flex-1 overflow-y-auto m-0 p-3">
               <SceneContextPanel
@@ -205,6 +208,9 @@ export default function SessionCockpitPage() {
             </TabsContent>
             <TabsContent value="co-dm" className="flex-1 overflow-y-auto m-0 p-3">
               <CoDMPanel sessionId={sessionId} />
+            </TabsContent>
+            <TabsContent value="initiative" className="flex-1 overflow-y-auto m-0 p-3">
+              <InitiativePanel campaignId={campaign.id} sessionId={sessionId} />
             </TabsContent>
           </Tabs>
         </div>
