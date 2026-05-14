@@ -152,7 +152,7 @@ export function EntityDetailSheet({ entityId, open, onOpenChange }: EntityDetail
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent side="right" className="w-full sm:max-w-2xl overflow-y-auto px-5">
         {!isDM ? (
           <div className="pt-6">
             <p className="text-sm text-muted-foreground">DM Brain is only accessible to Dungeon Masters.</p>

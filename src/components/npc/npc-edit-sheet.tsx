@@ -168,16 +168,16 @@ export function NpcEditSheet({ npcId, open, onOpenChange }: NpcEditSheetProps) {
         </SheetHeader>
 
         {!npcId || npc.isLoading ? (
-          <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-4 px-5">
             <Skeleton className="h-28 w-full rounded-xl" />
             <Skeleton className="h-96 w-full rounded-xl" />
           </div>
         ) : npc.isError || !npc.data ? (
-          <div className="mt-6 rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+          <div className="mt-6 mx-5 rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
             {npc.error?.message || 'Failed to load NPC'}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4 pb-4">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4 pb-4 px-5">
             <NpcPreview
               name={name}
               faction={faction}

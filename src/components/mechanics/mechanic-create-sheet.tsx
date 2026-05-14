@@ -53,7 +53,7 @@ export function MechanicCreateSheet({ campaignId, open, onOpenChange, onCreated 
         <SheetHeader>
           <SheetTitle>New mechanic</SheetTitle>
         </SheetHeader>
-        <div className="space-y-4 py-6">
+        <div className="space-y-4 px-5 py-6">
           <div className="space-y-1">
             <label className="text-xs text-[var(--q-text-faint)]">Kind</label>
             <select

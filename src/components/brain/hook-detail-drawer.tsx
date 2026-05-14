@@ -85,7 +85,7 @@ export function HookDetailDrawer({
           <SheetTitle className="text-base font-semibold leading-snug">Hook Detail</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 px-5">
           <div className="flex items-start gap-3">
             <Badge
               variant="outline"
