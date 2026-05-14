@@ -107,6 +107,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [selectedEntityName, setSelectedEntityName] = useState<string>('');
+  const [selectedEntityFoundrySceneId, setSelectedEntityFoundrySceneId] = useState<string | null>(null);
   const [placingType, setPlacingType] = useState<'location' | 'note' | null>(null);
   const [showPicker, setShowPicker] = useState(false);
   const [showFoundry, setShowFoundry] = useState(false);
@@ -196,6 +197,8 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           onSelect: () => {
             setSelectedEntityId(pin.entity.id);
             setSelectedEntityName(pin.entity.name);
+            const props = (pin.entity.properties ?? {}) as Record<string, unknown>;
+            setSelectedEntityFoundrySceneId((props.foundrySceneId as string | null | undefined) ?? null);
           },
         },
       }))
@@ -391,10 +394,11 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
         <LocationPanel
           entityId={selectedEntityId}
           entityName={selectedEntityName}
+          initialFoundrySceneId={selectedEntityFoundrySceneId}
           campaignId={campaignId}
           mapId={mapData!.id}
           slug={slug}
-          onClose={() => { setSelectedEntityId(null); setSelectedEntityName(''); }}
+          onClose={() => { setSelectedEntityId(null); setSelectedEntityName(''); setSelectedEntityFoundrySceneId(null); }}
         />
       )}
       {showFoundry && (
