@@ -47,6 +47,11 @@ async function processCoordinatorJob(data: DdbSyncCoordinatorJobData) {
     include: { chapters: true },
   });
   if (!sourcebook) throw new Error(`Sourcebook ${sourcebookId} not found`);
+  const linkedCampaigns = await prisma.campaignSourcebook.findMany({
+    where: { sourcebookId },
+    select: { campaignId: true },
+  });
+  const linkedCampaignIds = linkedCampaigns.map((link) => link.campaignId);
 
   // 3. Fetch TOC with cookie (www domain) — last time raw session is used
   const chapters = await fetchSourcebookToc(sourcebook.slug, cobaltSession);
@@ -86,7 +91,7 @@ async function processCoordinatorJob(data: DdbSyncCoordinatorJobData) {
       chapterSlug: ch.slug,
       cobaltJwt,
       cobaltSessionEncrypted: settings.dndBeyondCobaltCookie ?? '',
-      campaignIds: sourcebook.campaignIds,
+      campaignIds: linkedCampaignIds,
     },
   }));
 
@@ -122,6 +127,14 @@ async function processCoordinatorJob(data: DdbSyncCoordinatorJobData) {
   `, sourcebookId);
   if (linked > 0) {
     console.log(`[ddb-coordinator] linked ${linked} entities to stat blocks (sourcebook ${sourcebookId})`);
+  }
+
+  for (const campaignId of linkedCampaignIds) {
+    await ddbSyncRepository.seedCampaignFromSourcebook(
+      campaignId,
+      sourcebookId,
+      userId,
+    );
   }
 
   await ddbSyncReviewQueue.add(`review-${sourcebookId}`, {

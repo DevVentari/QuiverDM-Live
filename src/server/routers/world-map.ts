@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server';
 import { WorldEntityType, WorldStateChangeSource, MapBgType } from '@prisma/client';
 import { addMapGenerationJob } from '@/lib/queue/map-generation-queue';
 import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
+import { dedupeMapBackgroundCandidates, type MapBackgroundImageCandidate } from '@/lib/map-background-sources';
 
 async function getAncestorPath(mapId: string): Promise<Array<{ mapId: string; name: string; entityId: string | null }>> {
   const path: Array<{ mapId: string; name: string; entityId: string | null }> = [];
@@ -35,7 +36,13 @@ export const worldMapRouter = router({
     .query(async ({ input }) => {
       const map = await prisma.campaignMap.findFirst({
         where: { campaignId: input.campaignId, parentLocationId: null },
-        include: { pins: { include: { entity: { select: { id: true, name: true, type: true } } } } },
+        include: {
+          pins: {
+            include: {
+              entity: { select: { id: true, name: true, type: true } },
+            },
+          },
+        },
       });
       return map;
     }),
@@ -288,5 +295,69 @@ export const worldMapRouter = router({
         select: { id: true, name: true, parentLocationId: true, backgroundType: true, backgroundUrl: true },
         orderBy: { name: 'asc' },
       });
+    }),
+
+  listBackgroundSources: campaignDMProcedure
+    .query(async ({ input }) => {
+      const sourcebooks = await prisma.campaignSourcebook.findMany({
+        where: { campaignId: input.campaignId },
+        select: {
+          sourcebook: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              chapterImages: {
+                orderBy: [{ chapterId: 'asc' }, { position: 'asc' }],
+                select: {
+                  id: true,
+                  url: true,
+                  alt: true,
+                  sectionHeading: true,
+                  kind: true,
+                  chapter: {
+                    select: {
+                      id: true,
+                      title: true,
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const rawCandidates: Array<MapBackgroundImageCandidate & {
+        title: string;
+        subtitle: string;
+        sourcebookTitle: string;
+        chapterTitle: string;
+      }> = [];
+
+      for (const link of sourcebooks) {
+        for (const image of link.sourcebook.chapterImages) {
+          rawCandidates.push({
+            id: image.id,
+            url: image.url,
+            alt: image.alt,
+            sectionHeading: image.sectionHeading,
+            kind: image.kind,
+            chapterTitle: image.chapter.title,
+            sourcebookTitle: link.sourcebook.title,
+            title: image.sectionHeading ?? image.alt ?? image.chapter.title,
+            subtitle: image.alt ?? 'Extracted map from linked sourcebook',
+          });
+        }
+      }
+
+      return dedupeMapBackgroundCandidates(rawCandidates).map(({ title, subtitle, sourcebookTitle, chapterTitle, ...image }) => ({
+        ...image,
+        title,
+        subtitle,
+        sourcebookTitle,
+        chapterTitle,
+      }));
     }),
 });

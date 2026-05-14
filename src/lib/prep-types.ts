@@ -81,6 +81,21 @@ export const PrepReminderSchema = z.object({
   createdAt: z.string().optional(),
 });
 
+export const PrepItemStatusSchema = z.enum(['planned', 'prepping', 'prepped', 'used', 'dropped']);
+
+export const PrepItemSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1).max(200),
+  status: PrepItemStatusSchema.default('planned'),
+  objective: z.string().max(500).default(''),
+  notes: z.string().max(5000).default(''),
+  outcome: z.string().max(2000).default(''),
+  linkedEntityName: z.string().max(120).optional(),
+  linkedEntityId: z.string().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
+
 export const SessionPrepDataSchema = z.object({
   currentStep: z.number().int().min(0).max(7).default(0),
   lastSavedAt: z.string().optional(),
@@ -115,6 +130,9 @@ export const SessionPrepDataSchema = z.object({
   // World Briefing Board
   briefingCards: z.array(BriefingCardSchema).optional().default([]),
 
+  // Session prep plan items
+  prepItems: z.array(PrepItemSchema).optional().default([]),
+
   // Home-page Prep Reminders (Slice D2) — ad-hoc todos for the next session
   reminders: z.array(PrepReminderSchema).optional().default([]),
 });
@@ -125,6 +143,8 @@ export type PrepScene = z.infer<typeof SceneSchema>;
 export type PrepSecret = z.infer<typeof SecretSchema>;
 export type PrepNpc = z.infer<typeof PrepNpcSchema>;
 export type PrepReminder = z.infer<typeof PrepReminderSchema>;
+export type PrepItem = z.infer<typeof PrepItemSchema>;
+export type PrepItemStatus = z.infer<typeof PrepItemStatusSchema>;
 export type PrepMonster = z.infer<typeof MonsterSchema>;
 export type PrepReward = z.infer<typeof RewardSchema>;
 export type PrepLooseThread = z.infer<typeof LooseThreadSchema>;

@@ -18,14 +18,14 @@ interface MapBreadcrumbProps {
 export function MapBreadcrumb({ path, slug }: MapBreadcrumbProps) {
   const router = useRouter();
   return (
-    <div className="absolute left-16 top-4 z-10 flex items-center gap-1 rounded-lg border border-border bg-card/80 px-2 py-1 backdrop-blur-sm">
+    <div className="absolute left-20 top-5 z-20 flex items-center gap-1 rounded-full border border-[var(--q-accent-primary-border)] bg-black/35 px-2 py-1.5 backdrop-blur-md">
       {path.map((segment, i) => (
         <div key={segment.mapId} className="flex items-center gap-1">
-          {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground" />}
+          {i > 0 && <ChevronRight className="h-3 w-3 text-[var(--q-accent-primary-dim)]" />}
           <Button
             variant="ghost"
             size="sm"
-            className="h-auto px-1 py-0.5 text-xs"
+            className="h-auto rounded-full px-2 py-0.5 text-xs text-[var(--q-text-dim)] hover:bg-[var(--q-accent-primary-trace)] hover:text-[var(--q-text)]"
             disabled={i === path.length - 1}
             onClick={() => {
               if (i === 0) {

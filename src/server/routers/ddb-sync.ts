@@ -106,7 +106,7 @@ export const ddbSyncRouter = router({
       const owned = await prisma.ddbSourcebook.findMany({
         where: { userId: ctx.session.user.id },
         orderBy: { title: 'asc' },
-        select: { id: true, slug: true, title: true },
+        select: { id: true, slug: true, title: true, syncStatus: true, lastSyncedAt: true, lastSyncError: true },
       });
       const linked = await prisma.campaignSourcebook.findMany({
         where: { campaignId: input.campaignId },
@@ -140,6 +140,14 @@ export const ddbSyncRouter = router({
         input.sourcebookId,
         ctx.session.user.id,
       );
+
+      const extractedImageCount = await prisma.sourcebookChapterImage.count({
+        where: { sourcebookId: input.sourcebookId },
+      });
+      if (extractedImageCount === 0) {
+        await addDdbSyncJob(input.sourcebookId, ctx.session.user.id);
+      }
+
       return { ok: true, ...seedResult };
     }),
 

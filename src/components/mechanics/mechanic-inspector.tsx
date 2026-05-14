@@ -65,7 +65,7 @@ export function MechanicInspector({ mechanicId, campaignId, isDM }: MechanicInsp
         </p>
         <h2 className="font-[var(--q-font-display)] text-2xl text-[var(--q-text)]">{m.name}</h2>
         <div className="flex flex-wrap gap-2">
-          <Pill variant={m.playerVisible ? 'info' : 'neutral'}>
+          <Pill variant={m.playerVisible ? 'success' : 'neutral'}>
             {m.playerVisible ? 'Visible to players' : 'DM only'}
           </Pill>
           {m.assignedToCharacterId && <Pill variant="neutral">Assigned</Pill>}

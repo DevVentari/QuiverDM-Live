@@ -53,6 +53,7 @@ test('world map workflow — load, background picker, and canvas', async ({ page
       await expect(page.getByRole('tab', { name: /blank/i })).toBeVisible({ timeout: 5_000 });
       await expect(page.getByRole('tab', { name: /generate/i })).toBeVisible({ timeout: 5_000 });
       await expect(page.getByRole('tab', { name: /upload/i })).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole('tab', { name: /sourcebooks/i })).toBeVisible({ timeout: 5_000 });
     }
   }, 10_000);
 

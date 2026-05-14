@@ -75,7 +75,12 @@ export const worldSimulationRepository = {
 
   async getSessionSeed(campaignId: string, limit = 3) {
     return prisma.worldSimulationEvent.findMany({
-      where: { campaignId, type: 'threshold_trigger' },
+      where: {
+        campaignId,
+        type: {
+          in: ['world_proposal', 'threshold_trigger'],
+        },
+      },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });

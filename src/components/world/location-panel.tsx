@@ -46,15 +46,16 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
   return (
     <Sheet open onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="right" className="w-[380px] overflow-y-auto border-l border-border bg-card p-0">
-        <SheetHeader className="border-b border-border px-5 py-4">
-          <SheetTitle className="font-display text-base">{entityName}</SheetTitle>
+        <SheetHeader className="border-b border-amber-500/10 bg-[linear-gradient(180deg,hsl(240_14%_12%/.96),hsl(240_12%_8%/.98))] px-5 py-4">
+          <p className="text-[10px] uppercase tracking-[0.22em] text-amber-200/55">Location Chronicle</p>
+          <SheetTitle className="mt-2 font-display text-base text-amber-50">{entityName}</SheetTitle>
         </SheetHeader>
 
-        <div className="flex flex-col gap-4 p-5">
+        <div className="flex flex-col gap-4 bg-[linear-gradient(180deg,hsl(238_15%_10%),hsl(240_12%_7%))] p-5">
           {/* Event timeline */}
           <div className="flex flex-col gap-3">
             {events.length === 0 && (
-              <p className="text-sm text-muted-foreground">No events yet. Add a note or play a session to see history appear.</p>
+              <p className="text-sm text-amber-100/55">No events yet. Add a note or play a session to see history gather around this place.</p>
             )}
             {events.map((event) => {
               const isBrain = event.source === 'ingestion' || event.source === 'inference';
@@ -67,18 +68,18 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
                     }
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    <p className="text-sm leading-snug text-foreground">
+                    <p className="text-sm leading-snug text-amber-50/90">
                       {typeof event.newValue === 'object' && event.newValue !== null
                         ? (event.newValue as any).content ?? JSON.stringify(event.newValue)
                         : String(event.newValue)}
                     </p>
                     <div className="flex items-center gap-2">
                       {event.session && (
-                        <Badge variant="outline" className="h-4 px-1 text-[10px]">
+                        <Badge variant="outline" className="h-4 border-amber-500/20 bg-amber-500/[0.05] px-1 text-[10px] text-amber-100/70">
                           {event.session.title ?? `Session ${event.session.sessionNumber}`}
                         </Badge>
                       )}
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-[11px] text-amber-100/45">
                         {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
                       </span>
                     </div>
@@ -96,7 +97,7 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
               placeholder="Add a note about this location…"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              className="min-h-[80px] resize-none text-sm"
+              className="min-h-[80px] resize-none border-amber-500/15 bg-white/[0.03] text-sm text-amber-50 placeholder:text-amber-100/30"
             />
             <Button
               size="sm"
@@ -113,7 +114,7 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
           <Button
             variant="outline"
             size="sm"
-            className="w-full gap-2"
+            className="w-full gap-2 border-amber-500/20 bg-amber-500/[0.04] text-amber-100 hover:bg-amber-500/[0.08]"
             disabled={createSubMapMutation.isPending}
             onClick={() => createSubMapMutation.mutate({ parentLocationEntityId: entityId, campaignId, name: 'Location Map' })}
           >

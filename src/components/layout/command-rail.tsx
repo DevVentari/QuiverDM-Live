@@ -216,7 +216,6 @@ export function CommandRail() {
         ) : (
           <>
             <RailItem href="/dashboard" label="Dashboard" icon={LayoutDashboard} isActive={pathname === '/dashboard'}              pinned={pinned} />
-            <RailItem href="/campaigns" label="Campaigns" icon={Swords}          isActive={pathname === '/campaigns'}               pinned={pinned} />
             <RailItem href="/homebrew"  label="Homebrew"  icon={BookOpen}        isActive={pathname.startsWith('/homebrew')}        pinned={pinned} />
             <RailItem href="/recap"     label="Recaps"    icon={ScrollText}      isActive={pathname.startsWith('/recap')}           pinned={pinned} />
           </>

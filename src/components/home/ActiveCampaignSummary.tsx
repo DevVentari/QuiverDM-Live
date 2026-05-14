@@ -69,29 +69,21 @@ export function ActiveCampaignSummary({
 
   return (
     <Card variant="detail" className="relative overflow-hidden !p-0">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(circle at 84% 18%, hsl(214 42% 42% / 0.16), transparent 30%), radial-gradient(circle at 16% 100%, hsl(205 28% 18% / 0.08), transparent 34%), linear-gradient(180deg, hsl(214 34% 14% / 0.22), hsl(220 28% 8% / 0.08) 48%, transparent 100%)',
-        }}
-      />
       <div className="relative">
         <div className="flex items-center gap-3 border-b border-[var(--q-border-subtle)] px-5 py-4">
-          <span className="font-[var(--q-font-display)] text-[10px] font-medium uppercase tracking-[2.8px] text-[var(--q-amber-dim)]">
+          <span className="font-[var(--q-font-display)] text-[10px] font-medium uppercase tracking-[2.8px] text-[var(--q-accent-primary-dim)]">
             Active Campaign
           </span>
-          <div className="h-px flex-1 bg-gradient-to-r from-[var(--q-border-feature)] to-transparent" />
+          <div className="h-px flex-1 bg-gradient-to-r from-[var(--q-accent-primary-border)] to-transparent" />
         </div>
 
         <div className="space-y-5 px-5 py-4">
           <div className="flex items-start gap-4">
-            <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[var(--q-amber-dim)] bg-[linear-gradient(160deg,var(--q-amber-trace),transparent)]">
+            <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[var(--q-accent-primary-border)] bg-[linear-gradient(160deg,var(--q-accent-primary-trace),transparent)]">
               {emblemUrl ? (
                 <Image src={emblemUrl} alt="" fill sizes="56px" className="object-cover" unoptimized />
               ) : (
-                <Shield size={24} className="text-[var(--q-amber)]" />
+                <Shield size={24} className="text-[var(--q-accent-primary)]" />
               )}
             </div>
             <div className="min-w-0 flex-1">
@@ -112,7 +104,7 @@ export function ActiveCampaignSummary({
               <div className="flex items-end justify-between gap-4">
                 <div>
                   <div className="text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
-                    Level {partyLevel} → {levelTarget}
+                    Level {partyLevel} - {levelTarget}
                   </div>
                 </div>
                 <div className="text-right">
@@ -124,17 +116,17 @@ export function ActiveCampaignSummary({
                   </div>
                 </div>
               </div>
-              <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--q-amber-trace)]">
-                <div className="h-full bg-[var(--q-amber)]" style={{ width: `${progress}%` }} />
+              <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--q-accent-primary-trace)]">
+                <div className="h-full bg-[var(--q-accent-primary)]" style={{ width: `${progress}%` }} />
               </div>
             </div>
           )}
 
           <div className="grid grid-cols-4 gap-3 border-t border-[var(--q-border-subtle)] pt-4">
             <StatTile value={sessionCount} label="Sessions" />
-            <StatTile value={npcCount ?? '—'} label="NPCs" />
-            <StatTile value={locationCount ?? '—'} label="Locations" />
-            <StatTile value={itemCount ?? '—'} label="Items" />
+            <StatTile value={npcCount ?? '-'} label="NPCs" />
+            <StatTile value={locationCount ?? '-'} label="Locations" />
+            <StatTile value={itemCount ?? '-'} label="Items" />
           </div>
 
           {slug && (

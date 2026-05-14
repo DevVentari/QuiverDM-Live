@@ -85,26 +85,34 @@ const config: Config = {
             maxWidth: 'none',
             color: 'var(--foreground)',
             h1: {
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
               color: 'var(--foreground)',
               fontWeight: '700',
+              letterSpacing: '0.03em',
               borderBottom: '2px solid var(--border)',
               paddingBottom: '0.5rem',
               marginBottom: '1rem',
             },
             h2: {
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
               color: 'var(--foreground)',
               fontWeight: '600',
+              letterSpacing: '0.025em',
               borderBottom: '1px solid var(--border)',
               paddingBottom: '0.25rem',
               marginTop: '2rem',
             },
             h3: {
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
               color: 'var(--foreground)',
               fontWeight: '600',
+              letterSpacing: '0.02em',
             },
             h4: {
+              fontFamily: 'var(--font-cinzel), Georgia, serif',
               color: 'var(--foreground)',
               fontWeight: '600',
+              letterSpacing: '0.02em',
             },
             strong: {
               color: 'var(--foreground)',
@@ -119,6 +127,7 @@ const config: Config = {
               },
             },
             code: {
+              fontFamily: 'var(--font-mono), ui-monospace, SFMono-Regular, monospace',
               color: 'var(--foreground)',
               backgroundColor: 'var(--muted)',
               padding: '0.125rem 0.25rem',

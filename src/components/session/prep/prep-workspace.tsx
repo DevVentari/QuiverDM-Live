@@ -11,6 +11,7 @@ import { PrepImportButton } from './prep-import-button';
 import { BriefingBoard } from './briefing-board';
 import { PartyStateSection } from './party-state-section';
 import { PrepMapCanvas } from './prep-map-canvas';
+import { PrepPlanPanel } from './prep-plan-panel';
 import type { BriefingCard } from '@/lib/briefing-types';
 
 type CampaignContext = {
@@ -216,6 +217,11 @@ export function PrepWorkspace({
             onExtracted={handleExtracted}
           />
           <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 p-3">
+            <PrepPlanPanel
+              items={prepData.prepItems ?? []}
+              onChange={(items) => setPrepData((p) => ({ ...p, prepItems: items }))}
+            />
+            <div className="h-3" />
             <BriefingBoard
               sessionId={sessionId}
               campaignId={campaignId}

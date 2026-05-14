@@ -18,7 +18,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from 'lucide-react'
-import { Card, Section, Pill } from '@/components/primitives'
+import { Card, Pill } from '@/components/primitives'
 import { trpc } from '@/lib/trpc'
 import { format, isToday, isYesterday } from 'date-fns'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -28,7 +28,6 @@ interface WorldActivityFeedProps {
 }
 
 const TYPE_ICONS: Record<string, LucideIcon> = {
-  // WorldEntity types
   NPC: Users,
   PC: Users,
   FACTION: Flag,
@@ -40,7 +39,6 @@ const TYPE_ICONS: Record<string, LucideIcon> = {
   SECRET: Eye,
   CUSTOM: Sparkles,
   NOTE: ScrollText,
-  // WorldEntry types not already covered
   MONSTER: Sword,
   RACE: Shield,
   LORE: ScrollText,
@@ -65,74 +63,76 @@ export function WorldActivityFeed({ campaignId }: WorldActivityFeedProps) {
   )
 
   return (
-    <Section
-      label="World Activity"
-      action={
-        <Link
-          href="/world"
-          className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[2px] text-[var(--q-amber-dim)] hover:text-[var(--q-amber)] transition-colors"
-        >
-          View All Activity
-          <ChevronRight size={12} />
-        </Link>
-      }
-    >
-      <Card variant="detail" className="!p-3">
-        {isLoading ? (
-          <div className="space-y-2">
-            {[0, 1, 2].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : !data || data.length === 0 ? (
-          <p className="py-6 text-center text-xs text-[var(--q-text-faint)]">
-            No recent activity yet — entities you create or update across the world will surface here.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {data.map((item) => {
-              const Icon = iconFor(item.type)
-              const changed = new Date(item.changedAt)
-              return (
-                <li key={`${item.source}:${item.id}`}>
-                  <Link
-                    href={item.href}
-                    className="group flex items-center gap-3 rounded-sm px-2 py-2 transition-colors hover:bg-white/[0.03]"
-                  >
-                    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-sm border border-white/5 bg-[var(--q-amber-trace)]/30 text-[var(--q-amber-dim)]">
-                      {item.imageUrl ? (
-                        <Image src={item.imageUrl} alt="" fill sizes="32px" className="object-cover" unoptimized />
-                      ) : (
-                        <Icon size={14} />
+    <Card variant="list" className="relative overflow-hidden !p-0">
+      <div className="relative">
+        <div className="flex items-center gap-3 border-b border-[color-mix(in_oklab,var(--q-border-subtle)_66%,transparent)] px-4 py-3.5">
+          <span className="font-[var(--q-font-display)] text-[9px] font-medium uppercase tracking-[3px] text-[var(--q-accent-primary-dim)]">
+            World Activity
+          </span>
+          <div className="h-px flex-1 bg-gradient-to-r from-[color-mix(in_oklab,var(--q-border-feature)_72%,transparent)] to-transparent" />
+          <Link
+            href="/world"
+            className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[2px] text-[var(--q-accent-primary-dim)] transition-colors hover:text-[var(--q-accent-primary)]"
+          >
+            View All Activity
+            <ChevronRight size={12} />
+          </Link>
+        </div>
+
+        <div className="px-3 py-2.5">
+          {isLoading ? (
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-11 w-full" />
+              ))}
+            </div>
+          ) : !data || data.length === 0 ? (
+            <p className="py-5 text-center text-[11px] text-[var(--q-text-faint)]">
+              No recent activity yet - entities you create or update across the world will surface here.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-0.5">
+              {data.map((item) => {
+                const Icon = iconFor(item.type)
+                const changed = new Date(item.changedAt)
+                return (
+                  <li key={`${item.source}:${item.id}`}>
+                    <Link
+                      href={item.href}
+                      className="group flex items-center gap-3 rounded-sm px-2 py-1.5 transition-colors hover:bg-white/[0.025]"
+                    >
+                      <span className="relative flex h-[30px] w-[30px] shrink-0 items-center justify-center overflow-hidden rounded-sm border border-[color-mix(in_oklab,var(--q-border-subtle)_62%,transparent)] bg-[var(--q-accent-primary-trace)]/24 text-[var(--q-accent-primary-dim)]">
+                        {item.imageUrl ? (
+                          <Image src={item.imageUrl} alt="" fill sizes="32px" className="object-cover" unoptimized />
+                        ) : (
+                          <Icon size={14} />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px] text-[var(--q-text)]">{item.name}</span>
+                        <span className="block text-[9px] uppercase tracking-[1.4px] text-[var(--q-text-faint)]">{dateLabel(changed)}</span>
+                      </span>
+                      <Pill variant={item.status === 'Added' ? 'success' : 'neutral'}>{item.status}</Pill>
+                      {item.source === 'WorldEntry' && (
+                        <span
+                          onClick={(e) => e.preventDefault()}
+                          className="opacity-0 transition-opacity group-hover:opacity-100"
+                        >
+                          <RegenerateAssetButton kind="activity" worldEntryId={item.id} />
+                        </span>
                       )}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm text-[var(--q-text)]">
-                        {item.name}
-                      </span>
-                      <span className="block text-[10px] text-[var(--q-text-faint)]">
-                        {dateLabel(changed)}
-                      </span>
-                    </span>
-                    <Pill variant={item.status === 'Added' ? 'info' : 'neutral'}>
-                      {item.status}
-                    </Pill>
-                    {item.source === 'WorldEntry' && (
-                      <span onClick={(e) => e.preventDefault()} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <RegenerateAssetButton kind="activity" worldEntryId={item.id} />
-                      </span>
-                    )}
-                    <ChevronRight
-                      size={12}
-                      className="shrink-0 text-[var(--q-text-faint)] transition-colors group-hover:text-[var(--q-amber-dim)]"
-                    />
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-      </Card>
-    </Section>
+                      <ChevronRight
+                        size={12}
+                        className="shrink-0 text-[var(--q-text-faint)] transition-colors group-hover:text-[var(--q-accent-primary-dim)]"
+                      />
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+    </Card>
   )
 }
