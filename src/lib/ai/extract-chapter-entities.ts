@@ -85,11 +85,8 @@ export interface ChapterExtractionResult {
 
 const MAX_SECTION_CHARS = 8000;
 
-function buildPrompt(chapterSlug: string, section: ChapterSection): string {
-  return `You are extracting structured information from a D&D 5e adventure chapter.
-
-Chapter: ${chapterSlug}
-Section: ${section.heading}
+// Static system prompt — never changes across sections, eligible for prompt caching.
+export const EXTRACTION_SYSTEM_PROMPT = `You are extracting structured information from a D&D 5e adventure chapter.
 
 Return ONLY a single JSON object (no commentary, no markdown fences) with exactly this shape. Omit empty arrays only if the section truly has none.
 
@@ -122,7 +119,11 @@ Rules:
 - "locations" = named places with their own identity (a tavern, a region, a dungeon room with a name). Skip generic features ("a forest", "the road").
 - "spells" = named magical spells with a level, school, and effect description. Skip cantrips that are just flavor (no game effect).
 - "feats" = D&D 5e feats with a name and benefit description. Skip racial features that aren't formally tagged as feats.
-- Keep descriptions concise (1-2 sentences) but specific to what the text says.
+- Keep descriptions concise (1-2 sentences) but specific to what the text says.`;
+
+function buildUserMessage(chapterSlug: string, section: ChapterSection): string {
+  return `Chapter: ${chapterSlug}
+Section: ${section.heading}
 
 Section text:
 ${section.text}`;
@@ -213,12 +214,16 @@ export async function extractChapterEntities(
   const chunks: ChapterSection[] = sections.flatMap(chunkSection).filter(c => c.text.length >= 200);
 
   for (const section of chunks) {
-    const prompt = buildPrompt(chapterSlug, section);
+    const userMessage = buildUserMessage(chapterSlug, section);
+    const messages = [
+      { role: 'system' as const, content: EXTRACTION_SYSTEM_PROMPT },
+      { role: 'user' as const, content: userMessage },
+    ];
     if (opts.skipAi) {
       attempts.push({
         sectionHeading: section.heading,
         sectionLength: section.text.length,
-        prompt,
+        prompt: userMessage,
         rawResponse: '',
         parsed: null,
         parseError: 'skipped',
@@ -228,13 +233,13 @@ export async function extractChapterEntities(
     }
     const started = Date.now();
     try {
-      const raw = await chatWithAI([{ role: 'user', content: prompt }], { temperature: 0.1 });
+      const raw = await chatWithAI(messages, { temperature: 0.1 });
       const durationMs = Date.now() - started;
       const { parsed, error } = tryParse(raw);
       attempts.push({
         sectionHeading: section.heading,
         sectionLength: section.text.length,
-        prompt,
+        prompt: userMessage,
         rawResponse: raw,
         parsed,
         parseError: error,
@@ -245,7 +250,7 @@ export async function extractChapterEntities(
       attempts.push({
         sectionHeading: section.heading,
         sectionLength: section.text.length,
-        prompt,
+        prompt: userMessage,
         rawResponse: '',
         parsed: null,
         parseError: `AI call: ${(e as Error).message}`,

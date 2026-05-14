@@ -3,6 +3,7 @@
  * Tries OpenAI → Gemini → Ollama in order, returning first successful response.
  */
 
+import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { callGemini } from './gemini';
 import { chatWithOllama, isOllamaAvailable } from './ollama';
@@ -17,6 +18,25 @@ interface ChatOptions {
   userGeminiKey?: string;
   userId?: string;
   openAiModel?: string;
+}
+
+async function tryClaude(messages: ChatMessage[], temperature: number): Promise<string> {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error('No Anthropic key');
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const systemMsg = messages.find(m => m.role === 'system');
+  const userMessages = messages.filter(m => m.role !== 'system');
+  const res = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    temperature,
+    ...(systemMsg && {
+      system: [{ type: 'text', text: systemMsg.content, cache_control: { type: 'ephemeral' } }],
+    }),
+    messages: userMessages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+  });
+  const block = res.content[0];
+  if (block.type !== 'text') throw new Error('Unexpected Claude response type');
+  return block.text;
 }
 
 async function tryGroq(messages: ChatMessage[], temperature: number): Promise<string> {
@@ -76,6 +96,7 @@ export async function chatWithAI(
   }
 
   const allProviders: Record<string, [string, () => Promise<string>]> = {
+    claude: ['claude', () => tryClaude(messages, temperature)],
     'gemini-user': ['gemini-user', tryGeminiWithUserKey],
     groq: ['groq', () => tryGroq(messages, temperature)],
     openai: ['openai', () => tryOpenAI(messages, temperature, openAiModel)],
