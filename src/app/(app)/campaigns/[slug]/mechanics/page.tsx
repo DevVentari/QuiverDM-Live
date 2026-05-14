@@ -112,12 +112,47 @@ function MechanicsPageInner() {
               {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-32 w-full" />)}
             </div>
           ) : filtered.length === 0 ? (
-            <Card variant="detail" className="flex flex-col items-center justify-center gap-3 py-24 text-center">
-              <Sparkles size={32} className="text-[var(--q-text-faint)]" />
-              <p className="text-sm text-[var(--q-text-dim)]">
-                {rows.length === 0 ? 'No mechanics yet' : 'No mechanics match those filters'}
-              </p>
-            </Card>
+            rows.length === 0 ? (
+              <Card variant="detail" className="flex flex-col items-center justify-center gap-6 py-28 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--q-amber-border)] bg-[var(--q-amber-trace)]">
+                  <Sparkles size={22} className="text-[var(--q-amber)]" />
+                </div>
+                <div className="space-y-2 max-w-xs">
+                  <p className="font-[var(--q-font-display)] text-[10px] uppercase tracking-[2.5px] text-[var(--q-amber-dim)]">
+                    Nothing here yet
+                  </p>
+                  <p className="font-[var(--q-font-display)] text-xl text-[var(--q-text-dim)]">
+                    The veil holds no secrets
+                  </p>
+                  <p className="text-sm leading-relaxed text-[var(--q-text-faint)]">
+                    Mechanics let you track campaign secrets, Tarokka readings, and hidden truths the world carries — visible only when you choose to reveal them.
+                  </p>
+                </div>
+                {isDM && (
+                  <button
+                    type="button"
+                    onClick={() => setCreateOpen(true)}
+                    className="rounded-sm border border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] px-5 py-2.5 font-[var(--q-font-display)] text-[11px] uppercase tracking-[2px] text-[var(--q-amber)] transition-colors hover:bg-[color-mix(in_oklab,var(--q-amber-trace)_150%,transparent)]"
+                  >
+                    Add first mechanic
+                  </button>
+                )}
+              </Card>
+            ) : (
+              <Card variant="detail" className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+                <p className="font-[var(--q-font-display)] text-[10px] uppercase tracking-[2.5px] text-[var(--q-text-faint)]">
+                  No results
+                </p>
+                <p className="text-sm text-[var(--q-text-dim)]">No mechanics match those filters</p>
+                <button
+                  type="button"
+                  onClick={() => { setSearch(''); setKindFilter('all'); setSourcebookFilter(null); }}
+                  className="mt-1 text-[11px] uppercase tracking-[2px] text-[var(--q-text-faint)] underline-offset-2 hover:text-[var(--q-text-dim)] hover:underline"
+                >
+                  Clear filters
+                </button>
+              </Card>
+            )
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
               {filtered.map((m) => (
