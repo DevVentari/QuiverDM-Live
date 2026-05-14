@@ -189,7 +189,7 @@ function dedupeByName<T extends { name: string; description: string }>(items: T[
   return [...map.values()];
 }
 
-function mergeExtractions(parts: ChapterExtraction[]): ChapterExtraction {
+export function mergeExtractions(parts: ChapterExtraction[]): ChapterExtraction {
   return {
     npcs: dedupeByName(parts.flatMap(p => p.npcs)),
     locations: dedupeByName(parts.flatMap(p => p.locations)),
@@ -205,7 +205,7 @@ function mergeExtractions(parts: ChapterExtraction[]): ChapterExtraction {
 export async function extractChapterEntities(
   chapterSlug: string,
   sections: ChapterSection[],
-  opts: { skipAi?: boolean } = {}
+  opts: { skipAi?: boolean; provider?: string } = {}
 ): Promise<ChapterExtractionResult> {
   const attempts: SectionAttempt[] = [];
   const successful: ChapterExtraction[] = [];
@@ -233,7 +233,7 @@ export async function extractChapterEntities(
     }
     const started = Date.now();
     try {
-      const raw = await chatWithAI(messages, { temperature: 0.1 });
+      const raw = await chatWithAI(messages, { temperature: 0.1, forceProvider: opts.provider });
       const durationMs = Date.now() - started;
       const { parsed, error } = tryParse(raw);
       attempts.push({
@@ -261,3 +261,5 @@ export async function extractChapterEntities(
 
   return { attempts, merged: mergeExtractions(successful) };
 }
+
+export { dedupeByName };
