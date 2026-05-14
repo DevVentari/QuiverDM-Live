@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 
 function inferImageKind(url: string, alt?: string, section?: string): 'portrait' | 'map' | 'scene' | 'generic' {
   const h = `${url} ${alt ?? ''} ${section ?? ''}`.toLowerCase();
-  if (/\b(map|floor|tactical|hideout|cave|cavern|dungeon)\b/.test(h)) return 'map';
+  if (/\b(map|floor.?plan|tactical)\b/.test(h)) return 'map';
   if (/\b(portrait|character|headshot)\b/.test(h)) return 'portrait';
   if (/\b(cover|splash|landscape|scene|spread)\b/.test(h)) return 'scene';
   return 'generic';
@@ -67,7 +67,13 @@ async function main() {
             position: i,
             kind: inferImageKind(img.url, img.alt, img.sectionHeading),
           },
-          update: {},
+          update: {
+            alt: img.alt || null,
+            sectionHeading: img.sectionHeading || null,
+            isHero: img.isHero,
+            position: i,
+            kind: inferImageKind(img.url, img.alt, img.sectionHeading),
+          },
         });
         total++;
       }

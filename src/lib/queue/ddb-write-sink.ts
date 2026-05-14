@@ -7,7 +7,7 @@ import type { ProseChunk } from './ddb-chapter-chunker';
 
 function inferImageKind(url: string, alt?: string, section?: string): 'portrait' | 'map' | 'scene' | 'generic' {
   const haystack = `${url} ${alt ?? ''} ${section ?? ''}`.toLowerCase();
-  if (/\b(map|floor|tactical|hideout|cave|cavern|dungeon)\b/.test(haystack)) return 'map';
+  if (/\b(map|floor.?plan|tactical)\b/.test(haystack)) return 'map';
   if (/\b(portrait|character|headshot)\b/.test(haystack)) return 'portrait';
   if (/\b(cover|splash|landscape|scene|spread)\b/.test(haystack)) return 'scene';
   return 'generic';
