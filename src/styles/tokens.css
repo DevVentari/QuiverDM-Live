@@ -250,3 +250,17 @@ html.light {
   --q-accent-neutral-border: oklch(0.52 0.004 240 / 0.2);
   --q-accent-neutral-glow:   oklch(0.52 0.004 240 / 0.12);
 }
+
+.prose-q p { margin-block: 0.9rem; }
+.prose-q ul, .prose-q ol { margin-block: 0.9rem; padding-left: 1.4rem; list-style: disc; }
+.prose-q li { margin-block: 0.3rem; }
+.prose-q blockquote {
+  margin-block: 1rem;
+  padding: 0.6rem 1rem;
+  border-left: 2px solid var(--q-accent-primary);
+  background: var(--q-surface-utility);
+  font-style: italic;
+}
+.prose-q table { width: 100%; border-collapse: collapse; margin-block: 1rem; }
+.prose-q th, .prose-q td { border: 1px solid var(--q-border-subtle); padding: 0.4rem 0.6rem; text-align: left; }
+.prose-q th { background: var(--q-surface-utility); font-family: var(--q-font-display); }
