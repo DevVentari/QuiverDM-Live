@@ -18,6 +18,7 @@ interface ChatOptions {
   userGeminiKey?: string;
   userId?: string;
   openAiModel?: string;
+  forceProvider?: string; // force a specific provider from allProviders
 }
 
 async function tryClaude(messages: ChatMessage[], temperature: number): Promise<string> {
@@ -103,6 +104,12 @@ export async function chatWithAI(
     gemini: ['gemini', () => tryGemini(messages, temperature)],
     ollama: ['ollama', () => tryOllama(messages, temperature)],
   };
+
+  if (options.forceProvider) {
+    const entry = allProviders[options.forceProvider];
+    if (!entry) throw new Error(`Unknown provider: ${options.forceProvider}`);
+    return entry[1]();
+  }
 
   const envOrder = process.env.AI_PROVIDER_ORDER?.split(',').map(s => s.trim()).filter(Boolean);
   const defaultOrder = userGeminiKey
