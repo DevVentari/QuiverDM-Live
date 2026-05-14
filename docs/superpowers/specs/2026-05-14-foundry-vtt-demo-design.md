@@ -107,11 +107,14 @@ New dedicated LXC on the nerdt server (separate from LXC 206 to avoid competing 
 - **Port:** 30000
 - **Process manager:** PM2
 - **Internal hostname:** `foundry.nerdt.au`
+- **External URL:** `https://foundry.nerdt.au` (Proxmox reverse proxy, accessible to beta DMs' browsers for the iframe embed)
 - **Frame options:** Configured in Foundry's `options.json` to allow embedding from `quiverdm.com` and `app.nerdt.au`
-- **License:** One of the 10 F&F beta licenses
-- **World:** Pre-loaded with Curse of Strahd or RotFM content for F&F testing
+- **Licenses:** All 10 F&F beta licenses applied to this single instance
+- **World-per-campaign:** One Foundry world per F&F beta campaign. DMs are assigned their world on onboarding. QuiverDM stores which world ID maps to which campaign in `Campaign.settings.foundryWorldId`.
+- **`quiver-embed` module:** Pre-installed on the server — beta DMs do not need to install anything. Module activates automatically when the iframe loads with `?quiver=1`.
+- **Content:** Each world pre-loaded with the DM's active sourcebook maps (CoS, RotFM, LMoP) manually before their first session.
 
-Foundry is accessed by QuiverDM server-side for API calls and by the DM's browser for the iframe embed. No player-facing access needed for the demo.
+Foundry is accessed by the QuiverDM Next.js server for API calls (actor/token sync, event polling) and by each DM's browser for the iframe embed. No player-facing Foundry access needed for the demo — this is DM-only.
 
 ## What This Is Not
 
@@ -127,7 +130,7 @@ The demo is successful if F&F beta DMs can:
 3. Click a world map location pin and jump to that Foundry scene in one action
 4. Complete a full encounter without leaving the QuiverDM UI
 
-## Open Questions
+## Decisions
 
-- Should the `quiver-embed` module repo be public (community can use it) or private?
-- Do F&F beta DMs self-install Foundry + the module, or does QuiverDM host a shared Foundry instance for the beta?
+- **`quiver-embed` module repo:** Private for now. May open-source later if there's community interest.
+- **Foundry hosting model:** QuiverDM hosts a single Foundry instance on the homelab. Each of the 10 F&F beta DMs gets their own world. No self-install required by beta users.
