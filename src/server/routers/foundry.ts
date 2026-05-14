@@ -224,4 +224,106 @@ export const foundryRouter = router({
 
       return { ok: true };
     }),
+
+  syncSession: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), sessionId: z.string().cuid() }))
+    .mutation(async ({ input }) => {
+      const appearances = await prisma.sessionEntityAppearance.findMany({
+        where: { sessionId: input.sessionId, campaignId: input.campaignId },
+        include: {
+          entity: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              imageUrl: true,
+            },
+          },
+        },
+      })
+
+      const characters = await prisma.character.findMany({
+        where: { campaignCharacters: { some: { campaignId: input.campaignId } } },
+        select: { id: true, name: true, portraitUrl: true },
+      })
+
+      const jobs: Array<{
+        campaignId: string
+        type: string
+        sourceId: string
+        sourceName: string
+        payload: Prisma.InputJsonValue
+        status: string
+      }> = []
+
+      for (const app of appearances) {
+        const actor = mapNpcToActor({
+          id: app.entity.id,
+          name: app.entity.name,
+          description: app.entity.description,
+          imageUrl: app.entity.imageUrl,
+        })
+        jobs.push({
+          campaignId: input.campaignId,
+          type: 'actor_upsert',
+          sourceId: app.entity.id,
+          sourceName: app.entity.name,
+          payload: actor as Prisma.InputJsonValue,
+          status: 'pending',
+        })
+      }
+
+      for (const char of characters) {
+        jobs.push({
+          campaignId: input.campaignId,
+          type: 'actor_upsert',
+          sourceId: char.id,
+          sourceName: char.name,
+          payload: {
+            name: char.name,
+            type: 'character',
+            img: char.portraitUrl ?? 'icons/svg/mystery-man.svg',
+            system: { attributes: { hp: { value: 0, max: 0 } } },
+          } as Prisma.InputJsonValue,
+          status: 'pending',
+        })
+      }
+
+      if (appearances.length > 0 || characters.length > 0) {
+        jobs.push({
+          campaignId: input.campaignId,
+          type: 'token_place',
+          sourceId: input.sessionId,
+          sourceName: 'Session tokens',
+          payload: {
+            sessionId: input.sessionId,
+            npcSourceIds: appearances.map((a) => a.entity.id),
+            playerSourceIds: characters.map((c) => c.id),
+          } as Prisma.InputJsonValue,
+          status: 'pending',
+        })
+      }
+
+      if (jobs.length > 0) {
+        await prisma.foundryImportJob.createMany({ data: jobs })
+      }
+
+      return { queued: jobs.length }
+    }),
+
+  activateScene: campaignDMProcedure
+    .input(z.object({ campaignId: z.string(), foundrySceneId: z.string() }))
+    .mutation(async ({ input }) => {
+      await prisma.foundryImportJob.create({
+        data: {
+          campaignId: input.campaignId,
+          type: 'scene_activate',
+          sourceId: input.foundrySceneId,
+          sourceName: 'Scene activation',
+          payload: { sceneId: input.foundrySceneId } as Prisma.InputJsonValue,
+          status: 'pending',
+        },
+      })
+      return { ok: true }
+    }),
 });
