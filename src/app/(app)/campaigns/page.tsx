@@ -110,13 +110,21 @@ function CampaignsPageInner() {
           ) : !memberships || memberships.length === 0 ? (
             <Card
               variant="detail"
-              className="flex flex-col items-center justify-center gap-6 py-24 text-center"
+              className="flex flex-col items-center justify-center gap-5 py-24 text-center"
             >
-              <p className="font-[var(--q-font-display)] text-sm uppercase tracking-[2px] text-[var(--q-text-faint)]">
-                No campaigns yet
-              </p>
+              <div className="space-y-2">
+                <p className="font-[var(--q-font-display)] text-[10px] uppercase tracking-[2.5px] text-[var(--q-amber-dim)]">
+                  No worlds yet
+                </p>
+                <p className="font-[var(--q-font-display)] text-xl text-[var(--q-text-dim)]">
+                  Your chronicle awaits
+                </p>
+                <p className="max-w-xs text-sm text-[var(--q-text-faint)]">
+                  Every great campaign starts with a name. Forge your first world and the rest follows.
+                </p>
+              </div>
               <Button onClick={() => setCreateOpen(true)}>
-                Create your first campaign
+                Forge your first campaign
               </Button>
             </Card>
           ) : (
@@ -137,37 +145,60 @@ function CampaignsPageInner() {
                         : 'hover:border-[var(--q-amber-trace)]',
                     )}
                   >
+                    {/* Amber top-rule — always subtle, glows on active */}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent transition-opacity',
+                        isActive
+                          ? 'via-[var(--q-amber-border)] opacity-100'
+                          : 'via-[var(--q-border-feature)] opacity-60 group-hover:opacity-100',
+                      )}
+                    />
+                    {/* Amber left-bar for active card */}
                     {isActive && (
-                      <span className="absolute right-3 top-3 rounded-sm bg-[var(--q-amber-trace)] px-2 py-0.5 text-[10px] uppercase tracking-[2px] text-[var(--q-amber)]">
-                        Active
-                      </span>
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-[var(--q-amber)] via-[var(--q-amber-border)] to-transparent"
+                      />
                     )}
 
                     <Link
                       href={`/campaigns/${c.slug}/sessions`}
-                      className="flex flex-1 flex-col gap-2 p-5"
+                      className="flex flex-1 flex-col gap-3 p-5"
                     >
-                      <p className="font-[var(--q-font-display)] text-lg text-[var(--q-text)]">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-[var(--q-font-display)] text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
+                          Campaign · {c.role.charAt(0) + c.role.slice(1).toLowerCase()}
+                        </p>
+                        {isActive && (
+                          <span className="shrink-0 rounded-sm bg-[var(--q-amber-trace)] px-2 py-0.5 text-[9px] uppercase tracking-[2px] text-[var(--q-amber)]">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-[var(--q-font-display)] text-xl leading-snug text-[var(--q-text)]">
                         {c.name}
                       </p>
-                      <p className="text-xs text-[var(--q-text-faint)]">
-                        {c.role} · {c.sessionCount ?? 0} sessions
-                      </p>
-                      {c.lastSessionDate && (
-                        <p className="mt-auto text-[11px] text-[var(--q-text-faint)]">
-                          Last played {new Date(c.lastSessionDate).toLocaleDateString()}
-                        </p>
-                      )}
+                      <div className="mt-auto flex items-center gap-3 text-[11px] text-[var(--q-text-faint)]">
+                        <span>{c.sessionCount ?? 0} sessions</span>
+                        {c.lastSessionDate && (
+                          <>
+                            <span className="opacity-40">·</span>
+                            <span>Last played {new Date(c.lastSessionDate).toLocaleDateString()}</span>
+                          </>
+                        )}
+                      </div>
                     </Link>
 
-                    <div className="flex items-center justify-end border-t border-[var(--q-border-subtle)] px-3 py-2">
+                    <div className="flex items-center justify-end border-t border-[var(--q-border-subtle)]/60 px-3 py-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
                           type="button"
                           aria-label="Campaign actions"
                           data-testid={`campaign-card-kebab-${c.slug}`}
-                          className="rounded-sm p-1.5 text-[var(--q-text-faint)] hover:text-[var(--q-text)]"
+                          className="rounded-sm p-1.5 text-[var(--q-text-faint)] transition-colors hover:text-[var(--q-amber)]"
                         >
                           <MoreVertical size={16} />
                         </button>
