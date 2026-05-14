@@ -73,10 +73,12 @@ function SectionHeader({
       {href && (
         <Link
           href={href}
-          className="text-[9px] uppercase tracking-[0.14em] transition-colors hover:opacity-90"
-          style={{ color: 'var(--wm-accent)' }}
+          className="text-[9px] uppercase tracking-[0.14em] transition-colors"
+          style={{ color: 'var(--wm-muted)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--wm-soft-text)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--wm-muted)')}
         >
-          View all -&gt;
+          All →
         </Link>
       )}
     </div>
@@ -141,6 +143,8 @@ function SessionCard({ campaignId, slug }: { campaignId: string; slug: string })
 
   return (
     <CardShell className="left-[calc(var(--q-rail-collapsed-w)+1rem)] top-5 z-10 w-56">
+      {/* Accent top-rule — marks this as the primary card */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-[1.1rem] bg-gradient-to-r from-transparent to-transparent" style={{ backgroundImage: 'linear-gradient(90deg, transparent, var(--wm-accent), transparent)' }} />
       <p className="mb-0.5 font-display text-[9px] uppercase tracking-[0.22em]" style={{ color: 'var(--wm-muted)' }}>
         Campaign
       </p>
@@ -169,14 +173,15 @@ function SessionCard({ campaignId, slug }: { campaignId: string; slug: string })
           </p>
           <Link
             href={`/campaigns/${slug}/sessions/${nextSession.id}`}
-            className="flex min-h-11 w-full items-center justify-center rounded-xl border px-3 font-display text-[10px] font-semibold tracking-[0.1em] transition-colors hover:opacity-90"
+            className="flex min-h-11 w-full items-center justify-center rounded-xl border px-3 font-display text-[10px] font-semibold tracking-[0.1em] transition-all hover:opacity-90"
             style={{
               borderColor: 'var(--wm-accent-border)',
-              background: 'var(--wm-accent-trace)',
+              background: 'linear-gradient(180deg, color-mix(in oklab, var(--wm-accent) 20%, transparent), color-mix(in oklab, var(--wm-accent) 10%, transparent))',
               color: 'var(--wm-accent)',
+              boxShadow: '0 0 16px color-mix(in oklab, var(--wm-glow) 35%, transparent)',
             }}
           >
-            Open Session -&gt;
+            Open Session →
           </Link>
         </>
       ) : (
@@ -556,10 +561,10 @@ function ActivityCard({
             </button>
           ))}
           {reminders.length === 0 && (
-            <div className="space-y-2 py-1">
+            <div className="space-y-1.5 py-1">
               <p className="text-center text-[10px]" style={{ color: 'var(--wm-muted)' }}>No prep reminders yet</p>
-              <p className="text-center text-[9px] uppercase tracking-[0.18em]" style={{ color: 'var(--wm-accent)' }}>
-                {nextPlanningSession ? 'Open prep to add reminders' : 'No planning session yet'}
+              <p className="text-center text-[9px] uppercase tracking-[0.18em]" style={{ color: 'var(--wm-muted)' }}>
+                {nextPlanningSession ? 'Open prep to add' : 'No planning session'}
               </p>
             </div>
           )}
