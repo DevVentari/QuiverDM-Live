@@ -143,45 +143,54 @@ export function PrepReminders({ sessionId, campaignSlug, reminders: initial, pre
           ) : (
             <>
               {activePrepItems.length > 0 && (
-                <div className="space-y-2 px-2 pb-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-[2px] text-[var(--q-accent-quest-dim)]">
+                <div className="space-y-1.5 px-2 pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] uppercase tracking-[2.5px] text-[var(--q-accent-quest-dim)]">
                       Prep Items
                     </span>
-                    <span className="text-[10px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
+                    <span className="h-px flex-1 bg-gradient-to-r from-[color-mix(in_oklab,var(--q-border-feature)_60%,transparent)] to-transparent" />
+                    <span className="text-[9px] uppercase tracking-[2px] text-[var(--q-text-faint)]">
                       {activePrepItems.length}
                     </span>
                   </div>
                   <ul className="space-y-1">
                     {activePrepItems.map((item) => (
-                      <li key={item.id} className="rounded-sm border border-[var(--q-border-subtle)] bg-white/[0.02] px-2 py-1.5">
-                        <div className="flex items-start gap-2">
+                      <li key={item.id} className="rounded-sm border border-[var(--q-border-subtle)] bg-white/[0.02] px-2.5 py-2">
+                        <div className="flex items-center gap-2">
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              {campaignSlug ? (
-                                <Link
-                                  href={`/campaigns/${campaignSlug}/sessions/prep?sessionId=${sessionId}`}
-                                  className="truncate text-sm text-[var(--q-text)] transition-colors hover:text-[var(--q-accent-primary)]"
-                                >
-                                  {item.title}
-                                </Link>
-                              ) : (
-                                <span className="truncate text-sm text-[var(--q-text)]">{item.title}</span>
-                              )}
-                              <Pill variant={PREP_STATUS_TONE[item.status]}>
-                                {PREP_STATUS_LABEL[item.status]}
-                              </Pill>
-                            </div>
+                            {campaignSlug ? (
+                              <Link
+                                href={`/campaigns/${campaignSlug}/sessions/prep?sessionId=${sessionId}`}
+                                className="truncate text-[13px] text-[var(--q-text)] transition-colors hover:text-[var(--q-accent-primary)]"
+                              >
+                                {item.title}
+                              </Link>
+                            ) : (
+                              <span className="truncate text-[13px] text-[var(--q-text)]">{item.title}</span>
+                            )}
                             {item.objective && (
-                              <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-[var(--q-text-faint)]">
+                              <p className="mt-0.5 line-clamp-1 text-[11px] leading-relaxed text-[var(--q-text-faint)]">
                                 {item.objective}
                               </p>
                             )}
                           </div>
+                          <Pill variant={PREP_STATUS_TONE[item.status]}>
+                            {PREP_STATUS_LABEL[item.status]}
+                          </Pill>
                         </div>
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {/* Divider between prep items and reminders checklist */}
+              {activePrepItems.length > 0 && (visible.length > 0 || adding) && (
+                <div className="flex items-center gap-2 px-2 pb-1.5 pt-0.5">
+                  <span className="text-[9px] uppercase tracking-[2.5px] text-[var(--q-text-faint)]">
+                    Checklist
+                  </span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-[color-mix(in_oklab,var(--q-border-subtle)_50%,transparent)] to-transparent" />
                 </div>
               )}
 
