@@ -52,7 +52,7 @@ async function tryGroq(messages: ChatMessage[], temperature: number): Promise<st
   return json.choices?.[0]?.message?.content ?? '';
 }
 
-async function tryOpenAI(messages: ChatMessage[], temperature: number, model = 'gpt-4o-mini'): Promise<string> {
+async function tryOpenAI(messages: ChatMessage[], temperature: number, model = process.env.OPENAI_DEFAULT_MODEL || 'gpt-4o-mini'): Promise<string> {
   if (!process.env.OPENAI_API_KEY) throw new Error('No OpenAI key');
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const res = await client.chat.completions.create({
