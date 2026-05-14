@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { prisma } from '@/server/db'
 import { verifyFoundryRequest } from '@/lib/foundry-auth'
+
+const PatchSchema = z.object({
+  jobId: z.string().cuid(),
+  campaignId: z.string().cuid(),
+  status: z.enum(['delivered', 'error']),
+  error: z.string().max(2000).optional(),
+})
 
 export async function GET(req: NextRequest) {
   const campaignId = req.nextUrl.searchParams.get('campaignId')
@@ -21,18 +29,18 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json().catch(() => null)
-  const { jobId, campaignId, status, error } = body ?? {}
-  if (!jobId || !campaignId) return NextResponse.json({ error: 'missing_fields' }, { status: 400 })
+  const parsed = PatchSchema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: 'invalid_body', issues: parsed.error.issues }, { status: 400 })
 
-  const ok = await verifyFoundryRequest(req, campaignId)
+  const ok = await verifyFoundryRequest(req, parsed.data.campaignId)
   if (!ok) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   await prisma.foundryImportJob.update({
-    where: { id: jobId },
+    where: { id: parsed.data.jobId, campaignId: parsed.data.campaignId },
     data: {
-      status: status ?? 'delivered',
-      deliveredAt: status !== 'error' ? new Date() : null,
-      error: error ?? null,
+      status: parsed.data.status,
+      deliveredAt: parsed.data.status !== 'error' ? new Date() : null,
+      error: parsed.data.error ?? null,
     },
   })
 
