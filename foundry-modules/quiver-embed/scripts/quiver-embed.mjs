@@ -216,7 +216,8 @@ async function handleActorUpsert(actorData, jobId) {
     (a) => a.getFlag(MODULE_ID, 'sourceId') === sourceId,
   )
   if (existing) {
-    await existing.update(actorData)
+    const { _quiverSourceId: _s, flags: _f, ...updateData } = actorData
+    await existing.update(updateData)
   } else {
     await Actor.create({
       ...actorData,
