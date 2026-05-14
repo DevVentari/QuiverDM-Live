@@ -297,6 +297,32 @@ export const worldMapRouter = router({
       });
     }),
 
+  setFoundryScene: campaignDMProcedure
+    .input(z.object({
+      campaignId: z.string(),
+      entityId: z.string(),
+      foundrySceneId: z.string().nullable(),
+    }))
+    .mutation(async ({ input }) => {
+      const entity = await prisma.worldEntity.findFirst({
+        where: { id: input.entityId, campaignId: input.campaignId },
+        select: { properties: true },
+      })
+      if (!entity) throw new TRPCError({ code: 'NOT_FOUND' })
+
+      const current = (entity.properties ?? {}) as Record<string, unknown>
+      await prisma.worldEntity.update({
+        where: { id: input.entityId },
+        data: {
+          properties: {
+            ...current,
+            foundrySceneId: input.foundrySceneId,
+          },
+        },
+      })
+      return { ok: true }
+    }),
+
   listBackgroundSources: campaignDMProcedure
     .query(async ({ input }) => {
       const sourcebooks = await prisma.campaignSourcebook.findMany({

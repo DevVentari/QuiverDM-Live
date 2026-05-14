@@ -36,6 +36,8 @@ interface LocationPanelProps {
 export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, onClose }: LocationPanelProps) {
   const router = useRouter();
   const [note, setNote] = useState('');
+  const [foundrySceneId, setLocalFoundrySceneId] = useState<string | null>(null);
+  const [sceneInput, setSceneInput] = useState('');
 
   const eventsQuery = trpc.worldMap.getLocationEvents.useQuery({ entityId, campaignId });
   const addNoteMutation = trpc.worldMap.addLocationNote.useMutation({
@@ -49,6 +51,17 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
     onSuccess: (data) => {
       router.push(`/campaigns/${slug}/world-map?map=${data.id}`);
       onClose();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+  const activateScene = trpc.foundry.activateScene.useMutation({
+    onSuccess: () => toast.success('Battle map activated — switch to combat mode in the session cockpit'),
+    onError: (err) => toast.error(err.message),
+  });
+  const setFoundryScene = trpc.worldMap.setFoundryScene.useMutation({
+    onSuccess: (_, vars) => {
+      setLocalFoundrySceneId(vars.foundrySceneId);
+      toast.success('Scene linked');
     },
     onError: (err) => toast.error(err.message),
   });
@@ -131,6 +144,39 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
             <Map className="h-4 w-4" />
             Open sub-map
           </Button>
+
+          <Separator />
+
+          {/* Battle map */}
+          {foundrySceneId ? (
+            <button
+              type="button"
+              onClick={() => activateScene.mutate({ campaignId, foundrySceneId })}
+              disabled={activateScene.isPending}
+              className="flex w-full items-center gap-2 rounded-sm border border-amber-500/30 bg-amber-500/[0.06] px-3 py-2 text-[11px] uppercase tracking-[2px] text-amber-200 transition-colors hover:bg-amber-500/[0.12] disabled:opacity-50"
+            >
+              <Map className="h-3.5 w-3.5" />
+              Open as battle map
+            </button>
+          ) : (
+            <div className="space-y-1.5">
+              <p className="text-[10px] text-amber-100/45">
+                Link a Foundry scene to enable one-click battle map launch.
+              </p>
+              <input
+                type="text"
+                placeholder="Paste Foundry scene ID…"
+                value={sceneInput}
+                onChange={(e) => setSceneInput(e.target.value)}
+                className="w-full rounded-sm border border-amber-500/15 bg-white/[0.03] px-2 py-1.5 text-[11px] text-amber-50 placeholder:text-amber-100/30 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+                onKeyDown={(e) => {
+                  if (e.key !== 'Enter') return
+                  const val = sceneInput.trim()
+                  if (val) setFoundryScene.mutate({ campaignId, entityId, foundrySceneId: val })
+                }}
+              />
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
