@@ -269,6 +269,8 @@ model DdbSourcebookChapter {
   hasPendingChanges Boolean       @default(false)
   pendingChanges    Json?
   lastSyncedAt      DateTime?
+  bodySections      Json?
+  bodySyncedAt      DateTime?
   entities          SourcebookEntity[]
   illustrations     SourcebookChapterImage[]
   createdAt         DateTime      @default(now())
