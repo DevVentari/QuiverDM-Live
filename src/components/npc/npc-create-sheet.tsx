@@ -144,7 +144,7 @@ export function NpcCreateSheet({ open, onOpenChange, onSuccess }: NpcCreateSheet
           <SheetTitle>New NPC</SheetTitle>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4 pb-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4 pb-4 px-5">
           <NpcPreview
             name={name}
             faction={faction}

@@ -12,6 +12,18 @@ import { Map, Brain, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
+function formatEventValue(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (typeof value !== 'object' || value === null) return String(value)
+  const v = value as Record<string, unknown>
+  if (typeof v.content === 'string') return v.content
+  const parts: string[] = []
+  if (v.name) parts.push(String(v.name))
+  if (v.status) parts.push(`status changed to ${String(v.status)}`)
+  if (v.type) parts.push(`(${String(v.type).toLowerCase()})`)
+  return parts.length > 0 ? parts.join(' — ') : 'Updated location'
+}
+
 interface LocationPanelProps {
   entityId: string;
   entityName: string;
@@ -69,9 +81,7 @@ export function LocationPanel({ entityId, entityName, campaignId, mapId, slug, o
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <p className="text-sm leading-snug text-amber-50/90">
-                      {typeof event.newValue === 'object' && event.newValue !== null
-                        ? (event.newValue as any).content ?? JSON.stringify(event.newValue)
-                        : String(event.newValue)}
+                      {formatEventValue(event.newValue)}
                     </p>
                     <div className="flex items-center gap-2">
                       {event.session && (

@@ -117,7 +117,7 @@ export function SourcebookImportDrawer({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-4 mt-4">
+        <div className="flex-1 overflow-y-auto space-y-4 mt-4 px-5">
           {pdfsQuery.isLoading && <Skeleton className="h-8 w-full" />}
           {pdfsQuery.data && pdfsQuery.data.length === 0 && (
             <p className="text-sm text-muted-foreground italic">

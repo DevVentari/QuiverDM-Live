@@ -43,7 +43,7 @@ export function PendingEventsQueue({ campaignId, sessionId }: PendingEventsQueue
             Session Events
           </SheetTitle>
         </SheetHeader>
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-3 px-5">
           {autoApplied > 0 && (
             <p className="text-xs text-muted-foreground">{autoApplied} events auto-applied</p>
           )}

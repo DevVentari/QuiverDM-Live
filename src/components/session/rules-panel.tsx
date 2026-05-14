@@ -52,7 +52,7 @@ export function RulesPanel() {
           </SheetTitle>
         </SheetHeader>
 
-        <div className="mt-4 space-y-4">
+        <div className="mt-4 space-y-4 px-5">
           <div className="flex gap-2">
             <Input
               placeholder="Ask a rules question..."

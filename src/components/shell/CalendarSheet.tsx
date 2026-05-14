@@ -65,7 +65,7 @@ export function CalendarSheet({ open, onOpenChange }: CalendarSheetProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-6 flex flex-col gap-3 px-5">
           {isLoading && (
             <>
               <Skeleton className="h-16 w-full" />

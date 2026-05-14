@@ -65,7 +65,7 @@ export function OocReviewSheet({ open, onClose, sessionId, campaignId, items }: 
           </p>
         </SheetHeader>
 
-        <div className="py-4 space-y-3">
+        <div className="px-5 py-4 space-y-3">
           {items.map(item => {
             const isDrop = dropped.has(item.index);
             return (

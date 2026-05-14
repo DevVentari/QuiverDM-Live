@@ -51,7 +51,7 @@ export function PrepImportButton({
           <SheetHeader>
             <SheetTitle>Import Notes</SheetTitle>
           </SheetHeader>
-          <div className="mt-4" data-testid="prep-import-zone">
+          <div className="mt-4 px-5" data-testid="prep-import-zone">
             <PrepImportZone
               sessionId={sessionId}
               campaignId={campaignId}
