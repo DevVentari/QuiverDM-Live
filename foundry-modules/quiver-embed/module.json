@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "compatibility": {
     "minimum": "12",
-    "verified": "12"
+    "verified": "14"
   },
   "esmodules": ["scripts/quiver-embed.mjs"],
   "authors": [{ "name": "QuiverDM", "url": "https://quiverdm.com" }],

@@ -55,8 +55,9 @@ function stripChrome() {
   style.id = 'quiver-chrome-strip'
   style.textContent = `
     #navigation, #controls, #hotbar, #sidebar,
-    #players, #pause, #fps, #logo { display: none !important; }
-    #board {
+    #players, #pause, #fps, #logo,
+    #interface { display: none !important; }
+    #board, #canvas {
       position: fixed !important;
       inset: 0 !important;
       width: 100vw !important;
