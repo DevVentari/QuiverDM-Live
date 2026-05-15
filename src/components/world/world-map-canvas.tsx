@@ -37,6 +37,7 @@ import { Map, Layers3, Network, Palette } from 'lucide-react';
 import { MapEntityPanel } from './map-entity-panel';
 import { ZoomSlider } from './zoom-slider';
 import { WorldMapStyleCard } from './world-map-style-card';
+import { WorldMapAtmosphere } from './world-map-atmosphere';
 import { cn } from '@/lib/utils';
 import {
   WORLD_MAP_PALETTES,
@@ -45,6 +46,8 @@ import {
   getWorldMapPalette,
   type WorldMapPaletteKey,
 } from './world-map-palettes';
+
+const ATMOSPHERE_STORAGE_KEY = 'wm-atmosphere-intensity';
 
 function ViewportBackground({ url }: { url: string }) {
   const { x, y, zoom } = useViewport();
@@ -114,6 +117,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const [pendingPlacement, setPendingPlacement] = useState<{ type: 'location' | 'note'; x: number; y: number } | null>(null);
   const [placingName, setPlacingName] = useState('');
   const [paletteKey, setPaletteKey] = useState<WorldMapPaletteKey>(WORLD_MAP_DEFAULT_PALETTE_KEY);
+  const [atmosphereIntensity, setAtmosphereIntensity] = useState<number>(0);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
   const utils = trpc.useUtils();
@@ -126,6 +130,15 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   useEffect(() => {
     window.localStorage.setItem(WORLD_MAP_PALETTE_STORAGE_KEY, paletteKey);
   }, [paletteKey]);
+
+  useEffect(() => {
+    const stored = parseFloat(window.localStorage.getItem(ATMOSPHERE_STORAGE_KEY) ?? '0');
+    if (!Number.isNaN(stored)) setAtmosphereIntensity(Math.min(1, Math.max(0, stored)));
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(ATMOSPHERE_STORAGE_KEY, String(atmosphereIntensity));
+  }, [atmosphereIntensity]);
 
   const palette = useMemo(() => getWorldMapPalette(paletteKey), [paletteKey]);
 
@@ -248,7 +261,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   }, [syncNodes]);
 
   const onConnect = useCallback(
-    (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
+    (connection: Connection) => setEdges((eds: Edge[]) => addEdge(connection, eds)),
     [setEdges]
   );
 
@@ -355,6 +368,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
         <Skeleton className="h-full w-full rounded-none" />
       ) : (
         <ReactFlowProvider>
+          <WorldMapAtmosphere intensity={atmosphereIntensity} />
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -425,7 +439,9 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
       {showStyleCard && (
         <WorldMapStyleCard
           currentPaletteKey={paletteKey}
+          atmosphereIntensity={atmosphereIntensity}
           onSelectPalette={setPaletteKey}
+          onAtmosphereChange={setAtmosphereIntensity}
           onCyclePalette={cyclePalette}
           onClose={() => setShowStyleCard(false)}
         />
