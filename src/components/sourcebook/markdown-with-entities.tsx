@@ -75,6 +75,11 @@ export function MarkdownWithEntities({ markdown, entityById, campaignSlug }: Pro
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
+        table: ({ children }) => (
+          <div className="overflow-x-auto my-4">
+            <table>{children}</table>
+          </div>
+        ),
         p: ({ children }) => <p>{renderChildren(children, entityById, campaignSlug)}</p>,
         li: ({ children }) => <li>{renderChildren(children, entityById, campaignSlug)}</li>,
         td: ({ children }) => <td>{renderChildren(children, entityById, campaignSlug)}</td>,
