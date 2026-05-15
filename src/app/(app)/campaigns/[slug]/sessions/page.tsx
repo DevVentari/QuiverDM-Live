@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { Session0HeroCard } from '@/components/campaign/Session0HeroCard';
 import { SplitCanvas } from '@/components/layout/split-canvas';
 import { SessionInspectorPanel } from '@/components/session/session-inspector-panel';
 import { Button } from '@/components/ui/button';
@@ -32,25 +33,36 @@ export default function SessionsPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const allSessions = (sessionsQuery.data ?? []) as any[];
-  const activeCount    = allSessions.filter((s) => s.status === 'in_progress' || s.status === 'active').length;
-  const completedCount = allSessions.filter((s) => s.status === 'completed').length;
+
+  // Detect Session 0 - show hero card until a real session (sessionNumber >= 1) exists
+  const session0 = allSessions.find((s) => s.sessionNumber === 0);
+  const hasRealSessions = allSessions.some((s) => s.sessionNumber >= 1);
+  const showSession0Card = isDM && !!session0 && !hasRealSessions && (() => {
+    try { return !sessionStorage.getItem(`session0-dismissed-${session0.id}`); } catch { return true; }
+  })();
+
+  // Exclude session 0 from the visible sessions list
+  const allDisplaySessions = allSessions.filter((s) => s.sessionNumber !== 0);
+
+  const activeCount    = allDisplaySessions.filter((s) => s.status === 'in_progress' || s.status === 'active').length;
+  const completedCount = allDisplaySessions.filter((s) => s.status === 'completed').length;
 
   const sessions = filter === 'all'
-    ? allSessions
-    : allSessions.filter((s) => {
+    ? allDisplaySessions
+    : allDisplaySessions.filter((s) => {
         if (filter === 'in_progress') return s.status === 'in_progress' || s.status === 'active';
         if (filter === 'planning') return s.status === 'planning' || !s.status;
         return s.status === filter;
       });
 
   const counts = {
-    all:         allSessions.length,
-    planning:    allSessions.filter((s) => s.status === 'planning' || !s.status).length,
+    all:         allDisplaySessions.length,
+    planning:    allDisplaySessions.filter((s) => s.status === 'planning' || !s.status).length,
     in_progress: activeCount,
     completed:   completedCount,
   };
 
-  const selectedSession = allSessions.find((s) => s.id === selectedId) ?? null;
+  const selectedSession = allDisplaySessions.find((s) => s.id === selectedId) ?? null;
 
   const listVariants = {
     hidden: {},
@@ -74,7 +86,7 @@ export default function SessionsPage() {
   ) : undefined;
 
   const heroStats = [
-    { label: 'total', value: allSessions.length },
+    { label: 'total', value: allDisplaySessions.length },
     { label: 'completed', value: completedCount },
     ...(activeCount > 0 ? [{ label: 'active', value: activeCount, alert: true }] : []),
   ];
@@ -164,9 +176,17 @@ export default function SessionsPage() {
 
   return (
     <>
+      {showSession0Card && (
+        <Session0HeroCard
+          session0Id={session0.id}
+          campaignSlug={slug}
+          initialPrepStatus={session0.prepStatus ?? 'draft'}
+        />
+      )}
+
       {/* Mobile: full-page list */}
       <div className="md:hidden p-4 space-y-4">
-        {allSessions.length > 0 && (
+        {allDisplaySessions.length > 0 && (
           <div className="flex gap-1.5 flex-wrap">
             {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
               <Button
@@ -182,7 +202,7 @@ export default function SessionsPage() {
             ))}
           </div>
         )}
-        <MobileSessionList sessions={sessions} allSessions={allSessions} slug={slug} isDM={isDM} filter={filter} />
+        <MobileSessionList sessions={sessions} allSessions={allDisplaySessions} slug={slug} isDM={isDM} filter={filter} />
       </div>
 
       {/* Desktop: SplitCanvas */}
@@ -203,11 +223,11 @@ export default function SessionsPage() {
               </div>
               <p className="text-sm font-medium text-[var(--q-text-dim)]">Select a session to inspect</p>
               <p className="text-xs text-[var(--q-text-faint)] mt-1">
-                {allSessions.length > 0
-                  ? `${allSessions.length} session${allSessions.length !== 1 ? 's' : ''} in this campaign`
+                {allDisplaySessions.length > 0
+                  ? `${allDisplaySessions.length} session${allDisplaySessions.length !== 1 ? 's' : ''} in this campaign`
                   : 'No sessions yet'}
               </p>
-              {isDM && allSessions.length === 0 && (
+              {isDM && allDisplaySessions.length === 0 && (
                 <Button size="sm" className="mt-4 gap-1.5" asChild>
                   <Link href={`/campaigns/${slug}/sessions/prep`}>
                     <Plus className="h-3.5 w-3.5" />

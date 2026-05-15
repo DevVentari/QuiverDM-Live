@@ -397,7 +397,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     resetState();
     const dest = ddbUrl.trim()
       ? `/campaigns/${campaign.slug || campaign.id}/players?ddb-importing=true`
-      : `/campaigns/${campaign.slug || campaign.id}`;
+      : `/campaigns/${campaign.slug || campaign.id}/sessions`;
     router.push(dest);
   }
 
