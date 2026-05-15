@@ -92,6 +92,52 @@ export const worldMapRouter = router({
       });
     }),
 
+  getLocationDetail: campaignDMProcedure
+    .input(z.object({ entityId: z.string().min(1), campaignId: z.string().min(1) }))
+    .query(async ({ input }) => {
+      const entity = await prisma.worldEntity.findFirst({
+        where: { id: input.entityId, campaignId: input.campaignId },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          imageUrl: true,
+          type: true,
+          status: true,
+          properties: true,
+          fromRelationships: {
+            take: 12,
+            select: {
+              id: true,
+              type: true,
+              strength: true,
+              toEntity: { select: { id: true, name: true, type: true } },
+            },
+          },
+          toRelationships: {
+            take: 12,
+            select: {
+              id: true,
+              type: true,
+              strength: true,
+              fromEntity: { select: { id: true, name: true, type: true } },
+            },
+          },
+          sessionAppearances: {
+            take: 6,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              role: true,
+              session: { select: { id: true, title: true, sessionNumber: true } },
+            },
+          },
+        },
+      });
+      if (!entity) throw new TRPCError({ code: 'NOT_FOUND', message: 'Entity not found' });
+      return entity;
+    }),
+
   createRoot: campaignDMProcedure
     .input(z.object({
       campaignId: z.string().min(1),
