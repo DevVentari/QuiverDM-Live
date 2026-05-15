@@ -35,6 +35,7 @@ import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { Map, Layers3, Network, Palette } from 'lucide-react';
 import { MapEntityPanel } from './map-entity-panel';
+import { ZoomSlider } from './zoom-slider';
 import { WorldMapStyleCard } from './world-map-style-card';
 import { cn } from '@/lib/utils';
 import {
@@ -367,6 +368,8 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
             onDragOver={onDragOver}
             nodeTypes={nodeTypes}
             fitView={!mapData?.backgroundUrl}
+            minZoom={0.1}
+            maxZoom={4}
             zoomOnScroll
             panOnDrag
             zoomOnPinch
@@ -389,6 +392,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
               style={{ background: 'color-mix(in oklab, var(--wm-surface) 85%, black)' }}
             />
           </ReactFlow>
+          <ZoomSlider />
         </ReactFlowProvider>
       )}
 
