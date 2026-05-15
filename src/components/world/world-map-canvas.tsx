@@ -15,6 +15,7 @@ import {
   type NodeTypes,
   type Node,
   type Edge,
+  type ReactFlowInstance,
   BackgroundVariant,
   ReactFlowProvider,
 } from '@xyflow/react';
@@ -27,15 +28,13 @@ import { MapToolbar } from './map-toolbar';
 import { LocationPanel } from './location-panel';
 import { MapBackgroundPicker } from './map-background-picker';
 import { MapBreadcrumb } from './map-breadcrumb';
-import { FoundryPanel } from './foundry-panel';
-import { DdbVttPanel } from './ddb-vtt-panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
 import { Map, Layers3, Network, Palette } from 'lucide-react';
-import { WorldMapOverlay } from './world-map-overlay';
+import { MapEntityPanel } from './map-entity-panel';
 import { WorldMapStyleCard } from './world-map-style-card';
 import { cn } from '@/lib/utils';
 import {
@@ -110,12 +109,11 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const [selectedEntityFoundrySceneId, setSelectedEntityFoundrySceneId] = useState<string | null>(null);
   const [placingType, setPlacingType] = useState<'location' | 'note' | null>(null);
   const [showPicker, setShowPicker] = useState(false);
-  const [showFoundry, setShowFoundry] = useState(false);
-  const [showDdb, setShowDdb] = useState(false);
   const [showStyleCard, setShowStyleCard] = useState(false);
   const [pendingPlacement, setPendingPlacement] = useState<{ type: 'location' | 'note'; x: number; y: number } | null>(null);
   const [placingName, setPlacingName] = useState('');
   const [paletteKey, setPaletteKey] = useState<WorldMapPaletteKey>(WORLD_MAP_DEFAULT_PALETTE_KEY);
+  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
 
   const utils = trpc.useUtils();
 
@@ -179,6 +177,44 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
     },
   });
   const updatePinPosition = trpc.worldMap.updatePinPosition.useMutation();
+
+  const invalidateMap = useCallback(() => {
+    if (activeMapId) void utils.worldMap.getMap.invalidate();
+    else void utils.worldMap.getOrCreateRoot.invalidate();
+    void utils.worldMap.listMapEntities.invalidate();
+  }, [activeMapId, utils]);
+
+  const pinExistingEntity = trpc.worldMap.pinExistingEntity.useMutation({ onSuccess: invalidateMap });
+  const pinNpcAsEntity = trpc.worldMap.pinNpcAsEntity.useMutation({ onSuccess: invalidateMap });
+
+  const pinnedEntityIds = useMemo(
+    () => new Set((mapData?.pins ?? []).map((p) => p.entity.id)),
+    [mapData],
+  );
+
+  const onDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }, []);
+
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      if (!reactFlowInstance || !mapData) return;
+      const raw = e.dataTransfer.getData('application/quiver-entity');
+      if (!raw) return;
+      const { entityId, name: _name, type: _type, source } = JSON.parse(raw) as {
+        entityId: string; name: string; type: string; source: 'entity' | 'npc';
+      };
+      const pos = reactFlowInstance.screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      if (source === 'entity') {
+        pinExistingEntity.mutate({ mapId: mapData.id, campaignId, entityId, x: pos.x, y: pos.y });
+      } else {
+        pinNpcAsEntity.mutate({ mapId: mapData.id, campaignId, npcId: entityId, x: pos.x, y: pos.y });
+      }
+    },
+    [reactFlowInstance, mapData, campaignId, pinExistingEntity, pinNpcAsEntity],
+  );
 
   const syncNodes = useCallback(() => {
     if (!mapData?.pins) return;
@@ -325,6 +361,9 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
             onConnect={onConnect}
             onPaneClick={onPaneClick}
             onNodeDragStop={onNodeDragStop}
+            onInit={setReactFlowInstance}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
             nodeTypes={nodeTypes}
             fitView={!mapData?.backgroundUrl}
             zoomOnScroll
@@ -352,18 +391,17 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
         </ReactFlowProvider>
       )}
 
-      {/* Overlay cards */}
-      {!isLoading && mapData && (
-        <WorldMapOverlay
+      {/* Entity side panel */}
+      {!isLoading && (
+        <MapEntityPanel
           campaignId={campaignId}
-          slug={slug}
-          selectedEntityId={selectedEntityId}
-          selectedEntityName={selectedEntityName}
-          locationPins={mapData.pins ?? []}
-          onSelectLocation={(entityId, name) => {
+          mapId={mapData?.id}
+          pinnedEntityIds={pinnedEntityIds}
+          onSelectEntity={(entityId, name) => {
             setSelectedEntityId(entityId);
             setSelectedEntityName(name);
           }}
+          onDropEntity={() => {}}
         />
       )}
 
@@ -373,8 +411,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           onPlaceLocation={() => setPlacingType('location')}
           onPlaceNote={() => setPlacingType('note')}
           onOpenSettings={() => setShowPicker(true)}
-          onToggleFoundry={() => setShowFoundry(true)}
-          onToggleDdb={() => setShowDdb(true)}
+          slug={slug}
           mapId={mapData!.id}
           campaignId={campaignId}
         />
@@ -400,12 +437,6 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           slug={slug}
           onClose={() => { setSelectedEntityId(null); setSelectedEntityName(''); setSelectedEntityFoundrySceneId(null); }}
         />
-      )}
-      {showFoundry && (
-        <FoundryPanel campaignId={campaignId} onClose={() => setShowFoundry(false)} />
-      )}
-      {showDdb && (
-        <DdbVttPanel campaignId={campaignId} onClose={() => setShowDdb(false)} />
       )}
       {showPicker && (
         <MapBackgroundPicker

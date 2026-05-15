@@ -29,7 +29,9 @@ export function FoundryPanel({ campaignId, onClose, embedded = false }: FoundryP
   });
 
   const foundryUrl = data?.foundryUrl ?? null;
-  const embedUrl = foundryUrl ? `${foundryUrl.replace(/\/$/, '')}/game?quiver=1` : null;
+  const embedUrl = foundryUrl
+    ? `${foundryUrl.replace(/\/game.*$/, '').replace(/\/$/, '')}/game?quiver=1`
+    : null;
 
   const startEdit = () => {
     setDraft(foundryUrl ?? '');

@@ -1,11 +1,68 @@
-// QuiverDM Embed Module — Foundry VTT v12
-// Runs client-side in the GM's browser only.
+// QuiverDM Embed Module — Foundry VTT v14
 
 const MODULE_ID = 'quiver-embed'
 
 // Module-level state
-let currentSessionId = null  // set when token_place job is processed
+let currentSessionId = null
 let pollingInterval = null
+
+// ─── Join-page storage access flow ────────────────────────────────────────
+// When embedded in the QuiverDM iframe, the browser blocks cross-origin
+// cookies. We load /join first (no auth needed), request storage access with
+// a user gesture, then navigate to /game.
+
+;(() => {
+  if (window.location.pathname !== '/join') return
+  if (window.self === window.top) return
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('quiver') !== '1') return
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // If we already have cookie access from a previous grant, skip straight to game.
+    try {
+      const hasAccess = await document.hasStorageAccess()
+      if (hasAccess) {
+        window.location.replace('/game?quiver=1')
+        return
+      }
+    } catch {}
+
+    // Inject a connect button over the join page UI.
+    const overlay = document.createElement('div')
+    overlay.style.cssText = `
+      position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:12px;
+      background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);
+    `
+    const btn = document.createElement('button')
+    btn.textContent = 'Connect Foundry to QuiverDM'
+    btn.style.cssText = `
+      padding:14px 28px;background:#d97706;color:#000;border:none;
+      border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;
+      box-shadow:0 8px 32px rgba(0,0,0,0.5);letter-spacing:0.02em;
+    `
+    const hint = document.createElement('p')
+    hint.textContent = 'One-time permission needed to share your Foundry session with QuiverDM'
+    hint.style.cssText = `color:#a0a0a0;font-size:13px;margin:0;text-align:center;max-width:320px;`
+    overlay.appendChild(btn)
+    overlay.appendChild(hint)
+    document.body.appendChild(overlay)
+
+    btn.addEventListener('click', async () => {
+      btn.textContent = 'Requesting access…'
+      btn.disabled = true
+      try {
+        await document.requestStorageAccess()
+        window.location.replace('/game?quiver=1')
+      } catch (err) {
+        btn.textContent = 'Access denied'
+        hint.textContent = 'Allow third-party cookies for this site in your browser settings, then reload.'
+        btn.disabled = false
+        console.error('[quiver-embed] storage access denied:', err)
+      }
+    })
+  })
+})()
 
 // ─── Settings registration ─────────────────────────────────────────────────
 
@@ -99,69 +156,40 @@ async function postEvent(type, payload) {
 // ─── Combat event hooks ───────────────────────────────────────────────────
 
 function registerCombatHooks() {
-  // HP changes and death detection
   Hooks.on('updateActor', (actor, diff) => {
     const hpDiff = diff?.system?.attributes?.hp
     if (!hpDiff) return
-
     const currentHp = actor.system.attributes.hp.value
     const maxHp = actor.system.attributes.hp.max
-
-    postEvent('hp_change', {
-      actorId: actor.id,
-      actorName: actor.name,
-      hp: currentHp,
-      hpMax: maxHp,
-    })
-
-    if (currentHp === 0) {
-      postEvent('actor_death', {
-        actorId: actor.id,
-        actorName: actor.name,
-      })
-    }
+    postEvent('hp_change', { actorId: actor.id, actorName: actor.name, hp: currentHp, hpMax: maxHp })
+    if (currentHp === 0) postEvent('actor_death', { actorId: actor.id, actorName: actor.name })
   })
 
-  // Conditions added (ActiveEffects represent conditions in Foundry v12)
   Hooks.on('createActiveEffect', (effect) => {
     const actor = effect.parent
     if (!actor || !(actor instanceof Actor)) return
     postEvent('condition_added', {
-      actorId: actor.id,
-      actorName: actor.name,
-      conditionId: effect.id,
-      conditionLabel: effect.name ?? effect.label,
+      actorId: actor.id, actorName: actor.name,
+      conditionId: effect.id, conditionLabel: effect.name ?? effect.label,
     })
   })
 
-  // Conditions removed
   Hooks.on('deleteActiveEffect', (effect) => {
     const actor = effect.parent
     if (!actor || !(actor instanceof Actor)) return
     postEvent('condition_removed', {
-      actorId: actor.id,
-      actorName: actor.name,
-      conditionId: effect.id,
-      conditionLabel: effect.name ?? effect.label,
+      actorId: actor.id, actorName: actor.name,
+      conditionId: effect.id, conditionLabel: effect.name ?? effect.label,
     })
   })
 
-  // Initiative order changes (combat tracker updates)
   Hooks.on('updateCombat', (combat, diff) => {
     if (diff.turn === undefined && diff.round === undefined && !diff.combatants) return
-
     const order = combat.turns.map((t) => ({
-      actorId: t.actorId,
-      actorName: t.name,
-      initiative: t.initiative,
-      defeated: t.isDefeated,
+      actorId: t.actorId, actorName: t.name,
+      initiative: t.initiative, defeated: t.isDefeated,
     }))
-
-    postEvent('initiative_set', {
-      order,
-      round: combat.round,
-      turn: combat.turn,
-    })
+    postEvent('initiative_set', { order, round: combat.round, turn: combat.turn })
   })
 }
 
@@ -169,7 +197,7 @@ function registerCombatHooks() {
 
 function startJobPolling() {
   if (pollingInterval) return
-  pollJobs()  // immediate first poll
+  pollJobs()
   pollingInterval = setInterval(pollJobs, 5000)
 }
 
@@ -186,7 +214,7 @@ async function pollJobs() {
     })
     data = await res.json()
   } catch {
-    return  // network error — skip this poll cycle
+    return
   }
 
   for (const job of data.jobs ?? []) {
@@ -202,7 +230,6 @@ async function pollJobs() {
       console.error(`[quiver-embed] job ${job.id} (${job.type}) failed:`, err)
     }
 
-    // Mark job delivered/error (fire-and-forget)
     fetch(`${baseUrl}/api/foundry/jobs`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-Quiver-Key': apiKey },
@@ -213,68 +240,39 @@ async function pollJobs() {
 
 async function handleActorUpsert(actorData, jobId) {
   const sourceId = actorData._quiverSourceId ?? jobId
-  const existing = game.actors.find(
-    (a) => a.getFlag(MODULE_ID, 'sourceId') === sourceId,
-  )
+  const existing = game.actors.find((a) => a.getFlag(MODULE_ID, 'sourceId') === sourceId)
   if (existing) {
     const { _quiverSourceId: _s, flags: _f, ...updateData } = actorData
     await existing.update(updateData)
   } else {
-    await Actor.create({
-      ...actorData,
-      flags: { [MODULE_ID]: { sourceId } },
-    })
+    await Actor.create({ ...actorData, flags: { [MODULE_ID]: { sourceId } } })
   }
 }
 
 async function handleTokenPlace(payload) {
   const scene = game.scenes.active
   if (!scene) throw new Error('No active scene — activate a scene in Foundry first')
-
   const { sessionId, npcSourceIds = [], playerSourceIds = [] } = payload
-
-  // Store sessionId so postEvent fires for subsequent combat events
   if (sessionId) currentSessionId = sessionId
-
   const combat = game.combats.active
-  if (combat && sessionId) {
-    await combat.setFlag(MODULE_ID, 'sessionId', sessionId)
-  }
-
+  if (combat && sessionId) await combat.setFlag(MODULE_ID, 'sessionId', sessionId)
   const gridSize = scene.grid?.size ?? 100
   const tokenData = []
   let col = 1
-
   for (const sourceId of npcSourceIds) {
     const actor = game.actors.find((a) => a.getFlag(MODULE_ID, 'sourceId') === sourceId)
     if (!actor) continue
-    tokenData.push({
-      name: actor.name,
-      actorId: actor.id,
-      x: col * gridSize,
-      y: gridSize,
-      disposition: CONST.TOKEN_DISPOSITIONS.HOSTILE,
-    })
+    tokenData.push({ name: actor.name, actorId: actor.id, x: col * gridSize, y: gridSize, disposition: CONST.TOKEN_DISPOSITIONS.HOSTILE })
     col++
   }
-
   col = 1
   for (const sourceId of playerSourceIds) {
     const actor = game.actors.find((a) => a.getFlag(MODULE_ID, 'sourceId') === sourceId)
     if (!actor) continue
-    tokenData.push({
-      name: actor.name,
-      actorId: actor.id,
-      x: col * gridSize,
-      y: (scene.height ?? 1000) - gridSize * 2,
-      disposition: CONST.TOKEN_DISPOSITIONS.FRIENDLY,
-    })
+    tokenData.push({ name: actor.name, actorId: actor.id, x: col * gridSize, y: (scene.height ?? 1000) - gridSize * 2, disposition: CONST.TOKEN_DISPOSITIONS.FRIENDLY })
     col++
   }
-
-  if (tokenData.length > 0) {
-    await scene.createEmbeddedDocuments('Token', tokenData)
-  }
+  if (tokenData.length > 0) await scene.createEmbeddedDocuments('Token', tokenData)
 }
 
 async function handleSceneActivate(payload) {

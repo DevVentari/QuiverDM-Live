@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+﻿import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import type { DdbEntitlementData, DdbChapterMeta } from '@/lib/ddb-sourcebook';
 
@@ -468,21 +468,22 @@ export const ddbSyncRepository = {
     pendingChanges: object[],
     bodySections: Array<{ heading: string | null; level: number; markdown: string }>,
   ) {
+    const data: any = {
+      contentHash,
+      syncStatus: 'idle',
+      lastSyncedAt: new Date(),
+      hasPendingChanges: pendingChanges.length > 0,
+      pendingChanges:
+        pendingChanges.length > 0 ? pendingChanges : Prisma.JsonNull,
+      bodySections: bodySections as unknown as Prisma.InputJsonValue,
+      bodySyncedAt: new Date(),
+    };
+
     return prisma.ddbSourcebookChapter.update({
       where: { id: chapterId },
-      data: {
-        contentHash,
-        syncStatus: 'idle',
-        lastSyncedAt: new Date(),
-        hasPendingChanges: pendingChanges.length > 0,
-        pendingChanges:
-          pendingChanges.length > 0 ? pendingChanges : Prisma.JsonNull,
-        bodySections: bodySections as unknown as Prisma.InputJsonValue,
-        bodySyncedAt: new Date(),
-      },
+      data,
     });
   },
-
   async getChaptersWithChanges(sourcebookId: string) {
     return prisma.ddbSourcebookChapter.count({
       where: { sourcebookId, hasPendingChanges: true },
@@ -546,3 +547,4 @@ export const ddbSyncRepository = {
     });
   },
 };
+

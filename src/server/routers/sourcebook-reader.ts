@@ -1,4 +1,4 @@
-import { TRPCError } from '@trpc/server';
+﻿import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { addDdbSyncJob } from '@/lib/queue/ddb-sync-queue';
@@ -28,7 +28,7 @@ export const sourcebookReaderRouter = router({
     .input(z.object({ campaignId: z.string().min(1), bookSlug: z.string().min(1) }))
     .query(async ({ input }) => {
       const book = await resolveLinkedBook(input.campaignId, input.bookSlug);
-      const chapters = await prisma.ddbSourcebookChapter.findMany({
+      const chapters: any[] = await prisma.ddbSourcebookChapter.findMany({
         where: { sourcebookId: book.id },
         orderBy: { chapterIndex: 'asc' },
         select: {
@@ -38,8 +38,8 @@ export const sourcebookReaderRouter = router({
           chapterIndex: true,
           parentSlug: true,
           bodySyncedAt: true,
-        },
-      });
+        } as any,
+      } as any);
 
       return {
         book: {
@@ -49,7 +49,7 @@ export const sourcebookReaderRouter = router({
           lastSyncedAt: book.lastSyncedAt,
           syncStatus: book.syncStatus,
         },
-        chapters: chapters.map((chapter) => ({
+        chapters: chapters.map((chapter: any) => ({
           id: chapter.id,
           slug: chapter.slug,
           title: chapter.title,
@@ -70,14 +70,14 @@ export const sourcebookReaderRouter = router({
     )
     .query(async ({ input }) => {
       const book = await resolveLinkedBook(input.campaignId, input.bookSlug);
-      const chapter = await prisma.ddbSourcebookChapter.findUnique({
+      const chapter: any = await prisma.ddbSourcebookChapter.findUnique({
         where: {
           sourcebookId_slug: { sourcebookId: book.id, slug: input.chapterSlug },
         },
         include: {
           illustrations: { orderBy: { position: 'asc' } },
         },
-      });
+      } as any);
 
       if (!chapter) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Chapter not found' });
@@ -132,7 +132,7 @@ export const sourcebookReaderRouter = router({
           bodySyncedAt: chapter.bodySyncedAt,
         },
         sections,
-        illustrations: chapter.illustrations.map((illustration) => ({
+        illustrations: (chapter.illustrations as any[]).map((illustration: any) => ({
           id: illustration.id,
           url: illustration.url,
           alt: illustration.alt,
@@ -157,3 +157,4 @@ export const sourcebookReaderRouter = router({
       return { queued: true };
     }),
 });
+
