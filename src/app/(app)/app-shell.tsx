@@ -12,6 +12,7 @@ import { CommandRail } from '@/components/shell/CommandRail'
 import { CommandBar } from '@/components/shell/CommandBar'
 import { MobileHeader } from '@/components/shell/MobileHeader'
 import { BrainSummon } from '@/components/shell/BrainSummon'
+import { FoundryFloatingOverlay } from '@/components/foundry/FoundryFloatingOverlay'
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -37,6 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <FeedbackWidget />
         <ConsoleLogCapture />
         <PinnedItemFlags />
+        <FoundryFloatingOverlay />
       </OnboardingCheck>
     </CampaignVoiceShell>
   )
