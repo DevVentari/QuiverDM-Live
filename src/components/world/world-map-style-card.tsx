@@ -1,13 +1,15 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { Check, Palette, RefreshCw, X } from 'lucide-react';
+import { Check, Layers, Palette, RefreshCw, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { WORLD_MAP_PALETTES, type WorldMapPalette, type WorldMapPaletteKey } from './world-map-palettes';
 
 interface WorldMapStyleCardProps {
   currentPaletteKey: WorldMapPaletteKey;
+  atmosphereIntensity: number;
   onSelectPalette: (paletteKey: WorldMapPaletteKey) => void;
+  onAtmosphereChange: (v: number) => void;
   onCyclePalette?: () => void;
   onClose?: () => void;
   className?: string;
@@ -51,9 +53,18 @@ function PaletteBand({ palette }: { palette: WorldMapPalette }) {
   );
 }
 
+function atmosphereLabel(v: number): string {
+  if (v === 0) return 'None';
+  if (v < 0.35) return 'Subtle';
+  if (v < 0.7) return 'Immersive';
+  return 'Cinematic';
+}
+
 export function WorldMapStyleCard({
   currentPaletteKey,
+  atmosphereIntensity,
   onSelectPalette,
+  onAtmosphereChange,
   onCyclePalette,
   onClose,
   className,
@@ -178,6 +189,43 @@ export function WorldMapStyleCard({
             </button>
           );
         })}
+      </div>
+
+      <div className="mt-4 border-t pt-4" style={{ borderColor: 'var(--wm-border)' }}>
+        <div className="mb-3 flex items-center gap-2">
+          <span
+            className="flex h-6 w-6 items-center justify-center rounded-lg border"
+            style={{
+              borderColor: 'var(--wm-accent-border)',
+              background: 'var(--wm-accent-trace)',
+              color: 'var(--wm-accent)',
+            }}
+          >
+            <Layers className="h-3.5 w-3.5" />
+          </span>
+          <p className="font-display text-[10px] uppercase tracking-[0.24em]" style={{ color: 'var(--wm-muted)' }}>
+            Atmosphere
+          </p>
+          <span className="ml-auto text-[10px]" style={{ color: 'var(--wm-soft-text)' }}>
+            {atmosphereLabel(atmosphereIntensity)}
+          </span>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={atmosphereIntensity}
+          onChange={(e) => onAtmosphereChange(parseFloat(e.target.value))}
+          className="w-full cursor-pointer accent-[var(--wm-accent)]"
+          style={{ accentColor: 'var(--wm-accent)' }}
+        />
+        <div className="mt-1.5 flex justify-between text-[9px] uppercase tracking-[0.12em]" style={{ color: 'var(--wm-muted)' }}>
+          <span>None</span>
+          <span>Subtle</span>
+          <span>Immersive</span>
+          <span>Cinematic</span>
+        </div>
       </div>
 
       {onCyclePalette && (
