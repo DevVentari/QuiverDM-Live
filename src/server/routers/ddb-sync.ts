@@ -6,6 +6,9 @@ import { decrypt } from '@/lib/encryption';
 import { exchangeCobaltForJwt, fetchUserEntitlements, DdbAuthError } from '@/lib/ddb-sourcebook';
 import { ddbSyncRepository } from '../repositories/ddb-sync.repository';
 import { addDdbSyncJob } from '@/lib/queue/ddb-sync-queue';
+import { sessionRepository } from '../repositories/session.repository';
+import { emptyPrepData } from '@/lib/prep-types';
+import { addSession0PrepJob } from '@/lib/queue/session0-prep-queue';
 
 export const ddbSyncRouter = router({
   listEntitlements: protectedProcedure.mutation(async ({ ctx }) => {
@@ -146,6 +149,35 @@ export const ddbSyncRouter = router({
       });
       if (extractedImageCount === 0) {
         await addDdbSyncJob(input.sourcebookId, ctx.session.user.id);
+      }
+
+      // Create Session 0 for this campaign if none exists yet
+      const existingSession0 = await prisma.gameSession.findFirst({
+        where: { campaignId: input.campaignId, sessionNumber: 0 },
+      });
+      if (!existingSession0) {
+        const sourcebookRecord = await prisma.ddbSourcebook.findUnique({
+          where: { id: input.sourcebookId },
+          select: { title: true },
+        });
+        const campaign = await prisma.campaign.findUnique({
+          where: { id: input.campaignId },
+          select: { name: true },
+        });
+        const session0 = await sessionRepository.create({
+          campaignId: input.campaignId,
+          title: 'Session 0',
+          sessionNumber: 0,
+          status: 'planning',
+          prepData: emptyPrepData() as unknown as import('@prisma/client').Prisma.InputJsonValue,
+          prepStatus: 'draft',
+        });
+        void addSession0PrepJob({
+          sessionId: session0.id,
+          sourcebookId: input.sourcebookId,
+          sourcebookTitle: sourcebookRecord?.title ?? 'Unknown Sourcebook',
+          campaignName: campaign?.name ?? 'Unknown Campaign',
+        });
       }
 
       return { ok: true, ...seedResult };
