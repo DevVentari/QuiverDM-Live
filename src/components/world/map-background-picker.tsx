@@ -213,7 +213,7 @@ export function MapBackgroundPicker({ open, onDone, campaignId, mapId }: MapBack
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-8 text-center">
                 <p className="font-display text-base text-amber-50">No extracted maps yet</p>
                 <p className="mt-2 text-sm text-amber-100/55">
-                  Linked sourcebooks do not currently expose any extracted `kind="map"` images for this campaign.
+                  Linked sourcebooks do not currently expose any extracted kind=&quot;map&quot; images for this campaign.
                 </p>
               </div>
             )}
