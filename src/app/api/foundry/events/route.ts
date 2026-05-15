@@ -4,6 +4,16 @@ import { prisma } from '@/server/db'
 import { verifyFoundryRequest } from '@/lib/foundry-auth'
 import { z } from 'zod'
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Quiver-Key',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS })
+}
+
 const BodySchema = z.object({
   campaignId: z.string().cuid(),
   sessionId: z.string().cuid(),
@@ -32,5 +42,5 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true }, { headers: CORS })
 }

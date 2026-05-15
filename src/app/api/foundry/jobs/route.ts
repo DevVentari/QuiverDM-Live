@@ -3,6 +3,16 @@ import { z } from 'zod'
 import { prisma } from '@/server/db'
 import { verifyFoundryRequest } from '@/lib/foundry-auth'
 
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Quiver-Key',
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS })
+}
+
 const PatchSchema = z.object({
   jobId: z.string().cuid(),
   campaignId: z.string().cuid(),
@@ -24,7 +34,7 @@ export async function GET(req: NextRequest) {
     select: { id: true, type: true, payload: true, sourceName: true },
   })
 
-  return NextResponse.json({ jobs })
+  return NextResponse.json({ jobs }, { headers: CORS })
 }
 
 export async function PATCH(req: NextRequest) {
@@ -44,5 +54,5 @@ export async function PATCH(req: NextRequest) {
     },
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true }, { headers: CORS })
 }
