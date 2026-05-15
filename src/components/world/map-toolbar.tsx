@@ -1,6 +1,6 @@
 'use client';
 
-import { MapPin, StickyNote, Settings, Sparkles, Monitor, Map } from 'lucide-react';
+import { MapPin, StickyNote, Settings, Sparkles, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { trpc } from '@/lib/trpc';
@@ -10,13 +10,12 @@ interface MapToolbarProps {
   onPlaceLocation: () => void;
   onPlaceNote: () => void;
   onOpenSettings: () => void;
-  onToggleFoundry: () => void;
-  onToggleDdb: () => void;
+  slug: string;
   mapId: string;
   campaignId: string;
 }
 
-export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onToggleFoundry, onToggleDdb, mapId, campaignId }: MapToolbarProps) {
+export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, slug, mapId, campaignId }: MapToolbarProps) {
   const generateMutation = trpc.worldMap.generateMapBackground.useMutation({
     onSuccess: () => toast.info('Map generation queued — background will update when ready'),
     onError: (err) => toast.error(err.message),
@@ -81,26 +80,12 @@ export function MapToolbar({ onPlaceLocation, onPlaceNote, onOpenSettings, onTog
               size="icon"
               className="h-9 w-9 rounded-xl hover:opacity-90"
               style={{ color: 'var(--wm-soft-text)' }}
-              onClick={onToggleFoundry}
+              onClick={() => window.open(`/campaigns/${slug}/foundry`, '_blank')}
             >
               <Monitor className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right">FoundryVTT</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-xl hover:opacity-90"
-              style={{ color: 'var(--wm-soft-text)' }}
-              onClick={onToggleDdb}
-            >
-              <Map className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right">D&amp;D Beyond VTT</TooltipContent>
+          <TooltipContent side="right">Open FoundryVTT</TooltipContent>
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>

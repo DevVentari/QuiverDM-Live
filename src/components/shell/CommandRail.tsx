@@ -19,7 +19,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react'
-import { useFoundryOverlayStore } from '@/store/foundry-overlay-store'
 import { cn } from '@/lib/utils'
 import { useHeaderStore } from '@/store/header-store'
 import { CampaignSwitcher } from './CampaignSwitcher'
@@ -43,11 +42,11 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: 'npcs',       label: 'NPCs',       icon: Users,      scopedPath: '/npcs',      fallbackHref: '/campaigns' },
   { id: 'compendium', label: 'Compendium', icon: Library,    globalHref: '/homebrew' },
   { id: 'maps',       label: 'Maps',       icon: Map,        scopedPath: '/world-map', fallbackHref: '/campaigns' },
-  { id: 'foundry',    label: 'Foundry',    icon: Monitor,    scopedPath: '/foundry', fallbackHref: '/campaigns' },
-  { id: 'world',      label: 'World',      icon: BookOpen,   scopedPath: '/world',     fallbackHref: '/campaigns' },
+  { id: 'foundry',    label: 'Foundry',    icon: Monitor,    scopedPath: '/foundry',    fallbackHref: '/campaigns' },
+  { id: 'world',      label: 'World',      icon: BookOpen,   scopedPath: '/world',      fallbackHref: '/campaigns' },
   { id: 'sourcebook', label: 'Sourcebook', icon: BookOpen,   scopedPath: '/sourcebook', fallbackHref: '/campaigns' },
-  { id: 'quests',     label: 'Quests',     icon: Compass,    scopedPath: '/quests',    fallbackHref: '/campaigns' },
-  { id: 'mechanics',  label: 'Mechanics',  icon: Sparkles,   scopedPath: '/mechanics', fallbackHref: '/campaigns' },
+  { id: 'quests',     label: 'Quests',     icon: Compass,    scopedPath: '/quests',     fallbackHref: '/campaigns' },
+  { id: 'mechanics',  label: 'Mechanics',  icon: Sparkles,   scopedPath: '/mechanics',  fallbackHref: '/campaigns' },
 ] as const
 
 const STORAGE_KEY = 'quiver.rail.collapsed'
@@ -64,8 +63,6 @@ export function CommandRail() {
   const pathname = usePathname()
   const slot = useHeaderStore((s) => s.slot)
   const [collapsed, setCollapsed] = useState(false)
-  const isFoundryOpen = useFoundryOverlayStore((s) => s.isOpen)
-  const toggleFoundryOverlay = useFoundryOverlayStore((s) => s.toggle)
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
@@ -143,34 +140,7 @@ export function CommandRail() {
       <div className="flex flex-col gap-0.5 px-2 pt-3 flex-1 overflow-y-auto">
         {NAV_ITEMS.map(({ id, icon: Icon, label, ...item }) => {
           const href = resolveHref({ id, icon: Icon, label, ...item }, campaignSlug)
-          const active = id === 'foundry' ? isFoundryOpen : isActive(id)
-
-          if (id === 'foundry') {
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={toggleFoundryOverlay}
-                data-testid={`rail-nav-${id}`}
-                aria-label={label}
-                aria-pressed={isFoundryOpen}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-sm min-h-[40px]',
-                  'transition-colors duration-150 text-left',
-                  active
-                    ? 'bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
-                    : 'text-[var(--q-text-faint)] hover:text-[var(--q-text)] hover:bg-white/[0.025]',
-                  collapsed && 'justify-center px-0',
-                )}
-                title={collapsed ? label : undefined}
-              >
-                <Icon size={18} className="shrink-0" />
-                {!collapsed && (
-                  <span className="text-sm font-[var(--q-font-body)] truncate">{label}</span>
-                )}
-              </button>
-            )
-          }
+          const active = isActive(id)
 
           return (
             <Link

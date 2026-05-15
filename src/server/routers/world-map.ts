@@ -161,6 +161,88 @@ export const worldMapRouter = router({
       });
     }),
 
+  listMapEntities: campaignDMProcedure
+    .input(z.object({ campaignId: z.string().min(1), mapId: z.string().min(1).optional() }))
+    .query(async ({ input }) => {
+      const [entities, pins] = await Promise.all([
+        prisma.worldEntity.findMany({
+          where: {
+            campaignId: input.campaignId,
+            type: { in: [WorldEntityType.LOCATION, WorldEntityType.NPC, WorldEntityType.FACTION] },
+          },
+          select: { id: true, name: true, type: true, description: true },
+          orderBy: { name: 'asc' },
+        }),
+        input.mapId
+          ? prisma.mapPin.findMany({ where: { mapId: input.mapId }, select: { entityId: true } })
+          : Promise.resolve([]),
+      ]);
+      const pinnedIds = new Set(pins.map((p) => p.entityId));
+      return entities.map((e) => ({ ...e, isPinned: pinnedIds.has(e.id) }));
+    }),
+
+  pinExistingEntity: campaignDMProcedure
+    .input(z.object({
+      mapId: z.string().min(1),
+      campaignId: z.string().min(1),
+      entityId: z.string().min(1),
+      x: z.number(),
+      y: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const entity = await prisma.worldEntity.findFirst({
+        where: { id: input.entityId, campaignId: input.campaignId },
+        select: { id: true },
+      });
+      if (!entity) throw new TRPCError({ code: 'NOT_FOUND', message: 'Entity not found' });
+      return prisma.mapPin.upsert({
+        where: { mapId_entityId: { mapId: input.mapId, entityId: input.entityId } },
+        create: { mapId: input.mapId, entityId: input.entityId, x: input.x, y: input.y },
+        update: { x: input.x, y: input.y },
+        include: { entity: { select: { id: true, name: true, type: true, properties: true } } },
+      });
+    }),
+
+  pinNpcAsEntity: campaignDMProcedure
+    .input(z.object({
+      mapId: z.string().min(1),
+      campaignId: z.string().min(1),
+      npcId: z.string().min(1),
+      x: z.number(),
+      y: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const npc = await prisma.nPC.findFirst({
+        where: { id: input.npcId, campaignId: input.campaignId },
+        select: { id: true, name: true, description: true, imageUrl: true },
+      });
+      if (!npc) throw new TRPCError({ code: 'NOT_FOUND', message: 'NPC not found' });
+      let entity = await prisma.worldEntity.findFirst({
+        where: { campaignId: input.campaignId, name: npc.name, type: WorldEntityType.NPC },
+        select: { id: true },
+      });
+      if (!entity) {
+        entity = await prisma.worldEntity.create({
+          data: {
+            campaignId: input.campaignId,
+            type: WorldEntityType.NPC,
+            name: npc.name,
+            description: npc.description,
+            imageUrl: npc.imageUrl,
+            aliases: [],
+            properties: {},
+          },
+        });
+        enqueueMeiliSyncSafe({ kind: 'world_entity', op: 'upsert', id: entity.id });
+      }
+      return prisma.mapPin.upsert({
+        where: { mapId_entityId: { mapId: input.mapId, entityId: entity.id } },
+        create: { mapId: input.mapId, entityId: entity.id, x: input.x, y: input.y },
+        update: { x: input.x, y: input.y },
+        include: { entity: { select: { id: true, name: true, type: true, properties: true } } },
+      });
+    }),
+
   createLocationPin: campaignDMProcedure
     .input(z.object({
       mapId: z.string().min(1),

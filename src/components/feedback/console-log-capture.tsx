@@ -17,7 +17,10 @@ const originalWarn = typeof console !== 'undefined' ? console.warn.bind(console)
 
 function push(level: 'error' | 'warn', args: unknown[]) {
   const msg = args
-    .map((a) => (typeof a === 'string' ? a : JSON.stringify(a)))
+    .map((a) => {
+      if (typeof a === 'string') return a;
+      try { return JSON.stringify(a); } catch { return String(a); }
+    })
     .join(' ')
     .slice(0, MAX_MSG_LENGTH);
   if (logBuffer.length >= MAX_LOGS) logBuffer.shift();
