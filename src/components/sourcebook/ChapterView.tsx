@@ -45,11 +45,10 @@ interface Props {
   data?: ChapterData;
 }
 
-function illustrationClass(kind: string) {
-  if (kind === 'portrait') return 'float-right ml-6 mb-4 w-[280px] rounded-sm';
-  if (kind === 'map') return 'w-full my-6 rounded-sm';
-  if (kind === 'scene') return 'w-full my-6 rounded-sm';
-  return 'w-full my-6 rounded-sm';
+function sectionHeadingTag(level: number): 'h2' | 'h3' | 'h4' {
+  if (level <= 1) return 'h2';
+  if (level === 2) return 'h3';
+  return 'h4';
 }
 
 export function ChapterView({ loading, data, bookSlug, campaignId }: Props) {
@@ -121,7 +120,7 @@ export function ChapterView({ loading, data, bookSlug, campaignId }: Props) {
 
   return (
     <Card variant="grimoire" className="min-h-[60vh] p-6">
-      <article className="prose-q">
+      <article className="prose-q mx-auto max-w-[72ch]">
         <h1 className="mb-3 font-display text-3xl text-[var(--q-text)]">{data.chapter.title}</h1>
 
         {hero && (
@@ -140,14 +139,36 @@ export function ChapterView({ loading, data, bookSlug, campaignId }: Props) {
         {data.sections.map((section, index) => {
           const key = (section.heading ?? '').trim().toLowerCase();
           const sectionImages = illustrationsBySection.get(key) ?? [];
+          const portraitImgs = sectionImages.filter((img) => img.kind === 'portrait');
+          const wideImgs = sectionImages.filter((img) => img.kind !== 'portrait');
+          const Tag = sectionHeadingTag(section.level);
 
           return (
             <section key={`${section.heading ?? 'intro'}-${index}`} className="mt-6">
               {section.heading && (
-                <h2 className="mb-3 mt-8 font-display text-xl text-[var(--q-text)]">
-                  {section.heading}
-                </h2>
+                <Tag className="font-display text-[var(--q-text)]">{section.heading}</Tag>
               )}
+
+              {portraitImgs.map((illustration) => (
+                <figure key={illustration.id} className="float-right ml-6 mb-4 w-[220px] clear-right">
+                  <button type="button" onClick={() => setZoom(illustration)} className="block w-full">
+                    <Image
+                      src={illustration.url}
+                      alt={illustration.alt ?? ''}
+                      width={440}
+                      height={600}
+                      className="w-full rounded-sm"
+                      unoptimized
+                    />
+                  </button>
+                  {illustration.alt && (
+                    <figcaption className="mt-1 text-center text-xs italic text-[var(--q-text-dim)]">
+                      {illustration.alt}
+                    </figcaption>
+                  )}
+                </figure>
+              ))}
+
               <div className="text-[var(--q-text)]">
                 <MarkdownWithEntities
                   markdown={section.markdown}
@@ -155,26 +176,30 @@ export function ChapterView({ loading, data, bookSlug, campaignId }: Props) {
                   campaignSlug={campaignSlug}
                 />
               </div>
-              {sectionImages.map((illustration) => (
-                <button
-                  key={illustration.id}
-                  type="button"
-                  onClick={() => setZoom(illustration)}
-                  className="block"
-                >
-                  <Image
-                    src={illustration.url}
-                    alt={illustration.alt ?? ''}
-                    width={1200}
-                    height={800}
-                    className={illustrationClass(illustration.kind)}
-                    unoptimized
-                  />
-                </button>
+
+              {wideImgs.map((illustration) => (
+                <figure key={illustration.id} className="mt-6 clear-both">
+                  <button type="button" onClick={() => setZoom(illustration)} className="block w-full">
+                    <Image
+                      src={illustration.url}
+                      alt={illustration.alt ?? ''}
+                      width={1200}
+                      height={800}
+                      className={`illustration-full rounded-sm ${illustration.kind === 'map' ? 'my-4' : 'my-6'}`}
+                      unoptimized
+                    />
+                  </button>
+                  {illustration.alt && (
+                    <figcaption className="mt-1 text-center text-xs italic text-[var(--q-text-dim)]">
+                      {illustration.alt}
+                    </figcaption>
+                  )}
+                </figure>
               ))}
             </section>
           );
         })}
+        <div className="clear-both" />
       </article>
 
       <Dialog open={Boolean(zoom)} onOpenChange={(open) => !open && setZoom(null)}>
