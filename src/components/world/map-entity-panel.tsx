@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
-import { MapPin, Users, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { MapPin, Users, ChevronLeft, ChevronRight, Search, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EntityItem {
@@ -10,6 +10,7 @@ interface EntityItem {
   name: string;
   type: string;
   isPinned: boolean;
+  isContextual: boolean;
   /** 'entity' = WorldEntity drag, 'npc' = NPC model drag */
   source: 'entity' | 'npc';
 }
@@ -75,6 +76,7 @@ export function MapEntityPanel({
   const [collapsed, setCollapsed] = useState(false);
   const [locSearch, setLocSearch] = useState('');
   const [npcSearch, setNpcSearch] = useState('');
+  const [allLocsOpen, setAllLocsOpen] = useState(false);
 
   const entitiesQuery = trpc.worldMap.listMapEntities.useQuery(
     { campaignId, mapId },
@@ -82,18 +84,27 @@ export function MapEntityPanel({
   );
   const npcsQuery = trpc.npcs.getAll.useQuery({ campaignId });
 
-  const locations = useMemo(() => {
+  const { contextualLocs, otherLocs } = useMemo(() => {
     const all = (entitiesQuery.data ?? []).filter((e) => e.type === 'LOCATION');
-    if (!locSearch.trim()) return all;
-    const q = locSearch.toLowerCase();
-    return all.filter((e) => e.name.toLowerCase().includes(q));
+    const q = locSearch.trim().toLowerCase();
+
+    const contextual = all.filter((e) => e.isContextual);
+    const other = all.filter((e) => !e.isContextual);
+
+    if (!q) return { contextualLocs: contextual, otherLocs: other };
+    return {
+      contextualLocs: contextual.filter((e) => e.name.toLowerCase().includes(q)),
+      otherLocs: other.filter((e) => e.name.toLowerCase().includes(q)),
+    };
   }, [entitiesQuery.data, locSearch]);
+
+  const hasContextual = contextualLocs.length > 0 || (entitiesQuery.data ?? []).some((e) => e.isContextual);
+  const isSearching = locSearch.trim().length > 0;
 
   const npcs = useMemo(() => {
     const all = npcsQuery.data ?? [];
     const q = npcSearch.trim().toLowerCase();
-    const filtered = q ? all.filter((n) => n.name.toLowerCase().includes(q)) : all;
-    return filtered;
+    return q ? all.filter((n) => n.name.toLowerCase().includes(q)) : all;
   }, [npcsQuery.data, npcSearch]);
 
   const onDragStart = (e: React.DragEvent, item: EntityItem) => {
@@ -174,19 +185,91 @@ export function MapEntityPanel({
               }}
             />
           </div>
+
           <div className="flex flex-col">
-            {locations.map((e) => (
-              <DraggableRow
-                key={e.id}
-                item={{ id: e.id, name: e.name, type: e.type, isPinned: e.isPinned, source: 'entity' }}
-                onDragStart={onDragStart}
-                onClickPinned={(item) => onSelectEntity(item.id, item.name)}
-              />
-            ))}
-            {locations.length === 0 && (
-              <p className="px-2 py-1 text-[10px]" style={{ color: 'var(--wm-muted)' }}>
-                No locations in entity graph yet
-              </p>
+            {/* Points of interest — contextual to this map */}
+            {hasContextual && (
+              <>
+                {contextualLocs.length > 0 && (
+                  <p
+                    className="mb-0.5 px-1 text-[8px] uppercase tracking-[0.2em]"
+                    style={{ color: 'var(--wm-accent)' }}
+                  >
+                    In this area
+                  </p>
+                )}
+                {contextualLocs.map((e) => (
+                  <DraggableRow
+                    key={e.id}
+                    item={{ id: e.id, name: e.name, type: e.type, isPinned: e.isPinned, isContextual: true, source: 'entity' }}
+                    onDragStart={onDragStart}
+                    onClickPinned={(item) => onSelectEntity(item.id, item.name)}
+                  />
+                ))}
+                {contextualLocs.length === 0 && isSearching && (
+                  <p className="px-2 py-1 text-[10px]" style={{ color: 'var(--wm-muted)' }}>
+                    No matches in this area
+                  </p>
+                )}
+
+                {/* All other locations — collapsible, expands on search */}
+                {(isSearching || allLocsOpen) && otherLocs.length > 0 && (
+                  <>
+                    <div
+                      className="my-1.5 h-px"
+                      style={{ background: 'var(--wm-border)' }}
+                    />
+                    <p
+                      className="mb-0.5 px-1 text-[8px] uppercase tracking-[0.2em]"
+                      style={{ color: 'var(--wm-muted)' }}
+                    >
+                      All locations
+                    </p>
+                    {otherLocs.map((e) => (
+                      <DraggableRow
+                        key={e.id}
+                        item={{ id: e.id, name: e.name, type: e.type, isPinned: e.isPinned, isContextual: false, source: 'entity' }}
+                        onDragStart={onDragStart}
+                        onClickPinned={(item) => onSelectEntity(item.id, item.name)}
+                      />
+                    ))}
+                  </>
+                )}
+
+                {!isSearching && otherLocs.length > 0 && (
+                  <button
+                    onClick={() => setAllLocsOpen((o) => !o)}
+                    className="mt-1 flex w-full items-center gap-1 px-2 py-1 text-left"
+                  >
+                    <ChevronDown
+                      className={cn('h-3 w-3 shrink-0 transition-transform', allLocsOpen && 'rotate-180')}
+                      style={{ color: 'var(--wm-muted)' }}
+                    />
+                    <span className="text-[9px]" style={{ color: 'var(--wm-muted)' }}>
+                      {allLocsOpen ? 'Hide' : `${otherLocs.length} more`}
+                    </span>
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* No contextual context — flat list */}
+            {!hasContextual && (
+              <>
+                {otherLocs.map((e) => (
+                  <DraggableRow
+                    key={e.id}
+                    item={{ id: e.id, name: e.name, type: e.type, isPinned: e.isPinned, isContextual: false, source: 'entity' }}
+                    onDragStart={onDragStart}
+                    onClickPinned={(item) => onSelectEntity(item.id, item.name)}
+                  />
+                ))}
+                {otherLocs.length === 0 && (
+                  <p className="px-2 py-1 text-[10px]" style={{ color: 'var(--wm-muted)' }}>
+                    No locations in entity graph yet
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -223,7 +306,7 @@ export function MapEntityPanel({
               return (
                 <DraggableRow
                   key={npc.id}
-                  item={{ id: npc.id, name: npc.name, type: 'NPC', isPinned, source: 'npc' }}
+                  item={{ id: npc.id, name: npc.name, type: 'NPC', isPinned, isContextual: false, source: 'npc' }}
                   onDragStart={onDragStart}
                   onClickPinned={(item) => onSelectEntity(item.id, item.name)}
                 />

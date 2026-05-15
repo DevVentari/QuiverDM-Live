@@ -164,6 +164,30 @@ export const worldMapRouter = router({
   listMapEntities: campaignDMProcedure
     .input(z.object({ campaignId: z.string().min(1), mapId: z.string().min(1).optional() }))
     .query(async ({ input }) => {
+      // Resolve contextual entity IDs from the map's parent location relationships
+      let contextualIds = new Set<string>();
+      if (input.mapId) {
+        const map = await prisma.campaignMap.findUnique({
+          where: { id: input.mapId },
+          select: { parentLocationId: true },
+        });
+        if (map?.parentLocationId) {
+          const rels = await prisma.worldRelationship.findMany({
+            where: {
+              OR: [
+                { fromEntityId: map.parentLocationId },
+                { toEntityId: map.parentLocationId },
+              ],
+            },
+            select: { fromEntityId: true, toEntityId: true },
+          });
+          contextualIds = new Set(
+            rels.flatMap((r) => [r.fromEntityId, r.toEntityId])
+                .filter((id) => id !== map.parentLocationId),
+          );
+        }
+      }
+
       const [entities, pins] = await Promise.all([
         prisma.worldEntity.findMany({
           where: {
@@ -177,8 +201,13 @@ export const worldMapRouter = router({
           ? prisma.mapPin.findMany({ where: { mapId: input.mapId }, select: { entityId: true } })
           : Promise.resolve([]),
       ]);
+
       const pinnedIds = new Set(pins.map((p) => p.entityId));
-      return entities.map((e) => ({ ...e, isPinned: pinnedIds.has(e.id) }));
+      return entities.map((e) => ({
+        ...e,
+        isPinned: pinnedIds.has(e.id),
+        isContextual: contextualIds.has(e.id),
+      }));
     }),
 
   pinExistingEntity: campaignDMProcedure
