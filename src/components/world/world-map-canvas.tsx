@@ -227,6 +227,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           entityId: pin.entity.id,
           label: pin.entity.name,
           type: pin.entity.type,
+          imageUrl: (pin.entity as unknown as { imageUrl?: string | null }).imageUrl ?? null,
           lastEventAt: (pin as unknown as { lastEventAt?: string | null }).lastEventAt,
           unplaced: (pin as unknown as { unplaced?: boolean }).unplaced,
           source: 'dm' as const,
