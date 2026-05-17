@@ -7,14 +7,16 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
   BookOpen, Flag, MapPin, Clock, ScrollText, Sparkles,
-  ChevronDown, ChevronRight, Sword, Package, Dna, Upload,
+  ChevronDown, ChevronRight, Sword, Package, Dna, Upload, LayoutList,
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { ImportSheet } from '@/components/world/import-sheet';
+import { ChapterSection } from '@/components/world/chapter-section';
 import { Canvas, Card, Section, Surface } from '@/components/primitives';
+import { getChapterColor } from '@/lib/chapter-colors';
 import { cn } from '@/lib/utils';
 
 // ─── Type metadata ────────────────────────────────────────────────────────────
@@ -48,7 +50,7 @@ const ENTRY_TYPE_META: Record<string, TypeMeta> = {
 };
 
 function getTypeMeta(type: string): TypeMeta {
-  return DOC_TYPE_META[type] ?? HB_TYPE_META[type] ?? { label: type, icon: BookOpen };
+  return ENTRY_TYPE_META[type] ?? DOC_TYPE_META[type] ?? HB_TYPE_META[type] ?? { label: type, icon: BookOpen };
 }
 
 function TypeBadge({ type }: { type: string }) {
@@ -134,7 +136,7 @@ function DocRow({ doc, expanded, onToggle }: { doc: Doc; expanded: boolean; onTo
 
 // ─── Homebrew row (structured data) ──────────────────────────────────────────
 
-type HbItem = { id: string; name: string; type: string; data: unknown; tags: string[] };
+type HbItem = { id: string; name: string; type: string; data: unknown; tags: string[]; ddbChapterId?: string | null };
 
 function hbSummary(item: HbItem): string {
   const d = item.data as Record<string, unknown>;
@@ -234,6 +236,7 @@ export default function WorldPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [entryFilter, setEntryFilter] = useState<string>(() => searchParams?.get('type') ?? 'all');
+  const [viewMode, setViewMode] = useState<'by-type' | 'by-chapter'>('by-type');
   useEffect(() => {
     const t = searchParams?.get('type');
     setEntryFilter(t && t.length > 0 ? t : 'all');
@@ -253,15 +256,41 @@ export default function WorldPage() {
   const { data: entries = [], isLoading: entriesLoading } = trpc.world.getEntries.useQuery(
     { campaignId }, { staleTime: 60_000 },
   );
+  const { data: chapters = [], isLoading: chaptersLoading } = trpc.world.getCampaignChapters.useQuery(
+    { campaignId },
+    { staleTime: 300_000, enabled: viewMode === 'by-chapter' },
+  );
 
   const isLoading = docsLoading || hbLoading || entriesLoading;
+  const isChapterLoading = isLoading || chaptersLoading;
 
   // Merge into unified list with source tag
-  type AnyItem = { id: string; title: string; type: string; _kind: 'doc' | 'hb'; _raw: Doc | HbItem };
+  type EntryItem = {
+    id: string;
+    name: string;
+    slug: string;
+    type: string;
+    summary?: string | null;
+    worldEntity?: { ddbChapterId?: string | null } | null;
+  };
+  type AnyItem =
+    | { id: string; title: string; type: string; _kind: 'doc'; _raw: Doc }
+    | { id: string; title: string; type: string; _kind: 'hb'; _raw: HbItem }
+    | { id: string; title: string; type: string; _kind: 'entry'; _raw: EntryItem };
 
   const allItems: AnyItem[] = [
     ...docs.map((d) => ({ id: d.id, title: d.title, type: d.type, _kind: 'doc' as const, _raw: d })),
     ...homebrew.map((h) => ({ id: h.id, title: h.name, type: h.type, _kind: 'hb' as const, _raw: h })),
+  ];
+  const allItemsForChapter: AnyItem[] = [
+    ...entries.map((entry) => ({
+      id: entry.id,
+      title: entry.name,
+      type: entry.type as string,
+      _kind: 'entry' as const,
+      _raw: entry as EntryItem,
+    })),
+    ...allItems,
   ];
 
   const filtered = filter === 'all' ? allItems : allItems.filter((i) => i.type === filter);
@@ -278,6 +307,101 @@ export default function WorldPage() {
   });
 
   const typesPresent = [...new Set(allItems.map((i) => i.type))];
+  const chapterTypesPresent = [...new Set(allItemsForChapter.map((item) => item.type))];
+
+  const chapterMap = new Map(chapters.map((chapter) => [chapter.id, chapter]));
+  type ChapterBucket = {
+    chapterId: string | null;
+    title: string;
+    chapterIndex: number;
+    items: AnyItem[];
+  };
+  const chapterBuckets: ChapterBucket[] = [];
+
+  if (viewMode === 'by-chapter') {
+    const byChapter = new Map<string | null, AnyItem[]>();
+
+    for (const item of allItemsForChapter) {
+      let chapterId: string | null = null;
+      if (item._kind === 'entry') {
+        chapterId = item._raw.worldEntity?.ddbChapterId ?? null;
+      } else if (item._kind === 'hb') {
+        chapterId = item._raw.ddbChapterId ?? null;
+      }
+      const bucket = byChapter.get(chapterId) ?? [];
+      bucket.push(item);
+      byChapter.set(chapterId, bucket);
+    }
+
+    for (const chapter of chapters) {
+      const items = byChapter.get(chapter.id);
+      if (items?.length) {
+        chapterBuckets.push({
+          chapterId: chapter.id,
+          title: chapter.title,
+          chapterIndex: chapter.chapterIndex,
+          items,
+        });
+      }
+    }
+
+    const custom = [...(byChapter.get(null) ?? [])];
+    for (const [chapterId, items] of byChapter.entries()) {
+      if (chapterId !== null && !chapterMap.has(chapterId)) custom.push(...items);
+    }
+    if (custom.length > 0) {
+      chapterBuckets.push({
+        chapterId: null,
+        title: 'Custom Additions',
+        chapterIndex: 9999,
+        items: custom,
+      });
+    }
+  }
+
+  function renderChapterItem(item: AnyItem) {
+    if (item._kind === 'entry') {
+      const entry = item._raw;
+      const meta = ENTRY_TYPE_META[entry.type];
+      const Icon = meta?.icon ?? BookOpen;
+      return (
+        <Link
+          key={entry.id}
+          href={`/campaigns/${slug}/world/${entry.slug}`}
+          className="block rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] p-3 text-left transition-colors hover:border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)]"
+        >
+          <div className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-widest text-[var(--q-text-faint)]">
+            <Icon className="h-2.5 w-2.5" />
+            {meta?.label ?? entry.type}
+          </div>
+          <p className="mt-1 line-clamp-1 text-sm font-medium leading-snug text-[var(--q-text)]">{entry.name}</p>
+          {entry.summary && (
+            <p className="mt-1 line-clamp-2 text-xs text-[var(--q-text-dim)]">{entry.summary}</p>
+          )}
+        </Link>
+      );
+    }
+
+    if (item._kind === 'doc') {
+      return (
+        <DocRow
+          key={item.id}
+          doc={item._raw}
+          expanded={expandedId === item.id}
+          onToggle={() => setExpandedId((previous) => (previous === item.id ? null : item.id))}
+        />
+      );
+    }
+
+    return (
+      <HbRow
+        key={item.id}
+        item={item._raw}
+        expanded={expandedId === item.id}
+        onToggle={() => setExpandedId((previous) => (previous === item.id ? null : item.id))}
+      />
+    );
+  }
 
   return (
     <Canvas variant="world">
@@ -297,6 +421,19 @@ export default function WorldPage() {
       }
     >
       {/* ─── World Entities section ─────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-1.5">
+        <button onClick={() => setViewMode('by-type')} className={filterChipClass(viewMode === 'by-type')}>
+          <LayoutList className="h-3 w-3" />
+          By Type
+        </button>
+        <button onClick={() => setViewMode('by-chapter')} className={filterChipClass(viewMode === 'by-chapter')}>
+          <BookOpen className="h-3 w-3" />
+          By Chapter
+        </button>
+      </div>
+
+      {viewMode === 'by-type' ? (
+      <>
       {(entriesLoading || entries.length > 0) && (
         <Section
           label="World Entities"
@@ -418,19 +555,92 @@ export default function WorldPage() {
                       expanded={expandedId === item.id}
                       onToggle={() => setExpandedId((p) => (p === item.id ? null : item.id))}
                     />
-                  ) : (
+                  ) : item._kind === 'hb' ? (
                     <HbRow
                       key={item.id}
-                      item={item._raw as HbItem}
+                      item={item._raw}
                       expanded={expandedId === item.id}
                       onToggle={() => setExpandedId((p) => (p === item.id ? null : item.id))}
                     />
-                  )
+                  ) : null
                 )}
               </div>
             </div>
           ))}
         </div>
+      )}
+      </>
+      ) : (
+        <>
+          <div className="flex flex-wrap gap-1.5">
+            {(['all', ...chapterTypesPresent]).map((type) => {
+              const isActive = entryFilter === type;
+              const meta = type === 'all' ? { label: 'All', icon: BookOpen } : getTypeMeta(type);
+              const Icon = meta.icon;
+              const count = type === 'all'
+                ? allItemsForChapter.length
+                : allItemsForChapter.filter((item) => item.type === type).length;
+              return (
+                <button key={type} onClick={() => setEntryFilter(type)} className={filterChipClass(isActive)}>
+                  <Icon className="h-3 w-3" />
+                  {meta.label}
+                  <span className="text-[10px] text-[var(--q-text-faint)]">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {isChapterLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="h-14 animate-pulse rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)]"
+                />
+              ))}
+            </div>
+          ) : allItemsForChapter.length === 0 ? (
+            <Card variant="detail" className="flex flex-col items-center justify-center gap-3 py-12 text-center">
+              <BookOpen className="h-8 w-8 text-[var(--q-text-faint)]" />
+              <div className="space-y-1">
+                <p className="text-sm text-[var(--q-text-dim)]">No world documents yet.</p>
+                <p className="text-xs text-[var(--q-text-faint)]">
+                  Import a world sourcebook when creating a campaign or add content manually.
+                </p>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {chapterBuckets.map((bucket, bucketIndex) => {
+                const filteredItems = bucket.items.filter((item) => entryFilter === 'all' || item.type === entryFilter);
+                if (filteredItems.length === 0) return null;
+                const color = bucket.chapterId === null
+                  ? 'var(--q-text-faint)'
+                  : getChapterColor(bucket.chapterIndex).text;
+                return (
+                  <ChapterSection
+                    key={bucket.chapterId ?? '__custom'}
+                    chapterId={bucket.chapterId ?? '__custom'}
+                    title={bucket.title}
+                    count={filteredItems.length}
+                    accentColor={color}
+                    campaignSlug={slug}
+                    defaultExpanded={bucketIndex === 0}
+                  >
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      {filteredItems.map(renderChapterItem)}
+                    </div>
+                  </ChapterSection>
+                );
+              })}
+              {chapterBuckets.length === 0 && (
+                <p className="px-2 text-sm italic text-[var(--q-text-faint)]">
+                  No chapter data found. This campaign may not have a linked sourcebook.
+                </p>
+              )}
+            </div>
+          )}
+        </>
       )}
       <ImportSheet
         campaignId={campaignId}
