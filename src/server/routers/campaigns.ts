@@ -15,6 +15,7 @@ import { EVENTS } from '@/lib/analytics-events';
 import { extractEntitiesFromMarkdown } from '../services/markdown-extraction.service';
 import { parseJsonFile, buildPreview } from '../services/json-import.service';
 import { brainRepository } from '../repositories/brain.repository';
+import { emptyPrepData } from '@/lib/prep-types';
 
 // =============================================================================
 // Input Schemas
@@ -95,6 +96,18 @@ export const campaignsRouter = router({
     .mutation(async ({ input, ctx }) => {
       const campaign = await campaignService.create(ctx.session.user.id, input);
       void serverTrack(ctx.session.user.id, EVENTS.CAMPAIGN_CREATED, { campaign_id: campaign.id });
+      // Always create Session 0 so the hero card shows on the sessions page.
+      // If a DDB sourcebook is later linked, its prep gets upgraded to sourcebook-seeded.
+      void prisma.gameSession.create({
+        data: {
+          campaignId: campaign.id,
+          title: 'Session 0',
+          sessionNumber: 0,
+          status: 'planning',
+          prepData: emptyPrepData() as unknown as Prisma.InputJsonValue,
+          prepStatus: 'complete',
+        },
+      });
       return campaign;
     }),
 
@@ -368,7 +381,7 @@ export const campaignsRouter = router({
         where: { campaignId: input.campaignId },
         include: {
           homebrew: {
-            select: { id: true, name: true, type: true, data: true, tags: true, imageUrl: true },
+            select: { id: true, name: true, type: true, data: true, tags: true, imageUrl: true, ddbChapterId: true },
           },
         },
         orderBy: { homebrew: { name: 'asc' } },

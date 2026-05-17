@@ -33,12 +33,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useSearchParams } from 'next/navigation';
-import { Map, Layers3, Network, Palette } from 'lucide-react';
+import { Map as MapIcon, Layers3, Network, Palette } from 'lucide-react';
 import { MapEntityPanel } from './map-entity-panel';
 import { ZoomSlider } from './zoom-slider';
 import { WorldMapStyleCard } from './world-map-style-card';
 import { WorldMapAtmosphere } from './world-map-atmosphere';
 import { cn } from '@/lib/utils';
+import { getChapterColor } from '@/lib/chapter-colors';
 import {
   WORLD_MAP_PALETTES,
   WORLD_MAP_DEFAULT_PALETTE_KEY,
@@ -75,6 +76,7 @@ function ViewportBackground({ url }: { url: string }) {
   return (
     <img
       src={url}
+      alt=""
       onLoad={handleLoad}
       draggable={false}
       style={{
@@ -87,6 +89,7 @@ function ViewportBackground({ url }: { url: string }) {
         pointerEvents: 'none',
         userSelect: 'none',
         maxWidth: 'none',
+        opacity: 0.45,
       }}
     />
   );
@@ -178,6 +181,46 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const isLoading = activeMapId ? mapQuery.isLoading : rootQuery.isLoading;
   const mapsQuery = trpc.worldMap.listMaps.useQuery({ campaignId });
 
+  const pinChapters = useMemo(() => {
+    const seen = new Map<string, { id: string; index: number }>();
+    for (const pin of mapData?.pins ?? []) {
+      const chapterId = pin.entity.ddbChapterId;
+      if (chapterId && !seen.has(chapterId)) {
+        seen.set(chapterId, { id: chapterId, index: seen.size });
+      }
+    }
+    return [...seen.values()];
+  }, [mapData?.pins]);
+
+  const [activeChapters, setActiveChapters] = useState<Set<string> | null>(null);
+
+  useEffect(() => {
+    if (pinChapters.length === 0 || activeChapters !== null) return;
+    const chapterParam = searchParams.get('chapter');
+    if (chapterParam && pinChapters.some((chapter) => chapter.id === chapterParam)) {
+      setActiveChapters(new Set([chapterParam]));
+      return;
+    }
+    setActiveChapters(new Set(pinChapters.map((chapter) => chapter.id)));
+  }, [activeChapters, pinChapters, searchParams]);
+
+  const visiblePins = useMemo(() => {
+    if (activeChapters === null) return mapData?.pins ?? [];
+    return (mapData?.pins ?? []).filter((pin) => {
+      const chapterId = pin.entity.ddbChapterId;
+      return !chapterId || activeChapters.has(chapterId);
+    });
+  }, [activeChapters, mapData?.pins]);
+
+  function toggleChapter(id: string) {
+    setActiveChapters((previous) => {
+      const next = new Set(previous ?? pinChapters.map((chapter) => chapter.id));
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   const createLocationPin = trpc.worldMap.createLocationPin.useMutation({
     onSuccess: () => {
       if (activeMapId) utils.worldMap.getMap.invalidate();
@@ -233,28 +276,34 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
   const syncNodes = useCallback(() => {
     if (!mapData?.pins) return;
     setNodes(
-      mapData.pins.map((pin) => ({
-        id: pin.id,
-        type: pin.entity.type === 'NOTE' ? 'note' : 'location',
-        position: { x: pin.x, y: pin.y },
-        data: {
-          entityId: pin.entity.id,
-          label: pin.entity.name,
-          type: pin.entity.type,
-          imageUrl: (pin.entity as unknown as { imageUrl?: string | null }).imageUrl ?? null,
-          lastEventAt: (pin as unknown as { lastEventAt?: string | null }).lastEventAt,
-          unplaced: (pin as unknown as { unplaced?: boolean }).unplaced,
-          source: 'dm' as const,
-          onSelect: () => {
-            setSelectedEntityId(pin.entity.id);
-            setSelectedEntityName(pin.entity.name);
-            const props = (pin.entity.properties ?? {}) as Record<string, unknown>;
-            setSelectedEntityFoundrySceneId((props.foundrySceneId as string | null | undefined) ?? null);
+      visiblePins.map((pin) => {
+        const chapter = pin.entity.ddbChapterId
+          ? pinChapters.find((item) => item.id === pin.entity.ddbChapterId)
+          : undefined;
+        return {
+          id: pin.id,
+          type: pin.entity.type === 'NOTE' ? 'note' : 'location',
+          position: { x: pin.x, y: pin.y },
+          data: {
+            entityId: pin.entity.id,
+            label: pin.entity.name,
+            type: pin.entity.type,
+            imageUrl: (pin.entity as unknown as { imageUrl?: string | null }).imageUrl ?? null,
+            lastEventAt: (pin as unknown as { lastEventAt?: string | null }).lastEventAt,
+            chapterColor: chapter ? getChapterColor(chapter.index).text : null,
+            unplaced: (pin as unknown as { unplaced?: boolean }).unplaced,
+            source: 'dm' as const,
+            onSelect: () => {
+              setSelectedEntityId(pin.entity.id);
+              setSelectedEntityName(pin.entity.name);
+              const props = (pin.entity.properties ?? {}) as Record<string, unknown>;
+              setSelectedEntityFoundrySceneId((props.foundrySceneId as string | null | undefined) ?? null);
+            },
           },
-        },
-      }))
+        };
+      })
     );
-  }, [mapData, setNodes]);
+  }, [mapData?.pins, pinChapters, setNodes, visiblePins]);
 
   useEffect(() => {
     syncNodes();
@@ -329,7 +378,7 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
                 color: 'var(--wm-text)',
               }}
             >
-              <Map className="h-3.5 w-3.5" style={{ color: 'var(--wm-accent)' }} />
+              <MapIcon className="h-3.5 w-3.5" style={{ color: 'var(--wm-accent)' }} />
               {mapData?.name ?? 'World Map'}
             </div>
           )}
@@ -362,6 +411,51 @@ export function WorldMapCanvas({ slug }: WorldMapCanvasProps) {
           </button>
         </div>
       </div>
+
+      {pinChapters.length > 0 && (
+        <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex justify-center px-4">
+          <div
+            className="pointer-events-auto flex max-w-[min(100%,56rem)] flex-wrap items-center justify-center gap-1.5 rounded-full border px-3 py-2 backdrop-blur-md"
+            style={{
+              borderColor: 'var(--wm-border)',
+              background: 'color-mix(in oklab, var(--wm-surface) 82%, black)',
+            }}
+          >
+            {pinChapters.map((chapter) => {
+              const color = getChapterColor(chapter.index);
+              const isActive = activeChapters === null || activeChapters.has(chapter.id);
+              return (
+                <button
+                  key={chapter.id}
+                  type="button"
+                  onClick={() => toggleChapter(chapter.id)}
+                  className="inline-flex min-h-8 items-center gap-1.5 rounded-sm border px-2.5 text-[10px] transition-colors"
+                  style={{
+                    borderColor: isActive ? color.border : 'var(--wm-border)',
+                    color: isActive ? color.text : 'var(--wm-soft-text)',
+                    background: isActive ? color.bg.replace(')', ' / 0.1)') : 'transparent',
+                  }}
+                >
+                  <span
+                    className="inline-block h-2 w-2 rounded-full"
+                    style={{ background: isActive ? color.bg : 'var(--wm-muted)' }}
+                  />
+                  Ch {chapter.index + 1}
+                </button>
+              );
+            })}
+            {(activeChapters?.size ?? pinChapters.length) < pinChapters.length && (
+              <button
+                type="button"
+                onClick={() => setActiveChapters(new Set(pinChapters.map((chapter) => chapter.id)))}
+                className="min-h-8 px-2 text-[10px] text-[var(--wm-soft-text)] transition-colors hover:text-[var(--wm-text)]"
+              >
+                Show all
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Full-height canvas */}
       {isLoading ? (

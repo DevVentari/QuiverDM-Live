@@ -38,6 +38,34 @@ export const worldRouter = router({
       })
     ),
 
+  getCampaignChapters: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .query(async ({ input, ctx }) => {
+      await authz.campaign(input.campaignId, ctx.session.user.id).verify();
+
+      const links = await prisma.campaignSourcebook.findMany({
+        where: { campaignId: input.campaignId },
+        include: {
+          sourcebook: {
+            include: {
+              chapters: {
+                orderBy: { chapterIndex: 'asc' },
+                select: {
+                  id: true,
+                  slug: true,
+                  title: true,
+                  chapterIndex: true,
+                  parentSlug: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return links.flatMap((link) => link.sourcebook.chapters);
+    }),
+
   getEntryBySlug: protectedProcedure
     .input(
       z.object({
@@ -153,6 +181,35 @@ export const worldRouter = router({
       return items
         .sort((a, b) => b.changedAt.getTime() - a.changedAt.getTime())
         .slice(0, limit);
+    }),
+
+  getCampaignAnchors: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1) }))
+    .query(async ({ input, ctx }) => {
+      await authz.campaign(input.campaignId, ctx.session.user.id).verify();
+
+      const link = await prisma.campaignSourcebook.findFirst({
+        where: { campaignId: input.campaignId },
+        select: { sourcebookId: true },
+      });
+      if (!link) return { npcs: [], locations: [] };
+
+      const [npcs, locations] = await Promise.all([
+        prisma.sourcebookEntity.findMany({
+          where: { sourcebookId: link.sourcebookId, type: 'NPC' },
+          orderBy: { createdAt: 'asc' },
+          take: 4,
+          select: { id: true, name: true, description: true, imageUrl: true },
+        }),
+        prisma.sourcebookEntity.findMany({
+          where: { sourcebookId: link.sourcebookId, type: 'LOCATION' },
+          orderBy: { createdAt: 'asc' },
+          take: 4,
+          select: { id: true, name: true, description: true, imageUrl: true },
+        }),
+      ]);
+
+      return { npcs, locations };
     }),
 
   regenerateActivityImage: protectedProcedure

@@ -25,6 +25,9 @@ export const worldRepository = {
         summary: true,
         tags: true,
         createdAt: true,
+        worldEntity: {
+          select: { ddbChapterId: true },
+        },
       },
       orderBy: { name: 'asc' },
       take: opts?.limit ?? 200,
