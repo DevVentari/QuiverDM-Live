@@ -49,6 +49,15 @@
   --q-card-bg:        oklch(0.14 0.005 240);
   --q-card-border:    oklch(0.7 0.08 55 / 0.14);
 
+  /* Homebrew card aliases — wires SpellCard / MonsterStatBlock / MagicItemCard to q-tokens */
+  --card-stone-bg:        var(--q-stone-feature-bg);
+  --card-stone-inset:     var(--q-stone-feature-shadow);
+  --card-stone-border:    var(--q-border-feature);
+  --card-stone-border-hi: var(--q-border-hero);
+  --card-amber:           var(--q-accent-primary);
+  --card-amber-light:     var(--q-text-info);
+  --card-text-muted:      var(--q-text-dim);
+
   /* Brass accent (primary highlight — precious, use once per screen) */
   --q-amber:          var(--q-accent-primary);
   --q-amber-dim:      var(--q-accent-primary-dim);
