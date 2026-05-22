@@ -23,14 +23,20 @@ interface HomebrewContentCardProps {
 }
 
 const TYPE_TO_PLACEHOLDER: Record<string, PlaceholderEntityType> = {
-  SPELL: 'spell', MONSTER: 'monster', ITEM: 'item', WEAPON: 'weapon',
-  FEAT: 'sourcebook', RACE: 'npc', SUBCLASS: 'npc', BACKGROUND: 'sourcebook',
+  spell: 'spell', monster: 'monster', creature: 'monster', item: 'item', weapon: 'weapon',
+  feat: 'sourcebook', race: 'npc', subclass: 'npc', background: 'sourcebook', location: 'location',
+}
+
+const TYPE_BADGE_TONE: Record<string, 'neutral' | 'amber' | 'danger' | 'arcane'> = {
+  spell: 'arcane', creature: 'danger', monster: 'danger',
+  item: 'amber', weapon: 'amber',
 }
 
 export function HomebrewContentCard({ item, href, onClick }: HomebrewContentCardProps) {
-  const style = getTypeStyle(item.type);
+  const normalizedType = item.type.toLowerCase();
+  const style = getTypeStyle(normalizedType);
   const imageUrl = item.imageUrl ?? item.images?.[0];
-  const placeholderType: PlaceholderEntityType = TYPE_TO_PLACEHOLDER[item.type] ?? 'item';
+  const placeholderType: PlaceholderEntityType = TYPE_TO_PLACEHOLDER[normalizedType] ?? 'item';
 
   const SourceIcon =
     item.sourceType === 'pdf_extraction'
@@ -57,7 +63,7 @@ export function HomebrewContentCard({ item, href, onClick }: HomebrewContentCard
       imageUrl={imageUrl}
       imageFallback={<EntityPlaceholder type={placeholderType} />}
       title={item.name}
-      badge={{ label: style.label, tone: 'amber' }}
+      badge={{ label: style.label, tone: TYPE_BADGE_TONE[normalizedType] ?? 'neutral' }}
       description={description}
       footer={footer}
       onClick={onClick ?? (() => {})}

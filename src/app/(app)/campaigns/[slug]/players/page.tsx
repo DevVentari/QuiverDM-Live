@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CharacterAddSheet } from '@/components/character/CharacterAddSheet';
 import { usePinnedItems } from '@/store/pinned-items-store';
 import { Card, Surface } from '@/components/primitives';
+import { EntityPlaceholder } from '@/components/primitives/entity-placeholder';
 
 const STATUS_OPTIONS = ['ACTIVE', 'RETIRED', 'DECEASED', 'REMOVED'] as const;
 type CharacterStatusValue = (typeof STATUS_OPTIONS)[number] | 'PENDING';
@@ -69,9 +70,7 @@ function CharacterCard({
               unoptimized
             />
           ) : (
-            <div className="absolute inset-0 bg-[var(--q-surface-utility)] flex items-center justify-center">
-              <Users className="h-7 w-7 text-[var(--q-text-faint)]" />
-            </div>
+            <EntityPlaceholder type="pc" size={28} />
           )}
           <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--q-surface-utility)] to-transparent pointer-events-none" />
         </div>
