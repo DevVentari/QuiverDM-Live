@@ -1,9 +1,8 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Plus, Swords, Sparkles, Trash2, Shield, Skull, Flame, Zap } from 'lucide-react';
+import { Plus, Swords, Sparkles } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { useSearchParams } from 'next/navigation';
@@ -18,25 +17,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, Surface, Pill } from '@/components/primitives';
-import type { ComponentProps } from 'react';
+import { Card } from '@/components/primitives';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 import { BentoCanvas } from '@/components/layout/bento-canvas';
+import { EncounterCard } from '@/components/encounters/encounter-card';
 
-type PillVariant = NonNullable<ComponentProps<typeof Pill>['variant']>;
-
-const DIFF: Record<
-  'easy' | 'medium' | 'hard' | 'deadly',
-  { label: string; pill: PillVariant; bar: string; icon: typeof Shield }
-> = {
-  easy:   { label: 'Easy',   pill: 'neutral', bar: 'bg-[var(--q-border-subtle)]',  icon: Shield },
-  medium: { label: 'Medium', pill: 'info',    bar: 'bg-[var(--q-amber-dim)]',      icon: Zap },
-  hard:   { label: 'Hard',   pill: 'warning', bar: 'bg-[var(--q-amber)]',          icon: Flame },
-  deadly: { label: 'Deadly', pill: 'danger',  bar: 'bg-[oklch(0.6_0.2_25_/_0.6)]', icon: Skull },
-} as const;
-
-type DiffKey = keyof typeof DIFF;
 
 export default function EncountersPage() {
   return (
@@ -160,86 +145,17 @@ function EncountersPageInner() {
           initial="hidden"
           animate="visible"
         >
-          {plans.map((plan) => {
-            const key = (plan.difficulty ?? 'medium') as DiffKey;
-            const d = DIFF[key] ?? DIFF.medium;
-            const DiffIcon = d.icon;
-            const creatureCount = plan._count?.creatures ?? plan.creatures?.length ?? 0;
-
-            return (
-              <motion.div key={plan.id} variants={cardVariants} className="relative group">
-                <Link href={`/campaigns/${slug}/encounters/${plan.id}`} className="block h-full">
-                  <Surface
-                    variant="utility"
-                    className="h-full overflow-hidden flex flex-col hover:border-[var(--q-amber-border)] transition-colors"
-                  >
-                    {/* Portrait header OR difficulty bar */}
-                    {plan.portraitUrl ? (
-                      <div className="h-24 bg-cover bg-center relative" style={{ backgroundImage: `url(${plan.portraitUrl})` }}>
-                        <div className="absolute inset-0 bg-gradient-to-t from-[var(--q-surface-utility)] via-[var(--q-surface-utility)]/30 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-3">
-                          <p className="font-semibold text-sm leading-tight text-[var(--q-text)]">{plan.name}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="h-1 w-full overflow-hidden">
-                        <div className={`h-full w-full ${d.bar}`} />
-                      </div>
-                    )}
-
-                    <div className="flex flex-col flex-1 p-4 gap-2.5">
-                      {!plan.portraitUrl && (
-                        <h3 className="font-semibold text-sm leading-tight text-[var(--q-text)]">{plan.name}</h3>
-                      )}
-
-                      {/* Difficulty pill */}
-                      <Pill variant={d.pill} className="w-fit gap-1">
-                        <DiffIcon className="h-3 w-3" />
-                        {d.label}
-                      </Pill>
-
-                      {/* Scene excerpt */}
-                      {plan.sceneDescription && (
-                        <p className="text-xs text-[var(--q-text-dim)] line-clamp-2 leading-relaxed">
-                          {plan.sceneDescription}
-                        </p>
-                      )}
-
-                      {/* Stats */}
-                      <div className="mt-auto pt-2.5 border-t border-[var(--q-border-subtle)] flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-[var(--q-text-dim)]">
-                        {plan.partySize && plan.partyLevel && (
-                          <span>{plan.partySize}p · Lv.{plan.partyLevel}</span>
-                        )}
-                        <span>{creatureCount} {creatureCount === 1 ? 'creature' : 'creatures'}</span>
-                        {plan.adjustedXp > 0 && (
-                          <span className="text-[var(--q-amber)] font-medium">{plan.adjustedXp.toLocaleString()} XP</span>
-                        )}
-                      </div>
-                      <time className="text-xs text-[var(--q-text-faint)]">
-                        {format(new Date(plan.createdAt), 'MMM d, yyyy')}
-                      </time>
-                    </div>
-                  </Surface>
-                </Link>
-
-                {/* Hover delete */}
-                {isDM && (
-                  <button
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-sm bg-[var(--q-surface-feature)]/90 backdrop-blur-sm border border-[var(--q-border-subtle)] hover:bg-destructive hover:text-destructive-foreground text-[var(--q-text-dim)] z-10"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setDeletingPlanId(plan.id);
-                    }}
-                    disabled={deletingId === plan.id}
-                    title="Delete"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </motion.div>
-            );
-          })}
+          {plans.map((plan) => (
+            <motion.div key={plan.id} variants={cardVariants}>
+              <EncounterCard
+                plan={plan}
+                href={`/campaigns/${slug}/encounters/${plan.id}`}
+                isDM={isDM}
+                onDelete={() => setDeletingPlanId(plan.id)}
+                isDeleting={deletingId === plan.id}
+              />
+            </motion.div>
+          ))}
         </motion.div>
       )}
 

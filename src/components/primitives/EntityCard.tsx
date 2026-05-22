@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 export interface EntityCardBadge {
   label: string
   icon?: LucideIcon
-  tone?: 'neutral' | 'amber'
+  tone?: 'neutral' | 'amber' | 'danger' | 'arcane'
 }
 
 export interface EntityCardProps {
@@ -89,6 +89,10 @@ export function EntityCard({
                 'text-[9px] uppercase tracking-[1.5px]',
                 badge.tone === 'amber'
                   ? 'border-[var(--q-amber-dim)] bg-[var(--q-amber-trace)]/50 text-[var(--q-amber)]'
+                  : badge.tone === 'danger'
+                  ? 'border-[var(--q-accent-danger)]/40 bg-[var(--q-accent-danger-trace)] text-[var(--q-accent-danger)]'
+                  : badge.tone === 'arcane'
+                  ? 'border-[var(--q-accent-arcane)]/40 bg-[var(--q-accent-arcane-trace)] text-[var(--q-accent-arcane)]'
                   : 'border-[var(--q-border-subtle)] bg-black/40 text-[var(--q-text-faint)]',
               )}
             >
