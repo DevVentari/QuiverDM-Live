@@ -1,12 +1,13 @@
 'use client';
 
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink, Pin, PinOff, X } from 'lucide-react';
+import { ExternalLink, Pin, PinOff } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { usePinnedItems, type PinnedEntityType } from '@/store/pinned-items-store';
+import { EntityPlaceholder, type PlaceholderEntityType } from '@/components/primitives/entity-placeholder';
 import { cn } from '@/lib/utils';
 
 interface CompendiumItemSheetProps {
@@ -46,7 +47,7 @@ export function CompendiumItemSheet({ entityType, entityId, open, onClose }: Com
     const base = `/campaigns/${slug}`;
     if (entityType === 'npc') return `${base}/npcs/${entityId}`;
     if (entityType === 'encounter') return `${base}/encounters/${entityId}`;
-    return `${base}/homebrew/${entityId}`;
+    return `/homebrew/${entityId}`;
   }
 
   function handlePinToggle() {
@@ -62,9 +63,10 @@ export function CompendiumItemSheet({ entityType, entityId, open, onClose }: Com
 
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-[420px] p-0 flex flex-col bg-[hsl(240,10%,8%)] border-l border-[hsl(35_35%_18%)]">
+      <SheetContent side="right" className="flex flex-col p-0 sm:max-w-sm">
+        <SheetTitle className="sr-only">{entityName}</SheetTitle>
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[hsl(35_35%_16%)] flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[var(--q-border-subtle)] flex-shrink-0 pr-12">
           <div className="flex items-center gap-2.5 min-w-0">
             <EntityIcon entityType={entityType} name={entityName} />
             <div className="min-w-0">
@@ -94,9 +96,6 @@ export function CompendiumItemSheet({ entityType, entityId, open, onClose }: Com
               <ExternalLink className="h-3 w-3" />
               Open
             </Button>
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7">
-              <X className="h-3.5 w-3.5" />
-            </Button>
           </div>
         </div>
 
@@ -113,23 +112,19 @@ export function CompendiumItemSheet({ entityType, entityId, open, onClose }: Com
   );
 }
 
-function EntityIcon({ entityType, name }: { entityType: PinnedEntityType; name: string }) {
-  const typeConfig: Record<PinnedEntityType, { bg: string; border: string; text: string; icon?: string; round: boolean }> = {
-    npc:      { bg: 'bg-amber-500/15',   border: 'border-amber-500/30',   text: 'text-amber-400',   round: true },
-    item:     { bg: 'bg-indigo-500/15',  border: 'border-indigo-500/30',  text: 'text-indigo-400',  icon: '⚔',  round: false },
-    location: { bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', text: 'text-emerald-400', icon: '🗺', round: false },
-    spell:    { bg: 'bg-violet-500/15',  border: 'border-violet-500/30',  text: 'text-violet-400',  icon: '✦',  round: false },
-    monster:  { bg: 'bg-red-500/15',     border: 'border-red-500/30',     text: 'text-red-400',     icon: '💀', round: false },
-    encounter:{ bg: 'bg-orange-500/15',  border: 'border-orange-500/30',  text: 'text-orange-400',  icon: '⚡', round: false },
-  };
-  const cfg = typeConfig[entityType];
+const ENTITY_PLACEHOLDER: Record<PinnedEntityType, PlaceholderEntityType> = {
+  npc:       'npc',
+  item:      'item',
+  location:  'location',
+  spell:     'spell',
+  monster:   'monster',
+  encounter: 'encounter',
+};
+
+function EntityIcon({ entityType }: { entityType: PinnedEntityType; name: string }) {
   return (
-    <div className={cn(
-      'w-8 h-8 flex items-center justify-center border text-sm font-bold flex-shrink-0',
-      cfg.bg, cfg.border, cfg.text,
-      cfg.round ? 'rounded-full' : 'rounded-md'
-    )}>
-      {cfg.icon ?? name.charAt(0).toUpperCase()}
+    <div className="relative w-8 h-8 flex-shrink-0 rounded-sm overflow-hidden border border-[var(--q-border-subtle)]">
+      <EntityPlaceholder type={ENTITY_PLACEHOLDER[entityType]} size={20} />
     </div>
   );
 }
