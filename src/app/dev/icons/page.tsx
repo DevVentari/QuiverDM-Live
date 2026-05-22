@@ -1,397 +1,276 @@
 'use client';
 
-import {
-  Skull, Anchor, Crown, Flame, Mountain, TreePine, Castle, Scroll, Ship, Swords,
-} from 'lucide-react';
-import { MapPin } from '@/components/map/map-pin';
-import { DamageBadge, type DamageType } from '@/components/icons/damage-badge';
-import { ConditionChip, type ConditionType } from '@/components/icons/condition-chip';
-import { SchoolSigil, type SpellSchool } from '@/components/icons/school-sigil';
-import { ClassCrest, type DndClass } from '@/components/icons/class-crest';
-import { StageMarker, type LifecycleStage } from '@/components/icons/stage-marker';
+import { useState } from 'react';
 
-const DAMAGE_TYPES: DamageType[] = [
-  'fire', 'cold', 'lightning', 'thunder', 'acid', 'poison',
-  'necrotic', 'radiant', 'force', 'psychic',
-  'slashing', 'piercing', 'bludgeoning',
-];
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-const CONDITIONS: ConditionType[] = [
-  'blinded', 'charmed', 'deafened', 'exhaustion', 'frightened',
-  'grappled', 'incapacitated', 'invisible', 'paralyzed', 'petrified',
-  'poisoned', 'prone', 'restrained', 'silenced', 'sleep', 'stunned', 'unconscious',
-];
+type Tone = 'amber' | 'arcane' | 'quest' | 'danger' | 'success' | 'neutral';
 
-const SCHOOLS: SpellSchool[] = [
-  'abjuration', 'conjuration', 'divination', 'enchantment',
-  'evocation', 'illusion', 'necromancy', 'transmutation',
-];
+const TONE_VARS: Record<Tone, { color: string; bg: string; border: string }> = {
+  amber:   { color: 'var(--q-accent-primary)',  bg: 'var(--q-accent-primary-trace)',  border: 'var(--q-accent-primary-border)' },
+  arcane:  { color: 'var(--q-accent-arcane)',   bg: 'var(--q-accent-arcane-trace)',   border: 'var(--q-accent-arcane-border)' },
+  quest:   { color: 'var(--q-accent-quest)',    bg: 'var(--q-accent-quest-trace)',    border: 'var(--q-accent-quest-border)' },
+  danger:  { color: 'var(--q-accent-danger)',   bg: 'var(--q-accent-danger-trace)',   border: 'var(--q-accent-danger-border)' },
+  success: { color: 'var(--q-accent-success)',  bg: 'var(--q-accent-success-trace)',  border: 'var(--q-accent-success-border)' },
+  neutral: { color: 'var(--q-text-faint)',      bg: 'hsl(240 10% 13%)',              border: 'var(--q-border-subtle)' },
+};
 
-const CLASSES: DndClass[] = [
-  'artificer', 'barbarian', 'bard', 'cleric', 'druid',
-  'fighter', 'monk', 'paladin', 'ranger', 'rogue',
-  'sorcerer', 'warlock', 'wizard',
-];
+// ── DndIcon ───────────────────────────────────────────────────────────────────
 
-const STAGES: LifecycleStage[] = ['prep', 'run', 'process', 'schedule', 'recap'];
+function dndSrc(category: string, name: string) {
+  return `/icons/dnd/${category}/${name}.svg`;
+}
 
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function DndIcon({
+  src,
+  size = 24,
+  color = 'currentColor',
+  className,
+}: {
+  src: string;
+  size?: number;
+  color?: string;
+  className?: string;
+}) {
   return (
-    <section style={{ marginBottom: 64 }}>
-      <header style={{ marginBottom: 16 }}>
-        <h2 style={{ fontFamily: 'var(--q-font-display, "Cinzel", serif)', fontSize: 18, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'oklch(0.78 0.16 70)' }}>
-          {title}
-        </h2>
-        {subtitle ? (
-          <p style={{ marginTop: 4, fontSize: 13, color: 'var(--q-text-dim)' }}>{subtitle}</p>
-        ) : null}
-        <div style={{ marginTop: 8, height: 1, background: 'linear-gradient(90deg, oklch(0.7 0.16 55 / 0.4), transparent)' }} />
-      </header>
-      {children}
-    </section>
+    <span
+      className={className}
+      style={{
+        display: 'inline-block',
+        width: size,
+        height: size,
+        flexShrink: 0,
+        backgroundColor: color,
+        maskImage: `url(${src})`,
+        maskSize: 'contain',
+        maskRepeat: 'no-repeat',
+        maskPosition: 'center',
+        WebkitMaskImage: `url(${src})`,
+        WebkitMaskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+      }}
+      aria-hidden
+    />
   );
 }
 
-export default function IconsPreviewPage() {
+// ── Shared ────────────────────────────────────────────────────────────────────
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        padding: '48px 56px',
-        background: 'var(--q-bg, oklch(0.12 0.005 265))',
-        color: 'var(--q-text)',
-        fontFamily: 'var(--q-font-body, system-ui)',
-      }}
-    >
-      <header style={{ marginBottom: 48 }}>
-        <h1 style={{ fontFamily: 'var(--q-font-display, "Cinzel", serif)', fontSize: 32, letterSpacing: '0.04em' }}>
-          Icon System
-        </h1>
-        <p style={{ color: 'var(--q-text-dim)', marginTop: 4, fontSize: 14 }}>
-          Depth-rich badge components built on the existing D&D SVG library. All scalable, themeable, mask-recolored.
-        </p>
-      </header>
-
-      {/* MAP PINS */}
-      <Section
-        title="Map Pins"
-        subtitle="Teardrop pin for world/region map. Accepts Lucide or DndIcon. Tones, states, count badge."
-      >
-        <h3 style={subhead}>Sizes</h3>
-        <Row>
-          <MapPin icon={Skull} count={4} size={32} label="32px" />
-          <MapPin icon={Skull} count={4} size={48} label="48px" />
-          <MapPin icon={Skull} count={4} size={56} label="56px" />
-          <MapPin icon={Skull} count={4} size={80} label="80px" />
-          <MapPin icon={Skull} count={4} size={120} label="120px" />
-        </Row>
-
-        <h3 style={subhead}>Lucide icons</h3>
-        <Row>
-          <MapPin icon={Skull} count={4} label="Combat" />
-          <MapPin icon={Anchor} count={1} label="Harbor" />
-          <MapPin icon={Swords} count={12} label="Battle" />
-          <MapPin icon={Crown} label="Capital" />
-          <MapPin icon={Flame} count={99} label="Inferno" />
-          <MapPin icon={Mountain} count={130} label="Range" />
-          <MapPin icon={TreePine} count={3} label="Forest" />
-          <MapPin icon={Castle} label="Keep" />
-          <MapPin icon={Scroll} count={7} label="Quest" />
-          <MapPin icon={Ship} label="Port" />
-        </Row>
-
-        <h3 style={subhead}>DndIcon (existing SVG library)</h3>
-        <Row>
-          <MapPin icon={{ dnd: 'location/cave' }} label="Cave" />
-          <MapPin icon={{ dnd: 'location/dungeon' }} count={2} label="Dungeon" />
-          <MapPin icon={{ dnd: 'location/tower' }} label="Tower" />
-          <MapPin icon={{ dnd: 'location/ruins' }} count={1} label="Ruins" />
-          <MapPin icon={{ dnd: 'location/settlement' }} label="Settlement" />
-          <MapPin icon={{ dnd: 'location/forest' }} label="Forest" />
-          <MapPin icon={{ dnd: 'game/treasure' }} count={4} label="Treasure" />
-          <MapPin icon={{ dnd: 'game/quest' }} label="Quest" />
-          <MapPin icon={{ dnd: 'game/tavern' }} label="Tavern" />
-          <MapPin icon={{ dnd: 'game/encounter' }} count={3} label="Encounter" tone="crimson" />
-        </Row>
-
-        <h3 style={subhead}>Tones &amp; states</h3>
-        <Row>
-          <MapPin icon={Skull} count={4} tone="amber" label="amber" />
-          <MapPin icon={Flame} count={4} tone="crimson" label="crimson" />
-          <MapPin icon={Anchor} count={4} tone="azure" label="azure" />
-          <MapPin icon={TreePine} count={4} tone="verdant" label="verdant" />
-          <MapPin icon={Skull} count={4} state="active" label="Active" />
-          <MapPin icon={Skull} count={4} state="visited" label="Visited" />
-        </Row>
-      </Section>
-
-      {/* DAMAGE BADGES */}
-      <Section
-        title="Damage Badges"
-        subtitle="Round amber-rimmed chip for monster stat blocks, attack rows, and spell descriptions. Pair with a value."
-      >
-        <h3 style={subhead}>All 13 types</h3>
-        <Row>
-          {DAMAGE_TYPES.map((d) => (
-            <DamageBadge key={d} type={d} label={d} />
-          ))}
-        </Row>
-
-        <h3 style={subhead}>With values (attack rows)</h3>
-        <Row>
-          <DamageBadge type="slashing" value="2d6+4" />
-          <DamageBadge type="fire" value="8d6" />
-          <DamageBadge type="cold" value="3d8" />
-          <DamageBadge type="lightning" value="6d6" />
-          <DamageBadge type="necrotic" value="4d8+3" />
-          <DamageBadge type="radiant" value="2d10" />
-        </Row>
-
-        <h3 style={subhead}>Sizes</h3>
-        <Row>
-          <DamageBadge type="fire" size={24} />
-          <DamageBadge type="fire" size={32} />
-          <DamageBadge type="fire" size={48} />
-          <DamageBadge type="fire" size={64} value="8d6" />
-        </Row>
-      </Section>
-
-      {/* CONDITION CHIPS */}
-      <Section
-        title="Condition Chips"
-        subtitle="Pill capsule for the initiative tracker and monster cards. Color-coded by category, optional duration."
-      >
-        <h3 style={subhead}>All 17 conditions</h3>
-        <Row>
-          {CONDITIONS.map((c) => (
-            <ConditionChip key={c} type={c} />
-          ))}
-        </Row>
-
-        <h3 style={subhead}>With round counts (active effects)</h3>
-        <Row>
-          <ConditionChip type="poisoned" rounds={3} />
-          <ConditionChip type="charmed" rounds={10} />
-          <ConditionChip type="frightened" rounds={1} />
-          <ConditionChip type="paralyzed" rounds={2} />
-          <ConditionChip type="restrained" rounds={4} />
-        </Row>
-
-        <h3 style={subhead}>Small (compact tracker rows)</h3>
-        <Row>
-          <ConditionChip type="poisoned" size="sm" />
-          <ConditionChip type="prone" size="sm" />
-          <ConditionChip type="grappled" size="sm" />
-          <ConditionChip type="stunned" size="sm" rounds={1} />
-          <ConditionChip type="invisible" size="sm" />
-        </Row>
-
-        <h3 style={subhead}>Icon only (very compact)</h3>
-        <Row>
-          {CONDITIONS.slice(0, 8).map((c) => (
-            <ConditionChip key={c} type={c} size="sm" showLabel={false} />
-          ))}
-        </Row>
-
-        <h3 style={subhead}>With remove handler</h3>
-        <Row>
-          <ConditionChip type="poisoned" rounds={3} onRemove={() => {}} />
-          <ConditionChip type="charmed" onRemove={() => {}} />
-        </Row>
-      </Section>
-
-      {/* SCHOOL SIGILS */}
-      <Section
-        title="School Sigils"
-        subtitle="Pure icon, color-coded per school. Designed to overlay on other elements — spell card corners, inline labels, watermarks."
-      >
-        <h3 style={subhead}>All 8 schools</h3>
-        <Row>
-          {SCHOOLS.map((s) => (
-            <SchoolSigil key={s} school={s} size={32} label={s} />
-          ))}
-        </Row>
-
-        <h3 style={subhead}>Sizes</h3>
-        <Row>
-          <SchoolSigil school="evocation" size={16} />
-          <SchoolSigil school="evocation" size={20} />
-          <SchoolSigil school="evocation" size={24} />
-          <SchoolSigil school="evocation" size={32} />
-          <SchoolSigil school="evocation" size={48} />
-          <SchoolSigil school="evocation" size={64} />
-          <SchoolSigil school="evocation" size={96} />
-        </Row>
-
-        <h3 style={subhead}>Inline with text</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontFamily: "'Cinzel', serif", fontSize: 14 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <SchoolSigil school="evocation" size={18} /> Fireball
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <SchoolSigil school="abjuration" size={18} /> Shield
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <SchoolSigil school="necromancy" size={18} /> Cloudkill
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            <SchoolSigil school="enchantment" size={18} /> Vicious Mockery
-          </span>
-        </div>
-
-        <h3 style={subhead}>Overlaid on a spell card</h3>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          {(['evocation', 'necromancy', 'illusion'] as const).map((s) => (
-            <div
-              key={s}
-              style={{
-                position: 'relative',
-                width: 220,
-                padding: 16,
-                borderRadius: 4,
-                background:
-                  'linear-gradient(180deg, oklch(0.18 0.012 60 / 0.85), oklch(0.1 0.005 265 / 0.92))',
-                border: '1px solid oklch(0.7 0.16 55 / 0.18)',
-                boxShadow: '0 8px 24px rgb(0 0 0 / 0.4)',
-                color: 'var(--q-text)',
-                overflow: 'hidden',
-              }}
-            >
-              {/* Watermark in corner */}
-              <div style={{ position: 'absolute', right: -8, bottom: -8, opacity: 0.18 }}>
-                <SchoolSigil school={s} size={120} shadow={0} />
-              </div>
-              <div style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <SchoolSigil school={s} size={20} />
-                  <span style={{ fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--q-text-dim)' }}>
-                    {s}
-                  </span>
-                </div>
-                <h4 style={{ fontFamily: "'Cinzel', serif", fontSize: 18, margin: 0 }}>Sample Spell</h4>
-                <p style={{ fontSize: 12, color: 'var(--q-text-dim)', marginTop: 4 }}>
-                  Level 3 · V, S, M
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* CLASS CRESTS */}
-      <Section
-        title="Class Crests"
-        subtitle="Heraldic shield for character headers and the party strip. Optional level banner."
-      >
-        <h3 style={subhead}>All 13 classes</h3>
-        <Row>
-          {CLASSES.map((c) => (
-            <ClassCrest key={c} dndClass={c} label={c} />
-          ))}
-        </Row>
-
-        <h3 style={subhead}>With levels (party strip)</h3>
-        <Row>
-          <ClassCrest dndClass="fighter" level={5} label="Valen" />
-          <ClassCrest dndClass="wizard" level={4} label="Lira" />
-          <ClassCrest dndClass="cleric" level={5} label="Doran" />
-          <ClassCrest dndClass="rogue" level={4} label="Maeve" />
-          <ClassCrest dndClass="barbarian" level={6} label="Gor" />
-        </Row>
-
-        <h3 style={subhead}>Sizes</h3>
-        <Row>
-          <ClassCrest dndClass="paladin" size={40} />
-          <ClassCrest dndClass="paladin" size={56} />
-          <ClassCrest dndClass="paladin" size={80} level={3} />
-          <ClassCrest dndClass="paladin" size={120} level={3} />
-        </Row>
-      </Section>
-
-      {/* STAGE MARKERS */}
-      <Section
-        title="Lifecycle Stages"
-        subtitle="Coin-style marker for the Prep → Run → Process → Schedule → Recap stepper. Idle / active / complete."
-      >
-        <h3 style={subhead}>The full stepper (active = Prep)</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {STAGES.map((s, i) => (
-            <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}>
-              <StageMarker stage={s} state={i === 0 ? 'active' : 'idle'} />
-              {i < STAGES.length - 1 ? (
-                <span
-                  style={{
-                    width: 32,
-                    height: 1,
-                    background: 'linear-gradient(90deg, oklch(0.7 0.16 55 / 0.5), oklch(0.7 0.16 55 / 0.1))',
-                  }}
-                />
-              ) : null}
-            </span>
-          ))}
-        </div>
-
-        <h3 style={subhead}>Mid-session (active = Run, Prep complete)</h3>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {STAGES.map((s, i) => (
-            <span key={s} style={{ display: 'inline-flex', alignItems: 'center', gap: 16 }}>
-              <StageMarker
-                stage={s}
-                state={i === 0 ? 'complete' : i === 1 ? 'active' : 'idle'}
-              />
-              {i < STAGES.length - 1 ? (
-                <span
-                  style={{
-                    width: 32,
-                    height: 1,
-                    background:
-                      i === 0
-                        ? 'linear-gradient(90deg, oklch(0.7 0.16 55 / 0.7), oklch(0.7 0.16 55 / 0.5))'
-                        : 'linear-gradient(90deg, oklch(0.7 0.16 55 / 0.3), oklch(0.7 0.16 55 / 0.1))',
-                  }}
-                />
-              ) : null}
-            </span>
-          ))}
-        </div>
-
-        <h3 style={subhead}>States</h3>
-        <Row>
-          <StageMarker stage="prep" state="idle" />
-          <StageMarker stage="prep" state="active" />
-          <StageMarker stage="prep" state="complete" />
-        </Row>
-      </Section>
-
-      <p style={{ marginTop: 64, fontSize: 12, color: 'var(--q-text-faint)', textAlign: 'center' }}>
-        All components in <code>src/components/icons/</code> + <code>src/components/map/map-pin.tsx</code>.
-      </p>
+    <div className="mb-4">
+      <div className="section-rule" />
+      <h2 className="label-overline">{children}</h2>
     </div>
   );
 }
 
-const subhead: React.CSSProperties = {
-  fontSize: 11,
-  letterSpacing: '0.16em',
-  textTransform: 'uppercase',
-  color: 'var(--q-text-dim)',
-  marginTop: 24,
-  marginBottom: 12,
-  fontWeight: 600,
-};
+// ── Entity Placeholders ───────────────────────────────────────────────────────
 
-function Row({ children }: { children: React.ReactNode }) {
+const ENTITY_PLACEHOLDERS: { label: string; src: string; tone: Tone; path: string }[] = [
+  { label: 'NPC / Person',  src: dndSrc('entity', 'person'),       tone: 'amber',   path: 'entity/person' },
+  { label: 'Monster',       src: dndSrc('monster', 'humanoid'),    tone: 'danger',  path: 'monster/humanoid' },
+  { label: 'Location',      src: dndSrc('location', 'dungeon'),    tone: 'quest',   path: 'location/dungeon' },
+  { label: 'Magic Item',    src: dndSrc('entity', 'magic-item'),   tone: 'arcane',  path: 'entity/magic-item' },
+  { label: 'Spell',         src: dndSrc('spell', 'evocation'),     tone: 'arcane',  path: 'spell/evocation' },
+  { label: 'Faction / Org', src: dndSrc('entity', 'organization'), tone: 'neutral', path: 'entity/organization' },
+  { label: 'Sourcebook',    src: dndSrc('entity', 'book'),         tone: 'amber',   path: 'entity/book' },
+  { label: 'Weapon',        src: dndSrc('entity', 'weapon'),       tone: 'neutral', path: 'entity/weapon' },
+];
+
+function EntityPlaceholder({ label, src, tone, path }: typeof ENTITY_PLACEHOLDERS[number]) {
+  const { color, bg, border } = TONE_VARS[tone];
   return (
-    <div
+    <div className="flex flex-col items-center gap-2">
+      <div
+        className="relative flex items-center justify-center rounded-sm overflow-hidden"
+        style={{
+          width: 112,
+          height: 112,
+          background: `radial-gradient(circle at 50% 65%, ${bg} 0%, hsl(240 10% 7%) 70%)`,
+          border: `1px solid ${border}`,
+        }}
+      >
+        <DndIcon src={src} size={52} color={color} style={{ opacity: 0.85 }} />
+      </div>
+      <div className="text-center">
+        <div className="text-[11px] font-medium" style={{ color }}>{label}</div>
+        <code className="text-[8px] font-mono mt-0.5 block" style={{ color: 'var(--q-text-faint)' }}>{path}</code>
+      </div>
+    </div>
+  );
+}
+
+// ── DndBadge ──────────────────────────────────────────────────────────────────
+
+function DndBadge({
+  src,
+  label,
+  tone = 'neutral',
+  size = 'md',
+}: {
+  src: string;
+  label: string;
+  tone?: Tone;
+  size?: 'sm' | 'md';
+}) {
+  const { color, bg, border } = TONE_VARS[tone];
+  const iconSize = size === 'sm' ? 10 : 12;
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-sm font-semibold tracking-[.08em] uppercase whitespace-nowrap"
       style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 16,
-        alignItems: 'center',
-        rowGap: 16,
+        background: bg,
+        border: `1px solid ${border}`,
+        color,
+        fontSize: size === 'sm' ? 9 : 10,
+        padding: size === 'sm' ? '2px 5px' : '3px 7px',
       }}
     >
-      {children}
+      <DndIcon src={src} size={iconSize} color={color} />
+      {label}
+    </span>
+  );
+}
+
+// ── Badge data ────────────────────────────────────────────────────────────────
+
+const CLASS_LIST = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard'];
+const SCHOOL_LIST = ['abjuration', 'conjuration', 'divination', 'enchantment', 'evocation', 'illusion', 'necromancy', 'transmutation'];
+const MONSTER_LIST = ['aberration', 'beast', 'celestial', 'construct', 'dragon', 'elemental', 'fae', 'fiend', 'giant', 'humanoid', 'monstrosity', 'ooze', 'plant', 'undead'];
+const DAMAGE_LIST = ['fire', 'cold', 'lightning', 'necrotic', 'radiant', 'poison', 'acid', 'psychic', 'thunder', 'force', 'bludgeoning', 'piercing', 'slashing'];
+
+// ── Icon Grid ─────────────────────────────────────────────────────────────────
+
+const ICON_CATEGORIES: { category: string; names: string[] }[] = [
+  { category: 'entity',    names: ['person', 'organization', 'location', 'book', 'spellbook', 'magic-item', 'weapon', 'armor', 'potion', 'ring', 'scroll', 'wand', 'map', 'world', 'loot', 'mount', 'ship', 'vehicle', 'tool', 'trinket', 'pack'] },
+  { category: 'class',     names: CLASS_LIST },
+  { category: 'monster',   names: MONSTER_LIST },
+  { category: 'spell',     names: [...SCHOOL_LIST, 'concentration', 'ritual', 'consumed', 'upcast', 'vocal', 'somatic', 'material', 'instantaneous'] },
+  { category: 'location',  names: ['dungeon', 'tower', 'castle', 'tavern', 'forest', 'mountain', 'village', 'camp', 'portal', 'bastion', 'hut'] },
+  { category: 'damage',    names: DAMAGE_LIST },
+  { category: 'condition', names: ['charmed', 'frightened', 'paralyzed', 'poisoned', 'prone', 'restrained', 'stunned', 'unconscious', 'blinded', 'deafened', 'exhaustion', 'invisible', 'grappled', 'incapacitated', 'petrified', 'silenced', 'sleep'] },
+  { category: 'combat',    names: ['action', 'bonus-action', 'reaction', 'initiative', 'melee', 'ranged', 'reach', 'round', 'target'] },
+  { category: 'dice',      names: ['d4', 'd6', 'd8', 'd10', 'd12', 'd20', 'advantage', 'disadvantage', 'roll'] },
+  { category: 'ability',   names: ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'] },
+  { category: 'movement',  names: ['walking', 'flying', 'swimming', 'climbing', 'burrowing'] },
+  { category: 'target',    names: ['self', 'touch', 'sphere', 'cone', 'line', 'cube', 'cylinder', 'circle', 'wall', 'square', 'emanation'] },
+  { category: 'weapon',    names: ['sword', 'dagger', 'bow', 'crossbow', 'staff', 'hammer', 'spear', 'battleaxe', 'handaxe', 'mace', 'arrow', 'rapier', 'lance', 'whip'] },
+  { category: 'game',      names: ['dm', 'character', 'monster', 'spell', 'campaign', 'adventure-book', 'source-book', 'combat', 'explore', 'social', 'rest', 'inspiration', 'concentration', 'hazard', 'trap', 'puzzle', 'lock'] },
+  { category: 'campaign',  names: ['curse-of-strahd', 'descent-into-avernus', 'rime-of-the-frostmaiden', 'tomb-of-annihilation', 'waterdeep', 'out-of-the-abyss', 'candlekeep', 'elemental-evil'] },
+  { category: 'hp',        names: ['full', 'half', 'empty', 'blood', 'temp'] },
+];
+
+function IconGrid({ category, names }: { category: string; names: string[] }) {
+  return (
+    <div className="mb-6">
+      <div className="text-[10px] uppercase tracking-[.12em] font-semibold mb-2" style={{ color: 'var(--q-text-faint)' }}>
+        {category}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {names.map((name) => {
+          const src = dndSrc(category, name);
+          return (
+            <div
+              key={name}
+              className="flex flex-col items-center gap-1 rounded-sm p-2 cursor-default transition-colors hover:border-[var(--q-border-feature)]"
+              style={{
+                background: 'var(--q-surface-raised)',
+                border: '1px solid var(--q-border-subtle)',
+                minWidth: 60,
+              }}
+              title={`/icons/dnd/${category}/${name}.svg`}
+            >
+              <DndIcon src={src} size={24} color="var(--q-text-dim)" />
+              <span className="text-[8px] font-mono text-center leading-tight" style={{ color: 'var(--q-text-faint)' }}>
+                {name}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default function IconsPage() {
+  const [activeTone, setActiveTone] = useState<Tone>('amber');
+
+  return (
+    <div style={{ padding: '2rem 2.5rem', maxWidth: 960, margin: '0 auto' }}>
+      <div className="mb-8">
+        <div className="label-overline mb-2">Dev</div>
+        <h1 className="text-fluid-2xl" style={{ fontFamily: 'var(--q-font-display)', color: 'var(--q-text)' }}>
+          Icons
+        </h1>
+        <p className="text-sm mt-1" style={{ color: 'var(--q-text-dim)' }}>
+          D&D SVG pack — entity placeholders, badges, and full category browser. All rendered via CSS <code className="font-mono text-xs">mask-image</code>.
+        </p>
+      </div>
+
+      {/* ── Entity Placeholders ─────────────────────────────────────── */}
+      <SectionHeading>Entity Card Placeholders</SectionHeading>
+      <p className="text-xs mb-5" style={{ color: 'var(--q-text-faint)' }}>
+        Type-specific glyph + tone-matched radial gradient. Replaces the generic icon fallback in EntityCard.
+      </p>
+      <div className="flex flex-wrap gap-5 mb-10">
+        {ENTITY_PLACEHOLDERS.map((p) => <EntityPlaceholder key={p.label} {...p} />)}
+      </div>
+
+      {/* ── Badges ─────────────────────────────────────────────────── */}
+      <SectionHeading>D&D Badges</SectionHeading>
+      <div className="flex flex-wrap gap-1.5 mb-5">
+        {(Object.keys(TONE_VARS) as Tone[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setActiveTone(t)}
+            className="text-[10px] uppercase tracking-[.08em] px-2.5 py-1 rounded-sm border transition-colors"
+            style={activeTone === t
+              ? { background: TONE_VARS[t].bg, borderColor: TONE_VARS[t].border, color: TONE_VARS[t].color }
+              : { background: 'transparent', borderColor: 'var(--q-border-subtle)', color: 'var(--q-text-faint)' }
+            }
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-5 mb-10">
+        {[
+          { label: 'Class',         items: CLASS_LIST,   cat: 'class' },
+          { label: 'Spell School',  items: SCHOOL_LIST,  cat: 'spell' },
+          { label: 'Creature Type', items: MONSTER_LIST, cat: 'monster' },
+        ].map(({ label, items, cat }) => (
+          <div key={label}>
+            <div className="text-[10px] uppercase tracking-[.1em] mb-2" style={{ color: 'var(--q-text-faint)' }}>{label}</div>
+            <div className="flex flex-wrap gap-1.5">
+              {items.map((name) => (
+                <DndBadge key={name} src={dndSrc(cat, name)} label={name} tone={activeTone} />
+              ))}
+            </div>
+          </div>
+        ))}
+        <div>
+          <div className="text-[10px] uppercase tracking-[.1em] mb-2" style={{ color: 'var(--q-text-faint)' }}>Damage Type — sm</div>
+          <div className="flex flex-wrap gap-1.5">
+            {DAMAGE_LIST.map((name) => (
+              <DndBadge key={name} src={dndSrc('damage', name)} label={name} tone={activeTone} size="sm" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Icon Browser ────────────────────────────────────────────── */}
+      <SectionHeading>Icon Browser</SectionHeading>
+      <p className="text-xs mb-6" style={{ color: 'var(--q-text-faint)' }}>
+        Hover any icon for its path. Source: <code className="font-mono">public/icons/dnd/</code>
+      </p>
+      {ICON_CATEGORIES.map(({ category, names }) => (
+        <IconGrid key={category} category={category} names={names} />
+      ))}
     </div>
   );
 }
