@@ -4,19 +4,19 @@ import Link from 'next/link'
 import { EntityCard, type EntityCardBadge } from '@/components/primitives/EntityCard'
 import { EntityPlaceholder, type PlaceholderEntityType } from '@/components/primitives/entity-placeholder'
 
-const TYPE_META: Record<string, { label: string; placeholder: PlaceholderEntityType }> = {
+const TYPE_META: Record<string, { label: string; placeholder: PlaceholderEntityType; tone?: EntityCardBadge['tone'] }> = {
   LOCATION: { label: 'Location', placeholder: 'location' },
   NPC:      { label: 'NPC',      placeholder: 'npc' },
   PC:       { label: 'PC',       placeholder: 'pc' },
   FACTION:  { label: 'Faction',  placeholder: 'faction' },
   ITEM:     { label: 'Item',     placeholder: 'item' },
   EVENT:    { label: 'Event',    placeholder: 'event' },
-  ARC:      { label: 'Arc',      placeholder: 'arc' },
-  THREAT:   { label: 'Threat',   placeholder: 'threat' },
-  SECRET:   { label: 'Secret',   placeholder: 'secret' },
+  ARC:      { label: 'Arc',      placeholder: 'arc',    tone: 'arcane' },
+  THREAT:   { label: 'Threat',   placeholder: 'threat', tone: 'danger' },
+  SECRET:   { label: 'Secret',   placeholder: 'secret', tone: 'arcane' },
   NOTE:     { label: 'Note',     placeholder: 'note' },
   CUSTOM:   { label: 'Custom',   placeholder: 'custom' },
-  MONSTER:  { label: 'Monster',  placeholder: 'monster' },
+  MONSTER:  { label: 'Monster',  placeholder: 'monster', tone: 'danger' },
 }
 
 export interface WorldEntryCardData {
@@ -34,7 +34,7 @@ interface WorldEntryCardProps {
 
 export function WorldEntryCard({ entry, href }: WorldEntryCardProps) {
   const meta = TYPE_META[entry.type] ?? { label: entry.type, placeholder: 'custom' as PlaceholderEntityType }
-  const badge: EntityCardBadge = { label: meta.label }
+  const badge: EntityCardBadge = { label: meta.label, tone: meta.tone ?? 'neutral' }
 
   return (
     <Link href={href} className="block">

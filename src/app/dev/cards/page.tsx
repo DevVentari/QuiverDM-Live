@@ -63,9 +63,9 @@ const npcs: NpcCardData[] = [
 
 // Homebrew content
 const homebrewItems = [
-  { id: 'h1', name: 'Fireball',           type: 'SPELL',   sourceType: 'manual',          sourcePdf: null,                          tags: [], images: [], imageUrl: null, data: { description: 'A bright streak of fire erupts in a 20-foot radius sphere.' } },
-  { id: 'h2', name: 'Shadow Drake',        type: 'MONSTER', sourceType: 'pdf_extraction',  sourcePdf: { filename: 'monster-manual.pdf' }, tags: [], images: [], imageUrl: null, data: { description: 'A draconic predator that hunts from the shadows, breathing necrotic darkness.' } },
-  { id: 'h3', name: 'Cloak of Invisibility', type: 'ITEM', sourceType: 'dndbeyond_import', sourcePdf: null,                          tags: [], images: [], imageUrl: null, data: { description: 'While wearing this cloak, you can pull the hood up to become invisible.' } },
+  { id: 'h1', name: 'Fireball',           type: 'spell',   sourceType: 'manual',          sourcePdf: null,                          tags: [], images: [], imageUrl: null, data: { description: 'A bright streak of fire erupts in a 20-foot radius sphere.' } },
+  { id: 'h2', name: 'Shadow Drake',        type: 'creature', sourceType: 'pdf_extraction',  sourcePdf: { filename: 'monster-manual.pdf' }, tags: [], images: [], imageUrl: null, data: { description: 'A draconic predator that hunts from the shadows, breathing necrotic darkness.' } },
+  { id: 'h3', name: 'Cloak of Invisibility', type: 'item', sourceType: 'dndbeyond_import', sourcePdf: null,                          tags: [], images: [], imageUrl: null, data: { description: 'While wearing this cloak, you can pull the hood up to become invisible.' } },
 ];
 
 // Mechanics
