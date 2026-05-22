@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type React from 'react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -26,11 +27,13 @@ function DndIcon({
   size = 24,
   color = 'currentColor',
   className,
+  style,
 }: {
   src: string;
   size?: number;
   color?: string;
   className?: string;
+  style?: React.CSSProperties;
 }) {
   return (
     <span
@@ -49,6 +52,7 @@ function DndIcon({
         WebkitMaskSize: 'contain',
         WebkitMaskRepeat: 'no-repeat',
         WebkitMaskPosition: 'center',
+        ...style,
       }}
       aria-hidden
     />

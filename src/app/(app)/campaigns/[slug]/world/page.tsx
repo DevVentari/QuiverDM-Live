@@ -15,6 +15,7 @@ import { PageLayout } from '@/components/layout/page-layout';
 import { Button } from '@/components/ui/button';
 import { ImportSheet } from '@/components/world/import-sheet';
 import { ChapterSection } from '@/components/world/chapter-section';
+import { WorldEntryCard } from '@/components/world/world-entry-card';
 import { Canvas, Card, Section, Surface } from '@/components/primitives';
 import { getChapterColor } from '@/lib/chapter-colors';
 import { cn } from '@/lib/utils';
@@ -256,12 +257,15 @@ export default function WorldPage() {
   const { data: entries = [], isLoading: entriesLoading } = trpc.world.getEntries.useQuery(
     { campaignId }, { staleTime: 60_000 },
   );
+  const { data: sourcebookEntities = [], isLoading: sbLoading } = trpc.world.getSourcebookEntities.useQuery(
+    { campaignId }, { staleTime: 300_000 },
+  );
   const { data: chapters = [], isLoading: chaptersLoading } = trpc.world.getCampaignChapters.useQuery(
     { campaignId },
     { staleTime: 300_000, enabled: viewMode === 'by-chapter' },
   );
 
-  const isLoading = docsLoading || hbLoading || entriesLoading;
+  const isLoading = docsLoading || hbLoading || entriesLoading || sbLoading;
   const isChapterLoading = isLoading || chaptersLoading;
 
   // Merge into unified list with source tag
@@ -272,18 +276,39 @@ export default function WorldPage() {
     type: string;
     summary?: string | null;
     worldEntity?: { ddbChapterId?: string | null } | null;
+    sourcebookHref?: string; // present only for SourcebookEntity-sourced items
   };
   type AnyItem =
     | { id: string; title: string; type: string; _kind: 'doc'; _raw: Doc }
     | { id: string; title: string; type: string; _kind: 'hb'; _raw: HbItem }
     | { id: string; title: string; type: string; _kind: 'entry'; _raw: EntryItem };
 
+  // Merge sourcebook entities into the entries list, de-duping by name+type
+  // against existing WorldEntry records so hand-crafted entries win.
+  const worldEntryKeys = new Set(entries.map((e) => `${e.type}:${e.name.toLowerCase()}`));
+  const mergedEntries: EntryItem[] = [
+    ...entries,
+    ...sourcebookEntities
+      .filter((se) => !worldEntryKeys.has(`${se.type}:${se.name.toLowerCase()}`))
+      .map((se) => ({
+        id: se.id,
+        name: se.name,
+        slug: '',
+        type: se.type as string,
+        summary: se.description ?? null,
+        worldEntity: null,
+        sourcebookHref: se.chapter?.slug
+          ? `/campaigns/${slug}/sourcebook?chapter=${se.chapter.slug}`
+          : `/campaigns/${slug}/sourcebook`,
+      })),
+  ];
+
   const allItems: AnyItem[] = [
     ...docs.map((d) => ({ id: d.id, title: d.title, type: d.type, _kind: 'doc' as const, _raw: d })),
     ...homebrew.map((h) => ({ id: h.id, title: h.name, type: h.type, _kind: 'hb' as const, _raw: h })),
   ];
   const allItemsForChapter: AnyItem[] = [
-    ...entries.map((entry) => ({
+    ...mergedEntries.map((entry) => ({
       id: entry.id,
       title: entry.name,
       type: entry.type as string,
@@ -362,23 +387,13 @@ export default function WorldPage() {
   function renderChapterItem(item: AnyItem) {
     if (item._kind === 'entry') {
       const entry = item._raw;
-      const meta = ENTRY_TYPE_META[entry.type];
-      const Icon = meta?.icon ?? BookOpen;
+      const href = entry.sourcebookHref ?? `/campaigns/${slug}/world/${entry.slug}`;
       return (
-        <Link
+        <WorldEntryCard
           key={entry.id}
-          href={`/campaigns/${slug}/world/${entry.slug}`}
-          className="block rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] p-3 text-left transition-colors hover:border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)]"
-        >
-          <div className="inline-flex items-center gap-1 text-[9px] font-semibold uppercase tracking-widest text-[var(--q-text-faint)]">
-            <Icon className="h-2.5 w-2.5" />
-            {meta?.label ?? entry.type}
-          </div>
-          <p className="mt-1 line-clamp-1 text-sm font-medium leading-snug text-[var(--q-text)]">{entry.name}</p>
-          {entry.summary && (
-            <p className="mt-1 line-clamp-2 text-xs text-[var(--q-text-dim)]">{entry.summary}</p>
-          )}
-        </Link>
+          entry={{ id: entry.id, name: entry.name, type: entry.type as string, summary: entry.summary }}
+          href={href}
+        />
       );
     }
 
@@ -434,19 +449,19 @@ export default function WorldPage() {
 
       {viewMode === 'by-type' ? (
       <>
-      {(entriesLoading || entries.length > 0) && (
+      {(entriesLoading || sbLoading || mergedEntries.length > 0) && (
         <Section
           label="World Entities"
-          action={<span className="text-[10px] text-[var(--q-text-faint)]">{entries.length}</span>}
+          action={<span className="text-[10px] text-[var(--q-text-faint)]">{mergedEntries.length}</span>}
         >
           {/* Entry type filter */}
-          {entries.length > 0 && (
+          {mergedEntries.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
-              {(['all', ...new Set(entries.map(e => e.type as string))]).map((t) => {
+              {(['all', ...new Set(mergedEntries.map(e => e.type as string))]).map((t) => {
                 const isActive = entryFilter === t;
                 const meta = t === 'all' ? { label: 'All', icon: BookOpen } : ENTRY_TYPE_META[t];
                 const Icon = meta?.icon ?? BookOpen;
-                const count = t === 'all' ? entries.length : entries.filter(e => e.type === t).length;
+                const count = t === 'all' ? mergedEntries.length : mergedEntries.filter(e => e.type === t).length;
                 return (
                   <button key={t} onClick={() => setEntryFilter(t)} className={filterChipClass(isActive)}>
                     <Icon className="h-3 w-3" />
@@ -459,7 +474,7 @@ export default function WorldPage() {
           )}
 
           {/* Entry cards */}
-          {entriesLoading ? (
+          {(entriesLoading || sbLoading) ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
@@ -469,27 +484,17 @@ export default function WorldPage() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {entries
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {mergedEntries
                 .filter(e => entryFilter === 'all' || e.type === entryFilter)
                 .map((entry) => {
-                  const meta = ENTRY_TYPE_META[entry.type as string];
-                  const Icon = meta?.icon ?? BookOpen;
+                  const href = entry.sourcebookHref ?? `/campaigns/${slug}/world/${entry.slug}`;
                   return (
-                    <Link
+                    <WorldEntryCard
                       key={entry.id}
-                      href={`/campaigns/${slug}/world/${entry.slug}`}
-                      className="block text-left rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)] hover:border-[var(--q-amber-border)] hover:bg-[var(--q-amber-trace)] transition-colors p-3 space-y-1"
-                    >
-                      <div className="inline-flex items-center gap-1 text-[9px] uppercase tracking-widest font-semibold text-[var(--q-text-faint)]">
-                        <Icon className="h-2.5 w-2.5" />
-                        {meta?.label ?? entry.type}
-                      </div>
-                      <p className="text-sm font-medium text-[var(--q-text)] leading-snug line-clamp-1">{entry.name}</p>
-                      {entry.summary && (
-                        <p className="text-xs text-[var(--q-text-dim)] line-clamp-2">{entry.summary}</p>
-                      )}
-                    </Link>
+                      entry={{ id: entry.id, name: entry.name, type: entry.type as string, summary: entry.summary }}
+                      href={href}
+                    />
                   );
                 })}
             </div>

@@ -11,21 +11,28 @@ const TONE_STYLES: Record<Tone, { color: string; bg: string }> = {
 }
 
 export type PlaceholderEntityType =
-  | 'npc' | 'monster' | 'location' | 'item' | 'spell'
+  | 'npc' | 'pc' | 'monster' | 'location' | 'item' | 'spell'
   | 'faction' | 'sourcebook' | 'weapon' | 'secret' | 'tarot' | 'custom'
+  | 'event' | 'threat' | 'arc' | 'note' | 'encounter'
 
 const TYPE_MAP: Record<PlaceholderEntityType, { src: string; tone: Tone }> = {
-  npc:        { src: '/icons/dnd/entity/person.svg',       tone: 'amber' },
-  monster:    { src: '/icons/dnd/monster/humanoid.svg',    tone: 'danger' },
-  location:   { src: '/icons/dnd/location/dungeon.svg',    tone: 'quest' },
-  item:       { src: '/icons/dnd/entity/magic-item.svg',   tone: 'arcane' },
-  spell:      { src: '/icons/dnd/spell/evocation.svg',     tone: 'arcane' },
-  faction:    { src: '/icons/dnd/entity/organization.svg', tone: 'neutral' },
-  sourcebook: { src: '/icons/dnd/entity/book.svg',         tone: 'amber' },
-  weapon:     { src: '/icons/dnd/entity/weapon.svg',       tone: 'neutral' },
-  secret:     { src: '/icons/dnd/entity/archive.svg',      tone: 'neutral' },
-  tarot:      { src: '/icons/dnd/spell/octagon.svg',       tone: 'arcane' },
-  custom:     { src: '/icons/dnd/game/dm.svg',             tone: 'amber' },
+  npc:        { src: '/icons/dnd/entity/person.svg',        tone: 'amber' },
+  pc:         { src: '/icons/dnd/entity/person.svg',        tone: 'amber' },
+  monster:    { src: '/icons/dnd/monster/humanoid.svg',     tone: 'danger' },
+  location:   { src: '/icons/dnd/location/dungeon.svg',     tone: 'quest' },
+  item:       { src: '/icons/dnd/entity/magic-item.svg',    tone: 'arcane' },
+  spell:      { src: '/icons/dnd/spell/evocation.svg',      tone: 'arcane' },
+  faction:    { src: '/icons/dnd/entity/organization.svg',  tone: 'neutral' },
+  sourcebook: { src: '/icons/dnd/entity/book.svg',          tone: 'amber' },
+  weapon:     { src: '/icons/dnd/entity/weapon.svg',        tone: 'neutral' },
+  secret:     { src: '/icons/dnd/entity/archive.svg',       tone: 'neutral' },
+  tarot:      { src: '/icons/dnd/spell/octagon.svg',        tone: 'arcane' },
+  custom:     { src: '/icons/dnd/game/dm.svg',              tone: 'amber' },
+  event:      { src: '/icons/dnd/game/combat.svg',          tone: 'amber' },
+  threat:     { src: '/icons/dnd/game/hazard.svg',          tone: 'danger' },
+  arc:        { src: '/icons/dnd/game/adventure-book.svg',  tone: 'arcane' },
+  note:       { src: '/icons/dnd/entity/scroll.svg',        tone: 'neutral' },
+  encounter:  { src: '/icons/dnd/game/combat.svg',          tone: 'danger' },
 }
 
 export function EntityPlaceholder({
