@@ -100,7 +100,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
       : levelLabel(spell.level, true);
 
   const baseClasses = cn(
-    'relative overflow-hidden rounded-[3px] border',
+    'relative overflow-hidden rounded-[3px] border border-[var(--card-stone-border)]',
     'bg-[image:var(--card-stone-bg)]',
     '[box-shadow:var(--card-stone-inset),0_4px_20px_hsl(240_10%_4%/0.5)]',
   );
