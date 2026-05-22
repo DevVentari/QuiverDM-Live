@@ -1,7 +1,8 @@
 'use client'
 
-import { Eye, Sparkles, EyeOff } from 'lucide-react'
+import { EyeOff } from 'lucide-react'
 import { EntityCard, type EntityCardBadge } from '@/components/primitives/EntityCard'
+import { EntityPlaceholder, type PlaceholderEntityType } from '@/components/primitives/entity-placeholder'
 
 export interface MechanicCardData {
   id: string
@@ -25,10 +26,10 @@ function kindBadge(kind: string, sourcebook: string | null | undefined): EntityC
   return { label: kind === 'secret' ? 'SECRET' : kind === 'tarot' ? 'TAROT' : kind.toUpperCase() }
 }
 
-function fallbackIcon(kind: string) {
-  if (kind === 'secret') return <Eye size={32} />
-  if (kind === 'tarot') return <Sparkles size={32} />
-  return <Sparkles size={32} />
+function placeholderType(kind: string): PlaceholderEntityType {
+  if (kind === 'secret') return 'secret'
+  if (kind === 'tarot') return 'tarot'
+  return 'custom'
 }
 
 function flavorPreview(content: Record<string, unknown> | null | undefined): string | null {
@@ -60,7 +61,7 @@ export function MechanicCard({ mechanic, assignedCharacterName, onClick }: Mecha
   return (
     <EntityCard
       imageUrl={null}
-      imageFallback={fallbackIcon(mechanic.kind)}
+      imageFallback={<EntityPlaceholder type={placeholderType(mechanic.kind)} />}
       title={mechanic.name}
       badge={kindBadge(mechanic.kind, mechanic.sourcebook)}
       subtitle={(!mechanic.playerVisible || assignedCharacterName) ? subtitle : null}
