@@ -14,6 +14,8 @@ import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card
 import { MechanicCard, type MechanicCardData } from '@/components/mechanics/mechanic-card';
 import { StatBlockCard } from '@/components/encounter/stat-block-card';
 import { PressureCard } from '@/components/session/prep/pressure-card';
+import { WorldEntryCard, type WorldEntryCardData } from '@/components/world/world-entry-card';
+import { EncounterCard } from '@/components/encounters/encounter-card';
 import type { BriefingCard } from '@/lib/briefing-types';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -92,6 +94,26 @@ const goblin = {
   ],
 };
 
+// WorldEntryCard fixtures
+const worldEntries: WorldEntryCardData[] = [
+  { id: 'w1', name: 'Barovia Village',         type: 'LOCATION', summary: 'A fog-shrouded village under the shadow of Castle Ravenloft. The villagers live in quiet despair.',                            imageUrl: null },
+  { id: 'w2', name: 'Strahd von Zarovich',     type: 'NPC',      summary: 'The ancient vampire lord of Barovia, cursed to haunt these lands for eternity in search of his lost love.',                   imageUrl: 'https://picsum.photos/seed/strahd/400/300' },
+  { id: 'w3', name: 'The Vistani',             type: 'FACTION',  summary: 'Wandering fortune-tellers who travel freely through the mists. Their allegiance to Strahd is complicated.',                   imageUrl: null },
+  { id: 'w4', name: 'The Dark Powers',         type: 'THREAT',   summary: 'An inscrutable force that created the Demiplane of Dread. Their motives are unknown — their influence is everywhere.',        imageUrl: null },
+  { id: 'w5', name: "Strahd's True Bargain",   type: 'SECRET',   summary: 'Strahd struck a deal with the Dark Powers at the moment of his brother\'s death. The full terms have never been revealed.',   imageUrl: null },
+  { id: 'w6', name: 'The Amber Temple',        type: 'LOCATION', summary: 'An ancient temple on Mount Ghakis built to contain dark vestiges of forgotten gods.',                                         imageUrl: null },
+  { id: 'w7', name: 'Rise of the Death Knight',type: 'ARC',      summary: 'The campaign\'s final arc — Strahd has begun preparations for a ritual that would transform him into something far worse.',    imageUrl: null },
+  { id: 'w8', name: "Tatyana's Return",        type: 'EVENT',    summary: 'The reincarnation of Tatyana has arrived in Barovia in the form of Ireena Kolyana. Strahd knows.',                           imageUrl: null },
+];
+
+// EncounterCard fixtures
+const encounterPlans = [
+  { id: 'e1', name: 'Goblin Ambush at the Bridge',      difficulty: 'easy',   _count: { creatures: 2 }, partySize: 4, partyLevel: 3, adjustedXp: 100,   portraitUrl: null,                                     sceneDescription: null,                                                            createdAt: new Date('2026-05-01') },
+  { id: 'e2', name: 'Werewolf Den Assault',             difficulty: 'hard',   _count: { creatures: 3 }, partySize: 4, partyLevel: 5, adjustedXp: 2600,  portraitUrl: 'https://picsum.photos/seed/werewolf/400/300', sceneDescription: 'Pack tactics — wolves go first to impose disadvantage on saves.', createdAt: new Date('2026-05-10') },
+  { id: 'e3', name: 'Strahd — Final Confrontation',     difficulty: 'deadly', _count: { creatures: 1 }, partySize: 4, partyLevel: 9, adjustedXp: 50000, portraitUrl: null,                                     sceneDescription: 'Lair actions trigger on initiative count 20.',                   createdAt: new Date('2026-05-15') },
+  { id: 'e4', name: 'Tavern Brawl (The Blue Water Inn)', difficulty: 'medium', _count: { creatures: 3 }, partySize: 5, partyLevel: 4, adjustedXp: 450,   portraitUrl: null,                                     sceneDescription: null,                                                            createdAt: new Date('2026-05-20') },
+];
+
 // PressureCards — all states
 const INITIAL_PRESSURE: BriefingCard[] = [
   { id: 'p1', type: 'NPC',     entityName: 'Strahd von Zarovich', entityId: 'n1', urgencyLevel: 5, context: 'He has not visited Barovia Village in 3 sessions — the party is getting comfortable.', proposal: 'Have Strahd appear during the night at the inn, not as a threat but as a gracious host — unsettling the party with his civility.',     status: 'proposed', dmNote: undefined, mapCoords: undefined },
@@ -141,8 +163,30 @@ export default function CardFixturePage() {
           Cards
         </h1>
         <p className="text-sm mt-1" style={{ color: 'var(--q-text-dim)' }}>
-          Component fixtures — CharacterCard · SpellCard · MonsterStatBlock · MagicItemCard · EntityCard · NpcCard · HomebrewContentCard · MechanicCard · StatBlockCard · PressureCard
+          Component fixtures — CharacterCard · SpellCard · MonsterStatBlock · MagicItemCard · EntityCard · NpcCard · HomebrewContentCard · MechanicCard · StatBlockCard · PressureCard · WorldEntryCard · EncounterCard
         </p>
+      </div>
+
+      {/* ── WorldEntryCard ───────────────────────────────────────────── */}
+      <SectionHeading>World Entry Card</SectionHeading>
+      <p className="text-xs mb-3" style={{ color: 'var(--q-text-faint)' }}>
+        All entity types — Location · NPC (with portrait) · Faction · Threat · Secret · Arc · Event
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-2xl mb-10">
+        {worldEntries.map(entry => (
+          <WorldEntryCard key={entry.id} entry={entry} href={`#world-${entry.id}`} />
+        ))}
+      </div>
+
+      {/* ── EncounterCard ────────────────────────────────────────────── */}
+      <SectionHeading>Encounter Card</SectionHeading>
+      <p className="text-xs mb-3" style={{ color: 'var(--q-text-faint)' }}>
+        Easy · Hard (with portrait) · Deadly · Medium — hover for delete (DM mode)
+      </p>
+      <div className="grid grid-cols-2 gap-3 max-w-2xl mb-10">
+        {encounterPlans.map(plan => (
+          <EncounterCard key={plan.id} plan={plan} href={`#encounter-${plan.id}`} isDM onDelete={() => console.log('delete', plan.id)} isDeleting={false} />
+        ))}
       </div>
 
       {/* ── EntityCard (primitive) ────────────────────────────────────── */}
