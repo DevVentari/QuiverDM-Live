@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FileText, Pencil, Globe } from 'lucide-react';
 import { EntityCard } from '@/components/primitives/EntityCard';
+import { EntityPlaceholder, type PlaceholderEntityType } from '@/components/primitives/entity-placeholder';
 import { getTypeStyle, getSourceLabel, formatPdfName } from '@/lib/homebrew-utils';
 
 interface HomebrewContentCardProps {
@@ -21,10 +22,15 @@ interface HomebrewContentCardProps {
   onClick?: () => void;
 }
 
+const TYPE_TO_PLACEHOLDER: Record<string, PlaceholderEntityType> = {
+  SPELL: 'spell', MONSTER: 'monster', ITEM: 'item', WEAPON: 'weapon',
+  FEAT: 'sourcebook', RACE: 'npc', SUBCLASS: 'npc', BACKGROUND: 'sourcebook',
+}
+
 export function HomebrewContentCard({ item, href, onClick }: HomebrewContentCardProps) {
   const style = getTypeStyle(item.type);
-  const TypeIcon = style.icon;
   const imageUrl = item.imageUrl ?? item.images?.[0];
+  const placeholderType: PlaceholderEntityType = TYPE_TO_PLACEHOLDER[item.type] ?? 'item';
 
   const SourceIcon =
     item.sourceType === 'pdf_extraction'
@@ -49,7 +55,7 @@ export function HomebrewContentCard({ item, href, onClick }: HomebrewContentCard
   const card = (
     <EntityCard
       imageUrl={imageUrl}
-      imageFallback={<TypeIcon size={32} />}
+      imageFallback={<EntityPlaceholder type={placeholderType} />}
       title={item.name}
       badge={{ label: style.label, tone: 'amber' }}
       description={description}

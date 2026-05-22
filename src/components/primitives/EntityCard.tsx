@@ -50,9 +50,9 @@ export function EntityCard({
       data-testid={testId}
       className={cn(
         'group relative flex w-full min-w-0 items-stretch text-left h-32',
-        'rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)]',
+        'rounded-sm border border-[var(--q-border-subtle)] bg-[var(--q-surface-raised)]',
         'transition-all duration-150',
-        'hover:border-[var(--q-amber-dim)] hover:bg-[var(--q-surface-elevated)]',
+        'hover:border-[var(--q-amber-dim)] hover:bg-[var(--q-surface-hero)]',
         'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--q-amber)]',
         'overflow-hidden',
       )}
@@ -67,19 +67,19 @@ export function EntityCard({
             className="object-cover object-top transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[var(--q-amber)]/40">
+          <div className="flex h-full w-full items-center justify-center">
             {imageFallback}
           </div>
         )}
         <div
           aria-hidden
-          className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[var(--q-surface-sunken)] to-transparent"
+          className="absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-[var(--q-surface-raised)] to-transparent"
         />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 p-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-[var(--q-font-display)] text-base text-[var(--q-text)] truncate min-w-0">
+          <h3 className="font-[var(--q-font-display)] text-base text-[var(--q-amber)] truncate min-w-0">
             {title}
           </h3>
           {badge && (

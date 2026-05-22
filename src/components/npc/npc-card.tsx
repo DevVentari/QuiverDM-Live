@@ -1,7 +1,8 @@
 'use client'
 
-import { Sparkles, Book, Eye, User } from 'lucide-react'
+import { Book, Eye, User } from 'lucide-react'
 import { EntityCard, type EntityCardBadge } from '@/components/primitives/EntityCard'
+import { EntityPlaceholder } from '@/components/primitives/entity-placeholder'
 
 export interface NpcCardData {
   id: string
@@ -23,14 +24,10 @@ interface NpcCardProps {
 function sourceBadge(npc: NpcCardData): EntityCardBadge | null {
   if (npc._seen) return { label: 'Seen', icon: Eye }
   if (npc._fromSourcebook) return { label: 'Imported', icon: Book }
-  if (npc._source === 'npc') return { label: 'DM', icon: Sparkles, tone: 'amber' }
+  if (npc._source === 'npc') return { label: 'DM', tone: 'amber' }
   return null
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).slice(0, 2)
-  return parts.map((p) => p[0]?.toUpperCase() ?? '').join('') || '?'
-}
 
 export function NpcCard({ npc, onClick }: NpcCardProps) {
   const subtitle = (npc.role || npc.faction) ? (
@@ -49,11 +46,7 @@ export function NpcCard({ npc, onClick }: NpcCardProps) {
   return (
     <EntityCard
       imageUrl={npc.imageUrl}
-      imageFallback={
-        <span className="font-[var(--q-font-display)] text-3xl">
-          {initials(npc.name)}
-        </span>
-      }
+      imageFallback={<EntityPlaceholder type="npc" />}
       title={npc.name}
       badge={sourceBadge(npc)}
       subtitle={subtitle}
