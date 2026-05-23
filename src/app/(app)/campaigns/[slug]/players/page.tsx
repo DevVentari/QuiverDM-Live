@@ -258,6 +258,14 @@ function PlayersPageInner() {
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <p className="label-overline mb-1">Campaign</p>
+        <div className="section-rule" />
+        <h1 className="font-[var(--q-font-display)] text-3xl text-[var(--q-text)] mt-1">
+          Players
+        </h1>
+      </div>
+
       {isDdbImporting && (
         <div className="flex items-center gap-3 rounded-sm border border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] px-4 py-3 text-sm text-[var(--q-amber)]">
           <Loader2 className="h-4 w-4 animate-spin shrink-0" />
