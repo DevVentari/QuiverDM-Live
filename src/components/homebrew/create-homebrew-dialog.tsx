@@ -133,72 +133,79 @@ export function CreateHomebrewDialog({ open, onOpenChange, onCreated, initialTyp
         </DialogHeader>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <Label htmlFor="homebrew-name">Name</Label>
-            <Input
-              id="homebrew-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Enter a name"
-              required
-              minLength={2}
-            />
-          </div>
+          <div className="glass-panel glass-grain rounded-xl p-4 space-y-4">
+            <div>
+              <p className="label-overline mb-1">Details</p>
+              <div className="section-rule mb-3" />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="homebrew-type">Type</Label>
-            <Select value={type} onValueChange={(value: string) => setType(value as ContentType)}>
-              <SelectTrigger id="homebrew-type">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                {CONTENT_TYPES.map((contentType) => (
-                  <SelectItem key={contentType} value={contentType}>
-                    {contentType}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="homebrew-name">Name</Label>
+              <Input
+                id="homebrew-name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Enter a name"
+                required
+                minLength={2}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="homebrew-tags">Tags</Label>
-            <Input
-              id="homebrew-tags"
-              value={tagInput}
-              placeholder="Type a tag and press Enter or comma"
-              onChange={(event) => setTagInput(event.target.value)}
-              onKeyDown={handleTagKeyDown}
-              onBlur={handleTagBlur}
-            />
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="cursor-pointer"
-                    onClick={() => setTags((prev) => prev.filter((value) => value !== tag))}
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="homebrew-type">Type</Label>
+              <Select value={type} onValueChange={(value: string) => setType(value as ContentType)}>
+                <SelectTrigger id="homebrew-type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTENT_TYPES.map((contentType) => (
+                    <SelectItem key={contentType} value={contentType}>
+                      {contentType}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="homebrew-content">Content (Markdown)</Label>
-            <Textarea
-              id="homebrew-content"
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              placeholder="Write your markdown content..."
-              rows={8}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="homebrew-tags">Tags</Label>
+              <Input
+                id="homebrew-tags"
+                value={tagInput}
+                placeholder="Type a tag and press Enter or comma"
+                onChange={(event) => setTagInput(event.target.value)}
+                onKeyDown={handleTagKeyDown}
+                onBlur={handleTagBlur}
+              />
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="cursor-pointer"
+                      onClick={() => setTags((prev) => prev.filter((value) => value !== tag))}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          <EffectConfirmationPanel effects={detectedEffects} onChange={setDetectedEffects} />
+            <div className="space-y-2">
+              <Label htmlFor="homebrew-content">Content (Markdown)</Label>
+              <Textarea
+                id="homebrew-content"
+                value={content}
+                onChange={(event) => setContent(event.target.value)}
+                placeholder="Write your markdown content..."
+                rows={8}
+              />
+            </div>
+
+            <EffectConfirmationPanel effects={detectedEffects} onChange={setDetectedEffects} />
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={createContent.isPending}>
