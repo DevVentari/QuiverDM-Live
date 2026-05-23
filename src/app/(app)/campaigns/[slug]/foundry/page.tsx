@@ -33,25 +33,52 @@ export default function FoundryPage({ params }: { params: Promise<{ slug: string
   }, []);
 
   if (settings.isLoading || !campaignId) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="flex h-full flex-col">
+        <div className="flex items-center gap-3 px-6 py-3 border-b border-[var(--q-border-subtle)] bg-[var(--q-shell-bar)]">
+          <p className="label-overline">Campaign</p>
+          <div className="w-px h-3 bg-[var(--q-border)]" />
+          <span className="font-[var(--q-font-display)] text-sm text-[var(--q-text)]">Foundry VTT</span>
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="h-8 w-32 animate-pulse rounded bg-[var(--q-surface-utility)]" />
+        </div>
+      </div>
+    );
   }
 
   if (!iframeSrc) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        No Foundry URL configured. Set it in Campaign Settings → Foundry tab.
+      <div className="flex h-full flex-col">
+        <div className="flex items-center gap-3 px-6 py-3 border-b border-[var(--q-border-subtle)] bg-[var(--q-shell-bar)]">
+          <p className="label-overline">Campaign</p>
+          <div className="w-px h-3 bg-[var(--q-border)]" />
+          <span className="font-[var(--q-font-display)] text-sm text-[var(--q-text)]">Foundry VTT</span>
+        </div>
+        <div className="flex flex-1 items-center justify-center px-6">
+          <div className="rounded-lg border border-[var(--q-accent-danger-border)] bg-[var(--q-accent-danger-trace)] p-6 max-w-sm w-full">
+            <p className="text-sm text-[var(--q-accent-danger)]">No Foundry URL configured. Set it in Campaign Settings → Foundry tab.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full">
-      <iframe
-        src={iframeSrc}
-        className="absolute inset-0 h-full w-full border-0"
-        allow="storage-access; autoplay; fullscreen; pointer-lock"
-        title="FoundryVTT"
-      />
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-3 px-6 py-3 border-b border-[var(--q-border-subtle)] bg-[var(--q-shell-bar)]">
+        <p className="label-overline">Campaign</p>
+        <div className="w-px h-3 bg-[var(--q-border)]" />
+        <span className="font-[var(--q-font-display)] text-sm text-[var(--q-text)]">Foundry VTT</span>
+      </div>
+      <div className="flex-1 relative">
+        <iframe
+          src={iframeSrc}
+          className="absolute inset-0 h-full w-full border-0"
+          allow="storage-access; autoplay; fullscreen; pointer-lock"
+          title="FoundryVTT"
+        />
+      </div>
     </div>
   );
 }
