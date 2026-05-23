@@ -106,6 +106,10 @@ export const prepSecretsRouter = router({
   removeKnowledge: campaignDMProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
+      const knowledge = await prisma.prepKnowledge.findFirst({
+        where: { id: input.id, prepSecret: { campaignId: input.campaignId } },
+      });
+      if (!knowledge) throw new NotFoundError('prepKnowledge', input.id);
       await prisma.prepKnowledge.delete({ where: { id: input.id } });
     }),
 });

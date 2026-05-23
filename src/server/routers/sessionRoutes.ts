@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { router, campaignDMProcedure, campaignMemberProcedure } from '@/server/trpc';
-import { prisma } from '../db';
+import { prisma } from '@/server/db';
 
 export const sessionRoutesRouter = router({
   list: campaignMemberProcedure
@@ -24,10 +24,10 @@ export const sessionRoutesRouter = router({
         orderIndex: z.number().int(),
       })),
     }))
-    .mutation(async ({ ctx, input }) => {
-      await prisma.$transaction([
-        prisma.sessionRoute.deleteMany({ where: { sessionId: input.sessionId } }),
-        prisma.sessionRoute.createMany({
+    .mutation(async ({ input }) => {
+      const result = await prisma.$transaction(async (tx) => {
+        await tx.sessionRoute.deleteMany({ where: { sessionId: input.sessionId } });
+        await tx.sessionRoute.createMany({
           data: input.routes.map(r => ({
             sessionId: input.sessionId,
             name: r.name,
@@ -36,12 +36,13 @@ export const sessionRoutesRouter = router({
             risks: r.risks,
             orderIndex: r.orderIndex,
           })),
-        }),
-      ]);
-      return prisma.sessionRoute.findMany({
-        where: { sessionId: input.sessionId },
-        orderBy: { orderIndex: 'asc' },
+        });
+        return tx.sessionRoute.findMany({
+          where: { sessionId: input.sessionId },
+          orderBy: { orderIndex: 'asc' },
+        });
       });
+      return result;
     }),
 
   setActive: campaignDMProcedure
