@@ -48,6 +48,9 @@ import { worldRouter } from './world';
 import { randomizerRouter } from './randomizer';
 import { campaignMechanicsRouter } from './campaign-mechanics';
 import { sourcebookReaderRouter } from './sourcebook-reader';
+import { sessionPhasesRouter } from './sessionPhases';
+import { sessionRoutesRouter } from './sessionRoutes';
+import { prepSecretsRouter } from './prepSecrets';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -99,6 +102,9 @@ export const appRouter = router({
   randomizer: randomizerRouter,
   mechanics: campaignMechanicsRouter,
   sourcebookReader: sourcebookReaderRouter,
+  sessionPhases: sessionPhasesRouter,
+  sessionRoutes: sessionRoutesRouter,
+  prepSecrets: prepSecretsRouter,
 });
 
 export type AppRouter = typeof appRouter;
