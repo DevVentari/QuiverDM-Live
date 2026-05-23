@@ -5,7 +5,7 @@ import { prisma } from '@/server/db';
 export const sessionRoutesRouter = router({
   list: campaignMemberProcedure
     .input(z.object({ sessionId: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       return prisma.sessionRoute.findMany({
         where: { sessionId: input.sessionId },
         orderBy: { orderIndex: 'asc' },
@@ -47,7 +47,7 @@ export const sessionRoutesRouter = router({
 
   setActive: campaignDMProcedure
     .input(z.object({ sessionId: z.string(), routeId: z.string().nullable() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       await prisma.$transaction([
         prisma.sessionRoute.updateMany({
           where: { sessionId: input.sessionId },
