@@ -17,15 +17,15 @@ import type { ExtractedEntity, ExtractedEntityType } from '@/server/services/mar
 import type { FilePreview } from '@/server/services/json-import.service';
 
 const TYPE_META: Record<ExtractedEntityType, { label: string; icon: React.ElementType; color: string }> = {
-  location: { label: 'Locations', icon: MapPin,      color: 'text-emerald-400/80' },
-  npc:      { label: 'NPCs',      icon: UsersRound,  color: 'text-blue-400/80'    },
-  item:     { label: 'Items',     icon: Package,     color: 'text-yellow-400/80'  },
-  creature: { label: 'Creatures', icon: Skull,       color: 'text-red-400/80'     },
-  faction:  { label: 'Factions',  icon: Flag,        color: 'text-purple-400/80'  },
-  lore:     { label: 'Lore',      icon: ScrollText,  color: 'text-amber-400/80'   },
-  timeline: { label: 'Timelines', icon: BookOpen,    color: 'text-violet-400/80'  },
-  spell:    { label: 'Spells',    icon: Sparkles,    color: 'text-cyan-400/80'    },
-  race:     { label: 'Races',     icon: Dna,         color: 'text-pink-400/80'    },
+  location: { label: 'Locations', icon: MapPin,      color: 'text-[var(--q-accent-success)]'  },
+  npc:      { label: 'NPCs',      icon: UsersRound,  color: 'text-[var(--q-text-info)]'        },
+  item:     { label: 'Items',     icon: Package,     color: 'text-[var(--q-accent-quest)]'     },
+  creature: { label: 'Creatures', icon: Skull,       color: 'text-[var(--q-accent-danger)]'    },
+  faction:  { label: 'Factions',  icon: Flag,        color: 'text-[var(--q-accent-arcane)]'    },
+  lore:     { label: 'Lore',      icon: ScrollText,  color: 'text-[var(--q-accent-primary)]'   },
+  timeline: { label: 'Timelines', icon: BookOpen,    color: 'text-[var(--q-accent-arcane)]'    },
+  spell:    { label: 'Spells',    icon: Sparkles,    color: 'text-[var(--q-text-info)]'        },
+  race:     { label: 'Races',     icon: Dna,         color: 'text-[var(--q-accent-arcane)]'    },
 };
 
 const HINTS = [

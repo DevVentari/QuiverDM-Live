@@ -171,7 +171,7 @@ export function ImportFromDDBDialog({ open, onOpenChange, onImported, defaultCam
             <div className="flex items-center justify-between">
               <Label htmlFor="cobalt-token">CobaltSession Token</Label>
               {connected && (
-                <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 text-[10px] gap-1">
+                <Badge variant="outline" className="text-[var(--q-accent-success)] border-[var(--q-accent-success-border)] text-[10px] gap-1">
                   <CheckCircle2 className="h-3 w-3" /> Connected
                 </Badge>
               )}
@@ -209,7 +209,7 @@ export function ImportFromDDBDialog({ open, onOpenChange, onImported, defaultCam
               </Button>
             )}
             {tokenSaved && (
-              <p className="text-xs text-emerald-500">✓ Token saved to your settings</p>
+              <p className="text-xs text-[var(--q-accent-success)]">✓ Token saved to your settings</p>
             )}
             {!hasSavedToken && !connected && (
               <p className="text-[11px] text-muted-foreground leading-relaxed">

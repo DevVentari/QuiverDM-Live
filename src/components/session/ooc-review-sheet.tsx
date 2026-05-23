@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
+import { cn } from '@/lib/utils';
 import {
   Sheet,
   SheetContent,
@@ -71,15 +72,15 @@ export function OocReviewSheet({ open, onClose, sessionId, campaignId, items }: 
             return (
               <div
                 key={item.index}
-                className="rounded-sm p-3 space-y-2 transition-opacity"
-                style={{
-                  background: isDrop ? 'hsl(0 60% 15% / 0.3)' : 'hsl(240 10% 8% / 0.6)',
-                  border: `1px solid ${isDrop ? 'hsl(0 60% 35% / 0.3)' : 'hsl(35 35% 15%)'}`,
-                  opacity: isDrop ? 0.6 : 1,
-                }}
+                className={cn(
+                  'rounded-sm p-3 space-y-2 transition-opacity border',
+                  isDrop
+                    ? 'bg-[var(--q-accent-danger-trace)] border-[var(--q-accent-danger-border)] opacity-60'
+                    : 'bg-[var(--q-surface-sunken)] border-[var(--q-border)] opacity-100',
+                )}
               >
-                <p className="text-sm" style={{ color: 'hsl(35 15% 80%)' }}>
-                  <span style={{ color: 'hsl(35 80% 55%)' }}>[{item.start_formatted}] {item.speaker}:</span>{' '}
+                <p className="text-sm text-[var(--q-text)]">
+                  <span className="text-[var(--q-accent-primary)]">[{item.start_formatted}] {item.speaker}:</span>{' '}
                   {item.text}
                 </p>
                 <p className="text-xs italic text-muted-foreground">
