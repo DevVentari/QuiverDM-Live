@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/dialog';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
-  easy:   'bg-green-500/10 text-green-600',
-  medium: 'bg-yellow-500/10 text-yellow-600',
-  hard:   'bg-orange-500/10 text-orange-600',
-  deadly: 'bg-red-500/10 text-red-600',
+  easy:   'bg-[var(--q-accent-success-trace)] text-[var(--q-accent-success)]',
+  medium: 'bg-[var(--q-accent-quest-trace)] text-[var(--q-accent-quest)]',
+  hard:   'bg-[var(--q-accent-quest-trace)] text-[var(--q-accent-quest)]',
+  deadly: 'bg-[var(--q-accent-danger-trace)] text-[var(--q-accent-danger)]',
 };
 
 interface LoadEncounterPlanDialogProps {

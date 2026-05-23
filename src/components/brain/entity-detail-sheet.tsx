@@ -30,23 +30,23 @@ type EntityDetailSheetProps = {
 const STATUS_OPTIONS = Object.values(WorldEntityStatus);
 
 const statusColors: Record<string, string> = {
-  active: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
-  dormant: 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10',
-  destroyed: 'text-red-400 border-red-400/30 bg-red-400/10',
-  resolved: 'text-muted-foreground border-border bg-muted/20',
+  active:    'text-[var(--q-accent-success)] border-[var(--q-accent-success-border)] bg-[var(--q-accent-success-trace)]',
+  dormant:   'text-[var(--q-accent-quest)] border-[var(--q-accent-quest-border)] bg-[var(--q-accent-quest-trace)]',
+  destroyed: 'text-[var(--q-accent-danger)] border-[var(--q-accent-danger-border)] bg-[var(--q-accent-danger-trace)]',
+  resolved:  'text-muted-foreground border-border bg-muted/20',
 };
 
 const typeColors: Record<string, string> = {
-  NPC: 'text-amber-400 border-amber-400/30 bg-amber-400/10',
-  PC: 'text-sky-400 border-sky-400/30 bg-sky-400/10',
-  FACTION: 'text-violet-400 border-violet-400/30 bg-violet-400/10',
-  LOCATION: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10',
-  THREAT: 'text-red-400 border-red-400/30 bg-red-400/10',
-  ITEM: 'text-orange-400 border-orange-400/30 bg-orange-400/10',
-  ARC: 'text-pink-400 border-pink-400/30 bg-pink-400/10',
-  EVENT: 'text-blue-400 border-blue-400/30 bg-blue-400/10',
-  SECRET: 'text-purple-400 border-purple-400/30 bg-purple-400/10',
-  CUSTOM: 'text-muted-foreground border-border bg-muted/20',
+  NPC:      'text-[var(--q-accent-primary)] border-[var(--q-accent-primary-border)] bg-[var(--q-accent-primary-trace)]',
+  PC:       'text-[var(--q-text-info)] border-[var(--q-accent-neutral-border)] bg-[var(--q-accent-neutral-trace)]',
+  FACTION:  'text-[var(--q-accent-arcane)] border-[var(--q-accent-arcane-border)] bg-[var(--q-accent-arcane-trace)]',
+  LOCATION: 'text-[var(--q-accent-success)] border-[var(--q-accent-success-border)] bg-[var(--q-accent-success-trace)]',
+  THREAT:   'text-[var(--q-accent-danger)] border-[var(--q-accent-danger-border)] bg-[var(--q-accent-danger-trace)]',
+  ITEM:     'text-[var(--q-accent-quest)] border-[var(--q-accent-quest-border)] bg-[var(--q-accent-quest-trace)]',
+  ARC:      'text-[var(--q-accent-arcane)] border-[var(--q-accent-arcane-border)] bg-[var(--q-accent-arcane-trace)]',
+  EVENT:    'text-[var(--q-text-info)] border-[var(--q-accent-neutral-border)] bg-[var(--q-accent-neutral-trace)]',
+  SECRET:   'text-[var(--q-accent-arcane)] border-[var(--q-accent-arcane-border)] bg-[var(--q-accent-arcane-trace)]',
+  CUSTOM:   'text-muted-foreground border-border bg-muted/20',
 };
 
 function ConfidenceBadge({ confidence }: { confidence: number }) {
@@ -55,10 +55,10 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
 
   if (confidence >= 0.9) {
     label = 'Confirmed';
-    className = 'text-emerald-500 border-emerald-500/30 bg-emerald-500/10';
+    className = 'text-[var(--q-accent-success)] border-[var(--q-accent-success-border)] bg-[var(--q-accent-success-trace)]';
   } else if (confidence >= 0.7) {
     label = 'Inferred';
-    className = 'text-amber-500 border-amber-500/30 bg-amber-500/10';
+    className = 'text-[var(--q-accent-primary)] border-[var(--q-accent-primary-border)] bg-[var(--q-accent-primary-trace)]';
   } else {
     label = 'Uncertain';
     className = 'text-destructive border-destructive/30 bg-destructive/10';
