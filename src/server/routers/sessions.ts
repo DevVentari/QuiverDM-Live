@@ -922,7 +922,7 @@ export const sessionsRouter = router({
     }))
     .mutation(async ({ input }) => {
       return prisma.gameSession.update({
-        where: { id: input.sessionId },
+        where: { id: input.sessionId, campaignId: input.campaignId },
         data: { intentBrief: input.intentBrief },
       });
     }),
