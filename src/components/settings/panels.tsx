@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { PlatformRole } from '@prisma/client';
+import { Card } from '@/components/primitives';
 import {
   ArrowUpRight,
   BookOpen,
@@ -38,23 +39,20 @@ function SettingsCard({
   title,
   description,
   children,
-  accentClassName,
 }: {
   title: string;
   description: string;
   children: React.ReactNode;
-  accentClassName?: string;
 }) {
   return (
-    <section className={`stone-card ${accentClassName ?? ''}`}>
-      <div className="stone-card-header">
-        <div>
-          <span className="stone-card-title">{title}</span>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-        </div>
+    <Card variant="feature" className="space-y-4">
+      <div>
+        <p className="label-overline mb-1">{title}</p>
+        <div className="section-rule mb-3" />
+        <p className="text-sm text-[var(--q-text-dim)]">{description}</p>
       </div>
-      <div className="stone-card-body space-y-4">{children}</div>
-    </section>
+      {children}
+    </Card>
   );
 }
 
@@ -496,7 +494,6 @@ export function DangerZonePanel() {
       <SettingsCard
         title="Delete Account"
         description="Erase your archive, campaigns, characters, and history permanently."
-        accentClassName="border-destructive/30"
       >
         <Button variant="destructive" onClick={() => setDeleteDialogOpen(true)} disabled={deleteAccount.isPending}>
           <Trash2 className="mr-2 h-4 w-4" />
