@@ -910,4 +910,20 @@ export const sessionsRouter = router({
 
       return { success: true };
     }),
+
+  updateIntentBrief: campaignDMProcedure
+    .input(z.object({
+      sessionId: z.string(),
+      intentBrief: z.object({
+        toneKeywords: z.array(z.string()),
+        playerGoals: z.array(z.string()),
+        dmOnlyTruths: z.array(z.string()),
+      }),
+    }))
+    .mutation(async ({ input }) => {
+      return prisma.gameSession.update({
+        where: { id: input.sessionId },
+        data: { intentBrief: input.intentBrief },
+      });
+    }),
 });
