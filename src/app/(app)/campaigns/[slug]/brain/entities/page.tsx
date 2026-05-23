@@ -113,11 +113,15 @@ export default function EntitiesPage() {
 
   return (
     <div className="space-y-4 px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="label-overline">DM Brain</p>
-          <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Entities</h2>
-        </div>
+      <div className="mb-6">
+        <p className="label-overline mb-1">DM Brain</p>
+        <div className="section-rule" />
+        <h1 className="font-[var(--q-font-display)] text-3xl text-[var(--q-text)] mt-1">
+          Entities
+        </h1>
+      </div>
+
+      <div className="flex items-center justify-end">
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm">

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import { format } from 'date-fns';
-import { Sparkles, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { trpc } from '@/lib/trpc';
 import { Card, Pill } from '@/components/primitives';
@@ -38,10 +38,12 @@ export default function SummariesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-[var(--q-amber)]" />
-        <h1 className="text-2xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Session Summaries</h1>
-        <Pill variant="quest">{withSummaries.length} summaries</Pill>
+      <div className="mb-6">
+        <p className="label-overline mb-1">Campaign</p>
+        <div className="section-rule" />
+        <h1 className="font-[var(--q-font-display)] text-3xl text-[var(--q-text)] mt-1">
+          Session Summaries
+        </h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
