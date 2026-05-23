@@ -1,7 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { BookOpen, Loader2, Minus, Plus } from 'lucide-react';
+import { Loader2, Minus, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { Badge } from '@/components/ui/badge';
@@ -52,17 +52,9 @@ export default function RulesSourcesPage() {
         <h1 className="font-[var(--q-font-display)] text-3xl text-[var(--q-text)] mt-1">
           Rules Sources
         </h1>
-      </div>
-      <div className="stone-card">
-        <div className="stone-card-header">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            <h1 className="text-2xl font-bold">Rules Sources</h1>
-          </div>
-          <p className="mt-2 text-sm text-[var(--q-text-dim)]">
-            Mark PDFs as rules sources so the in-session Rules Companion can search them.
-          </p>
-        </div>
+        <p className="mt-2 text-sm text-[var(--q-text-dim)]">
+          Mark PDFs as rules sources so the in-session Rules Companion can search them.
+        </p>
       </div>
 
       <div className="space-y-3">

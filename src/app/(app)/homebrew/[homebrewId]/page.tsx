@@ -99,7 +99,7 @@ export default function HomebrewDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <TypeIcon className="h-5 w-5 text-[var(--q-text-dim)] shrink-0" />
-            <h1 className="text-xl sm:text-2xl font-display font-bold tracking-wide truncate">{item.name}</h1>
+            <span className="text-xl sm:text-2xl font-display font-bold tracking-wide truncate">{item.name}</span>
           </div>
           <div className="flex items-center gap-2 mt-1">
             <Badge variant="outline" className={`text-xs ${style.color}`}>
