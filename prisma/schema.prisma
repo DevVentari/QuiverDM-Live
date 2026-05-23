@@ -446,6 +446,9 @@ model Campaign {
   // Campaign Documents
   documents         CampaignDocument[]
 
+  // Session Intelligence Phase 1
+  prepSecrets PrepSecret[]
+
   // D&D Beyond integration
   dndBeyondCampaignUrl String? // e.g. https://www.dndbeyond.com/campaigns/7547491
 
@@ -670,6 +673,10 @@ model GameSession {
   prepStatus      String @default("none") // none | draft | complete
   activeSceneIndex Int?  @default(0)
 
+  // Session Intelligence Phase 1
+  intentBrief  Json?   // { toneKeywords: string[], playerGoals: string[], dmOnlyTruths: string[] }
+  prepDocKey   String? // R2 key for uploaded prep PDF
+
   recordings             SessionRecording[]
   transcripts            Transcript[]
   encounters             Encounter[]
@@ -705,9 +712,108 @@ model GameSession {
   recaps            SessionRecap[]
   campaignContexts  CampaignContext[]
 
+  // Session Intelligence Phase 1
+  phases      SessionPhase[]
+  routes      SessionRoute[]
+  prepSecrets PrepSecret[]
+  revelations SecretRevelation[]
+
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
   @@index([date])
+}
+
+// Session Intelligence Phase 1 models
+
+model SessionPhase {
+  id            String      @id @default(cuid())
+  sessionId     String
+  session       GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name          String
+  targetMinutes Int
+  orderIndex    Int         @default(0)
+  notes         String?
+  createdAt     DateTime    @default(now())
+
+  @@index([sessionId])
+}
+
+model SessionRoute {
+  id          String      @id @default(cuid())
+  sessionId   String
+  session     GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  benefits    String[]
+  risks       String[]
+  isActive    Boolean     @default(false)
+  orderIndex  Int         @default(0)
+  createdAt   DateTime    @default(now())
+
+  @@index([sessionId])
+}
+
+model PrepSecret {
+  id          String       @id @default(cuid())
+  campaignId  String
+  campaign    Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sessionId   String?
+  session     GameSession? @relation(fields: [sessionId], references: [id])
+  name        String
+  content     String
+  isRevealed  Boolean      @default(false)
+  orderIndex  Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  knowledge   PrepKnowledge[]
+  revelations SecretRevelation[]
+
+  @@index([campaignId])
+  @@index([sessionId])
+}
+
+model PrepKnowledge {
+  id               String      @id @default(cuid())
+  prepSecretId     String
+  prepSecret       PrepSecret  @relation(fields: [prepSecretId], references: [id], onDelete: Cascade)
+  worldEntityId    String
+  worldEntity      WorldEntity @relation(fields: [worldEntityId], references: [id], onDelete: Cascade)
+  revealCondition  String?
+  isCritical       Boolean     @default(false)
+  criticalDialogue String?
+  createdAt        DateTime    @default(now())
+
+  @@unique([prepSecretId, worldEntityId])
+  @@index([prepSecretId])
+  @@index([worldEntityId])
+}
+
+model SecretRevelation {
+  id            String      @id @default(cuid())
+  prepSecretId  String
+  prepSecret    PrepSecret  @relation(fields: [prepSecretId], references: [id], onDelete: Cascade)
+  sessionId     String
+  session       GameSession @relation(fields: [sessionId], references: [id])
+  revealedAt    DateTime    @default(now())
+  revealedBy    String?
+  method        String?
+  syncedToGraph Boolean     @default(false)
+
+  @@index([prepSecretId])
+  @@index([sessionId])
+  @@index([syncedToGraph])
+}
+
+model NpcBehaviorProfile {
+  id                 String      @id @default(cuid())
+  worldEntityId      String      @unique
+  worldEntity        WorldEntity @relation(fields: [worldEntityId], references: [id], onDelete: Cascade)
+  defaultBehavior    String?
+  triggeredBehaviors Json        @default("[]")
+  criticalDialogue   Json        @default("[]")
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 }
 
 model CampaignDocument {
@@ -862,6 +968,10 @@ model NPC {
   stats       Json? // Flexible stats object
   tags          String[] // For filtering
   playerVisible Boolean  @default(false)
+  status      String?  // alive | dead | missing | captured | fled | unknown
+  location    String?
+  motivation  String?  @db.Text
+  personality Json?    // { traits: string[], bonds: string[], ideals: string[], flaws: string[] }
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -1562,6 +1672,10 @@ model WorldEntity {
   mergeRulesB        EntityMergeRule[]        @relation("MergeRuleB")
   mapPins            MapPin[]
   locationMaps       CampaignMap[]            @relation("LocationMap")
+
+  // Session Intelligence Phase 1
+  prepKnowledge   PrepKnowledge[]
+  behaviorProfile NpcBehaviorProfile?
 
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
