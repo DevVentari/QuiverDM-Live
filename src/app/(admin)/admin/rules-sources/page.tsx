@@ -46,6 +46,13 @@ export default function RulesSourcesPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mb-6">
+        <p className="label-overline mb-1">Admin</p>
+        <div className="section-rule" />
+        <h1 className="font-[var(--q-font-display)] text-3xl text-[var(--q-text)] mt-1">
+          Rules Sources
+        </h1>
+      </div>
       <div className="stone-card">
         <div className="stone-card-header">
           <div className="flex items-center gap-2">
