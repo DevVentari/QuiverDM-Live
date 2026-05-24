@@ -19,16 +19,19 @@ export const npcBehaviorProfilesRouter = router({
   listBySession: campaignMemberProcedure
     .input(z.object({ sessionId: z.string() }))
     .query(async ({ input }) => {
-      const secrets = await prisma.prepSecret.findMany({
+      const sessionSecrets = await prisma.prepSecret.findMany({
         where: { sessionId: input.sessionId, campaignId: input.campaignId },
         include: { knowledge: { select: { worldEntityId: true } } },
       });
       const entityIds = [...new Set(
-        secrets.flatMap(s => s.knowledge.map(k => k.worldEntityId))
+        sessionSecrets.flatMap(s => s.knowledge.map(k => k.worldEntityId))
       )];
       if (entityIds.length === 0) return [];
       return prisma.npcBehaviorProfile.findMany({
-        where: { worldEntityId: { in: entityIds } },
+        where: {
+          worldEntityId: { in: entityIds },
+          worldEntity: { campaignId: input.campaignId },
+        },
         include: {
           worldEntity: { select: { id: true, name: true, type: true, description: true } },
         },
