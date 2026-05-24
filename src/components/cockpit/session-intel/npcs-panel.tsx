@@ -88,8 +88,12 @@ export function NpcsPanel({ campaignId, sessionId }: NpcsPanelProps) {
         const isInPlay = inPlayIds.has(id);
         const isExpanded = expandedIds.has(id);
 
-        const triggeredBehaviors = (profile?.triggeredBehaviors as TriggeredBehavior[] | null) ?? [];
-        const criticalDialogue = (profile?.criticalDialogue as CriticalDialogueLine[] | null) ?? [];
+        const triggeredBehaviors = Array.isArray(profile?.triggeredBehaviors)
+          ? (profile.triggeredBehaviors as TriggeredBehavior[])
+          : [];
+        const criticalDialogue = Array.isArray(profile?.criticalDialogue)
+          ? (profile.criticalDialogue as CriticalDialogueLine[])
+          : [];
 
         return (
           <div
@@ -120,6 +124,7 @@ export function NpcsPanel({ campaignId, sessionId }: NpcsPanelProps) {
                 {isInPlay ? 'In Play' : 'Mark in play'}
               </Button>
               <button
+                aria-label={isExpanded ? 'Collapse' : 'Expand'}
                 onClick={() => toggleExpanded(id)}
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
