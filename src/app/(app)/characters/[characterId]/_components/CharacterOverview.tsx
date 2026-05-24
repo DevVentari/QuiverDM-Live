@@ -173,7 +173,7 @@ export function CharacterOverview({
                 <Swords className="h-4 w-4 text-primary" />
                 Quick Actions
               </CardTitle>
-              <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+              <div className="flex items-center gap-0.5 rounded-md border border-[var(--q-border)] p-0.5">
                 <button
                   type="button"
                   onClick={() => setActionMode('attacks')}
@@ -206,7 +206,7 @@ export function CharacterOverview({
                   <p className="text-xs text-muted-foreground py-2 text-center">No attacks equipped</p>
                 )}
                 {weaponAttacks.map((attack: any) => (
-                  <div key={attack.name} className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2 text-sm">
+                  <div key={attack.name} className="flex items-center gap-2 rounded-md border border-[var(--q-border)] px-3 py-2 text-sm">
                     <div className="flex-1 min-w-0">
                       <span className="font-medium">{attack.name}</span>
                       <span className="text-xs text-muted-foreground ml-2">
@@ -217,7 +217,7 @@ export function CharacterOverview({
                       <button
                         type="button"
                         onClick={() => onRoll?.(`1d20${attack.attackBonus >= 0 ? `+${attack.attackBonus}` : attack.attackBonus}`, `${attack.name} Attack`)}
-                        className="text-xs rounded border border-border/60 px-2 py-0.5 font-mono font-bold text-primary hover:bg-muted hover:border-primary/40 transition-colors"
+                        className="text-xs rounded border border-[var(--q-border)] px-2 py-0.5 font-mono font-bold text-primary hover:bg-muted hover:border-primary/40 transition-colors"
                       >
                         {attack.attackBonus >= 0 ? `+${attack.attackBonus}` : attack.attackBonus}
                       </button>
@@ -228,7 +228,7 @@ export function CharacterOverview({
                           const match = notation.match(/^\d+d\d+([+-]\d+)?/i);
                           if (match) onRoll?.(match[0], `${attack.name} Damage`);
                         }}
-                        className="text-xs rounded border border-border/60 px-2 py-0.5 hover:bg-muted transition-colors"
+                        className="text-xs rounded border border-[var(--q-border)] px-2 py-0.5 hover:bg-muted transition-colors"
                       >
                         Dmg
                       </button>
@@ -236,7 +236,7 @@ export function CharacterOverview({
                   </div>
                 ))}
                 {attackCantrips.map((spell: any) => (
-                  <div key={spell.name} className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-2 text-sm">
+                  <div key={spell.name} className="flex items-center gap-2 rounded-md border border-[var(--q-border)] px-3 py-2 text-sm">
                     <div className="flex-1 min-w-0">
                       <span className="font-medium">{spell.name}</span>
                       <span className="text-xs text-muted-foreground ml-2">
@@ -250,7 +250,7 @@ export function CharacterOverview({
                           const match = String(spell.damage).match(/(\d+d\d+([+-]\d+)?)/i);
                           if (match) onRoll(match[1], `${spell.name} Damage`);
                         }}
-                        className="text-xs rounded border border-border/60 px-2 py-0.5 hover:bg-muted transition-colors shrink-0"
+                        className="text-xs rounded border border-[var(--q-border)] px-2 py-0.5 hover:bg-muted transition-colors shrink-0"
                       >
                         Dmg
                       </button>
@@ -260,7 +260,7 @@ export function CharacterOverview({
 
                 {/* Feat & Class Actions */}
                 {featActions.length > 0 && (
-                  <div className="border-t border-border/50 pt-2 mt-1">
+                  <div className="border-t border-[var(--q-border-subtle)] pt-2 mt-1">
                     <button
                       type="button"
                       onClick={() => setFeatActionsOpen(!featActionsOpen)}
@@ -272,7 +272,7 @@ export function CharacterOverview({
                     {featActionsOpen && (
                       <div className="mt-1.5 space-y-1">
                         {featActions.map((feat: any, i: number) => (
-                          <div key={i} className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-1.5 text-sm">
+                          <div key={i} className="flex items-center gap-2 rounded-md border border-[var(--q-border-subtle)] px-3 py-1.5 text-sm">
                             <span className="flex-1 min-w-0 truncate">{feat.name}</span>
                             <span className="text-[11px] text-muted-foreground/80 hidden sm:inline truncate max-w-[11rem] text-right">
                               {quickSummary({ actionType: feat.actionType })}
@@ -318,7 +318,7 @@ export function CharacterOverview({
                       {spellsByLevel[level]
                         .sort((a: any, b: any) => a.name.localeCompare(b.name))
                         .map((spell: any, i: number) => (
-                          <div key={i} className="flex items-center gap-2 rounded-md border border-border/60 px-3 py-1.5 text-sm mb-1">
+                          <div key={i} className="flex items-center gap-2 rounded-md border border-[var(--q-border)] px-3 py-1.5 text-sm mb-1">
                             <div className="flex-1 min-w-0">
                               <span className={`font-medium ${!spell.prepared && !spell.alwaysPrepared && spell.level > 0 ? 'text-muted-foreground' : ''}`}>
                                 {spell.name}
@@ -341,7 +341,7 @@ export function CharacterOverview({
                                 return match ? (
                                   <button
                                     type="button"
-                                    className="text-xs rounded border border-border/60 px-2 py-0.5 hover:bg-muted transition-colors"
+                                    className="text-xs rounded border border-[var(--q-border)] px-2 py-0.5 hover:bg-muted transition-colors"
                                     onClick={() => onRoll(match[1], `${spell.name} Damage`)}
                                   >
                                     Dmg
@@ -386,7 +386,7 @@ export function CharacterOverview({
                         type="button"
                         key={key}
                         onClick={() => onRoll?.(`1d20${mod >= 0 ? `+${mod}` : mod}`, `${key.toUpperCase()} Check`)}
-                        className={`relative flex flex-col items-center rounded-lg border-2 border-border px-2 pt-1.5 pb-5 transition-colors hover:border-primary/40 ${onRoll ? rollableClass() : ''}`}
+                        className={`relative flex flex-col items-center rounded-lg border-2 border-[var(--q-border)] px-2 pt-1.5 pb-5 transition-colors hover:border-primary/40 ${onRoll ? rollableClass() : ''}`}
                       >
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                           {key}

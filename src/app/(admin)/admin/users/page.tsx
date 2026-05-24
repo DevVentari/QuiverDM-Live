@@ -293,7 +293,7 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      <div className="rounded-xl border border-border/60 bg-card/40">
+      <div className="rounded-xl border border-[var(--q-border)] bg-[var(--q-surface-inset)]">
         <Table>
           <TableHeader>
             <TableRow>

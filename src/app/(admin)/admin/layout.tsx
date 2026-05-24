@@ -47,7 +47,7 @@ export default async function AdminLayout({
       <div className="relative min-h-screen overflow-hidden">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(245,158,11,0.12),transparent_28%),radial-gradient(circle_at_top_right,rgba(99,102,241,0.1),transparent_26%),linear-gradient(180deg,rgba(7,10,18,0.96),rgba(7,10,18,0.92))]" />
         <div className="relative flex min-h-screen flex-col lg:flex-row">
-          <aside className="border-b border-border/60 bg-card/30 backdrop-blur lg:min-h-screen lg:w-72 lg:border-b-0 lg:border-r">
+          <aside className="border-b border-[var(--q-border)] bg-[var(--q-surface-inset)] backdrop-blur lg:min-h-screen lg:w-72 lg:border-b-0 lg:border-r">
             <div className="space-y-6 p-5">
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ export default async function AdminLayout({
                     </p>
                   </div>
                 </div>
-                <div className="rounded-xl border border-border/60 bg-card/40 p-4">
+                <div className="rounded-xl border border-[var(--q-border)] bg-[var(--q-surface-inset)] p-4">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <span className="text-xs uppercase tracking-[0.24em] text-[var(--q-text-dim)]">
                       Signed In

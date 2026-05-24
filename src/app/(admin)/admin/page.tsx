@@ -81,7 +81,7 @@ export default function AdminOverviewPage() {
             </Link>
             <Link
               href="/admin/api-usage"
-              className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-card/40 px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/50"
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--q-border)] bg-[var(--q-surface-inset)] px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/50"
             >
               <BarChart3 className="h-4 w-4" />
               Usage Tracker
@@ -93,7 +93,7 @@ export default function AdminOverviewPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {overview.isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="border-border/60 bg-card/50">
+            <Card key={i} className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <Skeleton className="h-4 w-32" />
                 <Skeleton className="mt-2 h-8 w-16" />
@@ -103,7 +103,7 @@ export default function AdminOverviewPage() {
           ))
         ) : (
           <>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>Total Accounts</CardDescription>
                 <CardTitle className="text-3xl">{formatNumber(data?.totals.totalUsers ?? 0)}</CardTitle>
@@ -112,7 +112,7 @@ export default function AdminOverviewPage() {
                 {formatNumber(data?.totals.newUsersLast30Days ?? 0)} joined in the last 30 days.
               </CardContent>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>Active Subscriptions</CardDescription>
                 <CardTitle className="text-3xl">{formatNumber(data?.totals.activeSubscriptions ?? 0)}</CardTitle>
@@ -121,7 +121,7 @@ export default function AdminOverviewPage() {
                 {formatNumber(data?.totals.suspendedUsers ?? 0)} accounts are suspended.
               </CardContent>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>Worlds In Archive</CardDescription>
                 <CardTitle className="text-3xl">{formatNumber(data?.totals.totalCampaigns ?? 0)}</CardTitle>
@@ -130,7 +130,7 @@ export default function AdminOverviewPage() {
                 {formatNumber(data?.totals.totalSessions ?? 0)} sessions and {formatNumber(data?.totals.totalHomebrew ?? 0)} homebrew entries.
               </CardContent>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>30 Day API Cost</CardDescription>
                 <CardTitle className="text-3xl">{formatCost(data?.usage.totalCost ?? 0)}</CardTitle>
@@ -144,7 +144,7 @@ export default function AdminOverviewPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
@@ -189,7 +189,7 @@ export default function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-4 w-4 text-primary" />
@@ -248,7 +248,7 @@ export default function AdminOverviewPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-4 w-4 text-primary" />
@@ -268,7 +268,7 @@ export default function AdminOverviewPage() {
                       <Skeleton key={i} className="h-16 w-full rounded-lg" />
                     ))
                   : data?.recentCampaigns.map((campaign) => (
-                      <div key={campaign.id} className="rounded-lg border border-border/50 bg-background/40 p-3">
+                      <div key={campaign.id} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-medium text-foreground">{campaign.name}</p>
@@ -295,7 +295,7 @@ export default function AdminOverviewPage() {
                       <Skeleton key={i} className="h-16 w-full rounded-lg" />
                     ))
                   : data?.recentSessions.map((session) => (
-                      <div key={session.id} className="rounded-lg border border-border/50 bg-background/40 p-3">
+                      <div key={session.id} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-medium text-foreground">
@@ -315,7 +315,7 @@ export default function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShieldAlert className="h-4 w-4 text-primary" />
@@ -330,7 +330,7 @@ export default function AdminOverviewPage() {
                 {overview.isLoading
                   ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)
                   : data?.roleBreakdown.map((item) => (
-                      <div key={item.role} className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 px-3 py-2">
+                      <div key={item.role} className="flex items-center justify-between rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] px-3 py-2">
                         <RoleBadge role={item.role} />
                         <span className="text-sm text-[var(--q-text-dim)]">{formatNumber(item.count)}</span>
                       </div>
@@ -344,7 +344,7 @@ export default function AdminOverviewPage() {
                 {overview.isLoading
                   ? Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)
                   : data?.tierBreakdown.map((item) => (
-                      <div key={item.tier} className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 px-3 py-2">
+                      <div key={item.tier} className="flex items-center justify-between rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] px-3 py-2">
                         <span className="text-sm font-medium text-foreground">{PLAN_LABELS[item.tier] ?? item.tier}</span>
                         <span className="text-sm text-[var(--q-text-dim)]">{formatNumber(item.count)}</span>
                       </div>
@@ -356,7 +356,7 @@ export default function AdminOverviewPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="h-4 w-4 text-primary" />
@@ -368,7 +368,7 @@ export default function AdminOverviewPage() {
             {overview.isLoading
               ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)
               : data?.usage.providerUsage.map((provider) => (
-                  <div key={provider.provider} className="rounded-lg border border-border/50 bg-background/40 p-3">
+                  <div key={provider.provider} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium capitalize text-foreground">{provider.provider}</p>
@@ -385,7 +385,7 @@ export default function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-primary" />
@@ -397,7 +397,7 @@ export default function AdminOverviewPage() {
             {overview.isLoading
               ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)
               : data?.usage.featureUsage.map((feature) => (
-                  <div key={feature.feature} className="rounded-lg border border-border/50 bg-background/40 p-3">
+                  <div key={feature.feature} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-foreground">{feature.feature}</p>
@@ -416,7 +416,7 @@ export default function AdminOverviewPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle>Recent Signups</CardTitle>
             <CardDescription>
@@ -431,7 +431,7 @@ export default function AdminOverviewPage() {
                   <Link
                     key={user.id}
                     href={`/admin/users/${user.id}`}
-                    className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 p-3 transition-colors hover:bg-accent/40"
+                    className="flex items-center justify-between rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3 transition-colors hover:bg-accent/40"
                   >
                     <div>
                       <p className="font-medium text-foreground">{user.displayName ?? user.name ?? user.email ?? 'Unnamed'}</p>
@@ -448,7 +448,7 @@ export default function AdminOverviewPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle>Top Usage Accounts</CardTitle>
             <CardDescription>Highest API cost over the last 30 days.</CardDescription>
@@ -460,7 +460,7 @@ export default function AdminOverviewPage() {
                   <Link
                     key={entry.userId}
                     href={`/admin/users/${entry.userId}`}
-                    className="flex items-center justify-between rounded-lg border border-border/50 bg-background/40 p-3 transition-colors hover:bg-accent/40"
+                    className="flex items-center justify-between rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3 transition-colors hover:bg-accent/40"
                   >
                     <div>
                       <p className="font-medium text-foreground">

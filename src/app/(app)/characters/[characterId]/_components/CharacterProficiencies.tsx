@@ -56,7 +56,7 @@ export function CharacterProficiencies({ data, onRoll }: CharacterProficienciesP
                     onClick={() =>
                       onRoll?.(`1d20${totalMod >= 0 ? `+${totalMod}` : totalMod}`, `${skill.name} Check`)
                     }
-                    className={`flex w-full items-center gap-2 py-[3px] border-b border-border/50 last:border-0 ${
+                    className={`flex w-full items-center gap-2 py-[3px] border-b border-[var(--q-border-subtle)] last:border-0 ${
                       onRoll ? 'cursor-pointer hover:bg-muted/40 rounded px-1' : ''
                     }`}
                   >

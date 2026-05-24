@@ -33,7 +33,7 @@ export function PrepWorkspace({ session, slug, campaignId, onStatusChange }: Pre
       />
       <div className="px-4 pb-6">
         <Accordion type="multiple" className="space-y-2 mt-6">
-          <AccordionItem value="intent-brief" className="border border-border/50 rounded-lg overflow-hidden">
+          <AccordionItem value="intent-brief" className="border border-[var(--q-border-subtle)] rounded-lg overflow-hidden">
             <AccordionTrigger className="px-4 py-3 text-sm font-medium hover:no-underline">
               Session Intent
             </AccordionTrigger>
@@ -46,7 +46,7 @@ export function PrepWorkspace({ session, slug, campaignId, onStatusChange }: Pre
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="secrets-web" className="border border-border/50 rounded-lg overflow-hidden">
+          <AccordionItem value="secrets-web" className="border border-[var(--q-border-subtle)] rounded-lg overflow-hidden">
             <AccordionTrigger className="px-4 py-3 text-sm font-medium hover:no-underline">
               Secrets Web
             </AccordionTrigger>
@@ -55,7 +55,7 @@ export function PrepWorkspace({ session, slug, campaignId, onStatusChange }: Pre
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="phase-pacing" className="border border-border/50 rounded-lg overflow-hidden">
+          <AccordionItem value="phase-pacing" className="border border-[var(--q-border-subtle)] rounded-lg overflow-hidden">
             <AccordionTrigger className="px-4 py-3 text-sm font-medium hover:no-underline">
               Phase Pacing
             </AccordionTrigger>
@@ -64,7 +64,7 @@ export function PrepWorkspace({ session, slug, campaignId, onStatusChange }: Pre
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="escape-routes" className="border border-border/50 rounded-lg overflow-hidden">
+          <AccordionItem value="escape-routes" className="border border-[var(--q-border-subtle)] rounded-lg overflow-hidden">
             <AccordionTrigger className="px-4 py-3 text-sm font-medium hover:no-underline">
               Escape Routes
             </AccordionTrigger>

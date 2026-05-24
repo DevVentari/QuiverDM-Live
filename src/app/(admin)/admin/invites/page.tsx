@@ -191,25 +191,25 @@ export default function AdminInvitesPage() {
 
         <TabsContent value="generate" className="space-y-6">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-3">
                 <CardDescription>Total Codes</CardDescription>
                 <CardTitle className="text-3xl">{stats?.total || 0}</CardTitle>
               </CardHeader>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-3">
                 <CardDescription>Used</CardDescription>
                 <CardTitle className="text-3xl text-green-600">{stats?.used || 0}</CardTitle>
               </CardHeader>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-3">
                 <CardDescription>Unused</CardDescription>
                 <CardTitle className="text-3xl text-blue-600">{stats?.unused || 0}</CardTitle>
               </CardHeader>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-3">
                 <CardDescription>Expired</CardDescription>
                 <CardTitle className="text-3xl text-amber-500">{stats?.expired || 0}</CardTitle>
@@ -218,7 +218,7 @@ export default function AdminInvitesPage() {
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader>
                 <CardTitle>Generate One</CardTitle>
                 <CardDescription>Create a single invite code and optionally email it.</CardDescription>
@@ -237,7 +237,7 @@ export default function AdminInvitesPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader>
                 <CardTitle>Generate Batch</CardTitle>
                 <CardDescription>Issue multiple codes for a cohort or launch wave.</CardDescription>
@@ -275,7 +275,7 @@ export default function AdminInvitesPage() {
           </div>
 
           {recentCodes.length > 0 && (
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader>
                 <CardTitle>Recently Generated</CardTitle>
                 <CardDescription>Immediate copy surface for the latest issued codes.</CardDescription>
@@ -287,7 +287,7 @@ export default function AdminInvitesPage() {
                 </Button>
                 <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                   {recentCodes.map((code) => (
-                    <div key={code} className="rounded-lg border border-border/60 bg-background/40 p-4">
+                    <div key={code} className="rounded-lg border border-[var(--q-border)] bg-[var(--q-surface-sunken)] p-4">
                       <div className="font-mono text-sm font-semibold">{code}</div>
                       <Button variant="ghost" size="sm" className="mt-2 px-0" onClick={() => copyToClipboard(code)}>
                         {copiedCode === code ? (
@@ -309,7 +309,7 @@ export default function AdminInvitesPage() {
             </Card>
           )}
 
-          <Card className="border-border/60 bg-card/50">
+          <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
             <CardHeader>
               <CardTitle>Actions</CardTitle>
               <CardDescription>Refresh or clean up the invite pool.</CardDescription>
@@ -336,7 +336,7 @@ export default function AdminInvitesPage() {
         </TabsContent>
 
         <TabsContent value="codes">
-          <Card className="border-border/60 bg-card/50">
+          <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
             <CardHeader>
               <CardTitle>Invite Codes</CardTitle>
               <CardDescription>Filter and copy recent codes from the latest 200 records.</CardDescription>

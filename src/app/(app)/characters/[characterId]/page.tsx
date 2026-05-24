@@ -145,7 +145,7 @@ export default function CharacterDetailPage() {
   return (
     <div className="max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
       {/* Hero Header — mirrors dashboard character card, scaled up */}
-      <div className="relative overflow-hidden rounded-xl border border-border bg-card">
+      <div className="relative overflow-hidden rounded-xl border border-[var(--q-border)] bg-card">
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-primary/50 via-primary/20 to-transparent pointer-events-none" />
         <div className="flex">
 
@@ -261,7 +261,7 @@ export default function CharacterDetailPage() {
       </div>
 
       {/* Full Sheet — archived, collapsed by default */}
-      <div className="rounded-lg border border-border/50">
+      <div className="rounded-lg border border-[var(--q-border-subtle)]">
         <button
           type="button"
           className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-muted/30 transition-colors"
@@ -272,7 +272,7 @@ export default function CharacterDetailPage() {
         </button>
 
         {fullSheetOpen && (
-          <div className="border-t border-border/50 p-4">
+          <div className="border-t border-[var(--q-border-subtle)] p-4">
             <Tabs defaultValue="overview" className="w-full">
               <TabsList className="w-full justify-start overflow-x-auto">
                 <TabsTrigger value="overview" className="gap-1.5">

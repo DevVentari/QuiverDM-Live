@@ -174,7 +174,7 @@ export default function AdminUserDetailPage({
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {detail.isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="border-border/60 bg-card/50">
+            <Card key={i} className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <Skeleton className="h-4 w-28" />
                 <Skeleton className="mt-2 h-7 w-20" />
@@ -184,21 +184,21 @@ export default function AdminUserDetailPage({
           ))
         ) : (
           <>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>Platform Role</CardDescription>
                 <CardTitle className="text-xl">{user ? PLATFORM_ROLE_LABELS[user.platformRole] : '—'}</CardTitle>
               </CardHeader>
               <CardContent>{user && <RoleBadge role={user.platformRole} />}</CardContent>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>Plan</CardDescription>
                 <CardTitle className="text-xl">{user ? PLAN_LABELS[user.tier] ?? user.tier : '—'}</CardTitle>
               </CardHeader>
               <CardContent>{user && <PlanBadge tier={user.tier} />}</CardContent>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>API Cost</CardDescription>
                 <CardTitle className="text-xl">{formatCost(apiSummary?.estimatedCost ?? 0)}</CardTitle>
@@ -207,7 +207,7 @@ export default function AdminUserDetailPage({
                 {(apiSummary?.requestCount ?? 0).toLocaleString()} requests across {(apiSummary?.logCount ?? 0).toLocaleString()} logs.
               </CardContent>
             </Card>
-            <Card className="border-border/60 bg-card/50">
+            <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardHeader className="pb-2">
                 <CardDescription>Account State</CardDescription>
                 <CardTitle className="text-xl">{user?.suspended ? 'Suspended' : 'Active'}</CardTitle>
@@ -221,13 +221,13 @@ export default function AdminUserDetailPage({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_1.35fr]">
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle>Account Record</CardTitle>
             <CardDescription>Core identity and auth surfaces.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <div className="rounded-lg border border-border/50 bg-background/40 p-4">
+            <div className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-4">
               <div className="grid gap-3 md:grid-cols-2">
                 <div>
                   <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Email</p>
@@ -256,7 +256,7 @@ export default function AdminUserDetailPage({
               </div>
             </div>
 
-            <div className="rounded-lg border border-border/50 bg-background/40 p-4">
+            <div className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
                 <Shield className="h-4 w-4 text-primary" />
                 Authentication
@@ -274,11 +274,11 @@ export default function AdminUserDetailPage({
               </div>
             </div>
 
-            <div className="rounded-lg border border-border/50 bg-background/40 p-4">
+            <div className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-4">
               <div className="mb-3 text-sm font-medium text-foreground">Stored API Keys</div>
               <div className="grid gap-2 md:grid-cols-2">
                 {detail.data?.apiKeys.map((key) => (
-                  <div key={key.name} className="flex items-center justify-between rounded-md border border-border/50 px-3 py-2">
+                  <div key={key.name} className="flex items-center justify-between rounded-md border border-[var(--q-border-subtle)] px-3 py-2">
                     <span className="text-[var(--q-text-dim)]">{key.label}</span>
                     <Badge variant={key.present ? 'secondary' : 'outline'}>
                       {key.present ? 'Present' : 'Missing'}
@@ -290,24 +290,24 @@ export default function AdminUserDetailPage({
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader>
             <CardTitle>Usage And Activity</CardTitle>
             <CardDescription>Usage counters, owned campaigns, and recent model calls.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <div className="rounded-lg border border-border/50 bg-background/40 p-3">
+              <div className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                 <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">Campaigns Owned</p>
                 <p className="mt-2 text-lg font-semibold text-foreground">{detail.data?.usage.campaignsOwned ?? 0}</p>
               </div>
-              <div className="rounded-lg border border-border/50 bg-background/40 p-3">
+              <div className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                 <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">PDF Uploads</p>
                 <p className="mt-2 text-lg font-semibold text-foreground">
                   {detail.data?.usage.pdfUploads ?? 0} / {detail.data?.usage.pdfUploadLimit ?? -1}
                 </p>
               </div>
-              <div className="rounded-lg border border-border/50 bg-background/40 p-3">
+              <div className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                 <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">AI Recaps</p>
                 <p className="mt-2 text-lg font-semibold text-foreground">
                   {detail.data?.usage.aiRecaps ?? 0} / {detail.data?.usage.aiRecapLimit ?? -1}
@@ -324,7 +324,7 @@ export default function AdminUserDetailPage({
               </div>
               <div className="space-y-3">
                 {detail.data?.ownedCampaigns.map((campaign) => (
-                  <div key={campaign.id} className="rounded-lg border border-border/50 bg-background/40 p-3">
+                  <div key={campaign.id} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="font-medium text-foreground">{campaign.name}</p>
@@ -342,7 +342,7 @@ export default function AdminUserDetailPage({
 
             <div>
               <p className="mb-3 text-sm font-medium text-foreground">Recent API Logs</p>
-              <div className="rounded-lg border border-border/50 bg-background/40">
+              <div className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)]">
                 <Table>
                   <TableHeader>
                     <TableRow>

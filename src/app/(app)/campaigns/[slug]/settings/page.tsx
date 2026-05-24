@@ -206,7 +206,7 @@ export default function CampaignSettingsPage() {
                   <div className="space-y-2">
                     <Label>Campaign Banner</Label>
                     {bannerUrl && (
-                      <div className="relative h-32 w-full rounded-md overflow-hidden border border-border">
+                      <div className="relative h-32 w-full rounded-md overflow-hidden border border-[var(--q-border)]">
                         <Image src={bannerUrl} alt="Campaign banner" fill className="object-cover" />
                       </div>
                     )}
@@ -463,7 +463,7 @@ export default function CampaignSettingsPage() {
                     Raw keys are only shown once after generation.
                   </p>
                 </div>
-                <div className="flex items-center justify-between gap-2 rounded-md border border-border p-3">
+                <div className="flex items-center justify-between gap-2 rounded-md border border-[var(--q-border)] p-3">
                   <div>
                     <p className="text-sm font-medium">Module ID</p>
                     <p className="text-xs text-[var(--q-text-dim)] font-mono">quiverdm</p>
@@ -498,7 +498,7 @@ export default function CampaignSettingsPage() {
                       ) : recentImportJobs.length > 0 ? (
                         <div className="space-y-2">
                           {recentImportJobs.map((job) => (
-                            <div key={job.id} className="rounded-md border border-border p-3">
+                            <div key={job.id} className="rounded-md border border-[var(--q-border)] p-3">
                               <div className="flex flex-wrap items-center gap-2">
                                 <p className="text-sm font-medium">{job.sourceName}</p>
                                 <Badge variant="outline" className="text-[10px] uppercase">
