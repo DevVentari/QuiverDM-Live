@@ -133,7 +133,7 @@ export const prepSecretsRouter = router({
       });
       if (!session) throw new NotFoundError('session', input.sessionId);
 
-      const [revelation] = await prisma.$transaction([
+      const [revelation, _updated] = await prisma.$transaction([
         prisma.secretRevelation.create({
           data: {
             prepSecretId: input.prepSecretId,
