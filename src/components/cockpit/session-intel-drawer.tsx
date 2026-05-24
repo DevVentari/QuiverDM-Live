@@ -66,7 +66,7 @@ export function SessionIntelDrawer({ campaignId, sessionId, intentBrief }: Sessi
               <PhasesPanel campaignId={campaignId} sessionId={sessionId} />
             )}
             {activeTab === 'brief' && (
-              <BriefPanel intentBrief={intentBrief} />
+              <BriefPanel campaignId={campaignId} sessionId={sessionId} intentBrief={intentBrief} />
             )}
           </div>
         </div>
