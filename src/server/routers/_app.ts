@@ -51,6 +51,7 @@ import { sourcebookReaderRouter } from './sourcebook-reader';
 import { sessionPhasesRouter } from './sessionPhases';
 import { sessionRoutesRouter } from './sessionRoutes';
 import { prepSecretsRouter } from './prepSecrets';
+import { npcBehaviorProfilesRouter } from './npcBehaviorProfiles';
 
 export const appRouter = router({
   campaigns: campaignsRouter,
@@ -105,6 +106,7 @@ export const appRouter = router({
   sessionPhases: sessionPhasesRouter,
   sessionRoutes: sessionRoutesRouter,
   prepSecrets: prepSecretsRouter,
+  npcBehaviorProfiles: npcBehaviorProfilesRouter,
 });
 
 export type AppRouter = typeof appRouter;
