@@ -152,7 +152,7 @@ export default function SessionCockpitPage() {
       {/* 3-column grid */}
       <div className="flex flex-1 overflow-hidden relative">
         {/* Left: Party State */}
-        <div className="w-60 shrink-0 border-r border-border overflow-y-auto">
+        <div className="w-60 shrink-0 border-r border-[var(--q-border)] overflow-y-auto">
           <PartyOverviewPanel campaignId={campaign.id} sessionId={sessionId} />
         </div>
 
@@ -185,9 +185,9 @@ export default function SessionCockpitPage() {
         </div>
 
         {/* Right: Scene + NPCs */}
-        <div className="w-80 shrink-0 border-l border-border overflow-hidden flex flex-col">
+        <div className="w-80 shrink-0 border-l border-[var(--q-border)] overflow-hidden flex flex-col">
           <Tabs defaultValue="scene" className="flex flex-col h-full">
-            <TabsList className="shrink-0 w-full rounded-none border-b border-border bg-transparent h-10">
+            <TabsList className="shrink-0 w-full rounded-none border-b border-[var(--q-border)] bg-transparent h-10">
               <TabsTrigger value="scene" className="flex-1 text-xs">Scene</TabsTrigger>
               <TabsTrigger value="npcs" className="flex-1 text-xs">NPCs</TabsTrigger>
               <TabsTrigger value="brain" className="flex-1 text-xs">Brain</TabsTrigger>

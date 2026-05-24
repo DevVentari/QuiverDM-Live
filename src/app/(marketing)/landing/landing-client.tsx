@@ -66,7 +66,7 @@ const FEATURE_TABS = [
       'Full transcript search across all sessions',
     ],
     preview: (
-      <div className="rounded-lg border border-border/40 bg-black/20 p-4 space-y-2 text-xs font-mono">
+      <div className="rounded-lg border border-[var(--q-border-subtle)] bg-black/20 p-4 space-y-2 text-xs font-mono">
         <div className="flex items-center gap-2 mb-3">
           <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
           <span className="text-muted-foreground">Recording · Session 12</span>
@@ -96,7 +96,7 @@ const FEATURE_TABS = [
       'DnD Beyond import support',
     ],
     preview: (
-      <div className="rounded-lg border border-border/40 bg-black/20 p-4 space-y-2 text-xs">
+      <div className="rounded-lg border border-[var(--q-border-subtle)] bg-black/20 p-4 space-y-2 text-xs">
         <div className="text-amber-400/70 font-medium mb-3">📚 Campaign Library</div>
         {[
           { type: 'Monster', name: 'Ashfell Wraith', cr: 'CR 7' },
@@ -105,7 +105,7 @@ const FEATURE_TABS = [
         ].map((item) => (
           <div
             key={item.name}
-            className="flex items-center justify-between rounded border border-border/30 bg-white/5 px-3 py-2"
+            className="flex items-center justify-between rounded border border-[var(--q-border-subtle)] bg-white/5 px-3 py-2"
           >
             <div>
               <span className="text-muted-foreground/50 text-[10px] uppercase tracking-wider">{item.type}</span>
@@ -129,7 +129,7 @@ const FEATURE_TABS = [
       'Quick recall mid-session',
     ],
     preview: (
-      <div className="rounded-lg border border-border/40 bg-black/20 p-4 space-y-3 text-xs">
+      <div className="rounded-lg border border-[var(--q-border-subtle)] bg-black/20 p-4 space-y-3 text-xs">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-600/30 to-amber-900/30 border border-amber-500/20 flex items-center justify-center text-base">
             👑
@@ -141,7 +141,7 @@ const FEATURE_TABS = [
         </div>
         <div className="grid grid-cols-3 gap-2">
           {[['AC', '16'], ['HP', '104'], ['CR', '8']].map(([k, v]) => (
-            <div key={k} className="rounded border border-border/30 bg-white/5 p-2 text-center">
+            <div key={k} className="rounded border border-[var(--q-border-subtle)] bg-white/5 p-2 text-center">
               <div className="text-muted-foreground/50 text-[10px]">{k}</div>
               <div className="text-foreground/80 font-mono">{v}</div>
             </div>
@@ -165,7 +165,7 @@ const FEATURE_TABS = [
       'Export and share campaign data',
     ],
     preview: (
-      <div className="rounded-lg border border-border/40 bg-black/20 p-4 space-y-2 text-xs">
+      <div className="rounded-lg border border-[var(--q-border-subtle)] bg-black/20 p-4 space-y-2 text-xs">
         <div className="text-amber-400/70 font-medium mb-3">⚔️ The Shattered Throne</div>
         <div className="space-y-1.5">
           {[
@@ -176,7 +176,7 @@ const FEATURE_TABS = [
           ].map((row) => (
             <div
               key={row.label}
-              className="flex items-center justify-between rounded border border-border/30 bg-white/5 px-3 py-1.5"
+              className="flex items-center justify-between rounded border border-[var(--q-border-subtle)] bg-white/5 px-3 py-1.5"
             >
               <span className="text-muted-foreground/70">
                 {row.icon} {row.label}
@@ -202,7 +202,7 @@ export function LandingClient() {
   return (
     <div className="flex flex-col min-h-screen landing-bg">
       {/* ── 1. Sticky Nav ── */}
-      <header className="sticky top-0 z-50 border-b border-border/30 glass-shell">
+      <header className="sticky top-0 z-50 border-b border-[var(--q-border-subtle)] glass-shell">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/landing" className="font-display text-xl font-bold tracking-wide text-foreground hover:text-primary transition-colors">
             QuiverDM
@@ -281,7 +281,7 @@ export function LandingClient() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-base px-8 h-12 border-border/50 hover:border-primary/40">
+            <Button asChild variant="outline" size="lg" className="text-base px-8 h-12 border-[var(--q-border-subtle)] hover:border-primary/40">
               <Link href="/pricing">See How It Works</Link>
             </Button>
           </motion.div>
@@ -290,7 +290,7 @@ export function LandingClient() {
 
       {/* ── 3. Trust Bar ── */}
       <motion.section
-        className="border-y border-border/30 py-5"
+        className="border-y border-[var(--q-border-subtle)] py-5"
         {...reveal}
       >
         <div className="container">
@@ -337,7 +337,7 @@ export function LandingClient() {
                   className={`flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-all ${
                     activeTab === i
                       ? 'border-primary/60 bg-primary/15 text-primary'
-                      : 'border-border/40 bg-white/5 text-muted-foreground hover:border-border/60 hover:text-foreground'
+                      : 'border-[var(--q-border-subtle)] bg-white/5 text-muted-foreground hover:border-[var(--q-border)] hover:text-foreground'
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -355,7 +355,7 @@ export function LandingClient() {
               animate={{ opacity: 1, y: 0 }}
               exit={reduced ? {} : { opacity: 0, y: -12 }}
               transition={reduced ? { duration: 0 } : { duration: 0.25 }}
-              className="rounded-xl border border-border/40 glass-panel overflow-hidden"
+              className="rounded-xl border border-[var(--q-border-subtle)] glass-panel overflow-hidden"
             >
               <div className="grid md:grid-cols-2 gap-0">
                 {/* Left: text */}
@@ -380,7 +380,7 @@ export function LandingClient() {
                 </div>
 
                 {/* Right: mock preview */}
-                <div className="p-6 flex items-center justify-center border-l border-border/30 bg-black/10">
+                <div className="p-6 flex items-center justify-center border-l border-[var(--q-border-subtle)] bg-black/10">
                   <div className="w-full max-w-xs">
                     {FEATURE_TABS[activeTab].preview}
                   </div>
@@ -392,7 +392,7 @@ export function LandingClient() {
       </section>
 
       {/* ── 5. How It Works ── */}
-      <section className="py-24 px-4 border-t border-border/30">
+      <section className="py-24 px-4 border-t border-[var(--q-border-subtle)]">
         <div className="container max-w-4xl mx-auto">
           <motion.div className="text-center mb-16" {...reveal}>
             <h2 className="font-display text-fluid-3xl font-bold mb-4">How It Works</h2>
@@ -403,7 +403,7 @@ export function LandingClient() {
 
           <div className="grid md:grid-cols-3 gap-6 relative">
             {/* Connector line (desktop only) */}
-            <div className="hidden md:block absolute top-10 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px border-t border-dashed border-border/40" />
+            <div className="hidden md:block absolute top-10 left-[calc(16.67%+1.5rem)] right-[calc(16.67%+1.5rem)] h-px border-t border-dashed border-[var(--q-border-subtle)]" />
 
             {[
               {
@@ -431,7 +431,7 @@ export function LandingClient() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
                 transition={reduced ? { duration: 0 } : { duration: 0.5, delay: i * 0.12, ease: 'easeOut' }}
-                className="relative rounded-xl border border-border/40 glass-panel p-6 text-center"
+                className="relative rounded-xl border border-[var(--q-border-subtle)] glass-panel p-6 text-center"
               >
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full border border-primary/30 bg-primary/10 mb-4">
                   <s.icon className="h-5 w-5 text-primary" />
@@ -453,7 +453,7 @@ export function LandingClient() {
         {...reveal}
       >
         <div className="container max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-border/40 glass-panel p-10 text-center relative overflow-hidden">
+          <div className="rounded-2xl border border-[var(--q-border-subtle)] glass-panel p-10 text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,hsl(35_80%_55%/0.06),transparent)] pointer-events-none" />
             <div className="relative z-10">
               <div className="text-5xl text-primary/30 font-display leading-none mb-4">&ldquo;</div>
@@ -470,7 +470,7 @@ export function LandingClient() {
 
       {/* ── 7. Final CTA ── */}
       <motion.section
-        className="py-28 px-4 border-t border-border/30 relative overflow-hidden"
+        className="py-28 px-4 border-t border-[var(--q-border-subtle)] relative overflow-hidden"
         {...reveal}
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,hsl(35_80%_55%/0.09),transparent)] pointer-events-none" />
@@ -489,7 +489,7 @@ export function LandingClient() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg" className="text-base px-8 h-12 border-border/50 hover:border-primary/40">
+            <Button asChild variant="outline" size="lg" className="text-base px-8 h-12 border-[var(--q-border-subtle)] hover:border-primary/40">
               <Link href="/pricing">Compare Plans</Link>
             </Button>
           </div>
@@ -497,7 +497,7 @@ export function LandingClient() {
       </motion.section>
 
       {/* ── 8. Footer ── */}
-      <footer className="border-t border-border/30 py-8 px-4">
+      <footer className="border-t border-[var(--q-border-subtle)] py-8 px-4">
         <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <Link href="/landing" className="font-display font-bold text-foreground/70 hover:text-foreground transition-colors">
             QuiverDM

@@ -67,7 +67,7 @@ export default function AdminHealthPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {health.isLoading
             ? Array.from({ length: 12 }).map((_, i) => (
-                <Card key={i} className="border-border/60 bg-card/50">
+                <Card key={i} className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
                   <CardHeader className="pb-2">
                     <Skeleton className="h-4 w-32" />
                   </CardHeader>
@@ -83,7 +83,7 @@ export default function AdminHealthPage() {
                 return (
                   <Card
                     key={queue.name}
-                    className={`border-border/60 bg-card/50 ${highFailed ? 'border-destructive/40' : hasFailed ? 'border-amber-500/30' : ''}`}
+                    className={`border-[var(--q-border)] bg-[var(--q-surface-inset)] ${highFailed ? 'border-destructive/40' : hasFailed ? 'border-[var(--q-accent-quest-border)]' : ''}`}
                   >
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm font-mono text-foreground">{queue.name}</CardTitle>
@@ -114,7 +114,7 @@ export default function AdminHealthPage() {
                       ) : (
                         <Badge
                           variant={highFailed ? 'destructive' : 'outline'}
-                          className={`text-xs ${!highFailed ? 'border-amber-500/40 text-amber-500' : ''}`}
+                          className={`text-xs ${!highFailed ? 'border-[var(--q-accent-quest-border)] text-[var(--q-accent-quest)]' : ''}`}
                         >
                           <XCircle className="mr-1 h-3 w-3" />
                           {queue.failed} failed
@@ -141,13 +141,13 @@ export default function AdminHealthPage() {
         <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
           {health.isLoading
             ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="rounded-lg border border-border/50 bg-card/40 p-3">
+                <div key={i} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-inset)] p-3">
                   <Skeleton className="h-3 w-24" />
                   <Skeleton className="mt-2 h-5 w-12" />
                 </div>
               ))
             : health.data?.tableCounts.map((row) => (
-                <div key={row.table} className="rounded-lg border border-border/50 bg-card/40 p-3">
+                <div key={row.table} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-inset)] p-3">
                   <p className="text-xs uppercase tracking-[0.22em] text-[var(--q-text-dim)]">{row.table}</p>
                   <p className="mt-1 text-lg font-semibold text-foreground">{row.count.toLocaleString()}</p>
                 </div>
@@ -161,7 +161,7 @@ export default function AdminHealthPage() {
           <h2 className="text-lg font-semibold text-foreground">Recent Failed Jobs</h2>
         </div>
 
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardContent className="pt-6">
             {health.isLoading ? (
               <div className="space-y-3">
@@ -177,7 +177,7 @@ export default function AdminHealthPage() {
             ) : (
               <div className="space-y-3">
                 {health.data.recentFailed.map((job, i) => (
-                  <div key={i} className="rounded-lg border border-border/50 bg-background/40 p-3">
+                  <div key={i} className="rounded-lg border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] p-3">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge variant="outline" className="font-mono text-xs">{job.queue}</Badge>
                       <span className="text-sm font-medium text-foreground">{job.jobName}</span>

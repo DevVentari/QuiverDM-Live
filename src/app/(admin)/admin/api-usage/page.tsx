@@ -119,7 +119,7 @@ export default function AdminApiUsagePage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">Total Cost</CardTitle>
             <DollarSign className="h-4 w-4 text-[var(--q-text-dim)]" />
@@ -132,7 +132,7 @@ export default function AdminApiUsagePage() {
             )}
           </CardContent>
         </Card>
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">Total Requests</CardTitle>
             <Zap className="h-4 w-4 text-[var(--q-text-dim)]" />
@@ -145,7 +145,7 @@ export default function AdminApiUsagePage() {
             )}
           </CardContent>
         </Card>
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">Tracked Users</CardTitle>
             <Users className="h-4 w-4 text-[var(--q-text-dim)]" />
@@ -158,7 +158,7 @@ export default function AdminApiUsagePage() {
             )}
           </CardContent>
         </Card>
-        <Card className="border-border/60 bg-card/50">
+        <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[var(--q-text-dim)]">
               Top Provider{topProvider ? `: ${PROVIDER_LABELS[topProvider.provider] ?? topProvider.provider}` : ''}
@@ -179,7 +179,7 @@ export default function AdminApiUsagePage() {
         </Card>
       </div>
 
-      <Card className="border-border/60 bg-card/50">
+      <Card className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
         <CardHeader>
           <CardTitle>Cost By Provider Over Time</CardTitle>
           <CardDescription>Last {days} days — stacked by provider.</CardDescription>
@@ -243,7 +243,7 @@ export default function AdminApiUsagePage() {
         </CardContent>
       </Card>
 
-      <div className="rounded-xl border border-border/60 bg-card/40">
+      <div className="rounded-xl border border-[var(--q-border)] bg-[var(--q-surface-inset)]">
         <Table>
           <TableHeader>
             <TableRow>

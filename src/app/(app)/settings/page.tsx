@@ -30,7 +30,7 @@ export default function SettingsOverviewPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[1.1rem] border border-border/60 bg-card/35 p-5">
+      <section className="rounded-[1.1rem] border border-[var(--q-border)] bg-[var(--q-surface-inset)] p-5">
         {profile.isLoading || settings.isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-8 w-48" />
@@ -165,7 +165,7 @@ function OverviewCard({
   return (
     <Link
       href={href}
-      className="group rounded-[1.1rem] border border-border/60 bg-card/35 p-5 transition-colors hover:border-amber-500/25 hover:bg-card/55"
+      className="group rounded-[1.1rem] border border-[var(--q-border)] bg-[var(--q-surface-inset)] p-5 transition-colors hover:border-[var(--q-border)] hover:bg-[var(--q-surface-inset)]"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-3">
@@ -179,7 +179,7 @@ function OverviewCard({
           <Icon className="h-5 w-5" />
         </div>
       </div>
-      <div className="mt-5 flex items-center justify-between border-t border-border/50 pt-4">
+      <div className="mt-5 flex items-center justify-between border-t border-[var(--q-border-subtle)] pt-4">
         <span className="text-xs text-[var(--q-text-dim)]">{meta}</span>
         <span className="inline-flex items-center gap-2 text-sm font-medium text-amber-300">
           Open
@@ -200,7 +200,7 @@ function StatusPill({
   helper: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-background/30 px-4 py-3">
+    <div className="rounded-xl border border-[var(--q-border-subtle)] bg-[var(--q-surface-sunken)] px-4 py-3">
       <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--q-text-dim)]">{label}</p>
       <div className="mt-2 font-display text-xl font-semibold text-foreground">{value}</div>
       <p className="mt-1 text-xs text-[var(--q-text-dim)]">{helper}</p>

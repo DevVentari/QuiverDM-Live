@@ -582,7 +582,7 @@ export default function BrainPage() {
                       .map((proposal) => {
                         const events = proposal.events as Array<{ id?: string; narrative?: string; proposedEffects?: string[] }>;
                         return (
-                          <li key={proposal.id} className="rounded-lg border border-border/40 p-4 space-y-3">
+                          <li key={proposal.id} className="rounded-lg border border-[var(--q-border-subtle)] p-4 space-y-3">
                             <div className="flex items-center justify-between gap-3">
                               <Badge variant="outline" className="text-[10px] uppercase">
                                 {new Date(proposal.createdAt).toLocaleDateString()}
@@ -658,7 +658,7 @@ export default function BrainPage() {
                 ) : (
                   <ul className="space-y-3">
                     {mergeCandidatesQuery.data.map((candidate) => (
-                      <li key={candidate.id} className="flex items-start justify-between gap-4 rounded-lg border border-border/40 p-3">
+                      <li key={candidate.id} className="flex items-start justify-between gap-4 rounded-lg border border-[var(--q-border-subtle)] p-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-sm">{candidate.entityA.name}</span>
@@ -723,7 +723,7 @@ export default function BrainPage() {
                 ) : (
                   <ul className="space-y-3">
                     {mergeCandidatesQuery.data.map((candidate) => (
-                      <li key={candidate.id} className="flex items-start justify-between gap-4 rounded-lg border border-border/40 p-3">
+                      <li key={candidate.id} className="flex items-start justify-between gap-4 rounded-lg border border-[var(--q-border-subtle)] p-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-sm">{candidate.entityA.name}</span>

@@ -99,7 +99,7 @@ export default function RecapDashboardPage() {
                       'w-44 shrink-0 rounded-sm border px-4 py-3 text-left transition-colors',
                       isSelected
                         ? 'border-amber-500/35 bg-amber-500/[0.07]'
-                        : 'border-border/50 bg-card/25 hover:border-foreground/15 hover:bg-card/40'
+                        : 'border-[var(--q-border-subtle)] bg-[var(--q-surface-inset)] hover:border-foreground/15 hover:bg-[var(--q-surface-inset)]'
                     )}
                   >
                     <p className={cn('truncate text-xs font-semibold', isSelected ? 'text-amber-200' : 'text-foreground/85')}>
@@ -144,7 +144,7 @@ export default function RecapDashboardPage() {
           ))}
         </div>
       ) : allRecaps.length === 0 ? (
-        <div className="rounded-sm border border-border/40 bg-[linear-gradient(180deg,hsl(240_10%_11%)_0%,hsl(240_8%_9%)_100%)] px-6 py-12 text-center">
+        <div className="rounded-sm border border-[var(--q-border-subtle)] bg-[linear-gradient(180deg,hsl(240_10%_11%)_0%,hsl(240_8%_9%)_100%)] px-6 py-12 text-center">
           <ScrollText className="mx-auto mb-3 h-7 w-7 text-[var(--q-text-dim)]/40" />
           <p className="text-sm text-[var(--q-text-dim)]">
             {statusFilter !== 'ALL'
@@ -157,7 +157,7 @@ export default function RecapDashboardPage() {
           {allRecaps.map((recap) => (
             <div
               key={recap.recapId}
-              className="flex items-center gap-4 rounded-sm border border-border/20 bg-[hsl(240_10%_10%)] px-4 py-3"
+              className="flex items-center gap-4 rounded-sm border border-[var(--q-border-subtle)] bg-[hsl(240_10%_10%)] px-4 py-3"
               style={{
                 borderLeft:
                   recap.status === 'AUTO_GENERATED'

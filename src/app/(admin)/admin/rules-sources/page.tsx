@@ -63,7 +63,7 @@ export default function RulesSourcesPage() {
           const removingThisPdf = removeMutation.isPending && removeMutation.variables?.pdfId === pdf.id;
 
           return (
-            <Card key={pdf.id} className="border-border/60 bg-card/50">
+            <Card key={pdf.id} className="border-[var(--q-border)] bg-[var(--q-surface-inset)]">
               <CardContent className="flex items-center justify-between pt-4">
                 <div>
                   <p className="text-sm font-medium">{pdf.filename}</p>
