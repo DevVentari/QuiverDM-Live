@@ -21,6 +21,7 @@ import { extractPrepNotes } from '@/lib/ai/extract-prep-notes';
 import { generateBriefingCards } from '@/lib/ai/generate-briefing';
 import { brainRepository } from '../repositories/brain.repository';
 import { addTranscriptCleanupJob } from '@/lib/queue/transcript-cleanup-queue';
+import { addRevelationSyncJob } from '@/lib/queue/secret-revelation-sync-queue';
 
 interface OocReviewItem {
   index: number;
@@ -925,5 +926,21 @@ export const sessionsRouter = router({
         where: { id: input.sessionId, campaignId: input.campaignId },
         data: { intentBrief: input.intentBrief },
       });
+    }),
+
+  triggerRevelationSync: campaignDMProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      revelationId: z.string().min(1),
+      prepSecretId: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      await addRevelationSyncJob({
+        revelationId: input.revelationId,
+        prepSecretId: input.prepSecretId,
+        sessionId: input.sessionId,
+        campaignId: input.campaignId,
+      });
+      return { queued: true };
     }),
 });
