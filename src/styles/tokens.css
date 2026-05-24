@@ -42,6 +42,7 @@
   --q-surface-feature: oklch(0.165 0.005 240 / 0.46);
   --q-surface-hero:    oklch(0.19 0.005 240 / 0.7);
   --q-surface-signature: oklch(0.15 0.005 240 / 0.6);
+  --q-surface-inset:  oklch(0.14 0.005 240);
   --q-shell-rail:     oklch(0.105 0.004 240 / 0.88);
   --q-shell-bar:      oklch(0.115 0.004 240 / 0.84);
 
@@ -199,6 +200,7 @@ html.light {
   --q-surface-feature: oklch(0.97 0.01 80 / 0.96);
   --q-surface-hero:    oklch(0.985 0.012 80 / 0.98);
   --q-surface-signature: oklch(0.94 0.016 80 / 0.98);
+  --q-surface-inset:  oklch(0.97 0.010 80);
   --q-shell-rail:     oklch(0.94 0.012 80 / 0.98);
   --q-shell-bar:      oklch(0.95 0.01 80 / 0.96);
   --q-card-bg:        oklch(0.97 0.010 80);
