@@ -10,6 +10,7 @@ import type { RevelationSyncJobData, RevelationSyncJobResult } from './secret-re
 async function processRevelationSync(
   job: import('bullmq').Job<RevelationSyncJobData, RevelationSyncJobResult>
 ): Promise<RevelationSyncJobResult> {
+  // prepSecretId is provided for caller convenience (e.g. tRPC procedures) but not used here
   const { revelationId, campaignId } = job.data;
 
   const revelation = await prisma.secretRevelation.findUnique({
@@ -77,7 +78,7 @@ async function processRevelationSync(
   return { success: true, entityId: entity.id, relationshipId };
 }
 
-new Worker<RevelationSyncJobData, RevelationSyncJobResult>(
+const worker = new Worker<RevelationSyncJobData, RevelationSyncJobResult>(
   'secret-revelation-sync',
   processRevelationSync,
   {
@@ -87,3 +88,21 @@ new Worker<RevelationSyncJobData, RevelationSyncJobResult>(
 );
 
 console.log('[worker] secret-revelation-sync started');
+
+worker.on('completed', (job) => {
+  console.log(`[worker] secret-revelation-sync job ${job.id} completed`);
+});
+
+worker.on('failed', (job, err) => {
+  console.error(`[worker] secret-revelation-sync job ${job?.id} failed:`, err.message);
+});
+
+async function shutdown() {
+  console.log('[worker] secret-revelation-sync shutting down...');
+  await worker.close();
+  await prisma.$disconnect();
+  process.exit(0);
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

@@ -177,7 +177,6 @@
     "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss-animate": "^1.0.7",
     "task-master-ai": "^0.40.0",
-    "three": "^0.184.0",
     "workbox-window": "^7.1.0",
     "ws": "^8.18.3",
     "zod": "^3.25.76",
