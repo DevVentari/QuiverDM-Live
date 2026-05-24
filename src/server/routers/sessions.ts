@@ -958,7 +958,7 @@ export const sessionsRouter = router({
         }),
         prisma.prepSecret.findMany({
           where: { sessionId: input.sessionId, campaignId: input.campaignId },
-          select: { id: true, name: true, content: true, isRevealed: true },
+          select: { id: true, name: true, content: true, isRevealed: true, knowledge: { select: { isCritical: true } } },
         }),
         prisma.worldEntity.findMany({
           where: { campaignId: input.campaignId, type: 'SECRET' },
@@ -988,7 +988,10 @@ export const sessionsRouter = router({
 
       const brief = await generatePrepBrief({
         intentBrief,
-        prepSecrets,
+        prepSecrets: prepSecrets.map(s => ({
+          ...s,
+          isCritical: s.knowledge.some(k => k.isCritical),
+        })),
         revealedToPlayers,
       });
 
@@ -1006,8 +1009,12 @@ export const sessionsRouter = router({
           select: { title: true },
         }),
         prisma.secretRevelation.findMany({
-          where: { sessionId: input.sessionId },
-          include: { prepSecret: { select: { name: true, content: true } } },
+          where: { sessionId: input.sessionId, prepSecret: { campaignId: input.campaignId } },
+          include: {
+            prepSecret: {
+              include: { knowledge: { select: { worldEntity: { select: { name: true, type: true } } } } },
+            },
+          },
         }),
         prisma.sessionPhase.findMany({
           where: { sessionId: input.sessionId },
@@ -1027,7 +1034,9 @@ export const sessionsRouter = router({
         sessionTitle: session.title,
         revealedThisSession,
         phasesElapsed: phases,
-        activeNpcNames: [],
+        activeNpcNames: [...new Set(
+          revelations.flatMap(r => r.prepSecret.knowledge.map(k => k.worldEntity)).filter(e => e.type === 'NPC').map(e => e.name)
+        )],
       });
 
       return { summary };
