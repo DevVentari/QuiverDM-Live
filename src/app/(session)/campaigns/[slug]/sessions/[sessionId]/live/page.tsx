@@ -17,6 +17,7 @@ import { CoDMPanel } from '@/components/cockpit/co-dm-panel';
 import { CockpitToolbar } from '@/components/cockpit/cockpit-toolbar';
 import { BattleMapPanel } from '@/components/cockpit/battle-map-panel';
 import { InitiativePanel } from '@/components/cockpit/initiative-panel';
+import { SessionIntelDrawer } from '@/components/cockpit/session-intel-drawer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SessionPrepDataSchema } from '@/lib/prep-types';
@@ -149,7 +150,7 @@ export default function SessionCockpitPage() {
       />
 
       {/* 3-column grid */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Left: Party State */}
         <div className="w-60 shrink-0 border-r border-border overflow-y-auto">
           <PartyOverviewPanel campaignId={campaign.id} sessionId={sessionId} />
@@ -214,6 +215,19 @@ export default function SessionCockpitPage() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {campaignId && (
+          <SessionIntelDrawer
+            campaignId={campaignId}
+            sessionId={sessionId}
+            intentBrief={
+              (rawSession?.intentBrief as
+                | { toneKeywords: string[]; playerGoals: string[]; dmOnlyTruths: string[] }
+                | null
+                | undefined) ?? null
+            }
+          />
+        )}
       </div>
 
       <CockpitToolbar
