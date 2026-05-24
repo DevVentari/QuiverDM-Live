@@ -42,6 +42,7 @@ npx tsx src/lib/queue/feedback-triage-worker.ts &
 npx tsx src/lib/queue/obsidian-import-worker.ts &
 npx tsx src/lib/queue/brain-ingestion-worker.ts &
 npx tsx src/lib/queue/brain-inference-worker.ts &
+npx tsx src/lib/queue/secret-revelation-sync-worker.ts &
 npx tsx src/lib/queue/ddb-sync-coordinator-worker.ts &
 npx tsx src/lib/queue/ddb-chapter-extract-worker.ts &
 npx tsx src/lib/queue/ddb-sync-review-worker.ts &
@@ -53,7 +54,7 @@ npx tsx src/lib/queue/multi-track-worker.ts &
 npx tsx src/lib/queue/co-dm-worker.ts &
 npx tsx src/lib/queue/co-dm-prep-worker.ts &
 
-echo "[Workers] All 25 workers launched"
+echo "[Workers] All 26 workers launched"
 
 wait -n
 echo "[Workers] A worker process exited, shutting down..."
