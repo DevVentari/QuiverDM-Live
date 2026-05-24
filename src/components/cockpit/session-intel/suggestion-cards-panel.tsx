@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 
@@ -10,15 +11,19 @@ interface SuggestionCardsPanelProps {
 }
 
 export function SuggestionCardsPanel({ campaignId, sessionId, inPlayIds }: SuggestionCardsPanelProps) {
+  const [revealingId, setRevealingId] = useState<string | null>(null);
   const utils = trpc.useUtils();
 
   const profilesQuery = trpc.npcBehaviorProfiles.listBySession.useQuery({ campaignId, sessionId });
   const secretsQuery = trpc.prepSecrets.list.useQuery({ campaignId, sessionId });
 
-  const triggerSync = trpc.sessions.triggerRevelationSync.useMutation();
+  const triggerSync = trpc.sessions.triggerRevelationSync.useMutation({
+    onError: (err) => console.error('[SuggestionCardsPanel] revelation sync failed', err.message),
+  });
 
   const logRevelation = trpc.prepSecrets.logRevelation.useMutation({
     onSuccess: async (data) => {
+      setRevealingId(null);
       await utils.prepSecrets.list.invalidate({ campaignId, sessionId });
       void triggerSync.mutate({
         campaignId,
@@ -27,6 +32,7 @@ export function SuggestionCardsPanel({ campaignId, sessionId, inPlayIds }: Sugge
         prepSecretId: data.prepSecretId,
       });
     },
+    onError: () => setRevealingId(null),
   });
 
   if (!inPlayIds.size) {
@@ -78,14 +84,15 @@ export function SuggestionCardsPanel({ campaignId, sessionId, inPlayIds }: Sugge
                       size="sm"
                       variant="outline"
                       className="h-5 text-[10px] px-1.5 shrink-0"
-                      disabled={logRevelation.isPending}
-                      onClick={() =>
+                      disabled={revealingId === secret.id}
+                      onClick={() => {
+                        setRevealingId(secret.id);
                         logRevelation.mutate({
                           campaignId,
                           prepSecretId: secret.id,
                           sessionId,
-                        })
-                      }
+                        });
+                      }}
                     >
                       Reveal
                     </Button>

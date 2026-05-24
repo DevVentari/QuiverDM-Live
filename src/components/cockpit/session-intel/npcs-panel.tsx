@@ -109,14 +109,18 @@ export function NpcsPanel({ campaignId, sessionId, inPlayIds, onToggleInPlay }: 
                   )}
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant={isInPlay ? 'default' : 'outline'}
-                className="h-6 text-[10px] px-2 shrink-0"
-                onClick={() => onToggleInPlay(id)}
-              >
-                {isInPlay ? 'In Play' : 'Mark in play'}
-              </Button>
+              {profile !== null ? (
+                <Button
+                  size="sm"
+                  variant={isInPlay ? 'default' : 'outline'}
+                  className="h-6 text-[10px] px-2 shrink-0"
+                  onClick={() => onToggleInPlay(id)}
+                >
+                  {isInPlay ? 'In Play' : 'Mark in play'}
+                </Button>
+              ) : (
+                <span className="text-[9px] text-muted-foreground italic shrink-0">No profile yet</span>
+              )}
               <button
                 aria-label={isExpanded ? 'Collapse' : 'Expand'}
                 onClick={() => toggleExpanded(id)}
