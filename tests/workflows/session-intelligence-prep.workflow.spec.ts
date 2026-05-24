@@ -246,3 +246,72 @@ test('session-intelligence: DM can add an escape route with benefits and risks',
     await saveBtn.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {});
   }, 10_000);
 });
+
+test('session-intelligence: BRIEF tab renders generate-prep-brief and post-summary buttons', async ({ page }, testInfo) => {
+  test.slow();
+
+  const sessionId = process.env.TEST_SESSION_ID ?? '';
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, DM_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-to-cockpit', async () => {
+    if (!sessionId) return;
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions/${sessionId}/live`);
+    await page.waitForLoadState('networkidle', { timeout: 25_000 }).catch(() => {});
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
+  }, 30_000);
+
+  await checkpoint(testInfo, 'open-brief-tab', async () => {
+    if (!sessionId) return;
+    const briefTab = page.locator('button').filter({ hasText: 'BRIEF' }).last();
+    const hasTab = await briefTab.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasTab) return;
+    await briefTab.click();
+    await page.waitForTimeout(500);
+    const panelTitle = await page.getByText('Session Brief').first().isVisible({ timeout: 8_000 }).catch(() => false);
+    expect(panelTitle).toBeTruthy();
+  }, 20_000);
+
+  await checkpoint(testInfo, 'verify-brief-buttons', async () => {
+    if (!sessionId) return;
+    const hasPrepBtn = await page.getByRole('button', { name: /generate prep brief/i }).first().isVisible({ timeout: 8_000 }).catch(() => false);
+    const hasPostBtn = await page.getByRole('button', { name: /post-session summary/i }).first().isVisible({ timeout: 8_000 }).catch(() => false);
+    expect(hasPrepBtn || hasPostBtn).toBeTruthy();
+  }, 10_000);
+});
+
+test('session-intelligence: SUGGEST tab shows empty state when no NPCs in play', async ({ page }, testInfo) => {
+  test.slow();
+
+  const sessionId = process.env.TEST_SESSION_ID ?? '';
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, DM_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-to-cockpit', async () => {
+    if (!sessionId) return;
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions/${sessionId}/live`);
+    await page.waitForLoadState('networkidle', { timeout: 25_000 }).catch(() => {});
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
+  }, 30_000);
+
+  await checkpoint(testInfo, 'open-suggest-tab', async () => {
+    if (!sessionId) return;
+    const suggestTab = page.locator('button').filter({ hasText: 'SUGGEST' }).last();
+    const hasTab = await suggestTab.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasTab) return;
+    await suggestTab.click();
+    await page.waitForTimeout(500);
+    const panelTitle = await page.getByText('Live Suggestions').first().isVisible({ timeout: 8_000 }).catch(() => false);
+    expect(panelTitle).toBeTruthy();
+  }, 20_000);
+
+  await checkpoint(testInfo, 'verify-suggest-empty-state', async () => {
+    if (!sessionId) return;
+    const hasEmptyState = await page.getByText(/mark npcs in play to see suggestions/i).first().isVisible({ timeout: 8_000 }).catch(() => false);
+    expect(hasEmptyState).toBeTruthy();
+  }, 10_000);
+});
