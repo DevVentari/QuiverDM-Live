@@ -22,6 +22,8 @@ import { generateBriefingCards } from '@/lib/ai/generate-briefing';
 import { brainRepository } from '../repositories/brain.repository';
 import { addTranscriptCleanupJob } from '@/lib/queue/transcript-cleanup-queue';
 import { addRevelationSyncJob } from '@/lib/queue/secret-revelation-sync-queue';
+import { generatePrepBrief } from '@/lib/ai/generate-prep-brief';
+import { generatePostSessionSummary } from '@/lib/ai/generate-post-session-summary';
 
 interface OocReviewItem {
   index: number;
@@ -942,5 +944,92 @@ export const sessionsRouter = router({
         campaignId: input.campaignId,
       });
       return { queued: true };
+    }),
+
+  generatePrepBrief: campaignDMProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      const [session, prepSecrets, secretEntities] = await Promise.all([
+        prisma.gameSession.findFirst({
+          where: { id: input.sessionId, campaignId: input.campaignId },
+          select: { intentBrief: true },
+        }),
+        prisma.prepSecret.findMany({
+          where: { sessionId: input.sessionId, campaignId: input.campaignId },
+          select: { id: true, name: true, content: true, isRevealed: true },
+        }),
+        prisma.worldEntity.findMany({
+          where: { campaignId: input.campaignId, type: 'SECRET' },
+          select: { id: true, name: true },
+        }),
+      ]);
+
+      if (!session) throw new NotFoundError('session', input.sessionId);
+
+      const secretEntityIds = secretEntities.map(e => e.id);
+      const revealedRelationships = secretEntityIds.length
+        ? await prisma.worldRelationship.findMany({
+            where: { type: 'revealed_to_players', toEntityId: { in: secretEntityIds } },
+            include: { toEntity: { select: { name: true } } },
+          })
+        : [];
+
+      const intentBrief = session.intentBrief as {
+        toneKeywords: string[];
+        playerGoals: string[];
+        dmOnlyTruths: string[];
+      } | null;
+
+      const revealedToPlayers = revealedRelationships.map(r => ({
+        secretName: r.toEntity.name,
+      }));
+
+      const brief = await generatePrepBrief({
+        intentBrief,
+        prepSecrets,
+        revealedToPlayers,
+      });
+
+      return { brief };
+    }),
+
+  generatePostSessionSummary: campaignDMProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+    }))
+    .mutation(async ({ input }) => {
+      const [session, revelations, phases] = await Promise.all([
+        prisma.gameSession.findFirst({
+          where: { id: input.sessionId, campaignId: input.campaignId },
+          select: { title: true },
+        }),
+        prisma.secretRevelation.findMany({
+          where: { sessionId: input.sessionId },
+          include: { prepSecret: { select: { name: true, content: true } } },
+        }),
+        prisma.sessionPhase.findMany({
+          where: { sessionId: input.sessionId },
+          orderBy: { orderIndex: 'asc' },
+          select: { name: true, targetMinutes: true },
+        }),
+      ]);
+
+      if (!session) throw new NotFoundError('session', input.sessionId);
+
+      const revealedThisSession = revelations.map(r => ({
+        secretName: r.prepSecret.name,
+        content: r.prepSecret.content,
+      }));
+
+      const summary = await generatePostSessionSummary({
+        sessionTitle: session.title,
+        revealedThisSession,
+        phasesElapsed: phases,
+        activeNpcNames: [],
+      });
+
+      return { summary };
     }),
 });
