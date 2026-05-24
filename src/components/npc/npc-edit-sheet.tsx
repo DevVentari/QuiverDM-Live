@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Lock } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2, Lock, Plus, Trash2 } from 'lucide-react';
 import {
   EMPTY_ABILITY_SCORES,
   EMPTY_STAT_BLOCK,
@@ -46,6 +46,11 @@ export function NpcEditSheet({ npcId, open, onOpenChange }: NpcEditSheetProps) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [statBlockOpen, setStatBlockOpen] = useState(false);
+  const [behaviorProfileOpen, setBehaviorProfileOpen] = useState(false);
+  const [defaultBehavior, setDefaultBehavior] = useState('');
+  const [triggeredBehaviors, setTriggeredBehaviors] = useState<Array<{ condition: string; behavior: string }>>([]);
+  const [criticalDialogue, setCriticalDialogue] = useState<Array<{ line: string; trigger: string }>>([]);
+  const [behaviorDirty, setBehaviorDirty] = useState(false);
   const [statState, setStatState] = useState<StatBlockFormState>({
     ...EMPTY_STAT_BLOCK,
     abilityScores: { ...EMPTY_ABILITY_SCORES },
@@ -73,6 +78,38 @@ export function NpcEditSheet({ npcId, open, onOpenChange }: NpcEditSheetProps) {
     });
     setStatBlockOpen(hasStats);
   }, [npc.data]);
+
+  const behaviorProfile = trpc.npcBehaviorProfiles.get.useQuery(
+    { campaignId, worldEntityId: npcId as string },
+    { enabled: open && !!npcId && behaviorProfileOpen, staleTime: 60_000 }
+  );
+
+  const upsertBehaviorProfile = trpc.npcBehaviorProfiles.upsert.useMutation({
+    onSuccess: () => {
+      setBehaviorDirty(false);
+      toast({ description: 'Behavior profile saved.' });
+    },
+    onError: () => {
+      toast({ variant: 'destructive', description: 'Failed to save behavior profile.' });
+    },
+  });
+
+  useEffect(() => {
+    if (!behaviorProfile.data) return;
+    const p = behaviorProfile.data;
+    setDefaultBehavior(p.defaultBehavior ?? '');
+    setTriggeredBehaviors(
+      Array.isArray(p.triggeredBehaviors)
+        ? (p.triggeredBehaviors as Array<{ condition: string; behavior: string }>)
+        : []
+    );
+    setCriticalDialogue(
+      Array.isArray(p.criticalDialogue)
+        ? (p.criticalDialogue as Array<{ line: string; trigger: string }>)
+        : []
+    );
+    setBehaviorDirty(false);
+  }, [behaviorProfile.data]);
 
   const utils = trpc.useUtils();
   const update = trpc.npcs.update.useMutation({
@@ -255,6 +292,116 @@ export function NpcEditSheet({ npcId, open, onOpenChange }: NpcEditSheetProps) {
                     className="resize-none"
                   />
                 </div>
+              </div>
+
+              {/* Behavior Profile */}
+              <div className="border border-border rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted/30 transition-colors"
+                  onClick={() => setBehaviorProfileOpen((v) => !v)}
+                >
+                  <span className="flex items-center gap-2">
+                    Behavior Profile
+                    {behaviorDirty && <span className="text-[10px] text-primary">unsaved</span>}
+                  </span>
+                  {behaviorProfileOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+
+                {behaviorProfileOpen && (
+                  <div className="px-3 pb-3 pt-1.5 flex flex-col gap-3 border-t border-border">
+                    {/* Default behavior */}
+                    <div className="flex flex-col gap-1">
+                      <Label className="text-xs text-muted-foreground">Default behavior</Label>
+                      <Textarea
+                        rows={2}
+                        value={defaultBehavior}
+                        placeholder="How this NPC acts by default at the table..."
+                        onChange={(e) => { setDefaultBehavior(e.target.value); setBehaviorDirty(true); }}
+                      />
+                    </div>
+
+                    {/* Triggered behaviors */}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">Triggered behaviors</Label>
+                        <button type="button" className="text-xs text-primary hover:underline flex items-center gap-0.5"
+                          onClick={() => { setTriggeredBehaviors((prev) => [...prev, { condition: '', behavior: '' }]); setBehaviorDirty(true); }}>
+                          <Plus className="h-3 w-3" /> Add
+                        </button>
+                      </div>
+                      {triggeredBehaviors.map((tb, i) => (
+                        <div key={i} className="flex gap-1.5 items-start">
+                          <div className="flex flex-col gap-1 flex-1">
+                            <Input placeholder="Condition (e.g. shown empathy)" value={tb.condition}
+                              onChange={(e) => {
+                                setTriggeredBehaviors(prev => prev.map((x, j) => j === i ? { ...x, condition: e.target.value } : x));
+                                setBehaviorDirty(true);
+                              }} />
+                            <Input placeholder="Behavior" value={tb.behavior}
+                              onChange={(e) => {
+                                setTriggeredBehaviors(prev => prev.map((x, j) => j === i ? { ...x, behavior: e.target.value } : x));
+                                setBehaviorDirty(true);
+                              }} />
+                          </div>
+                          <button type="button" aria-label="Remove triggered behavior"
+                            onClick={() => { setTriggeredBehaviors(prev => prev.filter((_, j) => j !== i)); setBehaviorDirty(true); }}
+                            className="text-muted-foreground hover:text-destructive transition-colors mt-1">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Critical dialogue */}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs text-muted-foreground">Critical dialogue</Label>
+                        <button type="button" className="text-xs text-primary hover:underline flex items-center gap-0.5"
+                          onClick={() => { setCriticalDialogue((prev) => [...prev, { line: '', trigger: '' }]); setBehaviorDirty(true); }}>
+                          <Plus className="h-3 w-3" /> Add
+                        </button>
+                      </div>
+                      {criticalDialogue.map((cd, i) => (
+                        <div key={i} className="flex gap-1.5 items-start">
+                          <div className="flex flex-col gap-1 flex-1">
+                            <Input placeholder="Line (e.g. Stone ain't supposed to breathe.)" value={cd.line}
+                              onChange={(e) => {
+                                setCriticalDialogue(prev => prev.map((x, j) => j === i ? { ...x, line: e.target.value } : x));
+                                setBehaviorDirty(true);
+                              }} />
+                            <Input placeholder="Trigger (e.g. players ask about excavation)" value={cd.trigger}
+                              onChange={(e) => {
+                                setCriticalDialogue(prev => prev.map((x, j) => j === i ? { ...x, trigger: e.target.value } : x));
+                                setBehaviorDirty(true);
+                              }} />
+                          </div>
+                          <button type="button" aria-label="Remove dialogue line"
+                            onClick={() => { setCriticalDialogue(prev => prev.filter((_, j) => j !== i)); setBehaviorDirty(true); }}
+                            className="text-muted-foreground hover:text-destructive transition-colors mt-1">
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Save button */}
+                    <Button variant="outline" size="sm"
+                      disabled={!behaviorDirty || upsertBehaviorProfile.isPending || !npcId}
+                      onClick={() => {
+                        if (!npcId) return;
+                        upsertBehaviorProfile.mutate({
+                          campaignId,
+                          worldEntityId: npcId,
+                          defaultBehavior: defaultBehavior || undefined,
+                          triggeredBehaviors,
+                          criticalDialogue,
+                        });
+                      }}>
+                      {upsertBehaviorProfile.isPending ? 'Saving...' : 'Save behavior profile'}
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <StatBlockSection
