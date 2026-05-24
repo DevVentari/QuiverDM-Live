@@ -15,7 +15,9 @@ export function SecretsPanel({ campaignId, sessionId }: SecretsPanelProps) {
   const utils = trpc.useUtils();
 
   const secretsQuery = trpc.prepSecrets.list.useQuery({ campaignId, sessionId });
-  const triggerSync = trpc.sessions.triggerRevelationSync.useMutation();
+  const triggerSync = trpc.sessions.triggerRevelationSync.useMutation({
+    onError: (err) => console.error('[SecretsPanel] revelation sync failed', err.message),
+  });
 
   const logRevelation = trpc.prepSecrets.logRevelation.useMutation({
     onSuccess: (data, variables) => {
