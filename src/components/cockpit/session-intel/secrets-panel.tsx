@@ -15,9 +15,17 @@ export function SecretsPanel({ campaignId, sessionId }: SecretsPanelProps) {
   const utils = trpc.useUtils();
 
   const secretsQuery = trpc.prepSecrets.list.useQuery({ campaignId, sessionId });
+  const triggerSync = trpc.sessions.triggerRevelationSync.useMutation();
+
   const logRevelation = trpc.prepSecrets.logRevelation.useMutation({
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       utils.prepSecrets.list.invalidate({ campaignId, sessionId });
+      void triggerSync.mutate({
+        campaignId,
+        sessionId,
+        revelationId: data.id,
+        prepSecretId: variables.prepSecretId,
+      });
     },
     onError: () => {
       toast({ title: 'Failed to mark secret revealed', variant: 'destructive' });
