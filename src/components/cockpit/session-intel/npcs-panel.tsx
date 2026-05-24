@@ -9,13 +9,14 @@ import { Button } from '@/components/ui/button';
 interface NpcsPanelProps {
   campaignId: string;
   sessionId: string;
+  inPlayIds: Set<string>;
+  onToggleInPlay: (entityId: string) => void;
 }
 
 type TriggeredBehavior = { condition: string; behavior: string };
 type CriticalDialogueLine = { line: string; trigger: string };
 
-export function NpcsPanel({ campaignId, sessionId }: NpcsPanelProps) {
-  const [inPlayIds, setInPlayIds] = useState<Set<string>>(new Set());
+export function NpcsPanel({ campaignId, sessionId, inPlayIds, onToggleInPlay }: NpcsPanelProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const profilesQuery = trpc.npcBehaviorProfiles.listBySession.useQuery({ campaignId, sessionId });
@@ -51,13 +52,6 @@ export function NpcsPanel({ campaignId, sessionId }: NpcsPanelProps) {
       }
     }
   }
-
-  const toggleInPlay = (id: string) =>
-    setInPlayIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
 
   const toggleExpanded = (id: string) =>
     setExpandedIds((prev) => {
@@ -119,7 +113,7 @@ export function NpcsPanel({ campaignId, sessionId }: NpcsPanelProps) {
                 size="sm"
                 variant={isInPlay ? 'default' : 'outline'}
                 className="h-6 text-[10px] px-2 shrink-0"
-                onClick={() => toggleInPlay(id)}
+                onClick={() => onToggleInPlay(id)}
               >
                 {isInPlay ? 'In Play' : 'Mark in play'}
               </Button>

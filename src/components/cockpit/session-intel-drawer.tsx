@@ -8,8 +8,9 @@ import { SecretsPanel } from '@/components/cockpit/session-intel/secrets-panel';
 import { RoutesPanel } from '@/components/cockpit/session-intel/routes-panel';
 import { PhasesPanel } from '@/components/cockpit/session-intel/phases-panel';
 import { BriefPanel } from '@/components/cockpit/session-intel/brief-panel';
+import { SuggestionCardsPanel } from '@/components/cockpit/session-intel/suggestion-cards-panel';
 
-type TabId = 'npcs' | 'secrets' | 'routes' | 'phases' | 'brief';
+type TabId = 'npcs' | 'secrets' | 'routes' | 'phases' | 'brief' | 'suggest';
 
 interface SessionIntelDrawerProps {
   campaignId: string;
@@ -23,6 +24,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'routes', label: 'ROUTES' },
   { id: 'phases', label: 'PHASES' },
   { id: 'brief', label: 'BRIEF' },
+  { id: 'suggest', label: 'SUGGEST' },
 ];
 
 const PANEL_TITLES: Record<TabId, string> = {
@@ -31,13 +33,24 @@ const PANEL_TITLES: Record<TabId, string> = {
   routes: 'Escape Routes',
   phases: 'Phase Pacing',
   brief: 'Session Brief',
+  suggest: 'Live Suggestions',
 };
 
 export function SessionIntelDrawer({ campaignId, sessionId, intentBrief }: SessionIntelDrawerProps) {
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
+  const [inPlayIds, setInPlayIds] = useState<Set<string>>(new Set());
 
   function toggle(id: TabId) {
     setActiveTab(prev => (prev === id ? null : id));
+  }
+
+  function handleToggleInPlay(entityId: string) {
+    setInPlayIds(prev => {
+      const next = new Set(prev);
+      if (next.has(entityId)) next.delete(entityId);
+      else next.add(entityId);
+      return next;
+    });
   }
 
   return (
@@ -54,7 +67,12 @@ export function SessionIntelDrawer({ campaignId, sessionId, intentBrief }: Sessi
           </div>
           <div className="flex-1 overflow-y-auto">
             {activeTab === 'npcs' && (
-              <NpcsPanel campaignId={campaignId} sessionId={sessionId} />
+              <NpcsPanel
+                campaignId={campaignId}
+                sessionId={sessionId}
+                inPlayIds={inPlayIds}
+                onToggleInPlay={handleToggleInPlay}
+              />
             )}
             {activeTab === 'secrets' && (
               <SecretsPanel campaignId={campaignId} sessionId={sessionId} />
@@ -66,7 +84,18 @@ export function SessionIntelDrawer({ campaignId, sessionId, intentBrief }: Sessi
               <PhasesPanel campaignId={campaignId} sessionId={sessionId} />
             )}
             {activeTab === 'brief' && (
-              <BriefPanel campaignId={campaignId} sessionId={sessionId} intentBrief={intentBrief} />
+              <BriefPanel
+                campaignId={campaignId}
+                sessionId={sessionId}
+                intentBrief={intentBrief}
+              />
+            )}
+            {activeTab === 'suggest' && (
+              <SuggestionCardsPanel
+                campaignId={campaignId}
+                sessionId={sessionId}
+                inPlayIds={inPlayIds}
+              />
             )}
           </div>
         </div>
