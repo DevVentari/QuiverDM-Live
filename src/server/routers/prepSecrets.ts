@@ -112,4 +112,42 @@ export const prepSecretsRouter = router({
       if (!knowledge) throw new NotFoundError('prepKnowledge', input.id);
       await prisma.prepKnowledge.delete({ where: { id: input.id } });
     }),
+
+  logRevelation: campaignDMProcedure
+    .input(z.object({
+      prepSecretId: z.string(),
+      sessionId: z.string(),
+      revealedBy: z.string().optional(),
+      method: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const secret = await prisma.prepSecret.findFirst({
+        where: { id: input.prepSecretId, campaignId: input.campaignId },
+        select: { id: true },
+      });
+      if (!secret) throw new NotFoundError('prepSecret', input.prepSecretId);
+
+      const session = await prisma.gameSession.findFirst({
+        where: { id: input.sessionId, campaignId: input.campaignId },
+        select: { id: true },
+      });
+      if (!session) throw new NotFoundError('session', input.sessionId);
+
+      const [revelation] = await prisma.$transaction([
+        prisma.secretRevelation.create({
+          data: {
+            prepSecretId: input.prepSecretId,
+            sessionId: input.sessionId,
+            revealedBy: input.revealedBy,
+            method: input.method,
+          },
+        }),
+        prisma.prepSecret.update({
+          where: { id: input.prepSecretId },
+          data: { isRevealed: true },
+        }),
+      ]);
+
+      return revelation;
+    }),
 });
