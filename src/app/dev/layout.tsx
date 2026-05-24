@@ -7,6 +7,7 @@ const TABS = [
   { label: 'Design System', href: '/dev/design-system' },
   { label: 'Cards',         href: '/dev/cards' },
   { label: 'Icons',         href: '/dev/icons' },
+  { label: 'Theme',         href: '/dev/theme' },
 ];
 
 export default function DevLayout({ children }: { children: React.ReactNode }) {
