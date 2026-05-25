@@ -10,7 +10,7 @@
  * Tolerance: maxDiffPixels:200 to absorb minor font/anti-aliasing variation.
  */
 import { test, expect } from '@playwright/test';
-import { signInAsTestUser, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
+import { signInAsTestUser, ensureTestUserExists, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
 
 const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? TEST_USER_EMAIL;
 const JORDAN_EMAIL = process.env.QA_JORDAN_EMAIL ?? TEST_USER_EMAIL;
@@ -20,6 +20,10 @@ const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
 const SNAP_OPTS = { maxDiffPixels: 200, animations: 'disabled' } as const;
 
 test.describe('visual regression — key pages', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists(BLAKE_EMAIL, PASSWORD);
+  });
+
   test('dashboard', async ({ page }) => {
     await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     await page.goto('/dashboard');
