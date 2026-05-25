@@ -102,7 +102,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
   const baseClasses = cn(
     'relative overflow-hidden rounded-[3px] border border-[var(--card-stone-border)]',
     'bg-[image:var(--card-stone-bg)]',
-    '[box-shadow:var(--card-stone-inset),0_4px_20px_hsl(240_10%_4%/0.5)]',
+    '[box-shadow:var(--card-stone-inset)]',
   );
 
   const accentBar = (
@@ -190,7 +190,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
 
       <div
         className="grid grid-cols-2 gap-x-[10px] gap-y-[6px] mb-[10px] px-[10px] py-2 rounded-[3px] border"
-        style={{ background: 'hsl(240 10% 7%)', borderColor: 'var(--card-stone-border)' }}
+        style={{ background: 'var(--q-surface-sunken)', borderColor: 'var(--card-stone-border)' }}
       >
         {statItems.map(({ label, value }) => (
           <div key={label}>
@@ -223,11 +223,11 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
               style={active ? {
                 borderColor: 'var(--card-amber)',
                 color: 'var(--card-amber-light)',
-                background: 'hsl(35 60% 10%)',
+                background: 'var(--q-accent-primary-trace)',
               } : {
                 borderColor: 'var(--card-stone-border)',
                 color: 'var(--card-text-muted)',
-                background: 'hsl(240 10% 13%)',
+                background: 'var(--q-surface-raised)',
               }}
             >
               {c}
@@ -252,17 +252,17 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
         <div
           className="rounded-[3px] px-[10px] py-[7px] border"
           style={{
-            background: 'hsl(260 30% 10%)',
-            borderColor: 'hsl(260 30% 22%)',
+            background: 'var(--q-accent-arcane-trace)',
+            borderColor: 'var(--q-accent-arcane-border)',
           }}
         >
           <div
             className="text-[9px] uppercase tracking-[.1em] font-semibold mb-[2px]"
-            style={{ color: 'hsl(260,50%,55%)' }}
+            style={{ color: 'var(--q-accent-arcane)' }}
           >
             At Higher Levels
           </div>
-          <div className="text-[11px] leading-[1.5]" style={{ color: 'hsl(35,10%,68%)' }}>
+          <div className="text-[11px] leading-[1.5]" style={{ color: 'var(--q-text-dim)' }}>
             {spell.higherLevels}
           </div>
         </div>
@@ -277,7 +277,7 @@ export function SpellCard({ spell, variant, onToggle }: SpellCardProps) {
             <span
               key={cls}
               className="text-[9px] px-[6px] py-[1px] rounded-[2px] border"
-              style={{ background: 'hsl(240 10% 13%)', borderColor: 'var(--card-stone-border)', color: 'var(--card-text-muted)' }}
+              style={{ background: 'var(--q-surface-raised)', borderColor: 'var(--card-stone-border)', color: 'var(--card-text-muted)' }}
             >
               {cls}
             </span>

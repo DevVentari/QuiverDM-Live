@@ -76,7 +76,7 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
 
   const boxShadow = rarityVars['--rg']
     ? `var(--card-stone-inset), ${rarityVars['--rg']}`
-    : 'var(--card-stone-inset), 0 4px 16px hsl(240 10% 4% / 0.4)';
+    : 'var(--card-stone-inset)';
 
   const cardStyle: CSSProperties = {
     ...(rarityVars as CSSProperties),
@@ -135,9 +135,9 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
             <span
               className="text-[9px] font-semibold tracking-[.06em] uppercase px-[6px] py-[1px] rounded-[2px] border"
               style={{
-                background: 'hsl(260 30% 12%)',
-                color: 'hsl(260,45%,62%)',
-                borderColor: 'hsl(260,30%,22%)',
+                background: 'var(--q-accent-arcane-trace)',
+                color: 'var(--q-accent-arcane)',
+                borderColor: 'var(--q-accent-arcane-border)',
               }}
             >
               {attunementLabel}
@@ -182,7 +182,7 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
       {item.lore && (
         <div
           className="pr-3 pl-4 pt-2 pb-[9px] border-t"
-          style={{ background: 'hsl(240 10% 7%)', borderColor: 'var(--card-stone-border)' }}
+          style={{ background: 'var(--q-surface-sunken)', borderColor: 'var(--card-stone-border)' }}
         >
           <div
             className="text-[9px] uppercase tracking-[.1em] font-semibold mb-1"
@@ -192,7 +192,7 @@ export function MagicItemCard({ item }: MagicItemCardProps) {
           </div>
           <p
             className="text-[11px] italic leading-[1.6]"
-            style={{ color: 'hsl(35 12% 60%)' }}
+            style={{ color: 'var(--q-text-dim)' }}
           >
             {item.lore}
           </p>
