@@ -53,6 +53,29 @@ const STORAGE_KEY = 'quiver.rail.collapsed'
 const RAIL_WIDTH_EXPANDED = 200
 const RAIL_WIDTH_COLLAPSED = 56
 
+const DEV_STORAGE_KEY = 'quiver.rail.devExpanded'
+
+type ToolItem = {
+  id: string
+  label: string
+  icon: React.ComponentType<{ size?: number | string; className?: string }>
+  href: string
+}
+
+const DEV_NAV_ITEMS: readonly NavItem[] = [
+  { id: 'maps',    label: 'Maps',    icon: Map,     scopedPath: '/world-map', fallbackHref: '/campaigns' },
+  { id: 'foundry', label: 'Foundry', icon: Monitor, scopedPath: '/foundry',   fallbackHref: '/campaigns' },
+  { id: 'world',   label: 'World',   icon: BookOpen, scopedPath: '/world',    fallbackHref: '/campaigns' },
+  { id: 'quests',  label: 'Quests',  icon: Compass, scopedPath: '/quests',    fallbackHref: '/campaigns' },
+] as const
+
+const DEV_TOOL_ITEMS: readonly ToolItem[] = [
+  { id: 'design-system', label: 'Design System', icon: Layers,     href: '/dev/design-system' },
+  { id: 'cards',         label: 'Cards',         icon: LayoutGrid, href: '/dev/cards' },
+  { id: 'icons',         label: 'Icons',         icon: Shapes,     href: '/dev/icons' },
+  { id: 'theme',         label: 'Theme',         icon: Palette,    href: '/dev/theme' },
+] as const
+
 function resolveHref(item: NavItem, campaignSlug: string | undefined): string {
   if (item.globalHref) return item.globalHref
   if (item.scopedPath && campaignSlug) return `/campaigns/${campaignSlug}${item.scopedPath}`
@@ -73,6 +96,19 @@ export function CommandRail() {
     const next = !collapsed
     setCollapsed(next)
     localStorage.setItem(STORAGE_KEY, String(next))
+  }
+
+  const [devExpanded, setDevExpanded] = useState(true)
+
+  useEffect(() => {
+    const saved = localStorage.getItem(DEV_STORAGE_KEY)
+    if (saved === 'false') setDevExpanded(false)
+  }, [])
+
+  const toggleDev = () => {
+    const next = !devExpanded
+    setDevExpanded(next)
+    localStorage.setItem(DEV_STORAGE_KEY, String(next))
   }
 
   // Fall back to the user's active campaign when the slot hasn't been
@@ -212,6 +248,91 @@ export function CommandRail() {
           </div>
         )}
       </div>
+
+      {process.env.NODE_ENV === 'development' && !collapsed && (
+        <div
+          className="border-t shrink-0"
+          style={{
+            borderColor: 'oklch(0.6 0.18 290 / 0.2)',
+            background: 'oklch(0.6 0.18 290 / 0.02)',
+          }}
+        >
+          <button
+            onClick={toggleDev}
+            aria-label={devExpanded ? 'Collapse dev section' : 'Expand dev section'}
+            aria-expanded={devExpanded}
+            className="flex items-center gap-2 w-full px-3 py-1.5 cursor-pointer"
+          >
+            <span
+              className="text-[9px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded"
+              style={{
+                color: 'oklch(0.65 0.2 290)',
+                background: 'oklch(0.6 0.18 290 / 0.12)',
+                border: '1px solid oklch(0.6 0.18 290 / 0.3)',
+              }}
+            >
+              DEV
+            </span>
+            <span className="ml-auto" style={{ color: 'oklch(0.4 0.01 265)' }}>
+              {devExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            </span>
+          </button>
+
+          {devExpanded && (
+            <div className="flex flex-col gap-px px-2 pb-2">
+              {DEV_NAV_ITEMS.map(({ id, icon: Icon, label, ...item }) => {
+                const href = resolveHref({ id, icon: Icon, label, ...item }, campaignSlug)
+                const devActive = href === '/'
+                  ? pathname === '/'
+                  : pathname === href || pathname.startsWith(href + '/')
+                return (
+                  <Link
+                    key={id}
+                    href={href}
+                    data-testid={`rail-dev-${id}`}
+                    aria-label={label}
+                    className={cn(
+                      'flex items-center gap-2.5 px-3 py-1.5 rounded-sm text-xs min-h-[32px]',
+                      'transition-colors duration-150',
+                      devActive ? 'text-[var(--q-amber)]' : 'hover:text-[oklch(0.65_0.15_290)]',
+                    )}
+                    style={{ color: devActive ? undefined : 'oklch(0.45 0.01 265)' }}
+                  >
+                    <Icon size={14} className="shrink-0" />
+                    <span className="truncate">{label}</span>
+                  </Link>
+                )
+              })}
+
+              <div
+                className="h-px my-1 mx-3"
+                style={{ background: 'oklch(0.25 0.01 265 / 0.4)' }}
+              />
+
+              {DEV_TOOL_ITEMS.map(({ id, icon: Icon, label, href }) => {
+                const devActive = pathname === href
+                return (
+                  <Link
+                    key={id}
+                    href={href}
+                    data-testid={`rail-dev-${id}`}
+                    aria-label={label}
+                    className={cn(
+                      'flex items-center gap-2.5 px-3 py-1.5 rounded-sm text-xs min-h-[32px]',
+                      'transition-colors duration-150',
+                      devActive ? 'text-[var(--q-amber)]' : 'hover:text-[oklch(0.65_0.15_290)]',
+                    )}
+                    style={{ color: devActive ? undefined : 'oklch(0.45 0.01 265)' }}
+                  >
+                    <Icon size={14} className="shrink-0" />
+                    <span className="truncate">{label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   )
 }
