@@ -260,6 +260,33 @@ html.light {
   --q-accent-neutral-trace:  oklch(0.52 0.004 240 / 0.1);
   --q-accent-neutral-border: oklch(0.52 0.004 240 / 0.2);
   --q-accent-neutral-glow:   oklch(0.52 0.004 240 / 0.12);
+
+  /* ── Stone-tile surface treatments (light / parchment) ──────────────────
+     Same lit-from-above structure as dark, flipped to warm hue 80.
+     Top highlight catches ambient light; bottom + drop give depth. */
+  --q-stone-feature-bg:
+    linear-gradient(180deg, oklch(0.98 0.010 80 / 0.95) 0%, oklch(0.93 0.016 80 / 0.88) 100%);
+  --q-stone-feature-shadow:
+    inset 0 1px 0 oklch(1.0 0.0 80 / 0.70),
+    inset 0 -1px 0 oklch(0.60 0.04 80 / 0.14),
+    0 8px 18px -12px oklch(0.45 0.04 70 / 0.16),
+    0 2px 5px -3px oklch(0.45 0.04 70 / 0.10);
+
+  --q-stone-hero-bg:
+    linear-gradient(180deg, oklch(0.985 0.012 80 / 0.98) 0%, oklch(0.94 0.018 80 / 0.92) 100%);
+  --q-stone-hero-shadow:
+    inset 0 1px 0 oklch(1.0 0.0 80 / 0.80),
+    inset 0 -1px 0 oklch(0.58 0.05 80 / 0.18),
+    0 14px 30px -16px oklch(0.42 0.05 70 / 0.22),
+    0 3px 7px -4px oklch(0.42 0.05 70 / 0.14);
+
+  --q-stone-signature-bg:
+    linear-gradient(180deg, oklch(0.95 0.016 80 / 0.98) 0%, oklch(0.91 0.020 80 / 0.94) 100%);
+  --q-stone-signature-shadow:
+    inset 0 1px 0 oklch(1.0 0.0 80 / 0.70),
+    inset 0 -1px 0 oklch(0.55 0.06 80 / 0.20),
+    0 18px 38px -20px oklch(0.40 0.06 70 / 0.26),
+    0 4px 8px -5px oklch(0.40 0.06 70 / 0.16);
 }
 
 .prose-q p { margin-block: 0.9rem; line-height: 1.7; }
