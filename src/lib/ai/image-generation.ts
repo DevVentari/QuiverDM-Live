@@ -118,17 +118,21 @@ async function generateWithHiggsfield(request: ImageGenerationRequest): Promise<
   const start = Date.now();
   const prompt = request.prompt || buildPrompt(request.type, request.name, request.description, request.imagePromptHint);
 
-  const { spawnSync } = await import('child_process');
-  const result = spawnSync(
-    'higgsfield',
-    ['generate', 'create', 'flux_2', '--prompt', prompt, '--aspect_ratio', '1:1', '--resolution', '2k', '--model', 'pro', '--wait'],
-    { encoding: 'utf8', timeout: 180_000 },
-  );
+  const { execFile } = await import('child_process');
 
-  if (result.error) throw new Error(`Higgsfield CLI unavailable: ${result.error.message}`);
-  if (result.status !== 0) throw new Error(`Higgsfield CLI failed: ${(result.stderr ?? '').slice(0, 300)}`);
+  const stdout = await new Promise<string>((resolve, reject) => {
+    execFile(
+      'higgsfield',
+      ['generate', 'create', 'flux_2', '--prompt', prompt, '--aspect_ratio', '1:1', '--resolution', '2k', '--model', 'pro', '--wait'],
+      { timeout: 180_000 },
+      (err, out) => {
+        if (err) reject(new Error(`Higgsfield CLI failed: ${err.message.slice(0, 300)}`));
+        else resolve(out);
+      },
+    );
+  });
 
-  const imageUrl = result.stdout.trim();
+  const imageUrl = stdout.trim();
   if (!imageUrl.startsWith('http')) throw new Error(`Higgsfield CLI unexpected output: ${imageUrl.slice(0, 200)}`);
 
   const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(60_000) });
