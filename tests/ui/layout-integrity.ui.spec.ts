@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { signInAsTestUser } from '../helpers';
+import { signInAsTestUser, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
 
-const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? 'blake@test.local';
-const JORDAN_EMAIL = process.env.QA_JORDAN_EMAIL ?? 'jordan@test.local';
-const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
+const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? TEST_USER_EMAIL;
+const JORDAN_EMAIL = process.env.QA_JORDAN_EMAIL ?? TEST_USER_EMAIL;
+const PASSWORD = process.env.QA_TEST_PASSWORD ?? TEST_USER_PASSWORD;
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
 
 test.describe('sidebar + global chrome', () => {

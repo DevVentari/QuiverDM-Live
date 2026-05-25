@@ -64,7 +64,7 @@ function AbilityGrid({ abilities }: { abilities: Record<AbilityKey, number> }) {
         <div
           key={key}
           className="rounded-[3px] border px-[2px] py-1 text-center"
-          style={{ background: 'hsl(240 10% 7%)', borderColor: 'var(--card-stone-border)' }}
+          style={{ background: 'var(--q-surface-sunken)', borderColor: 'var(--card-stone-border)' }}
         >
           <div
             className="text-[8px] font-bold tracking-[.06em] uppercase"
@@ -96,7 +96,7 @@ function VitalBox({
   return (
     <div
       className="rounded-[3px] border px-[6px] py-[5px] text-center"
-      style={{ background: 'hsl(240 10% 7%)', borderColor: 'var(--card-stone-border)' }}
+      style={{ background: 'var(--q-surface-sunken)', borderColor: 'var(--card-stone-border)' }}
     >
       <div
         className="text-[8px] uppercase tracking-[.1em] font-semibold"
@@ -132,7 +132,7 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
   return (
     <div
       className="py-[5px] border-b last:border-0"
-      style={{ borderColor: 'hsl(35 35% 14%)' }}
+      style={{ borderColor: 'var(--q-border-subtle)' }}
     >
       <span
         className="font-semibold text-[11px]"
@@ -149,7 +149,7 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
         </span>
       )}
       {compact ? (
-        <div className="text-[11px] mt-[2px]" style={{ color: 'hsl(35 15% 72%)' }}>
+        <div className="text-[11px] mt-[2px]" style={{ color: 'var(--q-text-dim)' }}>
           {action.toHit !== undefined && (
             <>
               <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
@@ -167,7 +167,7 @@ function ActionItem({ action, compact = false }: { action: MonsterAction; compac
           )}
         </div>
       ) : (
-        <div className="text-[11px] mt-[2px] leading-[1.5]" style={{ color: 'hsl(35 15% 72%)' }}>
+        <div className="text-[11px] mt-[2px] leading-[1.5]" style={{ color: 'var(--q-text-dim)' }}>
           {action.toHit !== undefined && (
             <span className="font-semibold" style={{ color: 'var(--card-amber-light)' }}>
               {action.toHit >= 0 ? '+' : ''}{action.toHit} to hit
@@ -198,7 +198,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
     <span
       className="inline-flex items-center gap-1 rounded-[3px] border px-[7px] py-[2px] text-[10px] font-semibold tracking-[.05em]"
       style={{
-        background: 'hsl(35 60% 10%)',
+        background: 'var(--q-accent-primary-trace)',
         borderColor: 'var(--card-amber)',
         color: 'var(--card-amber-light)',
       }}
@@ -214,7 +214,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         className={cn(cardBase, 'rounded-t-[6px] rounded-b-[3px]')}
         style={{
           borderColor: 'var(--card-stone-border)',
-          boxShadow: 'var(--card-stone-inset), 0 -4px 20px hsl(240 10% 4% / 0.6)',
+          boxShadow: 'var(--card-stone-inset)',
         } as CSSProperties}
       >
         <div className="flex justify-center pt-2 pb-0">
@@ -246,7 +246,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
           className="grid grid-cols-3 gap-[6px] px-3 py-2 border-b"
           style={{ borderColor: 'var(--card-stone-border)' }}
         >
-          <VitalBox label="HP" value={String(monster.hp)} sub={monster.hpDice} valueColor="hsl(0,60%,62%)" />
+          <VitalBox label="HP" value={String(monster.hp)} sub={monster.hpDice} valueColor="var(--q-accent-danger)" />
           <VitalBox label="AC" value={String(monster.ac)} sub={monster.acNote} />
           <VitalBox label="Speed" value={monster.speed.replaceAll(' ft', '')} sub="ft" />
         </div>
@@ -272,7 +272,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
     >
       <div
         className="px-[14px] pt-3 pb-[10px] border-b"
-        style={{ background: 'hsl(240 10% 10%)', borderColor: 'var(--card-stone-border)' }}
+        style={{ background: 'var(--q-surface-sunken)', borderColor: 'var(--card-stone-border)' }}
       >
         <div
           className="font-serif text-[18px] font-bold tracking-[.02em]"
@@ -287,7 +287,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
           <span
             className="text-[9px] font-semibold tracking-[.08em] uppercase px-[7px] py-[2px] rounded-full border"
             style={{
-              background: 'hsl(35 60% 10%)',
+              background: 'var(--q-accent-primary-trace)',
               borderColor: 'var(--card-amber)',
               color: 'var(--card-amber-light)',
             }}
@@ -297,7 +297,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
           <span
             className="text-[9px] font-semibold tracking-[.08em] uppercase px-[7px] py-[2px] rounded-full border"
             style={{
-              background: 'hsl(240 10% 14%)',
+              background: 'var(--q-surface-raised)',
               borderColor: 'var(--card-stone-border-hi)',
               color: 'var(--card-text-muted)',
             }}
@@ -307,7 +307,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
           <span
             className="text-[9px] font-semibold tracking-[.08em] uppercase px-[7px] py-[2px] rounded-full border"
             style={{
-              background: 'hsl(240 10% 14%)',
+              background: 'var(--q-surface-raised)',
               borderColor: 'var(--card-stone-border)',
               color: 'var(--card-text-muted)',
             }}
@@ -319,7 +319,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
 
       <div className="px-[14px] py-2 border-b" style={{ borderColor: 'var(--card-stone-border)' }}>
         <div className="grid grid-cols-3 gap-[6px]">
-          <VitalBox label="HP" value={String(monster.hp)} sub={monster.hpDice} valueColor="hsl(0,60%,62%)" />
+          <VitalBox label="HP" value={String(monster.hp)} sub={monster.hpDice} valueColor="var(--q-accent-danger)" />
           <VitalBox label="AC" value={String(monster.ac)} sub={monster.acNote} />
           <VitalBox label="Speed" value={monster.speed} />
         </div>
@@ -367,7 +367,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         {monster.damageResistances && monster.damageResistances.length > 0 && (
           <div className="flex items-start text-[11px] mt-[4px]" style={{ color: 'var(--card-text-muted)' }}>
             <span className="font-semibold shrink-0">Damage Resistances</span>
-            <span className="ml-auto text-right" style={{ color: 'hsl(200 60% 62%)' }}>
+            <span className="ml-auto text-right" style={{ color: 'var(--q-accent-quest)' }}>
               {monster.damageResistances.join('; ')}
             </span>
           </div>
@@ -375,7 +375,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         {monster.damageImmunities && monster.damageImmunities.length > 0 && (
           <div className="flex items-start text-[11px] mt-[4px]" style={{ color: 'var(--card-text-muted)' }}>
             <span className="font-semibold shrink-0">Damage Immunities</span>
-            <span className="ml-auto text-right" style={{ color: 'hsl(0 60% 62%)' }}>
+            <span className="ml-auto text-right" style={{ color: 'var(--q-accent-danger)' }}>
               {monster.damageImmunities.join('; ')}
             </span>
           </div>
@@ -383,7 +383,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
         {monster.conditionImmunities && monster.conditionImmunities.length > 0 && (
           <div className="flex items-start text-[11px] mt-[4px]" style={{ color: 'var(--card-text-muted)' }}>
             <span className="font-semibold shrink-0">Condition Immunities</span>
-            <span className="ml-auto text-right" style={{ color: 'hsl(270 40% 62%)' }}>
+            <span className="ml-auto text-right" style={{ color: 'var(--q-accent-arcane)' }}>
               {monster.conditionImmunities.join(', ')}
             </span>
           </div>
@@ -403,7 +403,7 @@ export function MonsterStatBlock({ monster, mode }: MonsterStatBlockProps) {
           {monster.traits.map((trait) => (
             <div key={trait.name} className="py-1 text-[11px] leading-[1.5]">
               <span className="font-semibold italic">{trait.name}. </span>
-              <span style={{ color: 'hsl(35 15% 68%)' }}>{trait.description}</span>
+              <span style={{ color: 'var(--q-text-dim)' }}>{trait.description}</span>
             </div>
           ))}
         </div>

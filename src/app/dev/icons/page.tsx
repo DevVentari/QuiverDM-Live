@@ -13,7 +13,7 @@ const TONE_VARS: Record<Tone, { color: string; bg: string; border: string }> = {
   quest:   { color: 'var(--q-accent-quest)',    bg: 'var(--q-accent-quest-trace)',    border: 'var(--q-accent-quest-border)' },
   danger:  { color: 'var(--q-accent-danger)',   bg: 'var(--q-accent-danger-trace)',   border: 'var(--q-accent-danger-border)' },
   success: { color: 'var(--q-accent-success)',  bg: 'var(--q-accent-success-trace)',  border: 'var(--q-accent-success-border)' },
-  neutral: { color: 'var(--q-text-faint)',      bg: 'hsl(240 10% 13%)',              border: 'var(--q-border-subtle)' },
+  neutral: { color: 'var(--q-text-faint)',      bg: 'var(--q-accent-neutral-trace)', border: 'var(--q-border-subtle)' },
 };
 
 // ── DndIcon ───────────────────────────────────────────────────────────────────
@@ -92,7 +92,7 @@ function EntityPlaceholder({ label, src, tone, path }: typeof ENTITY_PLACEHOLDER
         style={{
           width: 112,
           height: 112,
-          background: `radial-gradient(circle at 50% 65%, ${bg} 0%, hsl(240 10% 7%) 70%)`,
+          background: `radial-gradient(circle at 50% 65%, ${bg} 0%, var(--q-surface-sunken) 70%)`,
           border: `1px solid ${border}`,
         }}
       >
