@@ -29,9 +29,14 @@ export default function HomePage() {
     { enabled: !!active?.id, staleTime: 60_000 },
   )
 
-  const completedSessions = sessions?.filter((s) => s.status !== 'planning') ?? []
+  // Exclude Session 0 from all display logic — it's handled by the hero CTA
+  const realSessions = sessions?.filter((s) => (s as any).sessionNumber !== 0) ?? []
+  const session0 = sessions?.find((s) => (s as any).sessionNumber === 0) ?? null
+  const isNewCampaign = !!session0 && realSessions.length === 0
+
+  const completedSessions = realSessions.filter((s) => s.status !== 'planning')
   const recentSessions = completedSessions.slice(0, 5)
-  const planningFromList = sessions?.find((s) => s.status === 'planning') ?? null
+  const planningFromList = realSessions.find((s) => s.status === 'planning') ?? null
   const charactersList = (characters ?? []) as Array<{
     id: string
     status: string
@@ -109,51 +114,47 @@ export default function HomePage() {
   const reminders = prepReminders?.reminders ?? []
 
   return (
-    <div className="mx-auto max-w-[1600px] px-6 py-6">
-      {/*
-        2D grid (rows × cols) so each row's top/bottom y is shared across
-        columns. Row 1 = Hero (left, span 8) + WorldActivity (right, span 4).
-        Row 2 = Recent+ActiveCampaign (left, span 8) + PrepReminders (right, span 4).
-        Row heights auto-equalize to the tallest item per row, so the
-        Row-2 overlines start at the same y on both sides.
+    <div className="mx-auto max-w-[1600px] px-6 py-6 space-y-6">
+      {/* Hero spans full width so the map gets maximum real estate */}
+      <HomeHero
+        campaignName={active.name}
+        campaignSlug={active.slug}
+        campaignId={active.id}
+        bannerUrl={active.bannerUrl}
+        nextSession={active.nextSession}
+        planningSession={planningSession}
+        playerCount={activeParty.length}
+        partyLevel={partyLevel}
+        isNewCampaign={isNewCampaign}
+        session0Id={(session0 as any)?.id ?? null}
+      />
 
-        The lg:pt-8 on the WorldActivity wrapper mirrors the Hero card's
-        internal p-8 so the WORLD ACTIVITY overline aligns vertically with
-        the NEXT SESSION overline inside the hero card.
-      */}
-      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.83fr)]">
+      {/* Two-column grid: main content left, activity right */}
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.7fr)]">
         <div className="space-y-6">
-          <div className="space-y-6">
-            <HomeHero
-              campaignName={active.name}
-              campaignSlug={active.slug}
-              campaignId={active.id}
-              bannerUrl={active.bannerUrl}
-              nextSession={active.nextSession}
-              planningSession={planningSession}
-              playerCount={activeParty.length}
-              partyLevel={partyLevel}
-            />
-            <HomePartyStrip
-              slug={active.slug}
-              party={activeParty}
-              pendingPartyCount={pendingPartyCount}
-              partyLevel={partyLevel}
-              isDM={isDM}
-            />
-          </div>
-          <div className="grid grid-cols-1 items-start gap-6">
-            <RecentSessionsList sessions={recentSessions} />
-          </div>
+          <HomePartyStrip
+            slug={active.slug}
+            party={activeParty}
+            pendingPartyCount={pendingPartyCount}
+            partyLevel={partyLevel}
+            isDM={isDM}
+          />
+          {!isNewCampaign && <RecentSessionsList sessions={recentSessions} />}
         </div>
         <div className="space-y-5">
-          <WorldActivityFeed campaignId={active.id} />
-          <PrepReminders
-            sessionId={planningSession?.id ?? null}
+          <WorldActivityFeed
+            campaignId={active.id}
+            isNewCampaign={isNewCampaign}
             campaignSlug={active.slug}
-            reminders={reminders}
-            prepItems={prepItems}
           />
+          {!isNewCampaign && (
+            <PrepReminders
+              sessionId={planningSession?.id ?? null}
+              campaignSlug={active.slug}
+              reminders={reminders}
+              prepItems={prepItems}
+            />
+          )}
         </div>
       </div>
     </div>
