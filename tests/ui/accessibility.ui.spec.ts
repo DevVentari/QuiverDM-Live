@@ -2,10 +2,10 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { signInAsTestUser } from '../helpers';
 
-const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
-const DANA_EMAIL = process.env.QA_DANA_EMAIL ?? 'dana@test.local';
+const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? 'blake@test.local';
+const JORDAN_EMAIL = process.env.QA_JORDAN_EMAIL ?? 'jordan@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
-const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
+const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
 
 // Only flag critical and serious violations (not moderate/minor noise)
 const SEVERITY_FILTER = ['critical', 'serious'] as const;
@@ -24,7 +24,7 @@ async function axeScan(page: Parameters<typeof signInAsTestUser>[0], route: stri
 
 test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
   test('dashboard has no critical/serious violations', async ({ page }) => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     const violations = await axeScan(page, '/dashboard');
     expect(
       violations,
@@ -33,7 +33,7 @@ test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
   });
 
   test('campaign overview has no critical/serious violations', async ({ page }) => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     const violations = await axeScan(page, `/campaigns/${CAMPAIGN_SLUG}`);
     expect(
       violations,
@@ -42,7 +42,7 @@ test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
   });
 
   test('sessions list has no critical/serious violations', async ({ page }) => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     const violations = await axeScan(page, `/campaigns/${CAMPAIGN_SLUG}/sessions`);
     expect(
       violations,
@@ -51,7 +51,7 @@ test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
   });
 
   test('homebrew library has no critical/serious violations', async ({ page }) => {
-    await signInAsTestUser(page, DANA_EMAIL, PASSWORD);
+    await signInAsTestUser(page, JORDAN_EMAIL, PASSWORD);
     const violations = await axeScan(page, '/homebrew');
     expect(
       violations,
@@ -60,7 +60,7 @@ test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
   });
 
   test('characters list has no critical/serious violations', async ({ page }) => {
-    await signInAsTestUser(page, DANA_EMAIL, PASSWORD);
+    await signInAsTestUser(page, JORDAN_EMAIL, PASSWORD);
     const violations = await axeScan(page, '/characters');
     expect(
       violations,
@@ -69,7 +69,7 @@ test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
   });
 
   test('settings page has no critical/serious violations', async ({ page }) => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     const violations = await axeScan(page, '/settings');
     expect(
       violations,
@@ -80,7 +80,7 @@ test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
 
 test.describe('accessibility — interactive element labels', () => {
   test('all buttons in sidebar have accessible names', async ({ page }) => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     await page.goto('/dashboard');
     await page.waitForLoadState('domcontentloaded');
 
@@ -100,7 +100,7 @@ test.describe('accessibility — interactive element labels', () => {
   });
 
   test('create campaign form fields are labelled', async ({ page }) => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     await page.goto('/campaigns/new');
     await page.waitForLoadState('domcontentloaded');
     // Every visible input must have a label or aria-label
