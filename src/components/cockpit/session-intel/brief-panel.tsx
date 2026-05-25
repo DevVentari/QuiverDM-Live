@@ -4,7 +4,7 @@ import { useState, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Upload } from 'lucide-react';
+import { Loader2, FileText } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { SIReviewSheet, type SIExtractedPreview } from './si-review-sheet';
 
@@ -40,7 +40,6 @@ export function BriefPanel({ campaignId, sessionId, intentBrief }: BriefPanelPro
     onSuccess: (data) => setPostSummary(data.summary),
   });
 
-  const getUploadUrl = trpc.homebrewPdf.getUploadUrl.useMutation();
   const extractDoc = trpc.sessions.extractSIPrepDoc.useMutation({
     onSuccess: (data) => {
       setExtracted(data as SIExtractedPreview);
@@ -57,21 +56,10 @@ export function BriefPanel({ campaignId, sessionId, intentBrief }: BriefPanelPro
     try {
       setImportState('extracting');
       setImportError('');
-      const upload = await getUploadUrl.mutateAsync({
-        filename: file.name,
-        fileSize: file.size,
-        campaignId,
-      });
-      if (upload.presignedUrl) {
-        await fetch(upload.presignedUrl, {
-          method: 'PUT',
-          body: file,
-          headers: { 'Content-Type': file.type },
-        });
-      }
-      extractDoc.mutate({ campaignId, sessionId, text: `[Document: ${upload.r2Url ?? file.name}]` });
+      const text = await file.text();
+      extractDoc.mutate({ campaignId, sessionId, text });
     } catch {
-      setImportError('Upload failed');
+      setImportError('Could not read file.');
       setImportState('idle');
     }
   }
@@ -189,16 +177,17 @@ export function BriefPanel({ campaignId, sessionId, intentBrief }: BriefPanelPro
               className="flex flex-col items-center gap-1.5 py-4 rounded border border-dashed border-border/30 cursor-pointer hover:border-border/50 transition-colors"
               onClick={() => fileRef.current?.click()}
             >
-              <Upload className="h-4 w-4 text-muted-foreground" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
               <p className="text-[11px] text-muted-foreground">
-                Drop a PDF or{' '}
+                Upload a text file (.txt, .md) or{' '}
                 <span className="text-amber-400/80">browse</span>
               </p>
+              <p className="text-[10px] text-muted-foreground/50">For PDFs, copy-paste the text below</p>
               <input
                 ref={fileRef}
                 type="file"
                 className="hidden"
-                accept=".pdf,.txt,.md"
+                accept=".txt,.md,text/plain,text/markdown"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) handleFile(f);
