@@ -2,11 +2,18 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, Clock, Users } from 'lucide-react'
+import { Calendar, Clock, Shield, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { RegenerateAssetButton } from './RegenerateAssetButton'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { cn } from '@/lib/utils'
+
+interface PartyMember {
+  id: string
+  name: string
+  portraitUrl?: string | null
+  level?: number | null
+}
 
 interface HomeHeroProps {
   campaignName: string
@@ -15,6 +22,7 @@ interface HomeHeroProps {
   bannerUrl?: string | null
   nextSession: { id: string; title: string | null; date: Date | string } | null
   planningSession?: { id: string; title: string | null } | null
+  party?: PartyMember[]
   playerCount?: number
   partyLevel?: number
   className?: string
@@ -47,6 +55,7 @@ export function HomeHero({
   bannerUrl,
   nextSession,
   planningSession,
+  party = [],
   playerCount,
   partyLevel,
   className,
@@ -93,6 +102,57 @@ export function HomeHero({
       {campaignId && (
         <div className="absolute right-3 top-3 z-20">
           <RegenerateAssetButton kind="banner" campaignId={campaignId} />
+        </div>
+      )}
+
+      {/* Party portrait stack — bottom-right */}
+      {party.length > 0 && (
+        <div className="absolute bottom-7 right-8 z-10 flex flex-col items-end gap-1.5">
+          <p className="text-[9px] uppercase tracking-[2.5px] text-white/30">
+            {party.length === 1 ? party[0].name : `${party.length} Adventurers`}
+          </p>
+          <div className="flex items-center">
+            {party.slice(0, 6).map((member, i) => (
+              <div
+                key={member.id}
+                title={member.name}
+                className={cn(
+                  'relative h-[42px] w-[42px] overflow-hidden rounded-full',
+                  'border-2 border-black/50 ring-1 ring-white/10',
+                  'bg-[hsl(240,10%,8%)]',
+                  i > 0 && '-ml-3',
+                )}
+                style={{ zIndex: 6 - i }}
+              >
+                {member.portraitUrl ? (
+                  <Image
+                    src={member.portraitUrl}
+                    alt={member.name}
+                    fill
+                    sizes="42px"
+                    className="object-cover object-top"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Shield size={14} className="text-white/25" />
+                  </div>
+                )}
+              </div>
+            ))}
+            {party.length > 6 && (
+              <div
+                className={cn(
+                  'relative h-[42px] w-[42px] -ml-3 rounded-full',
+                  'border-2 border-black/50 ring-1 ring-white/10',
+                  'bg-black/70 flex items-center justify-center',
+                  'text-[11px] font-semibold text-white/50',
+                )}
+              >
+                +{party.length - 6}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
