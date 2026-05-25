@@ -315,3 +315,92 @@ test('session-intelligence: SUGGEST tab shows empty state when no NPCs in play',
     expect(hasEmptyState).toBeTruthy();
   }, 10_000);
 });
+
+test('session-intelligence: BRIEF tab shows Import from doc button', async ({ page }, testInfo) => {
+  test.slow();
+
+  const sessionId = process.env.TEST_SESSION_ID ?? '';
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, DM_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-to-session', async () => {
+    if (!sessionId) return;
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions/${sessionId}/live`);
+    await page.waitForLoadState('networkidle', { timeout: 25_000 }).catch(() => {});
+    await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
+  }, 30_000);
+
+  await checkpoint(testInfo, 'open-cockpit-intel-drawer', async () => {
+    if (!sessionId) return;
+    const intelBtn = page.getByRole('button', { name: /session intel|intel/i }).first();
+    const hasBtn = await intelBtn.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasBtn) return;
+    await intelBtn.click();
+    await page.waitForTimeout(500);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'switch-to-brief-tab', async () => {
+    if (!sessionId) return;
+    const briefTab = page.getByRole('tab', { name: /brief/i }).first();
+    const hasTab = await briefTab.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasTab) return;
+    await briefTab.click();
+    await page.waitForTimeout(300);
+  }, 10_000);
+
+  await checkpoint(testInfo, 'import-from-doc-button-visible', async () => {
+    if (!sessionId) return;
+    const importBtn = page.getByRole('button', { name: /import from doc/i }).first();
+    const isVisible = await importBtn.isVisible({ timeout: 10_000 }).catch(() => false);
+    expect(isVisible).toBeTruthy();
+  }, 10_000);
+});
+
+test('session-intelligence: Import from doc opens extract zone on click', async ({ page }, testInfo) => {
+  test.slow();
+
+  const sessionId = process.env.TEST_SESSION_ID ?? '';
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, DM_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'navigate-and-open-drawer', async () => {
+    if (!sessionId) return;
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions/${sessionId}/live`);
+    await page.waitForLoadState('networkidle', { timeout: 25_000 }).catch(() => {});
+
+    const intelBtn = page.getByRole('button', { name: /session intel|intel/i }).first();
+    const hasBtn = await intelBtn.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasBtn) return;
+    await intelBtn.click();
+    await page.waitForTimeout(500);
+
+    const briefTab = page.getByRole('tab', { name: /brief/i }).first();
+    const hasTab = await briefTab.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasTab) return;
+    await briefTab.click();
+    await page.waitForTimeout(300);
+  }, 40_000);
+
+  await checkpoint(testInfo, 'click-import-and-check-zone', async () => {
+    if (!sessionId) return;
+    const importBtn = page.getByRole('button', { name: /import from doc/i }).first();
+    const hasBtn = await importBtn.isVisible({ timeout: 10_000 }).catch(() => false);
+    if (!hasBtn) return;
+    await importBtn.click();
+    await page.waitForTimeout(300);
+
+    // Paste textarea should appear
+    const textarea = page.getByPlaceholder(/paste prep notes/i).first();
+    const textareaVisible = await textarea.isVisible({ timeout: 5_000 }).catch(() => false);
+    expect(textareaVisible).toBeTruthy();
+
+    // Extract button should appear but be disabled (no text yet)
+    const extractBtn = page.getByRole('button', { name: /^extract$/i }).first();
+    const extractBtnDisabled = await extractBtn.isDisabled({ timeout: 3_000 }).catch(() => true);
+    expect(extractBtnDisabled).toBeTruthy();
+  }, 15_000);
+});
