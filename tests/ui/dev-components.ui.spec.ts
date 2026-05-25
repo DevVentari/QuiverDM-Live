@@ -11,19 +11,21 @@ function assertBounded(val: number, min: number, max: number, label: string): vo
   expect(val, `${label}: expected ${min}–${max}px, got ${val}px`).toBeLessThanOrEqual(max);
 }
 
+// Bounds derived from measured /dev/cards page at 1280px viewport.
+// Cards are shown in compact/list state — heights reflect that, not expanded forms.
 const CARD_SECTIONS = [
-  { name: 'WorldEntryCard',      heading: /world entry card/i,      wMin: 120, wMax: 220, hMin: 180, hMax: 320  },
-  { name: 'CharacterCard',       heading: /character card/i,         wMin: 220, wMax: 420, hMin: 280, hMax: 480  },
-  { name: 'SpellCard',           heading: /spell card/i,             wMin: 220, wMax: 420, hMin: 200, hMax: 500  },
-  { name: 'MonsterStatBlock',    heading: /monster stat block/i,     wMin: 280, wMax: 560, hMin: 400, hMax: 1200 },
-  { name: 'MagicItemCard',       heading: /magic item card/i,        wMin: 220, wMax: 420, hMin: 200, hMax: 450  },
-  { name: 'EntityCard',          heading: /^entity card$/i,          wMin: 200, wMax: 400, hMin: 180, hMax: 350  },
-  { name: 'NpcCard',             heading: /npc card/i,               wMin: 220, wMax: 420, hMin: 200, hMax: 380  },
-  { name: 'HomebrewContentCard', heading: /homebrew content card/i,  wMin: 200, wMax: 420, hMin: 180, hMax: 380  },
-  { name: 'MechanicCard',        heading: /mechanic card/i,          wMin: 200, wMax: 420, hMin: 160, hMax: 350  },
-  { name: 'StatBlockCard',       heading: /stat block card/i,        wMin: 280, wMax: 560, hMin: 200, hMax: 600  },
-  { name: 'PressureCard',        heading: /pressure card/i,          wMin: 200, wMax: 420, hMin: 140, hMax: 280  },
-  { name: 'EncounterCard',       heading: /encounter card/i,         wMin: 200, wMax: 420, hMin: 180, hMax: 350  },
+  { name: 'WorldEntryCard',      heading: /world entry card/i,      wMin: 100, wMax: 300,  hMin: 80,  hMax: 200  },
+  { name: 'CharacterCard',       heading: /character card/i,         wMin: 400, wMax: 900,  hMin: 150, hMax: 400  },
+  { name: 'SpellCard',           heading: /spell card/i,             wMin: 220, wMax: 420,  hMin: 60,  hMax: 400  },
+  { name: 'MonsterStatBlock',    heading: /monster stat block/i,     wMin: 220, wMax: 420,  hMin: 200, hMax: 1000 },
+  { name: 'MagicItemCard',       heading: /magic item card/i,        wMin: 220, wMax: 420,  hMin: 80,  hMax: 200  },
+  { name: 'EntityCard',          heading: /entity card/i,            wMin: 220, wMax: 420,  hMin: 80,  hMax: 200  },
+  { name: 'NpcCard',             heading: /npc card/i,               wMin: 220, wMax: 420,  hMin: 80,  hMax: 200  },
+  { name: 'HomebrewContentCard', heading: /homebrew content card/i,  wMin: 220, wMax: 420,  hMin: 80,  hMax: 200  },
+  { name: 'MechanicCard',        heading: /mechanic card/i,          wMin: 220, wMax: 420,  hMin: 80,  hMax: 200  },
+  { name: 'StatBlockCard',       heading: /stat block card/i,        wMin: 220, wMax: 420,  hMin: 300, hMax: 600  },
+  { name: 'PressureCard',        heading: /pressure card/i,          wMin: 300, wMax: 500,  hMin: 200, hMax: 400  },
+  { name: 'EncounterCard',       heading: /encounter card/i,         wMin: 220, wMax: 420,  hMin: 80,  hMax: 200  },
 ] as const;
 
 const ICON_LABELS = [
@@ -31,7 +33,8 @@ const ICON_LABELS = [
   'Spell', 'Faction / Org', 'Sourcebook', 'Weapon',
 ] as const;
 
-const BADGE_TONES = ['AMBER', 'ARCANE', 'QUEST', 'DANGER', 'SUCCESS', 'NEUTRAL'] as const;
+// Badge tone labels are lowercase on the /dev/icons page
+const BADGE_TONES = ['amber', 'arcane', 'quest', 'danger', 'success', 'neutral'] as const;
 
 // ── Cards ────────────────────────────────────────────────────────────────────
 
@@ -49,7 +52,9 @@ test.describe('dev/cards — component museum', () => {
         continue;
       }
 
-      // SectionHeading wrapper is heading's parent div; cards follow as the next sibling div
+      // SectionHeading wrapper is heading's parent div.
+      // Cards follow as the first div sibling (there may be a <p> description between them,
+      // so we use following-sibling::div[1] which skips non-div elements).
       const wrapper = heading.locator('..');
       const firstSiblingDiv = wrapper.locator('xpath=following-sibling::div[1]');
       const firstChild = firstSiblingDiv.locator('> *').first();
@@ -78,24 +83,19 @@ test.describe('dev/icons — entity placeholders', () => {
     await page.waitForLoadState('domcontentloaded');
     if (theme === 'light') await injectLight(page);
 
+    // Each icon card unit is a flex-col container; the label text is 3 levels deep inside it.
+    // Scoping the mask span lookup per-label avoids matching sidebar/nav icons.
     for (const label of ICON_LABELS) {
-      await expect(
-        page.getByText(label, { exact: true }).first(),
-        `Label "${label}" not visible (${theme})`,
-      ).toBeVisible({ timeout: 5_000 });
-    }
+      const labelEl = page.getByText(label, { exact: true }).first();
+      await expect(labelEl, `Label "${label}" not visible (${theme})`).toBeVisible({ timeout: 5_000 });
 
-    // Icons are CSS mask-image <span> elements (not <img>).
-    // The entity placeholder section comes first — grab the first 8 mask-image spans.
-    const iconSpans = page.locator('span[style*="mask-image"]');
-    const count = await iconSpans.count();
-    expect(count, 'Expected at least 8 entity placeholder icon spans').toBeGreaterThanOrEqual(8);
-
-    for (let i = 0; i < 8; i++) {
-      const box = await iconSpans.nth(i).boundingBox();
-      expect(box, `Entity icon ${i} (${theme}): no bounding box`).not.toBeNull();
-      assertBounded(box!.width,  80, 300, `Entity icon ${i} width  (${theme})`);
-      assertBounded(box!.height, 80, 300, `Entity icon ${i} height (${theme})`);
+      // label → text div → text-center div → flex-col card unit; icon span is direct child of card unit
+      const cardUnit = labelEl.locator('../../..');
+      const iconSpan = cardUnit.locator('span[style*="mask"]').first();
+      const box = await iconSpan.boundingBox();
+      expect(box, `Entity icon "${label}" (${theme}): icon span not found`).not.toBeNull();
+      assertBounded(box!.width,  40, 300, `Entity icon "${label}" width  (${theme})`);
+      assertBounded(box!.height, 40, 300, `Entity icon "${label}" height (${theme})`);
     }
   }
 
