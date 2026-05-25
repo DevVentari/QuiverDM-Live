@@ -281,14 +281,14 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
     fn: () => Promise<ImageGenerationResult>;
   }> = [
     {
-      name: 'comfyui',
-      enabled: process.env.COMFYUI_ENABLED === 'true' || !!process.env.COMFYUI_URL,
-      fn: () => generateWithComfyUI(request),
-    },
-    {
       name: 'higgsfield',
       enabled: !!(process.env.HF_API_KEY && process.env.HF_API_SECRET),
       fn: () => generateWithHiggsfield(request),
+    },
+    {
+      name: 'comfyui',
+      enabled: process.env.COMFYUI_ENABLED === 'true' || !!process.env.COMFYUI_URL,
+      fn: () => generateWithComfyUI(request),
     },
     {
       name: 'runpod',
