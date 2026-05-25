@@ -676,6 +676,7 @@ model GameSession {
   // Session Intelligence Phase 1
   intentBrief  Json?   // { toneKeywords: string[], playerGoals: string[], dmOnlyTruths: string[] }
   prepDocKey   String? // R2 key for uploaded prep PDF
+  prepNotes    String? @db.Text // DM prep intent brief from SI import
 
   recordings             SessionRecording[]
   transcripts            Transcript[]
