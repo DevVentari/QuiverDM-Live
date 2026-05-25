@@ -123,6 +123,7 @@ export default function HomePage() {
         bannerUrl={active.bannerUrl}
         nextSession={active.nextSession}
         planningSession={planningSession}
+        party={activeParty}
         playerCount={activeParty.length}
         partyLevel={partyLevel}
         isNewCampaign={isNewCampaign}
