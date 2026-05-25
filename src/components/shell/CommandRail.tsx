@@ -282,9 +282,7 @@ export function CommandRail() {
             <div className="flex flex-col gap-px px-2 pb-2">
               {DEV_NAV_ITEMS.map(({ id, icon: Icon, label, ...item }) => {
                 const href = resolveHref({ id, icon: Icon, label, ...item }, campaignSlug)
-                const devActive = href === '/'
-                  ? pathname === '/'
-                  : pathname === href || pathname.startsWith(href + '/')
+                const devActive = href !== '/campaigns' && (pathname === href || pathname.startsWith(href + '/'))
                 return (
                   <Link
                     key={id}
