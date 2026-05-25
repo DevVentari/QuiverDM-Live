@@ -68,12 +68,6 @@ const worker = new Worker<ImageGenerationJobData>(
     await updateJobStatus(jobId, { status: 'processing', progress: 10 });
 
     try {
-      const comfyUrl = process.env.COMFYUI_URL;
-      if (comfyUrl) {
-        process.env.COMFYUI_ENABLED = 'true';
-        console.log(`[ImageWorker] COMFYUI_URL is set (${comfyUrl}); prioritizing ComfyUI`);
-      }
-
       const result = await generateImage({
         homebrewId,
         npcId,
