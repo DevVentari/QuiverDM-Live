@@ -1,7 +1,7 @@
 /**
  * Image Generation Abstraction Layer
  *
- * Provider fallback chain: ComfyUI (local) -> Higgsfield nano-banana-2 -> RunPod Serverless -> fal.ai Flux Dev -> Replicate SDXL -> DALL-E 3
+ * Provider fallback chain: Higgsfield -> ComfyUI (local) -> RunPod Serverless -> fal.ai Flux Dev -> Replicate SDXL -> DALL-E 3
  */
 import OpenAI from 'openai';
 import Replicate from 'replicate';
@@ -271,7 +271,7 @@ async function generateWithDALLE(request: ImageGenerationRequest): Promise<Image
 
 /**
  * Generate an image using the best available provider.
- * Tries: ComfyUI -> fal.ai -> Replicate -> DALL-E
+ * Tries: Higgsfield -> ComfyUI -> RunPod -> fal.ai -> Replicate -> DALL-E
  */
 export async function generateImage(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const allowed = request.providersAllowed;

@@ -86,10 +86,10 @@ describe('generateImage — provider slot ordering', () => {
       stdout: 'https://cdn.higgsfield.ai/generated/test.png\n',
       stderr: '',
     });
-    global.fetch = vi.fn().mockResolvedValue({
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       arrayBuffer: async () => new ArrayBuffer(8),
-    });
+    }));
 
     const result = await generateImage(BASE_REQUEST);
 
