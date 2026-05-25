@@ -24,6 +24,7 @@ import { addTranscriptCleanupJob } from '@/lib/queue/transcript-cleanup-queue';
 import { addRevelationSyncJob } from '@/lib/queue/secret-revelation-sync-queue';
 import { generatePrepBrief } from '@/lib/ai/generate-prep-brief';
 import { generatePostSessionSummary } from '@/lib/ai/generate-post-session-summary';
+import { extractSIDoc } from '@/lib/ai/extract-si-prep-doc';
 
 interface OocReviewItem {
   index: number;
@@ -34,6 +35,81 @@ interface OocReviewItem {
   confidence: number;
   reason: string;
 }
+
+type NpcSuggestion = { worldEntityId: string; name: string; score: number };
+
+async function fuzzyMatchNpc(name: string, campaignId: string): Promise<NpcSuggestion | null> {
+  const words = name.split(/\s+/).filter((w) => w.length > 2);
+  if (!words.length) return null;
+
+  const candidates = await prisma.worldEntity.findMany({
+    where: {
+      campaignId,
+      type: 'NPC',
+      OR: words.map((w) => ({ name: { contains: w, mode: 'insensitive' as const } })),
+    },
+    take: 5,
+    select: { id: true, name: true },
+  });
+
+  let best: NpcSuggestion | null = null;
+  for (const c of candidates) {
+    const cWords = c.name.toLowerCase().split(/\s+/);
+    const nWords = name.toLowerCase().split(/\s+/);
+    const shared = nWords.filter((w) => cWords.some((cw) => cw.includes(w) || w.includes(cw)));
+    const score = shared.length / Math.max(cWords.length, nWords.length);
+    if (score >= 0.7 && score > (best?.score ?? 0)) {
+      best = { worldEntityId: c.id, name: c.name, score };
+    }
+  }
+  return best;
+}
+
+const TriggeredBehaviorSchema = z.object({ condition: z.string(), behavior: z.string() });
+const CriticalDialogueSchema = z.object({ line: z.string(), trigger: z.string() });
+
+const SIConfirmPayloadSchema = z.object({
+  campaignId: z.string().min(1),
+  sessionId: z.string().min(1),
+  intentBrief: z.string().optional(),
+  secrets: z.array(
+    z.object({
+      name: z.string(),
+      content: z.string(),
+      isCritical: z.boolean().default(false),
+      knowledge: z.array(
+        z.object({
+          entityName: z.string(),
+          worldEntityId: z.string().optional(),
+          revealCondition: z.string().optional(),
+        })
+      ).default([]),
+    })
+  ).default([]),
+  phases: z.array(
+    z.object({
+      name: z.string(),
+      targetMinutes: z.number().int().default(30),
+      notes: z.string().optional(),
+    })
+  ).default([]),
+  routes: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string().optional(),
+      isActive: z.boolean().default(false),
+    })
+  ).default([]),
+  npcProfiles: z.array(
+    z.object({
+      worldEntityId: z.string().optional(),
+      name: z.string(),
+      defaultBehavior: z.string(),
+      triggeredBehaviors: z.array(TriggeredBehaviorSchema).default([]),
+      criticalDialogue: z.array(CriticalDialogueSchema).default([]),
+    })
+  ).default([]),
+});
 
 export const sessionsRouter = router({
   /**
@@ -1040,5 +1116,175 @@ export const sessionsRouter = router({
       });
 
       return { summary };
+    }),
+
+  extractSIPrepDoc: campaignDMProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        sessionId: z.string().min(1),
+        text: z.string().min(1).max(100_000),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const extracted = await extractSIDoc(input.text);
+
+      const npcProfilesWithMatches = await Promise.all(
+        extracted.npcProfiles.map(async (npc) => {
+          const suggestedMatch = await fuzzyMatchNpc(npc.name, input.campaignId);
+          return { ...npc, suggestedMatch: suggestedMatch ?? null };
+        })
+      );
+
+      return { ...extracted, npcProfiles: npcProfilesWithMatches };
+    }),
+
+  confirmSIPrepImport: campaignDMProcedure
+    .input(SIConfirmPayloadSchema)
+    .mutation(async ({ input }) => {
+      const counters = {
+        secretsCreated: 0,
+        phasesCreated: 0,
+        routesCreated: 0,
+        profilesUpserted: 0,
+        entitiesCreated: 0,
+      };
+
+      await prisma.$transaction(async (tx) => {
+        // 1. Intent brief
+        if (input.intentBrief) {
+          await tx.gameSession.update({
+            where: { id: input.sessionId },
+            data: { prepNotes: input.intentBrief },
+          });
+        }
+
+        // 2. PrepSecrets + PrepKnowledge
+        for (const s of input.secrets) {
+          const secret = await tx.prepSecret.create({
+            data: {
+              campaignId: input.campaignId,
+              sessionId: input.sessionId,
+              name: s.name,
+              content: s.content,
+            },
+          });
+          counters.secretsCreated++;
+
+          for (const k of s.knowledge) {
+            if (!k.worldEntityId) continue;
+            await tx.prepKnowledge.create({
+              data: {
+                prepSecretId: secret.id,
+                worldEntityId: k.worldEntityId,
+                revealCondition: k.revealCondition,
+                isCritical: s.isCritical,
+              },
+            });
+          }
+        }
+
+        // 3. SessionPhases — append after max existing orderIndex
+        const maxPhase = await tx.sessionPhase.aggregate({
+          where: { sessionId: input.sessionId },
+          _max: { orderIndex: true },
+        });
+        let phaseOrder = (maxPhase._max.orderIndex ?? -1) + 1;
+        for (const p of input.phases) {
+          await tx.sessionPhase.create({
+            data: {
+              sessionId: input.sessionId,
+              name: p.name,
+              targetMinutes: p.targetMinutes,
+              notes: p.notes,
+              orderIndex: phaseOrder++,
+            },
+          });
+          counters.phasesCreated++;
+        }
+
+        // 4. SessionRoutes — clear isActive on existing if any new route is active
+        const hasActiveRoute = input.routes.some((r) => r.isActive);
+        if (hasActiveRoute) {
+          await tx.sessionRoute.updateMany({
+            where: { sessionId: input.sessionId },
+            data: { isActive: false },
+          });
+        }
+        const maxRoute = await tx.sessionRoute.aggregate({
+          where: { sessionId: input.sessionId },
+          _max: { orderIndex: true },
+        });
+        let routeOrder = (maxRoute._max.orderIndex ?? -1) + 1;
+        for (const r of input.routes) {
+          await tx.sessionRoute.create({
+            data: {
+              sessionId: input.sessionId,
+              name: r.name,
+              description: r.description,
+              isActive: r.isActive,
+              orderIndex: routeOrder++,
+            },
+          });
+          counters.routesCreated++;
+        }
+
+        // 5. NpcBehaviorProfiles — upsert, merge arrays
+        for (const npc of input.npcProfiles) {
+          let entityId = npc.worldEntityId;
+
+          if (!entityId) {
+            const entity = await tx.worldEntity.create({
+              data: {
+                campaignId: input.campaignId,
+                type: 'NPC',
+                name: npc.name,
+              },
+            });
+            entityId = entity.id;
+            counters.entitiesCreated++;
+          }
+
+          const existing = await tx.npcBehaviorProfile.findUnique({
+            where: { worldEntityId: entityId },
+          });
+
+          if (existing) {
+            const existingTB = existing.triggeredBehaviors as Array<{ condition: string; behavior: string }>;
+            const existingCD = existing.criticalDialogue as Array<{ line: string; trigger: string }>;
+
+            await tx.npcBehaviorProfile.update({
+              where: { worldEntityId: entityId },
+              data: {
+                defaultBehavior: existing.defaultBehavior ?? npc.defaultBehavior,
+                triggeredBehaviors: [
+                  ...existingTB,
+                  ...npc.triggeredBehaviors.filter(
+                    (t) => !existingTB.some((e) => e.condition === t.condition)
+                  ),
+                ],
+                criticalDialogue: [
+                  ...existingCD,
+                  ...npc.criticalDialogue.filter(
+                    (d) => !existingCD.some((e) => e.line === d.line)
+                  ),
+                ],
+              },
+            });
+          } else {
+            await tx.npcBehaviorProfile.create({
+              data: {
+                worldEntityId: entityId,
+                defaultBehavior: npc.defaultBehavior,
+                triggeredBehaviors: npc.triggeredBehaviors,
+                criticalDialogue: npc.criticalDialogue,
+              },
+            });
+          }
+          counters.profilesUpserted++;
+        }
+      });
+
+      return counters;
     }),
 });
