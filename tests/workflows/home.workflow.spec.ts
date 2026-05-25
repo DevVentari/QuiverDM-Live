@@ -28,11 +28,11 @@ test.describe('Home — session-first', () => {
     await expect(page.getByTestId('command-rail')).toBeVisible()
     // Spot-check a representative subset of the V2 mockup nav items.
     await expect(page.getByTestId('rail-nav-home')).toBeVisible()
-    await expect(page.getByTestId('rail-nav-campaigns')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-compendium')).toBeVisible()
     await expect(page.getByTestId('rail-nav-sessions')).toBeVisible()
-    await expect(page.getByTestId('rail-nav-npcs')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-sourcebook')).toBeVisible()
     await expect(page.getByTestId('rail-nav-party')).toBeVisible()
-    await expect(page.getByTestId('rail-nav-lore')).toBeVisible()
+    await expect(page.getByTestId('rail-nav-mechanics')).toBeVisible()
     await expect(page.getByTestId('rail-nav-settings')).toBeVisible()
   })
 
