@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  spawnSync: vi.fn(),
+  execFileResult: vi.fn(),
   storageUpload: vi.fn(),
   isComfyUIAvailable: vi.fn(),
   isRunPodConfigured: vi.fn(),
@@ -10,7 +10,16 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('child_process', () => ({
-  spawnSync: mocks.spawnSync,
+  execFile: (
+    _cmd: string,
+    _args: string[],
+    _opts: object,
+    callback: (err: Error | null, stdout: string, stderr: string) => void,
+  ) => {
+    const result = mocks.execFileResult();
+    if (result.error) callback(result.error, '', '');
+    else callback(null, result.stdout, result.stderr ?? '');
+  },
 }));
 
 vi.mock('@/lib/storage', () => ({
@@ -67,6 +76,7 @@ describe('generateImage — provider slot ordering', () => {
     delete process.env.OPENAI_API_KEY;
     delete process.env.RUNPOD_API_KEY;
     mocks.isRunPodConfigured.mockReturnValue(false);
+    mocks.execFileResult.mockReturnValue({ stdout: '', stderr: '' });
     mocks.storageUpload.mockResolvedValue('https://r2.example.com/test-image.png');
   });
 
@@ -80,9 +90,7 @@ describe('generateImage — provider slot ordering', () => {
     mocks.queueComfyUIPrompt.mockResolvedValue({ promptId: 'p1', seed: 1 });
     mocks.waitForComfyUIResult.mockResolvedValue(Buffer.from('fake-img'));
 
-    mocks.spawnSync.mockReturnValue({
-      error: undefined,
-      status: 0,
+    mocks.execFileResult.mockReturnValue({
       stdout: 'https://cdn.higgsfield.ai/generated/test.png\n',
       stderr: '',
     });
