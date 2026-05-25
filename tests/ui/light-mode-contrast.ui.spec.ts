@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { signInAsTestUser, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
+import { signInAsTestUser, ensureTestUserExists, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
 
 const BASE          = process.env.BASE_URL         ?? 'http://localhost:3847';
 const BLAKE_EMAIL   = process.env.QA_BLAKE_EMAIL   ?? TEST_USER_EMAIL;
@@ -114,6 +114,10 @@ test.describe('token contrast audit — light mode', () => {
 });
 
 test.describe('live pages axe — light mode', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists(BLAKE_EMAIL, PASSWORD);
+  });
+
   async function axeLightScan(page: Page, route: string) {
     await page.goto(route);
     await page.waitForLoadState('domcontentloaded');

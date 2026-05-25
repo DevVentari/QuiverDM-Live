@@ -33,6 +33,37 @@ export async function loginAsSeededDm(page: Page) {
   await signInAsTestUser(page, TEST_USER_EMAIL, TEST_USER_PASSWORD);
 }
 
+export async function ensureTestUserExists(
+  email = TEST_USER_EMAIL,
+  password = TEST_USER_PASSWORD,
+): Promise<void> {
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { onboardingCompleted: true },
+    create: { email, name: 'Test User', onboardingCompleted: true },
+  });
+  const passwordHash = await bcrypt.hash(password, 10);
+  const existing = await prisma.account.findFirst({
+    where: { userId: user.id, provider: 'credentials' },
+  });
+  if (existing) {
+    await prisma.account.update({
+      where: { id: existing.id },
+      data: { password: passwordHash, providerAccountId: email },
+    });
+  } else {
+    await prisma.account.create({
+      data: {
+        userId: user.id,
+        type: 'credentials',
+        provider: 'credentials',
+        providerAccountId: email,
+        password: passwordHash,
+      },
+    });
+  }
+}
+
 export async function seedCampaignWithSourcebook(
   opts: { withEntity?: boolean; withEmptyChapter?: boolean } = {},
 ) {
