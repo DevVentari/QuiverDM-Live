@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { signInAsTestUser, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
+import { signInAsTestUser, ensureTestUserExists, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
 
 const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? TEST_USER_EMAIL;
 const JORDAN_EMAIL = process.env.QA_JORDAN_EMAIL ?? TEST_USER_EMAIL;
@@ -7,6 +7,10 @@ const PASSWORD = process.env.QA_TEST_PASSWORD ?? TEST_USER_PASSWORD;
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
 
 test.describe('sidebar + global chrome', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists(BLAKE_EMAIL, PASSWORD);
+  });
+
   test.beforeEach(async ({ page }) => {
     await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     await page.goto('/dashboard');

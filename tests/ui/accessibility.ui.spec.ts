@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { signInAsTestUser, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
+import { signInAsTestUser, ensureTestUserExists, TEST_USER_EMAIL, TEST_USER_PASSWORD } from '../helpers';
 
 const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? TEST_USER_EMAIL;
 const JORDAN_EMAIL = process.env.QA_JORDAN_EMAIL ?? TEST_USER_EMAIL;
@@ -23,6 +23,10 @@ async function axeScan(page: Parameters<typeof signInAsTestUser>[0], route: stri
 }
 
 test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists(BLAKE_EMAIL, PASSWORD);
+  });
+
   test('dashboard has no critical/serious violations', async ({ page }) => {
     await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     const violations = await axeScan(page, '/dashboard');
@@ -79,6 +83,10 @@ test.describe('accessibility — WCAG 2.1 AA (critical + serious only)', () => {
 });
 
 test.describe('accessibility — interactive element labels', () => {
+  test.beforeAll(async () => {
+    await ensureTestUserExists(BLAKE_EMAIL, PASSWORD);
+  });
+
   test('all buttons in sidebar have accessible names', async ({ page }) => {
     await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
     await page.goto('/dashboard');
