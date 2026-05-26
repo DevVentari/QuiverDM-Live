@@ -286,7 +286,7 @@ export async function generateImage(request: ImageGenerationRequest): Promise<Im
   }> = [
     {
       name: 'higgsfield',
-      enabled: !!(process.env.HF_API_KEY && process.env.HF_API_SECRET),
+      enabled: process.env.HIGGSFIELD_ENABLED !== 'false',
       fn: () => generateWithHiggsfield(request),
     },
     {
