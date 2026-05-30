@@ -442,18 +442,6 @@ async function main() {
   fs.writeFileSync(mdPath, buildFrontmatter(data, campaignName) + '\n', 'utf8');
   console.log(`Wrote Hugo content: ${mdPath}`);
 
-  // 3. Build Hugo site
-  console.log('Building Hugo site...');
-  const hugoExe = process.platform === 'win32'
-    ? 'C:/Users/mail/AppData/Local/Microsoft/WinGet/Packages/Hugo.Hugo.Extended_Microsoft.Winget.Source_8wekyb3d8bbwe/hugo.exe'
-    : 'hugo';
-  const hugoBuild = spawnSync(hugoExe, ['--source', hugoSiteDir, '--minify'], { stdio: 'inherit' });
-  if (hugoBuild.status !== 0) {
-    console.error('Hugo build failed');
-    process.exit(1);
-  }
-  console.log(`Site: ${hugoSiteDir}/public/`);
-
   // 4. PDF via Playwright
   console.log('Rendering PDF...');
   const browser = await chromium.launch();

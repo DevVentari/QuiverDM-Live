@@ -20,7 +20,6 @@ import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
 import { ADVENTURE_TEMPLATES, type AdventureTemplate } from '@/lib/adventure-templates';
-import { WORLD_SOURCEBOOKS, type WorldSourcebook } from '@/lib/world-sourcebooks';
 
 type Props = {
   open: boolean;
@@ -212,15 +211,20 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
 
   const [ddbUrl, setDdbUrl] = useState('');
   const [selectedAdventure, setSelectedAdventure] = useState<AdventureTemplate | null>(null);
-  const [selectedWorldSourcebook, setSelectedWorldSourcebook] = useState<WorldSourcebook | null>(null);
   const [selectedDdbSourcebookId, setSelectedDdbSourcebookId] = useState<string | null>(null);
 
   const ddbEntitlementsQuery = trpc.ddbSync.getEntitlements.useQuery(undefined, {
     staleTime: 5 * 60_000,
   });
   const ddbSourcebooks = (ddbEntitlementsQuery.data ?? [])
-    .filter((e: any) => e.sourcebook?.id)
-    .map((e: any) => ({ id: e.sourcebook.id as string, title: e.title as string, slug: e.slug as string }));
+    .filter((e: any) => e.sourcebook?.id && e.sourcebook?.syncStatus !== 'error')
+    .map((e: any) => ({
+      id: e.sourcebook.id as string,
+      title: e.title as string,
+      slug: e.slug as string,
+    }));
+
+  const setActiveCampaign = trpc.userSettings.setActiveCampaign.useMutation();
 
   const linkDdbSourcebook = trpc.ddbSync.linkSourcebookToCampaign.useMutation({
     onError: () => {
@@ -245,7 +249,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     setStoryText(template?.description ?? '');
   };
 
-  const featuredAdventureIds = ['lmop', 'idrotf'] as const;
+  const featuredAdventureIds = ['lmop', 'idrotf', 'cos'] as const;
   const featuredAdventures = featuredAdventureIds
     .map((id) => ADVENTURE_TEMPLATES.find((template) => template.id === id))
     .filter((template): template is AdventureTemplate => !!template);
@@ -278,16 +282,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     },
   });
 
-  const seedFromWorldSourcebook = trpc.campaigns.seedFromWorldSourcebook.useMutation({
-    onError: () => {
-      toast({
-        title: 'World sourcebook import failed',
-        description: 'Campaign created but world content could not be copied. Try again from campaign settings.',
-        variant: 'destructive',
-      });
-    },
-  });
-
   function resetState() {
     setTimeout(() => {
       setStep(1);
@@ -297,7 +291,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       setNameError('');
       setDdbUrl('');
       setSelectedAdventure(null);
-      setSelectedWorldSourcebook(null);
       setSelectedDdbSourcebookId(null);
       setStartingLocation('');
       setAntagonistName('');
@@ -350,13 +343,16 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       return;
     }
 
+    // Explicitly set as active so home page shows this campaign, not the auto-derive fallback
+    try {
+      await setActiveCampaign.mutateAsync({ campaignId: campaign.id });
+    } catch {
+      // Non-fatal — home page auto-derive will still pick it up
+    }
+
     if (ddbUrl.trim()) {
       setDdbCampaignUrl.mutate({ campaignId: campaign.id, url: ddbUrl.trim() });
       importFromCampaign.mutate({ campaignUrl: ddbUrl.trim(), campaignId: campaign.id });
-    }
-
-    if (selectedWorldSourcebook) {
-      seedFromWorldSourcebook.mutate({ campaignId: campaign.id, sourceSlug: selectedWorldSourcebook.sourceSlug });
     }
 
     if (selectedDdbSourcebookId) {
@@ -404,8 +400,8 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
   // importFromCampaign is intentionally excluded - it's fire-and-forget after navigate.
   const isCreating =
     createCampaign.isPending ||
+    setActiveCampaign.isPending ||
     seedFromCreation.isPending ||
-    seedFromWorldSourcebook.isPending ||
     linkDdbSourcebook.isPending;
 
   const selectedSeedLabel = selectedAdventure?.title ?? 'Blank slate';
@@ -418,13 +414,13 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
         className={cn(
           '!fixed !left-auto !right-0 !inset-y-0 !h-[100dvh] !w-[min(42rem,calc(100vw-1rem))] !max-w-none overflow-hidden p-0 text-[var(--q-text)]',
           'border-l border-[var(--q-border-feature)]',
-          'bg-[linear-gradient(180deg,color-mix(in_oklab,var(--q-surface-feature)_94%,black)_0%,var(--q-surface-feature)_100%)]',
+          'bg-[oklch(0.19_0.007_240)]',
         )}
       >
         <div className="pointer-events-none absolute inset-0 q-hero-glow opacity-90" />
         <div className="pointer-events-none absolute inset-0 q-panel-grain opacity-70" />
         <div className="relative z-10 flex h-full flex-col">
-          <div className="sticky top-0 z-20 border-b border-[var(--q-border-feature)]/70 bg-[color-mix(in_oklab,var(--q-surface-feature)_90%,black)]/95 px-6 py-6 backdrop-blur-md sm:px-8">
+          <div className="sticky top-0 z-20 border-b border-[var(--q-border-feature)]/70 bg-[oklch(0.16_0.007_240)]/97 px-6 py-6 backdrop-blur-md sm:px-8">
             <SheetHeader className="space-y-2 text-left">
               <p className="label-overline">Campaign Forge</p>
               <SheetTitle className="font-[var(--q-font-display)] text-2xl text-[var(--q-text)] sm:text-3xl">
@@ -458,7 +454,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
             </div>
           </div>
 
-          <div className="sticky top-[calc(1px+8.75rem)] z-20 border-b border-[var(--q-border-feature)]/55 bg-[color-mix(in_oklab,var(--q-surface-feature)_88%,black)]/95 backdrop-blur-md">
+          <div className="sticky top-[calc(1px+8.75rem)] z-20 border-b border-[var(--q-border-feature)]/55 bg-[oklch(0.15_0.007_240)]/97 backdrop-blur-md">
             <StepIndicator step={step} />
           </div>
 
@@ -560,7 +556,7 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                   </ShellPanel>
                 </div>
 
-                <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--q-border-feature)]/70 bg-[color-mix(in_oklab,var(--q-surface-feature)_90%,black)]/95 px-1 pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+                <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--q-border-feature)]/70 bg-[oklch(0.16_0.007_240)]/97 px-1 pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -569,25 +565,14 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                   >
                     Cancel
                   </Button>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={!name.trim() || isCreating}
-                      onClick={() => { if (validateStep1()) handleCreate(); }}
-                      className="h-11 px-4"
-                    >
-                      {isCreating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Skip to Create'}
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={!name.trim()}
-                      onClick={() => { if (validateStep1()) setStep(2); }}
-                      className="h-11 px-5"
-                    >
-                      Continue &rarr;
-                    </Button>
-                  </div>
+                  <Button
+                    size="sm"
+                    disabled={!name.trim()}
+                    onClick={() => { if (validateStep1()) setStep(2); }}
+                    className="h-11 px-5"
+                  >
+                    Continue &rarr;
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -652,57 +637,13 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                       </div>
                     )}
 
-                    {WORLD_SOURCEBOOKS.length > 0 && (
-                      <div className="mt-5 space-y-3">
-                        <div className="flex items-center gap-3 text-xs text-[var(--q-text-faint)]">
-                          <div className="h-px flex-1 bg-white/10" />
-                          <span>or load a homebrew world</span>
-                          <div className="h-px flex-1 bg-white/10" />
-                        </div>
 
-                        <div className="space-y-2">
-                          <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)]">
-                            Homebrew sourcebooks
-                          </p>
-                          <div className="grid gap-2">
-                            {WORLD_SOURCEBOOKS.map((wb) => (
-                              <button
-                                key={wb.id}
-                                type="button"
-                                onClick={() => setSelectedWorldSourcebook(selectedWorldSourcebook?.id === wb.id ? null : wb)}
-                                className={cn(
-                                  'rounded-[16px] border p-4 text-left text-xs transition-colors',
-                                  selectedWorldSourcebook?.id === wb.id
-                                    ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-text)]'
-                                    : 'border-white/10 bg-white/[0.03] text-[var(--q-text-dim)] hover:border-[var(--q-amber-border)]/60 hover:text-[var(--q-text)]',
-                                )}
-                              >
-                                <div className="font-[var(--q-font-display)] text-sm text-[var(--q-text)]">
-                                  {wb.title}
-                                </div>
-                                <div className="mt-1 leading-snug">{wb.subtitle}</div>
-                                <div className="mt-2 flex flex-wrap gap-1.5">
-                                  {wb.tags.map((tag) => (
-                                    <span
-                                      key={tag}
-                                      className="rounded-full border border-white/8 bg-black/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-[var(--q-text-faint)]"
-                                    >
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </ShellPanel>
 
                   <ShellPanel
                     eyebrow="Preseed"
                     title="Featured starting paths"
-                    description="LMOP and Rime of the Frostmaiden are surfaced first because they were the v2 presets you called out."
+                    description="Quick-start two of the best-loved 5e adventures — world anchors pre-filled, campaign brain ready to go."
                     action={<Sparkles className="mt-1 h-4 w-4 text-[var(--q-amber)]" />}
                   >
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -719,24 +660,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                     <p className="mt-3 text-xs text-[var(--q-text-faint)]">
                       Choosing one pre-fills the world anchors below so your campaign starts with a pulse.
                     </p>
-                  </ShellPanel>
-
-                  <ShellPanel
-                    eyebrow="Catalog"
-                    title="Browse the full published adventure library"
-                    description="If you want a different official 5e start, the full catalog is still here."
-                  >
-                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                      {ADVENTURE_TEMPLATES.map((template) => (
-                        <AdventureCard
-                          key={template.id}
-                          template={template}
-                          selected={selectedAdventure?.id === template.id}
-                          onClick={() => applyAdventureTemplate(selectedAdventure?.id === template.id ? null : template)}
-                          compact
-                        />
-                      ))}
-                    </div>
                   </ShellPanel>
 
                   <ShellPanel
@@ -801,38 +724,28 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                   </ShellPanel>
                 </div>
 
-                <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--q-border-feature)]/70 bg-[color-mix(in_oklab,var(--q-surface-feature)_90%,black)]/95 pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+                <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--q-border-feature)]/70 bg-[oklch(0.16_0.007_240)]/97 pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleClose}
+                    disabled={isCreating}
+                    onClick={() => setStep(1)}
                     className="h-11 px-4 text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
                   >
-                    Cancel
+                    &larr; Back
                   </Button>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={isCreating}
-                      onClick={handleCreate}
-                      className="h-11 px-4 text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
-                    >
-                      Skip
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={isCreating}
-                      onClick={handleCreate}
-                      className="h-11 px-5"
-                    >
-                      {isCreating ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        'Create Campaign'
-                      )}
-                    </Button>
-                  </div>
+                  <Button
+                    size="sm"
+                    disabled={isCreating}
+                    onClick={handleCreate}
+                    className="h-11 px-5"
+                  >
+                    {isCreating ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      'Create Campaign'
+                    )}
+                  </Button>
                 </div>
               </div>
             )}

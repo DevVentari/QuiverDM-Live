@@ -48,6 +48,11 @@ export async function findByCampaignId(
       stats: true,
       tags: true,
       secrets: includeSecrets,
+      playerVisible: true,
+      status: true,
+      location: true,
+      motivation: true,
+      personality: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -55,7 +60,7 @@ export async function findByCampaignId(
 
   // Union with WorldEntity NPC rows (DDB-imported NPCs live there). If the
   // brain entity has been linked back to an editable NPC row (sourceType=NPC),
-  // skip it — the NPC row above already represents it.
+  // skip it - the NPC row above already represents it.
   const entityWhere: any = {
     campaignId,
     type: 'NPC',
@@ -103,6 +108,11 @@ export async function findByCampaignId(
       imageUrl: e.imageUrl ?? e.statBlock?.imageUrl ?? null,
       stats: e.statBlock?.data ?? null,
       tags: [] as string[],
+      playerVisible: false,
+      status: typeof props.status === 'string' ? (props.status as string) : null,
+      location: typeof props.location === 'string' ? (props.location as string) : null,
+      motivation: typeof props.motivation === 'string' ? (props.motivation as string) : null,
+      personality: props.personality ?? null,
       // entity-source NPCs have no editable secrets
       ...(includeSecrets ? { secrets: null } : {}),
       createdAt: e.createdAt,
@@ -158,6 +168,11 @@ export async function findByIds(ids: string[], includeSecrets = false) {
       stats: true,
       tags: true,
       secrets: includeSecrets,
+      playerVisible: true,
+      status: true,
+      location: true,
+      motivation: true,
+      personality: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -174,6 +189,10 @@ export async function create(data: {
   imageUrl?: string;
   tags?: string[];
   stats?: any;
+  status?: string | null;
+  location?: string | null;
+  motivation?: string | null;
+  personality?: any;
 }) {
   return prisma.nPC.create({ data });
 }
@@ -189,6 +208,11 @@ export async function update(
     imageUrl?: string;
     tags?: string[];
     stats?: any;
+    playerVisible?: boolean;
+    status?: string | null;
+    location?: string | null;
+    motivation?: string | null;
+    personality?: any;
   }
 ) {
   return prisma.nPC.update({ where: { id }, data });

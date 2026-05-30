@@ -249,7 +249,7 @@ function KeyRow({
           <div className="flex items-center gap-2">
             <Label>{config.label}</Label>
             {config.badge && (
-              <Badge variant="secondary" className="text-[10px] text-emerald-400">
+              <Badge variant="secondary" className="text-[10px] text-primary">
                 {config.badge}
               </Badge>
             )}

@@ -7,6 +7,13 @@ import { mapDdbMonsterToNpc } from '@/lib/dndbeyond-monster-mapper';
 
 const npcNameSchema = z.string().min(1, 'Name is required').max(255, 'Name must be 255 characters or fewer');
 const npcDescriptionSchema = z.string().max(10000, 'Description must be 10000 characters or fewer');
+const npcStatusSchema = z.enum(['alive', 'dead', 'missing', 'captured', 'fled', 'unknown']);
+const npcPersonalitySchema = z.object({
+  traits: z.array(z.string().max(500)).max(10).optional(),
+  ideals: z.array(z.string().max(500)).max(10).optional(),
+  bonds: z.array(z.string().max(500)).max(10).optional(),
+  flaws: z.array(z.string().max(500)).max(10).optional(),
+}).optional();
 
 export const npcsRouter = router({
   /**
@@ -54,6 +61,12 @@ export const npcsRouter = router({
         secrets: z.string().max(10000).optional(),
         imageUrl: z.string().max(2048).optional(),
         stats: z.any().optional(),
+        tags: z.array(z.string().max(100)).max(20).optional(),
+        role: z.string().max(255).optional(),
+        status: npcStatusSchema.optional(),
+        location: z.string().max(1000).optional(),
+        motivation: z.string().max(10000).optional(),
+        personality: npcPersonalitySchema,
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -77,7 +90,13 @@ export const npcsRouter = router({
         secrets: z.string().max(10000).optional(),
         imageUrl: z.string().max(2048).optional(),
         stats: z.any().optional(), // JSON field for D&D stats
+        tags: z.array(z.string().max(100)).max(20).optional(),
+        role: z.string().max(255).optional(),
         playerVisible: z.boolean().optional(),
+        status: npcStatusSchema.nullable().optional(),
+        location: z.string().max(1000).nullable().optional(),
+        motivation: z.string().max(10000).nullable().optional(),
+        personality: npcPersonalitySchema.nullable().optional(),
       })
     )
     .mutation(({ input, ctx }) => {

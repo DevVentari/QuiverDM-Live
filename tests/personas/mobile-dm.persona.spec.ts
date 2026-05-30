@@ -1,9 +1,9 @@
 import { test, expect, devices } from '@playwright/test';
 import { checkpoint, signInAsTestUser } from '../helpers';
 
-const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
+const MILA_EMAIL = process.env.QA_MILA_EMAIL ?? 'mila@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
-const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
+const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'milas-test-campaign';
 
 // Spread iPhone 13 viewport/touch settings but stay on Chromium (no WebKit installed)
 const { defaultBrowserType: _, ...iPhone13 } = devices['iPhone 13'];
@@ -11,7 +11,7 @@ test.use(iPhone13);
 
 test('mobile-dm happy path: critical routes stay usable on phone viewport', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'mobile-sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, MILA_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'mobile-dashboard-renders', async () => {
@@ -58,7 +58,7 @@ test('mobile-dm happy path: critical routes stay usable on phone viewport', asyn
 
 test('mobile-dm failure path: core form inputs are reachable on phone viewport', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'mobile-sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, MILA_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'mobile-npc-form-usable', async () => {

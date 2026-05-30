@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { resolvePortrait } from '@/lib/npc-portraits';
 import { ddbSyncRepository } from '@/server/repositories/ddb-sync.repository';
 import { upsertEmbeddings } from '@/server/repositories/embedding.repository';
 import { generateEmbedding } from '@/lib/ai/embeddings';
@@ -382,14 +383,17 @@ export class PrismaWriteSink implements WriteSink {
     notable?: string;
     imageUrl?: string;
   }): Promise<UpsertResult> {
+    // Fall back to a curated portrait when DDB doesn't supply an image
+    const imageUrl = args.imageUrl ?? (args.type === 'NPC' ? resolvePortrait(args.name) ?? undefined : undefined);
+
     const existing = await prisma.worldEntity.findFirst({
       where: { campaignId: args.campaignId, name: args.name },
     });
     if (existing) {
-      if (args.imageUrl && !existing.imageUrl) {
+      if (imageUrl && !existing.imageUrl) {
         await prisma.worldEntity.update({
           where: { id: existing.id },
-          data: { imageUrl: args.imageUrl },
+          data: { imageUrl },
         });
       }
       return { created: false, id: existing.id, existingName: existing.name };
@@ -411,7 +415,7 @@ export class PrismaWriteSink implements WriteSink {
         status: 'active' as any,
         confidence: 0.7,
         properties,
-        imageUrl: args.imageUrl ?? null,
+        imageUrl: imageUrl ?? null,
       } as any,
     });
     return { created: true, id: created.id };

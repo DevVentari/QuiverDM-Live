@@ -632,7 +632,7 @@ export default function WorldPage() {
                     campaignSlug={slug}
                     defaultExpanded={bucketIndex === 0}
                   >
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {filteredItems.map(renderChapterItem)}
                     </div>
                   </ChapterSection>

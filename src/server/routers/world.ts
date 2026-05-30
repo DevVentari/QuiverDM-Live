@@ -212,6 +212,46 @@ export const worldRouter = router({
       return { npcs, locations };
     }),
 
+  getSourcebookEntities: protectedProcedure
+    .input(
+      z.object({
+        campaignId: z.string().min(1),
+        types: z.array(z.string()).optional(),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      await authz.campaign(input.campaignId, ctx.session.user.id).verify();
+
+      const links = await prisma.campaignSourcebook.findMany({
+        where: { campaignId: input.campaignId },
+        select: { sourcebookId: true },
+      });
+      if (links.length === 0) return [];
+
+      const sourcebookIds = links.map((l) => l.sourcebookId);
+      const allowedTypes = ['NPC', 'LOCATION', 'FACTION', 'ITEM'] as const;
+      const typeFilter = input.types?.filter((t): t is typeof allowedTypes[number] =>
+        (allowedTypes as readonly string[]).includes(t)
+      ) ?? [...allowedTypes];
+
+      return prisma.sourcebookEntity.findMany({
+        where: {
+          sourcebookId: { in: sourcebookIds },
+          type: { in: typeFilter },
+        },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          description: true,
+          imageUrl: true,
+          chapter: { select: { slug: true } },
+        },
+        orderBy: { name: 'asc' },
+        take: 500,
+      });
+    }),
+
   regenerateActivityImage: protectedProcedure
     .input(z.object({ worldEntryId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {

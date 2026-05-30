@@ -23,7 +23,8 @@ async function cloneSourcebookHomebrewToCampaign(
   tx: Prisma.TransactionClient,
   targetCampaignId: string,
   sourcebookId: string,
-  userId: string,
+  currentUserId: string,
+  canonicalUserId: string | null,
 ): Promise<{
   canonicalToCampaignHomebrewId: Map<string, string>;
   cloneIdBySeedKey: Map<string, string>;
@@ -42,7 +43,7 @@ async function cloneSourcebookHomebrewToCampaign(
 
   const canonicalRows = await tx.homebrewContent.findMany({
     where: {
-      userId,
+      userId: canonicalUserId,
       ddbChapterId: { in: chapterIds },
       sourceType: 'dndbeyond_import',
     },
@@ -110,7 +111,7 @@ async function cloneSourcebookHomebrewToCampaign(
     if (!cloneId) {
       const created = await tx.homebrewContent.create({
         data: {
-          userId,
+          userId: currentUserId,
           type: row.type,
           name: row.name,
           data: row.data as Prisma.InputJsonValue,
@@ -149,6 +150,184 @@ async function cloneSourcebookHomebrewToCampaign(
   return { canonicalToCampaignHomebrewId, cloneIdBySeedKey };
 }
 
+function sourcebookEntityHomebrewType(type: string): string | null {
+  if (type === 'ITEM') return 'item';
+  if (type === 'LOCATION') return 'location';
+  if (type === 'THREAT') return 'creature';
+  return null;
+}
+
+function sourcebookEntitySeedKey(entity: {
+  chapterId?: string | null;
+  type: string;
+  name: string;
+}): string {
+  return `sourcebook-entity:${entity.chapterId ?? 'book'}:${entity.type}:${normalizeSeedKey(entity.name)}`;
+}
+
+async function synthesizeSourcebookCompendiumToCampaign(
+  tx: Prisma.TransactionClient,
+  targetCampaignId: string,
+  sourcebookId: string,
+  currentUserId: string,
+): Promise<number> {
+  const sourcebook = await tx.ddbSourcebook.findUnique({
+    where: { id: sourcebookId },
+    select: { slug: true, title: true },
+  });
+
+  const entities = await tx.sourcebookEntity.findMany({
+    where: {
+      sourcebookId,
+      type: { in: ['ITEM', 'LOCATION', 'THREAT'] },
+    },
+    select: {
+      id: true,
+      type: true,
+      name: true,
+      description: true,
+      properties: true,
+      imageUrl: true,
+      chapterId: true,
+      chapter: {
+        select: {
+          title: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  if (entities.length === 0) return 0;
+
+  const chapterIds = [
+    ...new Set(entities.map((entity) => entity.chapterId).filter((id): id is string => Boolean(id))),
+  ];
+
+  const existingLinks = await tx.campaignHomebrewContent.findMany({
+    where: {
+      campaignId: targetCampaignId,
+      homebrew: {
+        sourceType: 'sourcebook_seed',
+        ddbChapterId: { in: chapterIds },
+      },
+    },
+    select: {
+      homebrew: {
+        select: {
+          id: true,
+          type: true,
+          name: true,
+          ddbChapterId: true,
+          data: true,
+        },
+      },
+    },
+  });
+
+  const cloneIdBySeedKey = new Map<string, string>();
+  for (const link of existingLinks) {
+    const data = (link.homebrew.data ?? {}) as { sourcebookEntityId?: string; sourcebookEntityType?: string };
+    if (data.sourcebookEntityId) {
+      cloneIdBySeedKey.set(`sourcebook-entity-id:${data.sourcebookEntityId}`, link.homebrew.id);
+    }
+    cloneIdBySeedKey.set(
+      sourcebookEntitySeedKey({
+        chapterId: link.homebrew.ddbChapterId,
+        type: data.sourcebookEntityType ?? link.homebrew.type,
+        name: link.homebrew.name,
+      }),
+      link.homebrew.id,
+    );
+  }
+
+  const rowsToCreate: Prisma.HomebrewContentCreateManyInput[] = [];
+  for (const entity of entities) {
+    const homebrewType = sourcebookEntityHomebrewType(entity.type);
+    if (!homebrewType) continue;
+
+    const idKey = `sourcebook-entity-id:${entity.id}`;
+    const seedKey = sourcebookEntitySeedKey(entity);
+    const homebrewId = cloneIdBySeedKey.get(idKey) ?? cloneIdBySeedKey.get(seedKey);
+
+    if (homebrewId) continue;
+
+    const data = {
+      ...(entity.properties && typeof entity.properties === 'object' ? (entity.properties as Record<string, unknown>) : {}),
+      description: entity.description ?? '',
+      sourcebook: sourcebook?.title ?? null,
+      sourcebookSlug: sourcebook?.slug ?? null,
+      sourcebookId,
+      sourcebookEntityId: entity.id,
+      sourcebookEntityType: entity.type,
+      chapterId: entity.chapterId,
+      chapterTitle: entity.chapter?.title ?? null,
+      chapterSlug: entity.chapter?.slug ?? null,
+    };
+
+    rowsToCreate.push({
+      userId: currentUserId,
+      type: homebrewType,
+      name: entity.name,
+      data: data as Prisma.InputJsonValue,
+      images: entity.imageUrl ? [entity.imageUrl] : [],
+      tags: [sourcebook?.slug ?? 'sourcebook'].filter(Boolean),
+      searchText: `${entity.name} ${entity.description ?? ''} ${sourcebook?.title ?? ''}`,
+      sourceType: 'sourcebook_seed',
+      ddbChapterId: entity.chapterId,
+      imageUrl: entity.imageUrl,
+    });
+  }
+
+  if (rowsToCreate.length > 0) {
+    const createdRows = [];
+    const chunkSize = 500;
+    for (let index = 0; index < rowsToCreate.length; index += chunkSize) {
+      const chunk = rowsToCreate.slice(index, index + chunkSize);
+      createdRows.push(
+        ...(await tx.homebrewContent.createManyAndReturn({
+          data: chunk,
+          select: {
+            id: true,
+            name: true,
+            type: true,
+            ddbChapterId: true,
+            data: true,
+          },
+        })),
+      );
+    }
+
+    for (const row of createdRows) {
+      const data = (row.data ?? {}) as { sourcebookEntityId?: string; sourcebookEntityType?: string };
+      if (data.sourcebookEntityId) {
+        cloneIdBySeedKey.set(`sourcebook-entity-id:${data.sourcebookEntityId}`, row.id);
+      }
+      cloneIdBySeedKey.set(
+        sourcebookEntitySeedKey({
+          chapterId: row.ddbChapterId,
+          type: data.sourcebookEntityType ?? row.type,
+          name: row.name,
+        }),
+        row.id,
+      );
+    }
+  }
+
+  const homebrewIds = [...new Set([...cloneIdBySeedKey.values()])];
+  if (homebrewIds.length > 0) {
+    await tx.campaignHomebrewContent.createMany({
+      data: homebrewIds.map((homebrewId) => ({
+        campaignId: targetCampaignId,
+        homebrewId,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  return rowsToCreate.length;
+}
+
 export const ddbSyncRepository = {
   async upsertEntitlements(userId: string, entitlements: DdbEntitlementData[]) {
     return Promise.all(
@@ -180,7 +359,7 @@ export const ddbSyncRepository = {
   },
 
   async createSourcebook(
-    userId: string,
+    userId: string | null,
     entitlementId: string,
     slug: string,
     title: string,
@@ -223,17 +402,31 @@ export const ddbSyncRepository = {
   ): Promise<{
     entitiesSeeded: number;
     npcsSeeded: number;
+    compendiumSeeded: number;
     source: 'master' | 'donor' | 'none';
     donorCampaignId: string | null;
   }> {
     return prisma.$transaction(async (tx) => {
+      const sourcebookMeta = await tx.ddbSourcebook.findUnique({
+        where: { id: sourcebookId },
+        select: { userId: true },
+      });
+      const canonicalUserId = sourcebookMeta?.userId ?? null;
+
       const { canonicalToCampaignHomebrewId, cloneIdBySeedKey } =
         await cloneSourcebookHomebrewToCampaign(
           tx,
           targetCampaignId,
           sourcebookId,
           userId,
+          canonicalUserId,
         );
+      const compendiumSeeded = await synthesizeSourcebookCompendiumToCampaign(
+        tx,
+        targetCampaignId,
+        sourcebookId,
+        userId,
+      );
 
       const existingEntities = await tx.worldEntity.findMany({
         where: { campaignId: targetCampaignId },
@@ -276,6 +469,7 @@ export const ddbSyncRepository = {
           return {
             entitiesSeeded: 0,
             npcsSeeded: 0,
+            compendiumSeeded,
             source: 'master' as const,
             donorCampaignId: null,
           };
@@ -309,6 +503,7 @@ export const ddbSyncRepository = {
         return {
           entitiesSeeded: result.count,
           npcsSeeded: toCreate.filter((entity) => entity.type === 'NPC').length,
+          compendiumSeeded,
           source: 'master' as const,
           donorCampaignId: null,
         };
@@ -323,6 +518,7 @@ export const ddbSyncRepository = {
         return {
           entitiesSeeded: 0,
           npcsSeeded: 0,
+          compendiumSeeded,
           source: 'none' as const,
           donorCampaignId: null,
         };
@@ -341,6 +537,7 @@ export const ddbSyncRepository = {
         return {
           entitiesSeeded: 0,
           npcsSeeded: 0,
+          compendiumSeeded,
           source: 'none' as const,
           donorCampaignId: null,
         };
@@ -380,6 +577,7 @@ export const ddbSyncRepository = {
         return {
           entitiesSeeded: 0,
           npcsSeeded: 0,
+          compendiumSeeded,
           source: 'donor' as const,
           donorCampaignId: donorCampaign.campaignId,
         };
@@ -408,6 +606,7 @@ export const ddbSyncRepository = {
       return {
         entitiesSeeded: result.count,
         npcsSeeded: toCreate.filter((entity) => entity.type === 'NPC').length,
+        compendiumSeeded,
         source: 'donor' as const,
         donorCampaignId: donorCampaign.campaignId,
       };

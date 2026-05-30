@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';
@@ -11,16 +12,21 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ showLabel = false, className }: ThemeToggleProps) {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const updatePreferences = trpc.userSettings.updatePreferences.useMutation();
 
+  useEffect(() => setMounted(true), []);
+
   const toggle = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
+    const next = resolvedTheme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     updatePreferences.mutate({ theme: next });
   };
 
-  const isDark = theme === 'dark';
+  if (!mounted) return <div className="w-7 h-[44px]" />;
+
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <button

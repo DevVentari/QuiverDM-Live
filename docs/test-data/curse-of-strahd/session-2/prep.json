@@ -1,0 +1,194 @@
+{
+  "currentStep": 7,
+  "lastSavedAt": "2026-01-12T18:00:00.000Z",
+  "characterNotes": [
+    {
+      "characterId": "achmed-sahir",
+      "name": "Achmed Sahir",
+      "goals": "Survived the ground floor. Now wants out. Will consider burning the place down.",
+      "notes": "He found a gold locket with a portrait of Elisabeth Durst — worth 25gp if he didn't already pocket it."
+    },
+    {
+      "characterId": "apsnay-ickkay",
+      "name": "Apsnay Ickkay",
+      "goals": "Senses the children's souls are tied to the house. Wants to give them peace.",
+      "notes": "The Turn Undead interaction with the ghasts in the dungeon will be pivotal — he can sense they were once people."
+    },
+    {
+      "characterId": "biagio-macarone",
+      "name": "Biagio Macarone",
+      "goals": "Concerned the shambling mound is a corrupted nature spirit. Won't want to just destroy it.",
+      "notes": "Remind him: the mound is Walter. There is nothing natural left in it. DC 16 Nature check confirms this."
+    },
+    {
+      "characterId": "captain-arannis-vaelor",
+      "name": "Captain Arannis Vaelor",
+      "goals": "Identified the cult shrine as a necromantic focus. Is building a tactical picture.",
+      "notes": "He probably wants to collapse the altar. Let him — the house begins shaking when the altar is destroyed."
+    },
+    {
+      "characterId": "dragoth-the-dreaded",
+      "name": "Dragoth the Dreaded",
+      "goals": "Has been in dungeon delves before. Focused and professional now that the gloves are off.",
+      "notes": "Dragoth will be the one the Shambling Mound grapples first — he's the most armored target."
+    },
+    {
+      "characterId": "taelin-viziero",
+      "name": "Taelin Viziero",
+      "goals": "Patron is silent inside Barovia — no response to invocations. This is deeply unsettling.",
+      "notes": "Let him roll Arcana during the ritual room scene. On 15+: the Dark Powers of Barovia actively suppress extraplanar contact."
+    }
+  ],
+  "strongStart": "The attic staircase descends into a crawl space that shouldn't exist — the house has more floors underground than above. Torchlight catches stone walls slick with moisture, iron rings in the wall, and empty manacles. Someone lived down here for a very long time. A child-sized skeleton lies in the far corner, its skull caved in. Thorn's voice comes from the air behind you: 'That's not my room. That's where they kept the ones who failed the ritual.'",
+  "scenes": [
+    {
+      "id": "s2-scene-1",
+      "title": "The Dungeon Cells",
+      "description": "The underground level is a series of cells, all empty. Scratch marks on the walls. Candles on iron sconces burn with blue flame. The party hears chanting in a dead language — but no one is there. It's a magical echo of the cult's final ritual.",
+      "location": "Death House, basement level 1",
+      "readAloud": "The stone passage smells of earth and old copper. Iron doors, rusted open. Every cell is empty. But the walls — look at the walls. Fingers scraped these grooves. Dozens of people, over years. The candles burn blue, not orange. The chanting rises and falls like breathing. It has no source. It has no end. On the far wall, carved by a steadier hand: THIS IS THE PRICE OF STRAHD'S BLESSING.",
+      "order": 0,
+      "linkedNpcIds": [],
+      "linkedSecretIds": ["secret-cult-ritual"],
+      "linkedMonsterNames": []
+    },
+    {
+      "id": "s2-scene-2",
+      "title": "The Ghast Ambush",
+      "description": "Four ghasts lurk in the deeper passages — former cult members. They attack on sight, driven by hunger. One wears the remnants of a ceremonial robe. Defeating them causes the chanting to intensify briefly before going silent.",
+      "location": "Death House, basement passage",
+      "readAloud": "The smell hits before you see them — three nights dead, then three centuries. They come around the corner in a rush, finger-nails scraping stone, jaws working. The one in the lead still wears what was once a ceremonial robe. You catch a glimpse of its face before it screams: it looks almost grateful.",
+      "order": 1,
+      "linkedNpcIds": [],
+      "linkedSecretIds": [],
+      "linkedMonsterNames": ["Ghast", "Ghast", "Ghast", "Ghast"]
+    },
+    {
+      "id": "s2-scene-3",
+      "title": "The Ritual Chamber and Altar",
+      "description": "A circular room, 30 feet across, with a central dais and an altar of black stone. Carved runes glow faint red. A pit below the altar descends into darkness. Bones of previous offerings are piled around the base. The Shambling Mound waits in the pit — asleep, barely audible, a slow wet breathing.",
+      "location": "Death House, ritual chamber",
+      "readAloud": "The door opens into a chamber that breathes. The altar glows with its own sick light. The bones arranged around it are not random — they form a pattern, a spiral, pointing inward to the pit. Rose's voice, small and far away: 'That's where they put Walter. After.' The breathing from the pit is slow. Even. Patient. Whatever is down there has been waiting for three hundred years. It can wait a little longer.",
+      "order": 2,
+      "linkedNpcIds": [],
+      "linkedSecretIds": ["secret-walter-monster", "secret-altar-choice"],
+      "linkedMonsterNames": ["Shambling Mound"]
+    },
+    {
+      "id": "s2-scene-4",
+      "title": "The Fight — The Shambling Mound",
+      "description": "If the party attacks, the Shambling Mound emerges. If they attempt the blood ritual (cutting themselves over the altar), the house shudders with satisfaction but the Mound still animates. The Mound attempts to grapple and engulf — it is relentless. When it's destroyed, the walls crack.",
+      "location": "Death House, ritual chamber",
+      "readAloud": "The thing that rises from the pit is not a monster. It's grief, compressed into shambling mass, wrapped in centuries of weeds and rot and hunger. It turns toward you with no eyes, no face, nothing recognizable as anything that was once a child. It makes no sound except the slow wet movement of its bulk. Then it charges.",
+      "order": 3,
+      "linkedNpcIds": [],
+      "linkedSecretIds": [],
+      "linkedMonsterNames": ["Shambling Mound"]
+    },
+    {
+      "id": "s2-scene-5",
+      "title": "The Escape — House Collapse",
+      "description": "When the Mound dies, the house begins to collapse. A chase sequence: the party has 6 rounds to reach the front door or a window before the structure comes down. Animated debris attacks (treat as opportunity attacks for disengaging). Rose and Thorn appear one final time at the door — and step aside, releasing the party.",
+      "location": "Death House, all floors",
+      "readAloud": "The walls crack. The ceiling groans. The chanting that has followed you through the dungeon rises to a scream and then cuts off entirely. From somewhere above: thunder, or something falling. Rose and Thorn stand at the top of the stairs, translucent now, fading. Rose looks at you — really looks at you — for the first time. 'Thank you,' she says. 'It's over now. For us.' Thorn waves. Then they are gone. The front door bursts open. Outside: rain. The village of Barovia, wet and grey and real. Run.",
+      "order": 4,
+      "linkedNpcIds": ["rose-durst", "thorn-durst"],
+      "linkedSecretIds": [],
+      "linkedMonsterNames": []
+    }
+  ],
+  "secretsAndClues": [
+    {
+      "id": "secret-cult-ritual",
+      "text": "The cult's ritual was a fake — Strahd never granted them any power. The Dark Powers of Barovia simply used their hunger and devotion as a source of suffering, which is what the Dark Powers feed on. The house has been a trap for centuries, luring travellers in and harvesting their deaths.",
+      "linkedTo": "Death House / Dark Powers"
+    },
+    {
+      "id": "secret-altar-choice",
+      "text": "The altar offers a choice: make a blood sacrifice (one party member takes 1d6 damage and the house is temporarily appeased) or destroy the altar (triggers immediate collapse). There is a third option — wait the house out — but it will take 1d4 days and the party will starve first.",
+      "linkedTo": "Death House, ritual chamber"
+    },
+    {
+      "id": "secret-barovia-village",
+      "text": "Outside Death House, the party will find themselves in the Village of Barovia. It is exactly as described in the Burgomaster's letter — miserable, fearful, broken. A few Barovians will watch them emerge from the house with a mixture of astonishment (you survived) and pity (you're trapped now).",
+      "linkedTo": "Village of Barovia"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-rose",
+      "name": "Rose Durst",
+      "role": "Ghost, final appearance",
+      "motivation": "Her soul is freed when the Mound is destroyed. Her final act is releasing the party from the house.",
+      "isNew": false
+    },
+    {
+      "id": "npc-thorn",
+      "name": "Thorn Durst",
+      "role": "Ghost, final appearance",
+      "motivation": "Has never spoken more than a few words. Waves goodbye. This will get them.",
+      "isNew": false
+    }
+  ],
+  "monsters": [
+    {
+      "name": "Ghast",
+      "cr": "2",
+      "source": "srd",
+      "count": 4
+    },
+    {
+      "name": "Shambling Mound",
+      "cr": "5",
+      "source": "srd",
+      "count": 1
+    }
+  ],
+  "rewards": [
+    {
+      "name": "Chainmail (from the cult leader's ghast)",
+      "rarity": "common",
+      "source": "custom",
+      "notes": "AC 16, still wearable. Has a cult symbol scratched into the breastplate."
+    },
+    {
+      "name": "Tome of the Durst Cult",
+      "rarity": "uncommon",
+      "source": "custom",
+      "notes": "Gustav Durst's personal journal. Details 3 years of increasingly unhinged cult activity. Useful context for Barovia. The last 20 pages are written in blood. No magical properties but invaluable lore."
+    }
+  ],
+  "looseThreads": [
+    {
+      "id": "thread-village",
+      "text": "The party has emerged into the Village of Barovia. They need shelter, information, and a way forward.",
+      "fromSessionId": "session-2"
+    },
+    {
+      "id": "thread-patron-silence",
+      "text": "Taelin's patron has not responded since entering Barovia. Something suppresses extraplanar contact here.",
+      "fromSessionId": "session-2"
+    }
+  ],
+  "prepItems": [
+    {
+      "id": "prep-collapse",
+      "title": "Prep the collapse chase card",
+      "status": "prepped",
+      "objective": "6-round chase, write initiative results on index card, track position per turn",
+      "notes": "Hazards per round: R1 falling chandelier (DEX 13 or 2d6), R2 collapsing stair (DEX 12 or fall prone), R3 animated door (ATK +4, 1d8), R4 nothing, R5 falling ceiling chunk (DEX 15 or 3d6), R6 front door jams (STR 14 to break).",
+      "outcome": "",
+      "createdAt": "2026-01-12T17:00:00.000Z",
+      "updatedAt": "2026-01-12T17:00:00.000Z"
+    }
+  ],
+  "reminders": [
+    {
+      "id": "reminder-level",
+      "title": "Party levels to 3 after Death House",
+      "description": "Announce the level-up as soon as they're outside in the rain. Let them take a moment.",
+      "completed": false,
+      "createdAt": "2026-01-12T17:00:00.000Z"
+    }
+  ]
+}

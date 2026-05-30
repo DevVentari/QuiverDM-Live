@@ -29,7 +29,7 @@
   }
 
   html.light body {
-    background-color: hsl(40 20% 91%);
+    background-color: hsl(38 40% 94%);
     background-image: var(--q-body-atmosphere-base);
   }
 }
@@ -272,8 +272,10 @@
 
 html.light {
   --q-body-atmosphere-base:
-    radial-gradient(ellipse 60% 45% at 20% -5%, hsl(35 60% 82% / 0.6), transparent),
-    radial-gradient(ellipse 40% 35% at 80% -5%, hsl(45 40% 90% / 0.5), transparent),
-    radial-gradient(ellipse 80% 50% at 50% 105%, hsl(35 30% 88% / 0.4), transparent),
-    linear-gradient(hsl(35 25% 93%), hsl(40 20% 91%));
+    linear-gradient(hsl(38 40% 94% / 0.70), hsl(38 40% 94% / 0.70)),
+    radial-gradient(ellipse 55% 55% at 18% -8%, hsl(35 70% 32% / 0.12), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 82% -8%, hsl(265 60% 32% / 0.24), transparent 60%),
+    radial-gradient(ellipse 82% 58% at 50% 112%, hsl(215 50% 10% / 0.22), transparent 70%),
+    radial-gradient(ellipse 105% 80% at 50% 52%, transparent 28%, hsl(215 45% 3% / 0.55) 100%),
+    linear-gradient(hsl(215 36% 6%), hsl(215 38% 4%));
 }

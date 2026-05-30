@@ -17,6 +17,38 @@ function validateNpcName(name: string | undefined, required: boolean) {
   }
 }
 
+function normalizeNpcName(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/\b(count|lord|lady|sir|madam|madame|baron|baroness)\b/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+async function findMatchingCreatureStatBlock(chapterId: string | null, entityName: string) {
+  if (!chapterId) return null;
+
+  const target = normalizeNpcName(entityName);
+  const candidates = await prisma.homebrewContent.findMany({
+    where: {
+      type: 'creature',
+      ddbChapterId: chapterId,
+      sourceType: 'dndbeyond_import',
+    },
+    select: {
+      id: true,
+      name: true,
+      data: true,
+      imageUrl: true,
+    },
+  });
+
+  return candidates.find((candidate) => {
+    const candidateName = normalizeNpcName(candidate.name);
+    return candidateName === target || candidateName.includes(target) || target.includes(candidateName);
+  }) ?? null;
+}
+
 export class NPCService {
   async getById(npcId: string, userId: string) {
     // First try the NPC table (DM-managed records)
@@ -53,6 +85,12 @@ export class NPCService {
     }
     await authz.campaign(entity.campaignId, userId).verify();
     const props = (entity.properties ?? {}) as Record<string, unknown>;
+    const fallbackStatBlock = entity.statBlock
+      ? null
+      : await findMatchingCreatureStatBlock(entity.ddbChapterId, entity.name);
+    const statBlockData = entity.statBlock?.data ?? fallbackStatBlock?.data ?? null;
+    const statBlockImageUrl = entity.statBlock?.imageUrl ?? fallbackStatBlock?.imageUrl ?? null;
+
     return {
       id: entity.id,
       campaignId: entity.campaignId,
@@ -60,9 +98,13 @@ export class NPCService {
       description: entity.description,
       faction: typeof props.faction === 'string' ? (props.faction as string) : null,
       role: typeof props.role === 'string' ? (props.role as string) : null,
-      imageUrl: entity.imageUrl ?? entity.statBlock?.imageUrl ?? null,
-      stats: entity.statBlock?.data ?? null,
+      imageUrl: entity.imageUrl ?? statBlockImageUrl,
+      stats: statBlockData,
       tags: [] as string[],
+      status: typeof props.status === 'string' ? (props.status as string) : null,
+      location: typeof props.location === 'string' ? (props.location as string) : null,
+      motivation: typeof props.motivation === 'string' ? (props.motivation as string) : null,
+      personality: props.personality ?? null,
       secrets: null,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
@@ -70,6 +112,7 @@ export class NPCService {
       _readonly: true,
       _fromSourcebook: entity.ddbChapterId !== null,
       _seen: entity.firstSeenSessionId !== null,
+      _firstSeenSessionId: entity.firstSeenSessionId ?? null,
     };
   }
 
@@ -126,6 +169,10 @@ export class NPCService {
       imageUrl?: string;
       tags?: string[];
       stats?: any;
+      status?: string | null;
+      location?: string | null;
+      motivation?: string | null;
+      personality?: any;
     }
   ) {
     validateNpcName(input.name, true);
@@ -173,6 +220,11 @@ export class NPCService {
       imageUrl?: string;
       tags?: string[];
       stats?: any;
+      playerVisible?: boolean;
+      status?: string | null;
+      location?: string | null;
+      motivation?: string | null;
+      personality?: any;
     }
   ) {
     validateNpcName(input.name, false);

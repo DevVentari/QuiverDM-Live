@@ -6,7 +6,6 @@ import { decrypt } from '@/lib/encryption';
 import { exchangeCobaltForJwt, fetchUserEntitlements, DdbAuthError } from '@/lib/ddb-sourcebook';
 import { ddbSyncRepository } from '../repositories/ddb-sync.repository';
 import { addDdbSyncJob } from '@/lib/queue/ddb-sync-queue';
-import { sessionRepository } from '../repositories/session.repository';
 import { emptyPrepData } from '@/lib/prep-types';
 import { addSession0PrepJob } from '@/lib/queue/session0-prep-queue';
 
@@ -60,8 +59,8 @@ export const ddbSyncRouter = router({
     .input(z.object({ sourcebookId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const sourcebook = await prisma.ddbSourcebook.findUnique({ where: { id: input.sourcebookId } });
-      if (!sourcebook || sourcebook.userId !== ctx.session.user.id) throw new TRPCError({ code: 'NOT_FOUND' });
-      await addDdbSyncJob(sourcebook.id, sourcebook.userId);
+      if (!sourcebook || (sourcebook.userId !== null && sourcebook.userId !== ctx.session.user.id)) throw new TRPCError({ code: 'NOT_FOUND' });
+      await addDdbSyncJob(sourcebook.id, ctx.session.user.id);
       return { queued: true };
     }),
 
@@ -72,7 +71,7 @@ export const ddbSyncRouter = router({
         where: { id: input.sourcebookId },
         include: { chapters: { orderBy: { chapterIndex: 'asc' } } },
       });
-      if (!sourcebook || sourcebook.userId !== ctx.session.user.id) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (!sourcebook || (sourcebook.userId !== null && sourcebook.userId !== ctx.session.user.id)) throw new TRPCError({ code: 'NOT_FOUND' });
       return sourcebook;
     }),
 
@@ -90,7 +89,7 @@ export const ddbSyncRouter = router({
         where: { id: input.chapterId },
         include: { sourcebook: true },
       });
-      if (!chapter || chapter.sourcebook.userId !== ctx.session.user.id) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (!chapter || (chapter.sourcebook.userId !== null && chapter.sourcebook.userId !== ctx.session.user.id)) throw new TRPCError({ code: 'NOT_FOUND' });
       await ddbSyncRepository.resolveChange(
         input.chapterId, input.entityId, input.field, input.action, input.entityType, input.newValue
       );
@@ -107,7 +106,7 @@ export const ddbSyncRouter = router({
       if (!member) throw new TRPCError({ code: 'FORBIDDEN' });
 
       const owned = await prisma.ddbSourcebook.findMany({
-        where: { userId: ctx.session.user.id },
+        where: { OR: [{ userId: ctx.session.user.id }, { userId: null }] },
         orderBy: { title: 'asc' },
         select: { id: true, slug: true, title: true, syncStatus: true, lastSyncedAt: true, lastSyncError: true },
       });
@@ -133,7 +132,7 @@ export const ddbSyncRouter = router({
         where: { id: input.sourcebookId },
         select: { userId: true },
       });
-      if (!sourcebook || sourcebook.userId !== ctx.session.user.id) {
+      if (!sourcebook || (sourcebook.userId !== null && sourcebook.userId !== ctx.session.user.id)) {
         throw new TRPCError({ code: 'NOT_FOUND' });
       }
 
@@ -151,11 +150,12 @@ export const ddbSyncRouter = router({
         await addDdbSyncJob(input.sourcebookId, ctx.session.user.id);
       }
 
-      // Create Session 0 for this campaign if none exists yet
-      const existingSession0 = await prisma.gameSession.findFirst({
+      // Upgrade Session 0 prep with sourcebook entities (created generically at campaign birth)
+      const session0 = await prisma.gameSession.findFirst({
         where: { campaignId: input.campaignId, sessionNumber: 0 },
+        select: { id: true },
       });
-      if (!existingSession0) {
+      if (session0) {
         const sourcebookRecord = await prisma.ddbSourcebook.findUnique({
           where: { id: input.sourcebookId },
           select: { title: true },
@@ -164,13 +164,9 @@ export const ddbSyncRouter = router({
           where: { id: input.campaignId },
           select: { name: true },
         });
-        const session0 = await sessionRepository.create({
-          campaignId: input.campaignId,
-          title: 'Session 0',
-          sessionNumber: 0,
-          status: 'planning',
-          prepData: emptyPrepData() as unknown as import('@prisma/client').Prisma.InputJsonValue,
-          prepStatus: 'draft',
+        await prisma.gameSession.update({
+          where: { id: session0.id },
+          data: { prepStatus: 'draft', prepData: emptyPrepData() as unknown as import('@prisma/client').Prisma.InputJsonValue },
         });
         void addSession0PrepJob({
           sessionId: session0.id,

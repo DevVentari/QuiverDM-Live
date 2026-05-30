@@ -1,0 +1,245 @@
+/**
+ * One-shot: export a SessionRecap as HTML + PDF.
+ *
+ * Usage:
+ *   npx tsx scripts/export-recap-html-pdf.ts --recap-id <id> --out-dir <path>
+ */
+
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
+import { parseArgs } from 'node:util';
+import { prisma } from '../src/lib/prisma';
+
+const { values: args } = parseArgs({
+  options: {
+    'recap-id': { type: 'string' },
+    'out-dir':  { type: 'string', default: 'docs/Jordan-New-Campaign' },
+  },
+});
+
+const recapId = args['recap-id']!;
+const outDir  = path.resolve(process.cwd(), args['out-dir']!);
+
+if (!recapId) {
+  console.error('--recap-id is required');
+  process.exit(1);
+}
+
+function buildHtml(
+  title: string,
+  campaignName: string,
+  sections: Array<{ key: string; title: string; content: string }>,
+  sessionNumber: number,
+  date: Date,
+) {
+  const dateStr = date.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  const sectionsHtml = sections.map(s => {
+    const lines = s.content.split('\n').filter(l => l.trim());
+    const isList = lines.every(l => /^[\d•\-\*]/.test(l.trim()));
+    const contentHtml = isList
+      ? `<ul>${lines.map(l => `<li>${l.replace(/^[\d]+\.\s*|^[•\-\*]\s*/, '')}</li>`).join('')}</ul>`
+      : lines.map(l => `<p>${l}</p>`).join('');
+    return `
+      <section class="section">
+        <h2>${s.title}</h2>
+        ${contentHtml}
+      </section>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title} — ${campaignName}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: #0e0c14;
+      color: #d4c9a8;
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+      border-bottom: 1px solid rgba(196,160,80,0.2);
+      margin-bottom: 2.5rem;
+    }
+
+    .overline {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #c4a050;
+      margin-bottom: 0.75rem;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #f0e6c4;
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+    }
+
+    .date {
+      font-size: 0.8rem;
+      color: #8a7a5a;
+      margin-top: 0.5rem;
+    }
+
+    .amber-rule {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #c4a050, transparent);
+      margin: 1.5rem auto 0;
+    }
+
+    .section {
+      margin-bottom: 2.5rem;
+      padding: 1.75rem 2rem;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(196,160,80,0.12);
+      border-radius: 3px;
+    }
+
+    h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #c4a050;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(196,160,80,0.15);
+    }
+
+    p {
+      line-height: 1.75;
+      color: #c8bda0;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      padding: 0.4rem 0 0.4rem 1.25rem;
+      position: relative;
+      color: #c8bda0;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    li:last-child { border-bottom: none; }
+
+    li::before {
+      content: '◆';
+      position: absolute;
+      left: 0;
+      color: #c4a050;
+      font-size: 0.5rem;
+      top: 0.65rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(196,160,80,0.1);
+      font-size: 0.7rem;
+      color: #4a4030;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.1em;
+    }
+
+    @media print {
+      body { background: #fff; color: #1a1a1a; padding: 0; }
+      .page { max-width: 100%; }
+      .section { background: none; border-color: #ccc; break-inside: avoid; }
+      h1, h2, .overline { color: #1a1a1a; }
+      p, li { color: #333; }
+      .amber-rule { background: #888; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <p class="overline">${campaignName} &mdash; Session ${sessionNumber}</p>
+      <h1>${title}</h1>
+      <p class="date">${dateStr}</p>
+      <div class="amber-rule"></div>
+    </header>
+
+    ${sectionsHtml}
+
+    <footer>Generated by QuiverDM</footer>
+  </div>
+</body>
+</html>`;
+}
+
+async function main() {
+  const recap = await prisma.sessionRecap.findUnique({
+    where: { id: recapId },
+    include: {
+      session:  { select: { title: true, sessionNumber: true, date: true } },
+      campaign: { select: { name: true } },
+    },
+  });
+  if (!recap) throw new Error(`Recap not found: ${recapId}`);
+
+  const sections = recap.sections as Array<{ key: string; title: string; content: string }>;
+  const title = recap.session.title ?? `Session ${recap.session.sessionNumber}`;
+  const html  = buildHtml(title, recap.campaign.name, sections, recap.session.sessionNumber, recap.session.date);
+
+  await fs.mkdir(outDir, { recursive: true });
+
+  const htmlPath = path.join(outDir, `session-${recap.session.sessionNumber}-recap.html`);
+  await fs.writeFile(htmlPath, html, 'utf8');
+  console.log('HTML written:', htmlPath);
+
+  // PDF via Playwright
+  console.log('Generating PDF via Playwright...');
+  const { chromium } = await import('playwright');
+  const browser = await chromium.launch();
+  const page    = await browser.newPage();
+  await page.setContent(html, { waitUntil: 'networkidle' });
+
+  const pdfPath = path.join(outDir, `session-${recap.session.sessionNumber}-recap.pdf`);
+  await page.pdf({
+    path: pdfPath,
+    format: 'A4',
+    margin: { top: '20mm', right: '20mm', bottom: '20mm', left: '20mm' },
+    printBackground: false, // white bg for print
+  });
+
+  await browser.close();
+  console.log('PDF written:', pdfPath);
+  await prisma.$disconnect();
+}
+
+main().catch(e => { console.error(e); process.exit(1); });

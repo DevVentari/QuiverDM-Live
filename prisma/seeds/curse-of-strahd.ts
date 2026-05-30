@@ -1,7 +1,7 @@
 import { PrismaClient, CampaignRole } from '@prisma/client';
 
 export async function seedCurseOfStrahd(prisma: PrismaClient, userId: string) {
-  const campaign = await prisma.campaign.upsert({
+  await prisma.campaign.upsert({
     where: { slug: 'curse-of-strahd' },
     update: {},
     create: {
@@ -12,6 +12,10 @@ export async function seedCurseOfStrahd(prisma: PrismaClient, userId: string) {
       status: 'active',
       userId,
     },
+  });
+
+  const campaign = await prisma.campaign.findUniqueOrThrow({
+    where: { slug: 'curse-of-strahd' },
   });
 
   await prisma.campaignMember.upsert({
@@ -28,21 +32,18 @@ export async function seedCurseOfStrahd(prisma: PrismaClient, userId: string) {
     },
   });
 
-  const existing = await prisma.nPC.findFirst({
-    where: { campaignId: campaign.id, name: 'Strahd von Zarovich' },
+  // Link the CoS sourcebook if it has been synced (slug: 'cos')
+  const sourcebook = await prisma.ddbSourcebook.findFirst({
+    where: { slug: 'cos' },
+    select: { id: true },
   });
-  if (!existing) {
-    await prisma.nPC.create({
-      data: {
-        campaignId: campaign.id,
-        name: 'Strahd von Zarovich',
-        description:
-          'The ancient and powerful vampire lord who rules Barovia with an iron fist. He is cursed to forever pine for his lost love, Tatyana.',
-        faction: 'Castle Ravenloft',
-        secrets: 'Can be weakened by the Sunsword, Holy Symbol of Ravenkind, and the Tome of Strahd.',
-        tags: ['villain', 'vampire', 'boss'],
-      },
+  if (sourcebook) {
+    await prisma.campaignSourcebook.upsert({
+      where: { campaignId_sourcebookId: { campaignId: campaign.id, sourcebookId: sourcebook.id } },
+      update: {},
+      create: { campaignId: campaign.id, sourcebookId: sourcebook.id },
     });
+    console.log(`Linked CoS sourcebook to campaign`);
   }
 
   console.log(`Seeded Curse of Strahd`);

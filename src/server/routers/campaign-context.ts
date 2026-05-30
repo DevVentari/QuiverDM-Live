@@ -79,7 +79,7 @@ export const campaignContextRouter = router({
       return prisma.ddbSourcebook.findMany({
         where: {
           campaignIds: { has: input.campaignId },
-          userId: ctx.session.user.id,
+          OR: [{ userId: ctx.session.user.id }, { userId: null }],
         },
         select: { id: true, title: true, slug: true },
         orderBy: { title: 'asc' },
@@ -97,7 +97,7 @@ export const campaignContextRouter = router({
       const sourcebook = await prisma.ddbSourcebook.findFirst({
         where: {
           id: input.sourcebookId,
-          userId: ctx.session.user.id,
+          OR: [{ userId: ctx.session.user.id }, { userId: null }],
           campaignIds: { has: input.campaignId },
         },
         include: { chapters: { orderBy: { chapterIndex: 'asc' } } },

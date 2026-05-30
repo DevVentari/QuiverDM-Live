@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { checkpoint, signInAsTestUser } from '../helpers';
 
-const NORA_EMAIL = process.env.QA_NORA_EMAIL ?? 'nora@test.local';
+const DAVID_EMAIL = process.env.QA_DAVID_EMAIL ?? 'david@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 
 test('new-dm happy path: onboarding to first campaign and first npc', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, NORA_EMAIL, PASSWORD);
+    await signInAsTestUser(page, DAVID_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'onboarding-or-dashboard', async () => {
@@ -44,7 +44,7 @@ test('new-dm happy path: onboarding to first campaign and first npc', async ({ p
     await page.goto('/campaigns/new');
     await page.waitForLoadState('domcontentloaded');
 
-    const campaignName = `Nora QA Campaign ${Date.now()}`;
+    const campaignName = `David QA Campaign ${Date.now()}`;
     await page.getByRole('textbox', { name: /^name$/i }).fill(campaignName);
 
     const descField = page.getByRole('textbox', { name: /description/i });
@@ -81,7 +81,7 @@ test('new-dm happy path: onboarding to first campaign and first npc', async ({ p
 
     await page.waitForLoadState('domcontentloaded');
 
-    const npcName = `Nora QA Goblin ${Date.now()}`;
+    const npcName = `David QA Goblin ${Date.now()}`;
     await page.getByRole('textbox', { name: /^name$/i }).fill(npcName);
 
     const descField = page.getByRole('textbox', { name: /description/i });
@@ -111,7 +111,7 @@ test('new-dm happy path: onboarding to first campaign and first npc', async ({ p
 
 test('new-dm failure path: invalid first campaign submit shows validation', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, NORA_EMAIL, PASSWORD);
+    await signInAsTestUser(page, DAVID_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'open-campaign-form', async () => {

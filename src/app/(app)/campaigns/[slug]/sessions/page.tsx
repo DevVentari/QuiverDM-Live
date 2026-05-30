@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
-import { Session0HeroCard } from '@/components/campaign/Session0HeroCard';
 import { SplitCanvas } from '@/components/layout/split-canvas';
 import { SessionInspectorPanel } from '@/components/session/session-inspector-panel';
 import { Button } from '@/components/ui/button';
@@ -24,6 +23,24 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string 
 
 type FilterStatus = 'all' | 'planning' | 'in_progress' | 'completed';
 
+type SessionListItem = {
+  id: string;
+  title?: string | null;
+  status?: string | null;
+  sessionNumber?: number | null;
+  createdAt?: string | Date | null;
+  prepStatus?: string | null;
+  quickNotes?: string | null;
+  aiSummary?: string | null;
+  transcripts?: { id: string; hasSpeakers?: boolean | null; durationSeconds?: number | null; speakers?: unknown }[] | null;
+  _count?: {
+    recordings?: number;
+    transcriptions?: number;
+  } | null;
+  recordings?: unknown[] | null;
+  transcriptions?: unknown[] | null;
+};
+
 export default function SessionsPage() {
   const { campaignId, slug, isDM } = useCampaign();
   const prefersReducedMotion = useReducedMotion();
@@ -31,18 +48,9 @@ export default function SessionsPage() {
   const [filter, setFilter] = useState<FilterStatus>('all');
   const [selectedId, setSelectedSession] = useState<string | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const allSessions = (sessionsQuery.data ?? []) as any[];
+  const allSessions = (sessionsQuery.data ?? []) as SessionListItem[];
 
-  // Detect Session 0 - show hero card until a real session (sessionNumber >= 1) exists
-  const session0 = allSessions.find((s) => s.sessionNumber === 0);
-  const hasRealSessions = allSessions.some((s) => s.sessionNumber >= 1);
-  const showSession0Card = isDM && !!session0 && !hasRealSessions && (() => {
-    try { return !sessionStorage.getItem(`session0-dismissed-${session0.id}`); } catch { return true; }
-  })();
-
-  // Exclude session 0 from the visible sessions list
-  const allDisplaySessions = allSessions.filter((s) => s.sessionNumber !== 0);
+  const allDisplaySessions = allSessions;
 
   const activeCount    = allDisplaySessions.filter((s) => s.status === 'in_progress' || s.status === 'active').length;
   const completedCount = allDisplaySessions.filter((s) => s.status === 'completed').length;
@@ -63,6 +71,14 @@ export default function SessionsPage() {
   };
 
   const selectedSession = allDisplaySessions.find((s) => s.id === selectedId) ?? null;
+
+  const autoSession = selectedSession ??
+    allDisplaySessions.find((s) => s.status === 'planning' || !s.status || s.status === 'in_progress' || s.status === 'active') ??
+    allDisplaySessions[0] ??
+    null;
+
+  const upcomingSessions = sessions.filter((s) => s.status !== 'completed');
+  const pastSessions = sessions.filter((s) => s.status === 'completed');
 
   const listVariants = {
     hidden: {},
@@ -85,15 +101,69 @@ export default function SessionsPage() {
     </Button>
   ) : undefined;
 
-  const heroStats = [
-    { label: 'total', value: allDisplaySessions.length },
-    { label: 'completed', value: completedCount },
-    ...(activeCount > 0 ? [{ label: 'active', value: activeCount, alert: true }] : []),
-  ];
+  const heroStats = allDisplaySessions.length > 0
+    ? [{ label: 'sessions', value: allDisplaySessions.length }]
+    : [];
+
+  function stripSessionPrefix(title: string | null | undefined, num: number): string {
+    if (!title) return `Session ${num}`;
+    return title.replace(/^session\s+\d+[:\s-]+/i, '').trim() || title;
+  }
+
+  function renderSessionRow(session: SessionListItem) {
+    const sessionNum = session.sessionNumber ?? (allSessions.length - allSessions.indexOf(session));
+    const statusKey  = session.status === 'active' ? 'in_progress' : (session.status ?? 'planning');
+    const status     = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.planning;
+    const hasRec     = (session._count?.recordings ?? 0) > 0 || (session.recordings?.length ?? 0) > 0;
+    const hasTx      = (session._count?.transcriptions ?? 0) > 0 || (session.transcriptions?.length ?? 0) > 0;
+    const hasSumm    = !!session.aiSummary;
+    const isSelected = autoSession?.id === session.id;
+    const displayTitle = stripSessionPrefix(session.title, sessionNum);
+
+    return (
+      <motion.button
+        key={session.id}
+        variants={itemVariants}
+        onClick={() => setSelectedSession(isSelected && selectedId !== null ? null : session.id)}
+        className={`w-full text-left px-3 py-2.5 border-b border-[var(--q-border-subtle)] transition-colors hover:bg-[var(--q-amber-trace)] ${
+          isSelected ? 'bg-[var(--q-amber-trace)] border-l-2 border-l-[var(--q-amber)]' : ''
+        }`}
+      >
+        <div className="flex items-start gap-2.5">
+          <div className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold tabular-nums transition-colors mt-0.5 ${
+            isSelected ? 'border-[var(--q-amber-border)] text-[var(--q-amber)]' : 'border-[var(--q-border-subtle)] text-[var(--q-text-dim)]'
+          }`}>
+            {String(sessionNum).padStart(2, '0')}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-1.5">
+              <p className="text-sm font-medium text-[var(--q-text)] leading-snug line-clamp-1">
+                {displayTitle}
+              </p>
+              <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium border mt-0.5 ${status.color}`}>
+                {status.label}
+              </span>
+            </div>
+            {(session.quickNotes || session.aiSummary) && (
+              <p className="text-[10px] text-[var(--q-text-faint)] line-clamp-2 mt-1 leading-relaxed">
+                {session.quickNotes || session.aiSummary?.slice(0, 120)}
+              </p>
+            )}
+            <div className="flex items-center gap-0.5 mt-1 text-[var(--q-text-faint)]">
+              {hasRec  && <Mic      className="h-3 w-3" />}
+              {hasTx   && <FileText  className="h-3 w-3" />}
+              {hasSumm && <Sparkles  className="h-3 w-3" />}
+            </div>
+          </div>
+        </div>
+      </motion.button>
+    );
+  }
+
+  const showGroups = filter === 'all' && upcomingSessions.length > 0 && pastSessions.length > 0;
 
   const leftPane = (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Filter pills */}
       <div className="flex flex-wrap gap-1 px-2 py-2 flex-shrink-0 border-b border-[var(--q-border-subtle)]">
         {(['all', 'in_progress', 'completed', 'planning'] as FilterStatus[]).map((f) => (
           <button
@@ -111,7 +181,6 @@ export default function SessionsPage() {
         ))}
       </div>
 
-      {/* Session list */}
       <div className="flex-1 overflow-y-auto">
         {sessionsQuery.isLoading ? (
           <div className="space-y-1 p-2">
@@ -119,48 +188,20 @@ export default function SessionsPage() {
           </div>
         ) : sessions.length > 0 ? (
           <motion.div variants={listVariants} initial="hidden" animate="visible">
-            {sessions.map((session) => {
-              const sessionNum = session.sessionNumber ?? (allSessions.length - allSessions.indexOf(session));
-              const statusKey  = session.status === 'active' ? 'in_progress' : (session.status ?? 'planning');
-              const status     = STATUS_CONFIG[statusKey] ?? STATUS_CONFIG.planning;
-              const hasRec     = (session._count?.recordings ?? 0) > 0 || (session.recordings?.length ?? 0) > 0;
-              const hasTx      = (session._count?.transcriptions ?? 0) > 0 || (session.transcriptions?.length ?? 0) > 0;
-              const hasSumm    = !!session.aiSummary;
-              const isSelected = selectedId === session.id;
-
-              return (
-                <motion.button
-                  key={session.id}
-                  variants={itemVariants}
-                  onClick={() => setSelectedSession(isSelected ? null : session.id)}
-                  className={`w-full text-left px-3 py-2.5 border-b border-[var(--q-border-subtle)] transition-colors hover:bg-[var(--q-amber-trace)] ${
-                    isSelected ? 'bg-[var(--q-amber-trace)] border-l-2 border-l-[var(--q-amber)]' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-[10px] font-bold tabular-nums transition-colors ${
-                      isSelected ? 'border-[var(--q-amber-border)] text-[var(--q-amber)]' : 'border-[var(--q-border-subtle)] text-[var(--q-text-dim)]'
-                    }`}>
-                      {String(sessionNum).padStart(2, '0')}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate font-medium text-[var(--q-text)]">
-                        {session.title || `Session ${sessionNum}`}
-                      </p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.dot}`} />
-                        <span className="text-[10px] text-[var(--q-text-dim)]">{status.label}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-0.5 shrink-0 text-[var(--q-text-faint)]">
-                      {hasRec  && <Mic      className="h-3 w-3" />}
-                      {hasTx   && <FileText  className="h-3 w-3" />}
-                      {hasSumm && <Sparkles  className="h-3 w-3" />}
-                    </div>
-                  </div>
-                </motion.button>
-              );
-            })}
+            {showGroups ? (
+              <>
+                <div className="px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] text-[var(--q-text-faint)] border-b border-[var(--q-border-subtle)]">
+                  Upcoming
+                </div>
+                {upcomingSessions.map((s) => renderSessionRow(s))}
+                <div className="px-3 py-1.5 text-[9px] uppercase tracking-[0.2em] text-[var(--q-text-faint)] border-b border-[var(--q-border-subtle)]">
+                  Past Sessions
+                </div>
+                {pastSessions.map((s) => renderSessionRow(s))}
+              </>
+            ) : (
+              sessions.map((s) => renderSessionRow(s))
+            )}
           </motion.div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
@@ -176,14 +217,6 @@ export default function SessionsPage() {
 
   return (
     <>
-      {showSession0Card && (
-        <Session0HeroCard
-          session0Id={session0.id}
-          campaignSlug={slug}
-          initialPrepStatus={session0.prepStatus ?? 'draft'}
-        />
-      )}
-
       {/* Mobile: full-page list */}
       <div className="md:hidden p-4 space-y-4">
         {allDisplaySessions.length > 0 && (
@@ -214,20 +247,15 @@ export default function SessionsPage() {
           actions={newSessionAction}
           leftPane={leftPane}
         >
-          {selectedSession ? (
-            <SessionInspectorPanel session={selectedSession} slug={slug} isDM={isDM} />
+          {autoSession ? (
+            <SessionInspectorPanel session={autoSession} slug={slug} isDM={isDM} />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center px-8">
               <div className="h-16 w-16 rounded-full flex items-center justify-center mb-4 bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)]">
                 <ScrollText className="h-7 w-7 text-[var(--q-text-faint)]" />
               </div>
-              <p className="text-sm font-medium text-[var(--q-text-dim)]">Select a session to inspect</p>
-              <p className="text-xs text-[var(--q-text-faint)] mt-1">
-                {allDisplaySessions.length > 0
-                  ? `${allDisplaySessions.length} session${allDisplaySessions.length !== 1 ? 's' : ''} in this campaign`
-                  : 'No sessions yet'}
-              </p>
-              {isDM && allDisplaySessions.length === 0 && (
+              <p className="text-sm font-medium text-[var(--q-text-dim)]">No sessions yet</p>
+              {isDM && (
                 <Button size="sm" className="mt-4 gap-1.5" asChild>
                   <Link href={`/campaigns/${slug}/sessions/prep`}>
                     <Plus className="h-3.5 w-3.5" />
@@ -246,8 +274,8 @@ export default function SessionsPage() {
 function MobileSessionList({
   sessions, allSessions, slug, isDM, filter,
 }: {
-  sessions: any[];
-  allSessions: any[];
+  sessions: SessionListItem[];
+  allSessions: SessionListItem[];
   slug: string;
   isDM: boolean;
   filter: FilterStatus;
@@ -302,6 +330,11 @@ function MobileSessionList({
                       {status.label}
                     </Badge>
                   </div>
+                  {(session.quickNotes || session.aiSummary) && (
+                    <p className="text-[10px] text-[var(--q-text-faint)] truncate mt-1 leading-relaxed">
+                      {session.quickNotes || session.aiSummary?.slice(0, 80)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1 shrink-0 text-[var(--q-text-faint)]">
                   {hasRec  && <Mic      className="h-3.5 w-3.5" />}

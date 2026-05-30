@@ -43,7 +43,7 @@ export type GlobalSearchIndex = (typeof GLOBAL_SEARCH_INDEXES)[number];
 
 export interface HomebrewSearchDoc {
   id: string;
-  userId: string;
+  userId: string | null;
   name: string;
   type: string;
   tags: string[];

@@ -212,20 +212,21 @@ A feature is not shipped until it has a workflow spec.
 - No `test.fixme` on new tests — stubs must be implemented before the feature is considered done
 
 **Persona specs are the acceptance gate.** When all 6 personas pass, QuiverDM is ready for that tier of users:
-- `new-dm` (Nora) — onboarding, first campaign, first NPC
-- `veteran-dm` (Vic) — rapid prep, full stat block NPC, session surfaces
-- `power-dm` (Dana) — PDF upload, homebrew create/link, character sheet tabs
-- `player-join` — invite accept, character access, campaign surfaces
-- `mobile-dm` — critical flows on phone viewport
-- `error-resilience` — API failures surface clean errors, not crashes
+- `new-dm` (David) — onboarding, first campaign, first NPC
+- `veteran-dm` (Blake) — rapid prep, full stat block NPC, session surfaces
+- `power-dm` (Jordan) — PDF upload, homebrew create/link, character sheet tabs
+- `player-join` (Perry) — invite accept, character access, campaign surfaces
+- `mobile-dm` (Mila) — critical flows on phone viewport
+- `error-resilience` (Rex) — API failures surface clean errors, not crashes
 
 ## Task Tracking
 
-Kanban board lives at `docs/obsidian-vault/KANBAN.md` (Obsidian Kanban plugin format).
+Tasks live in **Vikunja** at https://vikunja.nerdt.au (project ID 5 — QuiverDM).
 
 - **Check it** when starting new feature work to pick up the next task
-- **Update it** when completing a feature (move card to Done) or starting work (move to In Progress)
-- Columns: Backlog → In Progress → Review → Done
+- **Update it** when completing a feature (move to Done bucket) or starting work (move to In Progress)
+- Buckets: Backlog → In Progress → Review → Done
+- API token in `credentials.env` under `# Vikunja`; full API docs in `~/.claude/projects/C--Users-mail/memory/vikunja.md`
 
 ## Skills
 
@@ -244,15 +245,30 @@ Use the `codex-router` skill to decide what to delegate. Claude = architect/revi
 
 ## File Placement
 
-Keep the project root clean. Use these locations:
+Keep the project root and `docs/` root clean. No loose files — everything goes in a subdir.
 
 | File type | Where it goes |
 |-----------|---------------|
-| Codex handoff docs | `docs/codex-handoffs/` (gitignored, delete after shipping) |
+| Implementation plans | `docs/superpowers/plans/YYYY-MM-DD-<topic>-impl.md` |
+| Design / spec docs | `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` |
+| Operational runbooks | `docs/runbooks/` |
+| Feature workflows | `docs/Workflows/` |
+| Persistent reference | `docs/reference/` (DEPLOYMENT, research, catalogs) |
+| Campaign data | `docs/campaigns/<campaign-name>/` |
+| Agent docs | `docs/agents/` |
 | Screenshots / UI captures | `docs/screenshots/` (gitignored) |
-| Implementation plans | `docs/plans/YYYY-MM-DD-<topic>-impl.md` |
-| Design docs | `docs/plans/YYYY-MM-DD-<topic>-design.md` |
-| Temp / scratch files | Delete when done — never commit to root |
+| Design assets / mockups | `docs/assets/designs/` |
+| Codex handoff docs | `docs/codex-handoffs/` (gitignored, **delete after shipping**) |
+| Temp / scratch files | Delete when done — never commit |
+
+### RAG Ingestion
+All `docs/**/*.md` writes auto-ingest into OpenViking via the PostToolUse hook.
+After bulk moves or major merges, run the full ingest manually:
+```bash
+cd C:/Users/mail/openviking/examples/mcp-query
+uv run python C:/Users/mail/ingest-quiverdm-docs.py
+```
+The ingest script covers: `superpowers/plans`, `superpowers/specs`, `Workflows`, `design-system`, `obsidian-vault`, `runbooks`, `agents`, `reference`, `campaigns`.
 
 ## Design System
 

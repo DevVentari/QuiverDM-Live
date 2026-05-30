@@ -68,9 +68,14 @@ export class HomebrewService {
       cursor?: string;
     }
   ) {
+    const campaignAccess = input.campaignId
+      ? await authz.campaign(input.campaignId, userId).verify()
+      : null;
+    const sharedOnly = Boolean(campaignAccess && !campaignAccess.isDM);
+
     // When a search term is provided, use MeiliSearch for relevance ranking.
     // Fall back to Postgres if MeiliSearch is unavailable.
-    if (input.search) {
+    if (input.search && !input.campaignId) {
       try {
         const ids = await searchHomebrew(
           input.search,
@@ -93,6 +98,7 @@ export class HomebrewService {
       search: input.search,
       tags: input.tags,
       campaignId: input.campaignId,
+      sharedOnly,
       limit: input.limit,
       cursor: input.cursor,
     });
@@ -190,17 +196,25 @@ export class HomebrewService {
     userId: string,
     input: { type: string; campaignId?: string }
   ) {
+    const campaignAccess = input.campaignId
+      ? await authz.campaign(input.campaignId, userId).verify()
+      : null;
     return homebrewRepository.findByType({
       userId,
       type: input.type,
       campaignId: input.campaignId,
+      sharedOnly: Boolean(campaignAccess && !campaignAccess.isDM),
     });
   }
 
   async getContentStats(userId: string, campaignId?: string) {
+    const campaignAccess = campaignId
+      ? await authz.campaign(campaignId, userId).verify()
+      : null;
     const { stats, total } = await homebrewRepository.getStats({
       userId,
       campaignId,
+      sharedOnly: Boolean(campaignAccess && !campaignAccess.isDM),
     });
 
     return {

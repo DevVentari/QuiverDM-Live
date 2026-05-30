@@ -149,11 +149,11 @@ export const sourcebookReaderRouter = router({
     .input(z.object({ campaignId: z.string().min(1), bookSlug: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const book = await resolveLinkedBook(input.campaignId, input.bookSlug);
-      if (book.userId !== ctx.session.user.id) {
+      if (book.userId !== null && book.userId !== ctx.session.user.id) {
         throw new TRPCError({ code: 'FORBIDDEN', message: 'Only the book owner can trigger re-sync' });
       }
 
-      await addDdbSyncJob(book.id, book.userId);
+      await addDdbSyncJob(book.id, ctx.session.user.id);
       return { queued: true };
     }),
 });

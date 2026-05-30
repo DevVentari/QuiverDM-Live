@@ -48,6 +48,8 @@ export async function findByCampaignId(campaignId: string) {
           correctedText: true,
           hasSpeakers: true,
           source: true,
+          durationSeconds: true,
+          speakers: true,
         },
       },
       _count: {

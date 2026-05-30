@@ -54,7 +54,7 @@ export function Session0HeroCard({ session0Id, campaignSlug, initialPrepStatus }
     <Sheet open={open} onOpenChange={(v) => { if (!v) dismiss(); }}>
       <SheetContent
         side="right"
-        className="w-full max-w-md border-l border-[var(--q-amber-border)]/30 bg-[oklch(0.14_0.015_265)] p-0"
+        className="w-full max-w-md border-l border-[var(--q-amber-border)]/30 bg-[oklch(0.20_0.015_265)] p-0"
       >
         <div className="flex h-full flex-col items-center justify-center px-8 py-12 text-center">
           <Flame className="mb-4 h-9 w-9 text-[var(--q-amber)] opacity-80" aria-hidden="true" />

@@ -1,14 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { checkpoint, signInAsTestUser } from '../helpers';
 
-const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
+const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? 'blake@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
-const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
+const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
 
 test('veteran-dm happy path: rapid campaign navigation and advanced npc creation', async ({ page }, testInfo) => {
   test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
   }, 12_000);
 
   await checkpoint(testInfo, 'rapid-navigation', async () => {
@@ -20,7 +20,7 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
 
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}`);
     await page.waitForLoadState('domcontentloaded', { timeout: 15_000 });
-    await expect(page.getByText(/vic.s test campaign/i).or(page.getByText(/vics test campaign/i)).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText(/blake.s test campaign/i).or(page.getByText(/blakes test campaign/i)).first()).toBeVisible({ timeout: 10_000 });
     await assertNoErrorPage();
 
     await page.goto(`/campaigns/${CAMPAIGN_SLUG}/sessions`);
@@ -146,7 +146,7 @@ test('veteran-dm prep lifecycle: planned item can be worked to prepped', async (
   });
 
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
   }, 12_000);
 
   await checkpoint(testInfo, 'open-prep-page', async () => {
@@ -172,7 +172,7 @@ test('veteran-dm prep lifecycle: planned item can be worked to prepped', async (
 test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testInfo) => {
   test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
   }, 12_000);
 
   await checkpoint(testInfo, 'navigate-to-brain', async () => {
@@ -181,7 +181,7 @@ test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testI
   }, 20_000);
 
   await checkpoint(testInfo, 'brain-accessible-as-dm', async () => {
-    // DM Brain must be accessible — no 404, no "DM only" locked state for Vic
+    // DM Brain must be accessible — no 404, no "DM only" locked state for Blake
     await expect(page.getByText(/DM Brain/i).first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('body')).not.toContainText(/404|something went wrong|internal server error/i);
     await expect(page.locator('body')).not.toContainText(/only accessible to dungeon masters/i);
@@ -217,7 +217,7 @@ test('veteran-dm brain-seeded-and-accessible checkpoint', async ({ page }, testI
 test('veteran-dm brain-seeded-from-creation: entities accessible after campaign creation with world setup', async ({ page }, testInfo) => {
   test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
   }, 12_000);
 
   let campaignUrl: string;
@@ -225,7 +225,7 @@ test('veteran-dm brain-seeded-from-creation: entities accessible after campaign 
   await checkpoint(testInfo, 'create-campaign-with-world-setup', async () => {
     await page.goto('/campaigns/new');
     await page.waitForLoadState('networkidle', { timeout: 10_000 });
-    const campaignName = `Vic Seed Test ${Date.now()}`;
+    const campaignName = `Blake Seed Test ${Date.now()}`;
     await page.getByLabel(/^name$/i).fill(campaignName);
     await page.fill('input#antagonistName', 'The Shadow Dragon');
     await page.fill('input#startingLocation', 'Myth Drannor');
@@ -254,7 +254,7 @@ test('veteran-dm brain-seeded-from-creation: entities accessible after campaign 
 test('veteran-dm failure path: blocked action surfaces clear actionable error', async ({ page }, testInfo) => {
   test.slow();
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
   }, 12_000);
 
   await checkpoint(testInfo, 'invalid-submit', async () => {

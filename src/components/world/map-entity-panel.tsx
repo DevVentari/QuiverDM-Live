@@ -117,7 +117,7 @@ export function MapEntityPanel({
 
   if (collapsed) {
     return (
-      <div className="pointer-events-auto absolute left-2 top-16 z-20">
+      <div className="pointer-events-auto absolute left-16 top-16 z-20">
         <button
           onClick={() => setCollapsed(false)}
           title="Show entity panel"
@@ -135,7 +135,7 @@ export function MapEntityPanel({
 
   return (
     <div
-      className="pointer-events-auto absolute bottom-16 left-2 top-16 z-20 flex w-52 flex-col overflow-hidden rounded-[1.1rem] border backdrop-blur-md"
+      className="pointer-events-auto absolute bottom-16 left-16 top-16 z-20 flex w-52 flex-col overflow-hidden rounded-[1.1rem] border backdrop-blur-md"
       style={{
         borderColor: 'var(--wm-border)',
         background: 'color-mix(in oklab, var(--wm-surface) 88%, black)',

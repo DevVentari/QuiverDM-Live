@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 import { checkpoint, signInAsTestUser } from '../helpers';
 
-const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
+const REX_EMAIL = process.env.QA_REX_EMAIL ?? 'rex@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
-const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
+const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'rexs-test-campaign';
 
 test('error-resilience happy path: pages render content when API succeeds', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, REX_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'campaigns-load-normally', async () => {
@@ -47,8 +47,8 @@ test('error-resilience happy path: pages render content when API succeeds', asyn
     expect(bodyText?.trim().length).toBeGreaterThan(50);
 
     // Campaign chrome (nav/header) should still render
-    const campaignChrome = page.getByText(/vic.s test campaign/i)
-      .or(page.getByText(/vics test campaign/i))
+    const campaignChrome = page.getByText(/rex.s test campaign/i)
+      .or(page.getByText(/rexs test campaign/i))
       .or(page.getByRole('navigation'));
     await expect(campaignChrome.first()).toBeVisible({ timeout: 10_000 });
 
@@ -58,7 +58,7 @@ test('error-resilience happy path: pages render content when API succeeds', asyn
 
 test('error-resilience failure path: hard API failure surfaces a user-facing error, not a blank crash', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    await signInAsTestUser(page, REX_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'open-campaign-create-form', async () => {

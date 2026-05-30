@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export interface CanvasHeaderStat {
   label: string;
@@ -51,9 +52,8 @@ export function CanvasHeader({ overline, title, stats, actions, className }: Can
           </h1>
         </div>
 
-        {/* Right: stats + actions */}
-        {(stats?.length || actions) && (
-          <div className="flex items-center gap-3 flex-shrink-0">
+        {/* Right: stats + actions + theme toggle */}
+        <div className="flex items-center gap-3 flex-shrink-0">
             {stats?.map((stat) => (
               <div
                 key={stat.label}
@@ -77,9 +77,9 @@ export function CanvasHeader({ overline, title, stats, actions, className }: Can
                 </p>
               </div>
             ))}
+            <ThemeToggle />
             {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>
-        )}
       </div>
     </div>
   );

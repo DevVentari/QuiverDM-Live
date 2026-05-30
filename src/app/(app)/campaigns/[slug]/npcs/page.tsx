@@ -8,7 +8,7 @@ import { NpcCreateSheet } from '@/components/npc/npc-create-sheet';
 import { NpcInspectorPanel } from '@/components/npc/npc-inspector-panel';
 import { NpcCard, type NpcCardData } from '@/components/npc/npc-card';
 import { NpcFilterRail, type NpcSourceFilter } from '@/components/npc/npc-filter-rail';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/primitives';
@@ -164,6 +164,7 @@ function NPCsPageInner() {
           className="w-full sm:max-w-2xl p-0 overflow-y-auto"
           data-testid="npc-inspector-sheet"
         >
+          <SheetTitle className="sr-only">NPC Details</SheetTitle>
           {selectedId && <NpcInspectorPanel npcId={selectedId} slug={slug} isDM={isDM} />}
         </SheetContent>
       </Sheet>

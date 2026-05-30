@@ -87,26 +87,7 @@ export const homebrewRouter = router({
       })
     )
     .query(async ({ input, ctx }) => {
-      const result = await homebrewService.getContent(ctx.session.user.id, input);
-
-      if (!input.campaignId) {
-        return result;
-      }
-
-      const member = await prisma.campaignMember.findFirst({
-        where: { campaignId: input.campaignId, userId: ctx.session.user.id },
-        select: { role: true },
-      });
-      const isDM = member?.role === 'OWNER' || member?.role === 'CO_DM';
-
-      if (isDM) {
-        return result;
-      }
-
-      return {
-        ...result,
-        items: result.items.filter((item: any) => item.sharedWithPlayers),
-      };
+      return homebrewService.getContent(ctx.session.user.id, input);
     }),
 
   /**

@@ -233,7 +233,11 @@ function NpcCard({
       <SectionHeader title="NPCs" href={`/campaigns/${slug}/npcs`} />
       <div className="space-y-1.5">
         {displayed.map((npc) => (
-          <div key={npc.id} className="flex items-center gap-2.5 border-b border-[color:color-mix(in_oklab,var(--wm-border)_56%,transparent)] py-1 last:border-0">
+          <Link
+            key={npc.id}
+            href={`/campaigns/${slug}/npcs/${npc.id}`}
+            className="flex items-center gap-2.5 border-b border-[color:color-mix(in_oklab,var(--wm-border)_56%,transparent)] py-1 last:border-0 hover:opacity-80 transition-opacity"
+          >
             <AvatarInitial name={npc.name} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-medium" style={{ color: 'var(--wm-text)' }}>
@@ -243,7 +247,7 @@ function NpcCard({
                 {npc.role ?? npc.faction ?? 'Unknown'}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
         {displayed.length === 0 && (
           <p className="py-2 text-center text-[10px]" style={{ color: 'var(--wm-muted)' }}>No NPCs yet</p>

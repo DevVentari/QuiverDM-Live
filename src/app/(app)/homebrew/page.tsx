@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { HomebrewContentCard } from '@/components/homebrew/homebrew-content-card';
+import { CompendiumItemSheet } from '@/components/compendium/CompendiumItemSheet';
+import type { PinnedEntityType } from '@/store/pinned-items-store';
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
 import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
 import { ImportFromMediaDialog } from '@/components/homebrew/import-from-media-dialog';
@@ -30,6 +32,17 @@ const isCreateType = (s: string | null | undefined): s is CreateType =>
 
 const VALID_TYPES = ['item', 'spell', 'creature', 'class', 'feat'] as const;
 
+const HB_TYPE_MAP: Record<string, PinnedEntityType> = {
+  item: 'item',
+  spell: 'spell',
+  creature: 'monster',
+  location: 'location',
+  monster: 'monster',
+};
+function toEntityType(type: string): PinnedEntityType {
+  return HB_TYPE_MAP[type] ?? 'item';
+}
+
 export default function HomebrewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,6 +56,7 @@ export default function HomebrewPage() {
   const [createInitialType, setCreateInitialType] = useState<CreateType | undefined>(undefined);
   const [ddbImportOpen, setDdbImportOpen] = useState(false);
   const [mediaImportOpen, setMediaImportOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ id: string; type: string } | null>(null);
   const [scope, setScope] = useState<'campaign' | 'library'>('campaign');
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -321,13 +335,23 @@ export default function HomebrewPage() {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-3">
               {items.map((item) => (
-                <HomebrewContentCard key={item.id} item={item} href={`/homebrew/${item.id}`} />
+                <HomebrewContentCard
+                  key={item.id}
+                  item={item}
+                  onClick={() => setSelectedItem({ id: item.id, type: item.type })}
+                />
               ))}
             </div>
           )}
         </div>
       </div>
 
+      <CompendiumItemSheet
+        entityType={selectedItem ? toEntityType(selectedItem.type) : 'item'}
+        entityId={selectedItem?.id ?? ''}
+        open={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
       <CreateHomebrewDialog
         open={createOpen}
         onOpenChange={setCreateOpen}

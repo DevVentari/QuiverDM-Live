@@ -24,6 +24,11 @@ function toSearchText(content: string, title: string, tags: string[]): string {
 }
 
 export async function seedHameriaIre(prisma: PrismaClient, userId: string) {
+  if (!fs.existsSync(JSON_DIR)) {
+    console.log('Skipping Hameria Ire seed — docs/hameria-ire-jsons not found');
+    return;
+  }
+
   // Campaign
   const campaign = await prisma.campaign.upsert({
     where: { slug: 'tales-from-the-bonfire-keep' },

@@ -28,10 +28,17 @@ export async function findContent(params: {
   search?: string;
   tags?: string[];
   campaignId?: string;
+  sharedOnly?: boolean;
   limit: number;
   cursor?: string;
 }) {
-  const where: any = { userId: params.userId };
+  const where: any = params.campaignId
+    ? {
+        campaigns: {
+          some: { campaignId: params.campaignId },
+        },
+      }
+    : { userId: params.userId };
 
   if (params.type) {
     where.type = params.type;
@@ -50,13 +57,8 @@ export async function findContent(params: {
     };
   }
 
-  if (params.campaignId) {
-    // Campaign homebrew must be explicitly linked into the campaign. Sourcebook
-    // imports are materialized during campaign seeding instead of being shared
-    // implicitly across every campaign that links the sourcebook.
-    where.campaigns = {
-      some: { campaignId: params.campaignId },
-    };
+  if (params.sharedOnly) {
+    where.sharedWithPlayers = true;
   }
 
   return prisma.homebrewContent.findMany({
@@ -143,16 +145,22 @@ export async function findByType(params: {
   userId: string;
   type: string;
   campaignId?: string;
+  sharedOnly?: boolean;
 }) {
-  const where: any = {
-    userId: params.userId,
-    type: params.type,
-  };
+  const where: any = params.campaignId
+    ? {
+        campaigns: {
+          some: { campaignId: params.campaignId },
+        },
+        type: params.type,
+      }
+    : {
+        userId: params.userId,
+        type: params.type,
+      };
 
-  if (params.campaignId) {
-    where.campaigns = {
-      some: { campaignId: params.campaignId },
-    };
+  if (params.sharedOnly) {
+    where.sharedWithPlayers = true;
   }
 
   return prisma.homebrewContent.findMany({
@@ -175,13 +183,17 @@ export async function findByType(params: {
   });
 }
 
-export async function getStats(params: { userId: string; campaignId?: string }) {
-  const where: any = { userId: params.userId };
+export async function getStats(params: { userId: string; campaignId?: string; sharedOnly?: boolean }) {
+  const where: any = params.campaignId
+    ? {
+        campaigns: {
+          some: { campaignId: params.campaignId },
+        },
+      }
+    : { userId: params.userId };
 
-  if (params.campaignId) {
-    where.campaigns = {
-      some: { campaignId: params.campaignId },
-    };
+  if (params.sharedOnly) {
+    where.sharedWithPlayers = true;
   }
 
   const [stats, total] = await Promise.all([

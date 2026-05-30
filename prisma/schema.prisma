@@ -141,8 +141,8 @@ model VerificationToken {
 
 model DdbEntitlement {
   id            String         @id @default(cuid())
-  userId        String
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
   slug          String
   title         String
   coverImageUrl String?
@@ -157,8 +157,8 @@ model DdbEntitlement {
 
 model DdbSourcebook {
   id            String                 @id @default(cuid())
-  userId        String
-  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String?
+  user          User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
   entitlementId String                 @unique
   entitlement   DdbEntitlement         @relation(fields: [entitlementId], references: [id], onDelete: Cascade)
   slug          String
@@ -1220,9 +1220,9 @@ model TranscriptionJob {
 // Homebrew Content Models
 // Note: PDF parsing removed. Content can be created manually or via D&D Beyond import.
 model HomebrewContent {
-  id     String @id @default(cuid())
-  userId String // Homebrew is owned by user
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String  @id @default(cuid())
+  userId String? // Nullable: system/sourcebook content has no user owner
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   type       String // 'item', 'creature', 'spell', 'location', 'subclass', 'feat', 'rule', 'race', 'class', 'background', 'character'
   name       String

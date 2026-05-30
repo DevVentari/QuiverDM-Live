@@ -1,7 +1,6 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
@@ -16,129 +15,57 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Users, Plus, Link2, RefreshCw, X, Loader2, Eye } from 'lucide-react';
+import { Users, Plus, Link2, RefreshCw, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CharacterAddSheet } from '@/components/character/CharacterAddSheet';
 import { usePinnedItems } from '@/store/pinned-items-store';
-import { Card, Surface } from '@/components/primitives';
-import { EntityPlaceholder } from '@/components/primitives/entity-placeholder';
+import { Card } from '@/components/primitives';
+import { PartyMemberCard, type PartyMemberStatus } from '@/components/character/party-member-card';
 
-const STATUS_OPTIONS = ['ACTIVE', 'RETIRED', 'DECEASED', 'REMOVED'] as const;
-type CharacterStatusValue = (typeof STATUS_OPTIONS)[number] | 'PENDING';
+// ── Page header ───────────────────────────────────────────────────────────────
 
-function CharacterCard({
-  cc,
-  isDM,
-  campaignId,
-  onApprove,
-  onReject,
-  onStatusChange,
-  onRemove,
-  onView,
-  cardStyle,
-}: {
-  cc: any;
-  isDM: boolean;
-  campaignId: string;
-  onApprove: () => void;
-  onReject: () => void;
-  onStatusChange: (status: CharacterStatusValue) => void;
-  onRemove: () => void;
-  onView: () => void;
-  cardStyle?: React.CSSProperties;
-}) {
-  const char = cc.character || cc;
-  const player = cc.character?.user;
-
+function PageHeader() {
   return (
-    <Surface variant="utility" className="overflow-hidden min-h-[120px]" style={cardStyle}>
-      <div className="flex h-full min-h-[120px]">
-        <div className="relative w-[28%] shrink-0 self-stretch">
-          {char.portraitUrl ? (
-            <Image
-              src={char.portraitUrl}
-              alt={char.name}
-              fill
-              className="object-cover object-top"
-              unoptimized
-            />
-          ) : (
-            <EntityPlaceholder type="pc" size={28} />
-          )}
-          <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--q-surface-utility)] to-transparent pointer-events-none" />
-        </div>
-
-        <div className="flex-1 min-w-0 px-4 py-3 flex flex-col gap-1">
-          <div className="flex items-start justify-between gap-2">
-            <span className="font-[var(--q-font-display)] text-sm tracking-wide text-[var(--q-text)] leading-snug">{char.name}</span>
-            <button
-              onClick={onView}
-              className="shrink-0 text-[var(--q-text-faint)] hover:text-[var(--q-amber)] transition-colors mt-0.5"
-              title="View character sheet"
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <p className="text-xs text-[var(--q-text-dim)] leading-snug">
-            {[char.race, char.class, char.level && `Level ${char.level}`]
-              .filter(Boolean)
-              .join(' · ') || 'No details'}
-          </p>
-
-          {player && (
-            <p className="text-xs text-[var(--q-text-faint)]">
-              {player.displayName || player.name}
-            </p>
-          )}
-
-          {isDM && (
-            <div className="flex items-center gap-2 mt-auto pt-2">
-              {cc.status === 'PENDING' ? (
-                <>
-                  <Button size="sm" onClick={onApprove}>
-                    Approve
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={onReject}>
-                    Reject
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Select
-                    value={cc.status}
-                    onValueChange={(v: CharacterStatusValue) => onStatusChange(v)}
-                  >
-                    <SelectTrigger className="h-7 w-[130px] text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((s) => (
-                        <SelectItem key={s} value={s} className="text-xs">
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onRemove}>
-                    Remove
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </Surface>
+    <div className="mb-6">
+      <p className="label-overline mb-1">Campaign</p>
+      <div className="section-rule" />
+      <h1 className="font-[var(--q-font-display)] text-3xl text-[var(--q-text)] mt-1">Party</h1>
+    </div>
   );
 }
+
+// ── Section sub-heading ───────────────────────────────────────────────────────
+
+function SectionHeading({
+  children,
+  count,
+  alert,
+}: {
+  children: React.ReactNode;
+  count?: number;
+  alert?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">
+        {children}
+      </h2>
+      {count !== undefined && (
+        <span
+          className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
+            alert
+              ? 'bg-[var(--q-amber-trace)] border-[var(--q-amber-border)] text-[var(--q-amber)]'
+              : 'bg-[var(--q-surface-utility)] border-[var(--q-border-subtle)] text-[var(--q-text-faint)]'
+          }`}
+        >
+          {count}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ── Inner page ────────────────────────────────────────────────────────────────
 
 function PlayersPageInner() {
   const { campaignId, isDM } = useCampaign();
@@ -156,7 +83,7 @@ function PlayersPageInner() {
     {
       staleTime: isDdbImporting ? 0 : 120_000,
       refetchInterval: isDdbImporting ? 3_000 : false,
-    }
+    },
   );
   const utils = trpc.useUtils();
 
@@ -179,10 +106,7 @@ function PlayersPageInner() {
     router.replace(qs ? '?' + qs : '?');
   }, [isDdbImporting, characters.data?.length]);
 
-  const ddbUrl = trpc.campaigns.getDdbCampaignUrl.useQuery(
-    { campaignId },
-    { enabled: isDM }
-  );
+  const ddbUrl = trpc.campaigns.getDdbCampaignUrl.useQuery({ campaignId }, { enabled: isDM });
 
   const setDdbUrl = trpc.campaigns.setDdbCampaignUrl.useMutation({
     onSuccess: () => {
@@ -241,30 +165,37 @@ function PlayersPageInner() {
   const retired = chars.filter((cc) => cc.status === 'RETIRED');
   const deceased = chars.filter((cc) => cc.status === 'DECEASED');
 
-  useCampaignPageSlot('Characters', [
+  useCampaignPageSlot('Party', [
     { label: active.length === 1 ? 'character' : 'characters', value: active.length },
     ...(pending.length > 0 ? [{ label: 'pending', value: pending.length, alert: true }] : []),
   ]);
 
+  function handleView(cc: any) {
+    openCharacterSheet({
+      id: cc.character?.id ?? cc.id,
+      entityType: 'npc',
+      name: (cc.character?.name ?? cc.name) || 'Character',
+      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
+      order: 0,
+    });
+  }
+
   if (characters.isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-[120px] rounded-sm" />
-        ))}
+      <div className="space-y-6 px-4 sm:px-6 lg:px-8">
+        <PageHeader />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 rounded-sm" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 px-4 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <p className="label-overline mb-1">Campaign</p>
-        <div className="section-rule" />
-        <h1 className="font-[var(--q-font-display)] text-3xl text-[var(--q-text)] mt-1">
-          Players
-        </h1>
-      </div>
+      <PageHeader />
 
       {isDdbImporting && (
         <div className="flex items-center gap-3 rounded-sm border border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] px-4 py-3 text-sm text-[var(--q-amber)]">
@@ -320,13 +251,18 @@ function PlayersPageInner() {
       )}
 
       {chars.length === 0 ? (
-        <Card variant="detail" className="flex flex-col items-center justify-center py-16 text-center border-dashed">
+        <Card
+          variant="detail"
+          className="flex flex-col items-center justify-center py-16 text-center border-dashed"
+        >
           <div className="w-14 h-14 rounded-full bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] flex items-center justify-center mb-4">
             <Users className="h-6 w-6 text-[var(--q-text-faint)]" />
           </div>
-          <h3 className="font-[var(--q-font-display)] text-base text-[var(--q-text)] mb-1">No players in this campaign yet</h3>
+          <h3 className="font-[var(--q-font-display)] text-base text-[var(--q-text)] mb-1">
+            No characters in this campaign yet
+          </h3>
           <p className="text-sm text-[var(--q-text-dim)] mb-5 max-w-xs">
-            Players appear here once they join this campaign with an invite code.
+            Characters appear here once they&apos;re added or imported from D&amp;D Beyond.
           </p>
           {isDM && (
             <Button size="sm" onClick={() => router.push('?add=true')}>
@@ -338,33 +274,27 @@ function PlayersPageInner() {
         <>
           {pending.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Pending Approval</h2>
-                <span className="rounded-full bg-[var(--q-amber-trace)] border border-[var(--q-amber-border)] text-[var(--q-amber)] text-xs px-2 py-0.5 font-semibold">
-                  {pending.length}
-                </span>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <SectionHeading count={pending.length} alert>
+                Pending Approval
+              </SectionHeading>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {pending.map((cc) => (
-                  <CharacterCard
+                  <PartyMemberCard
                     key={cc.id}
                     cc={cc}
                     isDM={isDM}
-                    campaignId={campaignId}
                     onApprove={() => approve.mutate({ campaignId, campaignCharacterId: cc.id })}
                     onReject={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
                     onStatusChange={(status) =>
-                      updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
+                      updateStatus.mutate({
+                        campaignId,
+                        campaignCharacterId: cc.id,
+                        status: status as any,
+                      })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
-                    onView={() => openCharacterSheet({
-                      id: cc.character?.id ?? cc.id,
-                      entityType: 'npc',
-                      name: (cc.character?.name ?? cc.name) || 'Character',
-                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
-                      order: 0,
-                    })}
-                    cardStyle={{ borderStyle: 'dashed', borderColor: 'var(--q-amber-border)' }}
+                    onView={() => handleView(cc)}
+                    style={{ borderStyle: 'dashed', borderColor: 'var(--q-amber-border)' }}
                   />
                 ))}
               </div>
@@ -372,30 +302,27 @@ function PlayersPageInner() {
           )}
 
           <div className="space-y-3">
-            <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text)]">Party</h2>
+            <SectionHeading count={active.length}>Party</SectionHeading>
             {active.length === 0 ? (
               <p className="text-sm text-[var(--q-text-dim)]">No active characters yet.</p>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {active.map((cc) => (
-                  <CharacterCard
+                  <PartyMemberCard
                     key={cc.id}
                     cc={cc}
                     isDM={isDM}
-                    campaignId={campaignId}
                     onApprove={() => approve.mutate({ campaignId, campaignCharacterId: cc.id })}
                     onReject={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
                     onStatusChange={(status) =>
-                      updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
+                      updateStatus.mutate({
+                        campaignId,
+                        campaignCharacterId: cc.id,
+                        status: status as any,
+                      })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
-                    onView={() => openCharacterSheet({
-                      id: cc.character?.id ?? cc.id,
-                      entityType: 'npc',
-                      name: (cc.character?.name ?? cc.name) || 'Character',
-                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
-                      order: 0,
-                    })}
+                    onView={() => handleView(cc)}
                   />
                 ))}
               </div>
@@ -404,27 +331,24 @@ function PlayersPageInner() {
 
           {retired.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text-dim)]">Retired</h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-[0.65]">
+              <SectionHeading count={retired.length}>Retired</SectionHeading>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 opacity-60">
                 {retired.map((cc) => (
-                  <CharacterCard
+                  <PartyMemberCard
                     key={cc.id}
                     cc={cc}
                     isDM={isDM}
-                    campaignId={campaignId}
                     onApprove={() => approve.mutate({ campaignId, campaignCharacterId: cc.id })}
                     onReject={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
                     onStatusChange={(status) =>
-                      updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
+                      updateStatus.mutate({
+                        campaignId,
+                        campaignCharacterId: cc.id,
+                        status: status as any,
+                      })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
-                    onView={() => openCharacterSheet({
-                      id: cc.character?.id ?? cc.id,
-                      entityType: 'npc',
-                      name: (cc.character?.name ?? cc.name) || 'Character',
-                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
-                      order: 0,
-                    })}
+                    onView={() => handleView(cc)}
                   />
                 ))}
               </div>
@@ -433,31 +357,25 @@ function PlayersPageInner() {
 
           {deceased.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-lg sm:text-xl font-[var(--q-font-display)] tracking-wide text-[var(--q-text-dim)]">Deceased</h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 opacity-[0.65]">
+              <SectionHeading count={deceased.length}>Deceased</SectionHeading>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 opacity-60">
                 {deceased.map((cc) => (
-                  <CharacterCard
+                  <PartyMemberCard
                     key={cc.id}
                     cc={cc}
                     isDM={isDM}
-                    campaignId={campaignId}
                     onApprove={() => approve.mutate({ campaignId, campaignCharacterId: cc.id })}
                     onReject={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
                     onStatusChange={(status) =>
-                      updateStatus.mutate({ campaignId, campaignCharacterId: cc.id, status: status as any })
+                      updateStatus.mutate({
+                        campaignId,
+                        campaignCharacterId: cc.id,
+                        status: status as any,
+                      })
                     }
                     onRemove={() => removeCharacter.mutate({ campaignCharacterId: cc.id })}
-                    onView={() => openCharacterSheet({
-                      id: cc.character?.id ?? cc.id,
-                      entityType: 'npc',
-                      name: (cc.character?.name ?? cc.name) || 'Character',
-                      iconUrl: cc.character?.portraitUrl ?? cc.portraitUrl ?? undefined,
-                      order: 0,
-                    })}
-                    cardStyle={{
-                      background: 'linear-gradient(180deg, oklch(0.18 0.04 25 / 0.4), oklch(0.14 0.03 25 / 0.6))',
-                      borderColor: 'oklch(0.35 0.06 25 / 0.4)',
-                    }}
+                    onView={() => handleView(cc)}
+                    style={{ borderColor: 'var(--q-accent-danger-border)' }}
                   />
                 ))}
               </div>
@@ -466,7 +384,7 @@ function PlayersPageInner() {
         </>
       )}
 
-{isDM && (
+      {isDM && (
         <CharacterAddSheet
           campaignId={campaignId}
           open={isAddOpen}

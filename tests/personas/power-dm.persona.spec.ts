@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { checkpoint, signInAsTestUser } from '../helpers';
 
-const DANA_EMAIL = process.env.QA_DANA_EMAIL ?? 'dana@test.local';
+const JORDAN_EMAIL = process.env.QA_JORDAN_EMAIL ?? 'jordan@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 
 const ITEM_NAME = `QA Power Item ${Date.now()}`;
@@ -16,7 +16,7 @@ async function ensureCampaignExists(page: any): Promise<void> {
     await page.waitForLoadState('domcontentloaded');
     const nameInput = page.getByLabel(/^name$/i);
     await expect(nameInput).toBeVisible({ timeout: 10_000 });
-    await nameInput.fill('Dana QA Campaign');
+    await nameInput.fill('Jordan QA Campaign');
     await page.getByRole('button', { name: /create/i }).click();
     await page.waitForURL(/\/campaigns\/[a-zA-Z0-9_-]+(?!\/new)/, { timeout: 20_000 });
   }
@@ -38,7 +38,7 @@ async function ensureCharacterExists(page: any): Promise<string> {
   await page.waitForLoadState('domcontentloaded');
   const nameInput = page.locator('#name');
   await expect(nameInput).toBeVisible({ timeout: 10_000 });
-  await nameInput.fill('Dana QA Hero');
+  await nameInput.fill('Jordan QA Hero');
   await page.getByRole('button', { name: /create character/i }).click();
   await page.waitForURL(url => /\/characters\//.test(url.href) && !url.href.includes('/characters/new'), { timeout: 20_000 });
   const url = page.url();
@@ -48,7 +48,7 @@ async function ensureCharacterExists(page: any): Promise<string> {
 
 test('power-dm happy path: homebrew creation, PDF upload UI, character sheet tabs', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, DANA_EMAIL, PASSWORD);
+    await signInAsTestUser(page, JORDAN_EMAIL, PASSWORD);
   }, 12_000);
 
   await checkpoint(testInfo, 'ensure-campaign', async () => {
@@ -153,7 +153,7 @@ test('power-dm happy path: homebrew creation, PDF upload UI, character sheet tab
 
 test('power-dm failure path: oversized or invalid file upload shows error not crash', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, DANA_EMAIL, PASSWORD);
+    await signInAsTestUser(page, JORDAN_EMAIL, PASSWORD);
   }, 12_000);
 
   await checkpoint(testInfo, 'open-pdf-page', async () => {

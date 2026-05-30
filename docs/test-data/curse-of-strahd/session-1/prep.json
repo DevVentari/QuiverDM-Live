@@ -1,0 +1,207 @@
+{
+  "currentStep": 7,
+  "lastSavedAt": "2026-01-05T18:00:00.000Z",
+  "characterNotes": [
+    {
+      "characterId": "achmed-sahir",
+      "name": "Achmed Sahir",
+      "goals": "Scope out what's worth taking from this strange land. Suspects the mists are magical in origin.",
+      "notes": "Ask him about the Burgomaster's notice — he reads it aloud. Good opener."
+    },
+    {
+      "characterId": "apsnay-ickkay",
+      "name": "Apsnay Ickkay",
+      "goals": "Senses divine wrongness in this land — his god's voice is muffled here. Wants to understand why.",
+      "notes": "Let him roll Religion on the house symbol above the door — it's a half-sun (Strahd's emblem). DC 14."
+    },
+    {
+      "characterId": "biagio-macarone",
+      "name": "Biagio Macarone",
+      "goals": "The plants here are wrong — twisted, leafless even in spring. Detect Plants shows nothing living.",
+      "notes": "Give him a Druid Wild Shape moment against the animated broom on the ground floor."
+    },
+    {
+      "characterId": "captain-arannis-vaelor",
+      "name": "Captain Arannis Vaelor",
+      "goals": "Assessing tactical situation. Believes the mist is a magical barrier and they need information.",
+      "notes": "He should be the one to Identify the doll — it carries a faint necromantic trace."
+    },
+    {
+      "characterId": "dragoth-the-dreaded",
+      "name": "Dragoth the Dreaded",
+      "goals": "Does not trust the children. Wants to break out of the house by force.",
+      "notes": "Dragoth is right to be suspicious — reward his instinct. The door he tries to force is the one to Rose's locked room."
+    },
+    {
+      "characterId": "eldric-the-eccentric",
+      "name": "Eldric The Eccentric",
+      "goals": "Fascinated by the mechanical devices in the house — the music box, the locked chests.",
+      "notes": "Let him pick the lock on the study chest (thieves' tools DC 15) — inside is the deed to the house."
+    }
+  ],
+  "strongStart": "As your wagon crests the hill, the road ahead dissolves into grey fog. Horses refuse to go further. When the mist clears, you are on a different road entirely — rutted, bordered by dead trees draped in black moss. In the road ahead: two small children, a girl and a boy, hand in hand, crying. The girl holds a rag doll. 'Please,' she says, looking up with hollow eyes. 'There's a monster in our house. In the basement. It has our baby brother.'",
+  "scenes": [
+    {
+      "id": "s1-scene-1",
+      "title": "The Mists Claim the Party",
+      "description": "The party's route is swallowed by the Mists of Ravenloft. When they clear, the party finds themselves on the Old Svalich Road inside Barovia. There is no going back — the mist is a solid wall behind them. A crumpled notice lies in the road.",
+      "location": "Old Svalich Road, edge of Barovia",
+      "readAloud": "The fog presses close until you can see nothing beyond the horse's nose. Then it breaks — and you stand on a different road. The trees are dead. The sky is a bruise of purple-grey, flat and lightless. A raven watches you from a branch. Behind you, the mist is a wall of white nothing. In the mud at your feet, a piece of parchment, half-soaked: it is a letter in formal hand from one Kolyan Indirovich, Burgomaster of Barovia, begging for help.",
+      "order": 0,
+      "linkedNpcIds": [],
+      "linkedSecretIds": ["secret-mists-trap"],
+      "linkedMonsterNames": []
+    },
+    {
+      "id": "s1-scene-2",
+      "title": "Rose and Thorn",
+      "description": "The Durst children appear in the road, weeping. They claim a monster is in their home's basement and plead for help. They lead the party to Death House — a tall, imposing manor that seems to have appeared from nowhere in the village mist.",
+      "location": "Death House exterior, Village of Barovia outskirts",
+      "readAloud": "The house is three stories of dark timber and pale stone, its windows blank and lightless. Iron gates, unlocked. A sundial in the overgrown garden whose shadow points to midnight. Rose — the girl — takes your hand. Her fingers are ice cold. 'You'll help us, won't you? Brave adventurers like you.' The front door swings open as if welcoming you home.",
+      "order": 1,
+      "linkedNpcIds": ["rose-durst", "thorn-durst"],
+      "linkedSecretIds": ["secret-children-ghosts"],
+      "linkedMonsterNames": []
+    },
+    {
+      "id": "s1-scene-3",
+      "title": "Ground Floor — The Dining Room and Study",
+      "description": "The party explores the ground floor. The house is pristine but cold, food set on a table as if for a dinner party decades ago. The study contains the deed to the house (in the name of Gustav Durst), a will, and references to 'the cult'. Family portraits hang throughout — the Durst family. The parents' faces have been scratched out.",
+      "location": "Death House, ground floor",
+      "readAloud": "The dining room table is set for six. Candles burn as if freshly lit, though there is no draft to explain them. The roast on the silver platter is dust and cobweb. On the wall: a family portrait. Father, mother, two children, infant. The parents' faces have been gouged out with something sharp. The children in the painting look exactly like Rose and Thorn — who are standing beside you, watching the painting with no expression at all.",
+      "order": 2,
+      "linkedNpcIds": ["rose-durst", "thorn-durst"],
+      "linkedSecretIds": ["secret-cult-parents", "secret-deed"],
+      "linkedMonsterNames": ["animated-broom", "shadow"]
+    },
+    {
+      "id": "s1-scene-4",
+      "title": "Upper Floors — The Nursery",
+      "description": "The upper floors contain bedrooms, a conservatory, and at the top, the nursery. When the party finds the nursery, it is cold and wrong — a baby's cradle rocks on its own. Thorn begins to weep. The doll Rose carries animates briefly, pointing at the floor — there are stairs going down from the nursery, leading to the attic and then deeper still.",
+      "location": "Death House, upper floors",
+      "readAloud": "The nursery smells of old milk and cold ash. The cradle moves on its own — slow, rhythmic. In it: nothing. A child's drawing on the wall shows a family: father, mother, two children, baby. In the drawing, a dark shape crouches in the basement below the house's cross-section. Someone has written in a child's hand beneath it: 'WALTER WILL EAT YOU.' Thorn covers his eyes. Rose looks at the drawing and says, quietly, 'That's not Walter. That's what they made Walter into.'",
+      "order": 3,
+      "linkedNpcIds": ["rose-durst", "thorn-durst"],
+      "linkedSecretIds": ["secret-walter-monster", "secret-stairs-down"],
+      "linkedMonsterNames": []
+    },
+    {
+      "id": "s1-scene-5",
+      "title": "The House Turns Hostile",
+      "description": "As the party prepares to go deeper, the house makes clear it does not want them to leave. Doors slam. A shadow peels off the wall and attacks. Rose and Thorn vanish — simply cease to exist as physical presences. Their voices come from everywhere: 'You have to go down. You have to finish it. You can't leave until you do.'",
+      "location": "Death House, upper floor landing",
+      "readAloud": "The candelabra at the end of the hall gutters out. In the sudden dark, you hear breathing — slow, wet, beneath you. The shadow on the wall does not match anyone in the room. It turns. It looks at you. It steps off the wall. Behind you, the door you came in slams shut. Rose and Thorn are gone. Their voices come from the air itself: 'It's too late to leave. It was too late the moment you walked in.'",
+      "order": 4,
+      "linkedNpcIds": [],
+      "linkedSecretIds": ["secret-house-trapped"],
+      "linkedMonsterNames": ["shadow"]
+    }
+  ],
+  "secretsAndClues": [
+    {
+      "id": "secret-mists-trap",
+      "text": "The Mists of Ravenloft are a prison created by the Dark Powers. No one enters or leaves Barovia without Strahd's consent — or without fulfilling some unspoken condition. The mists pulled the party in deliberately.",
+      "linkedTo": "The Mists / Strahd von Zarovich"
+    },
+    {
+      "id": "secret-children-ghosts",
+      "text": "Rose and Thorn Durst are not alive. They are ghost-illusions — the remnants of two children who died of starvation locked in their upstairs room when their parents descended into cult madness. They genuinely want help but cannot leave the house.",
+      "linkedTo": "Rose and Thorn Durst"
+    },
+    {
+      "id": "secret-cult-parents",
+      "text": "Gustav and Elisabeth Durst were founding members of a cult dedicated to Strahd. They believed that blood sacrifice in the basement would grant them Strahd's favour. The cult ate itself from within before Strahd ever acknowledged them.",
+      "linkedTo": "Death House / The Dursts"
+    },
+    {
+      "id": "secret-deed",
+      "text": "The deed to Death House names Gustav Durst as owner, dated 347 years ago. The house has existed in Barovia ever since — occasionally manifesting in the mist to trap new travellers and feed the hunger in the basement.",
+      "linkedTo": "Death House"
+    },
+    {
+      "id": "secret-walter-monster",
+      "text": "Walter Durst, the infant, was sacrificed by the cult as their greatest offering. The Dark Powers twisted him into the Shambling Mound that still lurks in the basement altar room. Walter is not a child anymore.",
+      "linkedTo": "The Shambling Mound / Walter Durst"
+    },
+    {
+      "id": "secret-stairs-down",
+      "text": "The stairs to the basement are hidden behind a secret door in the attic (Investigation DC 15). Below is a full dungeon complex: prison cells, a cult shrine, and the altar chamber.",
+      "linkedTo": "Death House basement"
+    },
+    {
+      "id": "secret-house-trapped",
+      "text": "Once the party entered, the house sealed itself. The front and back doors are held by arcane force (Str DC 20 to break, automatically fails). The only exit is through the basement ritual or burning the house down from inside — which triggers a structural collapse chase.",
+      "linkedTo": "Death House"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc-rose",
+      "name": "Rose Durst",
+      "role": "Ghost of the eldest Durst child",
+      "motivation": "Genuinely wants the monster in the basement destroyed so she and Thorn can rest. She does not know she is dead.",
+      "isNew": true
+    },
+    {
+      "id": "npc-thorn",
+      "name": "Thorn Durst",
+      "role": "Ghost of the younger Durst child",
+      "motivation": "Frightened and passive. Follows Rose. Cries when the monster is mentioned.",
+      "isNew": true
+    }
+  ],
+  "monsters": [
+    {
+      "name": "Shadow",
+      "cr": "1/2",
+      "source": "srd",
+      "count": 2
+    },
+    {
+      "name": "Animated Broom",
+      "cr": "1/4",
+      "source": "srd",
+      "count": 1
+    }
+  ],
+  "rewards": [],
+  "looseThreads": [],
+  "prepItems": [
+    {
+      "id": "prep-notice",
+      "title": "Print / write out the Burgomaster's notice",
+      "status": "prepped",
+      "objective": "Hand it to Achmed as a prop when he picks it up off the road",
+      "notes": "Text: 'Hail and well-met, brave souls. I, Kolyan Indirovich, Burgomaster of Barovia, send my greetings. We are in dire need of your aid. A terrible evil has taken root in our land. Come, I beg of you. Aid us. —K.I.'",
+      "outcome": "",
+      "createdAt": "2026-01-05T17:00:00.000Z",
+      "updatedAt": "2026-01-05T17:00:00.000Z"
+    },
+    {
+      "id": "prep-ambience",
+      "title": "Queue Death House ambience track",
+      "status": "prepped",
+      "objective": "Creaking wood, distant crying baby, wind. Shift to silence when the shadow appears.",
+      "notes": "",
+      "outcome": "",
+      "createdAt": "2026-01-05T17:00:00.000Z",
+      "updatedAt": "2026-01-05T17:00:00.000Z"
+    }
+  ],
+  "reminders": [
+    {
+      "id": "reminder-1",
+      "title": "Remind players: inspiration available for great roleplay",
+      "description": "Especially for Dragoth being suspicious of the children and Biagio noticing the dead plants.",
+      "completed": false,
+      "createdAt": "2026-01-05T17:00:00.000Z"
+    },
+    {
+      "id": "reminder-2",
+      "title": "Session ends when they reach the attic / shadow fight",
+      "description": "Don't push into the basement tonight. Let the cliffhanger breathe.",
+      "completed": false,
+      "createdAt": "2026-01-05T17:00:00.000Z"
+    }
+  ]
+}

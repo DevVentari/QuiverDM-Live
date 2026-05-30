@@ -3,14 +3,14 @@ import { checkpoint, signInAsTestUser } from '../helpers';
 
 // Deferred: QuiverDM is DM-only. Player join flow to be removed.
 
-const PLAYER_EMAIL = process.env.QA_PLAYER_EMAIL ?? 'vic@test.local';
+const PERRY_EMAIL = process.env.QA_PERRY_EMAIL ?? 'perry@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
-const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'vics-test-campaign';
+const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'perrys-test-campaign';
 const PLAYER_INVITE_CODE = process.env.QA_PLAYER_INVITE_CODE ?? '';
 
 test.skip('player-join: join campaign via invite code', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, PLAYER_EMAIL, PASSWORD);
+    await signInAsTestUser(page, PERRY_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'accept-invite', async () => {
@@ -65,7 +65,7 @@ test.skip('player-join: join campaign via invite code', async ({ page }, testInf
 
 test.skip('player-join: player portal — campaign list and hub', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, PLAYER_EMAIL, PASSWORD);
+    await signInAsTestUser(page, PERRY_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'play-home-renders', async () => {
@@ -109,7 +109,7 @@ test.skip('player-join: player portal — campaign list and hub', async ({ page 
 
 test.skip('player-join: player portal — sessions, NPCs, lore, and live session gate', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, PLAYER_EMAIL, PASSWORD);
+    await signInAsTestUser(page, PERRY_EMAIL, PASSWORD);
   }, 15_000);
 
   await checkpoint(testInfo, 'play-sessions-page', async () => {
