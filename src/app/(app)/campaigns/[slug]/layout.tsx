@@ -71,10 +71,10 @@ export default function CampaignLayout({
 
   if (campaign.error || !campaign.data) {
     return (
-      <div className="p-6">
-        <p className="text-destructive">
-          {campaign.error?.message || 'Campaign not found'}
-        </p>
+      <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
+        <p className="text-lg font-semibold text-[var(--q-text)]">Campaign not found</p>
+        <p className="text-sm text-[var(--q-text-faint)]">This campaign doesn&apos;t exist or you don&apos;t have access.</p>
+        <a href="/campaigns" className="text-sm text-[var(--q-primary)] hover:underline">← Back to Campaigns</a>
       </div>
     );
   }
