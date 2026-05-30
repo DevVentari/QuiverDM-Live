@@ -12,7 +12,8 @@ import {
   Wand2,
   type LucideIcon,
 } from 'lucide-react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import {
   Command,
   CommandEmpty,
@@ -181,6 +182,7 @@ export function SearchTrigger() {
           className="overflow-hidden p-0 border-[var(--q-border-feature)] bg-[var(--q-surface-feature)] text-[var(--q-text)] sm:max-w-2xl"
           data-testid="search-dialog"
         >
+          <VisuallyHidden><DialogTitle>Search QuiverDM</DialogTitle></VisuallyHidden>
           <Command
             shouldFilter={false}
             className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-[var(--q-text-faint)] [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider [&_[cmdk-group-heading]]:text-[10px] [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 bg-transparent text-[var(--q-text)]"
