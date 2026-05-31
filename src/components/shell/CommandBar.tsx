@@ -63,7 +63,7 @@ export function CommandBar() {
           <SearchTrigger />
         </div>
 
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex min-w-0 flex-1 items-center justify-center overflow-hidden">
           <QuickActionButtons />
         </div>
 
