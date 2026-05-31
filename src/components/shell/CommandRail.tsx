@@ -11,9 +11,10 @@ import {
   BookOpen,
   Settings,
   Shield,
-  Sparkles,
+  Sliders,
   Map,
-  Monitor,
+  Box,
+  Globe,
   Compass,
   ChevronDown,
   ChevronRight,
@@ -46,7 +47,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { id: 'party',      label: 'Party',      icon: Shield,   scopedPath: '/players',    fallbackHref: '/campaigns' },
   { id: 'compendium', label: 'Compendium', icon: Library,  globalHref: '/homebrew' },
   { id: 'sourcebook', label: 'Sourcebook', icon: BookOpen, scopedPath: '/sourcebook', fallbackHref: '/campaigns' },
-  { id: 'mechanics',  label: 'Mechanics',  icon: Sparkles, scopedPath: '/mechanics',  fallbackHref: '/campaigns' },
+  { id: 'mechanics',  label: 'Mechanics',  icon: Sliders, scopedPath: '/mechanics',  fallbackHref: '/campaigns' },
 ] as const
 
 const STORAGE_KEY = 'quiver.rail.collapsed'
@@ -64,8 +65,8 @@ type ToolItem = {
 
 const DEV_NAV_ITEMS: readonly NavItem[] = [
   { id: 'maps',    label: 'Maps',    icon: Map,     scopedPath: '/world-map', fallbackHref: '/campaigns' },
-  { id: 'foundry', label: 'Foundry', icon: Monitor, scopedPath: '/foundry',   fallbackHref: '/campaigns' },
-  { id: 'world',   label: 'World',   icon: BookOpen, scopedPath: '/world',    fallbackHref: '/campaigns' },
+  { id: 'foundry', label: 'Foundry', icon: Box,    scopedPath: '/foundry',   fallbackHref: '/campaigns' },
+  { id: 'world',   label: 'World',   icon: Globe,  scopedPath: '/world',    fallbackHref: '/campaigns' },
   { id: 'quests',  label: 'Quests',  icon: Compass, scopedPath: '/quests',    fallbackHref: '/campaigns' },
 ] as const
 
