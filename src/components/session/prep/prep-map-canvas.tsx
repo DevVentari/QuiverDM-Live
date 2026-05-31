@@ -256,8 +256,8 @@ export function PrepMapCanvas({ campaignId, cards, onCardChange, onCardDrop }: P
           <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'oklch(0.7 0.16 55)' }} />
         ) : (
           <>
-            <ImagePlus className="h-8 w-8 opacity-30 group-hover:opacity-60 transition-opacity" style={{ color: 'oklch(0.7 0.16 55)' }} />
-            <p className="text-xs font-[family-name:var(--q-font-display)] tracking-widest uppercase" style={{ color: 'oklch(0.4 0.01 270)' }}>
+            <ImagePlus className="h-8 w-8 opacity-50 group-hover:opacity-80 transition-opacity" style={{ color: 'oklch(0.7 0.16 55)' }} />
+            <p className="text-xs font-[family-name:var(--q-font-display)] tracking-widest uppercase" style={{ color: 'oklch(0.55 0.01 270)' }}>
               Click to set world map
             </p>
           </>
