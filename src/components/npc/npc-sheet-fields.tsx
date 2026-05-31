@@ -225,7 +225,7 @@ export function NpcPreview({
           <Image src={imageUrl} alt="NPC portrait" fill className="object-cover" unoptimized />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-stone-900 via-amber-950/20 to-stone-900 flex items-center justify-center">
-            <div className="text-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="text-center opacity-40 group-hover:opacity-100 transition-opacity">
               <Upload className="h-5 w-5 mx-auto text-muted-foreground/60" />
               <p className="text-xs text-muted-foreground/60 mt-1">Upload image</p>
             </div>

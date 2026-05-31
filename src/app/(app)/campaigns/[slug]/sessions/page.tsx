@@ -203,12 +203,10 @@ export default function SessionsPage() {
               sessions.map((s) => renderSessionRow(s))
             )}
           </motion.div>
-        ) : (
+        ) : allDisplaySessions.length === 0 ? null : (
           <div className="flex flex-col items-center justify-center h-full py-12 text-center px-4">
             <ScrollText className="h-8 w-8 text-[var(--q-text-faint)] mb-3" />
-            <p className="text-sm text-[var(--q-text-dim)]">
-              {filter !== 'all' ? 'No sessions match this filter' : 'No sessions yet'}
-            </p>
+            <p className="text-sm text-[var(--q-text-dim)]">No sessions match this filter</p>
           </div>
         )}
       </div>
