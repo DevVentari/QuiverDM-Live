@@ -18,6 +18,7 @@ type Session = {
 
 interface RecentSessionsListProps {
   sessions: Session[]
+  campaignSlug: string
 }
 
 function summarize(session: Session): string {
@@ -34,7 +35,7 @@ function durationLabel(minutes: number | null | undefined): string | null {
   return `${hours.toFixed(hours % 1 === 0 ? 0 : 1)} hrs`
 }
 
-export function RecentSessionsList({ sessions }: RecentSessionsListProps) {
+export function RecentSessionsList({ sessions, campaignSlug }: RecentSessionsListProps) {
   return (
     <Card variant="list" className="relative overflow-hidden !p-0">
       <div className="relative">
@@ -44,7 +45,7 @@ export function RecentSessionsList({ sessions }: RecentSessionsListProps) {
           </span>
           <div className="h-px flex-1 bg-gradient-to-r from-[color-mix(in_oklab,var(--q-border-feature)_72%,transparent)] to-transparent" />
           <Link
-            href="/sessions"
+            href={`/campaigns/${campaignSlug}/sessions`}
             className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[2px] text-[var(--q-accent-primary-dim)] transition-colors hover:text-[var(--q-accent-primary)]"
           >
             View All Sessions

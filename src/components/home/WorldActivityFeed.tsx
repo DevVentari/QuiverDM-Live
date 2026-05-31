@@ -167,7 +167,8 @@ export function WorldActivityFeed({ campaignId, isNewCampaign, campaignSlug }: W
   const groups = data ? groupByDate(data) : []
 
   const headerLabel = isNewCampaign ? 'Campaign Anchors' : 'World Activity'
-  const viewAllHref = campaignSlug ? `/campaigns/${campaignSlug}/sourcebook` : '/world'
+  const worldHref = campaignSlug ? `/campaigns/${campaignSlug}/world` : '/world'
+  const sourcebookHref = campaignSlug ? `/campaigns/${campaignSlug}/sourcebook` : '/world'
 
   return (
     <Card variant="list" className="relative overflow-hidden !p-0">
@@ -184,7 +185,7 @@ export function WorldActivityFeed({ campaignId, isNewCampaign, campaignSlug }: W
           <div className="h-px flex-1 bg-gradient-to-r from-[color-mix(in_oklab,var(--q-border-feature)_72%,transparent)] to-transparent" />
           {!isNewCampaign && (
             <Link
-              href="/world"
+              href={worldHref}
               className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[2px] text-[var(--q-accent-primary-dim)] transition-colors hover:text-[var(--q-accent-primary)]"
             >
               View All
@@ -193,7 +194,7 @@ export function WorldActivityFeed({ campaignId, isNewCampaign, campaignSlug }: W
           )}
           {isNewCampaign && campaignSlug && (
             <Link
-              href={viewAllHref}
+              href={sourcebookHref}
               className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[2px] text-[var(--q-accent-primary-dim)] transition-colors hover:text-[var(--q-accent-primary)]"
             >
               Sourcebook

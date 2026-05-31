@@ -140,7 +140,7 @@ export default function HomePage() {
             partyLevel={partyLevel}
             isDM={isDM}
           />
-          {!isNewCampaign && <RecentSessionsList sessions={recentSessions} />}
+          {!isNewCampaign && <RecentSessionsList sessions={recentSessions} campaignSlug={active.slug} />}
         </div>
         <div className="space-y-5">
           <WorldActivityFeed
