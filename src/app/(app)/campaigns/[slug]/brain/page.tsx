@@ -16,7 +16,7 @@ import { EntityCard } from '@/components/brain/entity-card';
 import { EntityGraph } from '@/components/brain/entity-graph';
 import { SessionTimeline } from '@/components/brain/session-timeline';
 import { ContinuityWarnings } from '@/components/brain/continuity-warnings';
-import { Brain, ChevronRight, Sprout, Upload, CheckCircle, XCircle, GitMerge } from 'lucide-react';
+import { Brain, ChevronRight, Sprout, Upload, CheckCircle, XCircle, GitMerge, LayoutDashboard, Network, Clock, AlertTriangle, Zap } from 'lucide-react';
 import { SessionSeedCard } from '@/components/brain/session-seed';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -280,11 +280,11 @@ export default function BrainPage() {
 
       <Tabs defaultValue="overview">
         <TabsList className="mb-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="graph">Graph</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="overview"><LayoutDashboard className="h-3.5 w-3.5 mr-1.5" />Overview</TabsTrigger>
+          <TabsTrigger value="graph"><Network className="h-3.5 w-3.5 mr-1.5" />Graph</TabsTrigger>
+          <TabsTrigger value="timeline"><Clock className="h-3.5 w-3.5 mr-1.5" />Timeline</TabsTrigger>
           <TabsTrigger value="warnings">
-            Warnings
+            <AlertTriangle className="h-3.5 w-3.5 mr-1.5" />Warnings
             {warnings.length > 0 && (
               <span className="ml-1.5 rounded-full bg-destructive/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                 {warnings.length}
@@ -292,7 +292,7 @@ export default function BrainPage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="events">
-            Events
+            <Zap className="h-3.5 w-3.5 mr-1.5" />Events
             {pendingEventCount > 0 && (
               <span className="ml-1.5 rounded-full bg-[var(--q-amber)] px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                 {pendingEventCount}
@@ -300,7 +300,7 @@ export default function BrainPage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="merge">
-            Merge Queue
+            <GitMerge className="h-3.5 w-3.5 mr-1.5" />Merge Queue
             {(mergeCandidatesQuery.data?.length ?? 0) > 0 && (
               <span className="ml-1.5 rounded-full bg-[var(--q-amber)] px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                 {mergeCandidatesQuery.data!.length}
