@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, ExternalLink } from 'lucide-react';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { Card } from '@/components/primitives/Card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { BentoCanvas } from '@/components/layout/bento-canvas';
 import { trpc } from '@/lib/trpc';
 import { ChapterTree } from './ChapterTree';
 import { ChapterView } from './ChapterView';
@@ -86,11 +89,25 @@ export function SourcebookReader() {
 
   if (!linkedBook) {
     return (
-      <Card variant="grimoire" className="p-8">
-        <p className="text-[var(--q-text-dim)]">
-          No linked sourcebook is available for this campaign yet. Import or link one in D&D Beyond settings.
-        </p>
-      </Card>
+      <BentoCanvas overline="Campaign" title="Sourcebook">
+        <Card variant="detail" className="flex flex-col items-center justify-center gap-5 py-20 text-center">
+          <div className="w-16 h-16 rounded-full bg-[var(--q-surface-utility)] border border-[var(--q-border-subtle)] flex items-center justify-center">
+            <BookOpen className="h-7 w-7 text-[var(--q-text-faint)]" />
+          </div>
+          <div className="space-y-2 max-w-xs">
+            <h3 className="font-[var(--q-font-display)] text-xl text-[var(--q-text)]">No Sourcebook Linked</h3>
+            <p className="text-sm text-[var(--q-text-dim)]">
+              No linked sourcebook is available for this campaign yet. Import or link one in D&D Beyond settings.
+            </p>
+          </div>
+          <Button asChild size="sm" className="gap-1.5">
+            <Link href="/settings">
+              Connect D&D Beyond
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        </Card>
+      </BentoCanvas>
     );
   }
 
