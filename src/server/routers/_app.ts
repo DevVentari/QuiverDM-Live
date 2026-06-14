@@ -30,6 +30,7 @@ import { searchRouter } from './search';
 import { passwordResetRouter } from './password-reset';
 import { foundryRouter } from './foundry';
 import { obsidianRouter } from './obsidian';
+import { importHubRouter } from './import-hub';
 import { apiUsageRouter } from './api-usage';
 import { adminUsersRouter } from './admin-users';
 import { adminApiUsageRouter } from './admin-api-usage';
@@ -88,6 +89,7 @@ export const appRouter = router({
   passwordReset: passwordResetRouter,
   foundry: foundryRouter,
   obsidian: obsidianRouter,
+  importHub: importHubRouter,
   apiUsage: apiUsageRouter,
   adminOverview: adminOverviewRouter,
   adminUsers: adminUsersRouter,

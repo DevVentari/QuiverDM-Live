@@ -86,6 +86,8 @@ model User {
   apiUsageLogs        ApiUsageLog[]
   ddbEntitlements     DdbEntitlement[]
   ddbSourcebooks      DdbSourcebook[]
+  importJobs          ImportJob[]
+  sourceCredentials   SourceCredential[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -416,6 +418,7 @@ model Campaign {
   webhooks          WebhookEndpoint[]
   foundryEvents     FoundryEvent[]
   foundryImportJobs FoundryImportJob[]
+  importJobs               ImportJob[]
 
   obsidianImports          ObsidianImportJob[]
   worldEntities            WorldEntity[]
@@ -1238,6 +1241,8 @@ model HomebrewContent {
 
   // Source tracking
   sourceType           String       @default("manual") // 'manual', 'dndbeyond_import', 'pdf_extraction', 'obsidian_import', 'media_import'
+  sourceExternalId     String?
+  sourceJobId          String?
   sourcePdfId          String?
   sourcePdf            HomebrewPDF? @relation(fields: [sourcePdfId], references: [id], onDelete: SetNull)
   imageUrl             String?
@@ -1263,8 +1268,44 @@ model HomebrewContent {
   @@index([sourceType])
   @@index([sourcePdfId])
   @@index([userId, type])
+  @@index([sourceExternalId])
   @@index([userId, createdAt(sort: Desc)])
   @@index([ddbChapterId])
+  @@index([sourceJobId])
+}
+
+model ImportJob {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  source     String
+  status     String    @default("pending")
+  progress   Int       @default(0)
+  total      Int       @default(0)
+  error      String?   @db.Text
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, source])
+}
+
+model SourceCredential {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    String
+  data      Json     // Encrypted at application layer before write
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, source])
+  @@index([userId])
 }
 
 // Join table: Character has many Items (from Homebrew)

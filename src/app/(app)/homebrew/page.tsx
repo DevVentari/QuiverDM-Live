@@ -13,7 +13,7 @@ import type { PinnedEntityType } from '@/store/pinned-items-store';
 import { CreateHomebrewDialog } from '@/components/homebrew/create-homebrew-dialog';
 import { ImportFromDDBDialog } from '@/components/homebrew/import-from-ddb-dialog';
 import { ImportFromMediaDialog } from '@/components/homebrew/import-from-media-dialog';
-import { BookOpen, FileText, Globe, ImageUp, Plus, Search } from 'lucide-react';
+import { BookOpen, FileText, Globe, ImageUp, Plus, Search, FolderInput } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TYPE_FILTERS = [
@@ -271,6 +271,13 @@ export default function HomebrewPage() {
               <ImageUp size={14} className="shrink-0" />
               Import from photo / notes
             </button>
+            <Link
+              href="/homebrew/import"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-sm text-[var(--q-text-dim)] hover:bg-[var(--q-amber-trace)] hover:text-[var(--q-text)] transition-colors"
+            >
+              <FolderInput size={14} className="shrink-0" />
+              Import from app / files
+            </Link>
           </div>
 
           <div className="pt-2 border-t border-[var(--q-border-subtle)]">
