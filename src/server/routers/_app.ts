@@ -36,6 +36,7 @@ import { adminApiUsageRouter } from './admin-api-usage';
 import { adminOverviewRouter } from './admin-overview';
 import { adminHealthRouter } from './admin-health';
 import { brainRouter } from './brain';
+import { voiceRouter } from './voice';
 import { playRouter } from './play';
 import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
@@ -94,6 +95,7 @@ export const appRouter = router({
   adminApiUsage: adminApiUsageRouter,
   adminHealth: adminHealthRouter,
   brain: brainRouter,
+  voice: voiceRouter,
   play: playRouter,
   ddbSync: ddbSyncRouter,
   sourcebookScenes: sourcebookScenesRouter,
