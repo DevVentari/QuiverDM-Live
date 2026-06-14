@@ -326,6 +326,19 @@ enum WorldEntityStatus {
   resolved
 }
 
+enum VoiceClipKind {
+  signature
+  dialogue
+  narration
+}
+
+enum VoiceClipStatus {
+  pending
+  processing
+  ready
+  failed
+}
+
 enum WorldEntryType {
   LOCATION
   NPC
@@ -432,6 +445,7 @@ model Campaign {
   entityMergeRules         EntityMergeRule[]
   pressureHistory          WorldPressureHistory[]
   maps                     CampaignMap[]
+  voiceClips               VoiceClip[]
 
   // RecapForge
   campaignContexts  CampaignContext[]
@@ -1680,11 +1694,36 @@ model WorldEntity {
   prepKnowledge   PrepKnowledge[]
   behaviorProfile NpcBehaviorProfile?
 
+  // Voice & Audio
+  voiceClips VoiceClip[] @relation("WorldEntityVoiceClips")
+
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
   @@index([campaignId, status])
   @@index([sourceType, sourceId])
   @@index([statBlockId])
+}
+
+model VoiceClip {
+  id           String          @id @default(cuid())
+  campaignId   String
+  entityId     String?
+  kind         VoiceClipKind
+  text         String          @db.Text
+  voiceId      String
+  provider     String          @default("elevenlabs")
+  audioUrl     String?
+  durationMs   Int?
+  status       VoiceClipStatus @default(pending)
+  errorMessage String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  campaign Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entity   WorldEntity? @relation("WorldEntityVoiceClips", fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([entityId, kind, status])
 }
 
 model WorldRelationship {
