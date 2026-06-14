@@ -6,6 +6,7 @@ import { prisma } from '../db';
 import { addBrainIngestionJob } from '@/lib/queue/brain-ingestion-queue';
 import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 import { callGeminiVision } from '@/lib/ai/gemini';
+import { ensureSignatureForEntity } from './voice.service';
 
 export class BrainService {
   private async requireDM(campaignId: string, userId: string) {
@@ -40,6 +41,12 @@ export class BrainService {
       newValue: data,
       source: 'dm_edit',
     });
+    if (entity.type === 'NPC') {
+      // Fire-and-forget: never block entity creation on TTS.
+      void ensureSignatureForEntity(entity.id).catch((err) =>
+        console.error('[voice] ensureSignatureForEntity failed', err)
+      );
+    }
     return entity;
   }
 
