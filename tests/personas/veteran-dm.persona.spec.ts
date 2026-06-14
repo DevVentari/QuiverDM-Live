@@ -1,9 +1,14 @@
 import { test, expect } from '@playwright/test';
-import { checkpoint, signInAsTestUser } from '../helpers';
+import { checkpoint, signInAsTestUser, ensureTestUserExists, ensureTestCampaignExists } from '../helpers';
 
 const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? 'blake@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
+
+test.beforeAll(async () => {
+  await ensureTestUserExists(BLAKE_EMAIL, PASSWORD);
+  await ensureTestCampaignExists(BLAKE_EMAIL, CAMPAIGN_SLUG, "Blake's Test Campaign");
+});
 
 test('veteran-dm happy path: rapid campaign navigation and advanced npc creation', async ({ page }, testInfo) => {
   test.slow();
@@ -98,6 +103,11 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
 
     await expect(page.locator('body')).not.toContainText(/something went wrong|error loading|failed to load/i);
   }, 10_000);
+
+  await checkpoint(testInfo, 'npc-voice-row-visible', async () => {
+    // The NPC detail page renders a voice signature row for every NPC
+    await expect(page.getByTestId('voice-row')).toBeVisible({ timeout: 10_000 });
+  }, 15_000);
 });
 
 test('veteran-dm prep lifecycle: planned item can be worked to prepped', async ({ page }, testInfo) => {
@@ -223,16 +233,24 @@ test('veteran-dm brain-seeded-from-creation: entities accessible after campaign 
   let campaignUrl: string;
 
   await checkpoint(testInfo, 'create-campaign-with-world-setup', async () => {
+    // /campaigns/new redirects to /campaigns?create=true which opens the Sheet
     await page.goto('/campaigns/new');
     await page.waitForLoadState('networkidle', { timeout: 10_000 });
+
     const campaignName = `Blake Seed Test ${Date.now()}`;
-    await page.getByLabel(/^name$/i).fill(campaignName);
-    await page.fill('input#antagonistName', 'The Shadow Dragon');
-    await page.fill('input#startingLocation', 'Myth Drannor');
+
+    // Step 1: fill the campaign name (label is "Campaign Name *")
+    await page.getByLabel(/campaign name/i).fill(campaignName);
+    await page.getByRole('button', { name: /continue/i }).click();
+
+    // Step 2: fill world anchors, then create
+    await page.locator('#antagonistName').fill('The Shadow Dragon');
+    await page.locator('#startingLocation').fill('Myth Drannor');
     await page.getByRole('button', { name: /create campaign/i }).click();
+
     await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 15_000 });
     campaignUrl = page.url();
-  }, 20_000);
+  }, 30_000);
 
   await checkpoint(testInfo, 'brain-page-loads-without-error', async () => {
     // Navigate to brain page for the newly created campaign

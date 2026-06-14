@@ -1,9 +1,16 @@
 import { test, expect } from '@playwright/test';
-import { checkpoint, signInAsTestUser } from '../helpers';
+import { checkpoint, signInAsTestUser, ensureTestUserExists, TEST_USER_PASSWORD } from '../helpers';
 
 const REX_EMAIL = process.env.QA_REX_EMAIL ?? 'rex@test.local';
-const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
+const PASSWORD = process.env.QA_TEST_PASSWORD ?? TEST_USER_PASSWORD;
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'rexs-test-campaign';
+
+test.beforeAll(async ({ request }) => {
+  await ensureTestUserExists(REX_EMAIL, PASSWORD);
+  // Pre-warm the auth route so the first sign-in isn't slowed by cold compilation.
+  await request.get('/auth/signin').catch(() => null);
+  await request.post('/api/auth/csrf').catch(() => null);
+});
 
 test('error-resilience happy path: pages render content when API succeeds', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
@@ -54,6 +61,77 @@ test('error-resilience happy path: pages render content when API succeeds', asyn
 
     await page.unroute('**/api/trpc/**');
   }, 20_000);
+});
+
+test('error-resilience voice-clip failure: failed TTS surfaces clean UI state, sheet does not crash', async ({ page }, testInfo) => {
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, REX_EMAIL, PASSWORD);
+  }, 15_000);
+
+  await checkpoint(testInfo, 'intercept-voice-clips-as-failed', async () => {
+    // Intercept the voice.getClipsForEntity tRPC query so the UI receives a
+    // pre-built clip with status "failed" — this exercises the voice-failed UI
+    // path without requiring ElevenLabs or a running worker.
+    await page.route('**/api/trpc/**', async route => {
+      if (route.request().url().includes('voice.getClipsForEntity')) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([{
+            result: {
+              data: [{
+                id: 'mock-clip-failed',
+                npcId: 'mock-npc',
+                campaignId: 'mock-campaign',
+                status: 'failed',
+                errorMessage: 'ElevenLabs quota exceeded',
+                audioUrl: null,
+                voiceId: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              }],
+            },
+          }]),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+  }, 5_000);
+
+  await checkpoint(testInfo, 'open-npc-brain-entity', async () => {
+    await page.goto(`/campaigns/${CAMPAIGN_SLUG}/brain/entities`);
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
+
+    const entityCard = page.locator('[data-testid="entity-card"]').first();
+    const hasEntity = await entityCard.isVisible({ timeout: 8_000 }).catch(() => false);
+    if (!hasEntity) {
+      // No entities seeded — the voice-row interception test cannot proceed
+      // but the route intercept must not have caused a crash
+      const bodyText = await page.locator('body').textContent();
+      expect(bodyText?.trim().length).toBeGreaterThan(50);
+      return;
+    }
+
+    await entityCard.click();
+    await page.waitForTimeout(1_000);
+  }, 20_000);
+
+  await checkpoint(testInfo, 'voice-failed-visible-sheet-intact', async () => {
+    const url = page.url();
+    if (!url.includes('/brain/entities') || !url.includes('entity=')) return;
+
+    // With the intercepted "failed" clip, the voice-failed indicator must appear
+    await expect(page.getByTestId('voice-failed')).toBeVisible({ timeout: 10_000 });
+
+    // The surrounding voice-row container must remain — sheet must not have crashed
+    await expect(page.getByTestId('voice-row')).toBeVisible({ timeout: 5_000 });
+
+    // No full-page error boundary takeover
+    await expect(page.locator('body')).not.toContainText(/something went wrong|internal server error/i);
+
+    await page.unroute('**/api/trpc/**');
+  }, 15_000);
 });
 
 test('error-resilience failure path: hard API failure surfaces a user-facing error, not a blank crash', async ({ page }, testInfo) => {
