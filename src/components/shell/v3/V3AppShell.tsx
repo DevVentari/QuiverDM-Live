@@ -2,6 +2,8 @@
 
 import { type ReactNode } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { trpc } from '@/lib/trpc';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 import { HeartflamePerch } from './HeartflamePerch';
 import { HeartflameProvider } from './heartflame-context';
@@ -14,117 +16,122 @@ import {
   type SurfacedNudge,
 } from '@/lib/heartflame';
 
-// Demo nudge from the real predicate engine — the diagram's "Barksley" actor
-// (in combat, Crimson Rite inactive, bonus action free). Proves the engine →
-// delivery → perch path end-to-end with no DB. A combat screen (Track C) will
-// replace this with live encounter nudges via trpc.heartflame.getNudges.
+// Demo nudge from the real engine (the diagram's "Barksley" actor) — shows on
+// non-campaign surfaces until a screen pushes a live nudge via useHeartflame.
 const DEMO_ACTOR = participantToActorState(
-  {
-    id: 'demo',
-    name: 'Barksley',
-    hp: 28,
-    maxHp: 40,
-    tempHp: 0,
-    conditions: [],
-    actionUsed: false,
-    bonusActionUsed: false,
-    reactionUsed: true,
-    concentration: false,
-    isAlive: true,
-  },
+  { id: 'demo', name: 'Barksley', hp: 28, maxHp: 40, tempHp: 0, conditions: [], actionUsed: false, bonusActionUsed: false, reactionUsed: true, concentration: false, isAlive: true },
   { inCombat: true, features: { 'crimson-rite': { active: false } } },
 );
 const DEMO_NUDGE = primaryNudge(evaluate(DEMO_ACTOR, DEFAULT_RULES).nudges);
 const DEMO_SURFACED: SurfacedNudge | null = DEMO_NUDGE ? toSurfaced(DEMO_NUDGE) : null;
 
 interface RailItem {
-  /** Icon path under public/icons/dnd, in `category/name` form. */
   icon: string;
   label: string;
-  href: string;
+  /** Path segment under the campaign, e.g. 'npcs'. null = global Home (/v3). */
+  seg: string | null;
 }
 
-/** Global icon rail — the first level of the two-level v3 navigation. */
 const RAIL: RailItem[] = [
-  { icon: 'util/home', label: 'Home', href: '/v3' },
-  { icon: 'game/party', label: 'Campaign', href: '/v3/campaign' },
-  { icon: 'game/source-book', label: 'Compendium', href: '/v3/compendium' },
-  { icon: 'game/combat', label: 'Combat', href: '/v3/combat' },
-  { icon: 'entity/map', label: 'World Map', href: '/v3/world-map' },
-  { icon: 'entity/scroll', label: 'Sessions', href: '/v3/sessions' },
+  { icon: 'util/home', label: 'Home', seg: null },
+  { icon: 'game/party', label: 'Campaign', seg: 'overview' },
+  { icon: 'entity/person', label: 'NPCs', seg: 'npcs' },
+  { icon: 'game/source-book', label: 'Compendium', seg: 'compendium' },
+  { icon: 'game/combat', label: 'Combat', seg: 'combat' },
+  { icon: 'entity/map', label: 'World Map', seg: 'world-map' },
+  { icon: 'entity/scroll', label: 'Sessions', seg: 'sessions' },
 ];
 
 /**
- * v3 application shell — the two-level navigation (global icon rail + campaign
- * sidebar) with the Heartflame perched at the bottom-right edge. Styled on the
- * `--qd-*` design-token system (Kalam display, Hanken body, amber on #0a0707).
- * Icons reuse `MaskedDndIcon` (mask + currentColor). The campaign sidebar is a
- * placeholder until Track C migrates campaign-scoped screens.
+ * v3 application shell — two-level navigation (global icon rail + campaign
+ * sidebar) + the Heartflame perch. Derives the active campaign slug from the
+ * pathname (the CampaignProvider lives in the nested [slug] layout, below this),
+ * and resolves the campaign name via a deduped getBySlug query.
  */
 export function V3AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const slug = pathname.match(/^\/v3\/campaigns\/([^/]+)/)?.[1];
+  const campaign = trpc.campaigns.getBySlug.useQuery(
+    { slug: slug ?? '' },
+    { enabled: !!slug, staleTime: 120_000 },
+  );
+  const campaignName = (campaign.data as any)?.name as string | undefined;
+
+  const hrefFor = (seg: string | null) =>
+    seg === null ? '/v3' : slug ? `/v3/campaigns/${slug}/${seg}` : '/v3';
+
   return (
     <HeartflameProvider initial={DEMO_SURFACED}>
-    <div className="relative flex h-screen overflow-hidden bg-[var(--qd-bg)] text-[var(--qd-ink)]">
-      {/* Global icon rail */}
-      <nav
-        aria-label="Global navigation"
-        className="flex w-14 flex-none flex-col items-center gap-1 border-r border-[var(--qd-border-faint)] bg-[var(--qd-rail)] py-4"
-      >
-        <Link
-          href="/v3"
-          className="mb-3 grid h-9 w-9 place-items-center rounded-[10px] text-[var(--qd-on-accent)] shadow-[var(--qd-shadow-accent)]"
-          style={{ background: 'var(--qd-grad-accent)' }}
-        >
-          <MaskedDndIcon name="game/dm" size={18} />
-        </Link>
-        {RAIL.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            title={item.label}
-            className="grid h-10 w-10 place-items-center rounded-[10px] text-[var(--qd-ink-muted)] transition-colors hover:bg-[var(--qd-card)] hover:text-[var(--qd-accent-text)]"
-          >
-            <MaskedDndIcon name={item.icon} size={20} />
+      <div className="relative flex h-screen overflow-hidden bg-qd-bg text-qd-ink">
+        {/* Global icon rail */}
+        <nav aria-label="Global navigation" className="flex w-14 flex-none flex-col items-center gap-1 border-r border-qd-faint bg-qd-rail py-4">
+          <Link href="/v3" className="mb-3 grid h-9 w-9 place-items-center rounded-qd-md bg-qd-accent text-qd-on-accent shadow-qd-accent">
+            <MaskedDndIcon name="game/dm" size={18} />
           </Link>
-        ))}
-        <Link
-          href="/dev/icons"
-          title="Icon library"
-          className="mt-auto grid h-10 w-10 place-items-center rounded-[10px] text-[var(--qd-ink-muted)] transition-colors hover:text-[var(--qd-accent-text)]"
-        >
-          <MaskedDndIcon name="util/cog" size={20} />
-        </Link>
-      </nav>
+          {RAIL.map((item) => {
+            const active = item.seg !== null && pathname.startsWith(hrefFor(item.seg));
+            return (
+              <Link
+                key={item.label}
+                href={hrefFor(item.seg)}
+                title={item.label}
+                className={`grid h-10 w-10 place-items-center rounded-qd-md transition-colors hover:bg-qd-card ${active ? 'bg-qd-card text-qd-accent-text' : 'text-qd-ink-muted hover:text-qd-accent-text'}`}
+              >
+                <MaskedDndIcon name={item.icon} size={20} />
+              </Link>
+            );
+          })}
+          <Link href="/dev/icons" title="Icon library" className="mt-auto grid h-10 w-10 place-items-center rounded-qd-md text-qd-ink-muted transition-colors hover:text-qd-accent-text">
+            <MaskedDndIcon name="util/cog" size={20} />
+          </Link>
+        </nav>
 
-      {/* Campaign sidebar (placeholder — populated in Track C) */}
-      <aside
-        aria-label="Campaign navigation"
-        className="hidden w-56 flex-none flex-col border-r border-[var(--qd-border-faint)] bg-[rgba(0,0,0,0.18)] p-4 md:flex"
-      >
-        <span className="font-[family-name:var(--qd-font-mono)] text-[9px] uppercase tracking-[0.16em] text-[var(--qd-ink-faint)]">
-          Campaign
-        </span>
-        <span className="mt-2 font-[family-name:var(--qd-font-display)] text-xl leading-tight text-[var(--qd-ink-strong)]">
-          No world open
-        </span>
-        <span className="mt-1 text-sm text-[var(--qd-ink-muted)]">
-          Campaign nav arrives with Track C.
-        </span>
-      </aside>
+        {/* Campaign sidebar */}
+        <aside aria-label="Campaign navigation" className="hidden w-56 flex-none flex-col border-r border-qd-faint bg-[rgba(0,0,0,0.18)] p-4 md:flex">
+          <span className="font-qd-mono text-[9px] uppercase tracking-[0.18em] text-qd-ink-faint">Campaign</span>
+          {slug ? (
+            <>
+              <span className="mt-2 font-qd-display text-lg leading-tight text-qd-ink-strong">
+                {campaignName ?? '…'}
+              </span>
+              <nav className="mt-4 flex flex-col gap-0.5">
+                {RAIL.filter((i) => i.seg).map((item) => {
+                  const href = hrefFor(item.seg);
+                  const active = pathname.startsWith(href);
+                  return (
+                    <Link
+                      key={item.label}
+                      href={href}
+                      className={`flex items-center gap-2.5 rounded-qd-sm px-2.5 py-1.5 text-sm transition-colors ${active ? 'bg-qd-card text-qd-accent-text' : 'text-qd-ink-2 hover:text-qd-ink-strong'}`}
+                    >
+                      <MaskedDndIcon name={item.icon} size={15} />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </>
+          ) : (
+            <>
+              <span className="mt-2 font-qd-display text-lg leading-tight text-qd-ink-strong">No world open</span>
+              <Link href="/v3" className="mt-1 text-sm text-qd-accent-text hover:underline">Choose a campaign →</Link>
+            </>
+          )}
+        </aside>
 
-      {/* Main content */}
-      <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-12 flex-none items-center gap-3 border-b border-[var(--qd-border-faint)] px-5">
-          <span className="font-[family-name:var(--qd-font-mono)] text-[10px] uppercase tracking-[0.2em] text-[var(--qd-ink-faint)]">
-            QuiverDM v3
-          </span>
-        </header>
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Main content */}
+        <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="flex h-12 flex-none items-center gap-3 border-b border-qd-faint px-5">
+            <span className="font-qd-mono text-[10px] uppercase tracking-[0.2em] text-qd-ink-faint">
+              QuiverDM v3{campaignName ? ` · ${campaignName}` : ''}
+            </span>
+          </header>
+          <main className="flex-1 overflow-y-auto">{children}</main>
+        </div>
+
+        {/* The companion (reads nudges from context) */}
+        <HeartflamePerch />
       </div>
-
-      {/* The companion, at the edge of the chronicle (reads nudges from context) */}
-      <HeartflamePerch />
-    </div>
     </HeartflameProvider>
   );
 }
