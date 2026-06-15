@@ -27,11 +27,26 @@ import {
 
 const NUDGE_TTL_SECONDS = 60 * 60; // 1 hour, matches co-dm:*:suggestions
 
+const REDIS_OP_TIMEOUT_MS = 2000;
+
 const cursorsKey = (encounterId: string) => `heartflame:${encounterId}:cursors`;
 const nudgesKey = (encounterId: string) => `heartflame:${encounterId}:nudges`;
 
+/**
+ * Best-effort Redis: resolves to `fallback` if the op rejects or exceeds the
+ * timeout. Redis here is a cache (rotation continuity + last nudges), never the
+ * source of truth, so an outage degrades to "compute fresh, skip cache" instead
+ * of hanging the request.
+ */
+function bestEffort<T>(op: Promise<T>, fallback: T): Promise<T> {
+  return Promise.race([
+    op.catch(() => fallback),
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), REDIS_OP_TIMEOUT_MS)),
+  ]);
+}
+
 async function readCursors(encounterId: string): Promise<Cursors> {
-  const raw = await redis.get(cursorsKey(encounterId));
+  const raw = await bestEffort(redis.get(cursorsKey(encounterId)), null);
   if (!raw) return {};
   try {
     return JSON.parse(raw) as Cursors;
@@ -100,15 +115,15 @@ export async function evaluateEncounter(
     }
   }
 
-  await redis.set(cursorsKey(encounterId), JSON.stringify(cursors), 'EX', NUDGE_TTL_SECONDS);
-  await redis.set(nudgesKey(encounterId), JSON.stringify(surfaced), 'EX', NUDGE_TTL_SECONDS);
+  await bestEffort(redis.set(cursorsKey(encounterId), JSON.stringify(cursors), 'EX', NUDGE_TTL_SECONDS), null);
+  await bestEffort(redis.set(nudgesKey(encounterId), JSON.stringify(surfaced), 'EX', NUDGE_TTL_SECONDS), null);
 
   return surfaced;
 }
 
 /** Read the last-computed nudges for an encounter (without re-evaluating). */
 export async function getEncounterNudges(encounterId: string): Promise<SurfacedNudge[]> {
-  const raw = await redis.get(nudgesKey(encounterId));
+  const raw = await bestEffort(redis.get(nudgesKey(encounterId)), null);
   if (!raw) return [];
   try {
     return JSON.parse(raw) as SurfacedNudge[];
