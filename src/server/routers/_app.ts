@@ -39,6 +39,7 @@ import { brainRouter } from './brain';
 import { voiceRouter } from './voice';
 import { playRouter } from './play';
 import { heartflameRouter } from './heartflame';
+import { scenesRouter } from './scenes';
 import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
 import { multiTrackUploadRouter } from './multi-track-upload';
@@ -111,6 +112,7 @@ export const appRouter = router({
   prepSecrets: prepSecretsRouter,
   npcBehaviorProfiles: npcBehaviorProfilesRouter,
   heartflame: heartflameRouter,
+  scenes: scenesRouter,
 });
 
 export type AppRouter = typeof appRouter;

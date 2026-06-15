@@ -42,6 +42,7 @@ const RAIL: RailItem[] = [
   { icon: 'game/combat', label: 'Combat', seg: 'combat' },
   { icon: 'entity/map', label: 'World Map', seg: 'world-map' },
   { icon: 'entity/location', label: 'Locations', seg: 'locations' },
+  { icon: 'game/explore', label: 'Scenes', seg: 'scenes' },
   { icon: 'entity/scroll', label: 'Sessions', seg: 'sessions' },
   { icon: 'entity/time', label: 'Recordings', seg: 'recordings' },
 ];

@@ -420,6 +420,7 @@ model Campaign {
   // Content relations
   gameSessions      GameSession[]
   npcs              NPC[]
+  scenes            Scene[]
   glossary          Json? // Campaign-specific glossary for transcription
   homebrewContent   CampaignHomebrewContent[] // Many-to-many with homebrew
   homebrewPDFs      HomebrewPDF[] // Campaign-specific PDFs
@@ -978,6 +979,26 @@ model EncounterParticipant {
   updatedAt   DateTime  @updatedAt
 
   @@index([encounterId])
+}
+
+// Scenes — RP moments / description cards / shop / theatre presented to players.
+model Scene {
+  id              String   @id @default(cuid())
+  campaignId      String
+  campaign        Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  title           String
+  type            String   @default("rp") // rp | description | tavern | battle | theatre
+  description     String?  @db.Text // player-facing read-aloud / narration
+  dmNotes         String?  @db.Text // DM-only secret notes
+  imageUrl        String?
+  musicCue        String?
+  orderIndex      Int      @default(0)
+  isPresented     Boolean  @default(false) // currently shown on the player-facing view
+  linkedEntityIds Json     @default("[]") // string[] of WorldEntity ids
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([campaignId])
 }
 
 model NPC {
