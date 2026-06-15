@@ -4,11 +4,14 @@ import { type ReactNode } from 'react';
 import Link from 'next/link';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 import { HeartflamePerch } from './HeartflamePerch';
+import { HeartflameProvider } from './heartflame-context';
 import {
   evaluate,
   primaryNudge,
+  toSurfaced,
   participantToActorState,
   DEFAULT_RULES,
+  type SurfacedNudge,
 } from '@/lib/heartflame';
 
 // Demo nudge from the real predicate engine — the diagram's "Barksley" actor
@@ -32,6 +35,7 @@ const DEMO_ACTOR = participantToActorState(
   { inCombat: true, features: { 'crimson-rite': { active: false } } },
 );
 const DEMO_NUDGE = primaryNudge(evaluate(DEMO_ACTOR, DEFAULT_RULES).nudges);
+const DEMO_SURFACED: SurfacedNudge | null = DEMO_NUDGE ? toSurfaced(DEMO_NUDGE) : null;
 
 interface RailItem {
   /** Icon path under public/icons/dnd, in `category/name` form. */
@@ -45,7 +49,7 @@ const RAIL: RailItem[] = [
   { icon: 'util/home', label: 'Home', href: '/v3' },
   { icon: 'game/party', label: 'Party', href: '/v3' },
   { icon: 'game/source-book', label: 'Compendium', href: '/v3' },
-  { icon: 'game/combat', label: 'Combat', href: '/v3' },
+  { icon: 'game/combat', label: 'Combat', href: '/v3/combat' },
   { icon: 'entity/scroll', label: 'Sessions', href: '/v3' },
 ];
 
@@ -58,6 +62,7 @@ const RAIL: RailItem[] = [
  */
 export function V3AppShell({ children }: { children: ReactNode }) {
   return (
+    <HeartflameProvider initial={DEMO_SURFACED}>
     <div className="relative flex h-screen overflow-hidden text-[var(--qd-ink)]">
       {/* Global icon rail */}
       <nav
@@ -116,8 +121,9 @@ export function V3AppShell({ children }: { children: ReactNode }) {
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
 
-      {/* The companion, at the edge of the chronicle */}
-      <HeartflamePerch message={DEMO_NUDGE?.line} />
+      {/* The companion, at the edge of the chronicle (reads nudges from context) */}
+      <HeartflamePerch />
     </div>
+    </HeartflameProvider>
   );
 }

@@ -136,3 +136,141 @@ export async function getEncounterNudges(encounterId: string): Promise<SurfacedN
 export function primarySurfaced(nudges: SurfacedNudge[]): SurfacedNudge | null {
   return primaryNudge(nudges) as SurfacedNudge | null;
 }
+
+// ── Combat board (v3 combat tracker) ─────────────────────────────────────────
+
+const BOARD_PARTICIPANT_SELECT = {
+  id: true,
+  name: true,
+  type: true,
+  hp: true,
+  maxHp: true,
+  tempHp: true,
+  conditions: true,
+  initiative: true,
+  isAlive: true,
+  actionUsed: true,
+  bonusActionUsed: true,
+  reactionUsed: true,
+  concentration: true,
+} as const;
+
+export interface BoardParticipant {
+  id: string;
+  name: string;
+  type: string;
+  hp: number;
+  maxHp: number;
+  tempHp: number;
+  conditions: unknown;
+  initiative: number;
+  isAlive: boolean;
+  actionUsed: boolean;
+  bonusActionUsed: boolean;
+  reactionUsed: boolean;
+  concentration: boolean;
+}
+
+export interface EncounterBoard {
+  id: string;
+  name: string;
+  round: number;
+  status: string;
+  participants: BoardParticipant[];
+}
+
+/** Load an encounter + its participants (with action-economy fields) for the tracker. */
+export async function getEncounterForBoard(encounterId: string): Promise<EncounterBoard | null> {
+  return (prisma as any).encounter.findUnique({
+    where: { id: encounterId },
+    select: {
+      id: true,
+      name: true,
+      round: true,
+      status: true,
+      participants: {
+        select: BOARD_PARTICIPANT_SELECT,
+        orderBy: { initiative: 'desc' },
+      },
+    },
+  });
+}
+
+export interface ParticipantStatePatch {
+  hp?: number;
+  tempHp?: number;
+  conditions?: string[];
+  isAlive?: boolean;
+  actionUsed?: boolean;
+  bonusActionUsed?: boolean;
+  reactionUsed?: boolean;
+  concentration?: boolean;
+}
+
+/** Update one participant, then re-evaluate the encounter. Returns fresh nudges. */
+export async function setParticipantState(
+  participantId: string,
+  patch: ParticipantStatePatch,
+): Promise<{ encounterId: string; nudges: SurfacedNudge[] }> {
+  const updated = await (prisma as any).encounterParticipant.update({
+    where: { id: participantId },
+    data: patch,
+    select: { encounterId: true },
+  });
+  const nudges = await evaluateEncounter(updated.encounterId);
+  return { encounterId: updated.encounterId, nudges };
+}
+
+// Idempotent demo encounter so /v3/combat always has something to drive.
+const DEMO_ENCOUNTER_NAME = 'Heartflame Demo';
+const DEMO_PARTY: Array<Partial<BoardParticipant> & { name: string; hp: number; maxHp: number }> = [
+  { name: 'Norm Alfella', type: 'pc', hp: 31, maxHp: 38 },
+  { name: 'Oriyen Vale', type: 'pc', hp: 14, maxHp: 30, concentration: true },
+  { name: 'Skreek Swicschnout', type: 'pc', hp: 26, maxHp: 28 },
+];
+
+/** Find-or-create the demo encounter and return its board. Dev convenience. */
+export async function getOrCreateDemoBoard(): Promise<EncounterBoard | null> {
+  const existing = await (prisma as any).encounter.findFirst({
+    where: { name: DEMO_ENCOUNTER_NAME },
+    select: { id: true },
+  });
+  if (existing) return getEncounterForBoard(existing.id);
+
+  const campaign = await prisma.campaign.findFirst({ select: { id: true } });
+  if (!campaign) throw new Error('no campaign in DB to attach a demo encounter to');
+
+  let session = await prisma.gameSession.findFirst({
+    where: { campaignId: campaign.id },
+    select: { id: true },
+  });
+  if (!session) {
+    session = await prisma.gameSession.create({
+      data: { campaignId: campaign.id, sessionNumber: 900 },
+      select: { id: true },
+    });
+  }
+
+  const encounter: any = await (prisma as any).encounter.create({
+    data: { sessionId: session.id, name: DEMO_ENCOUNTER_NAME, status: 'active' },
+    select: { id: true },
+  });
+
+  let initiative = 20;
+  for (const p of DEMO_PARTY) {
+    await (prisma as any).encounterParticipant.create({
+      data: {
+        encounterId: encounter.id,
+        name: p.name,
+        type: p.type ?? 'pc',
+        hp: p.hp,
+        maxHp: p.maxHp,
+        initiative,
+        concentration: p.concentration ?? false,
+      },
+    });
+    initiative -= 3;
+  }
+
+  return getEncounterForBoard(encounter.id);
+}
