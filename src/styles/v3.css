@@ -44,9 +44,19 @@
              hf-flare 1.6s var(--qd-ease-inout) infinite;
 }
 
+/* Map pin pulse (World Map) */
+@keyframes v3-pin-pulse {
+  0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+.v3-pin-pulse {
+  animation: v3-pin-pulse 2.4s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hf-ember,
-  .hf-ember--active {
+  .hf-ember--active,
+  .v3-pin-pulse {
     animation: none;
   }
 }

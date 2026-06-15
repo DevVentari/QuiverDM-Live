@@ -50,6 +50,7 @@ const RAIL: RailItem[] = [
   { icon: 'game/party', label: 'Party', href: '/v3' },
   { icon: 'game/source-book', label: 'Compendium', href: '/v3' },
   { icon: 'game/combat', label: 'Combat', href: '/v3/combat' },
+  { icon: 'entity/map', label: 'World Map', href: '/v3/world-map' },
   { icon: 'entity/scroll', label: 'Sessions', href: '/v3' },
 ];
 
@@ -63,7 +64,7 @@ const RAIL: RailItem[] = [
 export function V3AppShell({ children }: { children: ReactNode }) {
   return (
     <HeartflameProvider initial={DEMO_SURFACED}>
-    <div className="relative flex h-screen overflow-hidden text-[var(--qd-ink)]">
+    <div className="relative flex h-screen overflow-hidden bg-[var(--qd-bg)] text-[var(--qd-ink)]">
       {/* Global icon rail */}
       <nav
         aria-label="Global navigation"
