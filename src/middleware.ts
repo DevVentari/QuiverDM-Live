@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { V3_COOKIE, resolveV3Rewrite } from '@/lib/flags';
 
 function isCorsOrigin(origin: string | null): boolean {
   if (!origin) return false;
@@ -57,6 +58,14 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
+  // QDM_V3: rewrite migrated canonical routes to their /v3 equivalent for
+  // opted-in testers, keeping stable URLs. No-op until a route is allowlisted
+  // in MIGRATED_ROUTES, so default traffic and qa:cycle stay on (app).
+  const v3Path = resolveV3Rewrite(pathname, req.cookies.get(V3_COOKIE)?.value);
+  if (v3Path) {
+    return NextResponse.rewrite(new URL(v3Path + nextUrl.search, nextUrl));
+  }
+
   return NextResponse.next();
 });
 
@@ -67,6 +76,8 @@ export const config = {
     // App routes that need auth
     '/dashboard/:path*',
     '/campaigns/:path*',
+    // v3 parallel build (flag-gated)
+    '/v3/:path*',
     '/characters/:path*',
     '/homebrew/:path*',
     '/settings/:path*',

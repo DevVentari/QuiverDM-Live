@@ -952,6 +952,14 @@ model EncounterParticipant {
   maxHp       Int
   conditions  Json      @default("[]") // D&D 5e condition strings
   isAlive     Boolean   @default(true)
+
+  // Live board state for the Scrollkin predicate engine (additive/nullable).
+  tempHp          Int?     // temporary hit points
+  actionUsed      Boolean  @default(false)
+  bonusActionUsed Boolean  @default(false)
+  reactionUsed    Boolean  @default(false)
+  concentration   String?  // name of the spell being concentrated on, or null
+
   updatedAt   DateTime  @updatedAt
 
   @@index([encounterId])
