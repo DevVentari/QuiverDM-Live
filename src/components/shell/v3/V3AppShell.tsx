@@ -38,8 +38,10 @@ const RAIL: RailItem[] = [
   { icon: 'game/party', label: 'Party', seg: 'characters' },
   { icon: 'entity/person', label: 'NPCs', seg: 'npcs' },
   { icon: 'game/source-book', label: 'Compendium', seg: 'compendium' },
+  { icon: 'entity/book', label: 'Homebrew', seg: 'homebrew' },
   { icon: 'game/combat', label: 'Combat', seg: 'combat' },
   { icon: 'entity/map', label: 'World Map', seg: 'world-map' },
+  { icon: 'entity/location', label: 'Locations', seg: 'locations' },
   { icon: 'entity/scroll', label: 'Sessions', seg: 'sessions' },
   { icon: 'entity/time', label: 'Recordings', seg: 'recordings' },
 ];
@@ -83,7 +85,7 @@ export function V3AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-          <Link href="/dev/icons" title="Icon library" className="mt-auto grid h-10 w-10 place-items-center rounded-qd-md text-qd-ink-muted transition-colors hover:text-qd-accent-text">
+          <Link href={slug ? `/v3/campaigns/${slug}/settings` : '/dev/icons'} title="Settings" className="mt-auto grid h-10 w-10 place-items-center rounded-qd-md text-qd-ink-muted transition-colors hover:text-qd-accent-text">
             <MaskedDndIcon name="util/cog" size={20} />
           </Link>
         </nav>
