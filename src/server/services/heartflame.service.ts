@@ -17,6 +17,7 @@ import {
   evaluate,
   primaryNudge,
   toSurfaced,
+  reskinSurfaced,
   participantToActorState,
   DEFAULT_RULES,
   type Cursors,
@@ -44,7 +45,15 @@ async function readCursors(encounterId: string): Promise<Cursors> {
  * cursors + surfaced nudges, and return them. Returns [] if the encounter is
  * missing.
  */
-export async function evaluateEncounter(encounterId: string): Promise<SurfacedNudge[]> {
+export interface EvaluateOptions {
+  /** Re-word the primary nudge's line via the fact-safe AI re-skin (falls back to the authored line). */
+  reskinPrimary?: boolean;
+}
+
+export async function evaluateEncounter(
+  encounterId: string,
+  opts: EvaluateOptions = {},
+): Promise<SurfacedNudge[]> {
   const encounter = await (prisma as any).encounter.findUnique({
     where: { id: encounterId },
     select: {
@@ -80,7 +89,16 @@ export async function evaluateEncounter(encounterId: string): Promise<SurfacedNu
     fired.push(...result.nudges);
   }
 
-  const surfaced = fired.map(toSurfaced);
+  let surfaced = fired.map(toSurfaced);
+
+  // Optional fact-safe AI re-skin of the single surfaced (primary) nudge.
+  if (opts.reskinPrimary && surfaced.length > 0) {
+    const primary = primaryNudge(surfaced) as SurfacedNudge | null;
+    if (primary) {
+      const reworded = await reskinSurfaced(primary);
+      surfaced = surfaced.map((n) => (n === primary ? reworded : n));
+    }
+  }
 
   await redis.set(cursorsKey(encounterId), JSON.stringify(cursors), 'EX', NUDGE_TTL_SECONDS);
   await redis.set(nudgesKey(encounterId), JSON.stringify(surfaced), 'EX', NUDGE_TTL_SECONDS);

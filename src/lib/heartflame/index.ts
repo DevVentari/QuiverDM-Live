@@ -11,4 +11,5 @@ export * from './line-pool';
 export * from './engine';
 export * from './board-state';
 export * from './delivery';
+export * from './reskin';
 export { DEFAULT_RULES } from './rules';

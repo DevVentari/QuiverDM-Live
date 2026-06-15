@@ -16,6 +16,8 @@ export const heartflameRouter = router({
     .query(({ input }) => getEncounterNudges(input.encounterId)),
 
   evaluate: protectedProcedure
-    .input(z.object({ encounterId: z.string() }))
-    .mutation(({ input }) => evaluateEncounter(input.encounterId)),
+    .input(z.object({ encounterId: z.string(), reskinPrimary: z.boolean().optional() }))
+    .mutation(({ input }) =>
+      evaluateEncounter(input.encounterId, { reskinPrimary: input.reskinPrimary }),
+    ),
 });
