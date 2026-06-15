@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- ============================================================
+     QuiverDM · VIEW 1 — PLAYER COMBAT HUD (Mobile 390px)
+     Skreek Swicschnout · Skaven Rogue/Assassin
+     The Shattered Compact · Session 9 · Concordia Stellaris · Round 3
+     ============================================================ -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0e0b0a;}
+  @keyframes emberPulse{0%,100%{box-shadow:0 0 0 0 rgba(217,138,61,.0),inset 0 0 0 1px rgba(217,138,61,.55)}50%{box-shadow:0 0 18px 1px rgba(217,138,61,.4),inset 0 0 0 1px rgba(217,138,61,.9)}}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+  ::-webkit-scrollbar{width:0}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:34px 20px;font-family:'Kalam',cursive;background:radial-gradient(800px 520px at 50% 0%, rgba(217,138,61,.06), transparent 62%), #0e0b0a;">
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+    <div style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.26em;color:#6c5f53;text-transform:uppercase;">QuiverDM · Player Combat HUD · 390px</div>
+
+    <!-- PHONE -->
+    <div style="width:390px;height:844px;border-radius:46px;border:1px solid rgba(255,225,190,.1);background:linear-gradient(180deg,#191210 0%, #140f0d 100%);box-shadow:0 40px 90px rgba(0,0,0,.6), inset 0 0 0 7px #050403;padding:14px 13px;position:relative;overflow:hidden;">
+      <!-- notch -->
+      <div style="position:absolute;top:14px;left:50%;transform:translateX(-50%);width:124px;height:26px;background:#050403;border-radius:0 0 16px 16px;z-index:8;"></div>
+
+      <div style="height:100%;display:flex;flex-direction:column;">
+
+        <!-- IDENTITY STRIP -->
+        <div style="display:flex;align-items:center;gap:12px;padding:24px 8px 0;">
+          <div style="width:54px;height:54px;border-radius:14px;border:1px solid rgba(217,138,61,.4);background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 6px,transparent 6px 12px);flex:none;position:relative;">
+            <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:7px;color:#6c5f53;letter-spacing:.06em;">portrait</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Kalam',cursive;font-weight:600;font-size:19px;color:#f0e6d8;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Skreek</div>
+            <div style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.08em;color:#8a7d6e;margin-top:3px;">SKAVEN ROGUE · ASSASSIN · LV 6</div>
+          </div>
+          <div style="text-align:right;flex:none;">
+            <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:rgba(217,138,61,.16);border:1px solid rgba(217,138,61,.45);white-space:nowrap;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#d98a3d;box-shadow:0 0 9px #d98a3d;animation:dotPulse 1.8s ease-in-out infinite;flex:none;"></span>
+              <span style="font-family:'Kalam',cursive;font-weight:700;font-size:11px;letter-spacing:.06em;color:#f0d6b2;white-space:nowrap;">YOUR TURN</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- HP STRIP -->
+        <div style="margin:18px 8px 0;border:1px solid rgba(255,235,205,.08);border-radius:16px;background:rgba(255,235,205,.022);padding:15px 16px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;">
+            <span style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.14em;color:#8a7d6e;">HIT POINTS</span>
+            <span style="font-family:ui-monospace,monospace;font-size:9px;color:#6c5f53;">no concentration</span>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;margin-top:7px;white-space:nowrap;">
+            <span style="font-family:'Kalam',cursive;font-weight:700;font-size:30px;color:#f0e6d8;line-height:1;">38</span>
+            <span style="font-family:'Kalam',cursive;font-size:16px;color:#8a7d6e;line-height:1.4;">/&nbsp;47</span>
+          </div>
+          <div style="height:10px;border-radius:6px;background:rgba(0,0,0,.4);margin-top:10px;overflow:hidden;border:1px solid rgba(255,255,255,.05);">
+            <div style="height:100%;width:81%;border-radius:6px;background:linear-gradient(90deg,#a8402f,#d98a3d);"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:13px;">
+            <!-- poisoned condition -->
+            <div style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:8px;background:rgba(156,80,72,.16);border:1px solid rgba(156,80,72,.5);">
+              <span style="width:8px;height:8px;border-radius:50%;background:#b56b62;"></span>
+              <span style="font-size:12px;font-weight:600;color:#d39e96;">Poisoned</span>
+            </div>
+            <!-- warpstone charges -->
+            <div style="display:flex;align-items:center;gap:7px;">
+              <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#7f7468;">WARPSTONE</span>
+              <span style="width:11px;height:11px;background:#7fae5a;transform:rotate(45deg);border-radius:2px;box-shadow:0 0 8px rgba(127,174,90,.5);"></span>
+              <span style="width:11px;height:11px;background:#7fae5a;transform:rotate(45deg);border-radius:2px;box-shadow:0 0 8px rgba(127,174,90,.5);"></span>
+              <span style="width:11px;height:11px;border:1.5px solid rgba(127,174,90,.3);transform:rotate(45deg);border-radius:2px;"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTION ECONOMY -->
+        <div style="margin:16px 8px 0;">
+          <div style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.14em;color:#8a7d6e;margin-bottom:9px;padding-left:2px;">THIS TURN</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;">
+            <!-- Action USED -->
+            <div style="border:1px solid rgba(255,255,255,.07);border-radius:14px;background:rgba(255,255,255,.015);padding:12px 10px;opacity:.62;position:relative;">
+              <div style="font-family:'Kalam',cursive;font-weight:600;font-size:12px;letter-spacing:.03em;color:#9a8f82;">Action</div>
+              <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:#6c5f53;margin-top:8px;">USED</div>
+              <div style="font-size:12px;color:#8a7d6e;margin-top:4px;line-height:1.2;">Sneak Attack</div>
+              <div style="position:absolute;top:11px;right:11px;width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;color:#6c5f53;font-size:10px;">✓</div>
+            </div>
+            <!-- Bonus AVAILABLE (the highlight) -->
+            <div style="border-radius:14px;background:rgba(217,138,61,.1);padding:12px 10px;animation:emberPulse 2.4s ease-in-out infinite;position:relative;">
+              <div style="font-family:'Kalam',cursive;font-weight:600;font-size:12px;letter-spacing:.03em;color:#f0d6b2;">Bonus</div>
+              <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:#d98a3d;margin-top:8px;">AVAILABLE</div>
+              <div style="font-size:12px;color:#cdb596;margin-top:4px;line-height:1.2;">Cunning Action</div>
+            </div>
+            <!-- Reaction AVAILABLE -->
+            <div style="border:1px solid rgba(255,235,205,.14);border-radius:14px;background:rgba(255,235,205,.03);padding:12px 10px;">
+              <div style="font-family:'Kalam',cursive;font-weight:600;font-size:12px;letter-spacing:.03em;color:#e7ddcd;">Reaction</div>
+              <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:#9a8f82;margin-top:8px;">AVAILABLE</div>
+              <div style="font-size:12px;color:#9a8f82;margin-top:4px;line-height:1.2;">Uncanny / Shard</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding-left:2px;">
+            <span style="width:5px;height:5px;border-radius:50%;background:#7f7468;"></span>
+            <span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;color:#7f7468;">Action dimmed automatically — detected via transcript · tap to override</span>
+          </div>
+        </div>
+
+        <!-- ABILITIES -->
+        <div style="margin:16px 8px 0;flex:1;min-height:0;display:flex;flex-direction:column;">
+          <div style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.14em;color:#8a7d6e;margin-bottom:9px;padding-left:2px;">ABILITIES</div>
+          <div style="display:flex;flex-direction:column;gap:7px;overflow:auto;">
+            <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,255,255,.06);border-radius:11px;background:rgba(255,255,255,.012);padding:11px 13px;opacity:.6;">
+              <span style="width:15px;height:15px;border-radius:4px;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#7f7468;font-size:10px;">✓</span>
+              <span style="flex:1;font-size:14px;color:#9a8f82;">Sneak Attack</span>
+              <span style="font-family:ui-monospace,monospace;font-size:9px;color:#6c5f53;">USED</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,235,205,.1);border-radius:11px;background:rgba(255,235,205,.02);padding:11px 13px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#d98a3d;box-shadow:0 0 7px #d98a3d;"></span>
+              <span style="flex:1;font-size:14px;color:#e7ddcd;">Cunning Action <span style="color:#8a7d6e;font-size:12px;">· Dash / Disengage / Hide</span></span>
+              <span style="font-family:ui-monospace,monospace;font-size:9px;color:#a98a5f;">BONUS</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,235,205,.1);border-radius:11px;background:rgba(255,235,205,.02);padding:11px 13px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#d98a3d;box-shadow:0 0 7px #d98a3d;"></span>
+              <span style="flex:1;font-size:14px;color:#e7ddcd;">Uncanny Dodge</span>
+              <span style="font-family:ui-monospace,monospace;font-size:9px;color:#a98a5f;">REACTION</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(127,174,90,.22);border-radius:11px;background:rgba(127,174,90,.04);padding:11px 13px;">
+              <span style="width:9px;height:9px;background:#7fae5a;transform:rotate(45deg);border-radius:2px;"></span>
+              <span style="flex:1;font-size:14px;color:#e7ddcd;">Warpstone Shard <span style="color:#8a7d6e;font-size:12px;">· Corruption Shield</span></span>
+              <span style="font-family:ui-monospace,monospace;font-size:9px;color:#7fae5a;">REACTION</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:11px;border:1px dashed rgba(255,255,255,.1);border-radius:11px;background:transparent;padding:11px 13px;opacity:.5;">
+              <span style="width:15px;height:15px;border-radius:4px;border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;color:#6c5f53;font-size:9px;">🔒</span>
+              <span style="flex:1;font-size:14px;color:#8a7d6e;">Assassinate</span>
+              <span style="font-family:ui-monospace,monospace;font-size:8px;color:#6c5f53;text-align:right;max-width:120px;line-height:1.25;">surprised targets only · Rd 1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ROLL + popup -->
+        <div style="margin:12px 8px 4px;position:relative;">
+          <!-- dice popup -->
+          <div style="position:absolute;left:0;right:0;bottom:64px;background:#241a14;border:1px solid rgba(217,138,61,.35);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.6);padding:15px 16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-family:'Kalam',cursive;font-weight:600;font-size:13px;color:#f0d6b2;">Sneak Attack damage</span>
+              <span style="font-family:ui-monospace,monospace;font-size:9px;color:#a98a5f;">2d6 + 3 PIERCING</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:13px;">
+              <span style="width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-family:'Kalam',cursive;font-weight:700;font-size:18px;color:#f0e6d8;">5</span>
+              <span style="width:42px;height:42px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-family:'Kalam',cursive;font-weight:700;font-size:18px;color:#f0e6d8;">4</span>
+              <span style="font-size:18px;color:#8a7d6e;">+3</span>
+              <span style="flex:1;"></span>
+              <div style="text-align:right;"><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#7f7468;letter-spacing:.1em;">TOTAL</div><div style="font-family:'Kalam',cursive;font-weight:700;font-size:26px;color:#d98a3d;line-height:1;">12</div></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:13px;">
+              <button style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#b7ab9c;font-family:'Kalam',cursive;font-weight:600;font-size:13px;padding:9px;cursor:pointer;">Reroll</button>
+              <button style="flex:2;background:#d98a3d;border:none;border-radius:10px;color:#1a0f06;font-family:'Kalam',cursive;font-weight:700;font-size:13px;padding:9px;cursor:pointer;">Send 12 to DM ▸</button>
+            </div>
+            <div style="position:absolute;bottom:-7px;left:50%;transform:translateX(-50%) rotate(45deg);width:14px;height:14px;background:#241a14;border-right:1px solid rgba(217,138,61,.35);border-bottom:1px solid rgba(217,138,61,.35);"></div>
+          </div>
+          <!-- roll button -->
+          <button style="width:100%;height:56px;border-radius:16px;border:none;background:linear-gradient(180deg,#e0944a,#c97a30);color:#1a0f06;font-family:'Kalam',cursive;font-weight:700;font-size:18px;letter-spacing:.04em;cursor:pointer;box-shadow:0 10px 28px rgba(217,138,61,.32);display:flex;align-items:center;justify-content:center;gap:9px;">
+            <span style="width:13px;height:13px;background:#1a0f06;transform:rotate(45deg);border-radius:2px;"></span> Roll Damage
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.04em;color:#5a4f45;max-width:390px;text-align:center;line-height:1.6;">Eyes-down, one-handed. One job: what's left to spend this turn. Action auto-dims when the transcript hears Skreek act.</div>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:440,&quot;height&quot;:960}}"></script>
+</body>
+</html>

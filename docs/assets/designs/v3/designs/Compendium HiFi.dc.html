@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:8px;height:8px;border-radius:50%;background:#1a0f06;"></span></span>
+    <div><div style="font-size:18px;color:#f6ead8;line-height:1;">Compendium</div><div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">RULES · MONSTERS · SPELLS · searchable at the table</div></div>
+    <div style="flex:1;"></div>
+    <div style="width:320px;border:1px solid rgba(255,235,205,.16);border-radius:10px;background:rgba(255,255,255,.04);padding:9px 13px;font-family:ui-monospace,monospace;font-size:11px;color:#7f6f5e;">⌕ Search the compendium…</div>
+  </div>
+
+  <div style="display:flex;min-height:720px;">
+
+    <!-- CATEGORIES -->
+    <div style="width:188px;flex:none;border-right:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.2);padding:14px 12px;display:flex;flex-direction:column;gap:4px;">
+      <span style="font-size:14px;color:#f9efe0;background:linear-gradient(90deg,rgba(217,138,61,.16),transparent);border:1px solid rgba(217,138,61,.3);border-radius:9px;padding:9px 11px;">Monsters</span>
+      <span style="font-size:14px;color:#cdbfae;border-radius:9px;padding:9px 11px;">Spells</span>
+      <span style="font-size:14px;color:#cdbfae;border-radius:9px;padding:9px 11px;">Items</span>
+      <span style="font-size:14px;color:#cdbfae;border-radius:9px;padding:9px 11px;">Conditions</span>
+      <span style="font-size:14px;color:#cdbfae;border-radius:9px;padding:9px 11px;">Rules</span>
+      <div style="margin-top:auto;font-family:ui-monospace,monospace;font-size:8px;color:#5a4f45;line-height:1.7;padding:8px;">Your homebrew lives here too — flagged with a ✦.</div>
+    </div>
+
+    <!-- LIST -->
+    <div style="width:288px;flex:none;border-right:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.12);padding:14px 12px;display:flex;flex-direction:column;gap:7px;overflow:auto;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;padding-left:2px;">MONSTERS · 42</div>
+      <div style="display:flex;align-items:center;gap:10px;border-radius:11px;background:linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.06));border:1px solid rgba(217,138,61,.4);padding:9px 10px;"><span style="width:30px;height:30px;border-radius:8px;background:rgba(196,69,58,.16);border:1px solid rgba(196,69,58,.4);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;">👁</span><div style="flex:1;"><div style="font-size:14px;color:#f9efe0;">Void Spawn <span style="font-family:ui-monospace,monospace;font-size:7px;color:#e3a45f;">✦</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#e09a6a;">ABERRATION · CR 5</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.02);padding:9px 10px;"><span style="width:30px;height:30px;border-radius:8px;background:rgba(196,69,58,.1);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;">🗡</span><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">Festival Guard</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f6f5e;">HUMANOID · CR 1/2</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.02);padding:9px 10px;"><span style="width:30px;height:30px;border-radius:8px;background:rgba(217,138,61,.1);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;">⚔</span><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">Captain Draven <span style="font-family:ui-monospace,monospace;font-size:7px;color:#e3a45f;">✦</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f6f5e;">BOSS · CR 9</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.02);padding:9px 10px;"><span style="width:30px;height:30px;border-radius:8px;background:rgba(176,143,208,.1);display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;">🐍</span><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">Knowledge Serpent</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f6f5e;">ABERRATION · CR 7</div></div></div>
+    </div>
+
+    <!-- STATBLOCK -->
+    <div style="flex:1;padding:22px 26px;overflow:auto;">
+      <div style="border:1px solid rgba(217,138,61,.3);border-radius:16px;background:linear-gradient(180deg,rgba(36,23,18,.9),rgba(16,12,10,.9));padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.4);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid rgba(217,138,61,.3);padding-bottom:12px;">
+          <div><div style="font-size:26px;color:#f6ead8;line-height:1;">Void Spawn</div><div style="font-family:ui-monospace,monospace;font-size:9px;color:#e09a6a;margin-top:5px;font-style:italic;">Medium aberration · chaotic · CR 5 (1,800 XP) · ✦ homebrew</div></div>
+          <button style="background:linear-gradient(180deg,#cf5f2a,#a8401f);border:none;border-radius:10px;color:#fce9da;font-family:'Kalam';font-weight:700;font-size:13px;padding:9px 15px;cursor:pointer;flex:none;">+ Add to combat</button>
+        </div>
+        <div style="display:flex;gap:24px;margin-top:14px;font-size:14px;color:#cdbfae;"><span><b style="color:#f0d6b2;">AC</b> 15</span><span><b style="color:#f0d6b2;">HP</b> 45 (7d8+14)</span><span><b style="color:#f0d6b2;">Speed</b> 30 ft, climb 30 ft</span></div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px;">
+          <div style="text-align:center;border:1px solid rgba(255,235,205,.1);border-radius:9px;background:rgba(255,255,255,.02);padding:8px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">STR</div><div style="font-size:15px;color:#cdbfae;">14 (+2)</div></div>
+          <div style="text-align:center;border:1px solid rgba(255,235,205,.1);border-radius:9px;background:rgba(255,255,255,.02);padding:8px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">DEX</div><div style="font-size:15px;color:#cdbfae;">17 (+3)</div></div>
+          <div style="text-align:center;border:1px solid rgba(255,235,205,.1);border-radius:9px;background:rgba(255,255,255,.02);padding:8px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">CON</div><div style="font-size:15px;color:#cdbfae;">15 (+2)</div></div>
+          <div style="text-align:center;border:1px solid rgba(255,235,205,.1);border-radius:9px;background:rgba(255,255,255,.02);padding:8px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">INT</div><div style="font-size:15px;color:#cdbfae;">8 (−1)</div></div>
+          <div style="text-align:center;border:1px solid rgba(255,235,205,.1);border-radius:9px;background:rgba(255,255,255,.02);padding:8px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">WIS</div><div style="font-size:15px;color:#cdbfae;">12 (+1)</div></div>
+          <div style="text-align:center;border:1px solid rgba(255,235,205,.1);border-radius:9px;background:rgba(255,255,255,.02);padding:8px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">CHA</div><div style="font-size:15px;color:#cdbfae;">6 (−2)</div></div>
+        </div>
+        <div style="margin-top:14px;font-size:13.5px;color:#bba98f;line-height:1.6;">
+          <div><b style="color:#e3a45f;">Damage Resistances</b> cold, necrotic · <b style="color:#e3a45f;">Condition Immunities</b> charmed, frightened</div>
+          <div style="margin-top:4px;"><b style="color:#e3a45f;">Senses</b> darkvision 120 ft · <b style="color:#e3a45f;">Languages</b> understands Deep Speech</div>
+        </div>
+        <div style="border-top:1px solid rgba(217,138,61,.2);margin-top:14px;padding-top:12px;">
+          <div style="font-size:14px;color:#f0d6b2;"><b>Unravelling Touch.</b> <span style="color:#bba98f;">Melee +6, reach 5 ft. 13 (2d8+3) necrotic; target's max HP reduced by the damage until a long rest.</span></div>
+          <div style="font-size:14px;color:#f0d6b2;margin-top:8px;"><b>Reality Bleed (Recharge 5–6).</b> <span style="color:#bba98f;">15-ft cube; DC 14 Con save or 18 (4d8) psychic and blinded until end of next turn.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:760},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

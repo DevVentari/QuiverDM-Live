@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  image-slot{display:block;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:8px;height:8px;border-radius:2px;background:#1a0f06;"></span></span>
+    <div><div style="font-size:18px;color:#f6ead8;line-height:1;">Settings</div><div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">THE SHATTERED COMPACT · CAMPAIGN SETTINGS</div></div>
+    <div style="flex:1;"></div>
+    <button style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:10px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:13px;padding:9px 16px;cursor:pointer;">Save changes</button>
+  </div>
+
+  <div style="display:flex;min-height:720px;">
+
+    <!-- NAV -->
+    <div style="width:222px;flex:none;border-right:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.2);padding:14px 12px;display:flex;flex-direction:column;gap:4px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;padding:4px 8px 8px;">CAMPAIGN</div>
+      <span style="font-size:14px;color:#f9efe0;background:linear-gradient(90deg,rgba(217,138,61,.16),transparent);border:1px solid rgba(217,138,61,.3);border-radius:9px;padding:9px 11px;">Identity</span>
+      <span style="font-size:14px;color:#cdbfae;border-radius:9px;padding:9px 11px;">Table defaults</span>
+      <span style="font-size:14px;color:#cdbfae;border-radius:9px;padding:9px 11px;">Integrations</span>
+      <span style="font-size:14px;color:#cdbfae;border-radius:9px;padding:9px 11px;">Data &amp; export</span>
+      <span style="font-size:14px;color:#9c6a62;border-radius:9px;padding:9px 11px;">Danger zone</span>
+    </div>
+
+    <!-- MAIN -->
+    <div style="flex:1;padding:22px 26px;overflow:auto;">
+      <!-- identity -->
+      <div style="font-size:22px;color:#f6ead8;">Identity</div>
+      <div style="display:flex;gap:18px;margin-top:18px;">
+        <image-slot id="campaign-cover" style="width:200px;height:130px;flex:none;" shape="rounded" radius="14" placeholder="drop cover art"></image-slot>
+        <div style="flex:1;display:flex;flex-direction:column;gap:12px;">
+          <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">CAMPAIGN NAME</div><div style="border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:15px;color:#ece2d4;">The Shattered Compact</div></div>
+          <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">TAGLINE</div><div style="border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:14px;color:#a99a88;font-style:italic;">When the accord breaks, the sky breaks with it.</div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">RULESET</div><div style="display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;"><span style="font-size:15px;color:#ece2d4;">D&amp;D 5e (2024)</span><span style="color:#9c8a76;">▾</span></div></div>
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">TONE</div><div style="display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;"><span style="font-size:15px;color:#ece2d4;">Mythic · high stakes</span><span style="color:#9c8a76;">▾</span></div></div>
+      </div>
+
+      <!-- defaults -->
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:24px 0 12px;">TABLE DEFAULTS</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">Auto-sort initiative</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">order by roll automatically</div></div><span style="width:42px;height:24px;border-radius:14px;background:#5f8f45;position:relative;flex:none;"><span style="position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#f6ead8;"></span></span></div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">Fog of war on by default</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">new battle maps start hidden</div></div><span style="width:42px;height:24px;border-radius:14px;background:#5f8f45;position:relative;flex:none;"><span style="position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#f6ead8;"></span></span></div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">AI session recap</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">summarize after each session</div></div><span style="width:42px;height:24px;border-radius:14px;background:#5f8f45;position:relative;flex:none;"><span style="position:absolute;right:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#f6ead8;"></span></span></div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">Advantage prompts</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">ask adv/disadv on every roll</div></div><span style="width:42px;height:24px;border-radius:14px;background:rgba(255,255,255,.1);position:relative;flex:none;"><span style="position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#9c8a76;"></span></span></div>
+      </div>
+
+      <!-- integrations -->
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:24px 0 12px;">INTEGRATIONS</div>
+      <div style="display:flex;gap:10px;">
+        <div style="flex:1;display:flex;align-items:center;gap:11px;border:1px solid rgba(95,143,69,.4);border-radius:12px;background:rgba(95,143,69,.08);padding:12px 14px;"><span style="width:30px;height:30px;border-radius:8px;background:rgba(95,143,69,.16);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;">🎙</span><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">Discord voice</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8fb06a;margin-top:2px;">connected · live transcription</div></div></div>
+        <div style="flex:1;display:flex;align-items:center;gap:11px;border:1px solid rgba(255,235,205,.12);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><span style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;">🗺</span><div style="flex:1;"><div style="font-size:14px;color:#ece2d4;">VTT export</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">Roll20 · Foundry</div></div><span style="font-family:ui-monospace,monospace;font-size:9px;color:#c79a6a;flex:none;">Connect</span></div>
+      </div>
+
+      <!-- danger zone -->
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c6a62;margin:24px 0 12px;">DANGER ZONE</div>
+      <div style="display:flex;align-items:center;gap:14px;border:1px solid rgba(196,69,58,.4);border-radius:12px;background:rgba(196,69,58,.06);padding:14px 16px;">
+        <div style="flex:1;"><div style="font-size:14px;color:#e6cdc6;">Archive or delete this campaign</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c6a62;margin-top:2px;">archiving hides it; deleting is permanent</div></div>
+        <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:9px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:9px 14px;cursor:pointer;">Archive</button>
+        <button style="background:rgba(196,69,58,.16);border:1px solid rgba(196,69,58,.5);border-radius:9px;color:#e6a99f;font-family:'Kalam';font-weight:700;font-size:13px;padding:9px 14px;cursor:pointer;">Delete…</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:820},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

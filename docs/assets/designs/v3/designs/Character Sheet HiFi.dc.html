@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  image-slot{display:block;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:9px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:7px 12px;cursor:pointer;flex:none;">‹ Party</button>
+    <div><div style="font-size:18px;color:#f6ead8;line-height:1;">Skreek</div><div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">DM VIEW · GOBLIN ROGUE · LV 7</div></div>
+    <div style="flex:1;"></div>
+    <span style="font-family:ui-monospace,monospace;font-size:9px;color:#8fb06a;background:rgba(95,143,69,.14);border:1px solid rgba(95,143,69,.4);border-radius:20px;padding:5px 11px;">played by Jess</span>
+  </div>
+
+  <div style="display:flex;min-height:720px;">
+
+    <!-- LEFT IDENTITY -->
+    <div style="width:262px;flex:none;border-right:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.2);padding:18px;display:flex;flex-direction:column;gap:14px;">
+      <image-slot id="skreek-art" style="width:100%;height:200px;" shape="rounded" radius="14" placeholder="hero art"></image-slot>
+      <div>
+        <div style="display:flex;align-items:flex-end;gap:6px;"><span style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f6ead8;line-height:.85;">44</span><span style="font-size:13px;color:#9c8a76;">/ 44 HP</span></div>
+        <div style="height:8px;border-radius:5px;background:rgba(0,0,0,.5);margin-top:8px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div style="border:1px solid rgba(255,235,205,.12);border-radius:11px;background:rgba(255,255,255,.03);padding:9px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:20px;color:#f0d6b2;line-height:1;">16</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;margin-top:4px;">AC</div></div>
+        <div style="border:1px solid rgba(255,235,205,.12);border-radius:11px;background:rgba(255,255,255,.03);padding:9px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:20px;color:#f0d6b2;line-height:1;">+4</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;margin-top:4px;">INIT</div></div>
+        <div style="border:1px solid rgba(255,235,205,.12);border-radius:11px;background:rgba(255,255,255,.03);padding:9px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:20px;color:#f0d6b2;line-height:1;">30</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;margin-top:4px;">SPD</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;">
+        <div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 10px;"><span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">STR</span><span style="font-size:14px;color:#cdbfae;">8 (−1)</span></div>
+        <div style="display:flex;justify-content:space-between;border:1px solid rgba(217,138,61,.3);border-radius:9px;background:rgba(217,138,61,.08);padding:7px 10px;"><span style="font-family:ui-monospace,monospace;font-size:9px;color:#c79a6a;">DEX</span><span style="font-size:14px;color:#f0d6b2;">18 (+4)</span></div>
+        <div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 10px;"><span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">CON</span><span style="font-size:14px;color:#cdbfae;">14 (+2)</span></div>
+        <div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 10px;"><span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">INT</span><span style="font-size:14px;color:#cdbfae;">15 (+2)</span></div>
+        <div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 10px;"><span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">WIS</span><span style="font-size:14px;color:#cdbfae;">12 (+1)</span></div>
+        <div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 10px;"><span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">CHA</span><span style="font-size:14px;color:#cdbfae;">13 (+1)</span></div>
+      </div>
+    </div>
+
+    <!-- CENTER -->
+    <div style="flex:1;padding:20px 24px;overflow:auto;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin-bottom:11px;">PROFICIENT SKILLS</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:5px 11px;">Stealth +9</span>
+        <span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:5px 11px;">Sleight of Hand +7</span>
+        <span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:5px 11px;">Perception +4</span>
+        <span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:5px 11px;">Investigation +5</span>
+        <span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:5px 11px;">Arcana +5</span>
+      </div>
+
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:20px 0 11px;">ACTIONS &amp; FEATURES</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><span style="width:34px;height:34px;border-radius:9px;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">🗡</span><div style="flex:1;"><div style="font-size:15px;color:#ece2d4;">Shortsword + Sneak Attack</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">+7 to hit · 1d6+4 ＋ 4d6 sneak (once/turn)</div></div></div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><span style="width:34px;height:34px;border-radius:9px;background:rgba(176,143,208,.12);border:1px solid rgba(176,143,208,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">✨</span><div style="flex:1;"><div style="font-size:15px;color:#ece2d4;">Arcane Trickster spells</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">Mage Hand (invisible) · Booming Blade · Disguise Self</div></div></div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 14px;"><span style="width:34px;height:34px;border-radius:9px;background:rgba(95,143,69,.12);border:1px solid rgba(95,143,69,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">💨</span><div style="flex:1;"><div style="font-size:15px;color:#ece2d4;">Cunning Action · Uncanny Dodge</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">bonus Dash/Disengage/Hide · halve one hit's damage</div></div></div>
+      </div>
+
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:20px 0 11px;">NOTABLE KIT</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div style="border:1px solid rgba(255,235,205,.1);border-radius:11px;background:rgba(255,255,255,.02);padding:11px 12px;"><div style="font-size:14px;color:#ece2d4;">Boots of Elvenkind</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;margin-top:3px;">advantage on Stealth</div></div>
+        <div style="border:1px solid rgba(255,235,205,.1);border-radius:11px;background:rgba(255,255,255,.02);padding:11px 12px;"><div style="font-size:14px;color:#ece2d4;">Thieves' Tools +2</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;margin-top:3px;">masterwork picks</div></div>
+        <div style="border:1px solid rgba(255,235,205,.1);border-radius:11px;background:rgba(255,255,255,.02);padding:11px 12px;"><div style="font-size:14px;color:#ece2d4;">Festival writ (forged)</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;margin-top:3px;">grants amphitheater access</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT · DM SECRETS -->
+    <div style="width:296px;flex:none;border-left:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.16);padding:18px;display:flex;flex-direction:column;gap:14px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#c79a6a;">▸ DM ONLY · never shown to Jess</div>
+      <div style="border:1px solid rgba(217,138,61,.24);border-radius:13px;background:linear-gradient(180deg,rgba(217,138,61,.07),rgba(0,0,0,.12));padding:13px 14px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;margin-bottom:7px;">SECRET HOOK</div>
+        <div style="font-size:13px;color:#cdb596;font-style:italic;line-height:1.5;">Skreek's old crew burned in Saltmere's barge fire. He doesn't know Draven gave the order.</div>
+      </div>
+      <div style="border:1px solid rgba(255,235,205,.1);border-radius:13px;background:rgba(255,255,255,.02);padding:13px 14px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;margin-bottom:7px;">BONDS</div>
+        <div style="font-size:13px;color:#cdbfae;line-height:1.5;">Trusts Oriyen with his life. Owes Faeren a favor he's avoiding.</div>
+      </div>
+      <div style="border:1px solid rgba(196,69,58,.34);border-radius:13px;background:rgba(196,69,58,.06);padding:13px 14px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c6a62;margin-bottom:7px;">PRESSURE POINT</div>
+        <div style="font-size:13px;color:#e6cdc6;line-height:1.5;">Show him the barge manifest and he'll break cover — the assassination becomes personal.</div>
+      </div>
+      <div style="flex:1;"></div>
+      <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:10px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:11px;cursor:pointer;">Add to combat ▸</button>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:780},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

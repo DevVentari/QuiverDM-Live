@@ -1,0 +1,52 @@
+/*
+ * QuiverDM v3 — scope styles + Heartflame motion.
+ *
+ * Built on the canonical design-token handoff (src/styles/v3-tokens.css, the
+ * `--qd-*` system: Kalam display + Hanken body, amber-on-#0a0707). Loaded only
+ * by `src/app/v3/layout.tsx`, so it never touches the live (app) experience.
+ *
+ * The `.v3-scope` class binds the next/font families to the token font vars and
+ * sets the base body font + ink colour for the whole v3 subtree.
+ */
+
+.v3-scope {
+  --qd-font-display: var(--font-kalam), 'Kalam', cursive;
+  --qd-font-body: var(--font-hanken), system-ui, sans-serif;
+  font-family: var(--qd-font-body);
+  color: var(--qd-ink);
+}
+
+/* Heartflame ember — net-new, layered on the handoff tokens. */
+:root {
+  --hf-glow: 0 0 22px 1px rgba(217, 138, 61, 0.28);
+}
+
+@keyframes hf-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.08); }
+}
+
+@keyframes hf-flare {
+  0%, 100% { box-shadow: var(--hf-glow); }
+  50%      { box-shadow: var(--qd-glow-active); }
+}
+
+/* Idle ember: a low banked glow that breathes. */
+.hf-ember {
+  background: radial-gradient(circle at 50% 45%, var(--qd-accent-bright), var(--qd-accent-deeper) 55%, transparent 72%);
+  box-shadow: var(--hf-glow);
+  animation: hf-breathe var(--qd-dur-ambient) var(--qd-ease-inout) infinite;
+}
+
+/* Active ember: brighter, flaring — "something is happening". */
+.hf-ember--active {
+  animation: hf-breathe 1.6s var(--qd-ease-inout) infinite,
+             hf-flare 1.6s var(--qd-ease-inout) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hf-ember,
+  .hf-ember--active {
+    animation: none;
+  }
+}

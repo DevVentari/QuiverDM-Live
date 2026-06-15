@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  image-slot{display:block;}
+  ::-webkit-scrollbar{width:0}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px 60px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(680px 460px at 50% 0%, rgba(217,138,61,.10), transparent 62%), #0a0707;">
+
+  <div style="width:440px;border:1px solid rgba(255,235,205,.1);border-radius:30px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+    <!-- status bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px 0;font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">
+      <span>9:41</span><span style="letter-spacing:.1em;">QUIVERDM</span><span>▮▮▮ ◗</span>
+    </div>
+
+    <!-- hero header -->
+    <div style="position:relative;padding:18px 20px 16px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <image-slot id="skreek-portrait" style="width:64px;height:64px;flex:none;" shape="rounded" radius="15" placeholder="art"></image-slot>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:26px;color:#f6ead8;line-height:1;">Skreek</div>
+          <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;color:#9c8a76;margin-top:5px;">GOBLIN ROGUE · LV 7 · ARCANE TRICKSTER</div>
+        </div>
+      </div>
+      <!-- HP + key stats -->
+      <div style="display:flex;align-items:flex-end;gap:7px;margin-top:16px;">
+        <span style="font-family:'Kalam';font-weight:700;font-size:34px;color:#f6ead8;line-height:.85;">44</span><span style="font-size:14px;color:#9c8a76;margin-bottom:3px;">/ 44 HP</span>
+        <span style="flex:1;"></span>
+        <span style="font-family:ui-monospace,monospace;font-size:9px;color:#8fb06a;">+12 temp soon</span>
+      </div>
+      <div style="height:9px;border-radius:5px;background:rgba(0,0,0,.5);margin-top:8px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div>
+    </div>
+
+    <!-- core stat trio -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 20px;">
+      <div style="border:1px solid rgba(255,235,205,.12);border-radius:12px;background:rgba(255,255,255,.03);padding:10px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:22px;color:#f0d6b2;line-height:1;">16</div><div style="font-family:ui-monospace,monospace;font-size:7px;letter-spacing:.1em;color:#9c8a76;margin-top:4px;">ARMOR</div></div>
+      <div style="border:1px solid rgba(255,235,205,.12);border-radius:12px;background:rgba(255,255,255,.03);padding:10px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:22px;color:#f0d6b2;line-height:1;">+4</div><div style="font-family:ui-monospace,monospace;font-size:7px;letter-spacing:.1em;color:#9c8a76;margin-top:4px;">INIT</div></div>
+      <div style="border:1px solid rgba(255,235,205,.12);border-radius:12px;background:rgba(255,255,255,.03);padding:10px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:22px;color:#f0d6b2;line-height:1;">30</div><div style="font-family:ui-monospace,monospace;font-size:7px;letter-spacing:.1em;color:#9c8a76;margin-top:4px;">SPEED</div></div>
+    </div>
+
+    <!-- abilities -->
+    <div style="padding:14px 20px 4px;">
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;">
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f6f5e;">STR</div><div style="font-size:15px;color:#cdbfae;margin-top:2px;">8</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c6a62;">−1</div></div>
+        <div style="text-align:center;border:1px solid rgba(217,138,61,.3);border-radius:9px;background:rgba(217,138,61,.08);padding:7px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#c79a6a;">DEX</div><div style="font-size:15px;color:#f0d6b2;margin-top:2px;">18</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8fb06a;">+4</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f6f5e;">CON</div><div style="font-size:15px;color:#cdbfae;margin-top:2px;">14</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8fb06a;">+2</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f6f5e;">INT</div><div style="font-size:15px;color:#cdbfae;margin-top:2px;">15</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8fb06a;">+2</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f6f5e;">WIS</div><div style="font-size:15px;color:#cdbfae;margin-top:2px;">12</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8fb06a;">+1</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:9px;background:rgba(255,255,255,.02);padding:7px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f6f5e;">CHA</div><div style="font-size:15px;color:#cdbfae;margin-top:2px;">13</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8fb06a;">+1</div></div>
+      </div>
+    </div>
+
+    <!-- tabs -->
+    <div style="display:flex;gap:7px;padding:14px 20px 0;">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#1a0f06;background:linear-gradient(180deg,#e0944a,#c97a30);border-radius:8px;padding:7px 12px;">Actions</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">Spells</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">Inventory</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">Story</span>
+    </div>
+
+    <!-- actions list -->
+    <div style="padding:13px 20px 6px;display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15));padding:11px 13px;">
+        <span style="width:34px;height:34px;border-radius:9px;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">🗡</span>
+        <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#ece2d4;">Shortsword + Sneak Attack</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;">+7 to hit · 1d6+4 ＋ 4d6 sneak</div></div>
+        <button style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:9px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:12px;padding:7px 12px;cursor:pointer;flex:none;">Roll</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15));padding:11px 13px;">
+        <span style="width:34px;height:34px;border-radius:9px;background:rgba(176,143,208,.12);border:1px solid rgba(176,143,208,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">✨</span>
+        <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#ece2d4;">Booming Blade</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;">cantrip · melee + 1d8 thunder on move</div></div>
+        <button style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:9px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:12px;padding:7px 12px;cursor:pointer;flex:none;">Roll</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,235,205,.1);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15));padding:11px 13px;">
+        <span style="width:34px;height:34px;border-radius:9px;background:rgba(95,143,69,.12);border:1px solid rgba(95,143,69,.3);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;">💨</span>
+        <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#ece2d4;">Cunning Action</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;">bonus · Dash · Disengage · Hide</div></div>
+        <span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8fb06a;flex:none;">ready</span>
+      </div>
+    </div>
+
+    <!-- footer dice -->
+    <div style="border-top:1px solid rgba(255,235,205,.07);background:rgba(0,0,0,.25);padding:13px 20px 22px;display:flex;align-items:center;gap:9px;">
+      <button style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:12px;color:#cdbfae;font-family:'Kalam';font-size:14px;padding:12px;cursor:pointer;">🎲 Quick roll</button>
+      <button style="flex:1;background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:12px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:12px;cursor:pointer;box-shadow:0 8px 18px rgba(217,138,61,.3);">⚔ My turn</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:480,&quot;height&quot;:1000},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

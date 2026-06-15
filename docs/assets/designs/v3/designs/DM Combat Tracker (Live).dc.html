@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<script type="importmap">
+{
+  "imports": {
+    "react": "./react-shim.js",
+    "react-dom": "./react-dom-shim.js",
+    "react/jsx-runtime": "./react-jsx-runtime-shim.js",
+    "framer-motion": "https://esm.sh/framer-motion@11.18.2?external=react,react-dom",
+    "@formkit/auto-animate": "https://esm.sh/@formkit/auto-animate@0.8.2"
+  }
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(4px) scale(.85)}15%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateY(-30px) scale(1)}}
+  @keyframes shakeX{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+  @keyframes dissolveIn{from{transform:translateY(10px)}to{transform:translateY(0)}}
+  @keyframes popIn{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+  @keyframes ringSpin{to{transform:rotate(360deg)}}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--accent:#d98a3d;--t-fast:150ms;--t-base:250ms;--t-slow:400ms;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-spring:cubic-bezier(.34,1.56,.64,1);min-height:100vh;padding:28px 26px 56px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="max-width:1120px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:8px;height:8px;border-radius:50%;background:#1a0f06;"></span></span>
+    <div>
+      <div style="font-size:18px;color:#f6ead8;line-height:1;">The Festival Assassination</div>
+      <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">LIVE COMBAT · FRAMER MOTION + AUTO-ANIMATE</div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end;">
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background: {{ fmColor }};box-shadow:0 0 8px {{ fmColor }};"></span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">{{ fmLabel }}</span></div>
+      <div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background: {{ aaColor }};box-shadow:0 0 8px {{ aaColor }};"></span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">{{ aaLabel }}</span></div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.18);">
+    <div style="text-align:center;margin-right:4px;"><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.2em;color:#9c8a76;">ROUND</div><div key="{{ round }}" style="font-family:'Kalam';font-weight:700;font-size:24px;line-height:.9;color:#f6ead8;animation:popIn .4s var(--ease-spring);">{{ round }}</div></div>
+    <button onClick="{{ onNext }}" style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:10px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:10px 18px;cursor:pointer;box-shadow:0 8px 20px rgba(217,138,61,.3);transition:transform var(--t-fast) var(--ease-out);" style-active="transform:scale(.95);">Next turn ▸</button>
+    <button onClick="{{ onDelay }}" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:10px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:10px 14px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out);" style-active="transform:scale(.95);">⏷ Delay turn</button>
+    <button onClick="{{ onAdd }}" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:10px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:10px 14px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out);" style-active="transform:scale(.95);">＋ Add foe</button>
+    <div style="flex:1;"></div>
+    <button onClick="{{ onReset }}" style="background:transparent;border:1px solid rgba(255,235,205,.12);border-radius:10px;color:#9c8a76;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.06em;padding:9px 13px;cursor:pointer;">↺ reset</button>
+  </div>
+
+  <!-- BODY -->
+  <div style="display:flex;min-height:440px;">
+
+    <!-- INITIATIVE RAIL -->
+    <div style="flex:1;border-right:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.2);padding:14px 14px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;padding-left:2px;margin-bottom:10px;">INITIATIVE · click to inspect</div>
+      <div ref="{{ setRail }}" style="display:flex;flex-direction:column;gap:9px;">
+        <sc-for list="{{ items }}" as="c" hint-placeholder-count="5">
+          <div key="{{ c.id }}" onClick="{{ c.onSelect }}" style="position:relative;border-radius:13px;padding:11px 13px;cursor:pointer;transition:border-color var(--t-base) ease, background var(--t-base) ease; {{ c.cardStyle }}">
+            <sc-if value="{{ c.isActive }}" hint-placeholder-val="{{ false }}">{{ activeGlow }}</sc-if>
+            <div style="position:relative;z-index:1;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:15px;color: {{ c.nameColor }};">{{ c.name }}</span>
+                <span style="font-family:ui-monospace,monospace;font-size:8px;color: {{ c.subColor }};letter-spacing:.04em;">{{ c.sub }}</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:ui-monospace,monospace;font-size:11px;color:#9c8a76;">init {{ c.init }}</span>
+                <button onClick="{{ c.onAct }}" style="background: {{ c.actBg }};border:1px solid {{ c.actBorder }};border-radius:8px;color: {{ c.actColor }};font-family:'Kalam';font-weight:700;font-size:12px;padding:4px 9px;cursor:pointer;flex:none;">{{ c.actLabel }}</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:9px;margin-top:9px;">
+                <div style="position:relative;flex:1;height:8px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden;">
+                  <div style="position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:rgba(255,255,255,.22);transition:width 600ms var(--ease-out) 70ms;width: {{ c.pctW }};"></div>
+                  <div style="position:absolute;left:0;top:0;bottom:0;border-radius:5px;background: {{ c.barGrad }};transition:width var(--t-fast) var(--ease-out);width: {{ c.pctW }};"></div>
+                </div>
+                <span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;width:58px;text-align:right;flex:none;">{{ c.hp }}/{{ c.maxHp }}</span>
+              </div>
+            </div>
+            <sc-for list="{{ c.floaters }}" as="f" hint-placeholder-count="0">
+              <span key="{{ f.key }}" style="position:absolute;right:16px;top:2px;z-index:3;font-family:'Kalam';font-weight:700;font-size:19px;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.7);animation:floatUp 1.1s var(--ease-out) both;color: {{ f.color }};">{{ f.text }}</span>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- INSPECTOR PANEL -->
+    <div style="width:312px;flex:none;background:rgba(0,0,0,.14);padding:16px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#c79a6a;margin-bottom:12px;">▸ INSPECTOR</div>
+      <sc-if value="{{ selExists }}" hint-placeholder-val="{{ true }}">
+        <div key="{{ panelKey }}" style="animation:dissolveIn var(--t-slow) var(--ease-out);">
+          <div style="position:relative;overflow:hidden;border-radius:14px;border:1px solid rgba(217,138,61,.22);background:linear-gradient(180deg,rgba(217,138,61,.10),rgba(0,0,0,.14));padding:15px;">
+            <div style="font-size:21px;color:#f9efe0;line-height:1;">{{ selName }}</div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#c79a6a;margin-top:5px;letter-spacing:.06em;">{{ selSub }}</div>
+            <div style="display:flex;align-items:flex-end;gap:6px;margin-top:14px;"><span style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f6ead8;line-height:.85;">{{ selHp }}</span><span style="font-size:14px;color:#9c8a76;">/ {{ selMax }}</span></div>
+            <div style="position:relative;height:9px;border-radius:5px;background:rgba(0,0,0,.5);margin-top:9px;overflow:hidden;">
+              <div style="position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:rgba(255,255,255,.22);transition:width 600ms var(--ease-out) 70ms;width: {{ selPctW }};"></div>
+              <div style="position:absolute;left:0;top:0;bottom:0;border-radius:5px;background: {{ selBarGrad }};transition:width var(--t-fast) var(--ease-out);width: {{ selPctW }};"></div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:13px;">
+            <button onClick="{{ onSelHit10 }}" style="flex:1;background:linear-gradient(180deg,#cf5f2a,#a8401f);border:none;border-radius:10px;color:#fce9da;font-family:'Kalam';font-weight:700;font-size:13px;padding:11px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out);" style-active="transform:scale(.94);">−10</button>
+            <button onClick="{{ onSelHit5 }}" style="flex:1;background:rgba(196,69,58,.16);border:1px solid rgba(196,69,58,.5);border-radius:10px;color:#e6a99f;font-family:'Kalam';font-weight:700;font-size:13px;padding:11px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out);" style-active="transform:scale(.94);">−5</button>
+            <button onClick="{{ onSelHeal5 }}" style="flex:1;background:rgba(95,143,69,.16);border:1px solid rgba(95,143,69,.5);border-radius:10px;color:#bcd1a4;font-family:'Kalam';font-weight:700;font-size:13px;padding:11px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out);" style-active="transform:scale(.94);">+5</button>
+          </div>
+
+          <sc-if value="{{ selIsBoss }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:13px;border:1px solid rgba(212,98,47,.5);border-radius:12px;background:linear-gradient(180deg,rgba(212,98,47,.12),rgba(184,69,58,.04));padding:12px 13px;">
+              <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#ef9a5f;">⚠ CONCENTRATION</div>
+              <div style="font-size:12px;color:#d3b3a0;margin-top:5px;line-height:1.4;">Holding <i>Hold Person</i> on Oriyen. Damage forces a Con save (DC = ½ damage).</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ selIsDown }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ onRemoveSel }}" style="width:100%;margin-top:13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.16);border-radius:10px;color:#c8857b;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.08em;padding:11px;cursor:pointer;">✕ REMOVE FROM ORDER</button>
+          </sc-if>
+
+          <div style="margin-top:16px;font-family:ui-monospace,monospace;font-size:9px;color:#5a4f45;line-height:1.6;">⚔ damage floats &amp; the bar lags · ≥10 dmg shakes the card · 0 HP downs it · <b style="color:#9c8a76;">Next turn</b> flies the glow (Framer FLIP) · <b style="color:#9c8a76;">Delay / Add</b> reorders the rail (auto-animate).</div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1160,&quot;height&quot;:620}}">
+function initialList() {
+  return [
+    { id: 'skreek', name: 'Skreek', sub: 'ROGUE · PC', side: 'pc', init: 22, hp: 30, maxHp: 30 },
+    { id: 'draven', name: 'Captain Draven', sub: 'BOSS', side: 'boss', init: 19, hp: 72, maxHp: 95 },
+    { id: 'oriyen', name: 'Oriyen', sub: 'MONK · PC', side: 'pc', init: 17, hp: 38, maxHp: 38 },
+    { id: 'void', name: 'Void Spawn', sub: 'ABERRATION', side: 'enemy', init: 14, hp: 33, maxHp: 45 },
+    { id: 'norm', name: 'Norm', sub: 'WARLOCK · PC', side: 'pc', init: 11, hp: 41, maxHp: 41 },
+  ];
+}
+
+class Component extends DCLogic {
+  state = { list: initialList(), turnIndex: 1, round: 3, selectedId: 'draven', floaters: [], shakeId: null, fmReady: false, aaReady: false };
+  _fid = 0;
+
+  componentDidMount() {
+    import('@formkit/auto-animate').then(m => {
+      this._aa = m.default || m.autoAnimate;
+      this._applyAA();
+      this.setState({ aaReady: true });
+    }).catch(e => console.warn('auto-animate load failed', e));
+
+    import('framer-motion').then(m => {
+      this.motion = m.motion; this.AnimatePresence = m.AnimatePresence;
+      this.setState({ fmReady: true });
+    }).catch(e => console.warn('framer-motion load failed', e));
+  }
+  componentWillUnmount() { clearTimeout(this._st); }
+
+  setRail = (el) => { this._railEl = el; this._applyAA(); };
+  _applyAA() {
+    if (this._aa && this._railEl && !this._aaApplied) {
+      this._aaApplied = true;
+      this._aa(this._railEl, { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }
+  }
+
+  select = (id) => this.setState({ selectedId: id });
+
+  next = () => this.setState(s => {
+    const n = s.list.length; if (!n) return {};
+    let i = s.turnIndex + 1, round = s.round;
+    if (i >= n) { i = 0; round = s.round + 1; }
+    return { turnIndex: i, round, selectedId: s.list[i].id };
+  });
+
+  delay = () => this.setState(s => {
+    const n = s.list.length; if (n < 2) return {};
+    const i = s.turnIndex; const arr = s.list.slice();
+    const cur = arr.splice(i, 1)[0];
+    arr.splice(Math.min(i + 1, arr.length), 0, cur);
+    return { list: arr, selectedId: arr[i] ? arr[i].id : cur.id };
+  });
+
+  damage = (id, amt) => {
+    this.setState(s => ({ list: s.list.map(c => c.id === id ? { ...c, hp: Math.max(0, c.hp - amt) } : c) }));
+    this._floater(id, '−' + amt, '#e0584a');
+    if (amt >= 10) this._shake(id);
+  };
+  heal = (id, amt) => {
+    this.setState(s => ({ list: s.list.map(c => c.id === id ? { ...c, hp: Math.min(c.maxHp, c.hp + amt) } : c) }));
+    this._floater(id, '+' + amt, '#8fc466');
+  };
+
+  addFoe = () => {
+    const pool = [['Cultist', 'CULTIST'], ['Shade', 'UNDEAD'], ['Iron Ghoul', 'UNDEAD'], ['Wretch', 'ABERRATION']];
+    const p = pool[Math.floor(Math.random() * pool.length)];
+    const init = 3 + Math.floor(Math.random() * 21);
+    const hp = 22 + Math.floor(Math.random() * 30);
+    const foe = { id: 'foe' + (++this._fid) + '_' + Date.now(), name: p[0], sub: p[1], side: 'enemy', init, hp, maxHp: hp };
+    this.setState(s => {
+      const curId = s.list[s.turnIndex] && s.list[s.turnIndex].id;
+      const arr = s.list.slice();
+      let idx = arr.findIndex(c => c.init < init); if (idx < 0) idx = arr.length;
+      arr.splice(idx, 0, foe);
+      const ti = arr.findIndex(c => c.id === curId);
+      return { list: arr, turnIndex: ti < 0 ? s.turnIndex : ti };
+    });
+  };
+
+  remove = (id) => this.setState(s => {
+    const idx = s.list.findIndex(c => c.id === id); if (idx < 0) return {};
+    const arr = s.list.slice(); arr.splice(idx, 1);
+    let ti = s.turnIndex; if (idx < ti) ti--; if (ti >= arr.length) ti = 0;
+    const sel = s.selectedId === id ? (arr[ti] && arr[ti].id) : s.selectedId;
+    return { list: arr, turnIndex: ti, selectedId: sel };
+  });
+
+  reset = () => { this._aaApplied = this._aaApplied; this.setState({ list: initialList(), turnIndex: 1, round: 3, selectedId: 'draven', floaters: [], shakeId: null }); };
+
+  _floater(cardId, text, color) {
+    const key = ++this._fid;
+    this.setState(s => ({ floaters: [...s.floaters, { key, cardId, text, color }] }));
+    setTimeout(() => this.setState(s => ({ floaters: s.floaters.filter(f => f.key !== key) })), 1100);
+  }
+  _shake(id) { this.setState({ shakeId: id }); clearTimeout(this._st); this._st = setTimeout(() => this.setState({ shakeId: null }), 540); }
+
+  renderVals() {
+    const s = this.state;
+    const curId = s.list[s.turnIndex] && s.list[s.turnIndex].id;
+
+    const Glow = (s.fmReady && this.motion) ? this.motion.div : 'div';
+    const gp = (s.fmReady && this.motion) ? { layoutId: 'active-glow', transition: { type: 'spring', stiffness: 620, damping: 44 } } : {};
+    const activeGlow = React.createElement(Glow, Object.assign({}, gp, {
+      style: { position: 'absolute', inset: 0, borderRadius: '13px', pointerEvents: 'none', zIndex: 0, boxShadow: '0 0 0 1px rgba(217,138,61,.9), 0 0 26px rgba(217,138,61,.4)', background: 'linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.07))' }
+    }));
+
+    const items = s.list.map(c => {
+      const pct = Math.max(0, Math.round(c.hp / c.maxHp * 100));
+      const down = c.hp <= 0;
+      const isActive = c.id === curId;
+      const isSel = c.id === s.selectedId;
+      const isPc = c.side === 'pc';
+      const barGrad = isPc ? 'linear-gradient(90deg,#5f8f45,#8fc466)' : (c.side === 'boss' ? 'linear-gradient(90deg,#b8453a,#e0944a)' : 'linear-gradient(90deg,#8a2f26,#c4453a)');
+      let cs = 'border:1px solid ' + (isSel ? 'rgba(217,138,61,.7)' : 'rgba(255,255,255,.08)') + ';';
+      cs += 'background:' + (isActive ? 'linear-gradient(180deg,rgba(217,138,61,.10),rgba(0,0,0,.18))' : 'linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15))') + ';';
+      if (down) cs += 'opacity:.42;filter:grayscale(.7);';
+      if (s.shakeId === c.id) cs += 'animation:shakeX .5s var(--ease-out);';
+      return {
+        id: c.id, name: c.name, sub: down ? 'DOWNED' : c.sub, init: String(c.init),
+        hp: String(Math.max(0, c.hp)), maxHp: String(c.maxHp), pctW: pct + '%',
+        isActive, cardStyle: cs, barGrad,
+        nameColor: down ? '#6b5f54' : (isActive ? '#f9efe0' : '#ece2d4'),
+        subColor: down ? '#6b5f54' : (c.side === 'boss' ? '#c79a6a' : (isPc ? '#7f8f6a' : '#9c6a62')),
+        actLabel: isPc ? '+8' : '−10', actColor: isPc ? '#bcd1a4' : '#e6a99f',
+        actBg: isPc ? 'rgba(95,143,69,.14)' : 'rgba(196,69,58,.14)',
+        actBorder: isPc ? 'rgba(95,143,69,.45)' : 'rgba(196,69,58,.45)',
+        onSelect: () => this.select(c.id),
+        onAct: (e) => { if (e && e.stopPropagation) e.stopPropagation(); isPc ? this.heal(c.id, 8) : this.damage(c.id, 10); },
+        floaters: s.floaters.filter(f => f.cardId === c.id),
+      };
+    });
+
+    const sel = s.list.find(c => c.id === s.selectedId) || s.list[s.turnIndex] || s.list[0];
+    const selVals = sel ? {
+      selExists: true, panelKey: sel.id, selName: sel.name, selSub: sel.hp <= 0 ? 'DOWNED · ' + sel.sub : sel.sub,
+      selHp: String(Math.max(0, sel.hp)), selMax: String(sel.maxHp), selPctW: Math.max(0, Math.round(sel.hp / sel.maxHp * 100)) + '%',
+      selBarGrad: sel.side === 'pc' ? 'linear-gradient(90deg,#5f8f45,#8fc466)' : (sel.side === 'boss' ? 'linear-gradient(90deg,#b8453a,#e0944a)' : 'linear-gradient(90deg,#8a2f26,#c4453a)'),
+      selIsBoss: sel.side === 'boss', selIsDown: sel.hp <= 0,
+      onSelHit10: () => this.damage(sel.id, 10), onSelHit5: () => this.damage(sel.id, 5),
+      onSelHeal5: () => this.heal(sel.id, 5), onRemoveSel: () => this.remove(sel.id),
+    } : { selExists: false, panelKey: 'none', selName: '', selSub: '', selHp: '0', selMax: '0', selPctW: '0%', selBarGrad: '', selIsBoss: false, selIsDown: false, onSelHit10: () => {}, onSelHit5: () => {}, onSelHeal5: () => {}, onRemoveSel: () => {} };
+
+    return Object.assign({
+      round: String(s.round),
+      items, activeGlow,
+      onNext: this.next, onDelay: this.delay, onAdd: this.addFoe, onReset: this.reset,
+      fmColor: s.fmReady ? '#8fc466' : '#9c8a76', fmLabel: s.fmReady ? 'Framer Motion · live' : 'Framer Motion · loading…',
+      aaColor: s.aaReady ? '#8fc466' : '#9c8a76', aaLabel: s.aaReady ? 'auto-animate · live' : 'auto-animate · loading…',
+    }, selVals);
+  }
+}
+</script>
+</body>
+</html>

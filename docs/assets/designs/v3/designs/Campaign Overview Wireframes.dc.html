@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- ============================================================
+     QuiverDM · Campaign Overview — 6-panel low-fi exploration
+     The Shattered Compact · Session 9 complete · Serpent named,
+     Reality Tear open · hero / pulse / party / arcs / prep / mobile
+     ============================================================ -->
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0c0908;}
+  @keyframes dotPulse{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+  @keyframes heartbeat{0%,100%{transform:scale(1);opacity:.6}14%{transform:scale(1.5);opacity:1}28%{transform:scale(1)}42%{transform:scale(1.4);opacity:1}}
+  ::-webkit-scrollbar{height:10px;width:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:28px 30px 70px;font-family:'Kalam',cursive;color:#e7ddcd;background:radial-gradient(1200px 560px at 60% -8%, rgba(217,138,61,.05), transparent 62%), #0c0908;">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;max-width:1390px;margin:0 auto 22px;">
+    <div>
+      <div style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.24em;color:#6c5f53;">QUIVERDM · WIREFRAMES</div>
+      <div style="font-size:29px;line-height:1.15;margin-top:8px;color:#f0e6d8;">Campaign Overview</div>
+      <div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#8a7d6e;margin-top:7px;">The Shattered Compact · the world waking up after Session 9 — six screens (five desktop, one mobile)</div>
+    </div>
+    <div style="font-family:ui-monospace,monospace;font-size:10px;color:#6c5f53;text-align:right;line-height:1.7;padding-top:4px;">low-fidelity · structure first<br>① annotation callouts below each panel</div>
+  </div>
+
+  <!-- GRID -->
+  <div style="display:grid;grid-template-columns:repeat(2,680px);gap:38px 30px;justify-content:center;">
+
+    <!-- ============ 01 · HERO ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">01 — Overview · Hero</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">returning DM · the world wakes</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;flex-direction:column;">
+        <!-- banner -->
+        <div style="position:relative;height:128px;background:radial-gradient(420px 220px at 50% -20%, rgba(217,138,61,.22), transparent 70%), linear-gradient(180deg,#241712,#14100d);border-bottom:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;">
+          <div style="position:absolute;inset:0;background:repeating-linear-gradient(120deg,rgba(255,255,255,.015) 0 11px,transparent 11px 24px);"></div>
+          <div style="position:relative;font-size:25px;letter-spacing:.02em;color:#f6ead8;text-shadow:0 2px 22px rgba(0,0,0,.5);white-space:nowrap;">The Shattered Compact</div>
+          <div style="position:relative;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.05em;color:#c79a6a;margin-top:6px;">Session 9 complete. The Serpent is named. The tear remains open.</div>
+          <div style="position:absolute;bottom:7px;display:flex;align-items:center;gap:7px;"><span style="width:7px;height:7px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 7px var(--ink-accent,#d98a3d);animation:dotPulse 2.2s infinite;"></span><span style="font-size:11px;font-style:italic;color:#a98a5f;">"Four days since the chronicle moved. The Serpent has not been idle."</span></div>
+        </div>
+        <!-- 3 cols -->
+        <div style="flex:1;display:flex;min-height:0;">
+          <!-- world state -->
+          <div style="flex:1;padding:13px 13px;border-right:1px solid rgba(255,255,255,.06);">
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#7f7468;">WORLD STATE · now</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-top:9px;">
+              <div style="border:1px solid rgba(224,88,74,.4);border-radius:9px;background:rgba(224,88,74,.06);padding:9px 10px;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#e0584a;"></span><span style="font-size:12px;color:#e7ddcd;">Knowledge Serpent</span></div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#c4756a;margin-top:4px;line-height:1.3;">ACTIVE THREAT · hunting Oriyen, uncontained</div></div>
+              <div style="border:1px solid rgba(217,138,61,.35);border-radius:9px;background:rgba(217,138,61,.05);padding:9px 10px;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#d98a3d;"></span><span style="font-size:12px;color:#e7ddcd;">Reality Tear</span></div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#c79a6a;margin-top:4px;line-height:1.3;">UNSTABLE · Concordia · alignment unknown</div></div>
+              <div style="border:1px solid rgba(127,174,90,.3);border-radius:9px;background:rgba(127,174,90,.04);padding:9px 10px;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:7px;height:7px;border-radius:50%;background:#7fae5a;"></span><span style="font-size:12px;color:#e7ddcd;">Serenitas</span></div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8a9c78;margin-top:4px;line-height:1.3;">STABLE · bound · ritual intact — for now</div></div>
+            </div>
+          </div>
+          <!-- recent activity -->
+          <div style="flex:1;padding:13px 13px;border-right:1px solid rgba(255,255,255,.06);">
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#7f7468;">RECENT · Session 9</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:9px;font-size:11.5px;color:#bcb1a2;line-height:1.3;">
+              <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:8px;">Faeren surfaced — linked to Three Anchors</div>
+              <div style="border-left:2px solid rgba(224,88,74,.45);padding-left:8px;">Knowledge Serpent added as Active Threat</div>
+              <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:8px;">Draven's assassination: failed — consequences pending</div>
+              <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:8px;">Oriyen's mirror: cracked — status changed</div>
+              <div style="border-left:2px solid rgba(224,88,74,.45);padding-left:8px;">Reality Tear: status escalated</div>
+            </div>
+          </div>
+          <!-- upcoming -->
+          <div style="width:178px;padding:13px 13px;flex:none;">
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#7f7468;">UPCOMING · next</div>
+            <div style="border:1px dashed rgba(217,138,61,.4);border-radius:9px;background:rgba(217,138,61,.04);padding:11px 10px;margin-top:9px;text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8a7d6e;">NOT SCHEDULED</div><div style="font-size:13px;color:var(--ink-accent,#d98a3d);margin-top:5px;">Plan Session 10 →</div></div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;margin-top:12px;">PARTY</div>
+            <div style="display:flex;gap:5px;margin-top:6px;"><span style="font-size:9.5px;color:#bcd1a4;border:1px solid rgba(127,174,90,.3);background:rgba(127,174,90,.05);border-radius:5px;padding:2px 6px;">Norm</span><span style="font-size:9.5px;color:#bcd1a4;border:1px solid rgba(127,174,90,.3);background:rgba(127,174,90,.05);border-radius:5px;padding:2px 6px;">Oriyen</span><span style="font-size:9.5px;color:#bcd1a4;border:1px solid rgba(127,174,90,.3);background:rgba(127,174,90,.05);border-radius:5px;padding:2px 6px;">Skreek</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;border:1px solid rgba(217,138,61,.3);border-radius:8px;background:rgba(217,138,61,.05);padding:8px 10px;"><span style="font-size:12px;color:#cdb596;">Open threads</span><span style="font-family:ui-monospace,monospace;font-size:11px;color:#e3a45f;border:1px solid rgba(217,138,61,.4);border-radius:5px;padding:1px 7px;">3</span></div>
+          </div>
+        </div>
+        <span style="position:absolute;left:200px;top:62px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;left:24px;bottom:120px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> The banner subtitle reads the world state and writes itself.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Three columns = three horizons: now · last session · next.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 02 · WORLD PULSE ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">02 — Overview · World Pulse</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">is my world breathing?</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);">
+          <span style="width:9px;height:9px;border-radius:50%;background:#e0584a;box-shadow:0 0 8px #e0584a;animation:heartbeat 1.6s ease-in-out infinite;"></span>
+          <span style="font-size:18px;color:#f0e6d8;white-space:nowrap;">World Pulse</span>
+          <span style="font-family:ui-monospace,monospace;font-size:9px;color:#7f7468;margin-left:auto;">12 entities · 5 locations · 2 arcs</span>
+        </div>
+        <div style="flex:1;display:flex;min-height:0;">
+          <!-- entities by status -->
+          <div style="width:46%;border-right:1px solid rgba(255,255,255,.06);padding:13px 13px;overflow:auto;">
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#7f7468;">ENTITIES BY STATUS</div>
+            <div style="margin-top:9px;display:flex;flex-direction:column;gap:9px;">
+              <div><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#e0584a;"></span><span style="font-size:11px;color:#d9a89f;white-space:nowrap;">Active Threats <span style="color:#7f7468;">(2)</span></span><span style="margin-left:auto;color:#7f7468;font-size:9px;">⌄</span></div><div style="font-size:10.5px;color:#8a7d6e;margin-top:3px;padding-left:12px;line-height:1.4;">Knowledge Serpent · Serenitas</div></div>
+              <div><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#7fae5a;"></span><span style="font-size:11px;color:#bcd1a4;white-space:nowrap;">In Play <span style="color:#7f7468;">(5)</span></span><span style="margin-left:auto;color:#7f7468;font-size:9px;">⌄</span></div><div style="font-size:10.5px;color:#8a7d6e;margin-top:3px;padding-left:12px;line-height:1.4;">Temmel · Faeren · Ambric · Aurelias · Torres</div></div>
+              <div><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#d98a3d;"></span><span style="font-size:11px;color:#cdb596;white-space:nowrap;">Corrupted / Uncertain <span style="color:#7f7468;">(2)</span></span><span style="margin-left:auto;color:#7f7468;font-size:9px;">⌄</span></div><div style="font-size:10.5px;color:#8a7d6e;margin-top:3px;padding-left:12px;line-height:1.4;">Captain Draven · High Sage Lyria</div></div>
+              <div style="opacity:.6;"><div style="display:flex;align-items:center;gap:6px;"><span style="width:6px;height:6px;border-radius:50%;background:#7f7468;"></span><span style="font-size:11px;color:#9a8f82;white-space:nowrap;">Historical / Dormant <span style="color:#7f7468;">(3)</span></span><span style="margin-left:auto;color:#7f7468;font-size:9px;">›</span></div><div style="font-size:10.5px;color:#7f7468;margin-top:3px;padding-left:12px;line-height:1.4;">Scribe Valdris · Remnant A · Remnant B</div></div>
+            </div>
+          </div>
+          <!-- location pulse + arcs -->
+          <div style="width:54%;padding:13px 13px;overflow:auto;">
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#7f7468;">LOCATION PULSE</div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;">
+              <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(127,174,90,.22);border-radius:7px;padding:6px 9px;"><span style="width:6px;height:6px;border-radius:50%;background:#7fae5a;flex:none;"></span><span style="font-size:11.5px;color:#cdbfae;flex:1;">Bonfire Keep</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">stable · S6</span></div>
+              <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(217,138,61,.3);border-radius:7px;padding:6px 9px;"><span style="width:6px;height:6px;border-radius:50%;background:#d98a3d;flex:none;"></span><span style="font-size:11.5px;color:#cdbfae;flex:1;">Concordia Stellaris</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#c79a6a;">tear · S9</span></div>
+              <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(217,138,61,.3);border-radius:7px;padding:6px 9px;"><span style="width:6px;height:6px;border-radius:50%;background:#d98a3d;flex:none;"></span><span style="font-size:11.5px;color:#cdbfae;flex:1;">Aurelios the Golden</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#c79a6a;">60% · never</span></div>
+              <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(224,88,74,.35);border-radius:7px;padding:6px 9px;"><span style="width:6px;height:6px;border-radius:50%;background:#e0584a;flex:none;"></span><span style="font-size:11.5px;color:#d9b3ad;flex:1;">Archive of Withered Echoes</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#c4756a;">hostile</span></div>
+              <div style="display:flex;align-items:center;gap:8px;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:6px 9px;"><span style="width:6px;height:6px;border-radius:50%;background:#7f7468;flex:none;"></span><span style="font-size:11.5px;color:#9a8f82;flex:1;">The Confluence</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">unknown</span></div>
+            </div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#a98a5f;margin-top:13px;">ACTIVE ARCS</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+              <div><div style="display:flex;justify-content:space-between;font-size:11.5px;color:#e7ddcd;">The Entropy Crisis<span style="font-family:ui-monospace,monospace;font-size:9px;color:#c79a6a;">65%</span></div><div style="height:5px;border-radius:3px;background:rgba(0,0,0,.4);margin-top:4px;overflow:hidden;"><div style="height:100%;width:65%;background:var(--ink-accent,#d98a3d);"></div></div></div>
+              <div><div style="display:flex;justify-content:space-between;font-size:11.5px;color:#e7ddcd;">The Serpent's Hunt<span style="font-family:ui-monospace,monospace;font-size:9px;color:#c79a6a;">15%</span></div><div style="height:5px;border-radius:3px;background:rgba(0,0,0,.4);margin-top:4px;overflow:hidden;"><div style="height:100%;width:15%;background:rgba(224,88,74,.7);"></div></div></div>
+            </div>
+          </div>
+        </div>
+        <span style="position:absolute;left:24px;top:60px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;right:30px;bottom:54px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> A health check — what's alive, rotting, or ignored.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Arc progress is DM-set, never auto-calculated.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 03 · PARTY STRIP ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">03 — Overview · Party Strip</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">the DM's view of the PCs</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;flex-direction:column;padding:13px;">
+        <div style="flex:1;display:flex;gap:10px;min-height:0;">
+          <!-- Norm -->
+          <div style="flex:1;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.012);padding:11px;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:9px;"><span style="width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.16);flex:none;"></span><div><div style="font-size:14px;color:#e7ddcd;">Norm</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;">WARLOCK · CHA 20</div></div></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:9px;"><div style="flex:1;height:7px;border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden;"><div style="height:100%;width:100%;background:#7fae5a;"></div></div><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9a8f82;">51/51</span></div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;margin-top:8px;">Conditions · none · Pact 2/2 · Hex <span style="opacity:.5;">expired</span></div>
+            <div style="margin-top:9px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(0,0,0,.18);padding:8px;font-size:10.5px;color:#9a8f82;font-style:italic;line-height:1.35;">"Still doesn't know his patron's identity. Hold that thread."</div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;margin-top:9px;line-height:1.4;">LAST · distracted Draven's vanguard, bought Skreek 2 rounds</div>
+            <div style="margin-top:auto;padding-top:8px;display:flex;gap:5px;flex-wrap:wrap;"><span style="font-size:8.5px;color:#bcd1a4;border:1px solid rgba(127,174,90,.25);border-radius:5px;padding:2px 6px;">Skreek</span><span style="font-size:8.5px;color:#bcd1a4;border:1px solid rgba(127,174,90,.25);border-radius:5px;padding:2px 6px;">Oriyen</span></div>
+          </div>
+          <!-- Oriyen -->
+          <div style="flex:1;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.012);padding:11px;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:9px;"><span style="width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.16);flex:none;"></span><div><div style="font-size:14px;color:#e7ddcd;">Oriyen</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;">MONK · WIS 16</div></div></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:9px;"><div style="flex:1;height:7px;border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden;"><div style="height:100%;width:100%;background:#7fae5a;"></div></div><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9a8f82;">67/67</span></div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;margin-top:8px;">Conditions · none · Ki 6/6</div>
+            <div style="margin-top:5px;display:inline-flex;align-self:flex-start;align-items:center;gap:5px;border:1px solid rgba(217,138,61,.4);background:rgba(217,138,61,.06);border-radius:6px;padding:3px 7px;"><span style="font-size:9px;color:#e3a45f;">⚠ Obsidian Mirror — CRACKED</span></div>
+            <div style="margin-top:9px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(0,0,0,.18);padding:8px;font-size:10.5px;color:#9a8f82;font-style:italic;line-height:1.35;">"The crack is a ticking clock. Every vision from here is degraded."</div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;margin-top:9px;line-height:1.4;">LAST · named the Knowledge Serpent from Archive memory</div>
+            <div style="margin-top:auto;padding-top:8px;display:flex;gap:5px;"><span style="font-size:8.5px;color:#d9a89f;border:1px solid rgba(224,88,74,.3);border-radius:5px;padding:2px 6px;">Serpent · hunted</span></div>
+          </div>
+          <!-- Skreek -->
+          <div style="flex:1;border:1px solid rgba(217,138,61,.3);border-radius:11px;background:rgba(217,138,61,.04);padding:11px;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:9px;"><span style="width:34px;height:34px;border-radius:9px;border:1px solid rgba(217,138,61,.3);flex:none;"></span><div><div style="font-size:14px;color:#e7ddcd;">Skreek</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;">ROGUE · DEX 15</div></div></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:9px;"><div style="flex:1;height:7px;border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden;"><div style="height:100%;width:81%;background:#a8762f;"></div></div><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#c79a6a;">38/47</span></div>
+            <div style="margin-top:8px;display:inline-flex;align-self:flex-start;align-items:center;gap:5px;border:1px solid rgba(184,69,58,.5);background:rgba(184,69,58,.1);border-radius:6px;padding:3px 7px;"><span style="font-size:9px;color:#d9a89f;">Poisoned · resolve before S10</span></div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;margin-top:7px;">Warpstone · 1 charge spent</div>
+            <div style="margin-top:9px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(0,0,0,.18);padding:8px;font-size:10.5px;color:#9a8f82;font-style:italic;line-height:1.35;">"Pip signed something Skreek didn't share with the party. Follow up."</div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;margin-top:9px;line-height:1.4;">LAST · located Draven's soldiers via Plague-Touched network</div>
+            <div style="margin-top:auto;padding-top:8px;display:flex;gap:5px;"><span style="font-size:8.5px;color:#cdb596;border:1px solid rgba(217,138,61,.3);border-radius:5px;padding:2px 6px;">Pip · operative</span></div>
+          </div>
+        </div>
+        <!-- shared note -->
+        <div style="margin-top:10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(0,0,0,.18);padding:9px 12px;font-size:11.5px;color:#9a8f82;"><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;letter-spacing:.08em;">S9 AFTERMATH ·</span> party split and reunited. No long rest. Skreek's condition unresolved.</div>
+        <span style="position:absolute;left:160px;top:262px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;right:130px;top:160px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Private per-character notes are the memory of a campaign.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Carry-over conditions surfaced loudly — the #1 continuity slip.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 04 · ARC & THREAT BOARD ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">04 — Overview · Arc &amp; Threat Board</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">the 30,000-ft view</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;gap:0;padding:13px;">
+        <!-- col 1 active -->
+        <div style="flex:1.1;padding-right:11px;border-right:1px solid rgba(255,255,255,.06);">
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;">ACTIVE ARCS</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:9px;">
+            <div style="border:1px solid rgba(217,138,61,.3);border-left:3px solid var(--ink-accent,#d98a3d);border-radius:9px;background:rgba(217,138,61,.05);padding:9px 10px;"><div style="font-size:12.5px;color:#f0e6d8;">The Entropy Crisis</div><div style="font-size:10px;color:#8a7d6e;margin-top:3px;line-height:1.3;">Serenitas weakening. The Empire sits on a cosmic bomb.</div><div style="height:4px;border-radius:2px;background:rgba(0,0,0,.4);margin-top:7px;overflow:hidden;"><div style="height:100%;width:65%;background:var(--ink-accent,#d98a3d);"></div></div><div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap;"><span style="font-size:8px;color:#cdb596;border:1px solid rgba(217,138,61,.25);border-radius:4px;padding:1px 5px;">Serenitas</span><span style="font-size:8px;color:#cdb596;border:1px solid rgba(217,138,61,.25);border-radius:4px;padding:1px 5px;">Aurelias</span><span style="font-size:8px;color:#8a7d6e;border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:1px 5px;">+2</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:6px;">9 sessions · View →</div></div>
+            <div style="border:1px solid rgba(224,88,74,.35);border-left:3px solid #e0584a;border-radius:9px;background:rgba(224,88,74,.05);padding:9px 10px;"><div style="font-size:12.5px;color:#f0e6d8;">The Serpent's Hunt</div><div style="font-size:10px;color:#8a7d6e;margin-top:3px;line-height:1.3;">Pursuing Oriyen's archive memories. Origin unknown.</div><div style="height:4px;border-radius:2px;background:rgba(0,0,0,.4);margin-top:7px;overflow:hidden;"><div style="height:100%;width:15%;background:rgba(224,88,74,.7);"></div></div><div style="display:flex;gap:4px;margin-top:7px;flex-wrap:wrap;"><span style="font-size:8px;color:#d9a89f;border:1px solid rgba(224,88,74,.3);border-radius:4px;padding:1px 5px;">Serpent</span><span style="font-size:8px;color:#cdb596;border:1px solid rgba(217,138,61,.25);border-radius:4px;padding:1px 5px;">Oriyen</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:6px;">1 session · View →</div></div>
+          </div>
+        </div>
+        <!-- col 2 simmering -->
+        <div style="flex:1.1;padding:0 11px;border-right:1px solid rgba(255,255,255,.06);">
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;">SIMMERING THREADS</div>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:9px;">
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.015);padding:8px 9px;font-size:11px;color:#cdbfae;line-height:1.3;">What did Pip sign to Skreek?<div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;margin-top:3px;">flagged · S9</div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.015);padding:8px 9px;font-size:11px;color:#cdbfae;line-height:1.3;">Draven's attempt failed — what now for Torres?</div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.015);padding:8px 9px;font-size:11px;color:#cdbfae;line-height:1.3;">The Wandering Markets in 3 cities the party visited. Coincidence?</div>
+            <div style="border:1px dashed rgba(217,138,61,.35);border-radius:8px;padding:8px 9px;font-size:11px;color:var(--ink-accent,#d98a3d);text-align:center;">+ Add Thread</div>
+          </div>
+        </div>
+        <!-- col 3 resolved -->
+        <div style="flex:.95;padding-left:11px;">
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;">RESOLVED</div>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:9px;opacity:.72;">
+            <div style="border:1px solid rgba(255,255,255,.07);border-left:3px solid rgba(150,140,130,.4);border-radius:8px;background:rgba(255,255,255,.01);padding:8px 9px;"><div style="font-size:11px;color:#a89e92;line-height:1.25;">Clan Mors bounty on Skreek</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;margin-top:3px;">closed S6 · Snikch in retreat</div></div>
+            <div style="border:1px solid rgba(255,255,255,.07);border-left:3px solid rgba(150,140,130,.4);border-radius:8px;background:rgba(255,255,255,.01);padding:8px 9px;"><div style="font-size:11px;color:#a89e92;line-height:1.25;">Oriyen's Archive expulsion</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;margin-top:3px;">closed S3 · dormant</div></div>
+          </div>
+        </div>
+        <!-- heartflame -->
+        <div style="position:absolute;right:14px;bottom:12px;display:flex;align-items:flex-start;gap:7px;background:rgba(217,138,61,.06);border:1px solid rgba(217,138,61,.2);border-radius:9px;padding:8px 10px;max-width:280px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 7px var(--ink-accent,#d98a3d);animation:dotPulse 2.2s infinite;margin-top:2px;flex:none;"></span>
+          <span style="font-size:10.5px;font-style:italic;color:#cdb596;line-height:1.3;">"The Wandering Markets thread is three sessions old and unnamed. It has a name. The DM hasn't found it yet."</span>
+        </div>
+        <span style="position:absolute;left:248px;top:36px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;right:300px;bottom:46px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Simmering threads are the DM's hunches — not yet arcs.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Heartflame notices the pattern the DM didn't consciously track.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 05 · QUICK PREP DRAWER ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">05 — Overview · Quick Prep</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">plan S10 without leaving</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);">
+        <!-- dimmed overview behind -->
+        <div style="position:absolute;inset:0;padding:16px;opacity:.28;filter:blur(1px);">
+          <div style="font-size:22px;color:#f0e6d8;">The Shattered Compact</div>
+          <div style="display:flex;gap:10px;margin-top:14px;"><div style="flex:1;height:80px;border:1px solid rgba(255,255,255,.1);border-radius:10px;"></div><div style="flex:1;height:80px;border:1px solid rgba(255,255,255,.1);border-radius:10px;"></div><div style="flex:1;height:80px;border:1px solid rgba(255,255,255,.1);border-radius:10px;"></div></div>
+          <div style="height:120px;border:1px solid rgba(255,255,255,.1);border-radius:10px;margin-top:12px;"></div>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(8,6,5,.55);"></div>
+        <!-- drawer -->
+        <div style="position:absolute;right:0;top:0;bottom:0;width:330px;background:#181310;border-left:1px solid rgba(217,138,61,.3);box-shadow:-18px 0 44px rgba(0,0,0,.5);padding:15px 16px;overflow:auto;">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:18px;color:#f0e6d8;white-space:nowrap;">Session 10 — Plan</span><span style="color:#7f7468;font-size:14px;cursor:pointer;">✕</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:14px;">TITLE</div>
+          <div style="margin-top:6px;border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 11px;font-size:13px;color:#7a6f63;font-style:italic;">Name the night…<span style="display:inline-block;width:1px;height:13px;background:var(--ink-accent,#d98a3d);vertical-align:-2px;"></span></div>
+          <div style="display:flex;gap:8px;margin-top:9px;"><div style="flex:1;border:1px dashed rgba(255,255,255,.14);border-radius:8px;padding:8px;font-family:ui-monospace,monospace;font-size:9px;color:#7f7468;text-align:center;">📅 set date</div></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;margin-top:14px;">CARRY-IN · from Session 9</div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-top:7px;">
+            <div style="display:flex;gap:7px;align-items:center;border:1px solid rgba(184,69,58,.35);background:rgba(184,69,58,.05);border-radius:7px;padding:6px 9px;"><span style="color:#e3a45f;font-size:9px;">⚠</span><span style="font-size:11px;color:#d9b3ad;">Skreek: Poisoned unresolved</span></div>
+            <div style="display:flex;gap:7px;align-items:center;border:1px solid rgba(217,138,61,.3);background:rgba(217,138,61,.04);border-radius:7px;padding:6px 9px;"><span style="color:#e3a45f;font-size:9px;">⚠</span><span style="font-size:11px;color:#cdb596;">Reality Tear: open, TBD</span></div>
+            <div style="display:flex;gap:7px;align-items:center;border:1px solid rgba(217,138,61,.3);background:rgba(217,138,61,.04);border-radius:7px;padding:6px 9px;"><span style="color:#e3a45f;font-size:9px;">⚠</span><span style="font-size:11px;color:#cdb596;">Draven: alive, knows the party interfered</span></div>
+            <div style="display:flex;gap:7px;align-items:center;border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:6px 9px;"><span style="color:#9a8f82;font-size:9px;">?</span><span style="font-size:11px;color:#9a8f82;">Pip's message to Skreek — unresolved</span></div>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:13px;">PREP NOTES</div>
+          <div style="margin-top:6px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(0,0,0,.2);padding:9px;height:46px;font-size:11.5px;color:#7a6f63;font-style:italic;line-height:1.35;">What does the world know that the players don't yet?</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:13px;">FEATURE ENTITIES</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"><span style="font-size:9.5px;color:#cdb596;border:1px solid rgba(217,138,61,.3);background:rgba(217,138,61,.06);border-radius:5px;padding:3px 7px;">Temmel +</span><span style="font-size:9.5px;color:#cdb596;border:1px solid rgba(217,138,61,.3);background:rgba(217,138,61,.06);border-radius:5px;padding:3px 7px;">Faeren +</span><span style="font-size:9.5px;color:#d9a89f;border:1px solid rgba(224,88,74,.3);background:rgba(224,88,74,.05);border-radius:5px;padding:3px 7px;">Draven +</span><span style="font-size:9.5px;color:#d9a89f;border:1px solid rgba(224,88,74,.3);background:rgba(224,88,74,.05);border-radius:5px;padding:3px 7px;">Serpent +</span></div>
+          <div style="display:flex;gap:7px;margin-top:15px;"><button style="flex:1;background:var(--ink-accent,#d98a3d);border:none;border-radius:9px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:13px;padding:9px;cursor:pointer;">Create Session →</button><button style="background:transparent;border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#9a8f82;font-family:'Kalam';font-size:12px;padding:9px 12px;cursor:pointer;">Draft</button></div>
+        </div>
+        <span style="position:absolute;left:360px;top:208px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:8;">1</span>
+        <span style="position:absolute;left:24px;top:30px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:8;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Carry-in items are the connective tissue between sessions.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> The drawer stays over the overview — never leave context.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 06 · MOBILE ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">06 — Overview · Mobile</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">390px · the DM at the table</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:radial-gradient(420px 320px at 50% 0%, #1a130f, #0c0908);overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;">
+        <!-- phone -->
+        <div style="width:300px;height:436px;border-radius:34px;border:1px solid rgba(255,225,190,.12);background:#16110e;box-shadow:0 24px 50px rgba(0,0,0,.5),inset 0 0 0 5px #050403;padding:11px 11px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:90px;height:18px;background:#050403;border-radius:0 0 12px 12px;z-index:8;"></div>
+          <div style="height:100%;overflow:hidden;padding-top:20px;display:flex;flex-direction:column;">
+            <div style="font-size:17px;color:#f0e6d8;line-height:1.1;">The Shattered Compact</div>
+            <div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#c79a6a;margin-top:3px;">The Serpent is named. The tear is open.</div>
+            <!-- status chips -->
+            <div style="display:flex;gap:6px;margin-top:11px;overflow:hidden;">
+              <span style="display:flex;align-items:center;gap:5px;border:1px solid rgba(224,88,74,.35);background:rgba(224,88,74,.06);border-radius:7px;padding:5px 8px;white-space:nowrap;"><span style="width:6px;height:6px;border-radius:50%;background:#e0584a;"></span><span style="font-size:9.5px;color:#d9a89f;">Serpent</span></span>
+              <span style="display:flex;align-items:center;gap:5px;border:1px solid rgba(217,138,61,.3);background:rgba(217,138,61,.05);border-radius:7px;padding:5px 8px;white-space:nowrap;"><span style="width:6px;height:6px;border-radius:50%;background:#d98a3d;"></span><span style="font-size:9.5px;color:#cdb596;">Tear</span></span>
+              <span style="display:flex;align-items:center;gap:5px;border:1px solid rgba(127,174,90,.3);background:rgba(127,174,90,.05);border-radius:7px;padding:5px 8px;white-space:nowrap;"><span style="width:6px;height:6px;border-radius:50%;background:#7fae5a;"></span><span style="font-size:9.5px;color:#bcd1a4;">Keep</span></span>
+            </div>
+            <!-- session card -->
+            <div style="margin-top:11px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.015);padding:11px;">
+              <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">CURRENT · Session 9 complete</div>
+              <button style="width:100%;margin-top:8px;background:var(--ink-accent,#d98a3d);border:none;border-radius:9px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:10px;cursor:pointer;">Plan Session 10 →</button>
+            </div>
+            <!-- party -->
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.08em;color:#7f7468;margin-top:12px;">PARTY</div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <div style="flex:1;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 6px;text-align:center;min-height:46px;"><div style="font-size:12px;color:#e7ddcd;">Norm</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8a9c78;">51/51</div></div>
+              <div style="flex:1;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 6px;text-align:center;min-height:46px;"><div style="font-size:12px;color:#e7ddcd;">Oriyen</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#8a9c78;">67/67</div></div>
+              <div style="flex:1;border:1px solid rgba(184,69,58,.45);background:rgba(184,69,58,.08);border-radius:9px;padding:8px 6px;text-align:center;min-height:46px;"><div style="font-size:12px;color:#e7ddcd;">Skreek</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#d9a89f;">38/47 ⚠</div></div>
+            </div>
+            <!-- threads -->
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.08em;color:#7f7468;margin-top:12px;">OPEN THREADS</div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:11px;color:#bcb1a2;">
+              <div style="border-left:2px solid rgba(184,69,58,.45);padding-left:7px;">Skreek: Poisoned — unresolved</div>
+              <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:7px;">Reality Tear — consequences TBD</div>
+              <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:7px;">Pip's message — unaddressed</div>
+            </div>
+            <div style="font-family:ui-monospace,monospace;font-size:9px;color:#a98a5f;margin-top:8px;">View all 6 →</div>
+            <div style="margin-top:auto;text-align:center;opacity:.5;"><span style="width:6px;height:6px;border-radius:50%;background:#7f7468;display:inline-block;"></span></div>
+          </div>
+        </div>
+        <span style="position:absolute;left:170px;top:300px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:9;">1</span>
+        <span style="position:absolute;right:200px;top:236px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:9;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Mobile keeps only party state + open threads.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Skreek's chip is amber before the DM even taps.</div></div></sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1460,&quot;height&quot;:1180},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#3f9d96&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accent: this.props.accent ?? '#d98a3d',
+      showNotes: this.props.showNotes ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>

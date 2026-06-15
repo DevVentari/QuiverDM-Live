@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- ============================================================
+     QuiverDM · Locations — 6-panel low-fi exploration
+     The Shattered Compact · list / stable / unstable / unvisited
+     / map pins / quick-create · 2×3 grid · desktop 1440
+     ============================================================ -->
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0c0908;}
+  @keyframes dotPulse{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+  ::-webkit-scrollbar{height:10px;width:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:28px 30px 70px;font-family:'Kalam',cursive;color:#e7ddcd;background:radial-gradient(1200px 560px at 60% -8%, rgba(217,138,61,.05), transparent 62%), #0c0908;">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;max-width:1390px;margin:0 auto 22px;">
+    <div>
+      <div style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.24em;color:#6c5f53;">QUIVERDM · WIREFRAMES</div>
+      <div style="font-size:29px;line-height:1.15;margin-top:8px;color:#f0e6d8;">Locations</div>
+      <div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#8a7d6e;margin-top:7px;">From cosmic sanctuaries to corrupted capitals — each place alive in a different way</div>
+    </div>
+    <div style="font-family:ui-monospace,monospace;font-size:10px;color:#6c5f53;text-align:right;line-height:1.7;padding-top:4px;">low-fidelity · structure first<br>① annotation callouts below each panel</div>
+  </div>
+
+  <!-- GRID -->
+  <div style="display:grid;grid-template-columns:repeat(2,680px);gap:38px 30px;justify-content:center;">
+
+    <!-- ============ 01 · LOCATION LIST ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">01 — Location List</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">the world's roster · denser than NPCs</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- sidebar -->
+        <div style="width:152px;border-right:1px solid rgba(255,255,255,.06);padding:12px 11px;background:rgba(0,0,0,.16);flex:none;overflow:auto;">
+          <div style="border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:6px 8px;font-family:ui-monospace,monospace;font-size:8.5px;color:#6c5f53;display:flex;align-items:center;gap:5px;"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(255,255,255,.24);"></span>Search…</div>
+          <div style="font-family:ui-monospace,monospace;font-size:7.5px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">STATUS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;"><span style="font-size:8.5px;color:#f0d6b2;border:1px solid rgba(217,138,61,.4);border-radius:5px;padding:2px 6px;">All</span><span style="font-size:8.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Visited</span><span style="font-size:8.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Unstable</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:7.5px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">FACTION</div>
+          <div style="display:flex;flex-direction:column;gap:3px;margin-top:5px;font-family:ui-monospace,monospace;font-size:9px;color:#9a8f82;"><span>· Sunward Empire</span><span>· Tidal Covenant</span><span>· Verdant Clans</span><span>· Neutral</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:7.5px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">TYPE</div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;"><span style="font-size:8.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">City</span><span style="font-size:8.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Sanctuary</span><span style="font-size:8.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Cosmic</span></div>
+        </div>
+        <!-- list -->
+        <div style="flex:1;padding:11px 12px;overflow:auto;">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:8px;"><span style="font-size:9.5px;font-style:italic;color:#9a8f82;">"Seven places named. Four never visited."</span></div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <!-- row -->
+            <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(127,174,90,.22);border-radius:9px;background:rgba(127,174,90,.04);padding:8px 11px;"><span style="width:7px;height:7px;border-radius:50%;background:#7fae5a;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font-size:14px;color:#e7ddcd;white-space:nowrap;">Bonfire Keep</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;">SANCTUARY · VISITED S6 · party hub</div></div><span style="font-family:ui-monospace,monospace;font-size:7px;color:#8a9c78;border:1px solid rgba(127,174,90,.3);border-radius:4px;padding:1px 5px;">STABLE</span></div>
+            <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(217,138,61,.3);border-radius:9px;background:rgba(217,138,61,.04);padding:8px 11px;"><span style="width:7px;height:7px;border-radius:50%;background:#d98a3d;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font-size:14px;color:#e7ddcd;white-space:nowrap;">Concordia Stellaris</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#c79a6a;">ALLIANCE · VISITED S9 · Reality Tear active</div></div><span style="font-family:ui-monospace,monospace;font-size:7px;color:#e3a45f;border:1px solid rgba(217,138,61,.4);border-radius:4px;padding:1px 5px;">UNSTABLE</span></div>
+            <!-- sub-location indented -->
+            <div style="display:flex;align-items:center;gap:9px;margin-left:22px;border-left:2px solid rgba(217,138,61,.3);border-radius:0 9px 9px 0;background:rgba(255,255,255,.012);padding:6px 10px;"><span style="width:6px;height:6px;border-radius:50%;background:#d98a3d;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font-size:12px;color:#cdbfae;white-space:nowrap;">↳ Sacred Amphitheater</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c6a62;">SUB · Reality Tear location · S9</div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(217,138,61,.3);border-radius:9px;background:rgba(217,138,61,.04);padding:8px 11px;"><span style="width:7px;height:7px;border-radius:50%;background:#d98a3d;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font-size:14px;color:#e7ddcd;white-space:nowrap;">Aurelios the Golden</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#c79a6a;">CAPITAL · UNVISITED · Serenitas beneath</div></div><span style="font-family:ui-monospace,monospace;font-size:7px;color:#e3a45f;border:1px solid rgba(217,138,61,.4);border-radius:4px;padding:1px 5px;">CORRUPTING</span></div>
+            <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.012);padding:8px 11px;"><span style="width:7px;height:7px;border-radius:50%;background:#cdb55a;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font-size:14px;color:#cdbfae;white-space:nowrap;">The Confluence</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;">FLOATING · UNVISITED · Tidal Covenant</div></div><span style="font-family:ui-monospace,monospace;font-size:7px;color:#9a8f82;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;">UNKNOWN</span></div>
+            <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.012);padding:8px 11px;"><span style="width:7px;height:7px;border-radius:50%;background:#cdb55a;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font-size:14px;color:#cdbfae;white-space:nowrap;">The Great Grove</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;">TREE-CITY · UNVISITED · grove net failing</div></div><span style="font-family:ui-monospace,monospace;font-size:7px;color:#9a8f82;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;">DISRUPTED</span></div>
+            <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(224,88,74,.35);border-radius:9px;background:rgba(224,88,74,.05);padding:8px 11px;"><span style="width:7px;height:7px;border-radius:50%;background:#e0584a;flex:none;"></span><div style="flex:1;min-width:0;"><div style="font-size:14px;color:#d9b3ad;white-space:nowrap;">Archive of Withered Echoes</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#9c6a62;">REPOSITORY · backstory · Serpent origin</div></div><span style="font-family:ui-monospace,monospace;font-size:7px;color:#e0857c;border:1px solid rgba(224,88,74,.4);border-radius:4px;padding:1px 5px;">HOSTILE</span></div>
+          </div>
+        </div>
+        <span style="position:absolute;left:300px;top:154px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+        <span style="position:absolute;left:300px;top:62px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> List over grid — status &amp; visit history matter at a glance.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Sub-locations indent under their parent — the world has layers.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 02 · BONFIRE KEEP (stable) ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">02 — Detail · Bonfire Keep</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">the sanctuary · it should feel safe</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- left -->
+        <div style="width:56%;border-right:1px solid rgba(255,255,255,.06);padding:14px 15px;overflow:auto;">
+          <div style="font-size:21px;color:#f6ead8;white-space:nowrap;">Bonfire Keep</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7d6e;margin-top:3px;">COSMIC SANCTUARY · THORNSPINE MTNS · 3 RESIDENTS</div>
+          <div style="margin-top:11px;border:1px solid rgba(127,174,90,.4);border-radius:9px;background:rgba(127,174,90,.06);padding:9px 11px;"><div style="display:flex;align-items:center;gap:7px;"><span style="width:7px;height:7px;border-radius:50%;background:#7fae5a;"></span><span style="font-size:13px;color:#bcd1a4;">Stable</span></div><div style="font-size:10.5px;color:#8a9c78;margin-top:3px;line-height:1.3;">Corruption immunity · perfect rest · cosmic clarity.</div></div>
+          <div style="font-size:11.5px;color:#bcb1a2;line-height:1.4;margin-top:11px;font-style:italic;">"Appears only to worthy heroes. The fire at its centre has burned since before the Empire. Temmel tends it. Faeren reads by it. Ambric says little."</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">PROPERTIES</div>
+          <div style="display:flex;flex-direction:column;gap:3px;margin-top:5px;font-size:10.5px;color:#9a8f82;line-height:1.35;">
+            <div style="border-left:2px solid rgba(127,174,90,.3);padding-left:8px;">Corruption immunity — all within are immune to entropy.</div>
+            <div style="border-left:2px solid rgba(127,174,90,.3);padding-left:8px;">Perfect rest — restores all resources &amp; conditions.</div>
+            <div style="border-left:2px solid rgba(127,174,90,.3);padding-left:8px;">Temmel's binding — undestroyable while Temmel lives.</div>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">RESIDENTS</div>
+          <div style="display:flex;gap:6px;margin-top:6px;"><span style="font-size:10px;color:#cdbfae;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;">Temmel →</span><span style="font-size:10px;color:#cdbfae;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;">Faeren →</span><span style="font-size:10px;color:#cdbfae;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;">Ambric →</span></div>
+          <div style="margin-top:11px;height:54px;border:1.5px dashed rgba(255,255,255,.16);border-radius:9px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.02) 0 7px,transparent 7px 14px);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:9px;color:#7f7468;">no map uploaded — drop an image</div>
+        </div>
+        <!-- right -->
+        <div style="width:44%;padding:14px 13px;background:rgba(0,0,0,.14);overflow:auto;">
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;">VISIT HISTORY</div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-top:7px;font-size:10.5px;color:#bcb1a2;line-height:1.3;">
+            <div style="border-left:2px solid rgba(127,174,90,.3);padding-left:8px;"><b style="font-family:ui-monospace,monospace;font-size:8px;color:#9a8f82;">S6</b> party arrived · Temmel explained the binding.</div>
+            <div style="border-left:2px solid rgba(127,174,90,.3);padding-left:8px;"><b style="font-family:ui-monospace,monospace;font-size:8px;color:#9a8f82;">S7</b> Ambric warned of entropy acceleration.</div>
+            <div style="border-left:2px solid rgba(150,140,130,.3);padding-left:8px;"><b style="font-family:ui-monospace,monospace;font-size:8px;color:#9a8f82;">S9</b> not visited · Norm reached for the Flame.</div>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">CONNECTED</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;color:#cdbfae;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Temmel</span><span style="font-size:9px;color:#cdbfae;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Faeren</span><span style="font-size:9px;color:#cdbfae;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Ambric</span><span style="font-size:9px;color:#e7c197;border:1px solid rgba(217,138,61,.3);border-radius:5px;padding:2px 6px;">Anchors' Seal</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;margin-top:11px;">OPEN THREADS</div>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+            <div style="border:1px solid rgba(217,138,61,.25);border-radius:8px;background:rgba(217,138,61,.04);padding:7px 9px;font-size:10.5px;color:#cdb596;line-height:1.3;">Did Norm reach the Keep via the Sacred Flame in S9?</div>
+            <div style="border:1px solid rgba(217,138,61,.25);border-radius:8px;background:rgba(217,138,61,.04);padding:7px 9px;font-size:10.5px;color:#cdb596;line-height:1.3;">Anchors' Seal — last confirmed here, Session 7.</div>
+          </div>
+        </div>
+        <span style="position:absolute;right:150px;bottom:96px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;left:24px;top:264px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> "Open threads" makes a static entry a living plot hook.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Residents are linked NPCs — tap to jump to their entry.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 03 · CONCORDIA (unstable) ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">03 — Detail · Concordia Stellaris</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">unstable · mid-crisis</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- left -->
+        <div style="width:56%;border-right:1px solid rgba(255,255,255,.06);padding:14px 15px;overflow:auto;">
+          <div style="font-size:21px;color:#f6ead8;white-space:nowrap;">Concordia Stellaris</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7d6e;margin-top:3px;">ALLIANCE BASE · SACRED AMPHITHEATER · FESTIVAL</div>
+          <div style="margin-top:11px;border:1.5px solid rgba(224,88,74,.5);border-radius:9px;background:linear-gradient(180deg,rgba(224,88,74,.1),rgba(184,69,58,.05));padding:9px 11px;"><div style="display:flex;align-items:center;gap:7px;"><span style="color:#e3a45f;font-size:11px;">⚠</span><span style="font-size:13px;color:#e0b0a8;">Reality Tear — active</span></div><div style="font-size:10.5px;color:#c4a39c;margin-top:3px;line-height:1.3;">Cosmically compromised. Sacred Flame flickering. Thymal's Garden withered to black.</div></div>
+          <div style="font-size:11.5px;color:#bcb1a2;line-height:1.4;margin-top:11px;font-style:italic;">"Star-metal amphitheater where three civilisations made peace. That ritual shattered here in Session 9 — when Draven's attempt failed, or succeeded some other way."</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">SUB-LOCATIONS</div>
+          <div style="display:flex;flex-direction:column;gap:4px;margin-top:5px;font-size:10.5px;">
+            <div style="display:flex;align-items:center;gap:7px;border-left:2px solid rgba(224,88,74,.4);padding-left:8px;color:#d9b3ad;"><span style="color:#e0584a;font-size:7px;">●</span>Sacred Amphitheater <span style="font-family:ui-monospace,monospace;font-size:7px;color:#9c6a62;">Reality Tear</span></div>
+            <div style="display:flex;align-items:center;gap:7px;border-left:2px solid rgba(224,88,74,.4);padding-left:8px;color:#d9b3ad;"><span style="color:#e0584a;font-size:7px;">●</span>Thymal's Garden <span style="font-family:ui-monospace,monospace;font-size:7px;color:#9c6a62;">withered</span></div>
+            <div style="display:flex;align-items:center;gap:7px;border-left:2px solid rgba(150,140,130,.3);padding-left:8px;color:#cdbfae;"><span style="color:#9a8f82;font-size:7px;">●</span>Eastern Colonnade <span style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">Draven's soldiers</span></div>
+            <div style="display:flex;align-items:center;gap:7px;border-left:2px solid rgba(150,140,130,.3);padding-left:8px;color:#cdbfae;"><span style="color:#9a8f82;font-size:7px;">●</span>War Council Chamber</div>
+          </div>
+        </div>
+        <!-- right -->
+        <div style="width:44%;padding:14px 13px;background:rgba(0,0,0,.14);overflow:auto;">
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;">RECENT EVENTS · S9</div>
+          <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;font-size:10px;color:#bcb1a2;line-height:1.3;">
+            <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:8px;">Faeren appeared in the amphitheater.</div>
+            <div style="border-left:2px solid rgba(224,88,74,.4);padding-left:8px;">Draven's attempt — the binding shattered.</div>
+            <div style="border-left:2px solid rgba(224,88,74,.4);padding-left:8px;">Reality Tear opened above the star-metal.</div>
+            <div style="border-left:2px solid rgba(224,88,74,.4);padding-left:8px;">Knowledge Serpent manifested.</div>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;margin-top:10px;">STATE CHANGES</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;color:#e0857c;border:1px solid rgba(224,88,74,.35);border-radius:5px;padding:2px 6px;">Tear opened</span><span style="font-size:9px;color:#e0857c;border:1px solid rgba(224,88,74,.35);border-radius:5px;padding:2px 6px;">Serpent here</span><span style="font-size:9px;color:#cdb596;border:1px solid rgba(217,138,61,.3);border-radius:5px;padding:2px 6px;">Flame degraded</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:10px;">CONNECTED</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;color:#cdbfae;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Aurelias</span><span style="font-size:9px;color:#d9a89f;border:1px solid rgba(224,88,74,.3);border-radius:5px;padding:2px 6px;">Draven</span><span style="font-size:9px;color:#cdbfae;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Faeren</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;margin-top:10px;">OPEN THREADS</div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;">
+            <div style="border:1px solid rgba(224,88,74,.3);border-radius:8px;background:rgba(224,88,74,.04);padding:6px 9px;font-size:10px;color:#d9a89f;line-height:1.3;">Reality Tear — what at next alignment?</div>
+            <div style="border:1px solid rgba(217,138,61,.25);border-radius:8px;background:rgba(217,138,61,.04);padding:6px 9px;font-size:10px;color:#cdb596;line-height:1.3;">Sacred Flame — can it be restored?</div>
+          </div>
+        </div>
+        <span style="position:absolute;left:24px;top:96px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;left:24px;top:236px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> The status card resets the page's register — same layout, new state.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> The Tear lives inside the Amphitheater sub-location, not free.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 04 · AURELIOS (unvisited) ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">04 — Detail · Aurelios the Golden</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">unvisited · built in prep</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- left -->
+        <div style="width:55%;border-right:1px solid rgba(255,255,255,.06);padding:14px 15px;overflow:auto;">
+          <div style="font-size:20px;color:#f6ead8;white-space:nowrap;">Aurelios the Golden</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7d6e;margin-top:3px;">IMPERIAL CAPITAL · SUNWARD EMPIRE · ~500,000</div>
+          <div style="margin-top:11px;border:1px solid rgba(217,138,61,.4);border-radius:9px;background:rgba(217,138,61,.05);padding:9px 11px;"><div style="display:flex;align-items:center;gap:7px;"><span style="color:#e3a45f;font-size:10px;">⚠</span><span style="font-size:12.5px;color:#e7c9a8;">Corruption escalating</span></div><div style="font-size:10px;color:#bd9a72;margin-top:3px;line-height:1.3;">60% of territory affected. Serenitas imprisoned beneath. Academies draw power from the bound Aspect.</div></div>
+          <div style="font-size:11px;color:#bcb1a2;line-height:1.4;margin-top:11px;font-style:italic;">"The golden city. The party has never stood inside its walls. It exists as a weight — the thing that must eventually be faced."</div>
+          <!-- dm prep -->
+          <div style="margin-top:11px;border:1px solid rgba(217,138,61,.4);border-radius:9px;background:rgba(217,138,61,.05);padding:9px 11px;"><div style="font-family:ui-monospace,monospace;font-size:7.5px;letter-spacing:.08em;color:#c79a6a;">⚠ DM PREP NOTES</div><div style="font-size:10.5px;color:#cdb596;font-style:italic;line-height:1.35;margin-top:4px;">Party reaches Aurelios in Arc 2. The corruption shows in the architecture — buildings lean, the gold has a sickly sheen, the Emperor smiles too widely.</div></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">KEY FEATURES</div>
+          <div style="display:flex;flex-direction:column;gap:3px;margin-top:5px;font-size:10px;color:#9a8f82;line-height:1.3;">
+            <div style="border-left:2px solid rgba(224,88,74,.3);padding-left:8px;">Serenitas binding — prison below the Arcanum Quarter.</div>
+            <div style="border-left:2px solid rgba(217,138,61,.3);padding-left:8px;">Corruption aura — weekly Con saves DC 12, escalating.</div>
+          </div>
+        </div>
+        <!-- right -->
+        <div style="width:45%;padding:14px 13px;background:rgba(0,0,0,.14);overflow:auto;">
+          <div style="display:inline-block;font-family:ui-monospace,monospace;font-size:7.5px;letter-spacing:.08em;color:#9a8f82;border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:2px 7px;">UNVISITED · DM CONTEXT</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#8a9c78;margin-top:11px;">WHAT THE PARTY KNOWS</div>
+          <div style="display:flex;flex-direction:column;gap:3px;margin-top:5px;font-size:10px;color:#bcb1a2;line-height:1.3;"><div>• Emperor Aurelias rules here</div><div>• Serenitas imprisoned beneath</div><div>• 60% territory shows corruption</div><div>• High Sage Lyria is here</div></div>
+          <div style="margin-top:11px;border:1px solid rgba(184,69,58,.35);border-radius:9px;background:rgba(184,69,58,.05);padding:9px 10px;">
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.08em;color:#c4756a;">🔒 WHAT THEY DON'T KNOW · DM ONLY</div>
+            <div style="display:flex;flex-direction:column;gap:3px;margin-top:5px;font-size:10px;color:#c4a39c;line-height:1.3;"><div>• The academies are powered by Serenitas</div><div>• Binding chambers reachable from the Arcanum</div><div>• Aurelias knows Serenitas is conscious</div></div>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:11px;">CONNECTED</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;"><span style="font-size:9px;color:#cdbfae;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Aurelias</span><span style="font-size:9px;color:#cdbfae;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Lyria</span><span style="font-size:9px;color:#d9a89f;border:1px solid rgba(224,88,74,.3);border-radius:5px;padding:2px 6px;">Serenitas</span></div>
+        </div>
+        <span style="position:absolute;left:24px;top:236px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;right:130px;top:206px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Unvisited shows prep notes instead of session history.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> "What they don't know" is DM-only, never surfaced to players.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 05 · MAP PIN VIEW ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">05 — Map Pin View</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">place pins on the uploaded map</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;flex-direction:column;">
+        <!-- control bar -->
+        <div style="display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2);flex:none;font-family:ui-monospace,monospace;font-size:9px;color:#9a8f82;">
+          <span style="border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;">＋ −</span><span style="border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;">reset</span><span style="border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;">labels</span><span style="border:1px solid rgba(217,138,61,.3);color:#c79a6a;border-radius:6px;padding:3px 8px;">fog of war · DM</span>
+        </div>
+        <div style="flex:1;display:flex;min-height:0;">
+          <!-- map canvas -->
+          <div style="flex:1;position:relative;overflow:hidden;background:radial-gradient(380px 280px at 40% 40%, #221a12, #100c0a 80%);">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(58deg,rgba(255,225,190,.02) 0 2px,transparent 2px 22px),repeating-linear-gradient(122deg,rgba(255,225,190,.015) 0 2px,transparent 2px 30px);"></div>
+            <div style="position:absolute;left:14px;bottom:10px;font-family:ui-monospace,monospace;font-size:8px;color:#5a4f45;letter-spacing:.06em;">uploaded map · Hameria Ire</div>
+            <!-- pins -->
+            <div style="position:absolute;left:30%;top:20%;text-align:center;"><span style="width:11px;height:11px;border-radius:50%;background:#7fae5a;box-shadow:0 0 8px #7fae5a;display:inline-block;"></span><div style="font-family:ui-monospace,monospace;font-size:8px;color:#bcd1a4;margin-top:2px;">Bonfire Keep</div></div>
+            <div style="position:absolute;left:64%;top:62%;text-align:center;"><span style="width:11px;height:11px;border-radius:50%;background:#cdb55a;box-shadow:0 0 8px #cdb55a;display:inline-block;"></span><div style="font-family:ui-monospace,monospace;font-size:8px;color:#cdbfae;margin-top:2px;border-bottom:2px wavy #5a7a8a;">The Confluence</div></div>
+            <div style="position:absolute;left:78%;top:30%;text-align:center;"><span style="width:11px;height:11px;border-radius:50%;background:#7fae6a;box-shadow:0 0 8px #7fae6a;display:inline-block;"></span><div style="font-family:ui-monospace,monospace;font-size:8px;color:#bcd1a4;margin-top:2px;">Great Grove</div></div>
+            <div style="position:absolute;left:50%;bottom:14%;text-align:center;"><span style="width:13px;height:13px;border-radius:50%;background:#e0584a;box-shadow:0 0 9px #e0584a;display:inline-block;"></span><div style="font-family:ui-monospace,monospace;font-size:8px;color:#d9a89f;margin-top:2px;">Aurelios</div></div>
+            <!-- archive shadowfell marker, edge -->
+            <div style="position:absolute;left:4%;bottom:8%;text-align:center;opacity:.85;"><span style="width:13px;height:13px;background:#7a5aa0;transform:rotate(45deg);box-shadow:0 0 9px rgba(140,110,180,.6);display:inline-block;"></span><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#a98ec4;margin-top:3px;">Archive ⟂ Shadowfell</div></div>
+            <!-- selected concordia + popover -->
+            <div style="position:absolute;left:46%;top:46%;">
+              <span style="width:14px;height:14px;border-radius:50%;background:#d98a3d;box-shadow:0 0 14px #d98a3d;display:inline-block;border:2px solid #f0d6b2;"></span>
+              <div style="position:absolute;left:18px;top:-8px;width:152px;background:#241a14;border:1px solid rgba(217,138,61,.45);border-radius:9px;box-shadow:0 14px 30px rgba(0,0,0,.55);padding:8px 10px;z-index:7;"><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:11px;color:#f0d6b2;white-space:nowrap;">Concordia Stellaris</span></div><div style="margin-top:4px;"><span style="font-family:ui-monospace,monospace;font-size:7px;color:#e3a45f;border:1px solid rgba(217,138,61,.4);border-radius:4px;padding:1px 5px;">UNSTABLE</span></div><div style="display:flex;justify-content:space-between;margin-top:7px;font-family:ui-monospace,monospace;font-size:8px;"><span style="color:#a98a5f;">Open entry →</span><span style="color:#7f7468;">⠿ move</span></div></div>
+            </div>
+          </div>
+          <!-- pin panel -->
+          <div style="width:158px;border-left:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.2);padding:11px 11px;flex:none;overflow:auto;">
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;">MAP PINS</div>
+            <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;font-size:10px;">
+              <div style="display:flex;align-items:center;gap:6px;color:#bcd1a4;"><span style="width:6px;height:6px;border-radius:50%;background:#7fae5a;"></span>Bonfire Keep</div>
+              <div style="display:flex;align-items:center;gap:6px;color:#f0d6b2;background:rgba(217,138,61,.1);border-radius:5px;padding:2px 5px;"><span style="width:6px;height:6px;border-radius:50%;background:#d98a3d;"></span>Concordia</div>
+              <div style="display:flex;align-items:center;gap:6px;color:#d9a89f;"><span style="width:6px;height:6px;border-radius:50%;background:#e0584a;"></span>Aurelios</div>
+              <div style="display:flex;align-items:center;gap:6px;color:#cdbfae;"><span style="width:6px;height:6px;border-radius:50%;background:#cdb55a;"></span>Confluence</div>
+              <div style="display:flex;align-items:center;gap:6px;color:#bcd1a4;"><span style="width:6px;height:6px;border-radius:50%;background:#7fae6a;"></span>Great Grove</div>
+              <div style="display:flex;align-items:center;gap:6px;color:#a98ec4;"><span style="width:6px;height:6px;background:#7a5aa0;transform:rotate(45deg);"></span>Archive</div>
+            </div>
+            <button style="width:100%;margin-top:10px;background:var(--ink-accent,#d98a3d);border:none;border-radius:8px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:12px;padding:7px;cursor:pointer;">+ Add Pin</button>
+            <button style="width:100%;margin-top:6px;background:transparent;border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#9a8f82;font-family:'Kalam';font-size:11px;padding:7px;cursor:pointer;">Upload Map</button>
+          </div>
+        </div>
+        <span style="position:absolute;left:280px;bottom:90px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:9;">1</span>
+        <span style="position:absolute;left:36px;bottom:54px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:9;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Pins carry world status visually — health at a geographic glance.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Shadowfell sites use a different marker — adjacent, not on-plane.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 06 · QUICK-CREATE ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">06 — Location Quick-Create</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">mid-session · fast path</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);">
+        <!-- dimmed transcript behind -->
+        <div style="position:absolute;inset:0;padding:15px 18px;opacity:.26;filter:blur(.6px);">
+          <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:#e0584a;"></span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#8a7d6e;">LIVE TRANSCRIPT</span></div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:9px;font-size:12px;color:#9a8f82;line-height:1.3;"><div>DM · "Beneath the Arcanum Quarter, you find a sealed vault…"</div><div>SKREEK · "Ashen-grey doors. The air tastes of old-old magic."</div><div>NORM · "Does it have a name?"</div><div>DM · "The records called it the Ashen Vault."</div></div>
+        </div>
+        <div style="position:absolute;inset:0;background:rgba(8,6,5,.5);"></div>
+        <!-- heartflame behind -->
+        <div style="position:absolute;left:16px;bottom:14px;display:flex;align-items:center;gap:6px;opacity:.6;z-index:2;"><span style="width:7px;height:7px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 6px var(--ink-accent,#d98a3d);animation:dotPulse 2.4s infinite;"></span><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;font-style:italic;">session still live</span></div>
+        <!-- drawer -->
+        <div style="position:absolute;right:0;top:0;bottom:0;width:330px;background:#181310;border-left:1px solid rgba(217,138,61,.3);box-shadow:-18px 0 44px rgba(0,0,0,.5);padding:15px 16px;overflow:auto;">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:18px;color:#f0e6d8;white-space:nowrap;">Add Location</span><span style="color:#7f7468;font-size:14px;cursor:pointer;">✕</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:14px;">NAME</div>
+          <div style="margin-top:5px;border:1px solid rgba(217,138,61,.4);border-radius:8px;background:rgba(217,138,61,.04);padding:9px 11px;font-size:14px;color:#f0e6d8;">The Ashen Vault<span style="display:inline-block;width:1.5px;height:14px;background:var(--ink-accent,#d98a3d);vertical-align:-2px;"></span></div>
+          <div style="display:flex;gap:7px;margin-top:9px;">
+            <div style="flex:1;"><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">TYPE</div><div style="margin-top:4px;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:7px 9px;font-size:12px;color:#cdbfae;display:flex;justify-content:space-between;">Dungeon <span style="color:#7f7468;">⌄</span></div></div>
+            <div style="flex:1;"><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">STATUS</div><div style="margin-top:4px;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:7px 9px;font-size:12px;color:#cdbfae;display:flex;justify-content:space-between;">Unknown <span style="color:#7f7468;">⌄</span></div></div>
+          </div>
+          <div style="margin-top:9px;"><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">SUB-LOCATION OF</div><div style="margin-top:4px;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:7px 9px;font-size:12px;color:#cdbfae;display:flex;justify-content:space-between;">Aurelios the Golden <span style="color:#7f7468;">⌄</span></div></div>
+          <div style="margin-top:9px;"><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">FACTION</div><div style="margin-top:4px;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:7px 9px;font-size:12px;color:#cdbfae;display:flex;justify-content:space-between;">Sunward Empire <span style="color:#7f7468;">⌄</span></div></div>
+          <div style="margin-top:9px;"><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">ONE-LINE NOTE</div><div style="margin-top:4px;border:1px solid rgba(255,255,255,.1);border-radius:8px;background:rgba(0,0,0,.2);padding:9px;font-size:11px;color:#9a8f82;line-height:1.35;">Underground, beneath the Arcanum Quarter. PDF mentioned it — not yet visited.</div></div>
+          <button style="width:100%;margin-top:13px;background:var(--ink-accent,#d98a3d);border:none;border-radius:9px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:10px;cursor:pointer;">Add to World</button>
+          <button style="width:100%;margin-top:7px;background:transparent;border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#9a8f82;font-family:'Kalam';font-size:12px;padding:9px;cursor:pointer;">Save &amp; Open Full Entry</button>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;color:#6c5f53;margin-top:9px;text-align:center;">Fill in the full entry after the session.</div>
+        </div>
+        <span style="position:absolute;left:120px;top:120px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:9;">1</span>
+        <span style="position:absolute;right:340px;bottom:140px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:9;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> The panel slides over the transcript — never leave the live session.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Minimum viable entry: a name and a note. The rest is later.</div></div></sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1460,&quot;height&quot;:1180},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#3f9d96&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accent: this.props.accent ?? '#d98a3d',
+      showNotes: this.props.showNotes ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>

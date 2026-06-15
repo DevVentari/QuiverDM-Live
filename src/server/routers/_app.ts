@@ -38,6 +38,7 @@ import { adminHealthRouter } from './admin-health';
 import { brainRouter } from './brain';
 import { voiceRouter } from './voice';
 import { playRouter } from './play';
+import { heartflameRouter } from './heartflame';
 import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
 import { multiTrackUploadRouter } from './multi-track-upload';
@@ -109,6 +110,7 @@ export const appRouter = router({
   sessionRoutes: sessionRoutesRouter,
   prepSecrets: prepSecretsRouter,
   npcBehaviorProfiles: npcBehaviorProfilesRouter,
+  heartflame: heartflameRouter,
 });
 
 export type AppRouter = typeof appRouter;

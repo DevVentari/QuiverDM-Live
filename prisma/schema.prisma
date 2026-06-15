@@ -966,6 +966,15 @@ model EncounterParticipant {
   maxHp       Int
   conditions  Json      @default("[]") // D&D 5e condition strings
   isAlive     Boolean   @default(true)
+
+  // Live board state — action economy + concentration. Feeds the Heartflame
+  // predicate engine (see src/lib/heartflame). Additive, all defaulted.
+  tempHp          Int     @default(0)
+  actionUsed      Boolean @default(false)
+  bonusActionUsed Boolean @default(false)
+  reactionUsed    Boolean @default(false)
+  concentration   Boolean @default(false)
+
   updatedAt   DateTime  @updatedAt
 
   @@index([encounterId])

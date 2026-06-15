@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- ============================================================
+     QuiverDM · VIEW 3 — THEATRE OF THE MIND / STORYTELLING SCENE
+     Desktop 1440px · split DM broadcast deck + player display
+     Scene: arrival at Concordia Stellaris, meeting Faeren the Story-Bearer
+     ============================================================ -->
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0e0b0a;}
+  @keyframes ambient{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.9;transform:scale(1.06)}}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+  @keyframes peek{0%,100%{transform:translateY(6px)}50%{transform:translateY(0)}}
+  ::-webkit-scrollbar{width:8px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:6px}
+</style>
+</helmet>
+<div style="min-height:100vh;padding:26px 30px 50px;font-family:'Kalam',cursive;color:#e7ddcd;background:#0e0b0a;">
+<div style="width:1440px;margin:0 auto;">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:13px;">
+      <span style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.24em;color:#6c5f53;">QUIVERDM · THEATRE OF THE MIND</span>
+      <span style="width:1px;height:16px;background:rgba(255,255,255,.12);"></span>
+      <span style="font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;">Session 9 · arrival at Concordia Stellaris</span>
+    </div>
+    <span style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.06em;color:#6c5f53;">DM screen ◖ split ◗ player display</span>
+  </div>
+
+  <div style="display:flex;gap:0;height:862px;border:1px solid rgba(255,255,255,.09);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55);">
+
+    <!-- ============ LEFT · DM BROADCAST DECK ============ -->
+    <div style="width:480px;flex:none;background:#171210;border-right:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;">
+      <div style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06);">
+        <div style="font-family:'Kalam',cursive;font-weight:600;font-size:18px;color:#f0e6d8;">Broadcast Deck</div>
+        <div style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.06em;color:#8a7d6e;margin-top:4px;">Push revelations to the player display · drag to reorder</div>
+      </div>
+
+      <div style="flex:1;overflow:auto;padding:15px;display:flex;flex-direction:column;gap:11px;">
+
+        <!-- SENT -->
+        <div style="display:flex;gap:11px;align-items:stretch;opacity:.62;">
+          <span style="width:11px;border-radius:4px;background:repeating-linear-gradient(0deg,rgba(255,255,255,.16) 0 2px,transparent 2px 5px);flex:none;"></span>
+          <div style="flex:1;border:1px solid rgba(127,174,90,.3);border-radius:12px;background:rgba(127,174,90,.05);padding:13px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="display:flex;align-items:center;gap:8px;"><span style="width:24px;height:24px;border-radius:7px;border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:12px;">📍</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.12em;color:#7f7468;">LOCATION</span></span>
+              <span style="display:flex;align-items:center;gap:5px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#8fae6a;"><span style="color:#8fae6a;">✓</span> SENT</span>
+            </div>
+            <div style="font-family:'Kalam',cursive;font-weight:600;font-size:16px;color:#cdbfae;margin-top:9px;">Concordia Stellaris</div>
+            <div style="font-size:12px;color:#8a7d6e;margin-top:3px;line-height:1.35;">Sacred ground. Star-metal amphitheater, two moons rising.</div>
+          </div>
+        </div>
+
+        <!-- QUEUED · Faeren (active) -->
+        <div style="display:flex;gap:11px;align-items:stretch;">
+          <span style="width:11px;border-radius:4px;background:repeating-linear-gradient(0deg,rgba(217,138,61,.4) 0 2px,transparent 2px 5px);flex:none;"></span>
+          <div style="flex:1;border:1px solid rgba(217,138,61,.5);border-radius:12px;background:rgba(217,138,61,.09);padding:13px 14px;box-shadow:0 0 22px rgba(217,138,61,.12);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="display:flex;align-items:center;gap:8px;"><span style="width:24px;height:24px;border-radius:7px;border:1px solid rgba(217,138,61,.4);display:flex;align-items:center;justify-content:center;font-size:12px;">🧑</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.12em;color:#a98a5f;">NPC</span></span>
+              <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#e3a45f;">● ON DISPLAY</span>
+            </div>
+            <div style="font-family:'Kalam',cursive;font-weight:700;font-size:17px;color:#f6ead8;margin-top:9px;">Faeren the Story-Bearer</div>
+            <div style="font-size:12px;color:#bba98f;margin-top:3px;line-height:1.35;">Shapeshifter · Anchor of Memory. Wearing Scribe Valdris's face.</div>
+            <div style="display:flex;gap:7px;margin-top:12px;">
+              <button style="flex:1;background:#d98a3d;border:none;border-radius:8px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:12px;padding:8px;cursor:pointer;">Showing ✓</button>
+              <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#b7ab9c;font-size:12px;padding:8px 12px;cursor:pointer;">Hide</button>
+              <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#b7ab9c;font-size:12px;padding:8px 12px;cursor:pointer;">Edit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUEUED · Duskfall -->
+        <div style="display:flex;gap:11px;align-items:stretch;">
+          <span style="width:11px;border-radius:4px;background:repeating-linear-gradient(0deg,rgba(217,138,61,.4) 0 2px,transparent 2px 5px);flex:none;"></span>
+          <div style="flex:1;border:1px solid rgba(217,138,61,.35);border-radius:12px;background:rgba(217,138,61,.045);padding:13px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="display:flex;align-items:center;gap:8px;"><span style="width:24px;height:24px;border-radius:7px;border:1px solid rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:12px;">🗡️</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.12em;color:#a98a5f;">ITEM</span></span>
+              <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#c79a6a;">QUEUED</span>
+            </div>
+            <div style="font-family:'Kalam',cursive;font-weight:600;font-size:16px;color:#e7ddcd;margin-top:9px;">Duskfall Blade</div>
+            <div style="font-size:12px;color:#8a7d6e;margin-top:3px;line-height:1.35;">Seen on Draven — weeping purple-red from its cracks.</div>
+            <div style="display:flex;gap:7px;margin-top:12px;">
+              <button style="flex:1;background:rgba(217,138,61,.16);border:1px solid rgba(217,138,61,.45);border-radius:8px;color:#e7c197;font-family:'Kalam';font-weight:600;font-size:12px;padding:8px;cursor:pointer;">Send to Players ▸</button>
+              <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#b7ab9c;font-size:12px;padding:8px 12px;cursor:pointer;">Edit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- HIDDEN · Knowledge Serpent -->
+        <div style="display:flex;gap:11px;align-items:stretch;">
+          <span style="width:11px;border-radius:4px;background:rgba(255,255,255,.06);flex:none;"></span>
+          <div style="flex:1;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(0,0,0,.28);padding:13px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="display:flex;align-items:center;gap:8px;"><span style="width:24px;height:24px;border-radius:7px;border:1px solid rgba(184,69,58,.35);display:flex;align-items:center;justify-content:center;font-size:12px;">⚠️</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.12em;color:#9c6a62;">THREAT</span></span>
+              <span style="display:flex;align-items:center;gap:5px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#6c5f53;">🔒 HIDDEN</span>
+            </div>
+            <div style="font-family:'Kalam',cursive;font-weight:600;font-size:16px;color:#9a8f82;margin-top:9px;">The Knowledge Serpent</div>
+            <div style="font-size:12px;color:#6c5f53;margin-top:3px;line-height:1.35;">It entered through Oriyen's chronicle.</div>
+          </div>
+        </div>
+
+        <!-- HIDDEN · Binding Ritual -->
+        <div style="display:flex;gap:11px;align-items:stretch;">
+          <span style="width:11px;border-radius:4px;background:rgba(255,255,255,.06);flex:none;"></span>
+          <div style="flex:1;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(0,0,0,.28);padding:13px 14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="display:flex;align-items:center;gap:8px;"><span style="width:24px;height:24px;border-radius:7px;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:12px;">📜</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.12em;color:#7f7468;">LORE</span></span>
+              <span style="display:flex;align-items:center;gap:5px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#6c5f53;">🔒 HIDDEN</span>
+            </div>
+            <div style="font-family:'Kalam',cursive;font-weight:600;font-size:16px;color:#9a8f82;margin-top:9px;">The Binding Ritual</div>
+            <div style="font-size:12px;color:#6c5f53;margin-top:3px;line-height:1.35;">Seven years of chains beneath the golden city.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- scene notes + heartflame -->
+      <div style="border-top:1px solid rgba(255,255,255,.06);padding:15px 16px;background:rgba(0,0,0,.2);">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.14em;color:#8a7d6e;">SCENE NOTES · never shown to players</span>
+          <span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#6c5f53;">scratchpad</span>
+        </div>
+        <div style="margin-top:9px;border:1px solid rgba(255,255,255,.09);border-radius:10px;background:rgba(255,255,255,.02);padding:11px 12px;font-size:13px;color:#bba98f;font-style:italic;line-height:1.5;">Faeren will shift faces twice this scene. First: Scribe Valdris. Second: someone Norm recognises — his mentor? Don't reveal yet.<span style="display:inline-block;width:1px;height:14px;background:#d98a3d;vertical-align:-2px;margin-left:2px;"></span></div>
+        <!-- heartflame -->
+        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;border-radius:10px;border:1px solid rgba(217,138,61,.2);background:rgba(217,138,61,.05);">
+          <span style="width:26px;height:26px;border-radius:50%;border:1px solid rgba(217,138,61,.5);display:flex;align-items:center;justify-content:center;flex:none;position:relative;"><span style="width:8px;height:8px;border-radius:50%;background:#d98a3d;box-shadow:0 0 8px #d98a3d;animation:dotPulse 2.2s infinite;"></span></span>
+          <div style="flex:1;"><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#a98a5f;">HEARTFLAME</div><div style="font-size:12.5px;color:#cdb596;font-style:italic;margin-top:2px;line-height:1.4;">"Faeren has worn eleven faces in this world. Nine of them are gone."</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT · PLAYER DISPLAY ============ -->
+    <div style="flex:1;position:relative;background:radial-gradient(900px 700px at 50% 22%, #241712, #0c0908 78%);display:flex;flex-direction:column;overflow:hidden;">
+
+      <!-- portrait zone -->
+      <div style="flex:1.55;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <!-- ambient glow -->
+        <div style="position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle, rgba(217,138,61,.28), rgba(217,138,61,0) 66%);animation:ambient 5.5s ease-in-out infinite;filter:blur(6px);"></div>
+        <!-- art placeholder -->
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(125deg,rgba(255,255,255,.018) 0 12px,transparent 12px 26px);"></div>
+        <div style="position:relative;text-align:center;">
+          <div style="width:300px;height:380px;margin:0 auto;border-radius:14px;border:1px dashed rgba(255,225,190,.18);background:linear-gradient(180deg, rgba(217,138,61,.06), rgba(12,9,8,.2));display:flex;align-items:center;justify-content:center;">
+            <span style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.05em;color:#8a7868;max-width:200px;line-height:1.7;">illustrated silhouette —<br>a figure mid-transformation,<br>ink bleeding into night air</span>
+          </div>
+        </div>
+        <!-- location nameplate bottom-left -->
+        <div style="position:absolute;left:40px;bottom:28px;">
+          <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.2em;color:#8a7868;">◆ ARRIVAL</div>
+          <div style="font-family:'Kalam',cursive;font-weight:600;font-size:20px;letter-spacing:.04em;color:#e3a45f;margin-top:4px;text-shadow:0 2px 18px rgba(0,0,0,.6);">Concordia Stellaris</div>
+        </div>
+        <!-- vignette -->
+        <div style="position:absolute;inset:0;box-shadow:inset 0 -80px 90px rgba(12,9,8,.85), inset 0 40px 60px rgba(12,9,8,.5);pointer-events:none;"></div>
+      </div>
+
+      <!-- text zone -->
+      <div style="flex:1;padding:30px 48px 40px;position:relative;">
+        <div style="font-family:'Kalam',cursive;font-weight:800;font-size:46px;line-height:1.02;color:#f6ead8;text-shadow:0 2px 30px rgba(0,0,0,.5);">Faeren the Story-Bearer</div>
+        <div style="font-size:16px;letter-spacing:.02em;color:#b09a82;margin-top:10px;">Anchor of Memory · Ageless · Shapeshifter</div>
+        <div style="max-width:760px;font-size:19px;line-height:1.6;color:#d9cbb8;font-style:italic;margin-top:20px;">"She is wearing a face she borrowed centuries ago. The edges of it blur, ink returning to the inkpot. Whatever she was before this moment, you will not know tonight."</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:22px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#d98a3d;box-shadow:0 0 8px #d98a3d;"></span>
+          <span style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.12em;color:#a98a5f;">BONFIRE KEEP · THE THREE ANCHORS</span>
+        </div>
+      </div>
+
+      <!-- slide-in preview (next card peeking) -->
+      <div style="position:absolute;right:34px;bottom:0;width:300px;animation:peek 3.4s ease-in-out infinite;">
+        <div style="background:#1c1410;border:1px solid rgba(217,138,61,.35);border-radius:14px 14px 0 0;box-shadow:0 -14px 40px rgba(0,0,0,.5);padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:8px;"><span style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(217,138,61,.4);display:flex;align-items:center;justify-content:center;font-size:11px;">🗡️</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.12em;color:#a98a5f;">REVEALING NEXT…</span></div>
+          <div style="font-family:'Kalam',cursive;font-weight:600;font-size:16px;color:#e7ddcd;margin-top:8px;">Duskfall Blade</div>
+          <div style="font-size:11.5px;color:#8a7d6e;margin-top:2px;">a weapon that weeps</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="margin-top:18px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.04em;color:#5a4f45;line-height:1.6;">Left is the DM's broadcast deck — push a card and it appears, full-bleed and chrome-free, on the players' shared screen (right). Hidden cards stay dark until their moment. The art zones are placeholders for painterly silhouettes — drop the real illustration in.</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:960}}"></script>
+</body>
+</html>

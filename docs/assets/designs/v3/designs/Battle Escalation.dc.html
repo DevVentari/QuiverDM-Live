@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes flashBloom{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}9%{opacity:.95}28%{opacity:0;transform:translate(-50%,-50%) scale(1.7)}100%{opacity:0}}
+  @keyframes bossFall{0%,40%{transform:translateX(-50%) translateY(0) rotate(0);filter:none}58%{transform:translateX(-50%) translateY(-8px) rotate(3deg)}76%{transform:translateX(-50%) translateY(12px) rotate(-8deg)}100%{transform:translateX(-50%) translateY(60px) rotate(-16deg);filter:grayscale(.6) brightness(.42);opacity:.78}}
+  @keyframes nameIn{0%,54%{opacity:0;transform:translate(-50%,-50%) scale(.9)}70%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes hpDrain{0%,10%{width:76%}42%{width:0%}100%{width:0%}}
+  @keyframes fgRise{0%{opacity:0;transform:translateY(40px)}100%{opacity:.96;transform:translateY(0)}}
+  @keyframes streak{0%{transform:translateX(-130%) scaleX(.6);opacity:0}40%{opacity:.7}100%{transform:translateX(240%) scaleX(1);opacity:0}}
+  @keyframes bossGlow{0%,100%{opacity:.45}50%{opacity:1}}
+  @keyframes ambient{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:.85;transform:translate(-50%,-50%) scale(1.07)}}
+  @keyframes feltStamp{0%,60%{opacity:0;transform:rotate(-9deg) scale(1.5)}72%{opacity:1;transform:rotate(-9deg) scale(.95)}100%{opacity:1;transform:rotate(-9deg) scale(1)}}
+  image-slot{display:block;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:13px;margin-bottom:14px;">
+    <span style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.24em;color:#6c5f53;">QUIVERDM · CINEMATIC ESCALATION</span>
+    <span style="width:1px;height:16px;background:rgba(255,255,255,.12);"></span>
+    <span style="font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;">The Festival Assassination · the camera leans in as the stakes rise</span>
+    <span style="flex:1;"></span>
+    <span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#6c5f53;">{{ capLabel }}</span>
+  </div>
+
+  <!-- STAGE -->
+  <div style="position:relative;height:660px;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55);background:radial-gradient(800px 600px at 50% 30%, #1c1410, #0a0707 82%);perspective:1400px;perspective-origin:50% 40%;">
+
+    <!-- phase HUD chip -->
+    <div style="position:absolute;top:14px;left:16px;z-index:20;display:flex;align-items:center;gap:9px;">
+      <span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.18em;color:#c79a6a;background:rgba(20,12,10,.7);border:1px solid rgba(217,138,61,.35);border-radius:7px;padding:5px 10px;">{{ capLabel }}</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#8a7d6e;">{{ capText }}</span>
+    </div>
+    <div style="position:absolute;top:14px;right:16px;z-index:20;text-align:right;"><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.2em;color:#9c8a76;">ROUND</div><div style="font-family:'Kalam';font-weight:700;font-size:20px;line-height:.85;color:#f0d6b2;">III</div></div>
+
+    <!-- ===== TACTICAL BOARD (phases 0 & 1) ===== -->
+    <div style="{{ boardStyle }}">
+      <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="5">
+        <div style="{{ t.style }}">{{ t.mono }}</div>
+      </sc-for>
+    </div>
+
+    <!-- ===== FINISHER CUTSCENE (phase 2) ===== -->
+    <div style="position:absolute;inset:0;z-index:10;pointer-events:none;opacity: {{ cutOpacity }};transition:opacity .9s ease;">
+      <!-- backdrop (user art) -->
+      <image-slot id="finisher-backdrop" style="position:absolute;inset:0;width:100%;height:100%;" shape="rect" placeholder="drop cinematic backdrop"></image-slot>
+      <!-- bg glow -->
+      <div style="position:absolute;left:50%;top:46%;width:760px;height:760px;border-radius:50%;background:radial-gradient(circle, rgba(196,69,58,.32), rgba(217,138,61,.12) 45%, transparent 68%);animation:ambient 5s ease-in-out infinite;filter:blur(6px);"></div>
+      <!-- vignette -->
+      <div style="position:absolute;inset:0;box-shadow:inset 0 -120px 140px rgba(8,6,5,.9), inset 0 60px 90px rgba(8,6,5,.6);"></div>
+
+      <!-- keyed animated layer (replays each time we enter the finisher) -->
+      <div key="{{ csKey }}" style="position:absolute;inset:0;">
+        <!-- speed lines -->
+        <div style="position:absolute;left:0;top:34%;width:40%;height:2px;background:linear-gradient(90deg,transparent,rgba(240,214,178,.7),transparent);animation:streak 1.1s ease-out .15s both;"></div>
+        <div style="position:absolute;left:0;top:58%;width:46%;height:2px;background:linear-gradient(90deg,transparent,rgba(224,140,90,.6),transparent);animation:streak 1.2s ease-out .3s both;"></div>
+        <div style="position:absolute;left:0;top:72%;width:32%;height:1px;background:linear-gradient(90deg,transparent,rgba(196,69,58,.6),transparent);animation:streak 1s ease-out .45s both;"></div>
+
+        <!-- BBEG silhouette -->
+        <div style="position:absolute;left:50%;bottom:7%;width:300px;height:380px;transform:translateX(-50%);transform-origin:bottom center;animation:bossFall 2.6s cubic-bezier(.5,.05,.4,1) .2s both;z-index:5;">
+          <!-- weeping blade -->
+          <div style="position:absolute;right:18px;bottom:46px;width:9px;height:236px;border-radius:5px;background:linear-gradient(180deg,#d7b07a,#9c4f86 55%,#5e2a63);transform:rotate(19deg);box-shadow:0 0 20px rgba(170,70,150,.7);"></div>
+          <!-- body -->
+          <div style="position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:244px;height:312px;background:linear-gradient(180deg,#2c1c19,#0c0807);border-radius:130px 130px 38px 38px / 160px 160px 38px 38px;box-shadow:inset 0 0 70px rgba(0,0,0,.85), 0 0 60px rgba(184,69,58,.4);border-top:2px solid rgba(224,140,90,.35);"></div>
+          <!-- head -->
+          <div style="position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 50% 40%, #241612, #0a0706);box-shadow:inset 0 -6px 20px rgba(0,0,0,.8), 0 0 30px rgba(184,69,58,.3);">
+            <span style="position:absolute;left:30px;top:48px;width:11px;height:11px;border-radius:50%;background:#ffae5a;box-shadow:0 0 12px #e0944a;animation:bossGlow 1.6s ease-in-out infinite;"></span>
+            <span style="position:absolute;right:30px;top:48px;width:11px;height:11px;border-radius:50%;background:#ffae5a;box-shadow:0 0 12px #e0944a;animation:bossGlow 1.6s ease-in-out infinite;"></span>
+          </div>
+        </div>
+
+        <!-- party foreground silhouettes (backs to camera) -->
+        <div style="position:absolute;left:13%;bottom:-26px;animation:fgRise .8s ease-out .1s both;z-index:7;">
+          <div style="width:62px;height:62px;border-radius:50%;background:#050404;margin:0 auto;box-shadow:0 0 0 1px rgba(217,138,61,.14);"></div>
+          <div style="width:178px;height:120px;border-radius:96px 96px 0 0;background:#050404;margin-top:-14px;box-shadow:0 0 0 1px rgba(217,138,61,.12);"></div>
+        </div>
+        <div style="position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);animation:fgRise .8s ease-out .22s both;z-index:7;">
+          <div style="width:76px;height:76px;border-radius:50%;background:#040303;margin:0 auto;box-shadow:0 0 0 1px rgba(217,138,61,.16);"></div>
+          <div style="width:230px;height:150px;border-radius:120px 120px 0 0;background:#040303;margin-top:-16px;box-shadow:0 0 0 1px rgba(217,138,61,.14);"></div>
+        </div>
+        <div style="position:absolute;right:13%;bottom:-26px;animation:fgRise .8s ease-out .34s both;z-index:7;">
+          <div style="width:62px;height:62px;border-radius:50%;background:#050404;margin:0 auto;box-shadow:0 0 0 1px rgba(217,138,61,.14);"></div>
+          <div style="width:178px;height:120px;border-radius:96px 96px 0 0;background:#050404;margin-top:-14px;box-shadow:0 0 0 1px rgba(217,138,61,.12);"></div>
+        </div>
+
+        <!-- white flash -->
+        <div style="position:absolute;left:50%;top:44%;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle, rgba(255,248,235,.95), rgba(255,220,180,0) 62%);mix-blend-mode:screen;animation:flashBloom 2.6s ease-out .2s both;z-index:8;"></div>
+
+        <!-- boss HP drain HUD -->
+        <div style="position:absolute;top:58px;left:50%;transform:translateX(-50%);width:62%;z-index:9;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.16em;color:#e6a99f;">CAPTAIN DRAVEN · BBEG</span><span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.12em;color:#c4453a;">▶ DEATH BLOW</span></div>
+          <div style="height:10px;border-radius:6px;background:rgba(0,0,0,.6);overflow:hidden;border:1px solid rgba(196,69,58,.4);"><div style="height:100%;background:linear-gradient(90deg,#8a2f26,#e0944a);animation:hpDrain 2.6s cubic-bezier(.4,0,.2,1) .2s both;"></div></div>
+        </div>
+
+        <!-- name card -->
+        <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;z-index:11;animation:nameIn 2.8s ease-out both;">
+          <div style="font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.32em;color:#c79a6a;">THE FESTIVAL ASSASSIN</div>
+          <div style="font-family:'Kalam';font-weight:800;font-size:62px;line-height:1;color:#f6ead8;text-shadow:0 4px 40px rgba(0,0,0,.7), 0 0 30px rgba(196,69,58,.4);margin-top:6px;">Captain Draven</div>
+          <div style="display:inline-block;margin-top:14px;font-family:'Kalam';font-weight:700;font-size:22px;letter-spacing:.22em;color:#f3d8c6;border:2px solid #c4453a;border-radius:8px;padding:6px 20px;background:rgba(138,47,38,.35);box-shadow:0 0 30px rgba(196,69,58,.5);animation:feltStamp 2.8s ease-out both;">F E L L E D</div>
+          <div style="font-size:14px;color:#b9a48f;font-style:italic;margin-top:16px;">The Duskfall Blade goes dark — and seeks a new hand.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TRANSPORT / PHASE CONTROLS ===== -->
+  <div style="display:flex;align-items:center;gap:12px;margin-top:16px;">
+    <button onClick="{{ onPlay }}" style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:10px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:11px 22px;cursor:pointer;box-shadow:0 8px 20px rgba(217,138,61,.3);flex:none;">{{ playLabel }}</button>
+    <div style="width:1px;height:30px;background:rgba(255,235,205,.12);flex:none;"></div>
+    <button onClick="{{ onP0 }}" style="{{ p0Style }}">① Top-down</button>
+    <button onClick="{{ onP1 }}" style="{{ p1Style }}">② Isometric</button>
+    <button onClick="{{ onP2 }}" style="{{ p2Style }}">③ Finisher</button>
+    <span style="flex:1;"></span>
+    <span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f6f5e;max-width:360px;text-align:right;line-height:1.5;">CSS-3D escalation · the board tilts flat → isometric → recedes as the cutscene takes the frame</span>
+  </div>
+
+  <div style="margin-top:14px;font-family:ui-monospace,monospace;font-size:10px;color:#5a4f45;line-height:1.6;">A stylised proof-of-concept: perspective escalates with the stakes — <b style="color:#9c8a76;">top-down</b> tactical grid, the party <b style="color:#9c8a76;">closing in</b> as it tilts to <b style="color:#9c8a76;">isometric</b>, then a <b style="color:#9c8a76;">POV finisher</b> cutscene (BBEG silhouette, flash, party in foreground, FELLED card). Drop real key art into the backdrop slot. Real-time 3D models would be the engine's job — this sells the beat &amp; timing.</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:820},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { phase: 0, csKey: 0, playing: false };
+  _t = [];
+  _clear() { this._t.forEach(clearTimeout); this._t = []; }
+  componentWillUnmount() { this._clear(); }
+
+  go = (p) => { this._clear(); this.setState(s => ({ phase: p, csKey: p === 2 ? s.csKey + 1 : s.csKey, playing: false })); };
+
+  play = () => {
+    this._clear();
+    this.setState({ phase: 0, playing: true });
+    this._t.push(setTimeout(() => this.setState({ phase: 1 }), 1300));
+    this._t.push(setTimeout(() => this.setState(s => ({ phase: 2, csKey: s.csKey + 1, playing: false })), 3700));
+  };
+
+  renderVals() {
+    const phase = this.state.phase;
+    const spread = { skreek: [22, 32], oriyen: [30, 72], norm: [16, 56], void: [62, 66], draven: [72, 46] };
+    const close = { skreek: [42, 30], oriyen: [38, 62], norm: [54, 66], void: [60, 40], draven: [50, 46] };
+    const pos = phase === 0 ? spread : close;
+    const lift = phase >= 1 ? 30 : 0;
+
+    const C = {
+      green: ['#7fae5a', 'rgba(127,174,90,.30)', '#cfe3b8'],
+      red: ['#c4453a', 'rgba(196,69,58,.32)', '#e6b3aa'],
+      amber: ['#e0944a', 'rgba(217,138,61,.34)', '#f6ead8'],
+    };
+    const defs = [['skreek', 'S', 'green', 44, 3], ['oriyen', 'O', 'green', 44, 3], ['norm', 'N', 'green', 44, 3], ['void', 'V', 'red', 42, 4], ['draven', 'D', 'amber', 58, 5]];
+    const tokens = defs.map(([id, mono, c, sz, z]) => {
+      const [x, y] = pos[id]; const [bc, bg, col] = C[c];
+      const shadow = lift ? '0 18px 24px rgba(0,0,0,.6)' : '0 3px 8px rgba(0,0,0,.4)';
+      const style = `position:absolute;left:${x}%;top:${y}%;width:${sz}px;height:${sz}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Kalam';font-weight:700;font-size:${Math.round(sz * 0.4)}px;border:2px solid ${bc};background:radial-gradient(circle,${bg},rgba(0,0,0,.4));color:${col};box-shadow:${shadow};transform:translate(-50%,-50%) translateZ(${lift}px);transition:left 1.2s cubic-bezier(.5,.05,.2,1),top 1.2s cubic-bezier(.5,.05,.2,1),transform 1s ease,box-shadow 1s ease;z-index:${z};`;
+      return { key: id, mono, style };
+    });
+
+    const T = ['rotateX(0deg) rotateZ(0deg) scale(1)', 'rotateX(57deg) rotateZ(-38deg) scale(.84)', 'rotateX(66deg) rotateZ(-38deg) scale(.62)'][phase];
+    const op = phase === 2 ? '.16' : '1';
+    const fl = phase === 2 ? 'blur(3px)' : 'none';
+    const boardStyle = `position:absolute;left:50%;top:50%;width:1000px;height:600px;margin:-300px 0 0 -500px;transform-style:preserve-3d;transform-origin:center center;background:repeating-linear-gradient(0deg,rgba(255,235,205,.05) 0 1px,transparent 1px 40px),repeating-linear-gradient(90deg,rgba(255,235,205,.05) 0 1px,transparent 1px 40px),radial-gradient(440px 320px at 50% 50%,#241a12,#0e0a08 82%);border:1px solid rgba(255,235,205,.07);box-shadow:0 40px 80px rgba(0,0,0,.5);transform:${T};opacity:${op};filter:${fl};transition:transform 1.5s cubic-bezier(.5,.05,.2,1),opacity 1s ease,filter 1s ease;`;
+
+    const caps = [
+      ['TOP-DOWN · TACTICAL', 'Grid combat — read the board, call your shots.'],
+      ['ISOMETRIC · CLOSING IN', 'The circle tightens; the camera leans in.'],
+      ['FINISHER · POV CUTSCENE', 'Death blow — the Duskfall Blade falls.'],
+    ][phase];
+
+    const common = "border-radius:10px;font-family:'Kalam';font-weight:700;font-size:13px;padding:9px 15px;cursor:pointer;flex:none;";
+    const act = "background:linear-gradient(180deg,#e0944a,#c97a30);border:none;color:#1a0f06;";
+    const ina = "background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);color:#cdbfae;";
+    const bs = (i) => common + (phase === i ? act : ina);
+
+    return {
+      accent: this.props.accent ?? '#d98a3d',
+      tokens, boardStyle,
+      cutOpacity: phase === 2 ? '1' : '0', csKey: String(this.state.csKey),
+      capLabel: caps[0], capText: caps[1],
+      onPlay: this.play, onP0: () => this.go(0), onP1: () => this.go(1), onP2: () => this.go(2),
+      playLabel: this.state.playing ? '● Playing…' : '▶ Play escalation',
+      p0Style: bs(0), p1Style: bs(1), p2Style: bs(2),
+    };
+  }
+}
+</script>
+</body>
+</html>

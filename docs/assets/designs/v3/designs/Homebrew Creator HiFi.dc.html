@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:8px;height:8px;border-radius:50%;background:#1a0f06;"></span></span>
+    <div><div style="font-size:18px;color:#f6ead8;line-height:1;">Homebrew Creator</div><div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">CRAFT A MONSTER · live statblock preview</div></div>
+    <div style="flex:1;"></div>
+    <div style="display:flex;gap:6px;">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#1a0f06;background:linear-gradient(180deg,#e0944a,#c97a30);border-radius:8px;padding:7px 12px;">Monster</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">Item</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">Spell</span>
+    </div>
+  </div>
+
+  <div style="display:flex;min-height:720px;">
+
+    <!-- FORM -->
+    <div style="flex:1;padding:22px 26px;border-right:1px solid rgba(255,235,205,.06);overflow:auto;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin-bottom:12px;">IDENTITY</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">NAME</div><div style="border:1px solid rgba(217,138,61,.4);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:15px;color:#f0d6b2;">Festival Wraith</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+          <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">SIZE</div><div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:14px;color:#ece2d4;">Medium <span style="color:#9c8a76;">▾</span></div></div>
+          <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">TYPE</div><div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:14px;color:#ece2d4;">Undead <span style="color:#9c8a76;">▾</span></div></div>
+          <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">CR</div><div style="display:flex;justify-content:space-between;border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:14px;color:#ece2d4;">4 <span style="color:#9c8a76;">▾</span></div></div>
+        </div>
+      </div>
+
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:20px 0 12px;">DEFENSE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">ARMOR CLASS</div><div style="border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:15px;color:#ece2d4;">14</div></div>
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">HIT POINTS</div><div style="border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:15px;color:#ece2d4;">66</div></div>
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:6px;">SPEED</div><div style="border:1px solid rgba(255,235,205,.14);border-radius:10px;background:rgba(255,255,255,.03);padding:11px 13px;font-size:15px;color:#ece2d4;">0, fly 40 (hover)</div></div>
+      </div>
+
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:20px 0 12px;">ABILITY SCORES</div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.12);border-radius:9px;background:rgba(255,255,255,.03);padding:9px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">STR</div><div style="font-size:16px;color:#ece2d4;">6</div></div>
+        <div style="text-align:center;border:1px solid rgba(217,138,61,.3);border-radius:9px;background:rgba(217,138,61,.08);padding:9px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#c79a6a;">DEX</div><div style="font-size:16px;color:#f0d6b2;">16</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.12);border-radius:9px;background:rgba(255,255,255,.03);padding:9px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">CON</div><div style="font-size:16px;color:#ece2d4;">16</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.12);border-radius:9px;background:rgba(255,255,255,.03);padding:9px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">INT</div><div style="font-size:16px;color:#ece2d4;">12</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.12);border-radius:9px;background:rgba(255,255,255,.03);padding:9px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">WIS</div><div style="font-size:16px;color:#ece2d4;">13</div></div>
+        <div style="text-align:center;border:1px solid rgba(255,235,205,.12);border-radius:9px;background:rgba(255,255,255,.03);padding:9px 0;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">CHA</div><div style="font-size:16px;color:#ece2d4;">15</div></div>
+      </div>
+
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:20px 0 12px;">ABILITIES &amp; ACTIONS</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="border:1px solid rgba(255,235,205,.1);border-radius:11px;background:rgba(255,255,255,.02);padding:11px 13px;"><div style="font-size:14px;color:#ece2d4;">Sorrow Drain <span style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;">· action</span></div><div style="font-size:12px;color:#9c8a76;margin-top:3px;">+5, 2d6+3 necrotic, heals wraith for half</div></div>
+        <div style="border:1px solid rgba(255,235,205,.1);border-radius:11px;background:rgba(255,255,255,.02);padding:11px 13px;"><div style="font-size:14px;color:#ece2d4;">Incorporeal Movement <span style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;">· trait</span></div><div style="font-size:12px;color:#9c8a76;margin-top:3px;">moves through creatures &amp; objects</div></div>
+        <div style="border:1px dashed rgba(217,138,61,.34);border-radius:11px;background:rgba(217,138,61,.05);padding:11px 13px;color:#e3a45f;font-family:ui-monospace,monospace;font-size:11px;">+ Add ability</div>
+      </div>
+    </div>
+
+    <!-- LIVE PREVIEW -->
+    <div style="width:430px;flex:none;background:rgba(0,0,0,.16);padding:20px;display:flex;flex-direction:column;gap:13px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#c79a6a;">▸ LIVE PREVIEW</span><span style="font-family:ui-monospace,monospace;font-size:8px;color:#8fb06a;">● auto-balanced · CR 4</span></div>
+      <div style="border:1px solid rgba(217,138,61,.34);border-radius:16px;background:linear-gradient(180deg,rgba(36,23,18,.92),rgba(16,12,10,.92));padding:18px 20px;box-shadow:0 20px 50px rgba(0,0,0,.45);">
+        <div style="font-size:23px;color:#f6ead8;line-height:1;">Festival Wraith</div>
+        <div style="font-family:ui-monospace,monospace;font-size:9px;color:#e09a6a;margin-top:5px;font-style:italic;">Medium undead · CR 4 · ✦ homebrew</div>
+        <div style="border-top:1px solid rgba(217,138,61,.3);margin-top:11px;padding-top:11px;display:flex;gap:18px;font-size:13.5px;color:#cdbfae;"><span><b style="color:#f0d6b2;">AC</b> 14</span><span><b style="color:#f0d6b2;">HP</b> 66</span><span><b style="color:#f0d6b2;">Fly</b> 40</span></div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:11px;">
+          <div style="text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">STR</div><div style="font-size:13px;color:#cdbfae;">6</div></div>
+          <div style="text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">DEX</div><div style="font-size:13px;color:#f0d6b2;">16</div></div>
+          <div style="text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">CON</div><div style="font-size:13px;color:#cdbfae;">16</div></div>
+          <div style="text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">INT</div><div style="font-size:13px;color:#cdbfae;">12</div></div>
+          <div style="text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">WIS</div><div style="font-size:13px;color:#cdbfae;">13</div></div>
+          <div style="text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;">CHA</div><div style="font-size:13px;color:#cdbfae;">15</div></div>
+        </div>
+        <div style="border-top:1px solid rgba(217,138,61,.2);margin-top:11px;padding-top:11px;font-size:13px;color:#bba98f;line-height:1.55;">
+          <div><b style="color:#f0d6b2;">Sorrow Drain.</b> +5 to hit, 2d6+3 necrotic; the wraith regains half the damage dealt.</div>
+          <div style="margin-top:6px;"><b style="color:#f0d6b2;">Incorporeal Movement.</b> Can move through creatures and solid objects as difficult terrain.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:9px;">
+        <button style="flex:1;background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:11px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:12px;cursor:pointer;">Save to compendium</button>
+        <button style="width:120px;flex:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:11px;color:#cdbfae;font-family:'Kalam';font-size:14px;padding:12px;cursor:pointer;">Test fight</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:760},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

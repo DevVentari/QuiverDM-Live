@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+  @keyframes rec{0%,100%{opacity:.5}50%{opacity:1}}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:8px;height:8px;border-radius:50%;background:#1a0f06;"></span></span>
+    <div><div style="font-size:18px;color:#f6ead8;line-height:1;">Session 10 · Run Sheet</div><div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">THE FESTIVAL ASSASSINATION · beat by beat</div></div>
+    <div style="flex:1;"></div>
+    <span style="display:flex;align-items:center;gap:7px;font-family:ui-monospace,monospace;font-size:9px;color:#e0a59c;background:rgba(196,69,58,.12);border:1px solid rgba(196,69,58,.4);border-radius:20px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#c4453a;box-shadow:0 0 8px #c4453a;animation:rec 1.6s infinite;"></span>REC · 1:24:08</span>
+  </div>
+
+  <div style="display:flex;min-height:720px;">
+
+    <!-- BEATS -->
+    <div style="width:288px;flex:none;border-right:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.2);padding:14px 12px;display:flex;flex-direction:column;gap:7px;overflow:auto;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;padding-left:2px;">TONIGHT'S BEATS</div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(95,143,69,.3);border-radius:11px;background:rgba(95,143,69,.06);padding:9px 11px;"><span style="width:22px;height:22px;border-radius:50%;background:rgba(95,143,69,.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:#8fc466;flex:none;">✓</span><div style="flex:1;"><div style="font-size:13px;color:#bcd1a4;">Recap &amp; cold open</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f8f6a;">done · 12 min</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(95,143,69,.3);border-radius:11px;background:rgba(95,143,69,.06);padding:9px 11px;"><span style="width:22px;height:22px;border-radius:50%;background:rgba(95,143,69,.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:#8fc466;flex:none;">✓</span><div style="flex:1;"><div style="font-size:13px;color:#bcd1a4;">Festival arrival</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f8f6a;">done · 28 min</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;border-radius:11px;background:linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.06));border:1px solid rgba(217,138,61,.4);padding:9px 11px;"><span style="width:22px;height:22px;border-radius:50%;background:var(--ink-accent,#d98a3d);display:flex;align-items:center;justify-content:center;font-size:11px;color:#1a0f06;flex:none;">▸</span><div style="flex:1;"><div style="font-size:13px;color:#f9efe0;">Draven's betrayal</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#e09a6a;">NOW · the blade is drawn</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.02);padding:9px 11px;"><span style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(196,69,58,.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#e6a99f;flex:none;">⚔</span><div style="flex:1;"><div style="font-size:13px;color:#ece2d4;">Amphitheater combat</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f6f5e;">next · battle map ready</div></div></div>
+      <div style="display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.02);padding:9px 11px;"><span style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,235,205,.2);display:flex;align-items:center;justify-content:center;font-size:10px;color:#9c8a76;flex:none;">5</span><div style="flex:1;"><div style="font-size:13px;color:#ece2d4;">Aftermath &amp; the shard</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f6f5e;">planned</div></div></div>
+      <div style="flex:1;"></div>
+      <button style="background:rgba(255,255,255,.04);border:1px dashed rgba(217,138,61,.34);border-radius:10px;color:#e3a45f;font-family:ui-monospace,monospace;font-size:10px;padding:9px;cursor:pointer;">+ Add a beat</button>
+    </div>
+
+    <!-- CURRENT BEAT -->
+    <div style="flex:1;padding:22px 26px;overflow:auto;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 10px var(--ink-accent,#d98a3d);animation:dotPulse 2.2s infinite;flex:none;"></span><span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.14em;color:#e3a45f;">RUNNING NOW · BEAT 3 OF 5</span></div>
+      <div style="font-size:28px;color:#f6ead8;margin-top:9px;">Draven's Betrayal</div>
+
+      <div style="border-left:3px solid rgba(217,138,61,.4);padding-left:16px;margin-top:18px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;margin-bottom:7px;">READ ALOUD</div>
+        <div style="font-size:17px;color:#dccbb8;font-style:italic;line-height:1.6;max-width:620px;">"The music stops mid-note. Captain Draven steps from the honor guard, and steel slides free — a blade that weeps purple-red across the star-metal tiers."</div>
+      </div>
+
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;margin:22px 0 11px;">BEAT TOOLS</div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;">
+        <button style="background:rgba(217,138,61,.14);border:1px solid rgba(217,138,61,.45);border-radius:10px;color:#e7c197;font-family:'Kalam';font-weight:600;font-size:13px;padding:10px 14px;cursor:pointer;">Push Theatre scene ▸</button>
+        <button style="background:rgba(176,143,208,.12);border:1px solid rgba(176,143,208,.4);border-radius:10px;color:#cbb8e0;font-family:'Kalam';font-size:13px;padding:10px 14px;cursor:pointer;">Reveal: Duskfall Blade</button>
+        <button style="background:rgba(95,143,69,.12);border:1px solid rgba(95,143,69,.4);border-radius:10px;color:#bcd1a4;font-family:'Kalam';font-size:13px;padding:10px 14px;cursor:pointer;">♪ Cue: Betrayal</button>
+        <button style="background:rgba(196,69,58,.16);border:1px solid rgba(196,69,58,.5);border-radius:10px;color:#e6a99f;font-family:'Kalam';font-weight:700;font-size:13px;padding:10px 14px;cursor:pointer;">⚔ Start combat ▸</button>
+      </div>
+
+      <div style="border:1px solid rgba(255,235,205,.1);border-radius:13px;background:rgba(255,255,255,.02);padding:14px 15px;margin-top:20px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;margin-bottom:8px;">IF / THEN</div>
+        <div style="font-size:13.5px;color:#cdbfae;line-height:1.6;">• If the party tries to stop him → Draven goes first, initiative at +9.<br>• If they hesitate → the ambassador dies; renown drops, the tear widens.<br>• If Norm recognizes the face → Faeren's secret surfaces early.</div>
+      </div>
+    </div>
+
+    <!-- TOOLS -->
+    <div style="width:268px;flex:none;border-left:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.16);padding:18px;display:flex;flex-direction:column;gap:14px;">
+      <div style="border:1px solid rgba(255,235,205,.1);border-radius:13px;background:rgba(255,255,255,.02);padding:14px;text-align:center;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c8a76;">SESSION TIME</div>
+        <div style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f0d6b2;margin-top:6px;">1:24</div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f6f5e;margin-top:2px;">target 3:00 · on pace</div>
+      </div>
+      <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:11px;color:#cdbfae;font-family:'Kalam';font-size:14px;padding:12px;cursor:pointer;">🎲 Quick roll</button>
+      <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:11px;color:#cdbfae;font-family:'Kalam';font-size:14px;padding:12px;cursor:pointer;">🗒 Session note</button>
+      <div style="flex:1;border:1px solid rgba(255,235,205,.1);border-radius:13px;background:rgba(255,255,255,.02);padding:13px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;">PARTY · live</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cdbfae;"><span style="width:8px;height:8px;border-radius:50%;background:#8fc466;flex:none;"></span>Skreek <span style="flex:1;"></span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#7f8f6a;">30/30</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cdbfae;"><span style="width:8px;height:8px;border-radius:50%;background:#8fc466;flex:none;"></span>Oriyen <span style="flex:1;"></span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#7f8f6a;">38/38</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#cdbfae;"><span style="width:8px;height:8px;border-radius:50%;background:#c79a6a;flex:none;"></span>Norm <span style="flex:1;"></span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#7f8f6a;">41/41</span></div>
+        </div>
+      </div>
+      <button style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:12px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:15px;padding:13px;cursor:pointer;box-shadow:0 8px 20px rgba(217,138,61,.3);">Next beat ▸</button>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:760},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

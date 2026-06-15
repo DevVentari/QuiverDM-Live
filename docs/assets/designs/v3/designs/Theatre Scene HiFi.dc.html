@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0e0b0a;}
+  @keyframes ambient{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.9;transform:scale(1.06)}}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+  @keyframes peek{0%,100%{transform:translateY(7px)}50%{transform:translateY(0)}}
+  @keyframes livePulse{0%,100%{opacity:.5}50%{opacity:1}}
+  image-slot{display:block;}
+  ::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 30px 50px;font-family:'Kalam',cursive;color:#e7ddcd;background:#0e0b0a;">
+<div style="width:1440px;margin:0 auto;">
+
+  <!-- top bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:13px;">
+      <span style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.24em;color:#6c5f53;">QUIVERDM · THEATRE OF THE MIND</span>
+      <span style="width:1px;height:16px;background:rgba(255,255,255,.12);"></span>
+      <span style="font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;">Session 9 · The Festival Assassination</span>
+    </div>
+    <span style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.06em;color:#6c5f53;">player display ◖ live ◗ DM control</span>
+  </div>
+
+  <div style="border:1px solid rgba(255,255,255,.09);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.55);background:#100c0a;">
+
+    <!-- ============ PLAYER DISPLAY (full-bleed) ============ -->
+    <div style="position:relative;height:678px;overflow:hidden;background:radial-gradient(1000px 760px at 50% 16%, #2a1a12, #0c0908 80%);">
+      <!-- user art -->
+      <image-slot id="theatre-scene-art" style="position:absolute;inset:0;width:100%;height:100%;" shape="rect" placeholder="drop scene art — the amphitheater at dusk, two moons rising"></image-slot>
+      <!-- ambient glow -->
+      <div style="position:absolute;left:50%;top:30%;width:680px;height:680px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle, rgba(217,138,61,.26), rgba(217,138,61,0) 66%);animation:ambient 6s ease-in-out infinite;filter:blur(8px);pointer-events:none;"></div>
+      <!-- texture -->
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(125deg,rgba(255,255,255,.016) 0 12px,transparent 12px 26px);pointer-events:none;"></div>
+      <!-- vignette -->
+      <div style="position:absolute;inset:0;box-shadow:inset 0 -150px 150px rgba(12,9,8,.92), inset 0 60px 90px rgba(12,9,8,.55);pointer-events:none;"></div>
+
+      <!-- live indicator -->
+      <div style="position:absolute;top:20px;right:24px;display:flex;align-items:center;gap:7px;z-index:4;"><span style="width:8px;height:8px;border-radius:50%;background:#c4453a;box-shadow:0 0 10px #c4453a;animation:livePulse 1.8s infinite;"></span><span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a89f;">LIVE TO PLAYERS</span></div>
+
+      <!-- narration block -->
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:0 54px 40px;z-index:3;">
+        <div style="font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.22em;color:#b08a5f;">◆ THE FESTIVAL ASSASSINATION</div>
+        <div style="font-family:'Kalam';font-weight:800;font-size:58px;line-height:1.0;color:#f6ead8;margin-top:10px;text-shadow:0 2px 34px rgba(0,0,0,.6);">The Blade Is Drawn</div>
+        <div style="max-width:840px;font-size:20px;line-height:1.6;color:#dccbb6;font-style:italic;margin-top:16px;text-shadow:0 1px 18px rgba(0,0,0,.7);">"The music stops. Captain Draven steps from the honor guard, and the Duskfall Blade slides free — weeping purple-red across the star-metal tiers. The ambassador never even turns."</div>
+        <div style="display:flex;align-items:center;gap:11px;margin-top:20px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 8px var(--ink-accent,#d98a3d);"></span>
+          <span style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.14em;color:#a98a5f;">SACRED AMPHITHEATER · CONCORDIA STELLARIS</span>
+        </div>
+      </div>
+
+      <!-- next card peek -->
+      <div style="position:absolute;right:38px;bottom:0;width:288px;animation:peek 3.6s ease-in-out infinite;z-index:3;">
+        <div style="background:#1c1410;border:1px solid rgba(217,138,61,.35);border-radius:14px 14px 0 0;box-shadow:0 -14px 40px rgba(0,0,0,.5);padding:13px 15px;">
+          <div style="display:flex;align-items:center;gap:8px;"><span style="width:22px;height:22px;border-radius:6px;border:1px solid rgba(196,69,58,.45);display:flex;align-items:center;justify-content:center;font-size:11px;">⚔</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.12em;color:#a98a5f;">REVEALING NEXT…</span></div>
+          <div style="font-size:16px;color:#e7ddcd;margin-top:8px;">Roll for Initiative</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;color:#8a7d6e;margin-top:3px;">the amphitheater erupts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DM CONTROL STRIP (never shown to players) ============ -->
+    <div style="border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,0,.28);padding:15px 18px;display:flex;align-items:center;gap:16px;">
+      <!-- now showing -->
+      <div style="display:flex;align-items:center;gap:11px;flex:none;">
+        <span style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(196,69,58,.45);background:rgba(196,69,58,.12);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;">⚔</span>
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#9c6a62;">NOW SHOWING · THREAT</div><div style="font-size:14px;color:#f0e6d8;margin-top:2px;">Captain Draven</div></div>
+      </div>
+
+      <span style="width:1px;height:34px;background:rgba(255,255,255,.1);flex:none;"></span>
+
+      <!-- reveal controls -->
+      <div style="display:flex;gap:8px;flex:1;flex-wrap:wrap;">
+        <button style="background:rgba(217,138,61,.16);border:1px solid rgba(217,138,61,.45);border-radius:9px;color:#e7c197;font-family:'Kalam';font-weight:600;font-size:12.5px;padding:9px 13px;cursor:pointer;">Reveal: Duskfall Blade ▸</button>
+        <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#b7ab9c;font-family:'Kalam';font-size:12.5px;padding:9px 13px;cursor:pointer;">♪ Cue: Betrayal</button>
+        <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#b7ab9c;font-family:'Kalam';font-size:12.5px;padding:9px 13px;cursor:pointer;">◐ Dim lights</button>
+        <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:9px;color:#b7ab9c;font-family:'Kalam';font-size:12.5px;padding:9px 13px;cursor:pointer;">Edit scene</button>
+      </div>
+
+      <!-- heartflame whisper -->
+      <div style="display:flex;align-items:center;gap:9px;flex:none;max-width:280px;padding:8px 12px;border-radius:10px;border:1px solid rgba(217,138,61,.2);background:rgba(217,138,61,.05);">
+        <span style="width:8px;height:8px;border-radius:50%;background:#d98a3d;box-shadow:0 0 8px #d98a3d;animation:dotPulse 2.2s infinite;flex:none;"></span>
+        <span style="font-size:11.5px;color:#cdb596;font-style:italic;line-height:1.35;">"Let the blade's light fall on Norm last — he'll know the face behind it."</span>
+      </div>
+
+      <span style="width:1px;height:34px;background:rgba(255,255,255,.1);flex:none;"></span>
+
+      <!-- start combat -->
+      <button style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:10px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:11px 18px;cursor:pointer;box-shadow:0 8px 20px rgba(217,138,61,.3);flex:none;">Start combat ▸</button>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.04em;color:#5a4f45;line-height:1.6;">A cinematic, chrome-free <b style="color:#9c8a76;">player display</b> — drop the scene art and it goes full-bleed behind the title &amp; narration. The DM strip below (hidden from players) reveals beats, cues music, and hands straight off to the battle map via <b style="color:#9c8a76;">Start combat</b>.</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:820},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>
