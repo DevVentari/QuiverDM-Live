@@ -53,10 +53,30 @@
   animation: v3-pin-pulse 2.4s ease-out infinite;
 }
 
+/* Status dot pulse (Campaign Overview · "next session") */
+@keyframes v3-dot-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.4); }
+}
+.v3-dot-pulse {
+  animation: v3-dot-pulse 2.2s infinite;
+}
+
+/* REC indicator blink (Session Flow run sheet) */
+@keyframes v3-rec-blink {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+.v3-rec-blink {
+  animation: v3-rec-blink 1.6s infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hf-ember,
   .hf-ember--active,
-  .v3-pin-pulse {
+  .v3-pin-pulse,
+  .v3-dot-pulse,
+  .v3-rec-blink {
     animation: none;
   }
 }

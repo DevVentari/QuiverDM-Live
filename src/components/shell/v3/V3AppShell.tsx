@@ -47,11 +47,11 @@ interface RailItem {
 /** Global icon rail — the first level of the two-level v3 navigation. */
 const RAIL: RailItem[] = [
   { icon: 'util/home', label: 'Home', href: '/v3' },
-  { icon: 'game/party', label: 'Party', href: '/v3' },
-  { icon: 'game/source-book', label: 'Compendium', href: '/v3' },
+  { icon: 'game/party', label: 'Campaign', href: '/v3/campaign' },
+  { icon: 'game/source-book', label: 'Compendium', href: '/v3/compendium' },
   { icon: 'game/combat', label: 'Combat', href: '/v3/combat' },
   { icon: 'entity/map', label: 'World Map', href: '/v3/world-map' },
-  { icon: 'entity/scroll', label: 'Sessions', href: '/v3' },
+  { icon: 'entity/scroll', label: 'Sessions', href: '/v3/sessions' },
 ];
 
 /**
