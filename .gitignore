@@ -188,3 +188,13 @@ scripts/.quiverdm-dev-auth-state.json
 tests/.auth/
 *.flac
 .gstack/
+
+# === Repo cleanup (2026-06): keep these on disk, out of git ===
+# Personal campaign data — recordings, photo scans, session notes (multi-GB)
+docs/campaigns/
+# Archived dead code / old PDFs / status reports — not needed to run the app
+.archive/
+# Personal Obsidian vault + bundled plugins
+docs/obsidian-vault/
+# Agent planning/spec docs (kept locally + ingested into RAG, not source-of-truth)
+docs/superpowers/
