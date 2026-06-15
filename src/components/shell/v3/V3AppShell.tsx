@@ -34,12 +34,14 @@ interface RailItem {
 
 const RAIL: RailItem[] = [
   { icon: 'util/home', label: 'Home', seg: null },
-  { icon: 'game/party', label: 'Campaign', seg: 'overview' },
+  { icon: 'entity/world', label: 'Campaign', seg: 'overview' },
+  { icon: 'game/party', label: 'Party', seg: 'characters' },
   { icon: 'entity/person', label: 'NPCs', seg: 'npcs' },
   { icon: 'game/source-book', label: 'Compendium', seg: 'compendium' },
   { icon: 'game/combat', label: 'Combat', seg: 'combat' },
   { icon: 'entity/map', label: 'World Map', seg: 'world-map' },
   { icon: 'entity/scroll', label: 'Sessions', seg: 'sessions' },
+  { icon: 'entity/time', label: 'Recordings', seg: 'recordings' },
 ];
 
 /**
