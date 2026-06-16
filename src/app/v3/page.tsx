@@ -25,21 +25,20 @@ export default function V3HomePage() {
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         {(campaigns.data as any[] | undefined)?.map((c) => (
-          <Link
-            key={c.id}
-            href={`/v3/campaigns/${c.slug}/overview`}
-            className="group rounded-qd-lg border border-qd-faint bg-qd-card p-5 transition-colors hover:border-qd-accent"
-          >
-            <span className="block font-qd-display text-xl text-qd-ink-strong group-hover:text-qd-accent-hi">
-              {c.name}
-            </span>
+          <div key={c.id} className="rounded-qd-lg border border-qd-faint bg-qd-card p-5">
+            <span className="block font-qd-display text-xl text-qd-ink-strong">{c.name}</span>
             {c.description && (
               <span className="mt-1 block line-clamp-2 text-qd-body-sm text-qd-ink-muted">{c.description}</span>
             )}
-            <span className="mt-3 inline-block font-qd-mono text-[10px] uppercase tracking-[0.14em] text-qd-accent-text">
-              Enter →
-            </span>
-          </Link>
+            <div className="mt-3 flex gap-4">
+              <Link href={`/v3/campaigns/${c.slug}/overview`} className="font-qd-mono text-[10px] uppercase tracking-[0.14em] text-qd-accent-text hover:underline">
+                Run · DM →
+              </Link>
+              <Link href={`/v3/play/${c.slug}`} className="font-qd-mono text-[10px] uppercase tracking-[0.14em] text-qd-ink-muted hover:text-qd-ink-strong">
+                Player view →
+              </Link>
+            </div>
+          </div>
         ))}
       </div>
     </div>
