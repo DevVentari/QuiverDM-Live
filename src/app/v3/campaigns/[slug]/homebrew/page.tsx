@@ -16,6 +16,7 @@ import { useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
+import type { GeneratedStatblock } from '@/lib/ai/generate-statblock';
 
 /**
  * Import a sourcebook/homebrew PDF. Posts the file to /api/homebrew/upload-pdf,
@@ -172,6 +173,82 @@ function TextField({
   );
 }
 
+/**
+ * Generate a draft statblock from a concept prompt via homebrew.generateStatblock.
+ * The result fills the creator form for the DM to review/edit before saving — it
+ * never persists on its own.
+ */
+function AiGenerateButton({
+  type,
+  onGenerated,
+}: {
+  type: CreatorType;
+  onGenerated: (sb: GeneratedStatblock) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [prompt, setPrompt] = useState('');
+
+  const generate = trpc.homebrew.generateStatblock.useMutation({
+    onSuccess: (sb) => {
+      onGenerated(sb as GeneratedStatblock);
+      setPrompt('');
+      setOpen(false);
+    },
+  });
+
+  const submit = () => {
+    const p = prompt.trim();
+    if (p.length < 3 || generate.isPending) return;
+    generate.mutate({ prompt: p, type });
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        data-testid="ai-generate"
+        title="Generate a draft statblock with AI"
+        className={`${mono} rounded-[8px] border border-[var(--qd-border-accent)] bg-[rgba(217,138,61,0.08)] px-3 py-2 text-[9px] text-[var(--qd-accent-text)] transition-colors hover:bg-[rgba(217,138,61,0.14)]`}
+      >
+        ✦ AI generate
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        autoFocus
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setOpen(false); }}
+        placeholder={`Concept for a ${type}… e.g. "a festival wraith, CR 4 undead"`}
+        data-testid="ai-generate-input"
+        className={`${mono} w-[320px] rounded-[8px] border border-[var(--qd-border-strong)] bg-[rgba(255,255,255,0.04)] px-3 py-2 text-[11px] text-[var(--qd-ink)] placeholder:text-[var(--qd-ink-faint)] focus:border-[var(--qd-border-accent)] focus:outline-none`}
+      />
+      <button
+        onClick={submit}
+        disabled={generate.isPending || prompt.trim().length < 3}
+        data-testid="ai-generate-submit"
+        className={`${mono} rounded-[8px] border border-[var(--qd-border-accent)] bg-[rgba(217,138,61,0.12)] px-3 py-2 text-[9px] font-bold text-[var(--qd-accent-text)] disabled:opacity-50`}
+      >
+        {generate.isPending ? 'Conjuring…' : 'Generate'}
+      </button>
+      <button
+        onClick={() => { setOpen(false); generate.reset(); }}
+        className={`${mono} rounded-[8px] border border-[var(--qd-border-faint)] px-2 py-2 text-[9px] text-[var(--qd-ink-muted)]`}
+      >
+        ✕
+      </button>
+      {generate.error && (
+        <span className={`${mono} max-w-[160px] text-[8.5px] leading-tight text-[var(--qd-danger-bright)]`}>
+          {generate.error.message}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function HomebrewCreatorPage() {
   const { campaignId } = useCampaign();
   const utils = trpc.useUtils();
@@ -203,6 +280,31 @@ export default function HomebrewCreatorPage() {
   const patch = (p: Partial<FormState>) => setForm((f) => ({ ...f, ...p }));
   const patchAbility = (k: AbilityKey, v: string) =>
     setForm((f) => ({ ...f, abilities: { ...f.abilities, [k]: v } }));
+
+  // Fill the form from an AI-generated statblock (numbers → form strings). The DM
+  // reviews and edits before saving; nothing is persisted here.
+  const applyGenerated = (sb: GeneratedStatblock) => {
+    setError(null);
+    setForm((f) => ({
+      ...f,
+      name: sb.name || f.name,
+      description: sb.description ?? f.description,
+      size: sb.size ?? f.size,
+      creatureType: sb.creatureType ?? f.creatureType,
+      cr: sb.cr ?? f.cr,
+      ac: sb.ac != null ? String(sb.ac) : f.ac,
+      hp: sb.hp != null ? String(sb.hp) : f.hp,
+      speed: sb.speed ?? f.speed,
+      abilities: {
+        str: sb.abilities?.str != null ? String(sb.abilities.str) : f.abilities.str,
+        dex: sb.abilities?.dex != null ? String(sb.abilities.dex) : f.abilities.dex,
+        con: sb.abilities?.con != null ? String(sb.abilities.con) : f.abilities.con,
+        int: sb.abilities?.int != null ? String(sb.abilities.int) : f.abilities.int,
+        wis: sb.abilities?.wis != null ? String(sb.abilities.wis) : f.abilities.wis,
+        cha: sb.abilities?.cha != null ? String(sb.abilities.cha) : f.abilities.cha,
+      },
+    }));
+  };
 
   const handleSubmit = () => {
     if (!form.name.trim()) {
@@ -260,15 +362,7 @@ export default function HomebrewCreatorPage() {
           </div>
         </div>
         <span className="flex-1" />
-        {/* PDF import is wired below. AI statblock generation has no backend
-            mutation yet (extraction runs only via PDF), so it stays disabled. */}
-        <button
-          disabled
-          title="AI statblock generation isn't wired yet — import a PDF to extract content"
-          className={`${mono} cursor-not-allowed rounded-[8px] border border-[var(--qd-border-faint)] bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[9px] text-[var(--qd-ink-faint)]`}
-        >
-          ✦ AI generate
-        </button>
+        <AiGenerateButton type={activeType} onGenerated={applyGenerated} />
         <PdfImportButton campaignId={campaignId} />
         <div className="flex gap-1.5">
           {CREATOR_TYPES.map((t) => {
