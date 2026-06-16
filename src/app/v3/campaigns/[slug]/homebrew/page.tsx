@@ -12,10 +12,73 @@
  * The design's brand header is dropped — the app shell provides that chrome.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
+
+/**
+ * Import a sourcebook/homebrew PDF. Posts the file to /api/homebrew/upload-pdf,
+ * which stores it (local or R2 via the storage abstraction), creates the
+ * HomebrewPDF record, and queues the BullMQ extraction job in one call. Extracted
+ * entries land in the campaign's homebrew list asynchronously as the worker runs.
+ */
+function PdfImportButton({ campaignId }: { campaignId: string }) {
+  const utils = trpc.useUtils();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState<'idle' | 'uploading' | 'done' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+
+  const onFile = async (file: File) => {
+    setStatus('uploading');
+    setMessage('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('campaignId', campaignId);
+      fd.append('useAIExtraction', 'true');
+      const res = await fetch('/api/homebrew/upload-pdf', { method: 'POST', body: fd });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json?.error) throw new Error(json?.error || 'Upload failed');
+      setStatus('done');
+      setMessage('Imported — extracting entries in the background.');
+      void utils.homebrew.getContent.invalidate();
+    } catch (e) {
+      setStatus('error');
+      setMessage(e instanceof Error ? e.message : 'Upload failed');
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        data-testid="pdf-file-input"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); e.target.value = ''; }}
+      />
+      <button
+        onClick={() => inputRef.current?.click()}
+        disabled={status === 'uploading'}
+        title="Import a PDF — sourcebook or homebrew"
+        data-testid="import-pdf"
+        className={`${mono} rounded-[8px] border border-[var(--qd-border-strong)] bg-[rgba(255,255,255,0.05)] px-3 py-2 text-[9px] text-[var(--qd-ink-2)] transition-colors hover:border-[var(--qd-border-accent)] disabled:opacity-50`}
+      >
+        {status === 'uploading' ? '⬆ Uploading…' : '⬆ Import PDF'}
+      </button>
+      {message && (
+        <span
+          className={`${mono} max-w-[180px] text-[8.5px] leading-tight`}
+          style={{ color: status === 'error' ? 'var(--qd-danger-bright)' : 'var(--qd-ink-muted)' }}
+        >
+          {message}
+        </span>
+      )}
+    </div>
+  );
+}
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
 const display = 'font-[family-name:var(--qd-font-display)]';
@@ -197,23 +260,16 @@ export default function HomebrewCreatorPage() {
           </div>
         </div>
         <span className="flex-1" />
-        {/* AI / PDF affordances — OUT OF SCOPE, placeholders only */}
+        {/* PDF import is wired below. AI statblock generation has no backend
+            mutation yet (extraction runs only via PDF), so it stays disabled. */}
         <button
           disabled
-          title="Coming soon"
+          title="AI statblock generation isn't wired yet — import a PDF to extract content"
           className={`${mono} cursor-not-allowed rounded-[8px] border border-[var(--qd-border-faint)] bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[9px] text-[var(--qd-ink-faint)]`}
         >
-          {/* TODO: wire AI stat generation */}
           ✦ AI generate
         </button>
-        <button
-          disabled
-          title="Coming soon"
-          className={`${mono} cursor-not-allowed rounded-[8px] border border-[var(--qd-border-faint)] bg-[rgba(255,255,255,0.02)] px-3 py-2 text-[9px] text-[var(--qd-ink-faint)]`}
-        >
-          {/* TODO: wire PDF import */}
-          ⬆ Import PDF
-        </button>
+        <PdfImportButton campaignId={campaignId} />
         <div className="flex gap-1.5">
           {CREATOR_TYPES.map((t) => {
             const active = t.type === activeType;
