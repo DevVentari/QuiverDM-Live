@@ -33,9 +33,7 @@ export async function gatherSceneContext(
       : Promise.resolve([]),
     input.partyPresentIds.length
       ? prisma.character.findMany({
-          where: { id: { in: input.partyPresentIds } },
-          // Verified against schema.prisma (line 559–638):
-          // name: String, race: String?, class: String?, level: Int (default 1)
+          where: { id: { in: input.partyPresentIds }, campaignCharacters: { some: { campaignId } } },
           select: { id: true, name: true, race: true, class: true, level: true },
         })
       : Promise.resolve([]),
@@ -54,7 +52,7 @@ export async function gatherSceneContext(
     })),
     party: party.map((c) => ({
       name: c.name,
-      summary: [c.race, c.class, c.level ? `lvl ${c.level}` : null].filter(Boolean).join(' '),
+      summary: [c.race, c.class, c.level != null ? `lvl ${c.level}` : null].filter(Boolean).join(' '),
     })),
   };
 }
@@ -87,5 +85,9 @@ export function applyRegeneration(
     case 'dmNotes': return { dmNotes: gen.dmNotes, entityBeats: gen.entityBeats as Prisma.InputJsonValue };
     case 'checks': return { suggestedChecks: gen.suggestedChecks as Prisma.InputJsonValue };
     case 'music': return { musicCue: gen.musicCue };
+    default: {
+      const _exhaustive: never = section;
+      return _exhaustive;
+    }
   }
 }
