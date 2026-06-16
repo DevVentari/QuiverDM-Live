@@ -29,6 +29,11 @@ const generateInput = z.object({
   partyPresentIds: z.array(z.string()).default([]),
 });
 
+/**
+ * Queue a scene-art job (establishing-shot style) and return its id.
+ * Best-effort and intentionally NOT transactional: if any step fails the scene
+ * remains fully usable with no art (imageJobId stays null). Called fire-and-forget.
+ */
 async function enqueueSceneArt(args: { sceneId: string; userId: string; title: string; readAloud: string }) {
   const job = await prisma.imageGenerationJob.create({
     data: { sceneId: args.sceneId, userId: args.userId, provider: 'auto', status: 'queued',
@@ -125,14 +130,21 @@ export const scenesRouter = router({
     .mutation(async ({ input, ctx }) => {
       const scene = await prisma.scene.findUnique({ where: { id: input.id } });
       if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.id);
-      const p = scene.promptInput as { intent: string; mood?: string | null; linkedEntityIds: string[]; partyPresentIds: string[] } | null;
-      if (!p) throw new NotFoundError('scene prompt', input.id);
+      const raw = scene.promptInput;
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new NotFoundError('scene prompt', input.id);
+      const p = raw as { intent?: unknown; mood?: unknown; linkedEntityIds?: unknown; partyPresentIds?: unknown };
+      if (typeof p.intent !== 'string' || !p.intent) throw new NotFoundError('scene prompt', input.id);
+
+      const VALID_MOODS = ['rp', 'description', 'tavern', 'battle', 'theatre'] as const;
+      const mood = typeof p.mood === 'string' && (VALID_MOODS as readonly string[]).includes(p.mood)
+        ? (p.mood as (typeof VALID_MOODS)[number])
+        : undefined;
 
       const context = await gatherSceneContext(scene.campaignId, {
         intent: p.intent,
-        mood: (p.mood as any) ?? undefined,
-        linkedEntityIds: p.linkedEntityIds ?? [],
-        partyPresentIds: p.partyPresentIds ?? [],
+        mood,
+        linkedEntityIds: Array.isArray(p.linkedEntityIds) ? (p.linkedEntityIds as string[]) : [],
+        partyPresentIds: Array.isArray(p.partyPresentIds) ? (p.partyPresentIds as string[]) : [],
       });
       const gen = await generateScene(context, { userId: ctx.session.user.id });
       const patch = applyRegeneration(scene, gen, input.section as RegenSection);
@@ -156,6 +168,8 @@ export const scenesRouter = router({
   present: campaignDMProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
+      const scene = await prisma.scene.findUnique({ where: { id: input.id }, select: { campaignId: true } });
+      if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.id);
       await prisma.scene.updateMany({ where: { campaignId: input.campaignId }, data: { isPresented: false } });
       return prisma.scene.update({ where: { id: input.id }, data: { isPresented: true } });
     }),
@@ -166,5 +180,9 @@ export const scenesRouter = router({
 
   delete: campaignDMProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(({ input }) => prisma.scene.delete({ where: { id: input.id } })),
+    .mutation(async ({ input }) => {
+      const scene = await prisma.scene.findUnique({ where: { id: input.id }, select: { campaignId: true } });
+      if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.id);
+      return prisma.scene.delete({ where: { id: input.id } });
+    }),
 });
