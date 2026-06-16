@@ -57,10 +57,10 @@ async function updateJobStatus(jobId: string, update: {
 const worker = new Worker<ImageGenerationJobData>(
   'image-generation',
   async (job: Job<ImageGenerationJobData>) => {
-    const { jobId, homebrewId, npcId, userId, type, name, description, imagePromptHint, customPrompt } = job.data;
-    const targetId = homebrewId ?? npcId;
+    const { jobId, homebrewId, npcId, sceneId, userId, type, name, description, imagePromptHint, customPrompt } = job.data;
+    const targetId = homebrewId ?? npcId ?? sceneId;
     if (!targetId) {
-      throw new Error(`Job ${jobId} is missing both homebrewId and npcId`);
+      throw new Error(`Job ${jobId} is missing homebrewId, npcId, and sceneId`);
     }
 
     console.log(`[ImageWorker] Processing job ${jobId} for targetId=${targetId}`);
@@ -106,6 +106,11 @@ const worker = new Worker<ImageGenerationJobData>(
             imageJobId: null,
           },
         });
+      } else if (sceneId) {
+        await prisma.scene.update({
+          where: { id: sceneId },
+          data: { imageUrl: result.url, imageJobId: null },
+        });
       }
 
       console.log(`[ImageWorker] Job ${jobId} complete -> ${result.url}`);
@@ -129,6 +134,13 @@ const worker = new Worker<ImageGenerationJobData>(
       if (homebrewId) {
         await prisma.homebrewContent.update({
           where: { id: homebrewId },
+          data: { imageJobId: null },
+        }).catch(() => undefined);
+      }
+
+      if (sceneId) {
+        await prisma.scene.update({
+          where: { id: sceneId },
           data: { imageJobId: null },
         }).catch(() => undefined);
       }
