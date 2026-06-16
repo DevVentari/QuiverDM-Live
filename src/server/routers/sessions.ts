@@ -141,6 +141,62 @@ export const sessionsRouter = router({
     ),
 
   /**
+   * Aggregate the party's live HP for a session. Prefers CharacterSessionState
+   * (clean character names + maxHp from the sheet's hitPoints), and falls back to
+   * PlayerSessionState (hp/maxHp per user) when no character states exist.
+   * Returns [] when nothing is tracked yet. Any campaign member may read.
+   */
+  getPartyHp: protectedProcedure
+    .input(z.object({ sessionId: z.string().min(1) }))
+    .query(async ({ input, ctx }) => {
+      await authz.session(input.sessionId, ctx.session.user.id).verify();
+
+      const charStates = await prisma.characterSessionState.findMany({
+        where: { sessionId: input.sessionId },
+        select: {
+          currentHp: true,
+          tempHp: true,
+          character: { select: { id: true, name: true, hitPoints: true } },
+        },
+      });
+
+      if (charStates.length > 0) {
+        return charStates.map((s) => {
+          const hp = s.character?.hitPoints as { max?: number } | null | undefined;
+          const maxHp = typeof hp?.max === 'number' ? hp.max : s.currentHp;
+          return {
+            id: s.character?.id ?? '',
+            name: s.character?.name ?? 'Unknown',
+            hp: s.currentHp,
+            maxHp,
+            tempHp: s.tempHp,
+          };
+        });
+      }
+
+      // Fallback: PlayerSessionState carries maxHp directly but no character relation.
+      const playerStates = await prisma.playerSessionState.findMany({
+        where: { sessionId: input.sessionId },
+        select: { hp: true, maxHp: true, tempHp: true, characterId: true },
+      });
+      if (playerStates.length === 0) return [];
+
+      const charIds = playerStates.map((p) => p.characterId).filter((x): x is string => !!x);
+      const names = charIds.length
+        ? await prisma.character.findMany({ where: { id: { in: charIds } }, select: { id: true, name: true } })
+        : [];
+      const nameById = new Map(names.map((c) => [c.id, c.name]));
+
+      return playerStates.map((p, i) => ({
+        id: p.characterId ?? `player-${i}`,
+        name: (p.characterId && nameById.get(p.characterId)) || `Adventurer ${i + 1}`,
+        hp: p.hp,
+        maxHp: p.maxHp,
+        tempHp: p.tempHp,
+      }));
+    }),
+
+  /**
    * Create new session (quick-create, no wizard)
    */
   create: protectedProcedure

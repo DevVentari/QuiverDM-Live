@@ -197,9 +197,15 @@ export default function SessionsPage() {
     { campaignId, sessionId },
     { enabled: !!sessionId && isDM, staleTime: 30_000 },
   );
+  // Live party HP, aggregated from this session's character/player states.
+  const partyHp = trpc.sessions.getPartyHp.useQuery(
+    { sessionId },
+    { enabled: !!sessionId, staleTime: 15_000 },
+  );
 
   const phaseRows = (phases.data as PhaseRow[] | undefined) ?? [];
   const routeRows = (routes.data as RouteRow[] | undefined) ?? [];
+  const partyRows = (partyHp.data as Array<{ id: string; name: string; hp: number; maxHp: number; tempHp: number }> | undefined) ?? [];
 
   // The "now" beat is the active route's order if one is active, else the first
   // beat. SessionPhase has no status, so this is a heuristic. TODO: real state.
@@ -412,11 +418,34 @@ export default function SessionsPage() {
             🗒 Session note
           </button>
 
-          {/* PARTY · live — no per-session HP aggregation wired; HP defaults to '—'.
-              TODO: aggregate character HP / session states once available. */}
+          {/* PARTY · live — aggregated from this session's character/player states. */}
           <div className="flex-1 rounded-[13px] border border-[var(--qd-border)] bg-[rgba(255,255,255,0.02)] p-[13px]">
             <div className={`${mono} text-[8px] tracking-[0.12em] text-[var(--qd-ink-muted)]`}>PARTY · live</div>
-            <div className={`${mono} mt-2.5 text-[10px] text-[var(--qd-ink-faint)]`}>HP tracking not wired yet.</div>
+            {partyRows.length === 0 ? (
+              <div className={`${mono} mt-2.5 text-[10px] text-[var(--qd-ink-faint)]`}>
+                No live HP tracked for this session yet.
+              </div>
+            ) : (
+              <div className="mt-2.5 flex flex-col gap-2" data-testid="party-hp">
+                {partyRows.map((m) => {
+                  const pct = m.maxHp > 0 ? Math.max(0, Math.min(100, (m.hp / m.maxHp) * 100)) : 0;
+                  const bloodied = m.maxHp > 0 && m.hp <= Math.floor(m.maxHp / 2);
+                  return (
+                    <div key={m.id}>
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="truncate text-[11px] text-[var(--qd-ink-2)]">{m.name}</span>
+                        <span className={`${mono} flex-none text-[9px]`} style={{ color: bloodied ? 'var(--qd-danger-bright)' : 'var(--qd-ink-muted)' }}>
+                          {m.hp}/{m.maxHp}{m.tempHp > 0 ? ` +${m.tempHp}` : ''}
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1 w-full overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,.06)' }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: bloodied ? 'var(--qd-grad-danger)' : 'var(--qd-grad-success)' }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <button
