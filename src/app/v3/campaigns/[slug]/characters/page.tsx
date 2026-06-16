@@ -306,6 +306,76 @@ function CharacterSheet({ row, isDM }: { row: CampaignCharacterRow; isDM: boolea
 // Page — list (party roster) + detail (DM sheet)
 // ---------------------------------------------------------------------------
 
+/**
+ * Import a character sheet from D&D Beyond by URL. Wraps
+ * `charactersDndBeyond.importCharacter`, which creates/updates the Character and
+ * links it to this campaign (also extracting any homebrew on the sheet). Public
+ * sheets import by URL alone; private ones need a Cobalt token in Settings.
+ */
+function DndBeyondImport({ campaignId }: { campaignId: string }) {
+  const utils = trpc.useUtils();
+  const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState('');
+
+  const importChar = trpc.charactersDndBeyond.importCharacter.useMutation({
+    onSuccess: async () => {
+      await utils.characters.getCampaignCharacters.invalidate({ campaignId });
+      setUrl('');
+      setOpen(false);
+    },
+  });
+
+  const submit = () => {
+    const trimmed = url.trim();
+    if (!trimmed || importChar.isPending) return;
+    importChar.mutate({ url: trimmed, campaignId });
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.05)] px-3.5 py-2 font-qd-display text-[13px] text-qd-ink-2 transition-colors hover:border-qd-accent"
+      >
+        Import from D&D Beyond
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1.5">
+      <div className="flex items-center gap-2">
+        <input
+          autoFocus
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setOpen(false); }}
+          placeholder="https://www.dndbeyond.com/characters/12345678"
+          className="w-[340px] rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.03)] px-3 py-2 font-qd-mono text-[11px] text-qd-ink placeholder:text-qd-ink-faint focus:border-qd-accent focus:outline-none"
+        />
+        <button
+          onClick={submit}
+          disabled={importChar.isPending || !url.trim()}
+          className="rounded-qd-md bg-qd-accent px-3.5 py-2 font-qd-display text-[13px] font-bold text-qd-on-accent disabled:opacity-50"
+        >
+          {importChar.isPending ? 'Summoning…' : 'Import'}
+        </button>
+        <button
+          onClick={() => { setOpen(false); importChar.reset(); }}
+          className="rounded-qd-md border border-qd-faint px-2.5 py-2 font-qd-mono text-[11px] text-qd-ink-muted transition-colors hover:border-qd-strong"
+        >
+          ✕
+        </button>
+      </div>
+      {importChar.error && (
+        <span className="font-qd-mono text-[10px] text-qd-danger-bright">
+          {importChar.error.message || 'The summoning failed. Check the link and try again.'}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function CharactersPage() {
   const { campaignId, isDM } = useCampaign();
   const chars = trpc.characters.getCampaignCharacters.useQuery({ campaignId }, { staleTime: 60_000 });
@@ -337,6 +407,7 @@ export default function CharactersPage() {
           </div>
         </div>
         <span className="flex-1" />
+        {isDM && <DndBeyondImport campaignId={campaignId} />}
       </div>
 
       <div className="flex min-h-0 flex-1">
