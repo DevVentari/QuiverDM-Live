@@ -1,6 +1,7 @@
 'use client';
 
 import { trpc } from '@/lib/trpc';
+import { useCampaign } from '@/components/campaign/campaign-context';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 import { useHeartflame } from '@/components/shell/v3/heartflame-context';
 import { primaryNudge, type SurfacedNudge } from '@/lib/heartflame';
@@ -17,15 +18,24 @@ function asConditions(c: unknown): string[] {
 }
 
 export default function CombatPage() {
+  const { campaignId } = useCampaign();
   const { setNudge } = useHeartflame();
   const utils = trpc.useUtils();
-  const board = trpc.heartflame.demoBoard.useQuery(undefined, { staleTime: 0 });
+  const board = trpc.heartflame.getCampaignBoard.useQuery({ campaignId }, { staleTime: 0 });
+
+  const invalidateBoard = () => utils.heartflame.getCampaignBoard.invalidate({ campaignId });
 
   const setState = trpc.heartflame.setParticipantState.useMutation({
     onSuccess: (res) => {
-      utils.heartflame.demoBoard.invalidate();
+      invalidateBoard();
       setNudge(primaryNudge(res.nudges) as SurfacedNudge | null);
     },
+  });
+
+  // Round / lifecycle controls reuse the real, ownership-checked encounter service.
+  const nextRound = trpc.encounters.nextRound.useMutation({ onSuccess: invalidateBoard });
+  const complete = trpc.encounters.complete.useMutation({
+    onSuccess: () => { invalidateBoard(); setNudge(null); },
   });
 
   const patch = (p: BoardParticipant, data: Record<string, unknown>) =>
@@ -35,19 +45,53 @@ export default function CombatPage() {
     return <div className="px-8 py-16 text-[var(--qd-ink-muted)]">Gathering the combatants…</div>;
   }
   if (!board.data) {
-    return <div className="px-8 py-16 text-[var(--qd-ink-muted)]">No encounter. The chronicle is quiet.</div>;
+    // No active encounter in this campaign — a real, expected state, not an error.
+    return (
+      <div className="mx-auto max-w-3xl px-8 py-16">
+        <span className="font-[family-name:var(--qd-font-mono)] text-[10px] uppercase tracking-[0.22em] text-[var(--qd-ink-faint)]">
+          Combat
+        </span>
+        <h1 className="mt-1 font-[family-name:var(--qd-font-display)] text-[34px] leading-tight text-[var(--qd-ink-strong)]">
+          No blades are drawn.
+        </h1>
+        <p className="mt-3 max-w-[44ch] text-[var(--qd-text-body-sm)] text-[var(--qd-ink-muted)]">
+          The chronicle is quiet. When an encounter is set to <em>active</em> on one of this
+          campaign’s sessions, its initiative order and the Heartflame’s watch appear here.
+        </p>
+      </div>
+    );
   }
 
-  const { name, round, participants } = board.data;
+  const { id: encounterId, name, round, participants } = board.data;
 
   return (
     <div className="mx-auto max-w-3xl px-8 py-10">
       <span className="font-[family-name:var(--qd-font-mono)] text-[10px] uppercase tracking-[0.22em] text-[var(--qd-ink-faint)]">
         Combat · Round {round}
       </span>
-      <h1 className="mt-1 font-[family-name:var(--qd-font-display)] text-[34px] leading-tight text-[var(--qd-ink-strong)]">
-        {name}
-      </h1>
+      <div className="mt-1 flex items-start gap-4">
+        <h1 className="flex-1 font-[family-name:var(--qd-font-display)] text-[34px] leading-tight text-[var(--qd-ink-strong)]">
+          {name}
+        </h1>
+        <div className="flex flex-none items-center gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => nextRound.mutate({ encounterId })}
+            disabled={nextRound.isPending}
+            className="rounded-[10px] border border-[var(--qd-border-accent)] px-3 py-1.5 font-[family-name:var(--qd-font-mono)] text-[11px] text-[var(--qd-accent-text)] transition-colors hover:bg-[var(--qd-card)] disabled:opacity-50"
+          >
+            End round ▸
+          </button>
+          <button
+            type="button"
+            onClick={() => complete.mutate({ encounterId })}
+            disabled={complete.isPending}
+            className="rounded-[10px] border border-[var(--qd-border-faint)] px-3 py-1.5 font-[family-name:var(--qd-font-mono)] text-[11px] text-[var(--qd-ink-muted)] transition-colors hover:border-[var(--qd-border-accent)] disabled:opacity-50"
+          >
+            End combat
+          </button>
+        </div>
+      </div>
       <p className="mt-2 text-[var(--qd-text-body-sm)] text-[var(--qd-ink-muted)]">
         Toggle action economy or take damage — the Heartflame watches from the margin (bottom-right).
       </p>

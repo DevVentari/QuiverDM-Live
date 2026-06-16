@@ -4,6 +4,7 @@ import {
   evaluateEncounter,
   getEncounterNudges,
   getEncounterForBoard,
+  getActiveBoardForCampaign,
   getOrCreateDemoBoard,
   setParticipantState,
 } from '../services/heartflame.service';
@@ -41,6 +42,13 @@ export const heartflameRouter = router({
   getEncounter: protectedProcedure
     .input(z.object({ encounterId: z.string() }))
     .query(({ input }) => getEncounterForBoard(input.encounterId)),
+
+  // The live combat board for a campaign (its active encounter, membership-scoped).
+  getCampaignBoard: protectedProcedure
+    .input(z.object({ campaignId: z.string() }))
+    .query(({ input, ctx }) =>
+      getActiveBoardForCampaign(input.campaignId, ctx.session.user.id),
+    ),
 
   // Dev convenience: ensures the demo encounter exists and returns its board.
   demoBoard: protectedProcedure.query(() => getOrCreateDemoBoard()),

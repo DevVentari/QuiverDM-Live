@@ -179,6 +179,28 @@ export interface EncounterBoard {
   participants: BoardParticipant[];
 }
 
+/**
+ * Find the campaign's live encounter and return its board. An encounter belongs
+ * to a session, which belongs to a campaign — so the "active" encounter is the
+ * most-recently-touched `active` encounter across the campaign's sessions.
+ * Membership-scoped: returns null if the user isn't a member or none is active.
+ */
+export async function getActiveBoardForCampaign(
+  campaignId: string,
+  userId: string,
+): Promise<EncounterBoard | null> {
+  const encounter = await (prisma as any).encounter.findFirst({
+    where: {
+      status: 'active',
+      session: { campaignId, campaign: { members: { some: { userId } } } },
+    },
+    orderBy: { updatedAt: 'desc' },
+    select: { id: true },
+  });
+  if (!encounter) return null;
+  return getEncounterForBoard(encounter.id);
+}
+
 /** Load an encounter + its participants (with action-economy fields) for the tracker. */
 export async function getEncounterForBoard(encounterId: string): Promise<EncounterBoard | null> {
   return (prisma as any).encounter.findUnique({
