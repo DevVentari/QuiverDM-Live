@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 
@@ -25,6 +25,11 @@ interface RecordingRow {
   durationSeconds?: number | null;
   isMultiTrack?: boolean | null;
   createdAt?: string | Date | null;
+  // Storage paths — typically `/api/storage/<key>`, directly playable (the
+  // storage route streams local files with Range support and redirects R2
+  // to a presigned URL).
+  originalUrl?: string | null;
+  extractedAudioUrl?: string | null;
   transcripts?: TranscriptRow[] | null;
 }
 
@@ -153,6 +158,19 @@ export default function RecordingsPage() {
   const segments = useMemo(() => segmentsFromTranscript(transcript), [transcript]);
   const fullText = transcriptText(transcript);
 
+  // Prefer the extracted audio (for videos) so transcript timestamps align; fall
+  // back to the original upload. Both are `/api/storage/<key>` paths or full URLs.
+  const playbackUrl = recording?.extractedAudioUrl || recording?.originalUrl || null;
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+  // Click a transcript line → seek the player there and play.
+  const seekTo = (start?: number) => {
+    const el = audioRef.current;
+    if (!el || start == null || Number.isNaN(start)) return;
+    el.currentTime = start;
+    void el.play().catch(() => {});
+  };
+
   if (sessions.isLoading) {
     return <div className="px-8 py-16 text-qd-ink-muted">Gathering the chronicle…</div>;
   }
@@ -260,20 +278,25 @@ export default function RecordingsPage() {
                     </div>
                   )}
 
-                  {/* audio player placeholder — UI only */}
-                  {/* TODO: wire real audio/video playback (waveform, scrub, chapters) */}
+                  {/* audio/video playback — native element streams from /api/storage */}
                   <div className="mt-5 rounded-qd-lg border border-qd-faint p-4" style={{ background: 'rgba(255,255,255,.02)' }}>
-                    <div className="flex items-center gap-3.5">
-                      <span className="grid h-11 w-11 flex-none place-items-center rounded-full text-[16px] text-qd-on-accent" style={{ background: 'linear-gradient(180deg,var(--qd-accent),var(--qd-danger-deep))' }}>
-                        ▶
-                      </span>
-                      <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: 'rgba(255,255,255,.06)' }}>
-                        <div className="h-full w-0 rounded-full" style={{ background: 'var(--qd-accent)' }} />
+                    {playbackUrl ? (
+                      <audio
+                        ref={audioRef}
+                        controls
+                        preload="metadata"
+                        src={playbackUrl}
+                        className="w-full"
+                        data-testid="recording-audio"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-3 font-qd-mono text-[10px] text-qd-ink-muted">
+                        <span className="grid h-9 w-9 flex-none place-items-center rounded-full text-[14px] text-qd-ink-faint" style={{ background: 'rgba(255,255,255,.05)' }}>
+                          ▶
+                        </span>
+                        No audio file is attached to this recording.
                       </div>
-                      <span className="flex-none font-qd-mono text-[10px] text-qd-ink-muted">
-                        {formatDuration(recording?.durationSeconds)}
-                      </span>
-                    </div>
+                    )}
                   </div>
 
                   {/* transcript */}
@@ -293,9 +316,19 @@ export default function RecordingsPage() {
                     <div className="flex flex-col gap-2.5">
                       {segments.map((seg, i) => (
                         <div key={i} className="flex gap-3">
-                          <span className="w-[46px] flex-none pt-0.5 font-qd-mono text-[9px] text-qd-ink-muted">
-                            {formatSegmentTime(seg.start)}
-                          </span>
+                          {playbackUrl && seg.start != null ? (
+                            <button
+                              onClick={() => seekTo(seg.start)}
+                              title="Jump to this moment"
+                              className="w-[46px] flex-none pt-0.5 text-left font-qd-mono text-[9px] text-qd-accent-text transition-colors hover:text-qd-ink-strong"
+                            >
+                              {formatSegmentTime(seg.start)}
+                            </button>
+                          ) : (
+                            <span className="w-[46px] flex-none pt-0.5 font-qd-mono text-[9px] text-qd-ink-muted">
+                              {formatSegmentTime(seg.start)}
+                            </span>
+                          )}
                           <div className="flex-1 text-qd-body-sm leading-relaxed text-qd-ink-2">
                             {seg.speaker && (
                               <span className="font-qd-mono text-[12px] text-qd-accent-text">{seg.speaker}: </span>
