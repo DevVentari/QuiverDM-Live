@@ -20,6 +20,29 @@ interface NpcRow {
   imageUrl?: string | null;
 }
 
+// Brain WorldEntity subset (from brain.entities.list).
+interface BrainEntity {
+  id: string;
+  name: string;
+}
+
+// Brain WorldRelationship subset (from brain.relationships.list — includes both endpoints).
+interface BrainRelationship {
+  id: string;
+  type: string;
+  fromEntityId: string;
+  toEntityId: string;
+  fromEntity?: { id: string; name: string } | null;
+  toEntity?: { id: string; name: string } | null;
+}
+
+// One rendered tie: the entity on the *other* end of a relationship + its type.
+interface RelationView {
+  id: string;
+  otherName: string;
+  type: string;
+}
+
 const STATUS_COLOR: Record<string, string> = {
   alive: 'var(--qd-success)',
   dead: 'var(--qd-danger)',
@@ -57,6 +80,42 @@ export default function NpcsPage() {
     [rows, search],
   );
   const selected = filtered.find((n) => n.id === selectedId) ?? filtered[0] ?? null;
+
+  // Relationships live in the brain WorldRelationship graph (keyed by WorldEntity),
+  // not on the legacy NPC model. Both brain queries are DM-gated server-side.
+  // Find the matching brain NPC entity by name (case-insensitive), then list its ties.
+  const brainNpcsQ = trpc.brain.entities.list.useQuery(
+    { campaignId, type: 'NPC' },
+    { staleTime: 120_000, enabled: isDM && !!selected },
+  );
+
+  const matchedEntity = useMemo<BrainEntity | null>(() => {
+    if (!selected) return null;
+    const target = selected.name.trim().toLowerCase();
+    if (!target) return null;
+    const entities = (brainNpcsQ.data as BrainEntity[] | undefined) ?? [];
+    return entities.find((e) => (e.name ?? '').trim().toLowerCase() === target) ?? null;
+  }, [brainNpcsQ.data, selected]);
+
+  const relsQ = trpc.brain.relationships.list.useQuery(
+    { campaignId, entityId: matchedEntity?.id ?? '' },
+    { staleTime: 120_000, enabled: isDM && !!matchedEntity },
+  );
+
+  const relations = useMemo<RelationView[]>(() => {
+    const entityId = matchedEntity?.id;
+    if (!entityId) return [];
+    const rows = (relsQ.data as BrainRelationship[] | undefined) ?? [];
+    return rows
+      .map((r) => {
+        // Surface the entity on the *other* end of the tie.
+        const other = r.fromEntityId === entityId ? r.toEntity : r.fromEntity;
+        const otherName = (other?.name ?? '').trim();
+        if (!otherName) return null;
+        return { id: r.id, otherName, type: (r.type ?? '').trim() || 'tied to' };
+      })
+      .filter((r): r is RelationView => r !== null);
+  }, [relsQ.data, matchedEntity]);
 
   if (npcs.isLoading) {
     return <div className="px-8 py-16 text-qd-ink-muted">Gathering the cast…</div>;
@@ -161,6 +220,25 @@ export default function NpcsPage() {
                 <InfoCard label="Motivation">
                   {selected.motivation || '—'}
                 </InfoCard>
+                {isDM && (
+                  <InfoCard label="Relationships">
+                    {relsQ.isLoading || brainNpcsQ.isLoading ? (
+                      <span className="text-qd-ink-muted">Tracing the ties…</span>
+                    ) : relations.length === 0 ? (
+                      // Best-effort name match: no brain entity, or no ties recorded.
+                      <span className="text-qd-ink-muted">No known ties.</span>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        {relations.map((r) => (
+                          <div key={r.id} className="flex items-baseline gap-2">
+                            <span className="text-qd-ink-strong">{r.otherName}</span>
+                            <span className="font-qd-mono text-[8px] uppercase tracking-[0.1em] text-qd-ink-muted">{r.type}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </InfoCard>
+                )}
               </div>
             </>
           )}

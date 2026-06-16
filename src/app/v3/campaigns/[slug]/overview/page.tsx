@@ -66,6 +66,8 @@ interface PartyView {
   initial: string;
   name: string;
   meta: string;
+  hpLabel: string; // "current/max" or "—"
+  hpPct: number | null; // 0..100 for the bar, or null when HP is unknown
 }
 
 interface TrackView {
@@ -103,6 +105,7 @@ interface CampaignCharacterRow {
     name: string;
     class?: string | null;
     level?: number | null;
+    hitPoints?: { current?: number | null; max?: number | null; temp?: number | null } | null;
   };
 }
 
@@ -219,12 +222,29 @@ function beatFromSession(s: SessionRow, isLatest: boolean): BeatView {
 function partyFromCharacter(cc: CampaignCharacterRow): PartyView {
   const c = cc.character;
   const meta = [c.class, c.level != null ? `Lv ${c.level}` : null].filter(Boolean).join(' · ') || '—';
+  // HP lives in the structured `hitPoints` JSON ({ current, max, temp }); read defensively.
+  const cur = c.hitPoints?.current;
+  const max = c.hitPoints?.max;
+  const hpLabel = cur != null && max != null ? `${cur}/${max}` : (cur ?? '—').toString();
+  const hpPct =
+    cur != null && max != null && max > 0
+      ? Math.round(Math.max(0, Math.min(1, cur / max)) * 100)
+      : null;
   return {
     id: cc.id,
     initial: (c.name.charAt(0) || '?').toUpperCase(),
     name: c.name,
     meta,
+    hpLabel,
+    hpPct,
   };
+}
+
+// HP bar hue shifts as the pool drains — green → amber → red.
+function hpBarBg(pct: number): string {
+  if (pct <= 25) return 'linear-gradient(90deg,var(--qd-danger-deep),var(--qd-danger))';
+  if (pct <= 50) return 'linear-gradient(90deg,var(--qd-accent-deep,var(--qd-accent)),var(--qd-accent-bright))';
+  return 'linear-gradient(90deg,var(--qd-success-deep),var(--qd-success-bright))';
 }
 
 // One pressure track (0..1 float) → labelled World State bar.
@@ -456,9 +476,15 @@ export default function CampaignOverviewPage() {
                   >
                     {p.initial}
                   </span>
-                  <div className="flex-1">
-                    <div className="text-[14px] text-[var(--qd-ink)]">{p.name}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <div className="truncate text-[14px] text-[var(--qd-ink)]">{p.name}</div>
+                      <div className={`${mono} flex-none text-[9px] text-[var(--qd-ink-2)]`}>{p.hpLabel}</div>
+                    </div>
                     <div className={`${mono} text-[8px] text-[var(--qd-ink-muted)]`}>{p.meta}</div>
+                    {p.hpPct != null && (
+                      <Bar width={`${p.hpPct}%`} bg={hpBarBg(p.hpPct)} />
+                    )}
                   </div>
                 </div>
               ))}
