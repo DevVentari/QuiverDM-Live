@@ -2,7 +2,7 @@ import { type Metadata } from 'next';
 import { Kalam, Hanken_Grotesk } from 'next/font/google';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
-import { V3AppShell } from '@/components/shell/v3/V3AppShell';
+import { V3LayoutSwitch } from '@/components/shell/v3/V3LayoutSwitch';
 import '../../styles/v3-tokens.css';
 import '../../styles/v3.css';
 
@@ -45,7 +45,7 @@ export default async function V3Layout({
 
   return (
     <div className={`v3-scope ${kalam.variable} ${hanken.variable}`}>
-      <V3AppShell>{children}</V3AppShell>
+      <V3LayoutSwitch>{children}</V3LayoutSwitch>
     </div>
   );
 }
