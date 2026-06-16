@@ -41,4 +41,9 @@ describe('generateScene', () => {
     vi.spyOn(chat, 'chatWithAI').mockResolvedValue('the vision faded');
     await expect(generateScene(CONTEXT)).rejects.toThrow(/could not be read/i);
   });
+
+  it('throws when the JSON is well-formed but fails the schema', async () => {
+    vi.spyOn(chat, 'chatWithAI').mockResolvedValue(JSON.stringify({ title: 'X', type: 'not-a-real-type' }));
+    await expect(generateScene(CONTEXT)).rejects.toThrow(/could not be read/i);
+  });
 });

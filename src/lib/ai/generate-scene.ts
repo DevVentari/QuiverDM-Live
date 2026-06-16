@@ -20,11 +20,11 @@ export interface SceneContext {
 const sceneSchema = z.object({
   title: z.string().min(1).max(160),
   type: z.enum(['rp', 'description', 'tavern', 'battle', 'theatre']),
-  readAloud: z.string().max(4000),
-  dmNotes: z.string().max(4000),
-  musicCue: z.string().max(160),
+  readAloud: z.string().max(4000).default(''),
+  dmNotes: z.string().max(4000).default(''),
+  musicCue: z.string().max(160).default(''),
   suggestedChecks: z
-    .array(z.object({ skill: z.string().max(40), dc: z.number().int().min(1).max(40), note: z.string().max(300) }))
+    .array(z.object({ skill: z.string().max(40), dc: z.number().int().min(1).max(30), note: z.string().max(300) }))
     .max(8)
     .default([]),
   entityBeats: z
@@ -90,6 +90,8 @@ export async function generateScene(
   ];
 
   // Per CLAUDE.md: scenes are creative writing — force Claude for voice quality.
+  // NOTE: this intentionally bypasses the provider fallback chain — it hard-fails
+  // without ANTHROPIC_API_KEY. Do not add a fallback; it would break the voice contract.
   const raw = await chatWithAI(messages, { temperature: 0.8, forceProvider: 'claude', userId: options.userId });
 
   let parsed: unknown;
