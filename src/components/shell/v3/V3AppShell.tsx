@@ -7,6 +7,7 @@ import { trpc } from '@/lib/trpc';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 import { HeartflamePerch } from './HeartflamePerch';
 import { HeartflameProvider } from './heartflame-context';
+import { V3CommandBar } from './V3CommandBar';
 import {
   evaluate,
   primaryNudge,
@@ -132,12 +133,27 @@ export function V3AppShell({ children }: { children: ReactNode }) {
             <span className="font-qd-mono text-[10px] uppercase tracking-[0.2em] text-qd-ink-faint">
               QuiverDM v3{campaignName ? ` · ${campaignName}` : ''}
             </span>
+            <span className="flex-1" />
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+              title="Search (Ctrl/⌘ K)"
+              data-testid="v3-search-trigger"
+              className="flex items-center gap-2 rounded-qd-md border border-qd-faint px-2.5 py-1.5 text-qd-ink-muted transition-colors hover:border-qd-strong hover:text-qd-ink-2"
+            >
+              <MaskedDndIcon name="util/search" size={13} />
+              <span className="hidden font-qd-mono text-[10px] sm:inline">Search</span>
+              <kbd className="hidden rounded-qd-sm border border-qd-faint px-1 font-qd-mono text-[8px] sm:inline">⌘K</kbd>
+            </button>
           </header>
           <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
 
         {/* The companion (reads nudges from context) */}
         <HeartflamePerch />
+
+        {/* Global ⌘K search palette */}
+        <V3CommandBar />
       </div>
     </HeartflameProvider>
   );
