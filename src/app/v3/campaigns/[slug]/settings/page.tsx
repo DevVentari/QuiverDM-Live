@@ -81,12 +81,192 @@ function ToggleRow({ title, subtitle, on }: { title: string; subtitle: string; o
   );
 }
 
+// Pending CampaignInvite row (subset returned by members.getInvites).
+interface InviteRow {
+  id: string;
+  code?: string | null;
+  email?: string | null;
+  role: string;
+  expiresAt?: string | null;
+}
+
+// Roles a DM may assign/invite (never OWNER — that goes through transfer ownership).
+const ASSIGNABLE_ROLES = ['PLAYER', 'CO_DM', 'SPECTATOR'] as const;
+
+/**
+ * The campaign roster — live member management (role changes, removal) plus
+ * invite creation/revocation. All mutations are DM-gated server-side
+ * (campaignDMProcedure); OWNER rows are locked in the UI since the server
+ * refuses to demote or remove the owner anyway.
+ */
+function RosterSection({ campaignId, isOwner }: { campaignId: string; isOwner: boolean }) {
+  const utils = trpc.useUtils();
+  const membersQuery = trpc.members.getAll.useQuery({ campaignId }, { staleTime: 60_000 });
+  const invitesQuery = trpc.members.getInvites.useQuery({ campaignId }, { staleTime: 30_000 });
+
+  const members = (membersQuery.data as MemberRow[] | undefined) ?? [];
+  const invites = (invitesQuery.data as InviteRow[] | undefined) ?? [];
+
+  const invalidate = () => {
+    void utils.members.getAll.invalidate({ campaignId });
+    void utils.members.getInvites.invalidate({ campaignId });
+  };
+
+  const updateRole = trpc.members.updateRole.useMutation({ onSuccess: invalidate });
+  const remove = trpc.members.remove.useMutation({ onSuccess: invalidate });
+  const createInvite = trpc.members.createInvite.useMutation({ onSuccess: invalidate });
+  const revokeInvite = trpc.members.revokeInvite.useMutation({ onSuccess: invalidate });
+
+  const [inviteRole, setInviteRole] = useState<string>('PLAYER');
+  const [inviteEmail, setInviteEmail] = useState('');
+
+  const submitInvite = () => {
+    if (createInvite.isPending) return;
+    const email = inviteEmail.trim();
+    createInvite.mutate({
+      campaignId,
+      role: inviteRole as (typeof ASSIGNABLE_ROLES)[number],
+      ...(email ? { email } : {}),
+    });
+    setInviteEmail('');
+  };
+
+  return (
+    <>
+      <SectionLabel>Roster · {members.length} members</SectionLabel>
+      {membersQuery.isLoading ? (
+        <div className="text-qd-body-sm text-qd-ink-muted">Counting the company…</div>
+      ) : members.length === 0 ? (
+        <div className="text-qd-body-sm text-qd-ink-muted">No one has joined the table yet.</div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {members.map((m) => {
+            const label = m.user?.displayName || m.user?.name || m.user?.email || 'Unknown';
+            const locked = m.role === 'OWNER';
+            const busy = (updateRole.isPending || remove.isPending) && (updateRole.variables?.memberId === m.id || remove.variables?.memberId === m.id);
+            return (
+              <div
+                key={m.id}
+                className="flex items-center gap-3 rounded-qd-lg border border-qd-faint bg-[rgba(255,255,255,0.02)] px-3.5 py-2.5"
+                style={{ opacity: busy ? 0.6 : 1 }}
+              >
+                <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-full bg-qd-accent text-[13px] font-bold text-qd-on-accent">
+                  {m.user?.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={m.user.image} alt={label} className="h-full w-full object-cover" />
+                  ) : (
+                    label.charAt(0).toUpperCase()
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-qd-body-sm text-qd-ink-2">{label}</span>
+                  {m.user?.email && (
+                    <span className="block truncate font-qd-mono text-[8px] text-qd-ink-muted">{m.user.email}</span>
+                  )}
+                </span>
+                {locked ? (
+                  <span className="rounded-full border border-qd-strong bg-[rgba(255,255,255,0.05)] px-2.5 py-1 font-qd-mono text-[9px] text-qd-ink-2">
+                    {ROLE_LABEL.OWNER}
+                  </span>
+                ) : (
+                  <>
+                    <select
+                      value={m.role}
+                      disabled={busy}
+                      onChange={(e) => updateRole.mutate({ campaignId, memberId: m.id, role: e.target.value as (typeof ASSIGNABLE_ROLES)[number] })}
+                      className="rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.05)] px-2 py-1 font-qd-mono text-[10px] text-qd-ink-2 focus:border-qd-accent focus:outline-none"
+                    >
+                      {ASSIGNABLE_ROLES.map((r) => (
+                        <option key={r} value={r}>{ROLE_LABEL[r] ?? r}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => remove.mutate({ campaignId, memberId: m.id })}
+                      disabled={busy}
+                      title="Remove from campaign"
+                      className="rounded-qd-md border border-qd-faint px-2 py-1 font-qd-mono text-[10px] text-qd-danger-bright transition-colors hover:border-qd-danger disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* INVITES */}
+      <SectionLabel>Invites · {invites.length} pending</SectionLabel>
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={inviteRole}
+          onChange={(e) => setInviteRole(e.target.value)}
+          className="rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.05)] px-2.5 py-2 font-qd-mono text-[11px] text-qd-ink-2 focus:border-qd-accent focus:outline-none"
+        >
+          {ASSIGNABLE_ROLES.filter((r) => r !== 'CO_DM' || isOwner).map((r) => (
+            <option key={r} value={r}>{ROLE_LABEL[r] ?? r}</option>
+          ))}
+        </select>
+        <input
+          value={inviteEmail}
+          onChange={(e) => setInviteEmail(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') submitInvite(); }}
+          placeholder="email (optional — blank makes a shareable code)"
+          className="min-w-[260px] flex-1 rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.03)] px-3 py-2 font-qd-mono text-[11px] text-qd-ink placeholder:text-qd-ink-faint focus:border-qd-accent focus:outline-none"
+        />
+        <button
+          onClick={submitInvite}
+          disabled={createInvite.isPending}
+          className="rounded-qd-md bg-qd-accent px-3.5 py-2 font-qd-display text-[13px] font-bold text-qd-on-accent disabled:opacity-50"
+        >
+          {createInvite.isPending ? 'Sealing…' : 'Create invite'}
+        </button>
+      </div>
+      {createInvite.error && (
+        <div className="mt-1.5 font-qd-mono text-[10px] text-qd-danger-bright">{createInvite.error.message}</div>
+      )}
+
+      {invites.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2">
+          {invites.map((inv) => (
+            <div key={inv.id} className="flex items-center gap-3 rounded-qd-lg border border-qd-faint bg-[rgba(255,255,255,0.02)] px-3.5 py-2.5">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-qd-mono text-[11px] text-qd-ink-2">
+                  {inv.email || (inv.code ? `code · ${inv.code}` : 'open invite')}
+                </span>
+                <span className="block font-qd-mono text-[8px] uppercase tracking-[0.1em] text-qd-ink-muted">
+                  {ROLE_LABEL[inv.role] ?? inv.role}{inv.expiresAt ? ` · expires ${new Date(inv.expiresAt).toLocaleDateString()}` : ''}
+                </span>
+              </span>
+              {inv.code && (
+                <button
+                  onClick={() => { void navigator.clipboard?.writeText(inv.code ?? ''); }}
+                  className="rounded-qd-md border border-qd-faint px-2 py-1 font-qd-mono text-[10px] text-qd-ink-2 transition-colors hover:border-qd-accent"
+                >
+                  Copy code
+                </button>
+              )}
+              <button
+                onClick={() => revokeInvite.mutate({ campaignId, inviteId: inv.id })}
+                disabled={revokeInvite.isPending}
+                className="rounded-qd-md border border-qd-faint px-2 py-1 font-qd-mono text-[10px] text-qd-danger-bright transition-colors hover:border-qd-danger disabled:opacity-50"
+              >
+                Revoke
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function CampaignSettingsPage() {
   const { campaignId, slug, isDM, isOwner } = useCampaign();
   const utils = trpc.useUtils();
 
   const campaignQuery = trpc.campaigns.getBySlug.useQuery({ slug }, { staleTime: 60_000 });
-  const membersQuery = trpc.members.getAll.useQuery({ campaignId }, { staleTime: 60_000 });
 
   const campaign = campaignQuery.data as CampaignRecord | undefined;
 
@@ -128,8 +308,6 @@ export default function CampaignSettingsPage() {
     Array.isArray(settings.themes) && (settings.themes as string[]).length
       ? (settings.themes as string[]).join(' · ')
       : 'Mythic · high stakes';
-
-  const members = (membersQuery.data as MemberRow[] | undefined) ?? [];
 
   return (
     <div className="flex h-full flex-col">
@@ -234,50 +412,8 @@ export default function CampaignSettingsPage() {
             <ToggleRow title="Advantage prompts" subtitle="ask adv/disadv on every roll" on={false} />
           </div>
 
-          {/* ROSTER — read-only members list (DM/owner only) */}
-          {isDM && (
-            <>
-              <SectionLabel>Roster · {members.length} members</SectionLabel>
-              {membersQuery.isLoading ? (
-                <div className="text-qd-body-sm text-qd-ink-muted">Counting the company…</div>
-              ) : members.length === 0 ? (
-                <div className="text-qd-body-sm text-qd-ink-muted">No one has joined the table yet.</div>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {members.map((m) => {
-                    const label = m.user?.displayName || m.user?.name || m.user?.email || 'Unknown';
-                    return (
-                      <div
-                        key={m.id}
-                        className="flex items-center gap-3 rounded-qd-lg border border-qd-faint bg-[rgba(255,255,255,0.02)] px-3.5 py-2.5"
-                      >
-                        <span className="grid h-8 w-8 flex-none place-items-center overflow-hidden rounded-full bg-qd-accent text-[13px] font-bold text-qd-on-accent">
-                          {m.user?.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={m.user.image} alt={label} className="h-full w-full object-cover" />
-                          ) : (
-                            label.charAt(0).toUpperCase()
-                          )}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-qd-body-sm text-qd-ink-2">{label}</span>
-                          {m.user?.email && (
-                            <span className="block truncate font-qd-mono text-[8px] text-qd-ink-muted">
-                              {m.user.email}
-                            </span>
-                          )}
-                        </span>
-                        {/* TODO: wire role changes via members.updateRole */}
-                        <span className="rounded-full border border-qd-strong bg-[rgba(255,255,255,0.05)] px-2.5 py-1 font-qd-mono text-[9px] text-qd-ink-2">
-                          {ROLE_LABEL[m.role] ?? m.role}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
+          {/* ROSTER — live member + invite management (DM/owner only) */}
+          {isDM && <RosterSection campaignId={campaignId} isOwner={isOwner} />}
 
           {/* INTEGRATIONS — display-only */}
           <SectionLabel>Integrations</SectionLabel>
