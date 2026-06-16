@@ -21,10 +21,11 @@
  *   - Party HP               → no per-session HP aggregation wired; defaults to '—'
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { LiveTranscriptPanel } from '@/components/session/v3/LiveTranscriptPanel';
+import { useLiveCapture } from '@/hooks/useLiveCapture';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
@@ -207,6 +208,11 @@ export default function SessionsPage() {
   const phaseRows = (phases.data as PhaseRow[] | undefined) ?? [];
   const routeRows = (routes.data as RouteRow[] | undefined) ?? [];
   const partyRows = (partyHp.data as Array<{ id: string; name: string; hp: number; maxHp: number; tempHp: number }> | undefined) ?? [];
+
+  // Live capture is explicit (joining as DM starts a billable AssemblyAI session),
+  // so it's off until the DM hits "Go live". Streams mic PCM to the live pipeline.
+  const [liveActive, setLiveActive] = useState(false);
+  const liveCapture = useLiveCapture(campaignId, sessionId, liveActive && isDM);
 
   // The "now" beat is the active route's order if one is active, else the first
   // beat. SessionPhase has no status, so this is a heuristic. TODO: real state.
@@ -449,9 +455,28 @@ export default function SessionsPage() {
             )}
           </div>
 
-          {/* LIVE TRANSCRIPT — captions + DM hints while the session is in_progress. */}
+          {/* LIVE — explicit go-live (cost-safe), captions + DM hints while live. */}
           {current.status === 'in_progress' && sessionId && (
-            <LiveTranscriptPanel campaignId={campaignId} sessionId={sessionId} isLive />
+            <>
+              {isDM && (
+                <button
+                  onClick={() => setLiveActive((v) => !v)}
+                  data-testid="go-live"
+                  className={`${display} flex items-center justify-center gap-2 rounded-[11px] p-3 text-[14px] font-bold`}
+                  style={
+                    liveActive
+                      ? { border: '1px solid var(--qd-danger-bright)', color: 'var(--qd-danger-bright)', background: 'rgba(196,69,58,.08)' }
+                      : { border: 'none', color: 'var(--qd-on-accent)', background: 'linear-gradient(180deg,var(--qd-accent-bright),var(--qd-accent-deep))' }
+                  }
+                >
+                  {liveActive ? '■ Stop live' : '● Go live'}
+                </button>
+              )}
+              {liveActive && liveCapture.error && (
+                <div className={`${mono} text-[9px] text-[var(--qd-danger-bright)]`}>{liveCapture.error}</div>
+              )}
+              <LiveTranscriptPanel campaignId={campaignId} sessionId={sessionId} isLive={liveActive} />
+            </>
           )}
 
           <button
