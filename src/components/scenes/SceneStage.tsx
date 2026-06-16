@@ -136,7 +136,7 @@ export function SceneStage({ campaignId, sceneId }: { campaignId: string; sceneI
                   name: string;
                   type: string;
                   description?: string | null;
-                  statBlock: { id: string } | null;
+                  statBlock: { id: string; name: string; data: unknown } | null;
                 }) => (
                   <NpcCard key={e.id} entity={e} beat={beats[e.id]} />
                 ),
@@ -225,7 +225,7 @@ function NpcCard({
   entity,
   beat,
 }: {
-  entity: { id: string; name: string; type: string; description?: string | null; statBlock: { id: string } | null };
+  entity: { id: string; name: string; type: string; description?: string | null; statBlock: { id: string; name: string; data: unknown } | null };
   beat?: { wantsInScene: string; secret: string | null };
 }) {
   const [open, setOpen] = useState(false);
@@ -246,16 +246,14 @@ function NpcCard({
         </p>
       )}
       {beat?.secret && <p className="mt-0.5 text-[12px] text-qd-accent-text">secret: {beat.secret}</p>}
-      {open && entity.statBlock && <StatBlockInline id={entity.statBlock.id} />}
+      {open && entity.statBlock && <StatBlockInline data={entity.statBlock.data} />}
     </div>
   );
 }
 
-function StatBlockInline({ id }: { id: string }) {
-  // Uses homebrew.getContentById (not getById — that procedure does not exist)
-  const sb = trpc.homebrew.getContentById.useQuery({ id }, { staleTime: 300_000 });
-  if (sb.isLoading) return <p className="mt-2 text-[11px] text-qd-ink-faint">Summoning…</p>;
-  const d = (sb.data?.data as Record<string, unknown> | undefined) ?? {};
+function StatBlockInline({ data }: { data: unknown }) {
+  // Data is already fetched as part of getStage — no extra RPC needed.
+  const d = (data as Record<string, unknown> | undefined) ?? {};
   return (
     <div className={`${mono} mt-2 rounded bg-[rgba(0,0,0,.25)] p-2 text-[11px] text-qd-ink-2`}>
       {([['AC', d.ac], ['HP', d.hp], ['CR', d.cr]] as [string, unknown][])

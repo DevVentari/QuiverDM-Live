@@ -149,7 +149,9 @@ export const homebrewImageRouter = router({
     }),
 
   /**
-   * Poll job status for progress display
+   * Poll job status for progress display.
+   * Allowed if the caller owns the job OR the job is linked to a scene in a
+   * campaign the caller belongs to (covers co-DM scene-art polling).
    */
   getJobStatus: protectedProcedure
     .input(z.object({ jobId: z.string() }))
@@ -159,6 +161,7 @@ export const homebrewImageRouter = router({
         select: {
           id: true,
           userId: true,
+          sceneId: true,
           status: true,
           progress: true,
           resultUrl: true,
@@ -169,10 +172,30 @@ export const homebrewImageRouter = router({
         },
       });
       if (!job) throw new NotFoundError('generation job', input.jobId);
-      if (job.userId !== ctx.session.user.id) {
-        throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to this job' });
+
+      const isOwner = job.userId === ctx.session.user.id;
+      if (!isOwner) {
+        // Allow campaign members to poll scene art jobs
+        let allowed = false;
+        if (job.sceneId) {
+          const scene = await prisma.scene.findUnique({
+            where: { id: job.sceneId },
+            select: { campaignId: true },
+          });
+          if (scene) {
+            const membership = await prisma.campaignMember.findUnique({
+              where: { campaignId_userId: { campaignId: scene.campaignId, userId: ctx.session.user.id } },
+              select: { id: true },
+            });
+            allowed = !!membership;
+          }
+        }
+        if (!allowed) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'You do not have access to this job' });
+        }
       }
-      const { userId: _, ...safeJob } = job;
+
+      const { userId: _, sceneId: __, ...safeJob } = job;
       return safeJob;
     }),
 
