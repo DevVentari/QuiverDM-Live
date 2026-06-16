@@ -1019,6 +1019,12 @@ model Scene {
   orderIndex      Int      @default(0)
   isPresented     Boolean  @default(false) // currently shown on the player-facing view
   linkedEntityIds Json     @default("[]") // string[] of WorldEntity ids
+  partyPresentIds Json     @default("[]") // string[] of Character ids present
+  suggestedChecks Json     @default("[]") // [{ skill, dc, note }]
+  entityBeats     Json     @default("{}") // { [entityId]: { wantsInScene, secret } }
+  imageJobId      String?               // async scene-art ImageGenerationJob id
+  generatedAt     DateTime?             // null = hand-authored / not AI-generated
+  promptInput     Json?                 // raw form input, replayed by regenerate
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -1562,6 +1568,7 @@ model ImageGenerationJob {
   id           String    @id @default(cuid())
   homebrewId   String?
   npcId        String?
+  sceneId      String?
   userId       String
   prompt       String    @db.Text
   provider     String    @default("auto") // 'comfyui', 'replicate', 'dalle', 'auto'
@@ -1577,6 +1584,7 @@ model ImageGenerationJob {
 
   @@index([homebrewId, userId, status])
   @@index([npcId, userId, status])
+  @@index([sceneId, userId, status])
   @@index([status, createdAt])
   @@index([userId])
 }
