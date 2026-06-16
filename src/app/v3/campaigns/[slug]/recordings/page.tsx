@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { AudioRecorder } from '@/components/session/audio-recorder';
 
 // ---------------------------------------------------------------------------
 // Adapters — typed subsets of the real Prisma shapes returned by the routers.
@@ -14,6 +15,7 @@ interface SessionRow {
   title?: string | null;
   sessionNumber?: number | null;
   date?: string | Date | null;
+  status?: string | null;
   recordings?: { id: string; durationSeconds?: number | null }[] | null;
 }
 
@@ -133,10 +135,12 @@ function formatSegmentTime(start?: number): string {
 // ---------------------------------------------------------------------------
 
 export default function RecordingsPage() {
-  const { campaignId } = useCampaign();
+  const { campaignId, isDM } = useCampaign();
+  const utils = trpc.useUtils();
   const sessions = trpc.sessions.getAll.useQuery({ campaignId }, { staleTime: 60_000 });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [recordingOpen, setRecordingOpen] = useState(false);
 
   const rows = (sessions.data as SessionRow[] | undefined) ?? [];
   // Only sessions that actually have a recording belong in the chronicle.
@@ -145,6 +149,16 @@ export default function RecordingsPage() {
     [rows],
   );
   const selected = recorded.find((s) => s.id === selectedId) ?? recorded[0] ?? null;
+
+  // The session a new recording attaches to: the live one, else the most recent.
+  const targetSession = useMemo(
+    () =>
+      rows.find((s) => s.status === 'in_progress') ??
+      rows.find((s) => s.status === 'planning') ??
+      rows[0] ??
+      null,
+    [rows],
+  );
 
   // Lazily load the selected session's recordings (with transcripts) on demand.
   const detail = trpc.sessionRecordings.getBySessionId.useQuery(
@@ -189,11 +203,60 @@ export default function RecordingsPage() {
           </div>
         </div>
         <span className="flex-1" />
-        {/* TODO: live recording capture — UI placeholder only */}
-        <button className="rounded-qd-md bg-qd-accent px-4 py-2 font-qd-display text-[13px] font-bold text-qd-on-accent">
-          ● Record next session
-        </button>
+        {isDM && (
+          <button
+            onClick={() => setRecordingOpen(true)}
+            disabled={!targetSession}
+            data-testid="record-session"
+            title={targetSession ? `Record into ${titleOf(targetSession)}` : 'Create a session first'}
+            className="rounded-qd-md bg-qd-accent px-4 py-2 font-qd-display text-[13px] font-bold text-qd-on-accent disabled:opacity-50"
+          >
+            ● Record session
+          </button>
+        )}
       </div>
+
+      {/* Capture modal — records into the live (or most recent) session, uploads,
+          and auto-enqueues transcription via sessionRecordings.create. */}
+      {recordingOpen && targetSession && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(0,0,0,0.6)] backdrop-blur-sm"
+          onMouseDown={() => setRecordingOpen(false)}
+        >
+          <div
+            className="w-[min(560px,92vw)] rounded-qd-xl border border-qd-strong bg-qd-card p-5 shadow-qd-card"
+            onMouseDown={(e) => e.stopPropagation()}
+            data-testid="record-modal"
+          >
+            <div className="mb-1 flex items-center gap-3">
+              <div className="font-qd-display text-lg text-qd-ink-strong">Record the session</div>
+              <span className="flex-1" />
+              <button
+                onClick={() => setRecordingOpen(false)}
+                className="rounded-qd-md border border-qd-faint px-2 py-1 font-qd-mono text-[11px] text-qd-ink-muted transition-colors hover:border-qd-strong"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mb-3 font-qd-mono text-[10px] uppercase tracking-[0.1em] text-qd-ink-muted">
+              into {titleOf(targetSession)} · uploaded audio is transcribed automatically
+            </div>
+            <p className="mb-3 text-qd-body-sm text-qd-ink-muted">
+              Recording captures everyone at the table. Make sure your players consent before you begin.
+            </p>
+            <AudioRecorder
+              sessionId={targetSession.id}
+              campaignId={campaignId}
+              onUploadComplete={() => {
+                void utils.sessionRecordings.getBySessionId.invalidate({ sessionId: targetSession.id });
+                void sessions.refetch();
+                setSelectedId(targetSession.id);
+                setRecordingOpen(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="flex min-h-0 flex-1">
         {/* LIST */}
