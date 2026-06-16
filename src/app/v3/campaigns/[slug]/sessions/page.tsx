@@ -24,6 +24,7 @@
 import { useMemo } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { LiveTranscriptPanel } from '@/components/session/v3/LiveTranscriptPanel';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
@@ -447,6 +448,11 @@ export default function SessionsPage() {
               </div>
             )}
           </div>
+
+          {/* LIVE TRANSCRIPT — captions + DM hints while the session is in_progress. */}
+          {current.status === 'in_progress' && sessionId && (
+            <LiveTranscriptPanel campaignId={campaignId} sessionId={sessionId} isLive />
+          )}
 
           <button
             className={`${display} cursor-pointer rounded-[12px] border-none p-3.5 text-[15px] font-bold text-[var(--qd-on-accent)]`}
