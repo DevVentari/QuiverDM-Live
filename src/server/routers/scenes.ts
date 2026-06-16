@@ -153,7 +153,9 @@ export const scenesRouter = router({
 
   update: campaignDMProcedure
     .input(sceneFields.partial().extend({ id: z.string() }))
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
+      const existing = await prisma.scene.findUnique({ where: { id: input.id }, select: { campaignId: true } });
+      if (!existing || existing.campaignId !== input.campaignId) throw new NotFoundError('scene', input.id);
       const { id, campaignId: _campaignId, ...data } = input;
       return prisma.scene.update({ where: { id }, data });
     }),
