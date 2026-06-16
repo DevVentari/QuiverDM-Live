@@ -418,6 +418,8 @@ export default function CampaignSettingsPage() {
           {/* INTEGRATIONS — display-only */}
           <SectionLabel>Integrations</SectionLabel>
           <div className="flex gap-2.5">
+            {/* Session recording + transcription is the real in-app capability
+                (record on the run sheet → AssemblyAI). Honest status, not a mock. */}
             <div
               className="flex flex-1 items-center gap-3 rounded-qd-lg border px-3.5 py-3"
               style={{ borderColor: 'var(--qd-success)', background: 'rgba(95,143,69,.08)' }}
@@ -426,19 +428,21 @@ export default function CampaignSettingsPage() {
                 🎙
               </span>
               <div className="flex-1">
-                <div className="text-qd-body-sm text-qd-ink-2">Discord voice</div>
+                <div className="text-qd-body-sm text-qd-ink-2">Session recording</div>
                 <div className="mt-0.5 font-qd-mono text-[8.5px]" style={{ color: 'var(--qd-success)' }}>
-                  connected · live transcription
+                  in-app capture · live + post-session transcription
                 </div>
               </div>
             </div>
+            {/* Discord here is OUTBOUND recap only (postSummaryToDiscord) — there
+                is no Discord voice ingest, so don't claim "live transcription". */}
             <div className="flex flex-1 items-center gap-3 rounded-qd-lg border border-qd-faint bg-[rgba(255,255,255,0.02)] px-3.5 py-3">
               <span className="grid h-[30px] w-[30px] flex-none place-items-center rounded-qd-md bg-[rgba(255,255,255,0.05)] text-sm">
-                🗺
+                💬
               </span>
               <div className="flex-1">
-                <div className="text-qd-body-sm text-qd-ink-2">VTT export</div>
-                <div className="mt-0.5 font-qd-mono text-[8.5px] text-qd-ink-muted">Roll20 · Foundry</div>
+                <div className="text-qd-body-sm text-qd-ink-2">Discord recap</div>
+                <div className="mt-0.5 font-qd-mono text-[8.5px] text-qd-ink-muted">outbound session summaries</div>
               </div>
               <span className="flex-none font-qd-mono text-[9px] text-qd-accent-text">Connect</span>
             </div>
