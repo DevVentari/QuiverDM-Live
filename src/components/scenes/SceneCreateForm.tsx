@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
-import { SCENE_TYPES, MOOD_LABELS, EMPTY_SCENE_FORM, type SceneFormState, type SceneType } from './scene-types';
+import { SCENE_TYPES, MOOD_LABELS, type SceneFormState, type SceneType } from './scene-types';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
 const lab = `${mono} mb-1.5 block text-[9px] uppercase tracking-wide text-qd-ink-muted`;
@@ -15,22 +14,23 @@ type CampaignCharacterRow = {
 type TaggableEntity = { id: string; name: string; type: string };
 
 export function SceneCreateForm({
-  campaignId, onCreate, onCancel, pending,
+  campaignId, form, onChange, onSubmit, onCancel, pending,
 }: {
   campaignId: string;
-  onCreate: (form: SceneFormState) => void;
+  form: SceneFormState;
+  onChange: (form: SceneFormState) => void;
+  onSubmit: () => void;
   onCancel: () => void;
   pending: boolean;
 }) {
-  const [form, setForm] = useState<SceneFormState>(EMPTY_SCENE_FORM);
   const party = trpc.characters.getCampaignCharacters.useQuery({ campaignId }, { staleTime: 60_000 });
   const entities = trpc.scenes.taggableEntities.useQuery({ campaignId }, { staleTime: 60_000 });
 
   const toggle = (key: 'partyPresentIds' | 'linkedEntityIds', id: string) =>
-    setForm((f) => ({
-      ...f,
-      [key]: f[key].includes(id) ? f[key].filter((x) => x !== id) : [...f[key], id],
-    }));
+    onChange({
+      ...form,
+      [key]: form[key].includes(id) ? form[key].filter((x) => x !== id) : [...form[key], id],
+    });
 
   const canSubmit = form.description.trim().length > 0 && !pending;
 
@@ -42,7 +42,7 @@ export function SceneCreateForm({
       <label className={lab}>Title <span className="lowercase tracking-normal text-qd-ink-faint">— optional</span></label>
       <input
         value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
+        onChange={(e) => onChange({ ...form, title: e.target.value })}
         placeholder="Leave blank — the world will name it"
         className="mb-4 w-full rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-qd-ink placeholder:text-qd-ink-faint focus:border-qd-accent focus:outline-none"
       />
@@ -69,7 +69,7 @@ export function SceneCreateForm({
       <label className={`${lab} mt-4`}>Describe the scene</label>
       <textarea
         value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        onChange={(e) => onChange({ ...form, description: e.target.value })}
         rows={4}
         placeholder="The party reaches the castle gates at dusk. Strahd is watching but won't reveal himself yet…"
         className="mb-4 w-full rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.03)] px-3 py-2 text-sm text-qd-ink placeholder:text-qd-ink-faint focus:border-qd-accent focus:outline-none"
@@ -78,7 +78,7 @@ export function SceneCreateForm({
       <label className={lab}>Mood <span className="lowercase tracking-normal text-qd-ink-faint">— optional, inferred if blank</span></label>
       <ChipRow>
         {SCENE_TYPES.map((t: SceneType) => (
-          <Chip key={t} on={form.mood === t} onClick={() => setForm({ ...form, mood: form.mood === t ? null : t })}>
+          <Chip key={t} on={form.mood === t} onClick={() => onChange({ ...form, mood: form.mood === t ? null : t })}>
             {MOOD_LABELS[t]}
           </Chip>
         ))}
@@ -87,7 +87,7 @@ export function SceneCreateForm({
       <div className="mt-6 flex items-center gap-2.5">
         <button
           disabled={!canSubmit}
-          onClick={() => onCreate(form)}
+          onClick={() => onSubmit()}
           className="rounded-qd-md bg-qd-accent px-5 py-2.5 font-qd-display text-[13px] font-bold text-qd-on-accent disabled:opacity-50"
         >
           ✦ {pending ? 'Setting the stage…' : 'Create scene'}

@@ -7,7 +7,7 @@ import { useCampaign } from '@/components/campaign/campaign-context';
 import { SceneCreateForm } from '@/components/scenes/SceneCreateForm';
 import { SceneLoading } from '@/components/scenes/SceneLoading';
 import { SceneStage } from '@/components/scenes/SceneStage';
-import type { SceneFormState } from '@/components/scenes/scene-types';
+import { EMPTY_SCENE_FORM, type SceneFormState } from '@/components/scenes/scene-types';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
 
@@ -21,12 +21,14 @@ export default function ScenesPage() {
   const scenes = trpc.scenes.list.useQuery({ campaignId }, { staleTime: 30_000 });
   const [phase, setPhase] = useState<Phase>({ kind: 'idle' });
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [form, setForm] = useState<SceneFormState>(EMPTY_SCENE_FORM);
 
   const generate = trpc.scenes.generate.useMutation({
     onSuccess: (scene) => {
       utils.scenes.list.invalidate({ campaignId });
       setSelectedId(scene.id);
       setPhase({ kind: 'stage', id: scene.id });
+      setForm(EMPTY_SCENE_FORM);
     },
     onError: () => setPhase({ kind: 'compose' }),
   });
@@ -57,7 +59,7 @@ export default function ScenesPage() {
         </div>
         <span className="flex-1" />
         {isDM && (
-          <button onClick={() => { setPhase({ kind: 'compose' }); setSelectedId(null); }}
+          <button onClick={() => { setForm(EMPTY_SCENE_FORM); setPhase({ kind: 'compose' }); setSelectedId(null); }}
             className="rounded-qd-md bg-qd-accent px-4 py-2 font-qd-display text-[13px] font-bold text-qd-on-accent">+ New Scene</button>
         )}
       </div>
@@ -88,7 +90,14 @@ export default function ScenesPage() {
             {phase.kind === 'compose' ? (
               <motion.div key="compose" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6">
                 {generate.isError && <p className="mx-auto mb-3 max-w-xl text-qd-body-sm text-qd-danger-bright">The vision wouldn&apos;t hold — try again.</p>}
-                <SceneCreateForm campaignId={campaignId} pending={generate.isPending} onCreate={onCreate} onCancel={() => setPhase({ kind: 'idle' })} />
+                <SceneCreateForm
+                  campaignId={campaignId}
+                  form={form}
+                  onChange={setForm}
+                  pending={generate.isPending}
+                  onSubmit={() => onCreate(form)}
+                  onCancel={() => setPhase({ kind: 'idle' })}
+                />
               </motion.div>
             ) : phase.kind === 'loading' ? (
               <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
