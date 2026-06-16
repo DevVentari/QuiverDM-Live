@@ -7,11 +7,13 @@
  * inspector (HP, conditions, action economy).
  *
  * Wired to live data — the SAME source the v3 combat tracker uses:
- *  - trpc.heartflame.demoBoard → EncounterBoard { name, round, participants[] }
+ *  - trpc.heartflame.getCampaignBoard → the campaign's active EncounterBoard
+ *    { name, round, participants[] } (membership-scoped; null when no encounter).
  *  - trpc.heartflame.setParticipantState → write HP / action economy, re-evaluate.
  *
  * There is NO token position data on participants, so tokens lay out on a
- * deterministic fallback grid.  // TODO: real token x/y positions  // TODO: fog of war.
+ * deterministic fallback grid.  // TODO(net-new model): real token x/y positions
+ * (CombatTokenPosition) and fog-of-war reveal state (FogRegion).
  */
 
 import { useMemo, useState } from 'react';
@@ -110,13 +112,13 @@ function roman(n: number): string {
 }
 
 export default function BattleMapPage() {
-  const { slug, isDM } = useCampaign();
+  const { slug, isDM, campaignId } = useCampaign();
   const utils = trpc.useUtils();
-  const board = trpc.heartflame.demoBoard.useQuery(undefined, { staleTime: 0 });
+  const board = trpc.heartflame.getCampaignBoard.useQuery({ campaignId }, { staleTime: 0 });
 
   const setState = trpc.heartflame.setParticipantState.useMutation({
     onSuccess: () => {
-      utils.heartflame.demoBoard.invalidate();
+      utils.heartflame.getCampaignBoard.invalidate({ campaignId });
     },
   });
 
