@@ -13,6 +13,7 @@
  */
 import { prisma } from '@/lib/prisma';
 import { redis } from '@/lib/redis';
+import { NotFoundError } from '@/server/errors';
 import {
   evaluate,
   primaryNudge,
@@ -153,6 +154,8 @@ const BOARD_PARTICIPANT_SELECT = {
   bonusActionUsed: true,
   reactionUsed: true,
   concentration: true,
+  mapX: true,
+  mapY: true,
 } as const;
 
 export interface BoardParticipant {
@@ -169,6 +172,18 @@ export interface BoardParticipant {
   bonusActionUsed: boolean;
   reactionUsed: boolean;
   concentration: boolean;
+  /** Battle-map token position (% of canvas), null until placed/dragged. */
+  mapX: number | null;
+  mapY: number | null;
+}
+
+/** A persisted fog-of-war rectangle (% coords). */
+export interface FogRegionView {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface EncounterBoard {
@@ -177,6 +192,7 @@ export interface EncounterBoard {
   round: number;
   status: string;
   participants: BoardParticipant[];
+  fogRegions: FogRegionView[];
 }
 
 /**
@@ -214,8 +230,100 @@ export async function getEncounterForBoard(encounterId: string): Promise<Encount
         select: BOARD_PARTICIPANT_SELECT,
         orderBy: { initiative: 'desc' },
       },
+      fogRegions: {
+        select: { id: true, x: true, y: true, width: true, height: true },
+        orderBy: { createdAt: 'asc' },
+      },
     },
   });
+}
+
+/**
+ * Throw unless `userId` is a member of the encounter's campaign. Used by all the
+ * battle-map mutations (token drag, fog paint) which are otherwise gated only to
+ * authenticated users by the router.
+ */
+async function assertEncounterMember(encounterId: string, userId: string): Promise<void> {
+  const ok = await (prisma as any).encounter.findFirst({
+    where: { id: encounterId, session: { campaign: { members: { some: { userId } } } } },
+    select: { id: true },
+  });
+  if (!ok) throw new NotFoundError('encounter', encounterId);
+}
+
+const clampPct = (n: number) => Math.max(0, Math.min(100, n));
+
+/**
+ * Persist a token's battle-map position (% coords). Does NOT re-evaluate nudges —
+ * position has no bearing on the predicate engine, so dragging stays cheap.
+ */
+export async function setTokenPosition(
+  participantId: string,
+  x: number,
+  y: number,
+  userId: string,
+): Promise<{ encounterId: string }> {
+  const p = await (prisma as any).encounterParticipant.findUnique({
+    where: { id: participantId },
+    select: { encounterId: true },
+  });
+  if (!p) throw new NotFoundError('participant', participantId);
+  await assertEncounterMember(p.encounterId, userId);
+  await (prisma as any).encounterParticipant.update({
+    where: { id: participantId },
+    data: { mapX: clampPct(x), mapY: clampPct(y) },
+  });
+  return { encounterId: p.encounterId };
+}
+
+/** Add one hidden fog rectangle to an encounter's battle map. */
+export async function addFogRegion(
+  encounterId: string,
+  region: { x: number; y: number; width: number; height: number },
+  userId: string,
+): Promise<FogRegionView> {
+  await assertEncounterMember(encounterId, userId);
+  const created = await (prisma as any).fogRegion.create({
+    data: {
+      encounterId,
+      x: clampPct(region.x),
+      y: clampPct(region.y),
+      width: clampPct(region.width),
+      height: clampPct(region.height),
+    },
+    select: { id: true, x: true, y: true, width: true, height: true },
+  });
+  return created;
+}
+
+/** Reveal (delete) a single fog region. */
+export async function removeFogRegion(regionId: string, userId: string): Promise<{ ok: true }> {
+  const r = await (prisma as any).fogRegion.findUnique({
+    where: { id: regionId },
+    select: { encounterId: true },
+  });
+  if (r) {
+    await assertEncounterMember(r.encounterId, userId);
+    await (prisma as any).fogRegion.delete({ where: { id: regionId } });
+  }
+  return { ok: true };
+}
+
+/** Cover the whole map: clear existing fog and add one full-canvas region. */
+export async function coverAllFog(encounterId: string, userId: string): Promise<FogRegionView> {
+  await assertEncounterMember(encounterId, userId);
+  await (prisma as any).fogRegion.deleteMany({ where: { encounterId } });
+  return (prisma as any).fogRegion.create({
+    data: { encounterId, x: 0, y: 0, width: 100, height: 100 },
+    select: { id: true, x: true, y: true, width: true, height: true },
+  });
+}
+
+/** Reveal everything: clear all fog regions for the encounter. */
+export async function revealAllFog(encounterId: string, userId: string): Promise<{ ok: true }> {
+  await assertEncounterMember(encounterId, userId);
+  await (prisma as any).fogRegion.deleteMany({ where: { encounterId } });
+  return { ok: true };
 }
 
 export interface ParticipantStatePatch {

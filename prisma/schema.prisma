@@ -949,6 +949,7 @@ model Encounter {
   status       String                 @default("active") // active|complete
   log          Json? // [{round, events: [{participantId, action, value}]}]
   participants EncounterParticipant[]
+  fogRegions   FogRegion[]
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
 
@@ -976,6 +977,29 @@ model EncounterParticipant {
   reactionUsed    Boolean @default(false)
   concentration   Boolean @default(false)
 
+  // Battle-map token position as a percentage of the canvas (0–100). Null until
+  // the DM first places/drags the token; the UI falls back to a deterministic
+  // grid layout while null.
+  mapX Float?
+  mapY Float?
+
+  updatedAt   DateTime  @updatedAt
+
+  @@index([encounterId])
+}
+
+/// A hidden rectangle on a battle map — the persisted fog-of-war state for an
+/// encounter. Coordinates are percentages of the canvas (0–100). Presence means
+/// "covered"; revealing a region deletes it.
+model FogRegion {
+  id          String    @id @default(cuid())
+  encounterId String
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  x           Float
+  y           Float
+  width       Float
+  height      Float
+  createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([encounterId])

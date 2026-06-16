@@ -7,7 +7,19 @@ import {
   getActiveBoardForCampaign,
   getOrCreateDemoBoard,
   setParticipantState,
+  setTokenPosition,
+  addFogRegion,
+  removeFogRegion,
+  coverAllFog,
+  revealAllFog,
 } from '../services/heartflame.service';
+
+const fogRegionInput = z.object({
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+});
 
 const patchSchema = z.object({
   hp: z.number().optional(),
@@ -56,4 +68,28 @@ export const heartflameRouter = router({
   setParticipantState: protectedProcedure
     .input(z.object({ participantId: z.string(), patch: patchSchema }))
     .mutation(({ input }) => setParticipantState(input.participantId, input.patch)),
+
+  // ── Battle map: token positions + fog of war (membership-scoped) ───────────
+
+  setTokenPosition: protectedProcedure
+    .input(z.object({ participantId: z.string(), x: z.number(), y: z.number() }))
+    .mutation(({ input, ctx }) =>
+      setTokenPosition(input.participantId, input.x, input.y, ctx.session.user.id),
+    ),
+
+  addFogRegion: protectedProcedure
+    .input(z.object({ encounterId: z.string(), region: fogRegionInput }))
+    .mutation(({ input, ctx }) => addFogRegion(input.encounterId, input.region, ctx.session.user.id)),
+
+  removeFogRegion: protectedProcedure
+    .input(z.object({ regionId: z.string() }))
+    .mutation(({ input, ctx }) => removeFogRegion(input.regionId, ctx.session.user.id)),
+
+  coverAllFog: protectedProcedure
+    .input(z.object({ encounterId: z.string() }))
+    .mutation(({ input, ctx }) => coverAllFog(input.encounterId, ctx.session.user.id)),
+
+  revealAllFog: protectedProcedure
+    .input(z.object({ encounterId: z.string() }))
+    .mutation(({ input, ctx }) => revealAllFog(input.encounterId, ctx.session.user.id)),
 });
