@@ -78,7 +78,7 @@ The scene surface becomes a **note board**, replacing `SceneStage`'s audience-sp
 
 Prep context is gathered server-side before any AI call and fed into every prompt (seed / draft / suggest):
 
-- **Tagged `WorldEntity`s:** for each, `brainService.getEntitySessionHistory(entityId, campaignId, userId)` → recent `WorldStateChange`s (`triggerText`, `newValue`, `changeType`). This is the entity's cross-session memory.
+- **Tagged `WorldEntity`s:** for each, query recent `WorldStateChange` rows by `entityId` (`triggerText`, `newValue`, `changeType`, `createdAt`) — the entity's cross-session narrative memory. (`brainService.getEntitySessionHistory` returns only *appearances*; the `WorldStateChange` log is the richer source and is queried directly in `gatherSceneContext`.)
 - **Party `Character`s:** `backstory`, `bonds`, `ideals`, `flaws` (a compact slice) so the AI can hook the scene into a PC.
 - **Scene basics:** the DM's description, mood/act, campaign tone.
 
