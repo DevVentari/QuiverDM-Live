@@ -7,8 +7,12 @@ if (!process.env.DATABASE_URL) dotenv.config();
 import { Queue } from 'bullmq';
 import { getRedisConnection } from './queue';
 
+export type MapGenerationTarget =
+  | { kind: 'campaignMap'; id: string }
+  | { kind: 'encounter'; id: string };
+
 export interface MapGenerationJobData {
-  mapId: string;
+  target: MapGenerationTarget;
   campaignId: string;
   prompt: string;
 }
@@ -33,7 +37,6 @@ export const mapGenerationQueue = new Queue<MapGenerationJobData, MapGenerationJ
 );
 
 export async function addMapGenerationJob(data: MapGenerationJobData) {
-  return mapGenerationQueue.add(`map-gen-${data.mapId}`, data, {
-    jobId: `map-gen-${data.mapId}`,
-  });
+  const jobId = `map-gen-${data.target.kind}-${data.target.id}`;
+  return mapGenerationQueue.add(jobId, data, { jobId });
 }
