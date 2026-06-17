@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { protectedProcedure, router } from '../trpc';
+import { addMapGenerationJob } from '@/lib/queue/map-generation-queue';
 import {
   evaluateEncounter,
   getEncounterNudges,
@@ -12,6 +13,8 @@ import {
   removeFogRegion,
   coverAllFog,
   revealAllFog,
+  setEncounterMapBackground,
+  getEncounterCampaignId,
 } from '../services/heartflame.service';
 
 const fogRegionInput = z.object({
@@ -92,4 +95,24 @@ export const heartflameRouter = router({
   revealAllFog: protectedProcedure
     .input(z.object({ encounterId: z.string() }))
     .mutation(({ input, ctx }) => revealAllFog(input.encounterId, ctx.session.user.id)),
+
+  setEncounterMapBackground: protectedProcedure
+    .input(z.object({ encounterId: z.string(), url: z.string().url().nullable() }))
+    .mutation(({ input, ctx }) =>
+      setEncounterMapBackground(input.encounterId, input.url, ctx.session.user.id),
+    ),
+
+  generateEncounterMapBackground: protectedProcedure
+    .input(z.object({ encounterId: z.string(), customPrompt: z.string().max(500).optional() }))
+    .mutation(async ({ input, ctx }) => {
+      const campaignId = await getEncounterCampaignId(input.encounterId, ctx.session.user.id);
+      const prompt = input.customPrompt ??
+        'Top-down D&D battle map, tactical grid-friendly, dramatic lighting, no labels, no text';
+      await addMapGenerationJob({
+        target: { kind: 'encounter', id: input.encounterId },
+        campaignId,
+        prompt,
+      });
+      return { queued: true };
+    }),
 });

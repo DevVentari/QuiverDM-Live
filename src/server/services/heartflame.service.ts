@@ -253,6 +253,16 @@ async function assertEncounterMember(encounterId: string, userId: string): Promi
   if (!ok) throw new NotFoundError('encounter', encounterId);
 }
 
+/** Membership-checked campaignId lookup for an encounter (used by generation enqueue). */
+export async function getEncounterCampaignId(encounterId: string, userId: string): Promise<string> {
+  const row = await (prisma as any).encounter.findFirst({
+    where: { id: encounterId, session: { campaign: { members: { some: { userId } } } } },
+    select: { session: { select: { campaignId: true } } },
+  });
+  if (!row) throw new NotFoundError('encounter', encounterId);
+  return row.session.campaignId as string;
+}
+
 const clampPct = (n: number) => Math.max(0, Math.min(100, n));
 
 /**
@@ -276,6 +286,20 @@ export async function setTokenPosition(
     data: { mapX: x, mapY: y },
   });
   return { encounterId: p.encounterId };
+}
+
+/** Persist (or clear) the battle-map background image for an encounter. */
+export async function setEncounterMapBackground(
+  encounterId: string,
+  url: string | null,
+  userId: string,
+): Promise<{ encounterId: string }> {
+  await assertEncounterMember(encounterId, userId);
+  await (prisma as any).encounter.update({
+    where: { id: encounterId },
+    data: { mapImageUrl: url },
+  });
+  return { encounterId };
 }
 
 /** Add one hidden fog rectangle to an encounter's battle map. */
