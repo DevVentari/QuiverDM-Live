@@ -6,7 +6,7 @@ import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { SceneCreateForm } from '@/components/scenes/SceneCreateForm';
 import { SceneLoading } from '@/components/scenes/SceneLoading';
-import { SceneStage } from '@/components/scenes/SceneStage';
+import { NoteBoard } from '@/components/scenes/NoteBoard';
 import { EMPTY_SCENE_FORM, type SceneFormState } from '@/components/scenes/scene-types';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
@@ -105,7 +105,7 @@ export default function ScenesPage() {
               </motion.div>
             ) : stageId ? (
               <motion.div key={stageId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <SceneStage campaignId={campaignId} sceneId={stageId} />
+                <NoteBoard campaignId={campaignId} sceneId={stageId} />
               </motion.div>
             ) : (
               <p key="empty" className="p-6 text-qd-ink-muted">Choose a scene, or set a new one.</p>
