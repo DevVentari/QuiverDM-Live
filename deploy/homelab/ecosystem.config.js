@@ -58,6 +58,9 @@ module.exports = {
     worker('worker-obsidian',         'src/lib/queue/obsidian-import-worker.ts'),
     worker('worker-meili-sync',       'src/lib/queue/meili-sync-worker.ts'),
 
+    // --- Discord voice bot (records the table per-speaker → multi-track merge) ---
+    worker('discord-voice-bot',       'src/server/discord-voice-bot.ts'),
+
     // --- WebSocket server ---
     {
       name: 'ws-server',

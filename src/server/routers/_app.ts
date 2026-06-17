@@ -44,6 +44,7 @@ import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
 import { multiTrackUploadRouter } from './multi-track-upload';
 import { speakerMappingRouter } from './speaker-mapping';
+import { discordVoiceRouter } from './discord-voice';
 import { recapRouter } from './recap';
 import { campaignContextRouter } from './campaign-context';
 import { worldMapRouter } from './world-map';
@@ -113,6 +114,7 @@ export const appRouter = router({
   npcBehaviorProfiles: npcBehaviorProfilesRouter,
   heartflame: heartflameRouter,
   scenes: scenesRouter,
+  discordVoice: discordVoiceRouter,
 });
 
 export type AppRouter = typeof appRouter;

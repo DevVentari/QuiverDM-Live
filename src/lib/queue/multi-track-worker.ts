@@ -19,7 +19,10 @@ import {
   getCampaignWordBoost,
 } from '../transcription/assemblyai';
 import { getSignedUrl, isLocalStorage } from '../storage';
+import { transcribeWithWhisperX, type WhisperXOptions } from '../transcription/whisperx';
 import * as path from 'path';
+import { promises as fsp } from 'fs';
+import * as os from 'os';
 import { mergeTranscripts, segmentsToText, type TrackInput } from '../recap/transcript-merger';
 import {
   broadcastMultiTrackProgress,
@@ -55,10 +58,30 @@ async function resolveAudioUrl(originalUrl: string): Promise<string> {
   return getSignedUrl(key, 3600);
 }
 
+type TrackTranscription = {
+  words: Array<{ text: string; start: number; end: number }>;
+  durationMs: number;
+};
+
+type TrackRecording = { id: string; originalUrl: string; speakerTag: string | null };
+
+// Batch STT provider — local WhisperX by default (free, on the homelab GPU);
+// AssemblyAI kept as a cloud fallback. Mirrors STT_REALTIME_PROVIDER for the live path.
+const MULTITRACK_STT = (process.env.MULTITRACK_STT ?? 'whisperx').toLowerCase();
+
 async function transcribeTrack(
-  recording: { id: string; originalUrl: string; speakerTag: string | null },
+  recording: TrackRecording,
   wordBoost: string[]
-): Promise<{ words: Array<{ text: string; start: number; end: number }>; durationMs: number }> {
+): Promise<TrackTranscription> {
+  return MULTITRACK_STT === 'assemblyai'
+    ? transcribeTrackAssemblyAI(recording, wordBoost)
+    : transcribeTrackWhisperX(recording);
+}
+
+async function transcribeTrackAssemblyAI(
+  recording: TrackRecording,
+  wordBoost: string[]
+): Promise<TrackTranscription> {
   const audioUrl = await resolveAudioUrl(recording.originalUrl);
 
   const assemblyaiId = await submitAsyncTranscription({
@@ -95,9 +118,52 @@ async function transcribeTrack(
     end: Math.round(seg.end * 1000),
   }));
 
-  const durationMs = result.duration * 1000;
+  return { words, durationMs: result.duration * 1000 };
+}
 
-  return { words, durationMs };
+/**
+ * Local WhisperX path. Each track is a single speaker, so we skip diarization —
+ * speaker identity comes from the track's resolved `speakerTag` at merge time.
+ * WhisperX runs a Python subprocess against a local file and writes JSON beside it,
+ * so R2-backed tracks are downloaded to a temp file first (and cleaned up after).
+ */
+async function transcribeTrackWhisperX(recording: TrackRecording): Promise<TrackTranscription> {
+  const resolved = await resolveAudioUrl(recording.originalUrl);
+  let localPath = resolved;
+  let isTemp = false;
+
+  if (/^https?:\/\//i.test(resolved)) {
+    const res = await fetch(resolved);
+    if (!res.ok) {
+      throw new Error(`Failed to download track ${recording.id}: HTTP ${res.status}`);
+    }
+    const buf = Buffer.from(await res.arrayBuffer());
+    const ext = path.extname(new URL(resolved).pathname) || '.audio';
+    localPath = path.join(os.tmpdir(), `qdm-track-${recording.id}${ext}`);
+    await fsp.writeFile(localPath, buf);
+    isTemp = true;
+  }
+
+  try {
+    const result = await transcribeWithWhisperX(localPath, {
+      modelSize: (process.env.WHISPERX_MODEL as WhisperXOptions['modelSize']) ?? 'medium',
+      device: (process.env.WHISPERX_DEVICE as WhisperXOptions['device']) ?? 'cuda',
+    });
+    if (!result.success) {
+      throw new Error(`WhisperX failed for recording ${recording.id}: ${result.error ?? 'unknown'}`);
+    }
+
+    // TranscriptionSegment.start/end are in SECONDS — convert to ms for the merger.
+    const words = result.segments.map((seg) => ({
+      text: seg.text.trim(),
+      start: Math.round(seg.start * 1000),
+      end: Math.round(seg.end * 1000),
+    }));
+
+    return { words, durationMs: result.duration * 1000 };
+  } finally {
+    if (isTemp) await fsp.rm(localPath, { force: true }).catch(() => {});
+  }
 }
 
 async function processMultiTrack(
