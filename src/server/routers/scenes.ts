@@ -6,10 +6,22 @@ import { generateScene } from '@/lib/ai/generate-scene';
 import {
   gatherSceneContext,
   applyRegeneration,
+  primaryReadAloud,
   type RegenSection,
 } from '../services/scene-generation.service';
 import { addImageGenerationJob } from '@/lib/queue/image-generation-queue';
 import { NotFoundError } from '../errors';
+
+const noteOrder = { orderBy: [{ orderIndex: 'asc' as const }, { createdAt: 'asc' as const }] };
+
+/** Recompute Scene.description from the primary read-aloud note (denormalised mirror). */
+async function syncReadAloudMirror(sceneId: string) {
+  const notes = await prisma.sceneNote.findMany({
+    where: { sceneId }, select: { type: true, body: true, orderIndex: true, createdAt: true },
+  });
+  const body = primaryReadAloud(notes);
+  await prisma.scene.update({ where: { id: sceneId }, data: { description: body ?? '' } });
+}
 
 const sceneFields = z.object({
   title: z.string().min(1).max(160),
@@ -66,7 +78,7 @@ export const scenesRouter = router({
   getStage: campaignMemberProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input }) => {
-      const scene = await prisma.scene.findUnique({ where: { id: input.id } });
+      const scene = await prisma.scene.findUnique({ where: { id: input.id }, include: { notes: noteOrder } });
       if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.id);
       const entityIds = (scene.linkedEntityIds as string[]) ?? [];
       const partyIds = (scene.partyPresentIds as string[]) ?? [];
@@ -186,5 +198,61 @@ export const scenesRouter = router({
       const scene = await prisma.scene.findUnique({ where: { id: input.id }, select: { campaignId: true } });
       if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.id);
       return prisma.scene.delete({ where: { id: input.id } });
+    }),
+
+  notesCreate: campaignDMProcedure
+    .input(z.object({
+      sceneId: z.string(),
+      type: z.enum(['read_aloud', 'tactic', 'secret', 'check', 'lore', 'trigger']),
+      title: z.string().max(120).optional(),
+      body: z.string().min(1).max(2000),
+      data: z.any().optional(),
+      source: z.enum(['manual', 'ai', 'ai_suggested']).default('manual'),
+    }))
+    .mutation(async ({ input }) => {
+      const scene = await prisma.scene.findUnique({ where: { id: input.sceneId }, select: { campaignId: true } });
+      if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.sceneId);
+      const max = await prisma.sceneNote.aggregate({ where: { sceneId: input.sceneId }, _max: { orderIndex: true } });
+      const note = await prisma.sceneNote.create({ data: {
+        sceneId: input.sceneId, type: input.type, title: input.title, body: input.body,
+        data: (input.data ?? undefined) as Prisma.InputJsonValue, source: input.source,
+        orderIndex: (max._max.orderIndex ?? -1) + 1,
+      } });
+      if (input.type === 'read_aloud') await syncReadAloudMirror(input.sceneId);
+      return note;
+    }),
+
+  notesUpdate: campaignDMProcedure
+    .input(z.object({ id: z.string(), title: z.string().max(120).nullish(), body: z.string().min(1).max(2000).optional(), data: z.any().optional() }))
+    .mutation(async ({ input }) => {
+      const existing = await prisma.sceneNote.findUnique({ where: { id: input.id }, select: { sceneId: true, type: true, scene: { select: { campaignId: true } } } });
+      if (!existing || existing.scene.campaignId !== input.campaignId) throw new NotFoundError('note', input.id);
+      const note = await prisma.sceneNote.update({ where: { id: input.id }, data: {
+        title: input.title === null ? null : input.title, body: input.body,
+        data: input.data === undefined ? undefined : ((input.data ?? undefined) as Prisma.InputJsonValue),
+      } });
+      if (existing.type === 'read_aloud') await syncReadAloudMirror(existing.sceneId);
+      return note;
+    }),
+
+  notesDelete: campaignDMProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input }) => {
+      const existing = await prisma.sceneNote.findUnique({ where: { id: input.id }, select: { sceneId: true, type: true, scene: { select: { campaignId: true } } } });
+      if (!existing || existing.scene.campaignId !== input.campaignId) throw new NotFoundError('note', input.id);
+      await prisma.sceneNote.delete({ where: { id: input.id } });
+      if (existing.type === 'read_aloud') await syncReadAloudMirror(existing.sceneId);
+      return { ok: true };
+    }),
+
+  notesReorder: campaignDMProcedure
+    .input(z.object({ sceneId: z.string(), orderedIds: z.array(z.string()) }))
+    .mutation(async ({ input }) => {
+      const scene = await prisma.scene.findUnique({ where: { id: input.sceneId }, select: { campaignId: true } });
+      if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.sceneId);
+      await prisma.$transaction(input.orderedIds.map((id, i) =>
+        prisma.sceneNote.update({ where: { id }, data: { orderIndex: i } })));
+      await syncReadAloudMirror(input.sceneId);
+      return { ok: true };
     }),
 });
