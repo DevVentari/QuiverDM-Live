@@ -15,6 +15,10 @@ describe('rollTarokka', () => {
     expect(a).toEqual(b);
   });
 
+  it('produces different readings for different seeds', () => {
+    expect(rollTarokka('seed-1')).not.toEqual(rollTarokka('seed-2'));
+  });
+
   it('resolves every draw to a value from its table', () => {
     const r = rollTarokka('seed-xyz');
     const artifacts = new Set(ARTIFACT_LOCATIONS.map((c) => c.resolution));

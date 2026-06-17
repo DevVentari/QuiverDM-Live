@@ -23,11 +23,15 @@ const LABELS: Record<TarokkaSlot, string> = {
   strahd: "Strahd's final stand",
 };
 
-/** Draw without replacement from a table using the rng. */
-function drawUnique(rng: () => number, table: readonly CardEntry[], used: Set<string>): CardEntry {
+/**
+ * Draw without replacement from a table. The optional `used` set tracks
+ * resolutions already drawn (shared across the three artifact draws). A depleted
+ * pool is a programming error — fail fast rather than silently re-drawing a dupe.
+ */
+function drawUnique(rng: () => number, table: readonly CardEntry[], used = new Set<string>()): CardEntry {
   const available = table.filter((c) => !used.has(c.resolution));
-  const pool = available.length ? available : table; // fall back if exhausted
-  const choice = pool[Math.floor(rng() * pool.length)]!;
+  if (available.length === 0) throw new Error('drawUnique: pool exhausted');
+  const choice = available[Math.floor(rng() * available.length)]!;
   used.add(choice.resolution);
   return choice;
 }
@@ -35,12 +39,14 @@ function drawUnique(rng: () => number, table: readonly CardEntry[], used: Set<st
 /** Roll Madam Eva's five-card reading. Seed defaults to the campaign id at the call site. */
 export function rollTarokka(seed: string): TarokkaReading {
   const rng = makeRng(seed);
+  // The three artifacts share one used-set so no two hide in the same location.
   const usedArtifactLocs = new Set<string>();
   const tome = drawUnique(rng, ARTIFACT_LOCATIONS, usedArtifactLocs);
   const holySymbol = drawUnique(rng, ARTIFACT_LOCATIONS, usedArtifactLocs);
   const sunsword = drawUnique(rng, ARTIFACT_LOCATIONS, usedArtifactLocs);
-  const ally = drawUnique(rng, ALLY_TABLE, new Set());
-  const strahd = drawUnique(rng, STRAHD_TABLE, new Set());
+  // Ally and Strahd draw from their own tables independently.
+  const ally = drawUnique(rng, ALLY_TABLE);
+  const strahd = drawUnique(rng, STRAHD_TABLE);
 
   const mk = (slot: TarokkaSlot, c: CardEntry): TarokkaDraw => ({
     slot, label: LABELS[slot], card: c.card, location: c.resolution,
