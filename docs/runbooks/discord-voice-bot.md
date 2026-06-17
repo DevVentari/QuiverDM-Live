@@ -86,7 +86,24 @@ On start it logs `listening for control messages on "discord-voice-control"`.
 - **Deafened/muted users** aren't captured (Discord doesn't forward their audio).
 - **Unknown speakers** (no linked Discord account) fall back to "Speaker N"; the DM
   can still remap them later via the existing speaker-mapping UI.
-- **Realtime captions** (live, during play) are Phase 2 (A3 hybrid) — not this runbook.
+
+## Live captions (Phase 2, A3 hybrid)
+
+When recording starts, the bot also opens a **live-caption feed**: it mints a
+live-session token for the campaign owner, connects to the WS server
+(`WS_INTERNAL_URL`, default `ws://localhost:3004`) as a client, and forwards a
+16 kHz copy of each speaker's audio. Captions surface on the run sheet's
+`LiveTranscriptPanel` exactly as the browser-mic path does.
+
+- The live session is started with **`deferSave: true`**, so stopping it does **not**
+  write a transcript — the authoritative transcript is the per-track merge.
+- Captions are **forward-as-arrives** (not true mixed audio): overlapping speech can
+  garble the ephemeral captions, but never the saved per-track transcript. True
+  sample-mixing is a follow-up.
+- The feed is **best-effort** — if the WS server is unreachable, recording continues
+  without captions.
+- Verify: with the bot recording and the run sheet open, captions appear within ~1–2 s;
+  on stop, exactly **one** transcript is written (from the merge), not two.
 
 ## Related code
 

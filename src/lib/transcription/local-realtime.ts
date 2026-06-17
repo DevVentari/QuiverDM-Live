@@ -100,7 +100,7 @@ function int16BufferToFloat32(chunk: Buffer): Float32Array {
  * speech energy sits well below the Nyquist limit, so naive linear resampling is
  * adequate for STT (an anti-aliased polyphase filter would be overkill here).
  */
-function resampleLinear(input: Float32Array, fromRate: number, toRate: number): Float32Array {
+export function resampleLinear(input: Float32Array, fromRate: number, toRate: number): Float32Array {
   if (fromRate === toRate || input.length === 0) return input;
   const ratio = fromRate / toRate;
   const outLength = Math.floor(input.length / ratio);

@@ -31,6 +31,8 @@ interface LiveSession {
   startedAt: Date;
   sampleRate: number;
   lastPromptGeneratedAt: number;
+  /** A3 hybrid: skip the transcript save on stop (the per-track merge is authoritative). */
+  deferSave: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -49,6 +51,7 @@ class LiveSessionManager {
     dmUserId: string;
     sampleRate?: number;
     wordBoost?: string[];
+    deferSave?: boolean;
   }): Promise<void> {
     if (this.sessions.has(params.sessionId)) {
       throw new Error(`Live session already active for ${params.sessionId}`);
@@ -67,6 +70,7 @@ class LiveSessionManager {
       startedAt: new Date(),
       sampleRate,
       lastPromptGeneratedAt: 0,
+      deferSave: params.deferSave ?? false,
     };
 
     // Create the real-time transcriber (local WhisperLive or AssemblyAI per env)
@@ -203,8 +207,12 @@ class LiveSessionManager {
 
     let transcriptId: string | null = null;
 
-    // Save accumulated transcript if we have content
-    if (session.accumulatedText.trim()) {
+    // A3 hybrid: when the Discord bot drives this session, the captions are
+    // ephemeral — the authoritative transcript comes from the per-track merge.
+    // Skip the single-stream save so we don't write a second (worse) transcript.
+    if (session.deferSave) {
+      console.log(`[LiveSession ${sessionId}] Save deferred to multi-track merge`);
+    } else if (session.accumulatedText.trim()) {
       const duration = (Date.now() - session.startedAt.getTime()) / 1000;
 
       const result: TranscriptionResult = {

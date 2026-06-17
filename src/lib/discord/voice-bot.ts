@@ -29,9 +29,12 @@ import { promises as fsp, createWriteStream, type WriteStream } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { randomUUID } from 'node:crypto';
+import { WebSocket as WsClient } from 'ws';
 import { prisma } from '@/lib/prisma';
 import { storage } from '@/lib/storage';
 import { addMultiTrackJob } from '@/lib/queue/multi-track-queue';
+import { mintLiveSessionToken } from '@/lib/live/ws-token';
+import { resampleLinear } from '@/lib/transcription/local-realtime';
 import { resolveDiscordVoiceToCharacter } from './identity';
 
 export const VOICE_CONTROL_CHANNEL = 'discord-voice-control';
@@ -62,7 +65,12 @@ interface ActiveRecording {
   uploadGroupId: string;
   connection: VoiceConnection;
   tracks: Map<string, UserTrack>;
+  /** A3 hybrid: live-caption feed to the WS server (mixed/forwarded), or null. */
+  liveWs: WsClient | null;
 }
+
+/** Sample rate of the live-caption feed sent to the WS server (STT-native). */
+const LIVE_SAMPLE_RATE = 16_000;
 
 const recordings = new Map<string, ActiveRecording>();
 
@@ -128,6 +136,20 @@ function wavHeader(dataLength: number, sampleRate = DISCORD_SAMPLE_RATE): Buffer
   return buf;
 }
 
+/** Mono s16le @ 48 kHz → mono s16le @ 16 kHz for the live caption feed. */
+function downsampleTo16k(mono48: Buffer): Buffer {
+  const n = Math.floor(mono48.length / 2);
+  const f32 = new Float32Array(n);
+  for (let i = 0; i < n; i++) f32[i] = mono48.readInt16LE(i * 2) / 0x8000;
+  const out = resampleLinear(f32, DISCORD_SAMPLE_RATE, LIVE_SAMPLE_RATE);
+  const buf = Buffer.alloc(out.length * 2);
+  for (let i = 0; i < out.length; i++) {
+    const s = Math.max(-1, Math.min(1, out[i]));
+    buf.writeInt16LE(s < 0 ? s * 0x8000 : s * 0x7fff, i * 2);
+  }
+  return buf;
+}
+
 // ---------------------------------------------------------------------------
 // Consent
 // ---------------------------------------------------------------------------
@@ -179,7 +201,19 @@ function subscribeToSpeaker(rec: ActiveRecording, discordUserId: string): void {
   const decoder = new prism.opus.Decoder({ rate: DISCORD_SAMPLE_RATE, channels: 2, frameSize: 960 });
 
   decoder.on('data', (chunk: Buffer) => {
-    track.stream.write(downmixStereoToMono(chunk));
+    const mono = downmixStereoToMono(chunk);
+    // Record: full-quality 48 kHz mono to the per-user track (authoritative).
+    track.stream.write(mono);
+    // Live captions (A3): forward a 16 kHz copy to the WS server. Tracks are
+    // forwarded as they arrive — overlapping speech may garble the ephemeral
+    // captions, but the saved transcript comes from the per-track merge.
+    if (rec.liveWs && rec.liveWs.readyState === WsClient.OPEN) {
+      try {
+        rec.liveWs.send(downsampleTo16k(mono));
+      } catch {
+        /* live feed is best-effort */
+      }
+    }
   });
   const done = () => {
     track.subscribed = false;
@@ -187,6 +221,42 @@ function subscribeToSpeaker(rec: ActiveRecording, discordUserId: string): void {
   opusStream.on('end', done);
   opusStream.on('error', done);
   opusStream.pipe(decoder as unknown as NodeJS.WritableStream);
+}
+
+/**
+ * Open the live-caption feed: mint a token for the campaign owner, connect to
+ * the WS server as a client, and start a deferred-save live session. Best-effort
+ * — if the WS server is unreachable, recording continues without live captions.
+ */
+async function connectLiveFeed(rec: ActiveRecording): Promise<void> {
+  try {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: rec.campaignId },
+      select: { userId: true },
+    });
+    if (!campaign?.userId) return;
+
+    const token = await mintLiveSessionToken({
+      sessionId: rec.sessionId,
+      campaignId: rec.campaignId,
+      userId: campaign.userId,
+      sampleRate: LIVE_SAMPLE_RATE,
+      deferSave: true, // the per-track merge is authoritative
+    });
+
+    const url = process.env.WS_INTERNAL_URL ?? process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3004';
+    const ws = new WsClient(url);
+    ws.binaryType = 'arraybuffer';
+    ws.on('open', () => {
+      ws.send(
+        JSON.stringify({ type: 'join_live_session', sessionId: rec.sessionId, token, sampleRate: LIVE_SAMPLE_RATE })
+      );
+    });
+    ws.on('error', (err: Error) => console.warn('[VoiceBot] live feed error:', err.message));
+    rec.liveWs = ws;
+  } catch (err) {
+    console.warn('[VoiceBot] could not open live caption feed:', err);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -223,8 +293,12 @@ export async function startRecording(msg: VoiceControlMessage): Promise<void> {
     uploadGroupId: randomUUID(),
     connection,
     tracks: new Map(),
+    liveWs: null,
   };
   recordings.set(msg.sessionId, rec);
+
+  // A3 hybrid: open the live-caption feed (best-effort) alongside recording.
+  await connectLiveFeed(rec);
 
   connection.receiver.speaking.on('start', (userId: string) => {
     try {
@@ -248,6 +322,19 @@ export async function stopRecording(sessionId: string): Promise<void> {
     return;
   }
   recordings.delete(sessionId);
+
+  // Stop the live-caption feed (deferred save → no transcript written here).
+  if (rec.liveWs) {
+    try {
+      if (rec.liveWs.readyState === WsClient.OPEN) {
+        rec.liveWs.send(JSON.stringify({ type: 'stop_live', sessionId }));
+      }
+      rec.liveWs.close();
+    } catch {
+      /* ignore */
+    }
+    rec.liveWs = null;
+  }
 
   // Tear down the voice connection first so no more audio arrives.
   try {

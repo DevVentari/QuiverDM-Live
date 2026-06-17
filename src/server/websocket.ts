@@ -82,6 +82,9 @@ type LiveSessionTokenPayload = {
   sessionId: string;
   campaignId: string;
   sampleRate?: number;
+  /** A3 hybrid: when set, don't persist a transcript on stop (the Discord bot's
+      per-track merge is authoritative). */
+  deferSave?: boolean;
 };
 
 type LiveSessionManager = {
@@ -91,6 +94,7 @@ type LiveSessionManager = {
     campaignId: string;
     dmUserId: string;
     sampleRate: number;
+    deferSave?: boolean;
   }) => Promise<unknown>;
   sendAudio: (sessionId: string, audio: Buffer) => Promise<unknown> | unknown;
   removeClient: (ws: WebSocket) => void;
@@ -285,6 +289,7 @@ async function handleJoinLiveSession(ws: WebSocket, message: JoinLiveMessage) {
         campaignId: payload.campaignId,
         dmUserId: payload.userId,
         sampleRate: message.sampleRate ?? payload.sampleRate ?? 16000,
+        deferSave: payload.deferSave,
       });
       sendJSON(ws, { type: 'live_session_started', sessionId });
     }
