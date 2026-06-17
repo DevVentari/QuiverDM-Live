@@ -45,8 +45,19 @@ test.describe('v3 — maps (real encounter + real locations)', () => {
 
     // A real LOCATION world-entity for the world map (unique on campaign+name+type).
     await prisma.worldEntity.deleteMany({ where: { campaignId: campaign.id, type: 'LOCATION' } });
-    await prisma.worldEntity.create({
+    const location = await prisma.worldEntity.create({
       data: { campaignId: campaign.id, type: 'LOCATION', name: LOCATION_NAME, description: 'A goblin warren in the Neverwinter Wood.', status: 'active', properties: {} },
+    });
+
+    // The location must be PINNED on a root map for a React Flow node to exist
+    // (VttCanvas renders pins, not bare entities). Seed the root map + pin so the
+    // drag has a target.
+    await prisma.campaignMap.deleteMany({ where: { campaignId: campaign.id } });
+    const map = await prisma.campaignMap.create({
+      data: { campaignId: campaign.id, name: 'Faerûn', backgroundType: 'BLANK' },
+    });
+    await prisma.mapPin.create({
+      data: { mapId: map.id, entityId: location.id, x: 120, y: 90 },
     });
   });
 
@@ -72,5 +83,21 @@ test.describe('v3 — maps (real encounter + real locations)', () => {
       await expect(page.getByText(LOCATION_NAME).first()).toBeVisible({ timeout: 12_000 });
       await expect(page.locator('body')).not.toContainText(NO_CRASH);
     }, 25_000);
+
+    await checkpoint(testInfo, 'world-map-pin-persists', async () => {
+      const node = page.locator('.react-flow__node').first();
+      await expect(node).toBeVisible({ timeout: 8_000 });
+      const box = await node.boundingBox();
+      if (!box) throw new Error('no node box');
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + 140, box.y + 90, { steps: 8 });
+      await page.mouse.up();
+      await expect.poll(async () => {
+        const campaign = await prisma.campaign.findUnique({ where: { slug: SLUG }, select: { id: true } });
+        const pins = await prisma.mapPin.count({ where: { map: { campaignId: campaign!.id } } });
+        return pins;
+      }, { timeout: 8_000 }).toBeGreaterThan(0);
+    }, 20_000);
   });
 });
