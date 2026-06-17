@@ -50,6 +50,7 @@ module.exports = {
     worker('worker-ddb-chapter',      'src/lib/queue/ddb-chapter-extract-worker.ts'),
     worker('worker-ddb-review',       'src/lib/queue/ddb-sync-review-worker.ts'),
     worker('worker-sourcebook',       'src/lib/queue/sourcebook-scene-extraction-worker.ts'),
+    worker('worker-session0-prep',    'src/lib/queue/session0-prep-worker.ts'),
 
     // --- Infra ---
     worker('worker-session-events',   'src/lib/queue/session-events-worker.ts'),

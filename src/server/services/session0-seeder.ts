@@ -85,19 +85,14 @@ export async function seedSession0(input: SeedSession0Input): Promise<SeedSessio
     });
     scenesCreated++;
 
-    // Durable campaign spine as PrepSecret rows (upsert by name within campaign).
-    for (const s of tarokkaToSecrets(reading)) {
-      const existing = await prisma.prepSecret.findFirst({
-        where: { campaignId, name: s.name }, select: { id: true },
-      });
-      if (existing) {
-        await prisma.prepSecret.update({ where: { id: existing.id }, data: { content: s.content, sessionId } });
-      } else {
-        await prisma.prepSecret.create({
-          data: { campaignId, sessionId, name: s.name, content: s.content, isRevealed: false },
-        });
-      }
-    }
+    // Durable campaign spine as PrepSecret rows. Clear this session's prior
+    // tarokka secrets first, then recreate — keeps re-seeding idempotent and
+    // avoids duplicate rows on a re-link race (there is no unique constraint).
+    const secrets = tarokkaToSecrets(reading);
+    await prisma.prepSecret.deleteMany({ where: { campaignId, sessionId } });
+    await prisma.prepSecret.createMany({
+      data: secrets.map((s) => ({ campaignId, sessionId, name: s.name, content: s.content, isRevealed: false })),
+    });
     tarokka = true;
   }
 

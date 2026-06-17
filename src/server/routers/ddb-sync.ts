@@ -130,7 +130,7 @@ export const ddbSyncRouter = router({
 
       const sourcebook = await prisma.ddbSourcebook.findUnique({
         where: { id: input.sourcebookId },
-        select: { userId: true },
+        select: { userId: true, slug: true, title: true },
       });
       if (!sourcebook || (sourcebook.userId !== null && sourcebook.userId !== ctx.session.user.id)) {
         throw new TRPCError({ code: 'NOT_FOUND' });
@@ -156,10 +156,6 @@ export const ddbSyncRouter = router({
         select: { id: true },
       });
       if (session0) {
-        const sourcebookRecord = await prisma.ddbSourcebook.findUnique({
-          where: { id: input.sourcebookId },
-          select: { title: true, slug: true },
-        });
         const campaign = await prisma.campaign.findUnique({
           where: { id: input.campaignId },
           select: { name: true },
@@ -172,8 +168,8 @@ export const ddbSyncRouter = router({
           sessionId: session0.id,
           campaignId: input.campaignId,
           sourcebookId: input.sourcebookId,
-          sourcebookSlug: sourcebookRecord?.slug ?? '',
-          sourcebookTitle: sourcebookRecord?.title ?? 'Unknown Sourcebook',
+          sourcebookSlug: sourcebook.slug,
+          sourcebookTitle: sourcebook.title,
           campaignName: campaign?.name ?? 'Unknown Campaign',
         });
       }
