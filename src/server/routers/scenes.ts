@@ -9,6 +9,7 @@ import {
   primaryReadAloud,
   type RegenSection,
 } from '../services/scene-generation.service';
+import { seedSceneNotes, draftNote, suggestNotes, refineNote } from '@/lib/ai/scene-notes';
 import { addImageGenerationJob } from '@/lib/queue/image-generation-queue';
 import { NotFoundError } from '../errors';
 
@@ -59,6 +60,23 @@ async function enqueueSceneArt(args: { sceneId: string; userId: string; title: s
   return job.id;
 }
 
+function deriveTitle(intent: string): string {
+  const s = intent.trim().replace(/\s+/g, ' ');
+  return s.length <= 60 ? s : s.slice(0, 57) + '…';
+}
+
+async function contextForScene(campaignId: string, promptInput: unknown) {
+  const p = (promptInput && typeof promptInput === 'object' && !Array.isArray(promptInput) ? promptInput : {}) as {
+    intent?: string; mood?: string; linkedEntityIds?: string[]; partyPresentIds?: string[];
+  };
+  return gatherSceneContext(campaignId, {
+    intent: typeof p.intent === 'string' ? p.intent : '',
+    mood: (['rp','description','tavern','battle','theatre'] as const).includes(p.mood as never) ? (p.mood as never) : undefined,
+    linkedEntityIds: Array.isArray(p.linkedEntityIds) ? p.linkedEntityIds : [],
+    partyPresentIds: Array.isArray(p.partyPresentIds) ? p.partyPresentIds : [],
+  });
+}
+
 export const scenesRouter = router({
   list: campaignMemberProcedure.query(({ input }) =>
     prisma.scene.findMany({
@@ -104,36 +122,25 @@ export const scenesRouter = router({
     .input(generateInput)
     .mutation(async ({ input, ctx }) => {
       const context = await gatherSceneContext(input.campaignId, {
-        intent: input.description,
-        mood: input.type,
-        linkedEntityIds: input.linkedEntityIds,
-        partyPresentIds: input.partyPresentIds,
+        intent: input.description, mood: input.type,
+        linkedEntityIds: input.linkedEntityIds, partyPresentIds: input.partyPresentIds,
       });
-      const gen = await generateScene(context, { userId: ctx.session.user.id });
+      const notes = await seedSceneNotes(context);
+      const title = input.title?.trim() || deriveTitle(input.description);
+      const readAloud = notes.find((n) => n.type === 'read_aloud')?.body ?? '';
 
-      const scene = await prisma.scene.create({
-        data: {
-          campaignId: input.campaignId,
-          title: input.title?.trim() || gen.title,
-          type: gen.type,
-          description: gen.readAloud,
-          dmNotes: gen.dmNotes,
-          musicCue: gen.musicCue,
-          linkedEntityIds: input.linkedEntityIds as Prisma.InputJsonValue,
-          partyPresentIds: input.partyPresentIds as Prisma.InputJsonValue,
-          suggestedChecks: gen.suggestedChecks as Prisma.InputJsonValue,
-          entityBeats: gen.entityBeats as Prisma.InputJsonValue,
-          generatedAt: new Date(),
-          promptInput: {
-            intent: input.description, mood: input.type ?? null,
-            linkedEntityIds: input.linkedEntityIds, partyPresentIds: input.partyPresentIds,
-          } as Prisma.InputJsonValue,
-        },
-      });
+      const scene = await prisma.scene.create({ data: {
+        campaignId: input.campaignId, title, type: input.type ?? 'rp',
+        description: readAloud,
+        linkedEntityIds: input.linkedEntityIds as Prisma.InputJsonValue,
+        partyPresentIds: input.partyPresentIds as Prisma.InputJsonValue,
+        generatedAt: new Date(),
+        promptInput: { intent: input.description, mood: input.type ?? null, linkedEntityIds: input.linkedEntityIds, partyPresentIds: input.partyPresentIds } as Prisma.InputJsonValue,
+        notes: { create: notes.map((n, i) => ({ type: n.type, title: n.title, body: n.body, data: (n.data ?? undefined) as Prisma.InputJsonValue, source: 'ai', orderIndex: i })) },
+      } });
 
-      enqueueSceneArt({ sceneId: scene.id, userId: ctx.session.user.id, title: scene.title, readAloud: gen.readAloud })
+      enqueueSceneArt({ sceneId: scene.id, userId: ctx.session.user.id, title: scene.title, readAloud })
         .catch((e) => console.error('[scenes.generate] art enqueue failed', e));
-
       return scene;
     }),
 
@@ -257,5 +264,31 @@ export const scenesRouter = router({
         prisma.sceneNote.update({ where: { id }, data: { orderIndex: i } })));
       await syncReadAloudMirror(input.sceneId);
       return { ok: true };
+    }),
+
+  notesDraft: campaignDMProcedure
+    .input(z.object({ sceneId: z.string(), type: z.enum(['read_aloud','tactic','secret','check','lore','trigger']), hint: z.string().max(300).optional() }))
+    .mutation(async ({ input }) => {
+      const scene = await prisma.scene.findUnique({ where: { id: input.sceneId }, select: { campaignId: true, promptInput: true } });
+      if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.sceneId);
+      const ctx = await contextForScene(scene.campaignId, scene.promptInput);
+      return draftNote(ctx, input.type, input.hint);
+    }),
+
+  notesSuggest: campaignDMProcedure
+    .input(z.object({ sceneId: z.string() }))
+    .mutation(async ({ input }) => {
+      const scene = await prisma.scene.findUnique({ where: { id: input.sceneId }, select: { campaignId: true, promptInput: true, notes: { select: { type: true, body: true } } } });
+      if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.sceneId);
+      const ctx = await contextForScene(scene.campaignId, scene.promptInput);
+      return suggestNotes(ctx, scene.notes);
+    }),
+
+  notesRefine: campaignDMProcedure
+    .input(z.object({ id: z.string(), instruction: z.string().min(1).max(60) }))
+    .mutation(async ({ input }) => {
+      const note = await prisma.sceneNote.findUnique({ where: { id: input.id }, select: { body: true, scene: { select: { campaignId: true } } } });
+      if (!note || note.scene.campaignId !== input.campaignId) throw new NotFoundError('note', input.id);
+      return { body: await refineNote(note.body, input.instruction) };
     }),
 });
