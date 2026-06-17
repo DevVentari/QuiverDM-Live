@@ -1,7 +1,7 @@
-// src/lib/sourcebook-openings/cos/tarokka.test.ts
+// src/lib/sourcebook-openings/cos/__tests__/tarokka.test.ts
 import { describe, it, expect } from 'vitest';
-import { rollTarokka, type TarokkaReading } from './tarokka';
-import { ARTIFACT_LOCATIONS, ALLY_TABLE, STRAHD_TABLE } from './tarokka-tables';
+import { rollTarokka, type TarokkaReading } from '../tarokka';
+import { ARTIFACT_LOCATIONS, ALLY_TABLE, STRAHD_TABLE } from '../tarokka-tables';
 
 describe('rollTarokka', () => {
   it('produces exactly five draws in canonical slot order', () => {
