@@ -2,12 +2,9 @@ import { z } from 'zod';
 import { router, campaignMemberProcedure, campaignDMProcedure } from '../trpc';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { generateScene } from '@/lib/ai/generate-scene';
 import {
   gatherSceneContext,
-  applyRegeneration,
   primaryReadAloud,
-  type RegenSection,
 } from '../services/scene-generation.service';
 import { seedSceneNotes, draftNote, suggestNotes, refineNote } from '@/lib/ai/scene-notes';
 import { addImageGenerationJob } from '@/lib/queue/image-generation-queue';
@@ -142,32 +139,6 @@ export const scenesRouter = router({
       enqueueSceneArt({ sceneId: scene.id, userId: ctx.session.user.id, title: scene.title, readAloud })
         .catch((e) => console.error('[scenes.generate] art enqueue failed', e));
       return scene;
-    }),
-
-  regenerate: campaignDMProcedure
-    .input(z.object({ id: z.string(), section: z.enum(['all', 'readAloud', 'dmNotes', 'checks', 'music']).default('all') }))
-    .mutation(async ({ input, ctx }) => {
-      const scene = await prisma.scene.findUnique({ where: { id: input.id } });
-      if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.id);
-      const raw = scene.promptInput;
-      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new NotFoundError('scene prompt', input.id);
-      const p = raw as { intent?: unknown; mood?: unknown; linkedEntityIds?: unknown; partyPresentIds?: unknown };
-      if (typeof p.intent !== 'string' || !p.intent) throw new NotFoundError('scene prompt', input.id);
-
-      const VALID_MOODS = ['rp', 'description', 'tavern', 'battle', 'theatre'] as const;
-      const mood = typeof p.mood === 'string' && (VALID_MOODS as readonly string[]).includes(p.mood)
-        ? (p.mood as (typeof VALID_MOODS)[number])
-        : undefined;
-
-      const context = await gatherSceneContext(scene.campaignId, {
-        intent: p.intent,
-        mood,
-        linkedEntityIds: Array.isArray(p.linkedEntityIds) ? (p.linkedEntityIds as string[]) : [],
-        partyPresentIds: Array.isArray(p.partyPresentIds) ? (p.partyPresentIds as string[]) : [],
-      });
-      const gen = await generateScene(context, { userId: ctx.session.user.id });
-      const patch = applyRegeneration(scene, gen, input.section as RegenSection);
-      return prisma.scene.update({ where: { id: input.id }, data: patch });
     }),
 
   update: campaignDMProcedure

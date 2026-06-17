@@ -3,10 +3,7 @@
  * compendium + party, and merges (re)generated output into a Scene update.
  */
 import { prisma } from '@/lib/prisma';
-import type { GeneratedScene, SceneContext, SceneType } from '@/lib/ai/generate-scene';
-import { Prisma } from '@prisma/client';
-
-export type RegenSection = 'all' | 'readAloud' | 'dmNotes' | 'checks' | 'music';
+import type { SceneContext, SceneType } from '@/lib/ai/generate-scene';
 
 export interface SceneFormInput {
   intent: string;
@@ -86,32 +83,4 @@ function statSummary(data: unknown): string | undefined {
   const d = data as Record<string, unknown>;
   const cr = d.cr ?? d.challengeRating;
   return cr != null ? `CR ${cr}` : undefined;
-}
-
-/** Build a Prisma Scene update patch for the chosen regenerate section. */
-export function applyRegeneration(
-  _current: unknown,
-  gen: GeneratedScene,
-  section: RegenSection,
-): Prisma.SceneUpdateInput {
-  const all: Prisma.SceneUpdateInput = {
-    title: gen.title,
-    type: gen.type,
-    description: gen.readAloud,
-    dmNotes: gen.dmNotes,
-    musicCue: gen.musicCue,
-    suggestedChecks: gen.suggestedChecks as Prisma.InputJsonValue,
-    entityBeats: gen.entityBeats as Prisma.InputJsonValue,
-  };
-  switch (section) {
-    case 'all': return all;
-    case 'readAloud': return { description: gen.readAloud };
-    case 'dmNotes': return { dmNotes: gen.dmNotes, entityBeats: gen.entityBeats as Prisma.InputJsonValue };
-    case 'checks': return { suggestedChecks: gen.suggestedChecks as Prisma.InputJsonValue };
-    case 'music': return { musicCue: gen.musicCue };
-    default: {
-      const _exhaustive: never = section;
-      return _exhaustive;
-    }
-  }
 }

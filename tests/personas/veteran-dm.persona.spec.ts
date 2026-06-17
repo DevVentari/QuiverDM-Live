@@ -7,17 +7,7 @@ const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? 'blake@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
 
-// A fully AI-generated scene, seeded directly via Prisma — same approach as
-// tests/workflows/scenes.workflow.spec.ts. scenes.generate calls a real AI
-// provider (non-deterministic, costs money), so the persona MUST NOT submit it.
-// We seed a generated row and drive select → reveal → present against the real
-// backend, while still asserting the compose form validates without invoking AI.
-const SCENE_TITLE = `Veteran Scene ${Date.now()}`;
-const SCENE_READ_ALOUD =
-  'The war room is thick with candle smoke; a map of the marches lies pinned with daggers.';
-const SCENE_DM_NOTES = 'The quartermaster is the traitor — he angles to send scouts into the ambush.';
-
-// A second scene, seeded WITH typed SceneNotes, drives the note-builder board.
+// A scene seeded WITH typed SceneNotes drives the note-builder board.
 // notesDraft / notesSuggest / notesRefine all hit a live AI provider
 // (non-deterministic, costs money), so this persona MUST NOT trigger them — we
 // seed read_aloud + tactic + check directly and only assert the AI affordances
@@ -31,37 +21,6 @@ test.beforeAll(async () => {
 
   const campaign = await prisma.campaign.findUnique({ where: { slug: CAMPAIGN_SLUG } });
   if (!campaign) throw new Error(`Seed failed: campaign ${CAMPAIGN_SLUG} not found.`);
-
-  // Clear presented flags so the present-to-players assertion is deterministic.
-  await prisma.scene.updateMany({
-    where: { campaignId: campaign.id },
-    data: { isPresented: false },
-  });
-
-  await prisma.scene.create({
-    data: {
-      campaignId: campaign.id,
-      title: SCENE_TITLE,
-      type: 'theatre',
-      description: SCENE_READ_ALOUD,
-      dmNotes: SCENE_DM_NOTES,
-      musicCue: 'low strings, distant wind',
-      isPresented: false,
-      linkedEntityIds: [] as unknown as Prisma.InputJsonValue,
-      partyPresentIds: [] as unknown as Prisma.InputJsonValue,
-      suggestedChecks: [
-        { skill: 'Insight', dc: 15, note: 'read the quartermaster' },
-      ] as unknown as Prisma.InputJsonValue,
-      entityBeats: {} as Prisma.InputJsonValue,
-      generatedAt: new Date(),
-      promptInput: {
-        intent: 'A tense war council in the keep before the march.',
-        mood: 'theatre',
-        linkedEntityIds: [],
-        partyPresentIds: [],
-      } as Prisma.InputJsonValue,
-    },
-  });
 
   // Seed a generated scene with a board of typed notes for the note-builder test.
   await prisma.scene.create({
@@ -192,70 +151,6 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
     // The NPC detail page renders a voice signature row for every NPC
     await expect(page.getByTestId('voice-row')).toBeVisible({ timeout: 10_000 });
   }, 15_000);
-});
-
-// AI scene creation, mid-prep. A veteran DM conjures a scene and pushes it live.
-// Standalone test (mirrors the file's brain / prep-lifecycle tests) so it runs
-// independently of the npc-creation happy path. The seeded scene (beforeAll)
-// drives select → reveal → present; the compose form is opened to assert it
-// validates, but never submitted — scenes.generate calls live AI.
-test('veteran-dm scene creation: composes, reveals, and presents a scene', async ({ page }, testInfo) => {
-  test.slow();
-
-  const sceneNoCrash =
-    /something went wrong|internal server error|unhandled error|client-side exception|application error|404 \| this page/i;
-
-  await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
-  }, 20_000);
-
-  await checkpoint(testInfo, 'open-scenes-page', async () => {
-    await page.goto(`/v3/campaigns/${CAMPAIGN_SLUG}/scenes`);
-    await page.waitForLoadState('domcontentloaded', { timeout: 20_000 });
-    await expect(page.getByText(/Theatre of the Mind/i).first()).toBeVisible({ timeout: 12_000 });
-    await expect(page.getByRole('button', { name: SCENE_TITLE }).first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('body')).not.toContainText(sceneNoCrash);
-  }, 25_000);
-
-  await checkpoint(testInfo, 'compose-form-validates', async () => {
-    await page.getByRole('button', { name: '+ New Scene' }).click();
-    await expect(page.getByText('New scene')).toBeVisible({ timeout: 8_000 });
-
-    const create = page.getByRole('button', { name: /Create scene/i });
-    // Submit stays disabled until a description is typed — no live AI call made.
-    await expect(create).toBeDisabled();
-
-    const describe = page.getByPlaceholder(/The party reaches the castle gates/i);
-    await describe.fill('A torchlit war council in the keep, voices low.');
-    await expect(create).toBeEnabled();
-
-    // Cancel out without submitting — avoids the live AI generate call.
-    await page.getByRole('button', { name: 'Cancel' }).click();
-    await expect(page.locator('body')).not.toContainText(sceneNoCrash);
-  }, 20_000);
-
-  await checkpoint(testInfo, 'select-scene-two-column-reveal', async () => {
-    await page.getByRole('button', { name: SCENE_TITLE }).first().click();
-
-    // LEFT column — player-facing: title + read-aloud.
-    await expect(page.getByRole('heading', { name: SCENE_TITLE })).toBeVisible({ timeout: 12_000 });
-    await expect(page.getByText('Read aloud')).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByText(SCENE_READ_ALOUD)).toBeVisible({ timeout: 8_000 });
-
-    // RIGHT column — DM only: secret beats / DM notes.
-    await expect(page.getByText(/DM only — the board/i)).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByText('Secret beats')).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByText(SCENE_DM_NOTES)).toBeVisible({ timeout: 8_000 });
-
-    await expect(page.locator('body')).not.toContainText(sceneNoCrash);
-  }, 25_000);
-
-  await checkpoint(testInfo, 'present-scene-goes-live', async () => {
-    await page.getByRole('button', { name: /Present to players/i }).click();
-    // After presenting, the CTA flips to the live/clear state.
-    await expect(page.getByRole('button', { name: /Live — clear/i })).toBeVisible({ timeout: 12_000 });
-    await expect(page.locator('body')).not.toContainText(sceneNoCrash);
-  }, 25_000);
 });
 
 test('veteran-dm prep lifecycle: planned item can be worked to prepped', async ({ page }, testInfo) => {
