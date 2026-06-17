@@ -250,6 +250,9 @@ export const scenesRouter = router({
     .mutation(async ({ input }) => {
       const scene = await prisma.scene.findUnique({ where: { id: input.sceneId }, select: { campaignId: true } });
       if (!scene || scene.campaignId !== input.campaignId) throw new NotFoundError('scene', input.sceneId);
+      const owned = await prisma.sceneNote.findMany({ where: { sceneId: input.sceneId }, select: { id: true } });
+      const ownedIds = new Set(owned.map((n) => n.id));
+      if (input.orderedIds.some((id) => !ownedIds.has(id))) throw new NotFoundError('note', input.sceneId);
       await prisma.$transaction(input.orderedIds.map((id, i) =>
         prisma.sceneNote.update({ where: { id }, data: { orderIndex: i } })));
       await syncReadAloudMirror(input.sceneId);
