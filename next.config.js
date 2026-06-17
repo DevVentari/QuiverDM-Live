@@ -23,7 +23,11 @@ const nextConfig = {
     ];
   },
   transpilePackages: ['next-themes'],
-  serverExternalPackages: ['pdfjs-dist'],
+  // @discordjs/voice pulls a native @snazzah/davey .node binary (DAVE encryption)
+  // that webpack can't parse; the discordVoice router imports a const/type from
+  // voice-bot.ts, dragging it into the tRPC route bundle. Externalize so it's a
+  // runtime require, not bundled — same approach as pdfjs-dist / ffmpeg.
+  serverExternalPackages: ['pdfjs-dist', '@discordjs/voice', '@snazzah/davey', 'discord.js', 'prism-media'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
