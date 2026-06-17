@@ -158,7 +158,7 @@ export const ddbSyncRouter = router({
       if (session0) {
         const sourcebookRecord = await prisma.ddbSourcebook.findUnique({
           where: { id: input.sourcebookId },
-          select: { title: true },
+          select: { title: true, slug: true },
         });
         const campaign = await prisma.campaign.findUnique({
           where: { id: input.campaignId },
@@ -170,7 +170,9 @@ export const ddbSyncRouter = router({
         });
         void addSession0PrepJob({
           sessionId: session0.id,
+          campaignId: input.campaignId,
           sourcebookId: input.sourcebookId,
+          sourcebookSlug: sourcebookRecord?.slug ?? '',
           sourcebookTitle: sourcebookRecord?.title ?? 'Unknown Sourcebook',
           campaignName: campaign?.name ?? 'Unknown Campaign',
         });
