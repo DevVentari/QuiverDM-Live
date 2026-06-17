@@ -1023,12 +1023,32 @@ model Scene {
   suggestedChecks Json     @default("[]") // [{ skill, dc, note }]
   entityBeats     Json     @default("{}") // { [entityId]: { wantsInScene, secret } }
   imageJobId      String?               // async scene-art ImageGenerationJob id
+  act             String?               // optional grouping label, e.g. "Redbrand Hideout"
+  notes           SceneNote[]
   generatedAt     DateTime?             // null = hand-authored / not AI-generated
   promptInput     Json?                 // raw form input, replayed by regenerate
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([campaignId])
+}
+
+model SceneNote {
+  id         String   @id @default(cuid())
+  sceneId    String
+  scene      Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  type       String   // read_aloud | tactic | secret | check | lore | trigger
+  title      String?
+  body       String   @db.Text
+  data       Json?    // check {skill,dc}; trigger {condition, dc?:{skill,dc}, reveal?}
+  orderIndex Int      @default(0)
+  source     String   @default("manual") // manual | ai | ai_suggested
+  mapPinId   String?  // Layer 3 boundary (unused now)
+  stateRule  Json?    // Layer 3 boundary (unused now)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sceneId])
 }
 
 model NPC {
