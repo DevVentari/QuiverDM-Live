@@ -12,8 +12,12 @@ export type SceneType = 'rp' | 'description' | 'tavern' | 'battle' | 'theatre';
 export interface SceneContext {
   intent: string;
   mood?: SceneType;
-  tagged: Array<{ id: string; name: string; type: string; description?: string; statSummary?: string }>;
-  party: Array<{ name: string; summary: string }>;
+  tagged: Array<{
+    id: string; name: string; type: string;
+    description?: string; statSummary?: string;
+    history?: string[]; // recent WorldStateChange triggerText lines (Brain weave)
+  }>;
+  party: Array<{ name: string; summary: string; hook?: string }>; // hook = a bond/flaw line
   campaignName?: string;
 }
 
