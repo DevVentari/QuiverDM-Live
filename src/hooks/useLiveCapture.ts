@@ -58,7 +58,16 @@ export function useLiveCapture(campaignId: string, sessionId: string, active: bo
         if (cancelled) { teardown(); return; }
 
         const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        const ctx = new AudioCtx();
+        // Prefer a 16 kHz context — the rate every STT engine (WhisperLive,
+        // AssemblyAI) wants natively, so the server forwards frames untouched.
+        // Some browsers ignore the hint; the server resamples whatever arrives,
+        // so we send the context's actual rate in the join message.
+        let ctx: AudioContext;
+        try {
+          ctx = new AudioCtx({ sampleRate: 16000 });
+        } catch {
+          ctx = new AudioCtx();
+        }
         ctxRef.current = ctx;
         const sampleRate = ctx.sampleRate;
 
