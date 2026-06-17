@@ -191,6 +191,7 @@ export interface EncounterBoard {
   name: string;
   round: number;
   status: string;
+  mapImageUrl: string | null;
   participants: BoardParticipant[];
   fogRegions: FogRegionView[];
 }
@@ -226,6 +227,7 @@ export async function getEncounterForBoard(encounterId: string): Promise<Encount
       name: true,
       round: true,
       status: true,
+      mapImageUrl: true,
       participants: {
         select: BOARD_PARTICIPANT_SELECT,
         orderBy: { initiative: 'desc' },
