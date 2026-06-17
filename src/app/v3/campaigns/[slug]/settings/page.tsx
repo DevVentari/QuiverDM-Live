@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { DiscordVoiceSettings } from '@/components/discord/DiscordVoiceSettings';
 
 // Subset of the Campaign record returned by campaigns.getBySlug.
 interface CampaignRecord {
@@ -447,6 +448,9 @@ export default function CampaignSettingsPage() {
               <span className="flex-none font-qd-mono text-[9px] text-qd-accent-text">Connect</span>
             </div>
           </div>
+
+          {/* Discord voice recording config — DM-only */}
+          {isDM && <DiscordVoiceSettings campaignId={campaignId} />}
 
           {/* DANGER ZONE — owner only, delete is a no-op placeholder */}
           {isOwner && (

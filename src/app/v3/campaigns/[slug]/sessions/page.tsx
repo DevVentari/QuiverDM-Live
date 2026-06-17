@@ -25,6 +25,7 @@ import { useMemo, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { LiveTranscriptPanel } from '@/components/session/v3/LiveTranscriptPanel';
+import { DiscordRecordControl } from '@/components/discord/DiscordRecordControl';
 import { useLiveCapture } from '@/hooks/useLiveCapture';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 
@@ -475,6 +476,7 @@ export default function SessionsPage() {
               {liveActive && liveCapture.error && (
                 <div className={`${mono} text-[9px] text-[var(--qd-danger-bright)]`}>{liveCapture.error}</div>
               )}
+              {isDM && <DiscordRecordControl campaignId={campaignId} sessionId={sessionId} />}
               <LiveTranscriptPanel campaignId={campaignId} sessionId={sessionId} isLive={liveActive} />
             </>
           )}
