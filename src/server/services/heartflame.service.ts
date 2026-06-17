@@ -172,7 +172,7 @@ export interface BoardParticipant {
   bonusActionUsed: boolean;
   reactionUsed: boolean;
   concentration: boolean;
-  /** Battle-map token position (% of canvas), null until placed/dragged. */
+  /** Battle-map token position in React Flow flow-coordinates; null until placed/dragged. */
   mapX: number | null;
   mapY: number | null;
 }
@@ -273,7 +273,7 @@ export async function setTokenPosition(
   await assertEncounterMember(p.encounterId, userId);
   await (prisma as any).encounterParticipant.update({
     where: { id: participantId },
-    data: { mapX: clampPct(x), mapY: clampPct(y) },
+    data: { mapX: x, mapY: y },
   });
   return { encounterId: p.encounterId };
 }
