@@ -46,4 +46,14 @@ describe('generateScene', () => {
     vi.spyOn(chat, 'chatWithAI').mockResolvedValue(JSON.stringify({ title: 'X', type: 'not-a-real-type' }));
     await expect(generateScene(CONTEXT)).rejects.toThrow(/could not be read/i);
   });
+
+  // Regression: forcing a single provider turned any Claude outage (e.g. an
+  // out-of-credits 400) into a hard 500. Scene generation must use the provider
+  // fallback chain (Claude-first via AI_PROVIDER_ORDER), not pin one provider.
+  it('does not pin a single AI provider, so a Claude outage can fall back', async () => {
+    const spy = vi.spyOn(chat, 'chatWithAI').mockResolvedValue(VALID);
+    await generateScene(CONTEXT);
+    const opts = spy.mock.calls[0]?.[1] ?? {};
+    expect(opts.forceProvider).toBeUndefined();
+  });
 });

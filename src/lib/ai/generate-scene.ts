@@ -89,10 +89,11 @@ export async function generateScene(
     { role: 'user', content: buildUserMessage(ctx) },
   ];
 
-  // Per CLAUDE.md: scenes are creative writing — force Claude for voice quality.
-  // NOTE: this intentionally bypasses the provider fallback chain — it hard-fails
-  // without ANTHROPIC_API_KEY. Do not add a fallback; it would break the voice contract.
-  const raw = await chatWithAI(messages, { temperature: 0.8, forceProvider: 'claude', userId: options.userId });
+  // Scenes are creative writing — Claude gives the best voice, so AI_PROVIDER_ORDER
+  // lists it first. We deliberately do NOT force a single provider: a Claude outage
+  // (e.g. an out-of-credits 400) must fall back through the chain rather than 500.
+  // Same approach as generate-statblock.ts.
+  const raw = await chatWithAI(messages, { temperature: 0.8, userId: options.userId });
 
   let parsed: unknown;
   try {
