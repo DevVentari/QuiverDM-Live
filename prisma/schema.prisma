@@ -948,6 +948,9 @@ model Encounter {
   round        Int                    @default(1)
   status       String                 @default("active") // active|complete
   log          Json? // [{round, events: [{participantId, action, value}]}]
+  /// Battle-map background image (uploaded or Higgsfield-generated). Null = blank
+  /// tactical field. The VttCanvas renders this under the grid/tokens/fog.
+  mapImageUrl  String?
   participants EncounterParticipant[]
   fogRegions   FogRegion[]
   createdAt    DateTime               @default(now())
