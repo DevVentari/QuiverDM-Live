@@ -17,10 +17,12 @@
  * clicks a region to reveal it.
  */
 
-import { useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
+import { VttCanvas } from '@/components/vtt/vtt-canvas';
+import { MapBackgroundControl } from '@/components/vtt/map-background-control';
 import type { BoardParticipant, FogRegionView } from '@/server/services/heartflame.service';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
@@ -124,17 +126,14 @@ export default function BattleMapPage() {
   const coverFog = trpc.heartflame.coverAllFog.useMutation({ onSuccess: invalidateBoard });
   const revealFog = trpc.heartflame.revealAllFog.useMutation({ onSuccess: invalidateBoard });
   const removeFog = trpc.heartflame.removeFogRegion.useMutation({ onSuccess: invalidateBoard });
+  const setEncBg = trpc.heartflame.setEncounterMapBackground.useMutation({ onSuccess: invalidateBoard });
+  const genEncBg = trpc.heartflame.generateEncounterMapBackground.useMutation();
+  const [bgOpen, setBgOpen] = useState(false);
 
   const patch = (p: BoardParticipant, data: Record<string, unknown>) =>
     setState.mutate({ participantId: p.id, patch: data });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  // Drag state for moving tokens on the canvas (DM only).
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
-  const movedRef = useRef(false);
 
   const participants = board.data?.participants ?? [];
   const fogRegions = (board.data?.fogRegions ?? []) as FogRegionView[];
@@ -144,53 +143,26 @@ export default function BattleMapPage() {
   // The combatant whose turn it is — highest initiative (design highlights "current turn").
   const currentTurnId = participants[0]?.id ?? null;
 
-  // Deterministic fallback layout, used only for tokens with no saved position.
-  const fallbackPositions = useMemo(() => {
-    const m = new Map<string, { x: number; y: number }>();
-    participants.forEach((p, i) => m.set(p.id, fallbackXY(i, participants.length)));
-    return m;
-  }, [participants]);
-
-  // The position a token renders at: live drag > saved mapX/mapY > fallback grid.
-  const renderPos = (p: BoardParticipant): { x: number; y: number } => {
-    if (dragId === p.id && dragPos) return dragPos;
-    if (p.mapX != null && p.mapY != null) return { x: p.mapX, y: p.mapY };
-    return fallbackPositions.get(p.id) ?? { x: 50, y: 50 };
-  };
-
-  // Convert a pointer event to canvas-relative percentage coords.
-  const pctFromEvent = (clientX: number, clientY: number): { x: number; y: number } => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect || rect.width === 0 || rect.height === 0) return { x: 50, y: 50 };
+  // Token markers for the shared VttCanvas. Unplaced tokens fall back to a
+  // deterministic grid spread into flow space (× 8) so they don't stack at origin.
+  const tokenMarkers = participants.map((p, i) => {
+    const fallback = fallbackXY(i, participants.length);
     return {
-      x: Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)),
-      y: Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100)),
+      id: p.id,
+      x: p.mapX ?? fallback.x * 8,
+      y: p.mapY ?? fallback.y * 8,
+      type: 'token' as const,
+      data: {
+        label: p.name,
+        type: typeOf(p.type),
+        hpPct: hpPct(p),
+        isTurn: currentTurnId === p.id,
+        isSelected: selected?.id === p.id,
+        isDead: !p.isAlive || p.hp <= 0,
+        onSelect: () => setSelectedId(p.id),
+      },
     };
-  };
-
-  const onTokenPointerDown = (p: BoardParticipant, e: React.PointerEvent) => {
-    setSelectedId(p.id);
-    if (!isDM) return;
-    e.preventDefault();
-    (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
-    setDragId(p.id);
-    setDragPos(renderPos(p));
-    movedRef.current = false;
-  };
-
-  const onCanvasPointerMove = (e: React.PointerEvent) => {
-    if (!dragId) return;
-    movedRef.current = true;
-    setDragPos(pctFromEvent(e.clientX, e.clientY));
-  };
-
-  const onCanvasPointerUp = () => {
-    if (dragId && dragPos && movedRef.current) {
-      setToken.mutate({ participantId: dragId, x: dragPos.x, y: dragPos.y });
-    }
-    setDragId(null);
-    setDragPos(null);
-  };
+  });
 
   // ── States ──────────────────────────────────────────────────────────────
   if (board.isLoading) {
@@ -304,149 +276,82 @@ export default function BattleMapPage() {
         </aside>
 
         {/* ===== BATTLE MAP CANVAS ===== */}
-        <div
-          ref={canvasRef}
-          className="relative flex-1 overflow-hidden bg-[#100c0a]"
-          style={dragId ? { touchAction: 'none', cursor: 'grabbing' } : undefined}
-          onPointerMove={onCanvasPointerMove}
-          onPointerUp={onCanvasPointerUp}
-          onPointerLeave={onCanvasPointerUp}
-        >
-          {/* map art placeholder (user-fillable image slot) */}
-          <div className="absolute inset-0 grid place-items-center">
-            <span className={`${mono} text-[10px] tracking-wide text-[var(--qd-ink-faintest)]`}>
-              drop battle-map art — grid · tokens · fog overlay on top
-            </span>
-          </div>
-          {/* grid overlay */}
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background:
-                'repeating-linear-gradient(0deg,rgba(255,235,205,.045) 0 1px,transparent 1px 40px),repeating-linear-gradient(90deg,rgba(255,235,205,.045) 0 1px,transparent 1px 40px)',
-            }}
-          />
-
-          {/* ===== TOKENS ===== */}
-          {participants.map((p) => {
-            const t = typeOf(p.type);
-            const ts = TYPE_STYLE[t];
-            const pos = renderPos(p);
-            const turn = currentTurnId === p.id;
-            const isSelected = selected?.id === p.id;
-            const dead = !p.isAlive || p.hp <= 0;
-            const dragging = dragId === p.id;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                data-testid={`token-${p.id}`}
-                onPointerDown={(e) => onTokenPointerDown(p, e)}
-                className="absolute -translate-x-1/2 -translate-y-1/2 text-center"
-                style={{
-                  left: `${pos.x}%`,
-                  top: `${pos.y}%`,
-                  zIndex: dragging ? 5 : turn ? 3 : isSelected ? 2 : 1,
-                  opacity: dead ? 0.45 : 1,
-                  cursor: isDM ? (dragging ? 'grabbing' : 'grab') : 'pointer',
-                  touchAction: 'none',
-                }}
-              >
-                <span className="relative mx-auto flex h-[52px] w-[52px] items-center justify-center">
-                  {turn && (
-                    <span
-                      className="absolute rounded-full border-2 border-dashed"
-                      style={{ inset: -6, borderColor: 'rgba(217,138,61,.85)' }}
-                    />
-                  )}
-                  <span
-                    className="grid h-[46px] w-[46px] place-items-center rounded-full border-2 text-[18px] font-bold"
+        <div className="relative flex-1">
+          <VttCanvas
+            markers={tokenMarkers}
+            backgroundUrl={board.data.mapImageUrl}
+            isDM={isDM}
+            onMarkerDragEnd={(id, x, y) => setToken.mutate({ participantId: id, x, y })}
+            overlays={
+              <>
+                {fogRegions.map((fr) => (
+                  <button
+                    key={fr.id}
+                    type="button"
+                    data-testid={`fogregion-${fr.id}`}
+                    disabled={!isDM}
+                    onClick={() => isDM && removeFog.mutate({ regionId: fr.id })}
+                    title={isDM ? 'Reveal this area' : undefined}
+                    className="absolute z-[4]"
                     style={{
-                      borderColor: isSelected ? 'var(--qd-accent-hi)' : ts.ring,
-                      background: `radial-gradient(circle, ${ts.fillFrom}, rgba(0,0,0,.35))`,
-                      color: ts.text,
-                      boxShadow: turn ? '0 0 22px rgba(217,138,61,.55)' : '0 4px 14px rgba(0,0,0,.5)',
+                      left: `${fr.x}%`,
+                      top: `${fr.y}%`,
+                      width: `${fr.width}%`,
+                      height: `${fr.height}%`,
+                      background: 'rgba(8,6,5,.93)',
+                      backdropFilter: 'blur(2px)',
+                      cursor: isDM ? 'pointer' : 'default',
+                      pointerEvents: isDM ? 'auto' : 'none',
                     }}
+                  />
+                ))}
+              </>
+            }
+            toolbar={
+              isDM && encounterIdForFog ? (
+                <div className={`${mono} absolute right-3.5 top-3.5 z-[6] flex gap-1.5 text-[8.5px]`}>
+                  <button
+                    type="button"
+                    data-testid="combat-map-bg"
+                    onClick={() => setBgOpen(true)}
+                    className="cursor-pointer rounded-[7px] border px-2.5 py-2 text-[var(--qd-accent-text)]"
+                    style={{ background: 'rgba(0,0,0,.5)', borderColor: 'var(--qd-border-accent)' }}
                   >
-                    {initials(p.name)}
-                  </span>
-                </span>
-                {/* token HP bar */}
-                <span className="mx-auto mt-1.5 block h-[4px] w-[40px] overflow-hidden rounded-[3px] bg-[rgba(0,0,0,0.55)]">
-                  <span className="block h-full" style={{ width: `${hpPct(p)}%`, background: `linear-gradient(90deg, ${ts.barFrom}, ${ts.barTo})` }} />
-                </span>
-                <span className={`${mono} mt-1 block whitespace-nowrap text-[8px]`} style={{ color: ts.text, textShadow: '0 1px 4px #000' }}>
-                  {turn ? '▸ ' : ''}
-                  {p.name}
-                </span>
-              </button>
-            );
-          })}
-
-          {/* fog of war — real persisted regions (FogRegion). DM can click a
-              region to reveal (delete) it; players just see the cover. */}
-          {fogRegions.map((fr) => (
-            <button
-              key={fr.id}
-              type="button"
-              data-testid={`fogregion-${fr.id}`}
-              disabled={!isDM}
-              onClick={() => isDM && removeFog.mutate({ regionId: fr.id })}
-              title={isDM ? 'Reveal this area' : undefined}
-              className="absolute z-[4]"
-              style={{
-                left: `${fr.x}%`,
-                top: `${fr.y}%`,
-                width: `${fr.width}%`,
-                height: `${fr.height}%`,
-                background: 'rgba(8,6,5,.93)',
-                backdropFilter: 'blur(2px)',
-                cursor: isDM ? 'pointer' : 'default',
-                pointerEvents: isDM ? 'auto' : 'none',
-              }}
+                    ✦ Map art
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="fog-cover-all"
+                    disabled={coverFog.isPending}
+                    onClick={() => coverFog.mutate({ encounterId: encounterIdForFog })}
+                    className="cursor-pointer rounded-[7px] border px-2.5 py-2 text-[var(--qd-ink-2)] disabled:opacity-50"
+                    style={{ background: 'rgba(0,0,0,.5)', borderColor: 'var(--qd-border-strong)' }}
+                  >
+                    ▒ Cover all
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="fog-reveal-all"
+                    disabled={revealFog.isPending}
+                    onClick={() => revealFog.mutate({ encounterId: encounterIdForFog })}
+                    className="cursor-pointer rounded-[7px] border px-2.5 py-2 text-[var(--qd-accent-text)] disabled:opacity-50"
+                    style={{ background: 'rgba(0,0,0,.5)', borderColor: 'var(--qd-border-accent)' }}
+                  >
+                    ✦ Reveal all
+                  </button>
+                </div>
+              ) : null
+            }
+          />
+          {bgOpen && encounterIdForFog && (
+            <MapBackgroundControl
+              open
+              onClose={() => setBgOpen(false)}
+              onApplyUrl={(url) => setEncBg.mutateAsync({ encounterId: encounterIdForFog, url }).then(() => {})}
+              onGenerate={(p) => genEncBg.mutateAsync({ encounterId: encounterIdForFog, customPrompt: p }).then(() => {})}
+              onBlank={() => setEncBg.mutateAsync({ encounterId: encounterIdForFog, url: null }).then(() => {})}
             />
-          ))}
-
-          {/* zoom controls (visual — // TODO: real zoom/pan) */}
-          <div className="absolute left-3.5 top-3.5 z-[5] flex flex-col gap-1.5">
-            {['+', '−', '⤢'].map((c) => (
-              <span key={c} className="grid h-9 w-9 cursor-pointer place-items-center rounded-[8px] border border-[var(--qd-border-strong)] text-[16px] text-[var(--qd-ink-2)]" style={{ background: 'rgba(0,0,0,.5)' }}>
-                {c}
-              </span>
-            ))}
-          </div>
-          {/* DM fog tools — cover the whole map or reveal it all. Click any region
-              to reveal just that area. */}
-          {isDM && encounterIdForFog && (
-            <div className={`${mono} absolute right-3.5 top-3.5 z-[6] flex gap-1.5 text-[8.5px]`}>
-              <button
-                type="button"
-                data-testid="fog-cover-all"
-                disabled={coverFog.isPending}
-                onClick={() => coverFog.mutate({ encounterId: encounterIdForFog })}
-                className="cursor-pointer rounded-[7px] border px-2.5 py-2 text-[var(--qd-ink-2)] disabled:opacity-50"
-                style={{ background: 'rgba(0,0,0,.5)', borderColor: 'var(--qd-border-strong)' }}
-              >
-                ▒ Cover all
-              </button>
-              <button
-                type="button"
-                data-testid="fog-reveal-all"
-                disabled={revealFog.isPending}
-                onClick={() => revealFog.mutate({ encounterId: encounterIdForFog })}
-                className="cursor-pointer rounded-[7px] border px-2.5 py-2 text-[var(--qd-accent-text)] disabled:opacity-50"
-                style={{ background: 'rgba(0,0,0,.5)', borderColor: 'var(--qd-border-accent)' }}
-              >
-                ✦ Reveal all
-              </button>
-            </div>
           )}
-          {/* scale legend */}
-          <div className="absolute bottom-3 left-3.5 z-[5] flex items-center gap-2.5">
-            <span className="inline-block h-2 w-[26px] rounded-[2px] border border-[rgba(255,235,205,.4)]" />
-            <span className={`${mono} text-[8px] text-[var(--qd-ink-muted)]`}>1 square = 5 ft</span>
-            <span className={`${mono} text-[8px] text-[var(--qd-ink-faintest)]`}>drag tokens · paint fog · scroll to zoom</span>
-          </div>
         </div>
 
         {/* ===== TOKEN INSPECTOR ===== */}
