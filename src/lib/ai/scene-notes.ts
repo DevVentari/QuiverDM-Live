@@ -73,7 +73,9 @@ export async function seedSceneNotes(ctx: NoteContext): Promise<NoteDraft[]> {
     { role: 'system', content: `You are a D&D 5e co-DM building run-help for a scene as STRICT JSON: { "notes": Note[] }.\n${NOTE_SHAPES}\nProduce 3-6 notes: at least one read_aloud, plus the tactics/secrets/checks a DM would otherwise run from memory. Weave the cast's past and party hooks in naturally. Player-safe text in read_aloud; hidden material in secret/trigger.` },
     { role: 'user', content: contextBlock(ctx) },
   ];
-  return parseNotes(await call(messages, 0.8));
+  const notes = parseNotes(await call(messages, 0.8));
+  if (notes.length === 0) throw new Error('The notes could not be read. Try again or rephrase.');
+  return notes;
 }
 
 export async function draftNote(ctx: NoteContext, type: NoteType, hint?: string): Promise<NoteDraft> {

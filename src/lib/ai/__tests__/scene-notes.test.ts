@@ -23,9 +23,14 @@ describe('scene-notes AI', () => {
   });
 
   it('does not pin a provider (fallback allowed)', async () => {
-    const spy = vi.spyOn(chat, 'chatWithAI').mockResolvedValue('{"notes":[]}');
+    const spy = vi.spyOn(chat, 'chatWithAI').mockResolvedValue(JSON.stringify({ notes: [{ type: 'read_aloud', body: 'x' }] }));
     await seedSceneNotes(CTX);
     expect((spy.mock.calls[0]?.[1] ?? {}).forceProvider).toBeUndefined();
+  });
+
+  it('seedSceneNotes throws when the model returns zero notes', async () => {
+    vi.spyOn(chat, 'chatWithAI').mockResolvedValue('{"notes":[]}');
+    await expect(seedSceneNotes(CTX)).rejects.toThrow(/could not be read/i);
   });
 
   it('draftNote returns one note of the asked type', async () => {

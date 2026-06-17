@@ -285,7 +285,7 @@ export const scenesRouter = router({
     }),
 
   notesRefine: campaignDMProcedure
-    .input(z.object({ id: z.string(), instruction: z.string().min(1).max(60) }))
+    .input(z.object({ id: z.string(), instruction: z.string().min(1).max(300) }))
     .mutation(async ({ input }) => {
       const note = await prisma.sceneNote.findUnique({ where: { id: input.id }, select: { body: true, scene: { select: { campaignId: true } } } });
       if (!note || note.scene.campaignId !== input.campaignId) throw new NotFoundError('note', input.id);
