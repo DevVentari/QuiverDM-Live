@@ -83,6 +83,23 @@ test.describe('v3 — battle map tokens & fog', () => {
       await expect(page.locator('body')).not.toContainText(NO_CRASH);
     }, 25_000);
 
+    await checkpoint(testInfo, 'token-drag-persists', async () => {
+      const node = page.locator('.react-flow__node').first();
+      await expect(node).toBeVisible({ timeout: 8_000 });
+      const box = await node.boundingBox();
+      if (!box) throw new Error('no token box');
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + 120, box.y + 80, { steps: 8 });
+      await page.mouse.up();
+      await expect.poll(async () => {
+        const placed = await prisma.encounterParticipant.count({
+          where: { encounter: { session: { campaign: { slug: SLUG } } }, mapX: { not: null } },
+        });
+        return placed;
+      }, { timeout: 8_000 }).toBeGreaterThan(0);
+    }, 20_000);
+
     await checkpoint(testInfo, 'fog-cover-and-reveal', async () => {
       // Cover all → a fog region renders.
       await page.getByTestId('fog-cover-all').click();
