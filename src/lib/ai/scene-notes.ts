@@ -82,7 +82,10 @@ export async function draftNote(ctx: NoteContext, type: NoteType, hint?: string)
     { role: 'user', content: `${contextBlock(ctx)}\n\nWrite the ${type} note.${hint ? ` Focus: ${hint}` : ''}` },
   ];
   const parsed = parseOne(await call(messages, 0.8));
-  return { ...parsed, type };
+  // Force the requested type; drop any `data` the model attached if it doesn't
+  // match the stamped type (e.g. a stray check payload on a lore note).
+  const dataFitsType = type === 'check' || type === 'trigger';
+  return { ...parsed, type, data: dataFitsType ? parsed.data : undefined };
 }
 
 export async function suggestNotes(ctx: NoteContext, existing: Array<{ type: string; body: string }>): Promise<NoteDraft[]> {
