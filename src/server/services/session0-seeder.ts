@@ -76,6 +76,8 @@ export async function seedSession0(input: SeedSession0Input): Promise<SeedSessio
         campaignId, title: config.tarokka.sceneTitle, type: 'rp',
         description: '', dmNotes: 'Madam Eva’s Tarokka reading — the campaign spine. Reveal these to players only as they discover them.',
         orderIndex: order++,
+        linkedEntityIds: [] as unknown as Prisma.InputJsonValue,
+        partyPresentIds: [] as unknown as Prisma.InputJsonValue,
         generatedAt: new Date(),
         promptInput: { seededBy: SEED_MARKER, blueprintKey: 'tarokka' } as Prisma.InputJsonValue,
         notes: { create: notes.map((n, i) => ({ type: n.type, title: n.title, body: n.body, source: 'ai', orderIndex: i })) },
@@ -99,8 +101,11 @@ export async function seedSession0(input: SeedSession0Input): Promise<SeedSessio
     tarokka = true;
   }
 
+  // Only mark complete if we actually produced something; otherwise leave 'draft'
+  // so a total AI outage doesn't present an empty session as fully prepped.
   await prisma.gameSession.update({
-    where: { id: sessionId }, data: { prepStatus: 'complete' },
+    where: { id: sessionId },
+    data: { prepStatus: scenesCreated > 0 || tarokka ? 'complete' : 'draft' },
   });
 
   return { scenesCreated, tarokka };
