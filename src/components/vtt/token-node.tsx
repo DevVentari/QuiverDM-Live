@@ -29,12 +29,13 @@ function initials(name: string): string {
   return (parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)).toUpperCase();
 }
 
-function TokenNodeImpl({ data }: NodeProps) {
+function TokenNodeImpl({ id, data }: NodeProps) {
   const d = data as TokenNodeData;
   const s = STYLE[d.type] ?? STYLE.npc;
   return (
     <button
       type="button"
+      data-testid={`token-${id}`}
       onClick={d.onSelect}
       className="-translate-x-1/2 -translate-y-1/2 text-center"
       style={{ opacity: d.isDead ? 0.45 : 1 }}
