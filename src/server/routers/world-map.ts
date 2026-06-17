@@ -39,7 +39,7 @@ export const worldMapRouter = router({
         include: {
           pins: {
             include: {
-              entity: { select: { id: true, name: true, type: true, imageUrl: true, properties: true, ddbChapterId: true } },
+              entity: { select: { id: true, name: true, type: true, imageUrl: true, properties: true, ddbChapterId: true, status: true, description: true } },
             },
           },
         },
