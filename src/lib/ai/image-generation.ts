@@ -112,7 +112,8 @@ async function generateWithComfyUI(request: ImageGenerationRequest): Promise<Ima
 }
 
 // NOTE: platform.higgsfield.ai REST API was deprecated May 2026.
-// Using the `higgsfield` CLI (npm i -g @higgsfield/cli) as a bridge.
+// Using the `higgsfield` CLI (npm i -g @higgsfield/cli, v0.2.2) as a bridge.
+// The CLI's valid image model is `nano_banana_2` (there is no --model param).
 // TODO: migrate to https://mcp.higgsfield.ai REST endpoints once documented.
 async function generateWithHiggsfield(request: ImageGenerationRequest): Promise<ImageGenerationResult> {
   const start = Date.now();
@@ -123,7 +124,7 @@ async function generateWithHiggsfield(request: ImageGenerationRequest): Promise<
   const stdout = await new Promise<string>((resolve, reject) => {
     execFile(
       'higgsfield',
-      ['generate', 'create', 'flux_2', '--prompt', prompt, '--aspect_ratio', '1:1', '--resolution', '2k', '--model', 'pro', '--wait'],
+      ['generate', 'create', 'nano_banana_2', '--prompt', prompt, '--aspect_ratio', '4:3', '--resolution', '2k', '--wait'],
       { timeout: 180_000 },
       (err, out) => {
         if (err) reject(new Error(`Higgsfield CLI failed: ${err.message.slice(0, 300)}`));
@@ -132,8 +133,9 @@ async function generateWithHiggsfield(request: ImageGenerationRequest): Promise<
     );
   });
 
-  const imageUrl = stdout.trim();
-  if (!imageUrl.startsWith('http')) throw new Error(`Higgsfield CLI unexpected output: ${imageUrl.slice(0, 200)}`);
+  const urls = stdout.match(/https?:\/\/\S+/g);
+  const imageUrl = urls?.[urls.length - 1]?.replace(/[)\].,'"]+$/, '');
+  if (!imageUrl) throw new Error(`Higgsfield CLI: no image URL in output: ${stdout.slice(0, 200)}`);
 
   const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(60_000) });
   if (!imgRes.ok) throw new Error(`Failed to fetch Higgsfield image: ${imgRes.status}`);
@@ -145,7 +147,7 @@ async function generateWithHiggsfield(request: ImageGenerationRequest): Promise<
   return {
     url,
     provider: 'higgsfield',
-    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'flux_2', width: 1024, height: 1024 },
+    metadata: { prompt, generationTimeMs: Date.now() - start, model: 'nano_banana_2', width: 1024, height: 1024 },
   };
 }
 
