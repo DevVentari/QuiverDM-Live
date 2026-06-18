@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
@@ -13,6 +13,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/primitives';
 import { Plus, ScrollText, Mic, FileText, Sparkles, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { ForgeTransition } from '@/components/campaign/ForgeTransition';
+import { CampaignForgeReveal } from '@/components/campaign/CampaignForgeReveal';
+import { useCampaignForging } from '@/components/campaign/useCampaignForging';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; dot: string }> = {
   planning:    { label: 'Planning',    color: 'text-[var(--q-text-faint)] border-[var(--q-border-subtle)] bg-[var(--q-surface-utility)]',  dot: 'bg-[var(--q-text-faint)]' },
@@ -43,6 +47,27 @@ type SessionListItem = {
 
 export default function SessionsPage() {
   const { campaignId, slug, isDM } = useCampaign();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const forgedParam = searchParams.get('forged'); // 'blank' | 'seeded' | '<book-slug>' | null
+  const isForging = forgedParam !== null;
+  const book = useMemo(
+    () => (!forgedParam || forgedParam === 'blank' || forgedParam === 'seeded' ? undefined : forgedParam),
+    [forgedParam],
+  );
+
+  const forging = useCampaignForging(campaignId, book);
+  const [mistOpen, setMistOpen] = useState(isForging);
+
+  useEffect(() => {
+    if (mistOpen && forging.firstArtifactReady) setMistOpen(false);
+  }, [mistOpen, forging.firstArtifactReady]);
+
+  // Strip ?forged from the URL after first paint so refresh doesn't replay.
+  useEffect(() => {
+    if (isForging) router.replace(`/campaigns/${slug}/sessions`, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const prefersReducedMotion = useReducedMotion();
   const sessionsQuery = trpc.sessions.getAll.useQuery({ campaignId }, { staleTime: 30_000 });
   const [filter, setFilter] = useState<FilterStatus>('all');
@@ -215,6 +240,12 @@ export default function SessionsPage() {
 
   return (
     <>
+      {isForging && <ForgeTransition open={mistOpen} label="Forging your world…" />}
+      {isForging && (
+        <div className="px-4 pt-4 md:px-6">
+          <CampaignForgeReveal campaignId={campaignId} slug={slug} state={forging} />
+        </div>
+      )}
       {/* Mobile: full-page list */}
       <div className="md:hidden p-4 space-y-4">
         {allDisplaySessions.length > 0 && (
