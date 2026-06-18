@@ -31,10 +31,17 @@ export function useCampaignForging(campaignId: string, book: string | undefined)
   const npcsQuery = trpc.brain.entities.list.useQuery({ campaignId, type: 'NPC' }, { refetchInterval });
   const membersQuery = trpc.members.getAll.useQuery({ campaignId }, { refetchInterval });
 
+  // Count PLAYER-role members only — getAll includes the OWNER (the creating DM),
+  // so a raw length would never read as "table is empty" and the invite ask
+  // (the one human action) would never surface.
+  const partyCount = ((membersQuery.data ?? []) as Array<{ role?: string }>).filter(
+    (m) => m.role === 'PLAYER',
+  ).length;
+
   const state = deriveForgingState({
     scenes: (scenesQuery.data ?? []) as Array<{ promptInput?: unknown }>,
     npcCount: (npcsQuery.data ?? []).length,
-    partyCount: (membersQuery.data ?? []).length,
+    partyCount,
     book,
     capReached,
   });

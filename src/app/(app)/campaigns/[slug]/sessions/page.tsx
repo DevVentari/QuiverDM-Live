@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { trpc } from '@/lib/trpc';
@@ -49,12 +49,14 @@ export default function SessionsPage() {
   const { campaignId, slug, isDM } = useCampaign();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const forgedParam = searchParams.get('forged'); // 'blank' | 'seeded' | '<book-slug>' | null
-  const isForging = forgedParam !== null;
-  const book = useMemo(
-    () => (!forgedParam || forgedParam === 'blank' || forgedParam === 'seeded' ? undefined : forgedParam),
-    [forgedParam],
-  );
+  // Capture the forge intent ONCE on mount. We strip ?forged from the URL below,
+  // which would otherwise flip isForging/book back to off and tear down the mist
+  // and reveal mid-animation. Reading searchParams in the initializer freezes it.
+  const [forgeBoot] = useState(() => {
+    const p = searchParams.get('forged'); // 'blank' | '<book-slug>' | null
+    return { isForging: p !== null, book: !p || p === 'blank' ? undefined : p };
+  });
+  const { isForging, book } = forgeBoot;
 
   const forging = useCampaignForging(campaignId, book);
   const [mistOpen, setMistOpen] = useState(isForging);
