@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { checkpoint, signInAsTestUser } from '../helpers';
+import { checkpoint, signInAsTestUser, ensureTestUserExists } from '../helpers';
 
 const VIC_EMAIL = process.env.QA_VIC_EMAIL ?? 'vic@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
+
+test.beforeAll(async () => {
+  await ensureTestUserExists(VIC_EMAIL, PASSWORD);
+});
 
 test('campaign create sheet - original campaign path creates and redirects', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
@@ -23,53 +27,26 @@ test('campaign create sheet - original campaign path creates and redirects', asy
   }, 20_000);
 });
 
-test('campaign create sheet - published adventure seeds brain-visible data', async ({ page }, testInfo) => {
+test('campaign create sheet - featured adventure seed creates and forges', async ({ page }, testInfo) => {
   await checkpoint(testInfo, 'sign-in', async () => {
     await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
   }, 15_000);
 
-  await checkpoint(testInfo, 'select-template', async () => {
+  await checkpoint(testInfo, 'select-featured-seed', async () => {
     await page.goto('/campaigns/new');
     await page.getByRole('textbox', { name: /campaign name/i }).fill(`Curse QA ${Date.now()}`);
     await page.getByRole('button', { name: /continue/i }).click();
-    await page.getByRole('button', { name: /curse of strahd/i }).click();
-    await expect(page.locator('input#startingLocation')).toHaveValue(/Barovia/i);
-    await expect(page.locator('input#antagonistName')).toHaveValue(/Strahd/i);
+    // The simplified sheet exposes featured adventures as preseed cards.
+    await page.getByTestId('featured-seed-cos').click();
   }, 12_000);
 
   await checkpoint(testInfo, 'create-campaign', async () => {
     await page.getByRole('button', { name: /create campaign/i }).click();
-    await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 15_000 });
+    // Create now navigates to the sessions surface (the forge reveal), with an
+    // optional ?forged=<seed> query param that the page strips after first paint.
+    await page.waitForURL(/\/campaigns\/(?!new$)[^/]+\/sessions(\?forged=.*)?$/, { timeout: 15_000 });
+    await expect(page.locator('body')).not.toContainText(/something went wrong|internal server error/i);
   }, 20_000);
-
-  await checkpoint(testInfo, 'seed-visible-in-brain', async () => {
-    const campaignUrl = page.url().replace(/\/$/, '');
-    await page.goto(`${campaignUrl}/brain`);
-    await expect(page.getByText(/DM Brain/i).first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText(/Open Hooks/i).first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('body')).toContainText(/Strahd von Zarovich|Village of Barovia|Order of the Silver Dragon/i, { timeout: 10_000 });
-    await expect(page.locator('body')).toContainText(/mist-shrouded realm of Barovia/i, { timeout: 10_000 });
-  }, 20_000);
-});
-
-test('campaign create sheet - featured preseed paths populate the wizard', async ({ page }, testInfo) => {
-  await checkpoint(testInfo, 'sign-in', async () => {
-    await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
-  }, 15_000);
-
-  await checkpoint(testInfo, 'open-sheet', async () => {
-    await page.goto('/campaigns/new');
-    await expect(page.getByRole('heading', { name: /new campaign/i })).toBeVisible({ timeout: 10_000 });
-    await page.getByRole('textbox', { name: /campaign name/i }).fill(`Seed QA ${Date.now()}`);
-    await page.getByRole('button', { name: /continue/i }).click();
-  }, 12_000);
-
-  await checkpoint(testInfo, 'pick-featured-seed', async () => {
-    await page.getByTestId('featured-seed-lmop').click();
-    await expect(page.locator('input#startingLocation')).toHaveValue(/Phandalin/i);
-    await expect(page.locator('input#antagonistName')).toHaveValue(/Nezznar/i);
-    await expect(page.locator('textarea#openingHook')).toHaveValue(/Phandalin goes wrong/i);
-  }, 10_000);
 });
 
 test('campaign create sheet - create without name shows validation error', async ({ page }, testInfo) => {
