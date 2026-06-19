@@ -24,6 +24,8 @@ import { ADVENTURE_TEMPLATES, type AdventureTemplate } from '@/lib/adventure-tem
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Which app shell to land in after creation. Defaults to the legacy (app) tree. */
+  shell?: 'app' | 'v3';
 };
 
 type Step = 1 | 2;
@@ -195,7 +197,7 @@ function StepIndicator({ step }: { step: Step }) {
   );
 }
 
-export function CampaignCreateSheet({ open, onOpenChange }: Props) {
+export function CampaignCreateSheet({ open, onOpenChange, shell = 'app' }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const utils = trpc.useUtils();
@@ -349,9 +351,14 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
 
     await utils.campaigns.getAll.invalidate();
     resetState();
+    const slug = campaign.slug || campaign.id;
+    const base = shell === 'v3' ? `/v3/campaigns/${slug}` : `/campaigns/${slug}`;
+    // v3 has no /players route — its party import surfaces on the overview.
     const dest = ddbUrl.trim()
-      ? `/campaigns/${campaign.slug || campaign.id}/players?ddb-importing=true`
-      : `/campaigns/${campaign.slug || campaign.id}/sessions?forged=${encodeURIComponent(seedSlug)}`;
+      ? shell === 'v3'
+        ? `${base}/overview?ddb-importing=true`
+        : `${base}/players?ddb-importing=true`
+      : `${base}/sessions?forged=${encodeURIComponent(seedSlug)}`;
     router.push(dest);
   }
 

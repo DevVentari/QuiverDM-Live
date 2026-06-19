@@ -1,26 +1,53 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
+import { CampaignCreateSheet } from '@/components/campaign/campaign-create-sheet';
 
 /**
  * v3 home — the campaign picker / returning-DM landing. Lists the user's
  * campaigns; each opens the campaign-scoped v3 shell at its overview.
+ * The "Forge a new world" action opens the Campaign Forge and lands the
+ * freshly-created campaign back in the v3 shell.
  */
 export default function V3HomePage() {
   const campaigns = trpc.campaigns.getAll.useQuery(undefined, { staleTime: 60_000 });
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
     <div className="mx-auto max-w-3xl px-8 py-14">
-      <span className="font-qd-mono text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">
-        The chronicle remembers you
-      </span>
-      <h1 className="mt-3 font-qd-display text-qd-display-xl text-qd-ink-strong">Your worlds</h1>
+      <div className="flex items-start justify-between gap-6">
+        <div>
+          <span className="font-qd-mono text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">
+            The chronicle remembers you
+          </span>
+          <h1 className="mt-3 font-qd-display text-qd-display-xl text-qd-ink-strong">Your worlds</h1>
+        </div>
+        <button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          data-testid="v3-new-campaign-cta"
+          className="mt-2 shrink-0 rounded-qd-md bg-qd-accent px-4 py-2 font-qd-display text-[13px] font-bold text-qd-on-accent transition-opacity hover:opacity-90"
+        >
+          Forge a new world →
+        </button>
+      </div>
 
       {campaigns.isLoading && <p className="mt-8 text-qd-ink-muted">Gathering the chronicles…</p>}
 
       {campaigns.data && campaigns.data.length === 0 && (
-        <p className="mt-8 text-qd-ink-muted">No worlds yet. The first chronicle begins when you name it.</p>
+        <div className="mt-8">
+          <p className="text-qd-ink-muted">No worlds yet. The first chronicle begins when you name it.</p>
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            data-testid="v3-empty-create-cta"
+            className="mt-4 rounded-qd-md bg-qd-accent px-4 py-2 font-qd-display text-[13px] font-bold text-qd-on-accent transition-opacity hover:opacity-90"
+          >
+            Forge your first world →
+          </button>
+        </div>
       )}
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -41,6 +68,8 @@ export default function V3HomePage() {
           </div>
         ))}
       </div>
+
+      <CampaignCreateSheet open={createOpen} onOpenChange={setCreateOpen} shell="v3" />
     </div>
   );
 }
