@@ -17,10 +17,19 @@ function dismissKey(campaignId: string) { return `forge-dismissed:${campaignId}`
 
 /** The living reveal: one human ask + seeded surfaces fading in as they finish. */
 export function CampaignForgeReveal({
-  campaignId, slug, state,
-}: { campaignId: string; slug: string; state: ForgingState }) {
+  campaignId, slug, state, shell = 'app',
+}: { campaignId: string; slug: string; state: ForgingState; shell?: 'app' | 'v3' }) {
   const reduce = useReducedMotion() ?? false;
   const [dismissed, setDismissed] = useState(true); // default hidden until effect resolves
+
+  // Route map per shell — v3 has no /members or /brain routes; party lives under
+  // settings, NPCs under their own route.
+  const base = shell === 'v3' ? `/v3/campaigns/${slug}` : `/campaigns/${slug}`;
+  const href = {
+    party: shell === 'v3' ? `${base}/settings` : `${base}/members`,
+    sessions: `${base}/sessions`,
+    npcs: shell === 'v3' ? `${base}/npcs` : `${base}/brain`,
+  };
 
   useEffect(() => {
     setDismissed(localStorage.getItem(dismissKey(campaignId)) === '1');
@@ -64,7 +73,7 @@ export function CampaignForgeReveal({
             The world is taking shape — but it needs players. Call your party to the table.
           </p>
           <Link
-            href={`/campaigns/${slug}/members`}
+            href={href.party}
             className="mt-2.5 inline-flex items-center gap-1.5 rounded-[8px] bg-[var(--q-amber)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.18_0.02_60)]"
           >
             <Users className="h-3.5 w-3.5" /> Invite players
@@ -74,15 +83,15 @@ export function CampaignForgeReveal({
 
       <div className="grid gap-2">
         {s.session0 === 'ready' && (
-          <RevealCard reduce={reduce} href={`/campaigns/${slug}/sessions`} lab="Session 0 · ready"
+          <RevealCard reduce={reduce} href={href.sessions} lab="Session 0 · ready"
             title="Into the Mists" body="Your opening scene is written and waiting." />
         )}
         {s.tarokka === 'ready' && (
-          <RevealCard reduce={reduce} href={`/campaigns/${slug}/sessions`} lab="DM secret · ready"
+          <RevealCard reduce={reduce} href={href.sessions} lab="DM secret · ready"
             title="Madam Eva has spoken" body="The Tarokka reading set the campaign's spine. Tap to reveal." />
         )}
         {s.npcs === 'ready' && (
-          <RevealCard reduce={reduce} href={`/campaigns/${slug}/brain`} lab="Cast · ready"
+          <RevealCard reduce={reduce} href={href.npcs} lab="Cast · ready"
             title="Figures stir in the world" body="Seeded NPCs are ready in the campaign brain." />
         )}
         {(s.session0 === 'pending' || s.tarokka === 'pending' || s.npcs === 'pending') && (

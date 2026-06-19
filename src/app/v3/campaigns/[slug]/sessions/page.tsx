@@ -21,13 +21,17 @@
  *   - Party HP               → no per-session HP aggregation wired; defaults to '—'
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { LiveTranscriptPanel } from '@/components/session/v3/LiveTranscriptPanel';
 import { DiscordRecordControl } from '@/components/discord/DiscordRecordControl';
 import { useLiveCapture } from '@/hooks/useLiveCapture';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
+import { ForgeTransition } from '@/components/campaign/ForgeTransition';
+import { CampaignForgeReveal } from '@/components/campaign/CampaignForgeReveal';
+import { useCampaignForging } from '@/components/campaign/useCampaignForging';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
 const display = 'font-[family-name:var(--qd-font-display)]';
@@ -163,7 +167,39 @@ const TOOLS = [
 ];
 
 export default function SessionsPage() {
-  const { campaignId, isDM } = useCampaign();
+  const { campaignId, slug, isDM } = useCampaign();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Campaign Forge living-reveal. Freeze the ?forged intent on mount (we strip
+  // the param below, which would otherwise tear down the mist/reveal), then poll
+  // for seeded surfaces. Same pattern as the legacy (app) sessions page.
+  const [forgeBoot] = useState(() => {
+    const p = searchParams.get('forged'); // 'blank' | '<book-slug>' | null
+    return { isForging: p !== null, book: !p || p === 'blank' ? undefined : p };
+  });
+  const { isForging, book } = forgeBoot;
+  const forging = useCampaignForging(campaignId, book);
+  const [mistOpen, setMistOpen] = useState(forgeBoot.isForging);
+
+  useEffect(() => {
+    if (mistOpen && forging.firstArtifactReady) setMistOpen(false);
+  }, [mistOpen, forging.firstArtifactReady]);
+
+  // Strip ?forged after first paint so a refresh doesn't replay the ceremony.
+  useEffect(() => {
+    if (isForging) router.replace(`/v3/campaigns/${slug}/sessions`, { scroll: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const forgeLayer = isForging ? (
+    <>
+      <ForgeTransition open={mistOpen} label="Forging your world…" />
+      <div className="px-6 pt-4">
+        <CampaignForgeReveal campaignId={campaignId} slug={slug} state={forging} shell="v3" />
+      </div>
+    </>
+  ) : null;
 
   const sessions = trpc.sessions.getAll.useQuery({ campaignId }, { staleTime: 30_000 });
 
@@ -261,19 +297,32 @@ export default function SessionsPage() {
   const hasError = sessions.error || phases.error || routes.error;
 
   if (sessions.isLoading) {
-    return <div className="px-8 py-16 text-[var(--qd-ink-muted)]">Gathering the chronicle…</div>;
+    return (
+      <>
+        {forgeLayer}
+        <div className="px-8 py-16 text-[var(--qd-ink-muted)]">Gathering the chronicle…</div>
+      </>
+    );
   }
   if (hasError) {
-    return <div className="px-8 py-16 text-[var(--qd-ink-muted)]">The threads tangled. Try again.</div>;
+    return (
+      <>
+        {forgeLayer}
+        <div className="px-8 py-16 text-[var(--qd-ink-muted)]">The threads tangled. Try again.</div>
+      </>
+    );
   }
   if (!current) {
     return (
-      <div className="grid h-full place-items-center px-8 text-center">
-        <div>
-          <div className={`${display} text-[22px] text-[var(--qd-ink-strong)]`}>The chronicle is empty.</div>
-          <div className={`${mono} mt-2 text-[11px] tracking-[0.08em] text-[var(--qd-ink-muted)]`}>Begin when ready.</div>
+      <>
+        {forgeLayer}
+        <div className="grid h-full place-items-center px-8 text-center">
+          <div>
+            <div className={`${display} text-[22px] text-[var(--qd-ink-strong)]`}>The chronicle is empty.</div>
+            <div className={`${mono} mt-2 text-[11px] tracking-[0.08em] text-[var(--qd-ink-muted)]`}>Begin when ready.</div>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -282,6 +331,7 @@ export default function SessionsPage() {
 
   return (
     <div className="flex h-full flex-col">
+      {forgeLayer}
       {/* Run sheet header */}
       <div
         className="flex items-center gap-3.5 border-b border-[var(--qd-border-faint)] px-[22px] py-3.5"
