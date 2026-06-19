@@ -20,6 +20,8 @@ export interface QdModalProps {
  * No shadcn/ui imports. No v2 tokens.
  */
 export function QdModal({ open, onOpenChange, title, children, className }: QdModalProps) {
+  const titleId = React.useId();
+
   // Escape key handler
   React.useEffect(() => {
     if (!open) return;
@@ -47,7 +49,7 @@ export function QdModal({ open, onOpenChange, title, children, className }: QdMo
           className="fixed inset-0 z-50"
           aria-modal="true"
           role="dialog"
-          aria-labelledby={title ? 'qd-modal-title' : undefined}
+          aria-labelledby={title ? titleId : undefined}
         >
           {/* Backdrop */}
           <motion.div
@@ -75,9 +77,17 @@ export function QdModal({ open, onOpenChange, title, children, className }: QdMo
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
               transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
             >
+              {/* Close button */}
+              <button
+                onClick={() => onOpenChange(false)}
+                className="absolute top-3 right-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-qd-md text-qd-ink-muted hover:text-qd-ink transition-colors"
+                aria-label="Close"
+              >
+                ✕
+              </button>
               {title && (
                 <h2
-                  id="qd-modal-title"
+                  id={titleId}
                   className="font-qd-display text-qd-title text-qd-ink-strong mb-4"
                 >
                   {title}

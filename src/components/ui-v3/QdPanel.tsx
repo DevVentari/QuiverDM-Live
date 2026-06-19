@@ -21,6 +21,8 @@ export interface QdPanelProps {
  * No shadcn/ui imports. No v2 tokens.
  */
 export function QdPanel({ open, onOpenChange, title, children, className }: QdPanelProps) {
+  const titleId = React.useId();
+
   // Escape key handler
   React.useEffect(() => {
     if (!open) return;
@@ -44,7 +46,7 @@ export function QdPanel({ open, onOpenChange, title, children, className }: QdPa
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby={title ? 'qd-panel-title' : undefined}>
+        <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby={title ? titleId : undefined}>
           {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black/60"
@@ -74,14 +76,14 @@ export function QdPanel({ open, onOpenChange, title, children, className }: QdPa
             {title && (
               <div className="flex items-center justify-between px-6 py-4 border-b border-qd shrink-0">
                 <h2
-                  id="qd-panel-title"
+                  id={titleId}
                   className="font-qd-display text-qd-title text-qd-ink-strong"
                 >
                   {title}
                 </h2>
                 <button
                   onClick={() => onOpenChange(false)}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center text-qd-ink-muted hover:text-qd-ink transition-colors"
+                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-qd-md text-qd-ink-muted hover:text-qd-ink transition-colors"
                   aria-label="Close panel"
                 >
                   ✕

@@ -24,17 +24,42 @@ export interface QdTabsProps {
  * No shadcn/ui imports. No v2 tokens.
  */
 export function QdTabs({ tabs, value, onValueChange, children, className }: QdTabsProps) {
+  const tabRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const currentIndex = tabs.findIndex((t) => t.key === value);
+    let nextIndex = currentIndex;
+
+    if (e.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % tabs.length;
+    } else if (e.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    } else if (e.key === 'Home') {
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      nextIndex = tabs.length - 1;
+    } else {
+      return;
+    }
+
+    e.preventDefault();
+    onValueChange(tabs[nextIndex].key);
+    tabRefs.current[nextIndex]?.focus();
+  }
+
   return (
     <div className={cn('flex flex-col', className)}>
       {/* Tab bar */}
-      <div className="flex gap-1" role="tablist">
-        {tabs.map((tab) => {
+      <div className="flex gap-1" role="tablist" onKeyDown={handleKeyDown}>
+        {tabs.map((tab, index) => {
           const isActive = tab.key === value;
           return (
             <button
               key={tab.key}
+              ref={(el) => { tabRefs.current[index] = el; }}
               role="tab"
               aria-selected={isActive}
+              tabIndex={isActive ? 0 : -1}
               onClick={() => onValueChange(tab.key)}
               className={cn(
                 'min-h-[44px] px-4 text-sm rounded-qd-md border transition-colors',
