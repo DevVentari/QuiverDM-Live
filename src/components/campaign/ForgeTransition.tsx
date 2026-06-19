@@ -15,7 +15,7 @@ export function ForgeTransition({ open, label }: { open: boolean; label: string 
       {open && (
         <motion.div
           key="forge-mist"
-          className="fixed inset-0 z-[80] flex items-center justify-center overflow-hidden bg-[oklch(0.1_0.005_250)]"
+          className="fixed inset-0 z-[80] flex items-center justify-center overflow-hidden bg-[var(--qd-bg)]"
           initial={{ opacity: reduce ? 1 : 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: reduce ? 0.2 : 0.9, ease: 'easeInOut' } }}
@@ -37,10 +37,10 @@ export function ForgeTransition({ open, label }: { open: boolean; label: string 
             </>
           )}
           <div className="relative z-10 text-center">
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[var(--q-amber-border)] text-[var(--q-amber)] shadow-[0_0_40px_-6px_var(--q-amber)]">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border-2 border-[var(--qd-border-accent)] text-[var(--qd-accent-text)] shadow-[0_0_40px_-6px_var(--qd-accent)]">
               ✦
             </div>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--q-amber)]">{label}</p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-[var(--qd-accent-text)]">{label}</p>
           </div>
         </motion.div>
       )}
