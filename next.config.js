@@ -90,6 +90,17 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     config.externals = config.externals || [];
     config.externals.push('bufferutil', 'utf-8-validate');
+    // Native .node binaries (e.g. @snazzah/davey's platform-specific DAVE
+    // encryption package, dragged in via @discordjs/voice) can't be parsed by
+    // webpack. serverExternalPackages only matches the base @snazzah/davey, not
+    // the per-platform @snazzah/davey-win32-x64-msvc / -linux-x64-gnu binary —
+    // so externalize any .node request as a runtime require instead of bundling.
+    config.externals.push(({ request }, callback) => {
+      if (request && (request.endsWith('.node') || /@snazzah[/\\]davey/.test(request))) {
+        return callback(null, 'commonjs ' + request);
+      }
+      callback();
+    });
     if (isServer) {
       // These packages use dynamic requires incompatible with webpack bundling
       config.externals.push('@ffmpeg-installer/ffmpeg', 'fluent-ffmpeg');
