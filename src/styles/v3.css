@@ -90,16 +90,16 @@
 }
 
 /* Amber ember (upper-right) on its own layer — opacity-only breathe = GPU-cheap. */
+@keyframes v3-breathe {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
 .v3-ember {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background: radial-gradient(1100px 620px at 72% -12%, rgba(217, 138, 61, 0.10), transparent 60%);
   animation: v3-breathe 9s var(--qd-ease-inout) infinite;
-}
-@keyframes v3-breathe {
-  0%, 100% { opacity: 0.7; }
-  50%      { opacity: 1; }
 }
 
 /* Film grain — inline SVG feTurbulence, no asset file. */
