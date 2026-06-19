@@ -74,7 +74,7 @@ export function CampaignForgeReveal({
           </p>
           <Link
             href={href.party}
-            className="mt-2.5 inline-flex items-center gap-1.5 rounded-[8px] bg-[var(--qd-accent)] px-3 py-1.5 text-xs font-semibold text-[oklch(0.18_0.02_60)]"
+            className="mt-2.5 inline-flex items-center gap-1.5 rounded-[8px] bg-[var(--qd-accent)] px-3 py-1.5 text-xs font-semibold text-qd-on-accent"
           >
             <Users className="h-3.5 w-3.5" /> Invite players
           </Link>
