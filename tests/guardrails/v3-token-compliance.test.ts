@@ -48,16 +48,26 @@ function glob(dir: string, ext = '.tsx'): string[] {
 const ROOT = resolve(process.cwd());
 
 const UI_V3_DIR = resolve(ROOT, 'src/components/ui-v3');
+const V3_APP_DIR = resolve(ROOT, 'src/app/v3');
 
-// Task 1: only scan the freshly-created primitive set.
-const FILES: string[] = glob(UI_V3_DIR);
+// The embedded v2 components ported onto --qd-* in tasks 2-6.
+const PORTED_COMPONENTS: string[] = [
+  'src/components/campaign/ForgeTransition.tsx',
+  'src/components/campaign/CampaignForgeReveal.tsx',
+  'src/components/campaign/campaign-create-sheet.tsx',
+  'src/components/vtt/map-background-control.tsx',
+  'src/components/vtt/vtt-canvas.tsx',
+  'src/components/session/audio-recorder.tsx',
+];
 
-// TASK 7: expand this list to the ported cluster files, e.g.:
-// const CLUSTER_FILES: string[] = [
-//   'src/app/v3/campaigns/[slug]/session/[id]/_components/SomeComponent.tsx',
-//   // ... all cluster files ported in tasks 2-6
-// ];
-// const FILES: string[] = [...glob(UI_V3_DIR), ...CLUSTER_FILES.map(f => resolve(ROOT, f))];
+// The full v3 surface must stay token-clean: the ui-v3 primitives, every page
+// under /v3, and the ported components. New v3 work is covered automatically by
+// globbing src/app/v3.
+const FILES: string[] = [
+  ...glob(UI_V3_DIR),
+  ...glob(V3_APP_DIR),
+  ...PORTED_COMPONENTS.map((f) => resolve(ROOT, f)),
+];
 
 // ─── Forbidden patterns ─────────────────────────────────────────────────────
 
