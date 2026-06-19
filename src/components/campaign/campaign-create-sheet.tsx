@@ -45,7 +45,7 @@ function ShellPanel({
     <section
       className={cn(
         'relative overflow-hidden rounded-[20px] border border-[var(--qd-border-accent)]',
-        'bg-[color-mix(in_oklab,var(--qd-surface-utility,var(--qd-surface))_82%,transparent)]',
+        'bg-[color-mix(in_oklab,var(--qd-card)_82%,transparent)]',
         'shadow-[0_18px_50px_-34px_rgba(0,0,0,0.75)] backdrop-blur-sm',
         className,
       )}
@@ -93,10 +93,10 @@ function AdventureCard({
       data-testid={testId}
       className={cn(
         'group relative overflow-hidden rounded-[18px] border text-left transition-all duration-200',
-        'min-h-[88px] border-[var(--qd-border)] bg-[color-mix(in_oklab,var(--qd-surface-utility,var(--qd-surface))_78%,transparent)]',
+        'min-h-[88px] border-[var(--qd-border)] bg-[color-mix(in_oklab,var(--qd-card)_78%,transparent)]',
         'hover:-translate-y-0.5 hover:border-[var(--qd-border-accent)] hover:shadow-[0_18px_45px_-30px_rgba(0,0,0,0.9)]',
         selected &&
-          'border-[var(--qd-border-accent)] bg-[color-mix(in_oklab,var(--qd-accent-trace,rgba(217,138,61,.12))_22%,var(--qd-surface-utility,var(--qd-surface)))] shadow-[0_20px_46px_-30px_rgba(0,0,0,0.95)]',
+          'border-[var(--qd-border-accent)] bg-[color-mix(in_oklab,rgba(217,138,61,.10)_22%,var(--qd-card))] shadow-[0_20px_46px_-30px_rgba(0,0,0,0.95)]',
       )}
     >
       <div
@@ -122,7 +122,7 @@ function AdventureCard({
             className={cn(
               'rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.22em]',
               selected
-                ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-[var(--qd-accent)]'
+                ? 'border-[var(--qd-border-accent)] bg-[rgba(217,138,61,.10)] text-[var(--qd-accent)]'
                 : 'border-white/10 bg-white/[0.03] text-qd-ink-faint',
             )}
           >
@@ -149,7 +149,7 @@ function StepIndicator({ step }: { step: Step }) {
               className={cn(
                 'flex size-8 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors',
                 step >= 1
-                  ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-[var(--qd-accent)]'
+                  ? 'border-[var(--qd-border-accent)] bg-[rgba(217,138,61,.10)] text-[var(--qd-accent)]'
                   : 'border-white/10 bg-white/[0.02] text-qd-ink-faint',
               )}
             >
@@ -170,7 +170,7 @@ function StepIndicator({ step }: { step: Step }) {
               className={cn(
                 'flex size-8 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors',
                 step === 2
-                  ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-[var(--qd-accent)]'
+                  ? 'border-[var(--qd-border-accent)] bg-[rgba(217,138,61,.10)] text-[var(--qd-accent)]'
                   : 'border-white/10 bg-white/[0.02] text-qd-ink-faint',
               )}
             >
@@ -600,7 +600,7 @@ export function CampaignCreateSheet({ open, onOpenChange, shell = 'app' }: Props
                               className={cn(
                                 'rounded-[16px] border p-4 text-left text-xs transition-colors',
                                 selectedDdbSourcebookId === sb.id
-                                  ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-qd-ink'
+                                  ? 'border-[var(--qd-border-accent)] bg-[rgba(217,138,61,.10)] text-qd-ink'
                                   : 'border-white/10 bg-white/[0.03] text-qd-ink-2 hover:border-[var(--qd-border-accent)]/60 hover:text-qd-ink',
                               )}
                               data-testid={`create-ddb-sb-${sb.slug}`}
