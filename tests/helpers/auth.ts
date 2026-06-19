@@ -73,7 +73,7 @@ export async function ensureTestCampaignExists(
   if (!user) throw new Error(`ensureTestCampaignExists: user ${email} not found — call ensureTestUserExists first`);
   const campaign = await prisma.campaign.upsert({
     where: { slug },
-    update: { name, status: 'active' },
+    update: { name },
     create: { userId: user.id, slug, name, status: 'active' },
   });
   const existing = await prisma.campaignMember.findFirst({
