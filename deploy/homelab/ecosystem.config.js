@@ -42,6 +42,7 @@ module.exports = {
 
     // --- DM Brain ---
     worker('worker-brain-ingestion',  'src/lib/queue/brain-ingestion-worker.ts'),
+    worker('worker-secret-revelation-sync', 'src/lib/queue/secret-revelation-sync-worker.ts'),
     worker('worker-brain-inference',  'src/lib/queue/brain-inference-worker.ts'),
     worker('worker-world-sim',        'src/lib/queue/world-simulation-worker.ts'),
 
