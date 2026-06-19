@@ -11,11 +11,7 @@ import {
   ScrollText,
   Sparkles,
 } from 'lucide-react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { QdPanel, QdButton, QdInput, QdTextarea, QdLabel } from '@/components/ui-v3';
 import { useToast } from '@/hooks/use-toast';
 import { trpc } from '@/lib/trpc';
 import { cn } from '@/lib/utils';
@@ -48,22 +44,23 @@ function ShellPanel({
   return (
     <section
       className={cn(
-        'q-panel-grain relative overflow-hidden rounded-[20px] border border-[var(--q-border-feature)]',
-        'bg-[color-mix(in_oklab,var(--q-surface-utility)_82%,transparent)]',
+        'relative overflow-hidden rounded-[20px] border border-[var(--qd-border-accent)]',
+        'bg-[color-mix(in_oklab,var(--qd-surface-utility,var(--qd-surface))_82%,transparent)]',
         'shadow-[0_18px_50px_-34px_rgba(0,0,0,0.75)] backdrop-blur-sm',
         className,
       )}
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--q-amber-border)]/70 to-transparent" />
+      {/* warm-amber top rule */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--qd-border-accent)]/70 to-transparent" />
       <div className="relative z-10 px-5 py-4 sm:px-6 sm:py-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             {eyebrow && <p className="label-overline">{eyebrow}</p>}
-            <h3 className="font-[var(--q-font-display)] text-base text-[var(--q-text)] sm:text-lg">
+            <h3 className="font-[family-name:var(--qd-font-display)] text-base text-qd-ink sm:text-lg">
               {title}
             </h3>
             {description && (
-              <p className="max-w-2xl text-sm leading-relaxed text-[var(--q-text-dim)]">
+              <p className="max-w-2xl text-sm leading-relaxed text-qd-ink-2">
                 {description}
               </p>
             )}
@@ -96,10 +93,10 @@ function AdventureCard({
       data-testid={testId}
       className={cn(
         'group relative overflow-hidden rounded-[18px] border text-left transition-all duration-200',
-        'min-h-[88px] border-[var(--q-border-subtle)] bg-[color-mix(in_oklab,var(--q-surface-utility)_78%,transparent)]',
-        'hover:-translate-y-0.5 hover:border-[var(--q-amber-border)] hover:shadow-[0_18px_45px_-30px_rgba(0,0,0,0.9)]',
+        'min-h-[88px] border-[var(--qd-border)] bg-[color-mix(in_oklab,var(--qd-surface-utility,var(--qd-surface))_78%,transparent)]',
+        'hover:-translate-y-0.5 hover:border-[var(--qd-border-accent)] hover:shadow-[0_18px_45px_-30px_rgba(0,0,0,0.9)]',
         selected &&
-          'border-[var(--q-amber-border)] bg-[color-mix(in_oklab,var(--q-amber-trace)_22%,var(--q-surface-utility))] shadow-[0_20px_46px_-30px_rgba(0,0,0,0.95)]',
+          'border-[var(--qd-border-accent)] bg-[color-mix(in_oklab,var(--qd-accent-trace,rgba(217,138,61,.12))_22%,var(--qd-surface-utility,var(--qd-surface)))] shadow-[0_20px_46px_-30px_rgba(0,0,0,0.95)]',
       )}
     >
       <div
@@ -114,10 +111,10 @@ function AdventureCard({
       <div className="relative z-10 flex h-full flex-col gap-2 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="truncate font-[var(--q-font-display)] text-sm tracking-wide text-[var(--q-text)]">
+            <div className="truncate font-[family-name:var(--qd-font-display)] text-sm tracking-wide text-qd-ink">
               {template.title}
             </div>
-            <div className="mt-1 text-[11px] uppercase tracking-[0.24em] text-[var(--q-text-faint)]">
+            <div className="mt-1 text-[11px] uppercase tracking-[0.24em] text-qd-ink-faint">
               {template.setting}
             </div>
           </div>
@@ -125,15 +122,15 @@ function AdventureCard({
             className={cn(
               'rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.22em]',
               selected
-                ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
-                : 'border-white/10 bg-white/[0.03] text-[var(--q-text-faint)]',
+                ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-[var(--qd-accent)]'
+                : 'border-white/10 bg-white/[0.03] text-qd-ink-faint',
             )}
           >
             {template.levelRange}
           </div>
         </div>
         {!compact && (
-          <p className="line-clamp-2 text-xs leading-snug text-[var(--q-text-dim)]">
+          <p className="line-clamp-2 text-xs leading-snug text-qd-ink-2">
             {template.description}
           </p>
         )}
@@ -152,44 +149,44 @@ function StepIndicator({ step }: { step: Step }) {
               className={cn(
                 'flex size-8 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors',
                 step >= 1
-                  ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
-                  : 'border-white/10 bg-white/[0.02] text-[var(--q-text-faint)]',
+                  ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-[var(--qd-accent)]'
+                  : 'border-white/10 bg-white/[0.02] text-qd-ink-faint',
               )}
             >
               {step > 1 ? <Check className="h-3.5 w-3.5" /> : '1'}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)]">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">
                 Step 1
               </p>
-              <p className={cn('font-[var(--q-font-display)] text-sm', step === 1 && 'text-[var(--q-amber)]')}>
+              <p className={cn('font-[family-name:var(--qd-font-display)] text-sm', step === 1 && 'text-[var(--qd-accent)]')}>
                 Identity
               </p>
             </div>
           </div>
-          <div className={cn('h-px flex-1 bg-gradient-to-r from-[var(--q-amber-border)]/70 to-transparent', step > 1 ? 'opacity-100' : 'opacity-40')} />
+          <div className={cn('h-px flex-1 bg-gradient-to-r from-[var(--qd-border-accent)]/70 to-transparent', step > 1 ? 'opacity-100' : 'opacity-40')} />
           <div className="flex min-w-0 items-center gap-2">
             <div
               className={cn(
                 'flex size-8 items-center justify-center rounded-full border text-[11px] font-semibold transition-colors',
                 step === 2
-                  ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-amber)]'
-                  : 'border-white/10 bg-white/[0.02] text-[var(--q-text-faint)]',
+                  ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-[var(--qd-accent)]'
+                  : 'border-white/10 bg-white/[0.02] text-qd-ink-faint',
               )}
             >
               2
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)]">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">
                 Step 2
               </p>
-              <p className={cn('font-[var(--q-font-display)] text-sm', step === 2 && 'text-[var(--q-amber)]')}>
+              <p className={cn('font-[family-name:var(--qd-font-display)] text-sm', step === 2 && 'text-[var(--qd-accent)]')}>
                 Seed the world
               </p>
             </div>
           </div>
         </div>
-        <span className="hidden rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)] sm:inline-flex">
+        <span className="hidden rounded-full border border-white/10 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint sm:inline-flex">
           DM-first workflow
         </span>
       </div>
@@ -372,287 +369,180 @@ export function CampaignCreateSheet({ open, onOpenChange, shell = 'app' }: Props
   const ddbConnectionLabel = ddbUrl.trim() ? 'D&D Beyond linked' : 'No party import';
 
   return (
-    <Sheet open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
-      <SheetContent
-        side="right"
-        className={cn(
-          '!fixed !left-auto !right-0 !inset-y-0 !h-[100dvh] !w-[min(42rem,calc(100vw-1rem))] !max-w-none overflow-hidden p-0 text-[var(--q-text)]',
-          'border-l border-[var(--q-border-feature)]',
-          'bg-[oklch(0.19_0.007_240)]',
-        )}
-      >
-        <div className="pointer-events-none absolute inset-0 q-hero-glow opacity-90" />
-        <div className="pointer-events-none absolute inset-0 q-panel-grain opacity-70" />
-        <div className="relative z-10 flex h-full flex-col">
-          <div className="sticky top-0 z-20 border-b border-[var(--q-border-feature)]/70 bg-[oklch(0.16_0.007_240)]/97 px-6 py-6 backdrop-blur-md sm:px-8">
-            <SheetHeader className="space-y-2 text-left">
-              <p className="label-overline">Campaign Forge</p>
-              <SheetTitle className="font-[var(--q-font-display)] text-2xl text-[var(--q-text)] sm:text-3xl">
-                Forge a new campaign
-              </SheetTitle>
-              <p className="max-w-3xl text-sm leading-relaxed text-[var(--q-text-dim)] sm:text-base">
-                Name the world, choose whether QuiverDM should seed it with a published adventure,
-                and decide what imports should happen the moment the campaign is born.
-              </p>
-            </SheetHeader>
+    <QdPanel
+      open={open}
+      onOpenChange={(o) => { if (!o) handleClose(); }}
+    >
+      {/*
+        We render the full layout directly inside QdPanel's children wrapper
+        (which is flex-1 overflow-y-auto px-6 py-4). We negate the wrapper's
+        padding with -mx-6 -my-4 so we can control our own sticky zones.
+      */}
+      <div className="-mx-6 -my-4 flex h-full flex-col">
+        {/* Ambient warm-amber + arcane glow layers (replace q-hero-glow / q-panel-grain) */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-90"
+          style={{
+            background:
+              'radial-gradient(ellipse 80% 50% at 20% -10%, rgba(217,138,61,.10) 0%, transparent 60%),' +
+              'radial-gradient(ellipse 60% 40% at 80% 110%, rgba(120,80,200,.07) 0%, transparent 55%)',
+          }}
+        />
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[16px] border border-white/10 bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)]">Campaign</p>
-                <p className="mt-1 truncate font-[var(--q-font-display)] text-sm text-[var(--q-text)]">
-                  {name.trim() || 'Unnamed campaign'}
-                </p>
-              </div>
-              <div className="rounded-[16px] border border-white/10 bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)]">Seed</p>
-                <p className="mt-1 truncate font-[var(--q-font-display)] text-sm text-[var(--q-amber)]">
-                  {selectedSeedLabel}
-                </p>
-              </div>
-              <div className="rounded-[16px] border border-white/10 bg-white/[0.03] px-4 py-3">
-                <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)]">Import</p>
-                <p className="mt-1 truncate font-[var(--q-font-display)] text-sm text-[var(--q-text)]">
-                  {ddbConnectionLabel}
-                </p>
-              </div>
+        {/* Sticky top header */}
+        <div className="sticky top-0 z-20 border-b border-[var(--qd-border-accent)]/70 bg-[rgba(22,17,14,0.97)] px-6 py-6 backdrop-blur-md sm:px-8">
+          <p className="label-overline">Campaign Forge</p>
+          <h2 className="mt-1 font-[family-name:var(--qd-font-display)] text-2xl text-qd-ink sm:text-3xl">
+            Forge a new campaign
+          </h2>
+          <p className="mt-1 max-w-3xl text-sm leading-relaxed text-qd-ink-2 sm:text-base">
+            Name the world, choose whether QuiverDM should seed it with a published adventure,
+            and decide what imports should happen the moment the campaign is born.
+          </p>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-[16px] border border-white/10 bg-white/[0.03] px-4 py-3">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">Campaign</p>
+              <p className="mt-1 truncate font-[family-name:var(--qd-font-display)] text-sm text-qd-ink">
+                {name.trim() || 'Unnamed campaign'}
+              </p>
+            </div>
+            <div className="rounded-[16px] border border-white/10 bg-white/[0.03] px-4 py-3">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">Seed</p>
+              <p className="mt-1 truncate font-[family-name:var(--qd-font-display)] text-sm text-[var(--qd-accent)]">
+                {selectedSeedLabel}
+              </p>
+            </div>
+            <div className="rounded-[16px] border border-white/10 bg-white/[0.03] px-4 py-3">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">Import</p>
+              <p className="mt-1 truncate font-[family-name:var(--qd-font-display)] text-sm text-qd-ink">
+                {ddbConnectionLabel}
+              </p>
             </div>
           </div>
+        </div>
 
-          <div className="sticky top-[calc(1px+8.75rem)] z-20 border-b border-[var(--q-border-feature)]/55 bg-[oklch(0.15_0.007_240)]/97 backdrop-blur-md">
-            <StepIndicator step={step} />
-          </div>
+        {/* Sticky step indicator */}
+        <div className="sticky top-[calc(1px+8.75rem)] z-20 border-b border-[var(--qd-border-accent)]/55 bg-[rgba(16,11,9,0.97)] backdrop-blur-md">
+          <StepIndicator step={step} />
+        </div>
 
-          <div className="flex-1 overflow-y-auto overscroll-contain">
-            {step === 1 ? (
-              <div className="space-y-5 px-6 pb-6 lg:px-8">
-                <div className="space-y-5">
-                  <ShellPanel
-                    eyebrow="Identity"
-                    title="Give the campaign a name"
-                    description="The name appears in the rail, the dashboard, and every session surface that follows."
-                  >
-                    <div className="grid gap-5">
-                      <div className="space-y-2">
-                        <Label htmlFor="campaign-name">
-                          Campaign Name <span className="text-[var(--q-amber)]">*</span>
-                        </Label>
-                        <Input
-                          id="campaign-name"
-                          value={name}
-                          onChange={(e) => { setName(e.target.value); if (nameError) setNameError(''); }}
-                          placeholder="e.g. Curse of Strahd"
-                          maxLength={100}
-                          autoFocus
-                          className="h-11 border-[var(--q-border-subtle)] bg-black/10"
-                        />
-                        {nameError && <p className="text-xs text-destructive">{nameError}</p>}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="campaign-description">Description</Label>
-                        <Textarea
-                          id="campaign-description"
-                          value={description}
-                          onChange={(e) => setDescription(e.target.value)}
-                          placeholder="A short description of your campaign..."
-                          rows={4}
-                          className="border-[var(--q-border-subtle)] bg-black/10"
-                        />
-                      </div>
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+          {step === 1 ? (
+            <div className="space-y-5 px-6 pb-6 lg:px-8">
+              <div className="space-y-5">
+                <ShellPanel
+                  eyebrow="Identity"
+                  title="Give the campaign a name"
+                  description="The name appears in the rail, the dashboard, and every session surface that follows."
+                >
+                  <div className="grid gap-5">
+                    <div className="space-y-2">
+                      <QdLabel htmlFor="campaign-name">
+                        Campaign Name <span className="text-[var(--qd-accent)]">*</span>
+                      </QdLabel>
+                      <QdInput
+                        id="campaign-name"
+                        value={name}
+                        onChange={(e) => { setName(e.target.value); if (nameError) setNameError(''); }}
+                        placeholder="e.g. Curse of Strahd"
+                        maxLength={100}
+                        autoFocus
+                        className="h-11"
+                      />
+                      {nameError && <p className="text-xs text-qd-danger">{nameError}</p>}
                     </div>
-                  </ShellPanel>
 
-                  <ShellPanel
-                    eyebrow="Banner"
-                    title="Mark the campaign with an image"
-                    description="A banner helps the campaign feel like a place, not a list item."
-                    action={<Sparkles className="mt-1 h-4 w-4 text-[var(--q-amber)]" />}
-                  >
-                    <input
-                      ref={bannerInputRef}
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleBannerUpload(file);
-                      }}
-                    />
+                    <div className="space-y-2">
+                      <QdLabel htmlFor="campaign-description">Description</QdLabel>
+                      <QdTextarea
+                        id="campaign-description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="A short description of your campaign..."
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                </ShellPanel>
 
-                    {bannerUrl ? (
-                      <div className="relative overflow-hidden rounded-[18px] border border-white/10">
-                        <div className="relative h-40">
-                          <Image src={bannerUrl} alt="" fill className="object-cover" />
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-                        <button
-                          type="button"
-                          onClick={() => setBannerUrl(null)}
-                          className="absolute right-3 top-3 rounded-full border border-white/10 bg-black/55 px-3 py-1 text-xs text-white/90 transition-colors hover:bg-black/75"
-                        >
-                          Remove
-                        </button>
+                <ShellPanel
+                  eyebrow="Banner"
+                  title="Mark the campaign with an image"
+                  description="A banner helps the campaign feel like a place, not a list item."
+                  action={<Sparkles className="mt-1 h-4 w-4 text-[var(--qd-accent)]" />}
+                >
+                  <input
+                    ref={bannerInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleBannerUpload(file);
+                    }}
+                  />
+
+                  {bannerUrl ? (
+                    <div className="relative overflow-hidden rounded-[18px] border border-white/10">
+                      <div className="relative h-40">
+                        <Image src={bannerUrl} alt="" fill className="object-cover" />
                       </div>
-                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
                       <button
                         type="button"
-                        onClick={() => bannerInputRef.current?.click()}
-                        disabled={uploading}
-                        className={cn(
-                          'flex min-h-[160px] w-full flex-col items-center justify-center gap-2 rounded-[18px] border border-dashed',
-                          'border-white/12 bg-black/10 text-[var(--q-text-dim)] transition-colors',
-                          'hover:border-[var(--q-amber-border)] hover:text-[var(--q-text)]',
-                        )}
+                        onClick={() => setBannerUrl(null)}
+                        className="absolute right-3 top-3 rounded-full border border-white/10 bg-black/55 px-3 py-1 text-xs text-white/90 transition-colors hover:bg-black/75"
                       >
-                        {uploading ? (
-                          <Loader2 className="h-5 w-5 animate-spin text-[var(--q-amber)]" />
-                        ) : (
-                          <>
-                            <Upload className="h-5 w-5 text-[var(--q-amber)]" />
-                            <span className="text-sm font-medium">Upload a banner</span>
-                            <span className="text-xs text-[var(--q-text-faint)]">
-                              JPEG, PNG, or WebP
-                            </span>
-                          </>
-                        )}
+                        Remove
                       </button>
-                    )}
-                  </ShellPanel>
-                </div>
-
-                <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--q-border-feature)]/70 bg-[oklch(0.16_0.007_240)]/97 px-1 pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleClose}
-                    className="h-11 px-4 text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
-                  >
-                    Cancel
-                  </Button>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => { if (validateStep1()) setStep(2); }}
-                      className="h-11 px-4 border-[var(--q-border-subtle)] text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
-                    >
-                      Continue &rarr;
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={isCreating}
-                      onClick={handleCreate}
-                      className="h-11 px-5"
-                    >
-                      {isCreating ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        'Create Campaign'
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => bannerInputRef.current?.click()}
+                      disabled={uploading}
+                      className={cn(
+                        'flex min-h-[160px] w-full flex-col items-center justify-center gap-2 rounded-[18px] border border-dashed',
+                        'border-white/12 bg-black/10 text-qd-ink-2 transition-colors',
+                        'hover:border-[var(--qd-border-accent)] hover:text-qd-ink',
                       )}
-                    </Button>
-                  </div>
-                </div>
+                    >
+                      {uploading ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-[var(--qd-accent)]" />
+                      ) : (
+                        <>
+                          <Upload className="h-5 w-5 text-[var(--qd-accent)]" />
+                          <span className="text-sm font-medium">Upload a banner</span>
+                          <span className="text-xs text-qd-ink-faint">
+                            JPEG, PNG, or WebP
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </ShellPanel>
               </div>
-            ) : (
-              <div className="space-y-5 px-6 pb-6 lg:px-8">
-                <div className="space-y-5">
-                  <ShellPanel
-                    eyebrow="Connection"
-                    title="Bring your table into the forge"
-                    description="If you paste a D&D Beyond campaign URL, QuiverDM will try to import the party immediately."
-                    action={<ScrollText className="mt-1 h-4 w-4 text-[var(--q-amber)]" />}
+
+              <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--qd-border-accent)]/70 bg-[rgba(22,17,14,0.97)] px-1 pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+                <QdButton
+                  variant="ghost"
+                  onClick={handleClose}
+                  className="h-11 px-4"
+                >
+                  Cancel
+                </QdButton>
+                <div className="flex items-center gap-2">
+                  <QdButton
+                    variant="outline"
+                    onClick={() => { if (validateStep1()) setStep(2); }}
+                    className="h-11 px-4"
                   >
-                    <div className="space-y-2">
-                      <Label htmlFor="ddb-url">D&amp;D Beyond Campaign URL</Label>
-                      <Input
-                        id="ddb-url"
-                        value={ddbUrl}
-                        onChange={(e) => setDdbUrl(e.target.value)}
-                        placeholder="https://www.dndbeyond.com/campaigns/..."
-                        className="h-11 border-[var(--q-border-subtle)] bg-black/10"
-                      />
-                      <p className="text-xs text-[var(--q-text-faint)]">
-                        Links your party and imports characters automatically.
-                      </p>
-                    </div>
-
-                    {ddbSourcebooks.length > 0 && (
-                      <div className="mt-5 space-y-3">
-                        <div className="flex items-center gap-3 text-xs text-[var(--q-text-faint)]">
-                          <div className="h-px flex-1 bg-white/10" />
-                          <span>or use a sourcebook you own</span>
-                          <div className="h-px flex-1 bg-white/10" />
-                        </div>
-
-                        <div className="space-y-2">
-                          <p className="text-[10px] uppercase tracking-[0.22em] text-[var(--q-text-faint)]">
-                            D&amp;D Beyond sourcebooks
-                          </p>
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            {ddbSourcebooks.map((sb) => (
-                              <button
-                                key={sb.id}
-                                type="button"
-                                onClick={() => setSelectedDdbSourcebookId(selectedDdbSourcebookId === sb.id ? null : sb.id)}
-                                className={cn(
-                                  'rounded-[16px] border p-4 text-left text-xs transition-colors',
-                                  selectedDdbSourcebookId === sb.id
-                                    ? 'border-[var(--q-amber-border)] bg-[var(--q-amber-trace)] text-[var(--q-text)]'
-                                    : 'border-white/10 bg-white/[0.03] text-[var(--q-text-dim)] hover:border-[var(--q-amber-border)]/60 hover:text-[var(--q-text)]',
-                                )}
-                                data-testid={`create-ddb-sb-${sb.slug}`}
-                              >
-                                <div className="font-[var(--q-font-display)] text-sm text-[var(--q-text)]">
-                                  {sb.title}
-                                </div>
-                                <div className="mt-1 leading-snug">
-                                  Links the new campaign to this sourcebook&apos;s imported items and creatures.
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-
-                  </ShellPanel>
-
-                  <ShellPanel
-                    eyebrow="Preseed"
-                    title="Featured starting paths"
-                    description="Quick-start two of the best-loved 5e adventures — world anchors pre-filled, campaign brain ready to go."
-                    action={<Sparkles className="mt-1 h-4 w-4 text-[var(--q-amber)]" />}
-                  >
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {featuredAdventures.map((template) => (
-                        <AdventureCard
-                          key={template.id}
-                          template={template}
-                          selected={selectedAdventure?.id === template.id}
-                          onClick={() => applyAdventureTemplate(selectedAdventure?.id === template.id ? null : template)}
-                          testId={`featured-seed-${template.id}`}
-                        />
-                      ))}
-                    </div>
-                    <p className="mt-3 text-xs text-[var(--q-text-faint)]">
-                      Choosing one pre-fills the world anchors below so your campaign starts with a pulse.
-                    </p>
-                  </ShellPanel>
-                </div>
-
-                <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--q-border-feature)]/70 bg-[oklch(0.16_0.007_240)]/97 pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={isCreating}
-                    onClick={() => setStep(1)}
-                    className="h-11 px-4 text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
-                  >
-                    &larr; Back
-                  </Button>
-                  <Button
-                    size="sm"
+                    Continue &rarr;
+                  </QdButton>
+                  <QdButton
+                    variant="primary"
                     disabled={isCreating}
                     onClick={handleCreate}
                     className="h-11 px-5"
@@ -662,13 +552,124 @@ export function CampaignCreateSheet({ open, onOpenChange, shell = 'app' }: Props
                     ) : (
                       'Create Campaign'
                     )}
-                  </Button>
+                  </QdButton>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="space-y-5 px-6 pb-6 lg:px-8">
+              <div className="space-y-5">
+                <ShellPanel
+                  eyebrow="Connection"
+                  title="Bring your table into the forge"
+                  description="If you paste a D&D Beyond campaign URL, QuiverDM will try to import the party immediately."
+                  action={<ScrollText className="mt-1 h-4 w-4 text-[var(--qd-accent)]" />}
+                >
+                  <div className="space-y-2">
+                    <QdLabel htmlFor="ddb-url">D&amp;D Beyond Campaign URL</QdLabel>
+                    <QdInput
+                      id="ddb-url"
+                      value={ddbUrl}
+                      onChange={(e) => setDdbUrl(e.target.value)}
+                      placeholder="https://www.dndbeyond.com/campaigns/..."
+                      className="h-11"
+                    />
+                    <p className="text-xs text-qd-ink-faint">
+                      Links your party and imports characters automatically.
+                    </p>
+                  </div>
+
+                  {ddbSourcebooks.length > 0 && (
+                    <div className="mt-5 space-y-3">
+                      <div className="flex items-center gap-3 text-xs text-qd-ink-faint">
+                        <div className="h-px flex-1 bg-white/10" />
+                        <span>or use a sourcebook you own</span>
+                        <div className="h-px flex-1 bg-white/10" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <p className="text-[10px] uppercase tracking-[0.22em] text-qd-ink-faint">
+                          D&amp;D Beyond sourcebooks
+                        </p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {ddbSourcebooks.map((sb) => (
+                            <button
+                              key={sb.id}
+                              type="button"
+                              onClick={() => setSelectedDdbSourcebookId(selectedDdbSourcebookId === sb.id ? null : sb.id)}
+                              className={cn(
+                                'rounded-[16px] border p-4 text-left text-xs transition-colors',
+                                selectedDdbSourcebookId === sb.id
+                                  ? 'border-[var(--qd-border-accent)] bg-[var(--qd-accent-trace,rgba(217,138,61,.12))] text-qd-ink'
+                                  : 'border-white/10 bg-white/[0.03] text-qd-ink-2 hover:border-[var(--qd-border-accent)]/60 hover:text-qd-ink',
+                              )}
+                              data-testid={`create-ddb-sb-${sb.slug}`}
+                            >
+                              <div className="font-[family-name:var(--qd-font-display)] text-sm text-qd-ink">
+                                {sb.title}
+                              </div>
+                              <div className="mt-1 leading-snug">
+                                Links the new campaign to this sourcebook&apos;s imported items and creatures.
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+
+                </ShellPanel>
+
+                <ShellPanel
+                  eyebrow="Preseed"
+                  title="Featured starting paths"
+                  description="Quick-start two of the best-loved 5e adventures — world anchors pre-filled, campaign brain ready to go."
+                  action={<Sparkles className="mt-1 h-4 w-4 text-[var(--qd-accent)]" />}
+                >
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {featuredAdventures.map((template) => (
+                      <AdventureCard
+                        key={template.id}
+                        template={template}
+                        selected={selectedAdventure?.id === template.id}
+                        onClick={() => applyAdventureTemplate(selectedAdventure?.id === template.id ? null : template)}
+                        testId={`featured-seed-${template.id}`}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs text-qd-ink-faint">
+                    Choosing one pre-fills the world anchors below so your campaign starts with a pulse.
+                  </p>
+                </ShellPanel>
+              </div>
+
+              <div className="sticky bottom-0 z-20 flex flex-col-reverse gap-3 border-t border-[var(--qd-border-accent)]/70 bg-[rgba(22,17,14,0.97)] pt-5 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+                <QdButton
+                  variant="ghost"
+                  disabled={isCreating}
+                  onClick={() => setStep(1)}
+                  className="h-11 px-4"
+                >
+                  &larr; Back
+                </QdButton>
+                <QdButton
+                  variant="primary"
+                  disabled={isCreating}
+                  onClick={handleCreate}
+                  className="h-11 px-5"
+                >
+                  {isCreating ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    'Create Campaign'
+                  )}
+                </QdButton>
+              </div>
+            </div>
+          )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </QdPanel>
   );
 }
