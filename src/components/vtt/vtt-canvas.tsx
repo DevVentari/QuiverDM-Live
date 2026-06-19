@@ -6,8 +6,6 @@ import {
   ReactFlowProvider,
   Background,
   BackgroundVariant,
-  Controls,
-  MiniMap,
   useNodesState,
   useViewport,
   useReactFlow,
@@ -66,7 +64,7 @@ interface VttCanvasProps {
 
 function VttCanvasInner({ backgroundUrl, markers, onMarkerDragEnd, onPaneClick, isDM, overlays, toolbar }: VttCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, zoomIn, zoomOut, fitView } = useReactFlow();
 
   useEffect(() => {
     setNodes(markers.map((m) => ({ id: m.id, type: m.type, position: { x: m.x, y: m.y }, data: m.data, draggable: isDM })));
@@ -104,13 +102,32 @@ function VttCanvasInner({ backgroundUrl, markers, onMarkerDragEnd, onPaneClick, 
         zoomOnPinch
         proOptions={{ hideAttribution: true }}
         className="h-full"
-        style={{ background: 'var(--qd-bg, #100c0a)' }}
+        style={{ background: 'var(--qd-bg)' }}
       >
         {backgroundUrl
           ? <ViewportBackground url={backgroundUrl} />
           : <Background variant={BackgroundVariant.Lines} gap={40} size={1} color="rgba(255,235,205,.045)" />}
-        <Controls className="!rounded-xl !border !border-[var(--qd-border-strong)] !bg-[rgba(0,0,0,.5)] !text-[var(--qd-ink-2)]" />
-        <MiniMap className="!rounded-xl !border !border-[var(--qd-border-strong)] !bg-[rgba(0,0,0,.5)]" pannable zoomable />
+        {/* Hand-rolled HUD: zoom-in / zoom-out / fit-view */}
+        <div className="absolute top-3 left-3 z-[6] flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => zoomIn()}
+            className="h-8 w-8 grid place-items-center rounded-qd-sm border border-qd-strong bg-black/50 text-qd-ink-2 hover:text-qd-ink"
+            aria-label="Zoom in"
+          >+</button>
+          <button
+            type="button"
+            onClick={() => zoomOut()}
+            className="h-8 w-8 grid place-items-center rounded-qd-sm border border-qd-strong bg-black/50 text-qd-ink-2 hover:text-qd-ink"
+            aria-label="Zoom out"
+          >−</button>
+          <button
+            type="button"
+            onClick={() => fitView()}
+            className="h-8 w-8 grid place-items-center rounded-qd-sm border border-qd-strong bg-black/50 text-qd-ink-2 hover:text-qd-ink"
+            aria-label="Fit view"
+          >⤢</button>
+        </div>
       </ReactFlow>
       <ZoomSlider />
       {overlays}
