@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { QdButton, QdProgress } from '@/components/ui-v3';
 import { Mic, Pause, Square, Play, Upload, RotateCcw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
@@ -77,18 +76,18 @@ export function AudioRecorder({ sessionId, campaignId, onUploadComplete }: Audio
   }
 
   return (
-    <div className="border rounded-lg p-4 space-y-3">
+    <div className="border-qd-faint rounded-qd-lg p-4 space-y-3 border">
       <div className="flex items-center gap-2">
         <div
           className={`h-2 w-2 rounded-full ${
             state === 'recording'
-              ? 'bg-red-500 animate-pulse'
+              ? 'bg-qd-danger animate-pulse'
               : state === 'paused'
-                ? 'bg-yellow-500'
-                : 'bg-muted'
+                ? 'bg-qd-warn'
+                : 'bg-qd-border'
           }`}
         />
-        <span className="text-sm font-medium">
+        <span className="text-qd-body-sm text-qd-ink-strong">
           {state === 'idle'
             ? 'Ready to record'
             : state === 'recording'
@@ -98,57 +97,57 @@ export function AudioRecorder({ sessionId, campaignId, onUploadComplete }: Audio
                 : 'Recording complete'}
         </span>
         {(state === 'recording' || state === 'paused') && (
-          <span className="text-sm font-mono ml-auto">{formatDuration(durationSeconds)}</span>
+          <span className="font-qd-mono text-[11px] text-qd-ink ml-auto">{formatDuration(durationSeconds)}</span>
         )}
       </div>
 
-      {state === 'recording' && <Progress value={volumeLevel} className="h-1" />}
+      {state === 'recording' && <QdProgress value={volumeLevel} />}
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-qd-body-sm text-qd-danger">{error}</p>}
 
       <div className="flex flex-wrap gap-2 items-center">
         {state === 'idle' && (
-          <Button onClick={start} size="sm" className="flex-1">
-            <Mic className="h-4 w-4 mr-2" /> Start Recording
-          </Button>
+          <QdButton onClick={start} variant="primary" className="flex-1">
+            <Mic className="h-4 w-4" /> Start Recording
+          </QdButton>
         )}
         {state === 'recording' && (
           <>
-            <Button onClick={pause} size="sm" variant="outline">
+            <QdButton onClick={pause} variant="outline">
               <Pause className="h-4 w-4" />
-            </Button>
-            <Button onClick={stop} size="sm" variant="destructive">
-              <Square className="h-4 w-4 mr-1" /> Stop
-            </Button>
+            </QdButton>
+            <QdButton onClick={stop} variant="danger">
+              <Square className="h-4 w-4" /> Stop
+            </QdButton>
           </>
         )}
         {state === 'paused' && (
           <>
-            <Button onClick={resume} size="sm" variant="outline">
+            <QdButton onClick={resume} variant="outline">
               <Play className="h-4 w-4" />
-            </Button>
-            <Button onClick={stop} size="sm" variant="destructive">
-              <Square className="h-4 w-4 mr-1" /> Stop
-            </Button>
+            </QdButton>
+            <QdButton onClick={stop} variant="danger">
+              <Square className="h-4 w-4" /> Stop
+            </QdButton>
           </>
         )}
         {state === 'stopped' && (
           <>
-            <Button onClick={reset} size="sm" variant="outline">
-              <RotateCcw className="h-4 w-4 mr-1" /> Discard
-            </Button>
+            <QdButton onClick={reset} variant="outline">
+              <RotateCcw className="h-4 w-4" /> Discard
+            </QdButton>
             {audioUrl && <audio src={audioUrl} controls className="flex-1 min-w-[220px] h-8" />}
-            <Button onClick={handleUpload} size="sm" disabled={uploading}>
+            <QdButton onClick={handleUpload} variant="primary" disabled={uploading}>
               {uploading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" /> Uploading...
+                  <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
                 </>
               ) : (
                 <>
-                  <Upload className="h-4 w-4 mr-1" /> Upload &amp; Transcribe
+                  <Upload className="h-4 w-4" /> Upload &amp; Transcribe
                 </>
               )}
-            </Button>
+            </QdButton>
           </>
         )}
       </div>
