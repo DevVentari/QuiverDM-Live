@@ -8,8 +8,18 @@
  */
 
 import { AssemblyAI, RealtimeTranscriber, type Transcript as AAITranscript } from 'assemblyai';
-import type { TranscriptionResult, TranscriptionSegment } from './types';
+import type {
+  TranscriptionResult,
+  TranscriptionSegment,
+  RealtimeTranscriberOptions,
+  RealtimeTranscriptTurn,
+  RealtimeTranscriberHandle,
+} from './types';
 import { prisma } from '@/lib/prisma';
+
+// Re-exported for backward compatibility — the realtime contract now lives in
+// ./types so the local adapter can share it without importing the AssemblyAI SDK.
+export type { RealtimeTranscriberOptions, RealtimeTranscriptTurn, RealtimeTranscriberHandle };
 
 // ---------------------------------------------------------------------------
 // Singleton client
@@ -306,34 +316,6 @@ export async function getCampaignWordBoost(campaignId: string): Promise<string[]
 // ---------------------------------------------------------------------------
 // Streaming (real-time) API
 // ---------------------------------------------------------------------------
-
-export interface RealtimeTranscriberOptions {
-  sampleRate?: number;
-  wordBoost?: string[];
-  onTranscript?: (turn: RealtimeTranscriptTurn) => void;
-  onError?: (error: Error) => void;
-  onOpen?: () => void;
-  onClose?: (code: number, reason: string) => void;
-}
-
-export interface RealtimeTranscriptTurn {
-  text: string;
-  isFinal: boolean;
-  speaker?: string;
-  words?: Array<{
-    text: string;
-    start: number;
-    end: number;
-    confidence: number;
-  }>;
-  timestamp: number;
-}
-
-export interface RealtimeTranscriberHandle {
-  connect: () => Promise<void>;
-  sendAudio: (chunk: Buffer) => void;
-  close: (waitForCompletion?: boolean) => Promise<void>;
-}
 
 /**
  * Create a real-time transcriber session with AssemblyAI.

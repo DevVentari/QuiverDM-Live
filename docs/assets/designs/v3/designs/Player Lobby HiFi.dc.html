@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}
+  @keyframes prep{0%,100%{opacity:.55}50%{opacity:1}}
+  ::-webkit-scrollbar{width:0}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px 60px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(680px 460px at 50% 0%, rgba(217,138,61,.10), transparent 62%), #0a0707;">
+
+  <div style="width:440px;border:1px solid rgba(255,235,205,.1);border-radius:30px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+    <!-- status bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px 0;font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">
+      <span>9:41</span><span style="letter-spacing:.1em;">QUIVERDM</span><span>▮▮▮ ◗</span>
+    </div>
+
+    <!-- hero -->
+    <div style="padding:18px 20px 16px;border-bottom:1px solid rgba(255,235,205,.07);">
+      <div style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.2em;color:#c79a6a;">YOU'VE JOINED</div>
+      <div style="font-size:27px;color:#f6ead8;line-height:1.05;margin-top:6px;">The Shattered Compact</div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:11px;">
+        <span style="width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,#d98a3d,#8a2f26);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#1a0f06;flex:none;">A</span>
+        <span style="font-size:13px;color:#cdbfae;">Aria <span style="color:#7f6f5e;">· your DM</span></span>
+        <span style="flex:1;"></span>
+        <span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">Session 9 · tonight</span>
+      </div>
+    </div>
+
+    <!-- your hero card -->
+    <div style="padding:16px 20px 6px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;margin-bottom:9px;">YOUR HERO</div>
+      <div style="display:flex;align-items:center;gap:13px;border-radius:15px;background:linear-gradient(180deg,rgba(217,138,61,.14),rgba(0,0,0,.16));border:1px solid rgba(217,138,61,.34);padding:13px 14px;">
+        <span style="width:52px;height:52px;border-radius:13px;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.3),rgba(0,0,0,.4));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#cfe3b8;flex:none;">S</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:18px;color:#f9efe0;line-height:1;">Skreek</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:4px;">ROGUE · LV 7 · AC 16</div>
+          <div style="height:6px;border-radius:4px;background:rgba(0,0,0,.5);margin-top:8px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div>
+        </div>
+        <span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;flex:none;">30/30</span>
+      </div>
+    </div>
+
+    <!-- roster -->
+    <div style="padding:14px 20px 6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;">AT THE TABLE · 3 / 4</span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#8fb06a;">● 3 online</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(217,138,61,.3);border-radius:12px;background:rgba(217,138,61,.06);padding:9px 11px;">
+          <span style="width:34px;height:34px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.3),rgba(0,0,0,.4));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#cfe3b8;flex:none;">S</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:14px;color:#f9efe0;">Skreek <span style="font-family:ui-monospace,monospace;font-size:8px;color:#e09a6a;">· you</span></div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f6f5e;">Rogue</div></div>
+          <span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#1a0f06;background:#8fc466;border-radius:20px;padding:4px 10px;flex:none;">READY ✓</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.02);padding:9px 11px;">
+          <span style="width:34px;height:34px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.3),rgba(0,0,0,.4));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#cfe3b8;flex:none;">O</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:14px;color:#ece2d4;">Oriyen</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f6f5e;">Monk</div></div>
+          <span style="display:flex;align-items:center;gap:5px;font-family:ui-monospace,monospace;font-size:8.5px;color:#8fb06a;flex:none;"><span style="width:6px;height:6px;border-radius:50%;background:#8fc466;box-shadow:0 0 7px #8fc466;"></span>online</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.02);padding:9px 11px;">
+          <span style="width:34px;height:34px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.3),rgba(0,0,0,.4));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#cfe3b8;flex:none;">N</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:14px;color:#ece2d4;">Norm</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f6f5e;">Warlock</div></div>
+          <span style="display:flex;align-items:center;gap:5px;font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;flex:none;"><span style="width:6px;height:6px;border-radius:50%;background:#c79a6a;"></span>joining…</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px;border:1px dashed rgba(255,235,205,.16);border-radius:12px;padding:9px 11px;">
+          <span style="width:34px;height:34px;border-radius:50%;border:1px dashed rgba(255,235,205,.24);display:flex;align-items:center;justify-content:center;font-size:16px;color:#7f6f5e;flex:none;">+</span>
+          <div style="flex:1;"><div style="font-size:14px;color:#cdbfae;">Empty seat</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#7f6f5e;">tap to invite a player</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- prep status -->
+    <div style="margin:14px 20px;border:1px solid rgba(217,138,61,.3);border-radius:14px;background:linear-gradient(180deg,rgba(217,138,61,.1),rgba(0,0,0,.12));padding:13px 14px;display:flex;align-items:center;gap:11px;animation:prep 2.4s ease-in-out infinite;">
+      <span style="width:9px;height:9px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 12px var(--ink-accent,#d98a3d);animation:dotPulse 2s infinite;flex:none;"></span>
+      <div style="flex:1;"><div style="font-size:14px;color:#f0d6b2;">Aria is staging the scene…</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c8a76;margin-top:2px;">Sacred Amphitheater · the festival begins</div></div>
+    </div>
+
+    <!-- last recap -->
+    <div style="padding:0 20px 16px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;margin-bottom:8px;">LAST TIME</div>
+      <div style="border:1px solid rgba(255,235,205,.09);border-radius:12px;background:rgba(255,255,255,.02);padding:12px 13px;">
+        <div style="font-size:13px;color:#cdbfae;font-style:italic;line-height:1.5;">"You reached Concordia Stellaris under two moons — and Faeren wore a stranger's face."</div>
+        <div style="font-family:ui-monospace,monospace;font-size:9px;color:#c79a6a;margin-top:9px;">Read full recap ▸</div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <div style="border-top:1px solid rgba(255,235,205,.07);background:rgba(0,0,0,.25);padding:14px 20px 22px;display:flex;align-items:center;gap:10px;">
+      <button style="flex:1;background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:13px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:15px;padding:13px;cursor:pointer;box-shadow:0 8px 20px rgba(217,138,61,.3);">You're Ready ✓</button>
+      <button style="width:52px;flex:none;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:13px;color:#cdbfae;font-size:18px;padding:13px 0;cursor:pointer;">⚙</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:480,&quot;height&quot;:980},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

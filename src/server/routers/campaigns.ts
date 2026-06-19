@@ -98,7 +98,10 @@ export const campaignsRouter = router({
       void serverTrack(ctx.session.user.id, EVENTS.CAMPAIGN_CREATED, { campaign_id: campaign.id });
       // Always create Session 0 so the hero card shows on the sessions page.
       // If a DDB sourcebook is later linked, its prep gets upgraded to sourcebook-seeded.
-      void prisma.gameSession.create({
+      // Awaited (not fire-and-forget): linkSourcebookToCampaign only enqueues the
+      // seed job when a sessionNumber:0 session already exists, so the client's
+      // follow-up link call would race a void insert and silently skip seeding.
+      await prisma.gameSession.create({
         data: {
           campaignId: campaign.id,
           title: 'Session 0',

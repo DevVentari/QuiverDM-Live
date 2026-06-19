@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}
+  ::-webkit-scrollbar{width:0}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px 60px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(680px 460px at 50% 0%, rgba(217,138,61,.10), transparent 62%), #0a0707;">
+
+  <div style="width:440px;border:1px solid rgba(255,235,205,.1);border-radius:30px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px 0;font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;"><span>9:41</span><span style="letter-spacing:.1em;">QUIVERDM</span><span>▮▮▮ ◗</span></div>
+
+    <!-- header -->
+    <div style="padding:16px 20px 14px;border-bottom:1px solid rgba(255,235,205,.07);">
+      <div style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.2em;color:#c79a6a;">YOUR JOURNAL</div>
+      <div style="font-size:26px;color:#f6ead8;line-height:1.05;margin-top:5px;">The Shattered Compact</div>
+      <div style="font-family:ui-monospace,monospace;font-size:9px;color:#8a7d6e;margin-top:6px;">what Skreek has uncovered · 14 of 40 entries</div>
+    </div>
+
+    <!-- tabs -->
+    <div style="display:flex;gap:7px;padding:13px 20px 0;">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#1a0f06;background:linear-gradient(180deg,#e0944a,#c97a30);border-radius:8px;padding:7px 12px;">World</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">People</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">Quests</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:8px;padding:7px 12px;">Items</span>
+    </div>
+
+    <!-- active thread -->
+    <div style="margin:14px 20px 0;border:1px solid rgba(217,138,61,.3);border-radius:14px;background:linear-gradient(180deg,rgba(217,138,61,.1),rgba(0,0,0,.12));padding:13px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 10px var(--ink-accent,#d98a3d);animation:dotPulse 2.2s infinite;flex:none;"></span><span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#e3a45f;">CURRENT THREAD</span></div>
+      <div style="font-size:16px;color:#f0d6b2;margin-top:8px;">Why is the sky over Concordia tearing?</div>
+      <div style="font-size:12px;color:#a99a88;margin-top:4px;line-height:1.45;">Faeren hinted the Compact's binding is failing. Find the seventh chain.</div>
+    </div>
+
+    <!-- discovered entries -->
+    <div style="padding:16px 20px 6px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;margin-bottom:10px;">DISCOVERED PLACES · 4</div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.09);border-radius:13px;background:rgba(255,255,255,.02);padding:11px 12px;">
+          <span style="width:40px;height:40px;border-radius:10px;background:radial-gradient(circle,rgba(217,138,61,.22),#14100d);display:flex;align-items:center;justify-content:center;font-size:17px;flex:none;">🏛</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#ece2d4;">Concordia Stellaris</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;margin-top:2px;">CITY · the golden city of accords</div></div>
+          <span style="color:#7f6f5e;font-size:13px;flex:none;">▸</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.09);border-radius:13px;background:rgba(255,255,255,.02);padding:11px 12px;">
+          <span style="width:40px;height:40px;border-radius:10px;background:radial-gradient(circle,rgba(127,174,90,.2),#14100d);display:flex;align-items:center;justify-content:center;font-size:17px;flex:none;">🔥</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#ece2d4;">Bonfire Keep</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;margin-top:2px;">KEEP · the three anchors</div></div>
+          <span style="color:#7f6f5e;font-size:13px;flex:none;">▸</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.09);border-radius:13px;background:rgba(255,255,255,.02);padding:11px 12px;">
+          <span style="width:40px;height:40px;border-radius:10px;background:radial-gradient(circle,rgba(217,138,61,.18),#14100d);display:flex;align-items:center;justify-content:center;font-size:17px;flex:none;">🍺</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#ece2d4;">The Gilded Quill</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#9c8a76;margin-top:2px;">TAVERN · Faeren keeps the bar</div></div>
+          <span style="color:#7f6f5e;font-size:13px;flex:none;">▸</span>
+        </div>
+        <!-- locked -->
+        <div style="display:flex;align-items:center;gap:12px;border:1px dashed rgba(255,235,205,.14);border-radius:13px;background:rgba(0,0,0,.2);padding:11px 12px;opacity:.75;">
+          <span style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.03);display:flex;align-items:center;justify-content:center;font-size:16px;color:#5a4f45;flex:none;">🔒</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#7f6f5e;">The Undercrofts</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#5a4f45;margin-top:2px;">UNDISCOVERED · rumored beneath the city</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- recently met -->
+    <div style="padding:8px 20px 18px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;margin:8px 0 10px;">RECENTLY MET</div>
+      <div style="display:flex;gap:9px;">
+        <div style="flex:1;text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:13px;background:rgba(255,255,255,.02);padding:12px 8px;"><span style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle,#d98a3d,#8a2f26);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#1a0f06;margin:0 auto;">F</span><div style="font-size:12.5px;color:#cdbfae;margin-top:8px;">Faeren</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;margin-top:2px;">SHAPESHIFTER</div></div>
+        <div style="flex:1;text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:13px;background:rgba(255,255,255,.02);padding:12px 8px;"><span style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle,#c4453a,#8a2f26);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#1a0f06;margin:0 auto;">D</span><div style="font-size:12.5px;color:#e6cdc6;margin-top:8px;">Cpt. Draven</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c6a62;margin-top:2px;">SUSPECT</div></div>
+        <div style="flex:1;text-align:center;border:1px solid rgba(255,235,205,.09);border-radius:13px;background:rgba(255,255,255,.02);padding:12px 8px;"><span style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle,#7fae5a,#3f5f2a);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#1a0f06;margin:0 auto;">V</span><div style="font-size:12.5px;color:#cdbfae;margin-top:8px;">Valdris</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#9c8a76;margin-top:2px;">KEEPER</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:480,&quot;height&quot;:960},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- ============================================================
+     QuiverDM · NPC Management — 6-panel low-fi exploration
+     The Shattered Compact · roster, stat block, relationships,
+     session history, quick-create, search — 2×3 grid · 1440
+     ============================================================ -->
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0c0908;}
+  @keyframes dotPulse{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+  @keyframes threatPulse{0%,100%{box-shadow:0 0 0 0 rgba(224,88,74,0)}50%{box-shadow:0 0 14px 1px rgba(224,88,74,.4)}}
+  ::-webkit-scrollbar{height:10px;width:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:28px 30px 70px;font-family:'Kalam',cursive;color:#e7ddcd;background:radial-gradient(1200px 560px at 60% -8%, rgba(217,138,61,.05), transparent 62%), #0c0908;">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;max-width:1390px;margin:0 auto 22px;">
+    <div>
+      <div style="font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.24em;color:#6c5f53;">QUIVERDM · WIREFRAMES</div>
+      <div style="font-size:29px;line-height:1.15;margin-top:8px;color:#f0e6d8;">NPC Management</div>
+      <div style="font-family:ui-monospace,monospace;font-size:11.5px;color:#8a7d6e;margin-top:7px;">The Shattered Compact · the roster, the stat block, the web of relationships — six screens</div>
+    </div>
+    <div style="font-family:ui-monospace,monospace;font-size:10px;color:#6c5f53;text-align:right;line-height:1.7;padding-top:4px;">low-fidelity · structure first<br>① annotation callouts below each panel</div>
+  </div>
+
+  <!-- GRID -->
+  <div style="display:grid;grid-template-columns:repeat(2,680px);gap:38px 30px;justify-content:center;">
+
+    <!-- ============ 01 · NPC LIST ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">01 — NPC List</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">the world roster · faces, not rows</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- filter sidebar -->
+        <div style="width:158px;border-right:1px solid rgba(255,255,255,.06);padding:13px 12px;background:rgba(0,0,0,.16);flex:none;">
+          <div style="border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 9px;font-family:ui-monospace,monospace;font-size:9px;color:#6c5f53;display:flex;align-items:center;gap:6px;"><span style="width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(255,255,255,.24);"></span>Search…</div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-top:12px;">
+            <span style="font-family:ui-monospace,monospace;font-size:10px;color:#9a8f82;padding:5px 8px;border-radius:6px;">All</span>
+            <span style="font-family:ui-monospace,monospace;font-size:10px;color:#9a8f82;padding:5px 8px;border-radius:6px;">PCs</span>
+            <span style="font-family:ui-monospace,monospace;font-size:10px;color:#f0d6b2;padding:5px 8px;border-radius:6px;background:rgba(217,138,61,.15);box-shadow:inset 2px 0 0 var(--ink-accent,#d98a3d);">NPCs</span>
+            <span style="font-family:ui-monospace,monospace;font-size:10px;color:#d9a89f;padding:5px 8px;border-radius:6px;">Threats</span>
+            <span style="font-family:ui-monospace,monospace;font-size:10px;color:#9a8f82;padding:5px 8px;border-radius:6px;">Anchors</span>
+            <span style="font-family:ui-monospace,monospace;font-size:10px;color:#9a8f82;padding:5px 8px;border-radius:6px;">Factions</span>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#6c5f53;margin-top:14px;">TAGS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;">
+            <span style="font-size:9.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Sunward</span>
+            <span style="font-size:9.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Anchors</span>
+            <span style="font-size:9.5px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Covenant</span>
+          </div>
+        </div>
+        <!-- card grid -->
+        <div style="flex:1;padding:11px 12px;overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 7px var(--ink-accent,#d98a3d);animation:dotPulse 2.2s infinite;flex:none;"></span><span style="font-size:12px;font-style:italic;color:#cdb596;">"Eleven names. Two of them are watching back."</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <!-- card helper inline ×9 -->
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.015);padding:8px;"><div style="height:42px;border-radius:6px;border:1px dashed rgba(255,255,255,.14);background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#e7ddcd;margin-top:6px;line-height:1.05;">Temmel</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;margin-top:3px;">ANCHOR · KEEP</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">S9 · active</div></div>
+            <div style="border:1px solid rgba(217,138,61,.3);border-radius:9px;background:rgba(217,138,61,.04);padding:8px;"><div style="height:42px;border-radius:6px;border:1px dashed rgba(217,138,61,.3);background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#f0d6b2;margin-top:6px;line-height:1.05;">Faeren <span style="font-family:ui-monospace,monospace;font-size:7px;color:#e3a45f;">NEW</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#c79a6a;margin-top:3px;">ANCHOR · SHIFTER</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">S9 · active</div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.015);padding:8px;"><div style="height:42px;border-radius:6px;border:1px dashed rgba(255,255,255,.14);background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#e7ddcd;margin-top:6px;line-height:1.05;">Ambric</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;margin-top:3px;">ANCHOR · KALASHTAR</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">S6 · active</div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.015);padding:8px;"><div style="height:42px;border-radius:6px;border:1px dashed rgba(255,255,255,.14);background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#e7ddcd;margin-top:6px;line-height:1.05;">Emp. Aurelias</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;margin-top:3px;">RULER · SUNWARD</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">S8 · active</div></div>
+            <div style="border:1px solid rgba(224,88,74,.5);border-radius:9px;background:rgba(224,88,74,.06);padding:8px;animation:threatPulse 2.6s infinite;"><div style="height:42px;border-radius:6px;border:1px solid rgba(224,88,74,.4);background:repeating-linear-gradient(45deg,rgba(224,88,74,.05) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#e7ddcd;margin-top:6px;line-height:1.05;">Capt. Draven</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#9c6a62;margin-top:3px;">CORRUPTED · GUARD</div><div style="margin-top:4px;display:inline-block;font-family:ui-monospace,monospace;font-size:7px;color:#e8908a;border:1px solid rgba(224,88,74,.5);border-radius:4px;padding:1px 5px;">THREAT</div></div>
+            <div style="border:1px solid rgba(224,88,74,.5);border-radius:9px;background:rgba(224,88,74,.06);padding:8px;"><div style="height:42px;border-radius:6px;border:1px solid rgba(224,88,74,.4);background:repeating-linear-gradient(45deg,rgba(224,88,74,.05) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#e7ddcd;margin-top:6px;line-height:1.05;">Knowl. Serpent <span style="font-family:ui-monospace,monospace;font-size:7px;color:#e3a45f;">NEW</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#9c6a62;margin-top:3px;">ABERRATION</div><div style="margin-top:4px;display:inline-block;font-family:ui-monospace,monospace;font-size:7px;color:#e8908a;border:1px solid rgba(224,88,74,.5);border-radius:4px;padding:1px 5px;">THREAT</div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.015);padding:8px;"><div style="height:42px;border-radius:6px;border:1px dashed rgba(255,255,255,.14);background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#e7ddcd;margin-top:6px;line-height:1.05;">High Sage Lyria</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#8a7d6e;margin-top:3px;">ADVISOR · SUNWARD</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">S7 · active</div></div>
+            <div style="border:1px solid rgba(150,40,38,.6);border-radius:9px;background:rgba(120,28,26,.18);padding:8px;"><div style="height:42px;border-radius:6px;border:1px solid rgba(150,40,38,.5);background:repeating-linear-gradient(45deg,rgba(150,40,38,.08) 0 5px,transparent 5px 10px);"></div><div style="font-size:12px;color:#e0b0a8;margin-top:6px;line-height:1.05;">Serenitas</div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#9c5048;margin-top:3px;">ENTROPY · BOUND</div><div style="margin-top:4px;display:inline-block;font-family:ui-monospace,monospace;font-size:7px;color:#e07a72;border:1px solid rgba(150,40,38,.6);border-radius:4px;padding:1px 5px;">COSMIC THREAT</div></div>
+            <div style="border:1px dashed rgba(217,138,61,.4);border-radius:9px;background:transparent;padding:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-accent,#d98a3d);font-size:13px;min-height:88px;">+ Add NPC</div>
+          </div>
+        </div>
+        <span style="position:absolute;left:340px;top:200px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;left:470px;top:236px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Cards over a table — DMs think in faces and names.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> THREAT is a world-state signal that follows the NPC everywhere.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 02 · STAT BLOCK ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">02 — NPC Detail · Stat Block</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">Temmel of the Endless Vigil</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- left profile -->
+        <div style="width:56%;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;min-height:0;">
+          <div style="display:flex;gap:12px;padding:14px 15px 0;">
+            <div style="width:62px;height:62px;border-radius:11px;border:1px solid rgba(217,138,61,.35);background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0 6px,transparent 6px 12px);flex:none;"></div>
+            <div><div style="font-size:19px;color:#f0e6d8;line-height:1.05;">Temmel</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#a98a5f;margin-top:4px;line-height:1.4;">ANCHOR OF REDEMPTION<br>LAWFUL GOOD · CR 10</div></div>
+          </div>
+          <!-- tabs -->
+          <div style="display:flex;gap:3px;padding:12px 15px 0;font-family:ui-monospace,monospace;font-size:9px;">
+            <span style="color:#9a8f82;padding:5px 8px;">Overview</span>
+            <span style="color:#f0d6b2;padding:5px 8px;border-bottom:2px solid var(--ink-accent,#d98a3d);">Stat Block</span>
+            <span style="color:#9a8f82;padding:5px 8px;">Relations</span>
+            <span style="color:#9a8f82;padding:5px 8px;">History</span>
+          </div>
+          <!-- stat block -->
+          <div style="flex:1;overflow:auto;padding:11px 15px 14px;">
+            <div style="border:1px solid rgba(217,138,61,.2);border-radius:11px;background:linear-gradient(180deg,rgba(217,138,61,.04),rgba(0,0,0,.15));padding:13px;">
+              <div style="display:flex;gap:8px;">
+                <div style="flex:1;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:6px 2px;"><div style="font-size:16px;color:#f0e6d8;">16</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">AC</div></div>
+                <div style="flex:1;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:6px 2px;"><div style="font-size:16px;color:#f0e6d8;">112</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">HP</div></div>
+                <div style="flex:1;text-align:center;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:6px 2px;"><div style="font-size:16px;color:#f0e6d8;">30</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">SPEED</div></div>
+              </div>
+              <!-- abilities -->
+              <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:11px;">
+                <div style="text-align:center;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 1px;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">STR</div><div style="font-size:13px;color:#e7ddcd;">18</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#a98a5f;">+4</div></div>
+                <div style="text-align:center;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 1px;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">DEX</div><div style="font-size:13px;color:#e7ddcd;">12</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#a98a5f;">+1</div></div>
+                <div style="text-align:center;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 1px;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">CON</div><div style="font-size:13px;color:#e7ddcd;">16</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#a98a5f;">+3</div></div>
+                <div style="text-align:center;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 1px;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">INT</div><div style="font-size:13px;color:#e7ddcd;">14</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#a98a5f;">+2</div></div>
+                <div style="text-align:center;border:1px solid rgba(217,138,61,.35);border-radius:6px;padding:5px 1px;background:rgba(217,138,61,.06);"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#a98a5f;">WIS</div><div style="font-size:13px;color:#f0d6b2;">20</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#c79a6a;">+5</div></div>
+                <div style="text-align:center;border:1px solid rgba(255,255,255,.07);border-radius:6px;padding:5px 1px;"><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">CHA</div><div style="font-size:13px;color:#e7ddcd;">17</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#a98a5f;">+3</div></div>
+              </div>
+              <div style="margin-top:11px;font-family:ui-monospace,monospace;font-size:9px;color:#9a8f82;line-height:1.7;">
+                <div><span style="color:#7f7468;">SAVES</span> &nbsp;Wis <b style="color:#f0d6b2;">+9</b> · Cha <b style="color:#f0d6b2;">+7</b></div>
+                <div><span style="color:#7f7468;">SKILLS</span> &nbsp;Insight +9 · History +6 · Persuasion +7</div>
+                <div style="color:#bcb1a2;"><span style="color:#7f7468;">SPECIAL</span> &nbsp;Immune charm &amp; fear · undying while the Keep stands</div>
+              </div>
+              <div style="margin-top:11px;display:flex;flex-direction:column;gap:6px;">
+                <div style="border-left:2px solid rgba(217,138,61,.4);padding:1px 0 1px 9px;"><div style="font-size:12px;color:#e7ddcd;">Burden Bearer</div><div style="font-size:11px;color:#8a7d6e;line-height:1.3;">Absorbs a curse or condition from a creature he touches.</div></div>
+                <div style="border-left:2px solid rgba(217,138,61,.4);padding:1px 0 1px 9px;"><div style="font-size:12px;color:#e7ddcd;">Sanctuary Keeper</div><div style="font-size:11px;color:#8a7d6e;line-height:1.3;">The Keep grants perfect rest to all within.</div></div>
+                <div style="border-left:2px solid rgba(217,138,61,.4);padding:1px 0 1px 9px;"><div style="font-size:12px;color:#e7ddcd;">Redemption Aura</div><div style="font-size:11px;color:#8a7d6e;line-height:1.3;">Allies within 30 ft: advantage on saves vs corruption.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- right context -->
+        <div style="width:44%;padding:14px 14px;background:rgba(0,0,0,.14);display:flex;flex-direction:column;">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;">THREE ANCHORS</span><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:2px 6px;">4 connections</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:14px;">RECENT MENTIONS</div>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:8px;">
+            <div style="font-size:12px;color:#cdbfae;"><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">S9 ·</span> Sheltered the party after Faeren's reveal.</div>
+            <div style="font-size:12px;color:#cdbfae;"><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">S6 ·</span> Cleansed Skreek's plague-flare.</div>
+            <div style="font-size:12px;color:#cdbfae;"><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">S4 ·</span> First met the heroes at the Bonfire.</div>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:14px;">DM NOTES · private</div>
+          <div style="flex:1;margin-top:7px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(0,0,0,.2);padding:10px;font-size:12px;color:#9a8f82;font-style:italic;line-height:1.4;">He knows Oriyen's vision named him. He has not admitted it.<span style="display:inline-block;width:1px;height:13px;background:var(--ink-accent,#d98a3d);vertical-align:-2px;"></span></div>
+        </div>
+        <span style="position:absolute;left:24px;top:188px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;right:150px;top:60px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Immersive but scannable — find AC in under 2 seconds.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> The right panel is the "so what" — stats need context.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 03 · RELATIONSHIPS ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">03 — NPC Detail · Relationships</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">Faeren the Story-Bearer</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- left graph -->
+        <div style="width:60%;border-right:1px solid rgba(255,255,255,.06);padding:13px 14px;display:flex;flex-direction:column;min-height:0;">
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;">THE WEB · direct connections</div>
+          <div style="position:relative;flex:1;margin-top:4px;">
+            <svg viewBox="0 0 380 250" style="position:absolute;inset:0;width:100%;height:100%;">
+              <line x1="190" y1="125" x2="78" y2="46" stroke="rgba(217,138,61,.45)" stroke-width="1.5"/>
+              <line x1="190" y1="125" x2="300" y2="46" stroke="rgba(217,138,61,.45)" stroke-width="1.5"/>
+              <line x1="190" y1="125" x2="50" y2="150" stroke="rgba(127,174,90,.55)" stroke-width="1.5"/>
+              <line x1="190" y1="125" x2="330" y2="158" stroke="rgba(224,88,74,.6)" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <line x1="190" y1="125" x2="190" y2="222" stroke="rgba(150,140,130,.4)" stroke-width="1.5"/>
+            </svg>
+            <!-- hub -->
+            <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:74px;height:74px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.14);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(217,138,61,.2);"><span style="font-size:13px;color:#f0d6b2;">Faeren</span><span style="font-family:ui-monospace,monospace;font-size:6.5px;color:#c79a6a;">ANCHOR</span></div>
+            <!-- nodes -->
+            <div style="position:absolute;left:5%;top:6%;width:84px;text-align:center;"><div style="width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.18);margin:0 auto;background:rgba(255,255,255,.02);"></div><div style="font-size:11px;color:#e7ddcd;margin-top:3px;">Temmel</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#8a7d6e;line-height:1.2;">co-anchor</div></div>
+            <div style="position:absolute;right:2%;top:6%;width:84px;text-align:center;"><div style="width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.18);margin:0 auto;background:rgba(255,255,255,.02);"></div><div style="font-size:11px;color:#e7ddcd;margin-top:3px;">Ambric</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#8a7d6e;line-height:1.2;">co-anchor · trust</div></div>
+            <div style="position:absolute;left:0;top:52%;width:84px;text-align:center;"><div style="width:40px;height:40px;border-radius:11px;border:1.5px solid rgba(127,174,90,.5);margin:0 auto;background:rgba(127,174,90,.08);"></div><div style="font-size:11px;color:#bcd1a4;margin-top:3px;">Oriyen <span style="font-family:ui-monospace,monospace;font-size:6.5px;">PC</span></div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#8a9c78;line-height:1.2;">warned · S9</div></div>
+            <div style="position:absolute;right:0;top:55%;width:88px;text-align:center;"><div style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(224,88,74,.5);margin:0 auto;background:rgba(224,88,74,.07);"></div><div style="font-size:11px;color:#e0b0a8;margin-top:3px;">Knowl. Serpent</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#c4756a;line-height:1.2;">opposing forces</div></div>
+            <div style="position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:96px;text-align:center;"><div style="width:38px;height:38px;border-radius:50%;border:1px dashed rgba(150,140,130,.45);margin:0 auto;background:rgba(255,255,255,.015);"></div><div style="font-size:11px;color:#a89e92;margin-top:3px;">Scribe Valdris</div><div style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;line-height:1.2;">wore his face · dead</div></div>
+          </div>
+          <!-- notes -->
+          <div style="margin-top:6px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(0,0,0,.2);padding:9px 11px;"><div style="font-family:ui-monospace,monospace;font-size:7.5px;letter-spacing:.08em;color:#7f7468;">RELATIONSHIP NOTES</div><div style="font-size:11.5px;color:#9a8f82;font-style:italic;line-height:1.35;margin-top:4px;">She chose Valdris's face deliberately — Oriyen would recognise it. She's watched him longer than the party knows.</div></div>
+        </div>
+        <!-- right connections -->
+        <div style="width:40%;padding:14px 13px;background:rgba(0,0,0,.14);">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;">CONNECTIONS</span><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">5</span></div>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 9px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#e7ddcd;">Temmel</span><span style="font-family:ui-monospace,monospace;font-size:7px;color:#a98a5f;border:1px solid rgba(217,138,61,.3);border-radius:4px;padding:1px 5px;">CO-ANCHOR</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">last · S9</div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 9px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#e7ddcd;">Ambric</span><span style="font-family:ui-monospace,monospace;font-size:7px;color:#a98a5f;border:1px solid rgba(217,138,61,.3);border-radius:4px;padding:1px 5px;">CO-ANCHOR</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">last · S6</div></div>
+            <div style="border:1px solid rgba(127,174,90,.25);border-radius:8px;padding:8px 9px;background:rgba(127,174,90,.04);"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#bcd1a4;">Oriyen Vale</span><span style="font-family:ui-monospace,monospace;font-size:7px;color:#8fae6a;border:1px solid rgba(127,174,90,.35);border-radius:4px;padding:1px 5px;">PC · WARNED</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">last · S9</div></div>
+            <div style="border:1px solid rgba(224,88,74,.3);border-radius:8px;padding:8px 9px;background:rgba(224,88,74,.04);"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#e0b0a8;">Knowl. Serpent</span><span style="font-family:ui-monospace,monospace;font-size:7px;color:#e0857c;border:1px solid rgba(224,88,74,.4);border-radius:4px;padding:1px 5px;">OPPOSED</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">memory vs corruption</div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 9px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#a89e92;">Scribe Valdris</span><span style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:1px 5px;">DECEASED</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;margin-top:3px;">historical · worn</div></div>
+          </div>
+        </div>
+        <span style="position:absolute;left:180px;top:120px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:8;">1</span>
+        <span style="position:absolute;left:24px;bottom:64px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:8;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Relationships are what every other tool ignores.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> The private note persists — players never see it.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 04 · SESSION HISTORY ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">04 — NPC Detail · Session History</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">Captain Marcus Draven · the arc</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- timeline -->
+        <div style="width:58%;border-right:1px solid rgba(255,255,255,.06);padding:13px 14px;display:flex;flex-direction:column;min-height:0;">
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;">APPEARANCES · the corruption arc</div>
+          <div style="flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-top:9px;">
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.012);padding:9px 11px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#cdbfae;white-space:nowrap;">Session 5</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">mention</span></div><div style="font-size:11px;color:#8a7d6e;line-height:1.35;margin-top:3px;">First mention. Torres named him her superior. No direct appearance.</div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.012);padding:9px 11px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#cdbfae;white-space:nowrap;">Session 7</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">scene</span></div><div style="font-size:11px;color:#8a7d6e;line-height:1.35;margin-top:3px;">Briefed the party. Seemed loyal — <span style="color:#cdb596;">Norm noticed his hand trembling.</span></div></div>
+            <div style="border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.012);padding:9px 11px;"><div style="display:flex;justify-content:space-between;"><span style="font-size:12px;color:#cdbfae;white-space:nowrap;">Session 8</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f7468;">absent</span></div><div style="font-size:11px;color:#8a7d6e;line-height:1.35;margin-top:3px;">Absent from his post at Concordia. Torres covering.</div></div>
+            <div style="border:1px solid rgba(224,88,74,.5);border-radius:9px;background:rgba(224,88,74,.06);padding:9px 11px;box-shadow:inset 3px 0 0 var(--ink-accent,#d98a3d);"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:#f0d6b2;white-space:nowrap;">Session 9 · CURRENT</span><span style="font-family:ui-monospace,monospace;font-size:7px;color:#e8908a;border:1px solid rgba(224,88,74,.5);border-radius:4px;padding:1px 5px;">THREAT · LIVE</span></div><div style="font-size:11px;color:#cdb596;line-height:1.35;margin-top:3px;">Faeren confirmed: moving soldiers into position. Duskfall Blade active. Assassination imminent.</div></div>
+          </div>
+          <!-- heartflame -->
+          <div style="margin-top:8px;display:flex;align-items:flex-start;gap:8px;background:rgba(217,138,61,.06);border:1px solid rgba(217,138,61,.2);border-radius:9px;padding:8px 10px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 7px var(--ink-accent,#d98a3d);animation:dotPulse 2.2s infinite;margin-top:3px;flex:none;"></span>
+            <span style="font-size:11px;font-style:italic;color:#cdb596;line-height:1.3;">"He has been changing since Session 5. The trembling hand was the first sign."</span>
+          </div>
+        </div>
+        <!-- right summary -->
+        <div style="width:42%;padding:14px 13px;background:rgba(0,0,0,.14);">
+          <div style="font-size:17px;color:#f0e6d8;">Captain Draven</div>
+          <div style="display:flex;gap:6px;margin-top:7px;font-family:ui-monospace,monospace;font-size:7.5px;"><span style="border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 6px;color:#9a8f82;">CR 10</span><span style="border:1px solid rgba(224,88,74,.45);border-radius:4px;padding:2px 6px;color:#e0857c;">THREAT</span><span style="border:1px solid rgba(255,255,255,.12);border-radius:4px;padding:2px 6px;color:#9a8f82;">LE · corrupted</span></div>
+          <div style="font-size:11.5px;color:#8a7d6e;margin-top:8px;line-height:1.4;">Corrupted Imperial Guard Captain. The void-blade is rewriting him.</div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:14px;">ITEMS CARRIED</div>
+          <div style="margin-top:7px;border:1px solid rgba(184,69,58,.3);border-radius:8px;background:rgba(184,69,58,.05);padding:8px 10px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12px;color:#d9b3ad;">Duskfall Blade</span><span style="font-family:ui-monospace,monospace;font-size:7px;color:#9c6a62;">→ item</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:13px;">FACTION</div>
+          <div style="font-size:12px;color:#cdbfae;margin-top:6px;">Sunward Empire <span style="font-family:ui-monospace,monospace;font-size:8px;color:#9c6a62;">· corrupted arm</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:13px;">LAST KNOWN</div>
+          <div style="font-size:12px;color:#cdbfae;margin-top:6px;line-height:1.35;">Concordia Stellaris — eastern colonnade.</div>
+        </div>
+        <span style="position:absolute;left:24px;top:300px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;left:24px;bottom:54px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Session history makes the arc visible at a glance.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Heartflame surfaces the DM's own forgotten breadcrumbs.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 05 · QUICK-CREATE ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">05 — NPC Quick-Create</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">seed first · AI-assisted</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:radial-gradient(500px 360px at 50% 20%, #1d1511, #0c0908);overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:18px;">
+        <div style="width:100%;border:1px solid rgba(217,138,61,.22);border-radius:14px;background:#181310;box-shadow:0 24px 50px rgba(0,0,0,.5);padding:16px 18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:20px;color:#f0e6d8;">New NPC</span><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">2-step · seed → draft</span></div>
+          <div style="display:flex;gap:14px;margin-top:13px;">
+            <!-- seed -->
+            <div style="width:50%;">
+              <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#a98a5f;">① THE SEED · what you type</div>
+              <div style="margin-top:7px;border:1px solid rgba(217,138,61,.25);border-radius:10px;background:rgba(217,138,61,.04);padding:11px;height:120px;font-size:12px;color:#cdbfae;line-height:1.4;">Scribe Valdris — elderly human archivist, long dead. Appears only through Faeren's shapeshifting. Was Oriyen's first mentor at the Archive of Withered Echoes.<span style="display:inline-block;width:1px;height:13px;background:var(--ink-accent,#d98a3d);vertical-align:-2px;"></span></div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:9px;">
+                <span style="font-size:9px;color:#f0d6b2;border:1px solid rgba(217,138,61,.4);background:rgba(217,138,61,.1);border-radius:5px;padding:2px 6px;">NPC</span>
+                <span style="font-size:9px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Ally</span>
+                <span style="font-size:9px;color:#f0d6b2;border:1px solid rgba(217,138,61,.4);background:rgba(217,138,61,.1);border-radius:5px;padding:2px 6px;">Historical</span>
+                <span style="font-size:9px;color:#9a8f82;border:1px solid rgba(255,255,255,.1);border-radius:5px;padding:2px 6px;">Threat</span>
+              </div>
+              <button style="width:100%;margin-top:10px;background:var(--ink-accent,#d98a3d);border:none;border-radius:9px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:9px;cursor:pointer;">✦ Generate</button>
+            </div>
+            <!-- draft -->
+            <div style="width:50%;">
+              <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#8a9c78;">② THE DRAFT · what AI writes</div>
+              <div style="margin-top:7px;border:1px solid rgba(127,174,90,.25);border-radius:10px;background:rgba(127,174,90,.03);padding:11px;">
+                <div style="font-size:15px;color:#f0e6d8;">Scribe Valdris <span style="font-family:ui-monospace,monospace;font-size:8px;color:#8a9c78;">HISTORICAL</span></div>
+                <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px;font-size:11px;color:#bcb1a2;line-height:1.35;">
+                  <div><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">TYPE</span> &nbsp;Human Commoner (mod) · CR ¼ · Deceased</div>
+                  <div><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">ROLE</span> &nbsp;Archivist, Archive of Withered Echoes</div>
+                  <div><span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f7468;">TRAIT</span> &nbsp;Oriyen's mentor — adv. on Insight re: his choices</div>
+                </div>
+                <div style="margin-top:8px;border-left:2px solid rgba(127,174,90,.4);padding:2px 0 2px 8px;font-size:10.5px;color:#9a8f82;font-style:italic;line-height:1.35;">No combat stats — Valdris is a ghost of memory. If he appears, it is through Faeren.</div>
+              </div>
+              <div style="display:flex;gap:6px;margin-top:10px;">
+                <button style="flex:1;background:var(--ink-accent,#d98a3d);border:none;border-radius:8px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:12px;padding:8px;cursor:pointer;">Add to World</button>
+                <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#cdbfae;font-size:12px;padding:8px 10px;cursor:pointer;">Edit</button>
+                <button style="background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#8a7d6e;font-size:12px;padding:8px 10px;cursor:pointer;">Discard</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span style="position:absolute;left:64px;top:120px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;right:64px;bottom:120px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Seed first — DM describes fiction, AI writes the stats.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> Historical / non-combatant NPCs are first-class.</div></div></sc-if>
+    </div>
+
+    <!-- ============ 06 · SEARCH & FILTER ============ -->
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:9px;"><span style="font-size:18px;color:#f0d6b2;white-space:nowrap;">06 — NPC List · Search</span><span style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f7468;white-space:nowrap;">filter in full use · one match</span></div>
+      <div style="position:relative;width:680px;height:460px;border:1px solid rgba(255,235,205,.1);border-radius:14px;background:#15110e;overflow:hidden;box-shadow:0 18px 44px rgba(0,0,0,.4);display:flex;">
+        <!-- sidebar -->
+        <div style="width:168px;border-right:1px solid rgba(255,255,255,.06);padding:13px 12px;background:rgba(0,0,0,.16);flex:none;">
+          <div style="border:1px solid rgba(217,138,61,.45);border-radius:8px;padding:7px 9px;font-family:ui-monospace,monospace;font-size:10px;color:#f0d6b2;display:flex;align-items:center;gap:6px;background:rgba(217,138,61,.06);"><span style="width:8px;height:8px;border-radius:50%;border:1.5px solid #d98a3d;"></span>serpent<span style="margin-left:auto;color:#7f7468;">✕</span></div>
+          <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:14px;">ACTIVE FILTERS</div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-top:7px;">
+            <span style="font-size:9.5px;color:#e0b0a8;border:1px solid rgba(224,88,74,.35);background:rgba(224,88,74,.05);border-radius:5px;padding:3px 7px;">Type: Aberration ✕</span>
+            <span style="font-size:9.5px;color:#e0b0a8;border:1px solid rgba(224,88,74,.35);background:rgba(224,88,74,.05);border-radius:5px;padding:3px 7px;">Status: Threat ✕</span>
+            <span style="font-size:9.5px;color:#cdb596;border:1px solid rgba(217,138,61,.3);border-radius:5px;padding:3px 7px;">Tag: Session 9 ✕</span>
+          </div>
+          <div style="font-family:ui-monospace,monospace;font-size:9px;color:#a98a5f;margin-top:11px;cursor:pointer;text-decoration:underline;">Clear all</div>
+        </div>
+        <!-- result area -->
+        <div style="flex:1;padding:12px 14px;position:relative;overflow:hidden;">
+          <!-- ghost empty text -->
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:rgba(138,125,110,.16);font-style:italic;pointer-events:none;">Nothing stirs in the archive.</div>
+          <!-- sort bar -->
+          <div style="display:flex;align-items:center;gap:8px;position:relative;"><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#7f7468;">SORTED BY</span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#f0d6b2;border:1px solid rgba(217,138,61,.3);border-radius:5px;padding:2px 7px;">Last seen ⌄</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#6c5f53;">Name · CR · Status</span></div>
+          <!-- one match card -->
+          <div style="position:relative;margin-top:14px;border:1.5px solid rgba(224,88,74,.5);border-radius:13px;background:rgba(224,88,74,.06);padding:14px 16px;box-shadow:0 0 22px rgba(224,88,74,.12);">
+            <div style="display:flex;gap:14px;">
+              <div style="width:74px;height:74px;border-radius:12px;border:1px solid rgba(224,88,74,.4);background:repeating-linear-gradient(45deg,rgba(224,88,74,.06) 0 7px,transparent 7px 14px);flex:none;"></div>
+              <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:17px;color:#f0e6d8;white-space:nowrap;">The Knowledge Serpent</span><span style="font-family:ui-monospace,monospace;font-size:7.5px;color:#e8908a;border:1px solid rgba(224,88,74,.5);border-radius:4px;padding:1px 5px;">THREAT</span></div>
+                <div style="font-family:ui-monospace,monospace;font-size:9px;color:#9c6a62;margin-top:4px;">ABERRATION · ARCHIVE-BORN · last seen S9</div>
+                <div style="font-family:ui-monospace,monospace;font-size:10px;color:#cdb596;margin-top:9px;letter-spacing:.02em;">CR 12 · AC 15 · HP 168 · Darkvision 120ft</div>
+              </div>
+            </div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#7f7468;margin-top:13px;">RELATED ENTITIES</div>
+            <div style="display:flex;gap:7px;margin-top:7px;">
+              <span style="font-size:11px;color:#bcd1a4;border:1px solid rgba(127,174,90,.3);background:rgba(127,174,90,.05);border-radius:7px;padding:5px 10px;">Oriyen Vale <span style="font-family:ui-monospace,monospace;font-size:7px;color:#8a9c78;">target</span></span>
+              <span style="font-size:11px;color:#cdbfae;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:5px 10px;">Archive of Withered Echoes <span style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">origin</span></span>
+              <span style="font-size:11px;color:#cdbfae;border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:5px 10px;">Obsidian Mirror <span style="font-family:ui-monospace,monospace;font-size:7px;color:#7f7468;">trigger</span></span>
+            </div>
+          </div>
+        </div>
+        <span style="position:absolute;right:150px;bottom:120px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">1</span>
+        <span style="position:absolute;right:30px;top:130px;width:19px;height:19px;border-radius:50%;border:1.5px solid var(--ink-accent,#d98a3d);background:rgba(217,138,61,.16);color:#f0d6b2;font-family:ui-monospace,monospace;font-size:10px;display:flex;align-items:center;justify-content:center;z-index:6;">2</span>
+      </div>
+      <sc-if value="{{ showNotes }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:22px;margin-top:11px;font-family:ui-monospace,monospace;font-size:10px;color:#8a7d6e;line-height:1.5;"><div style="flex:1;"><b style="color:#e3a45f;">①</b> Related-entities strip turns a result into a context view.</div><div style="flex:1;"><b style="color:#e3a45f;">②</b> The empty-state voice persists even with one match.</div></div></sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1460,&quot;height&quot;:1180},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#3f9d96&quot;],&quot;tsType&quot;:&quot;string&quot;},&quot;showNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      accent: this.props.accent ?? '#d98a3d',
+      showNotes: this.props.showNotes ?? true,
+    };
+  }
+}
+</script>
+</body>
+</html>

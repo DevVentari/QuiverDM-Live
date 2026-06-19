@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes ringSpin{to{transform:rotate(360deg)}}
+  @keyframes turnGlow{0%,100%{box-shadow:0 0 0 1px rgba(217,138,61,.5),0 0 18px rgba(217,138,61,.22)}50%{box-shadow:0 0 0 1px rgba(217,138,61,.95),0 0 34px rgba(217,138,61,.45)}}
+  @keyframes pingPulse{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.4);opacity:0}}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+  image-slot{display:block;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <span style="width:32px;height:32px;border-radius:9px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:8px;height:8px;border-radius:2px;background:#1a0f06;"></span></span>
+    <div>
+      <div style="font-size:18px;color:#f6ead8;line-height:1;white-space:nowrap;">Sacred Amphitheater</div>
+      <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">THE FESTIVAL ASSASSINATION · BATTLE MAP</div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="display:flex;gap:5px;font-family:ui-monospace,monospace;font-size:8.5px;">
+      <span style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.35);border-radius:7px;padding:5px 9px;color:#e9b277;">Grid ✓</span>
+      <span style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.35);border-radius:7px;padding:5px 9px;color:#e9b277;">Fog ✓</span>
+      <span style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:5px 9px;color:#cdbfae;">Tokens</span>
+      <span style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:5px 9px;color:#cdbfae;">Ruler</span>
+    </div>
+    <div style="text-align:center;"><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.2em;color:#9c8a76;">ROUND</div><div style="font-family:'Kalam';font-weight:700;font-size:24px;line-height:.85;color:#f6ead8;">III</div></div>
+    <button style="background:rgba(217,138,61,.14);border:1px solid rgba(217,138,61,.4);border-radius:10px;color:#e7c197;font-family:'Kalam';font-weight:600;font-size:13px;padding:9px 14px;cursor:pointer;">Open tracker →</button>
+  </div>
+
+  <div style="display:flex;height:760px;">
+
+    <!-- ===== INITIATIVE RAIL ===== -->
+    <div style="width:212px;flex:none;border-right:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.2);padding:13px 12px;display:flex;flex-direction:column;gap:8px;overflow:auto;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;padding-left:2px;">INITIATIVE</div>
+
+      <div style="display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15));padding:8px 9px;">
+        <span style="width:30px;height:30px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.22),rgba(0,0,0,.3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#cfe3b8;flex:none;">S</span>
+        <div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#ece2d4;">Skreek</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">22</span></div><div style="height:5px;border-radius:3px;background:rgba(0,0,0,.5);margin-top:5px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;border-radius:11px;background:linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.08));padding:8px 9px;animation:turnGlow 2.8s ease-in-out infinite;">
+        <span style="width:30px;height:30px;border-radius:50%;border:2px solid #e0944a;background:radial-gradient(circle,rgba(217,138,61,.3),rgba(0,0,0,.3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#f0d6b2;flex:none;">D</span>
+        <div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#f9efe0;">Cpt. Draven</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#f0c89a;">19</span></div><div style="height:5px;border-radius:3px;background:rgba(0,0,0,.5);margin-top:5px;overflow:hidden;"><div style="height:100%;width:76%;background:linear-gradient(90deg,#b8453a,#e0944a);"></div></div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15));padding:8px 9px;">
+        <span style="width:30px;height:30px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.22),rgba(0,0,0,.3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#cfe3b8;flex:none;">O</span>
+        <div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#ece2d4;">Oriyen</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">17</span></div><div style="height:5px;border-radius:3px;background:rgba(0,0,0,.5);margin-top:5px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;border:1px solid rgba(184,69,58,.3);border-radius:11px;background:linear-gradient(180deg,rgba(184,69,58,.08),rgba(0,0,0,.15));padding:8px 9px;">
+        <span style="width:30px;height:30px;border-radius:50%;border:2px solid #c4453a;background:radial-gradient(circle,rgba(196,69,58,.25),rgba(0,0,0,.3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#e6b3aa;flex:none;">V</span>
+        <div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#e6cdc6;">Void Spawn</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">14</span></div><div style="height:5px;border-radius:3px;background:rgba(0,0,0,.5);margin-top:5px;overflow:hidden;"><div style="height:100%;width:73%;background:linear-gradient(90deg,#8a2f26,#c4453a);"></div></div></div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:9px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15));padding:8px 9px;">
+        <span style="width:30px;height:30px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.22),rgba(0,0,0,.3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#cfe3b8;flex:none;">N</span>
+        <div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;"><span style="font-size:13px;color:#ece2d4;">Norm</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">11</span></div><div style="height:5px;border-radius:3px;background:rgba(0,0,0,.5);margin-top:5px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div></div>
+      </div>
+
+      <div style="flex:1;"></div>
+      <div style="font-family:ui-monospace,monospace;font-size:8px;color:#5a4f45;line-height:1.6;padding:0 2px;">5 combatants · 2 hostile<br>drag tokens on the map →</div>
+    </div>
+
+    <!-- ===== BATTLE MAP ===== -->
+    <div style="flex:1;position:relative;overflow:hidden;background:#100c0a;">
+      <!-- map image (user-fillable) -->
+      <image-slot id="combat-map-base" style="position:absolute;inset:0;width:100%;height:100%;" shape="rect" placeholder="drop battle-map art — grid · tokens · fog overlay on top"></image-slot>
+      <!-- empty-state terrain wash -->
+      <div style="position:absolute;inset:0;background:radial-gradient(440px 340px at 44% 46%, rgba(36,23,18,.0), rgba(16,12,10,.0));pointer-events:none;"></div>
+      <!-- grid -->
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,235,205,.045) 0 1px,transparent 1px 40px),repeating-linear-gradient(90deg,rgba(255,235,205,.045) 0 1px,transparent 1px 40px);pointer-events:none;"></div>
+
+      <!-- AoE template -->
+      <div style="position:absolute;left:38%;top:40%;width:184px;height:184px;border-radius:50%;border:1.5px dashed rgba(224,88,74,.6);background:radial-gradient(circle,rgba(224,88,74,.16),rgba(224,88,74,.03) 70%);transform:translate(-50%,-50%);display:flex;align-items:flex-start;justify-content:center;">
+        <span style="margin-top:-22px;font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.08em;color:#e6a99f;background:rgba(20,12,10,.7);border:1px solid rgba(224,88,74,.4);border-radius:6px;padding:3px 7px;white-space:nowrap;">Fireball · 20 ft</span>
+      </div>
+
+      <!-- measurement ruler -->
+      <div style="position:absolute;left:24%;top:40%;width:240px;height:2px;background:repeating-linear-gradient(90deg,rgba(217,138,61,.7) 0 6px,transparent 6px 12px);transform-origin:left;transform:rotate(11deg);pointer-events:none;">
+        <span style="position:absolute;left:50%;top:-22px;transform:translateX(-50%);font-family:ui-monospace,monospace;font-size:9px;color:#f0d6b2;background:rgba(20,12,10,.78);border:1px solid rgba(217,138,61,.4);border-radius:6px;padding:3px 7px;white-space:nowrap;">30 ft · 6 sq</span>
+      </div>
+
+      <!-- movement path -->
+      <div style="position:absolute;left:64%;top:30%;width:120px;height:2px;background:repeating-linear-gradient(90deg,rgba(240,214,178,.5) 0 4px,transparent 4px 9px);transform-origin:left;transform:rotate(118deg);pointer-events:none;"></div>
+
+      <!-- ===== TOKENS ===== -->
+      <!-- Skreek -->
+      <div style="position:absolute;left:24%;top:40%;transform:translate(-50%,-50%);text-align:center;">
+        <span style="width:46px;height:46px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.28),rgba(0,0,0,.35));box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;color:#cfe3b8;">S</span>
+        <div style="height:4px;width:40px;margin:5px auto 0;border-radius:3px;background:rgba(0,0,0,.55);overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;color:#bcd1a4;margin-top:3px;text-shadow:0 1px 4px #000;">Skreek</div>
+      </div>
+      <!-- Oriyen -->
+      <div style="position:absolute;left:31%;top:60%;transform:translate(-50%,-50%);text-align:center;">
+        <span style="width:46px;height:46px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.28),rgba(0,0,0,.35));box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;color:#cfe3b8;">O</span>
+        <div style="height:4px;width:40px;margin:5px auto 0;border-radius:3px;background:rgba(0,0,0,.55);overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;color:#bcd1a4;margin-top:3px;text-shadow:0 1px 4px #000;">Oriyen</div>
+      </div>
+      <!-- Norm -->
+      <div style="position:absolute;left:17%;top:70%;transform:translate(-50%,-50%);text-align:center;">
+        <span style="width:46px;height:46px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.28),rgba(0,0,0,.35));box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;color:#cfe3b8;">N</span>
+        <div style="height:4px;width:40px;margin:5px auto 0;border-radius:3px;background:rgba(0,0,0,.55);overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;color:#bcd1a4;margin-top:3px;text-shadow:0 1px 4px #000;">Norm</div>
+      </div>
+      <!-- Void Spawn -->
+      <div style="position:absolute;left:46%;top:64%;transform:translate(-50%,-50%);text-align:center;">
+        <span style="width:42px;height:42px;border-radius:50%;border:2px solid #c4453a;background:radial-gradient(circle,rgba(196,69,58,.3),rgba(0,0,0,.35));box-shadow:0 4px 14px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#e6b3aa;">V</span>
+        <div style="height:4px;width:38px;margin:5px auto 0;border-radius:3px;background:rgba(0,0,0,.55);overflow:hidden;"><div style="height:100%;width:73%;background:linear-gradient(90deg,#8a2f26,#c4453a);"></div></div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;color:#e0a59c;margin-top:3px;text-shadow:0 1px 4px #000;">Void Spawn</div>
+      </div>
+      <!-- Captain Draven · current turn -->
+      <div style="position:absolute;left:52%;top:46%;transform:translate(-50%,-50%);text-align:center;z-index:3;">
+        <span style="position:relative;display:flex;align-items:center;justify-content:center;width:52px;height:52px;margin:0 auto;">
+          <span style="position:absolute;inset:-6px;border-radius:50%;border:2px dashed rgba(217,138,61,.85);animation:ringSpin 9s linear infinite;"></span>
+          <span style="position:absolute;inset:0;border-radius:50%;border:2px solid #e0944a;background:radial-gradient(circle,rgba(217,138,61,.32),rgba(0,0,0,.32));box-shadow:0 0 22px rgba(217,138,61,.55);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:21px;color:#f6ead8;">D</span>
+        </span>
+        <div style="height:5px;width:46px;margin:6px auto 0;border-radius:3px;background:rgba(0,0,0,.55);overflow:hidden;"><div style="height:100%;width:76%;background:linear-gradient(90deg,#b8453a,#e0944a);"></div></div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.06em;color:#f0d6b2;margin-top:3px;text-shadow:0 1px 4px #000;">▸ CPT. DRAVEN</div>
+      </div>
+
+      <!-- DM ping -->
+      <div style="position:absolute;left:60%;top:24%;width:18px;height:18px;transform:translate(-50%,-50%);">
+        <span style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(217,138,61,.8);animation:pingPulse 2.4s ease-out infinite;"></span>
+        <span style="position:absolute;inset:5px;border-radius:50%;background:#e0944a;box-shadow:0 0 10px #e0944a;"></span>
+      </div>
+
+      <!-- fog of war -->
+      <div style="position:absolute;right:0;top:0;bottom:0;width:30%;background:linear-gradient(90deg, transparent, rgba(8,6,5,.94) 46%);pointer-events:none;"></div>
+      <div style="position:absolute;right:18px;top:14px;font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#6c5f53;z-index:4;">▒ FOG OF WAR</div>
+
+      <!-- controls top-left -->
+      <div style="position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:6px;z-index:5;">
+        <span style="width:32px;height:32px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#cdbfae;font-size:17px;cursor:pointer;">+</span>
+        <span style="width:32px;height:32px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#cdbfae;font-size:17px;cursor:pointer;">−</span>
+        <span style="width:32px;height:32px;border-radius:8px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#cdbfae;font-family:ui-monospace,monospace;font-size:10px;cursor:pointer;">⤢</span>
+      </div>
+      <!-- controls top-right -->
+      <div style="position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:5;font-family:ui-monospace,monospace;font-size:8.5px;">
+        <span style="background:rgba(0,0,0,.5);border:1px solid rgba(217,138,61,.4);border-radius:7px;padding:6px 9px;color:#e9b277;cursor:pointer;">✦ Reveal fog</span>
+        <span style="background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.14);border-radius:7px;padding:6px 9px;color:#cdbfae;cursor:pointer;">Brush</span>
+      </div>
+      <!-- scale legend -->
+      <div style="position:absolute;left:14px;bottom:12px;display:flex;align-items:center;gap:10px;z-index:5;">
+        <div style="display:flex;align-items:center;gap:6px;"><span style="width:26px;height:8px;border:1px solid rgba(255,235,205,.4);border-radius:2px;display:inline-block;"></span><span style="font-family:ui-monospace,monospace;font-size:8px;color:#8a7d6e;">1 square = 5 ft</span></div>
+        <span style="font-family:ui-monospace,monospace;font-size:8px;color:#5a4f45;">drag tokens · paint fog · scroll to zoom</span>
+      </div>
+    </div>
+
+    <!-- ===== TOKEN INSPECTOR ===== -->
+    <div style="width:300px;flex:none;border-left:1px solid rgba(255,235,205,.06);background:rgba(0,0,0,.16);padding:16px;display:flex;flex-direction:column;gap:13px;overflow:auto;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#c79a6a;">▸ SELECTED TOKEN</div>
+
+      <div style="display:flex;gap:12px;align-items:center;">
+        <image-slot id="draven-portrait" style="width:64px;height:64px;flex:none;" shape="circle" placeholder="art"></image-slot>
+        <div><div style="font-size:20px;color:#f9efe0;line-height:1;">Captain Draven</div><div style="font-family:ui-monospace,monospace;font-size:8px;color:#c79a6a;margin-top:5px;letter-spacing:.06em;">BOSS · LEGENDARY · HOSTILE</div></div>
+      </div>
+
+      <div style="display:flex;align-items:flex-end;gap:6px;">
+        <span style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f6ead8;line-height:.85;border-bottom:2px dashed rgba(217,138,61,.5);">72</span><span style="font-size:14px;color:#9c8a76;">/ 95 HP</span>
+      </div>
+      <div style="height:9px;border-radius:5px;background:rgba(0,0,0,.5);overflow:hidden;"><div style="height:100%;width:76%;background:linear-gradient(90deg,#b8453a,#e0944a);"></div></div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <div style="border:1px solid rgba(255,235,205,.12);border-radius:10px;background:rgba(255,255,255,.03);padding:9px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:20px;color:#f0d6b2;line-height:1;">18</div><div style="font-family:ui-monospace,monospace;font-size:7px;letter-spacing:.1em;color:#9c8a76;margin-top:4px;">ARMOR</div></div>
+        <div style="border:1px solid rgba(255,235,205,.12);border-radius:10px;background:rgba(255,255,255,.03);padding:9px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:20px;color:#f0d6b2;line-height:1;">30</div><div style="font-family:ui-monospace,monospace;font-size:7px;letter-spacing:.1em;color:#9c8a76;margin-top:4px;">SPEED</div></div>
+        <div style="border:1px solid rgba(255,235,205,.12);border-radius:10px;background:rgba(255,255,255,.03);padding:9px;text-align:center;"><div style="font-family:'Kalam';font-weight:700;font-size:20px;color:#f0d6b2;line-height:1;">+9</div><div style="font-family:ui-monospace,monospace;font-size:7px;letter-spacing:.1em;color:#9c8a76;margin-top:4px;">TO HIT</div></div>
+      </div>
+
+      <div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;margin-bottom:7px;">CONDITIONS</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="background:rgba(212,98,47,.14);border:1px solid rgba(212,98,47,.5);border-radius:20px;padding:5px 11px;font-family:ui-monospace,monospace;font-size:9px;color:#ef9a5f;">Concentrating</span>
+          <span style="background:rgba(196,69,58,.14);border:1px solid rgba(196,69,58,.5);border-radius:20px;padding:5px 11px;font-family:ui-monospace,monospace;font-size:9px;color:#e6a99f;">Bloodied</span>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;margin-bottom:7px;">LEGENDARY ACTIONS</div>
+        <div style="display:flex;gap:7px;">
+          <span style="flex:1;height:9px;border-radius:5px;background:linear-gradient(90deg,#e0944a,#c97a30);"></span>
+          <span style="flex:1;height:9px;border-radius:5px;background:linear-gradient(90deg,#e0944a,#c97a30);"></span>
+          <span style="flex:1;height:9px;border-radius:5px;background:rgba(255,255,255,.08);"></span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px;">
+        <button style="background:linear-gradient(180deg,#cf5f2a,#a8401f);border:none;border-radius:10px;color:#fce9da;font-family:'Kalam';font-weight:700;font-size:13px;padding:11px;cursor:pointer;">⚔ Damage</button>
+        <button style="background:rgba(95,143,69,.16);border:1px solid rgba(95,143,69,.5);border-radius:10px;color:#bcd1a4;font-family:'Kalam';font-weight:700;font-size:13px;padding:11px;cursor:pointer;">✚ Heal</button>
+        <button style="background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.16);border-radius:10px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:11px;cursor:pointer;">Condition</button>
+        <button style="background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.16);border-radius:10px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:11px;cursor:pointer;">Move</button>
+      </div>
+
+      <div style="border:1px solid rgba(217,138,61,.22);border-radius:12px;background:linear-gradient(180deg,rgba(217,138,61,.06),rgba(0,0,0,.12));padding:11px 12px;">
+        <div style="display:flex;align-items:flex-start;gap:9px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 10px var(--ink-accent,#d98a3d);animation:dotPulse 2.4s infinite;margin-top:4px;flex:none;"></span><div style="font-size:12px;color:#d6c8b6;font-style:italic;line-height:1.45;">Draven holds the Duskfall Blade. Drop him below 0 and the festival ends — but the blade chooses a new hand.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:1440px;margin:14px auto 0;font-family:ui-monospace,monospace;font-size:10px;color:#5a4f45;line-height:1.6;">Hi-fi battle map · drop your map art into the center slot and the <b style="color:#9c8a76;">grid, tokens, fog, ruler &amp; AoE</b> overlay on top. Left rail mirrors the combat tracker; the active token wears a spinning ring; right panel inspects the selected token. Token portrait + map are user-fillable image slots.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:900},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#d98a3d' }; }
+}
+</script>
+</body>
+</html>

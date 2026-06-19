@@ -36,11 +36,15 @@ import { adminApiUsageRouter } from './admin-api-usage';
 import { adminOverviewRouter } from './admin-overview';
 import { adminHealthRouter } from './admin-health';
 import { brainRouter } from './brain';
+import { voiceRouter } from './voice';
 import { playRouter } from './play';
+import { heartflameRouter } from './heartflame';
+import { scenesRouter } from './scenes';
 import { ddbSyncRouter } from './ddb-sync';
 import { sourcebookScenesRouter } from './sourcebook-scenes';
 import { multiTrackUploadRouter } from './multi-track-upload';
 import { speakerMappingRouter } from './speaker-mapping';
+import { discordVoiceRouter } from './discord-voice';
 import { recapRouter } from './recap';
 import { campaignContextRouter } from './campaign-context';
 import { worldMapRouter } from './world-map';
@@ -94,6 +98,7 @@ export const appRouter = router({
   adminApiUsage: adminApiUsageRouter,
   adminHealth: adminHealthRouter,
   brain: brainRouter,
+  voice: voiceRouter,
   play: playRouter,
   ddbSync: ddbSyncRouter,
   sourcebookScenes: sourcebookScenesRouter,
@@ -107,6 +112,9 @@ export const appRouter = router({
   sessionRoutes: sessionRoutesRouter,
   prepSecrets: prepSecretsRouter,
   npcBehaviorProfiles: npcBehaviorProfilesRouter,
+  heartflame: heartflameRouter,
+  scenes: scenesRouter,
+  discordVoice: discordVoiceRouter,
 });
 
 export type AppRouter = typeof appRouter;

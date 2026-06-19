@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="min-height:100vh;padding:34px 32px 70px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="max-width:1400px;margin:0 auto;">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:flex-end;gap:16px;border-bottom:1px solid rgba(255,235,205,.1);padding-bottom:22px;">
+    <span style="width:38px;height:38px;border-radius:10px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:9px;height:9px;border-radius:50%;background:#1a0f06;"></span></span>
+    <div>
+      <div style="font-size:30px;color:#f6ead8;line-height:1;">Typography</div>
+      <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#9c8a76;margin-top:6px;">QUIVERDM · KALAM STAYS THE STORYTELLER · PICK ITS COMPANION</div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="font-family:'Hanken Grotesk',sans-serif;font-size:12.5px;color:#9c8a76;text-align:right;line-height:1.6;max-width:360px;">Kalam keeps the soul. We only add a clean body face for the read-heavy places it strains — and a mono for stats. Three roles, one decision.</div>
+  </div>
+
+  <!-- THE 3 ROLES -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:26px;">
+    <div style="border:1px solid rgba(217,138,61,.34);border-radius:14px;background:linear-gradient(180deg,rgba(217,138,61,.1),rgba(0,0,0,.14));padding:17px 18px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#c79a6a;">ROLE 01 · KEEP</div>
+      <div style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f6ead8;margin-top:6px;line-height:1;">Kalam</div>
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:#a99a88;margin-top:8px;line-height:1.5;">Display &amp; story — titles, character names, narration, cinematic beats. The hand-inked voice.</div>
+    </div>
+    <div style="border:1px solid rgba(255,235,205,.12);border-radius:14px;background:rgba(255,255,255,.02);padding:17px 18px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;">ROLE 02 · ADD ← the decision</div>
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-weight:700;font-size:30px;color:#f0d6b2;margin-top:6px;line-height:1;">Body sans</div>
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:#a99a88;margin-top:8px;line-height:1.5;">Descriptions, lists, statblock text, settings, tables, transcripts. Quiet &amp; legible at every size.</div>
+    </div>
+    <div style="border:1px solid rgba(255,235,205,.12);border-radius:14px;background:rgba(255,255,255,.02);padding:17px 18px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;">ROLE 03 · KEEP</div>
+      <div style="font-family:ui-monospace,monospace;font-weight:700;font-size:26px;color:#f0d6b2;margin-top:9px;line-height:1;">Mono 18</div>
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:#a99a88;margin-top:8px;line-height:1.5;">Stat numbers, tracking-letter labels, codes &amp; timers. Already works — we keep it.</div>
+    </div>
+  </div>
+
+  <!-- THE PROBLEM -->
+  <div style="display:flex;gap:16px;margin-top:18px;">
+    <div style="flex:1;border:1px solid rgba(196,69,58,.3);border-radius:13px;background:rgba(196,69,58,.05);padding:15px 17px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#e0a59c;">✕ KALAM AT BODY SIZE — hard to scan</div>
+      <div style="font-family:'Kalam';font-size:14px;color:#cdbfae;margin-top:9px;line-height:1.5;">The Void Spawn's unravelling touch deals 13 (2d8+3) necrotic damage, and the target's hit point maximum is reduced by an amount equal to the damage taken until it finishes a long rest.</div>
+    </div>
+    <div style="flex:1;border:1px solid rgba(95,143,69,.34);border-radius:13px;background:rgba(95,143,69,.05);padding:15px 17px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.14em;color:#bcd1a4;">✓ COMPANION AT BODY SIZE — calm</div>
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-size:13.5px;color:#cdbfae;margin-top:9px;line-height:1.55;">The Void Spawn's unravelling touch deals 13 (2d8+3) necrotic damage, and the target's hit point maximum is reduced by an amount equal to the damage taken until it finishes a long rest.</div>
+    </div>
+  </div>
+
+  <!-- COMPANION COMPARISON -->
+  <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.2em;color:#7f6f5e;margin:30px 0 14px;">PICK KALAM'S COMPANION · same content, three body faces</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+
+    <!-- OPTION A · HANKEN GROTESK -->
+    <div style="border:1px solid rgba(217,138,61,.4);border-radius:16px;background:linear-gradient(180deg,rgba(217,138,61,.06),rgba(0,0,0,.16));overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.4);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,235,205,.08);background:rgba(217,138,61,.08);">
+        <span style="font-family:'Hanken Grotesk',sans-serif;font-weight:700;font-size:14px;color:#f0d6b2;">Hanken Grotesk</span>
+        <span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#e3a45f;background:rgba(217,138,61,.16);border:1px solid rgba(217,138,61,.4);border-radius:20px;padding:4px 9px;">RECOMMENDED</span>
+      </div>
+      <div style="padding:18px 18px 20px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;">CHARACTER</div>
+        <div style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f6ead8;line-height:1;margin-top:5px;">Skreek</div>
+        <div style="font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:#9c8a76;margin-top:4px;letter-spacing:.02em;">GOBLIN ROGUE · LV 7</div>
+        <div style="font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:#cdbfae;margin-top:13px;line-height:1.55;">Has worn a hundred faces in this city; trades in things older than coin and remembers why the Compact was signed.</div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <div style="flex:1;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,235,205,.1);border-radius:10px;background:rgba(255,255,255,.02);padding:9px 11px;">
+            <span style="width:18px;height:18px;background:#8fc466;-webkit-mask:url('assets/icons/stealth.svg') center/contain no-repeat;mask:url('assets/icons/stealth.svg') center/contain no-repeat;flex:none;"></span>
+            <span style="font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:#ece2d4;flex:1;">Stealth</span>
+            <span style="font-family:ui-monospace,monospace;font-size:14px;color:#f0d6b2;">+9</span>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,235,205,.1);border-radius:10px;background:rgba(255,255,255,.02);padding:9px 11px;">
+            <span style="width:18px;height:18px;background:#e0584a;-webkit-mask:url('assets/icons/blood.svg') center/contain no-repeat;mask:url('assets/icons/blood.svg') center/contain no-repeat;flex:none;"></span>
+            <span style="font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:#ece2d4;flex:1;">HP</span>
+            <span style="font-family:ui-monospace,monospace;font-size:14px;color:#f0d6b2;">44</span>
+          </div>
+        </div>
+        <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:12px;margin-top:14px;">
+          <div style="font-family:'Kalam';font-size:15px;color:#dccbb8;font-style:italic;line-height:1.5;">"You've the look of coin and trouble both."</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,235,205,.08);margin-top:14px;padding-top:11px;">
+          <span style="font-family:'Hanken Grotesk',sans-serif;font-size:12px;color:#cdbfae;">Apr 14 · Chronicler</span>
+          <span style="font-family:ui-monospace,monospace;font-size:11px;color:#9c8a76;">$18.00</span>
+        </div>
+        <div style="font-family:'Hanken Grotesk',sans-serif;font-size:11px;color:#7f8f6a;margin-top:14px;line-height:1.5;">Warm humanist grotesque — friendly curves echo Kalam's hand without competing. The safe, legible workhorse.</div>
+      </div>
+    </div>
+
+    <!-- OPTION B · SPECTRAL -->
+    <div style="border:1px solid rgba(255,235,205,.12);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.16));overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.4);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,235,205,.08);">
+        <span style="font-family:'Spectral',serif;font-weight:600;font-size:15px;color:#f0d6b2;">Spectral</span>
+        <span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#cbb8e0;background:rgba(176,143,208,.14);border:1px solid rgba(176,143,208,.4);border-radius:20px;padding:4px 9px;">MOST LITERARY</span>
+      </div>
+      <div style="padding:18px 18px 20px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;">CHARACTER</div>
+        <div style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f6ead8;line-height:1;margin-top:5px;">Skreek</div>
+        <div style="font-family:'Spectral',serif;font-size:11px;color:#9c8a76;margin-top:4px;letter-spacing:.02em;">GOBLIN ROGUE · LV 7</div>
+        <div style="font-family:'Spectral',serif;font-size:13.5px;color:#cdbfae;margin-top:13px;line-height:1.55;">Has worn a hundred faces in this city; trades in things older than coin and remembers why the Compact was signed.</div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <div style="flex:1;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,235,205,.1);border-radius:10px;background:rgba(255,255,255,.02);padding:9px 11px;">
+            <span style="width:18px;height:18px;background:#8fc466;-webkit-mask:url('assets/icons/stealth.svg') center/contain no-repeat;mask:url('assets/icons/stealth.svg') center/contain no-repeat;flex:none;"></span>
+            <span style="font-family:'Spectral',serif;font-size:13px;color:#ece2d4;flex:1;">Stealth</span>
+            <span style="font-family:ui-monospace,monospace;font-size:14px;color:#f0d6b2;">+9</span>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,235,205,.1);border-radius:10px;background:rgba(255,255,255,.02);padding:9px 11px;">
+            <span style="width:18px;height:18px;background:#e0584a;-webkit-mask:url('assets/icons/blood.svg') center/contain no-repeat;mask:url('assets/icons/blood.svg') center/contain no-repeat;flex:none;"></span>
+            <span style="font-family:'Spectral',serif;font-size:13px;color:#ece2d4;flex:1;">HP</span>
+            <span style="font-family:ui-monospace,monospace;font-size:14px;color:#f0d6b2;">44</span>
+          </div>
+        </div>
+        <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:12px;margin-top:14px;">
+          <div style="font-family:'Kalam';font-size:15px;color:#dccbb8;font-style:italic;line-height:1.5;">"You've the look of coin and trouble both."</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,235,205,.08);margin-top:14px;padding-top:11px;">
+          <span style="font-family:'Spectral',serif;font-size:12.5px;color:#cdbfae;">Apr 14 · Chronicler</span>
+          <span style="font-family:ui-monospace,monospace;font-size:11px;color:#9c8a76;">$18.00</span>
+        </div>
+        <div style="font-family:'Spectral',serif;font-size:11.5px;color:#7f8f6a;margin-top:14px;line-height:1.5;">A screen-built literary serif — keeps the storybook warmth in body text too. Richest mood; slightly heavier on dense data screens.</div>
+      </div>
+    </div>
+
+    <!-- OPTION C · MULISH -->
+    <div style="border:1px solid rgba(255,235,205,.12);border-radius:16px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.16));overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.4);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,235,205,.08);">
+        <span style="font-family:'Mulish',sans-serif;font-weight:700;font-size:14px;color:#f0d6b2;">Mulish</span>
+        <span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#9c8a76;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:20px;padding:4px 9px;">MOST NEUTRAL</span>
+      </div>
+      <div style="padding:18px 18px 20px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#9c8a76;">CHARACTER</div>
+        <div style="font-family:'Kalam';font-weight:700;font-size:30px;color:#f6ead8;line-height:1;margin-top:5px;">Skreek</div>
+        <div style="font-family:'Mulish',sans-serif;font-size:11px;color:#9c8a76;margin-top:4px;letter-spacing:.02em;">GOBLIN ROGUE · LV 7</div>
+        <div style="font-family:'Mulish',sans-serif;font-size:13px;color:#cdbfae;margin-top:13px;line-height:1.55;">Has worn a hundred faces in this city; trades in things older than coin and remembers why the Compact was signed.</div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <div style="flex:1;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,235,205,.1);border-radius:10px;background:rgba(255,255,255,.02);padding:9px 11px;">
+            <span style="width:18px;height:18px;background:#8fc466;-webkit-mask:url('assets/icons/stealth.svg') center/contain no-repeat;mask:url('assets/icons/stealth.svg') center/contain no-repeat;flex:none;"></span>
+            <span style="font-family:'Mulish',sans-serif;font-size:13px;color:#ece2d4;flex:1;">Stealth</span>
+            <span style="font-family:ui-monospace,monospace;font-size:14px;color:#f0d6b2;">+9</span>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;gap:8px;border:1px solid rgba(255,235,205,.1);border-radius:10px;background:rgba(255,255,255,.02);padding:9px 11px;">
+            <span style="width:18px;height:18px;background:#e0584a;-webkit-mask:url('assets/icons/blood.svg') center/contain no-repeat;mask:url('assets/icons/blood.svg') center/contain no-repeat;flex:none;"></span>
+            <span style="font-family:'Mulish',sans-serif;font-size:13px;color:#ece2d4;flex:1;">HP</span>
+            <span style="font-family:ui-monospace,monospace;font-size:14px;color:#f0d6b2;">44</span>
+          </div>
+        </div>
+        <div style="border-left:2px solid rgba(217,138,61,.4);padding-left:12px;margin-top:14px;">
+          <div style="font-family:'Kalam';font-size:15px;color:#dccbb8;font-style:italic;line-height:1.5;">"You've the look of coin and trouble both."</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,235,205,.08);margin-top:14px;padding-top:11px;">
+          <span style="font-family:'Mulish',sans-serif;font-size:12px;color:#cdbfae;">Apr 14 · Chronicler</span>
+          <span style="font-family:ui-monospace,monospace;font-size:11px;color:#9c8a76;">$18.00</span>
+        </div>
+        <div style="font-family:'Mulish',sans-serif;font-size:11px;color:#7f8f6a;margin-top:14px;line-height:1.5;">Minimalist &amp; near-invisible — steps back so Kalam leads completely. Most neutral, least flavor of the three.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATION -->
+  <div style="display:flex;align-items:flex-start;gap:14px;margin-top:20px;border:1px solid rgba(217,138,61,.3);border-radius:14px;background:linear-gradient(180deg,rgba(217,138,61,.08),rgba(0,0,0,.12));padding:16px 18px;">
+    <span style="width:30px;height:30px;background:#e9b277;-webkit-mask:url('assets/icons/d20.svg') center/contain no-repeat;mask:url('assets/icons/d20.svg') center/contain no-repeat;flex:none;margin-top:2px;"></span>
+    <div>
+      <div style="font-family:'Kalam';font-weight:700;font-size:18px;color:#f6ead8;">My pick — Kalam + Hanken Grotesk + mono</div>
+      <div style="font-family:'Hanken Grotesk',sans-serif;font-size:13px;color:#bba98f;margin-top:5px;line-height:1.55;max-width:920px;">Kalam stays the storyteller everywhere it matters; Hanken Grotesk's warm humanist curves sit beside it without a clash and stay crisp in statblocks, settings and tables; the mono keeps doing stat numbers and labels. If you want to push the storybook mood further, swap the companion to <b style="color:#cbb8e0;">Spectral</b> — same roles, more romance. Either way the <b style="color:#f0d6b2;">dnd icon set</b> replaces every emoji glyph, tinted to the palette.</div>
+    </div>
+  </div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1464,&quot;height&quot;:1180}}"></script>
+</body>
+</html>

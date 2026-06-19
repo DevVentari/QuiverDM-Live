@@ -1,9 +1,57 @@
 import { test, expect } from '@playwright/test';
-import { checkpoint, signInAsTestUser } from '../helpers';
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { checkpoint, signInAsTestUser, ensureTestUserExists, ensureTestCampaignExists } from '../helpers';
 
 const BLAKE_EMAIL = process.env.QA_BLAKE_EMAIL ?? 'blake@test.local';
 const PASSWORD = process.env.QA_TEST_PASSWORD ?? '';
 const CAMPAIGN_SLUG = process.env.QA_CAMPAIGN_SLUG ?? 'blakes-test-campaign';
+
+// A scene seeded WITH typed SceneNotes drives the note-builder board.
+// notesDraft / notesSuggest / notesRefine all hit a live AI provider
+// (non-deterministic, costs money), so this persona MUST NOT trigger them — we
+// seed read_aloud + tactic + check directly and only assert the AI affordances
+// (ghosts, add-block) EXIST. Mirrors tests/workflows/scene-notes.workflow.spec.ts.
+const NOTES_SCENE_TITLE = `Veteran Notes ${Date.now()}`;
+const NOTES_READ_ALOUD = 'The portcullis groans; iron teeth wet with fog.';
+
+test.beforeAll(async () => {
+  await ensureTestUserExists(BLAKE_EMAIL, PASSWORD);
+  await ensureTestCampaignExists(BLAKE_EMAIL, CAMPAIGN_SLUG, "Blake's Test Campaign");
+
+  const campaign = await prisma.campaign.findUnique({ where: { slug: CAMPAIGN_SLUG } });
+  if (!campaign) throw new Error(`Seed failed: campaign ${CAMPAIGN_SLUG} not found.`);
+
+  // Seed a generated scene with a board of typed notes for the note-builder test.
+  await prisma.scene.create({
+    data: {
+      campaignId: campaign.id,
+      title: NOTES_SCENE_TITLE,
+      type: 'theatre',
+      description: NOTES_READ_ALOUD,
+      generatedAt: new Date(),
+      promptInput: {
+        intent: 'gates',
+        mood: 'theatre',
+        linkedEntityIds: [],
+        partyPresentIds: [],
+      } as Prisma.InputJsonValue,
+      notes: {
+        create: [
+          { type: 'read_aloud', body: NOTES_READ_ALOUD, orderIndex: 0, source: 'ai' },
+          { type: 'tactic', body: 'Gargoyles wake only if a torch is lit.', orderIndex: 1, source: 'ai' },
+          {
+            type: 'check',
+            body: 'Spot the watcher above',
+            data: { skill: 'Perception', dc: 15 } as Prisma.InputJsonValue,
+            orderIndex: 2,
+            source: 'ai',
+          },
+        ],
+      },
+    },
+  });
+});
 
 test('veteran-dm happy path: rapid campaign navigation and advanced npc creation', async ({ page }, testInfo) => {
   test.slow();
@@ -98,6 +146,11 @@ test('veteran-dm happy path: rapid campaign navigation and advanced npc creation
 
     await expect(page.locator('body')).not.toContainText(/something went wrong|error loading|failed to load/i);
   }, 10_000);
+
+  await checkpoint(testInfo, 'npc-voice-row-visible', async () => {
+    // The NPC detail page renders a voice signature row for every NPC
+    await expect(page.getByTestId('voice-row')).toBeVisible({ timeout: 10_000 });
+  }, 15_000);
 });
 
 test('veteran-dm prep lifecycle: planned item can be worked to prepped', async ({ page }, testInfo) => {
@@ -223,16 +276,24 @@ test('veteran-dm brain-seeded-from-creation: entities accessible after campaign 
   let campaignUrl: string;
 
   await checkpoint(testInfo, 'create-campaign-with-world-setup', async () => {
+    // /campaigns/new redirects to /campaigns?create=true which opens the Sheet
     await page.goto('/campaigns/new');
     await page.waitForLoadState('networkidle', { timeout: 10_000 });
+
     const campaignName = `Blake Seed Test ${Date.now()}`;
-    await page.getByLabel(/^name$/i).fill(campaignName);
-    await page.fill('input#antagonistName', 'The Shadow Dragon');
-    await page.fill('input#startingLocation', 'Myth Drannor');
+
+    // Step 1: fill the campaign name (label is "Campaign Name *")
+    await page.getByLabel(/campaign name/i).fill(campaignName);
+    await page.getByRole('button', { name: /continue/i }).click();
+
+    // Step 2: fill world anchors, then create
+    await page.locator('#antagonistName').fill('The Shadow Dragon');
+    await page.locator('#startingLocation').fill('Myth Drannor');
     await page.getByRole('button', { name: /create campaign/i }).click();
+
     await expect(page).toHaveURL(/\/campaigns\/(?!new$)[^/]+/, { timeout: 15_000 });
     campaignUrl = page.url();
-  }, 20_000);
+  }, 30_000);
 
   await checkpoint(testInfo, 'brain-page-loads-without-error', async () => {
     // Navigate to brain page for the newly created campaign
@@ -248,6 +309,43 @@ test('veteran-dm brain-seeded-from-creation: entities accessible after campaign 
     // Verify brain page loaded without a hard error — entity seeding is async and may not be visible yet
     await expect(page.locator('body')).not.toContainText(/something went wrong|internal server error/i);
     await expect(page.locator('body')).not.toContainText(/404|not found/i);
+  }, 15_000);
+});
+
+// The note builder, mid-prep. A veteran DM opens a scene and reads its board of
+// typed notes — read-aloud, tactics, checks — then sees the AI affordances
+// ("What am I forgetting?", "+ tactic") without ever triggering a live call.
+// Standalone test (mirrors tests/workflows/scene-notes.workflow.spec.ts) so it
+// runs independently of the note-pre-existing happy path.
+test('veteran-dm note builder: reads a scene’s seeded note board', async ({ page }, testInfo) => {
+  test.slow();
+
+  const noteNoCrash =
+    /something went wrong|internal server error|client-side exception|application error/i;
+
+  await checkpoint(testInfo, 'sign-in', async () => {
+    await signInAsTestUser(page, BLAKE_EMAIL, PASSWORD);
+  }, 20_000);
+
+  await checkpoint(testInfo, 'open-and-select-scene', async () => {
+    await page.goto(`/v3/campaigns/${CAMPAIGN_SLUG}/scenes`);
+    await page.waitForLoadState('domcontentloaded', { timeout: 20_000 });
+    await page.getByRole('button', { name: NOTES_SCENE_TITLE }).first().click();
+    await expect(page.getByRole('heading', { name: NOTES_SCENE_TITLE })).toBeVisible({ timeout: 12_000 });
+  }, 25_000);
+
+  await checkpoint(testInfo, 'note-board-renders', async () => {
+    await expect(page.getByText(NOTES_READ_ALOUD)).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Gargoyles wake only if a torch is lit.')).toBeVisible();
+    await expect(page.getByText(/Perception DC 15/)).toBeVisible();
+    await expect(page.locator('body')).not.toContainText(noteNoCrash);
+  }, 20_000);
+
+  await checkpoint(testInfo, 'ai-affordances-present', async () => {
+    // Affordances must EXIST and be usable — but we never click them (live AI).
+    await expect(page.getByRole('button', { name: /What am I forgetting/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: '+ tactic' })).toBeEnabled();
+    await expect(page.locator('body')).not.toContainText(noteNoCrash);
   }, 15_000);
 });
 

@@ -13,6 +13,7 @@ export interface ImageGenerationJobData {
   jobId: string;       // ImageGenerationJob.id from Prisma
   homebrewId?: string;
   npcId?: string;
+  sceneId?: string;
   userId: string;
   type: string;        // 'item', 'creature', 'spell', etc.
   name: string;

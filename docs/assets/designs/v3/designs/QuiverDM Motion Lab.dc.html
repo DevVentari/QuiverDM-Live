@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes glowActive{0%,100%{box-shadow:0 0 0 1px rgba(217,138,61,.5),0 0 18px rgba(217,138,61,.22)}50%{box-shadow:0 0 0 1px rgba(217,138,61,.95),0 0 34px rgba(217,138,61,.45)}}
+  @keyframes pulseWarn{0%,100%{box-shadow:0 0 0 1px rgba(212,98,47,.5)}50%{box-shadow:0 0 0 1.5px rgba(212,98,47,.95),0 0 28px rgba(212,98,47,.4)}}
+  @keyframes breathe{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.35)}}
+  @keyframes ringSpin{to{transform:rotate(360deg)}}
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes popIn{0%{opacity:0;transform:scale(.55)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(8px) scale(.9)}15%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateY(-36px) scale(1)}}
+  @keyframes shakeX{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+  @keyframes pipFill{0%{transform:scale(.5);opacity:.3}55%{transform:scale(1.3);opacity:1}100%{transform:scale(1);opacity:1}}
+  @keyframes hpTrail{from{width:88%}to{width:60%}}
+  @keyframes dissolveOut{from{opacity:1;filter:blur(0);transform:translateY(0)}to{opacity:0;filter:blur(4px);transform:translateY(-6px)}}
+  @keyframes dissolveIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes travelX{from{transform:translateX(0)}to{transform:translateX(116px)}}
+  @keyframes rollNum{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+  @keyframes slideEase{from{left:0}to{left:calc(100% - 16px)}}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:5px;background:rgba(255,255,255,.12);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:linear-gradient(180deg,#e0944a,#c97a30);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+</style>
+</helmet>
+<div style="--accent:#d98a3d;--t-fast:150ms;--t-base:250ms;--t-slow:400ms;--t-ambient:2400ms;--ease-out:cubic-bezier(.2,.8,.2,1);--ease-spring:cubic-bezier(.34,1.56,.64,1);--ease-inout:cubic-bezier(.65,0,.35,1);min-height:100vh;padding:34px 30px 70px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="max-width:1180px;margin:0 auto;">
+
+  <!-- ============ HEADER ============ -->
+  <div style="display:flex;align-items:flex-end;gap:16px;border-bottom:1px solid rgba(255,235,205,.1);padding-bottom:20px;">
+    <span style="width:38px;height:38px;border-radius:10px;background:linear-gradient(150deg,#e0944a,#b8662a);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);flex:none;"><span style="width:9px;height:9px;border-radius:50%;background:#1a0f06;animation:breathe 2.4s var(--ease-inout) infinite;"></span></span>
+    <div>
+      <div style="font-size:27px;color:#f6ead8;line-height:1;">Motion Lab</div>
+      <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.16em;color:#9c8a76;margin-top:5px;">QUIVERDM · MOTION TOKENS &amp; STAGING</div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="font-family:ui-monospace,monospace;font-size:9.5px;color:#7f6f5e;text-align:right;line-height:1.7;max-width:340px;">Define once, apply everywhere. Every recipe below is a named<br>token — drop it on any element with one line of style.</div>
+  </div>
+
+  <!-- ============ PRIMITIVES ============ -->
+  <div style="margin:34px 0 14px;">
+    <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.22em;color:#7f6f5e;">LAYER 01</div>
+    <div style="font-family:'Kalam';font-weight:700;font-size:22px;color:#f6ead8;margin-top:3px;">Primitives</div>
+    <div style="font-size:12.5px;color:#9c8a76;margin-top:2px;max-width:760px;line-height:1.5;">The raw values every animation pulls from. Tune these and the whole system shifts in lockstep.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <!-- durations -->
+    <div style="border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:16px;">
+      <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.14em;color:#8a7a68;margin-bottom:13px;">DURATIONS</div>
+      <div style="display:flex;flex-direction:column;gap:9px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#e9b277;width:96px;flex:none;">--t-fast</span><span style="height:6px;border-radius:4px;background:linear-gradient(90deg,#e0944a,#c97a30);width:18px;"></span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">150ms · hovers, presses</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#e9b277;width:96px;flex:none;">--t-base</span><span style="height:6px;border-radius:4px;background:linear-gradient(90deg,#e0944a,#c97a30);width:32px;"></span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">250ms · entrances, fades</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#e9b277;width:96px;flex:none;">--t-slow</span><span style="height:6px;border-radius:4px;background:linear-gradient(90deg,#e0944a,#c97a30);width:52px;"></span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">400ms · hand-offs, travel</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:ui-monospace,monospace;font-size:11px;color:#e9b277;width:96px;flex:none;">--t-ambient</span><span style="height:6px;border-radius:4px;background:linear-gradient(90deg,#e0944a,#c97a30);width:88px;"></span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">2400ms · loops, breathing</span></div>
+      </div>
+    </div>
+    <!-- easings -->
+    <div style="border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:16px;">
+      <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.14em;color:#8a7a68;margin-bottom:13px;">EASINGS · watch the curve</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;margin-bottom:6px;">--ease-out <span style="color:#7f6f5e;">· 90% of UI</span></div><div style="position:relative;height:16px;background:rgba(0,0,0,.3);border-radius:8px;"><span style="position:absolute;top:1px;width:14px;height:14px;border-radius:50%;background:#8fc466;animation:slideEase 1.8s var(--ease-out) infinite alternate;"></span></div></div>
+        <div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;margin-bottom:6px;">--ease-spring <span style="color:#7f6f5e;">· pops &amp; pips</span></div><div style="position:relative;height:16px;background:rgba(0,0,0,.3);border-radius:8px;"><span style="position:absolute;top:1px;width:14px;height:14px;border-radius:50%;background:#e0944a;animation:slideEase 1.8s var(--ease-spring) infinite alternate;"></span></div></div>
+        <div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;margin-bottom:6px;">--ease-inout <span style="color:#7f6f5e;">· ambient loops</span></div><div style="position:relative;height:16px;background:rgba(0,0,0,.3);border-radius:8px;"><span style="position:absolute;top:1px;width:14px;height:14px;border-radius:50%;background:#c4453a;animation:slideEase 1.8s var(--ease-inout) infinite alternate;"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RECIPES · AMBIENT ============ -->
+  <div style="margin:38px 0 14px;">
+    <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.22em;color:#7f6f5e;">LAYER 02 · RECIPES</div>
+    <div style="font-family:'Kalam';font-weight:700;font-size:22px;color:#f6ead8;margin-top:3px;">Ambient <span style="font-size:13px;color:#7f6f5e;font-weight:400;">— always-on life, low contrast, slow</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);">
+        <div style="border-radius:11px;background:linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.08));padding:9px 16px;font-size:13px;color:#f9efe0;animation:glowActive var(--t-ambient) var(--ease-inout) infinite;">Captain Draven</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">glow-active</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7a68;">2400ms loop</span></div>
+    </div>
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);">
+        <div style="border:1px solid rgba(212,98,47,.6);border-radius:10px;background:linear-gradient(180deg,rgba(212,98,47,.13),rgba(184,69,58,.05));padding:9px 14px;font-size:12px;color:#d3b3a0;animation:pulseWarn 2s var(--ease-inout) infinite;">Concentration</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">pulse-warn</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7a68;">2000ms loop</span></div>
+    </div>
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);">
+        <span style="width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent);animation:breathe 2.4s var(--ease-inout) infinite;"></span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">breathe</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7a68;">2400ms loop</span></div>
+    </div>
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);">
+        <span style="position:relative;width:42px;height:42px;display:flex;align-items:center;justify-content:center;"><span style="position:absolute;inset:-4px;border-radius:50%;border:2px dashed rgba(217,138,61,.8);animation:ringSpin 6s linear infinite;"></span><span style="position:absolute;inset:0;border-radius:50%;border:2px solid #e0944a;background:radial-gradient(circle,rgba(217,138,61,.28),rgba(0,0,0,.3));"></span></span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">ring-spin</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7a68;">6s linear loop</span></div>
+    </div>
+  </div>
+
+  <!-- ============ RECIPES · ENTRANCE ============ -->
+  <div style="margin:30px 0 14px;">
+    <div style="font-family:'Kalam';font-weight:700;font-size:18px;color:#f0d6b2;">Entrance <span style="font-size:12px;color:#7f6f5e;font-weight:400;">— how things arrive · tap to replay</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div key="{{ kRise }}" style="border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);padding:9px 16px;font-size:13px;color:#ece2d4;animation:riseIn var(--t-slow) var(--ease-out) both;">Skreek · 22</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">rise-in</span><button onClick="{{ rRise }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div key="{{ kPop }}" style="width:46px;height:46px;border-radius:50%;border:2px solid #e0944a;background:radial-gradient(circle,rgba(217,138,61,.28),rgba(0,0,0,.3));animation:popIn var(--t-slow) var(--ease-spring) both;"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">pop-in</span><button onClick="{{ rPop }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div key="{{ kCascade }}" style="display:flex;flex-direction:column;gap:6px;width:74%;">
+          <div style="height:11px;border-radius:4px;width:80%;background:linear-gradient(90deg,#5f8f45,#8fc466);animation:riseIn var(--t-base) var(--ease-out) both;animation-delay:0s;"></div>
+          <div style="height:11px;border-radius:4px;width:100%;background:linear-gradient(90deg,#b8453a,#e0944a);animation:riseIn var(--t-base) var(--ease-out) both;animation-delay:.08s;"></div>
+          <div style="height:11px;border-radius:4px;width:62%;background:linear-gradient(90deg,#5f8f45,#8fc466);animation:riseIn var(--t-base) var(--ease-out) both;animation-delay:.16s;"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">cascade</span><button onClick="{{ rCascade }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div key="{{ kPip }}" style="display:flex;gap:9px;">
+          <span style="width:15px;height:15px;border-radius:50%;background:#e0944a;animation:pipFill .5s var(--ease-spring) both;animation-delay:0s;"></span>
+          <span style="width:15px;height:15px;border-radius:50%;background:#e0944a;animation:pipFill .5s var(--ease-spring) both;animation-delay:.1s;"></span>
+          <span style="width:15px;height:15px;border-radius:50%;background:#e0944a;animation:pipFill .5s var(--ease-spring) both;animation-delay:.2s;"></span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">pip-fill</span><button onClick="{{ rPip }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+  </div>
+
+  <!-- ============ RECIPES · FEEDBACK ============ -->
+  <div style="margin:30px 0 14px;">
+    <div style="font-family:'Kalam';font-weight:700;font-size:18px;color:#f0d6b2;">Feedback <span style="font-size:12px;color:#7f6f5e;font-weight:400;">— consequences you can feel</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+    <!-- lift -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);">
+        <div style="border-radius:11px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);padding:11px 18px;font-size:12px;color:#cdbfae;cursor:pointer;transition:transform var(--t-fast) var(--ease-out), box-shadow var(--t-fast) var(--ease-out);" style-hover="transform:translateY(-6px);box-shadow:0 12px 24px rgba(0,0,0,.5),0 0 0 1px rgba(217,138,61,.4);">hover me</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">lift</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7a68;">150ms · hover</span></div>
+    </div>
+    <!-- press -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);">
+        <button style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:10px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:13px;padding:9px 16px;cursor:pointer;transition:transform var(--t-fast) var(--ease-out);" style-active="transform:scale(.94);">Next turn ▸</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">press</span><span style="font-family:ui-monospace,monospace;font-size:8.5px;color:#8a7a68;">150ms · active</span></div>
+    </div>
+    <!-- float-up -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div key="{{ kFloat }}" style="font-family:'Kalam';font-weight:700;font-size:24px;color:#e0584a;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:floatUp 1.4s var(--ease-out) both;">−24</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">float-up</span><button onClick="{{ rFloat }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <!-- hp-lag -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);padding:0 16px;">
+        <div key="{{ kHp }}" style="position:relative;width:100%;height:12px;border-radius:6px;background:rgba(0,0,0,.55);overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:rgba(224,88,74,.4);animation:hpTrail .6s var(--ease-out) both;"></div>
+          <div style="position:absolute;left:0;top:0;bottom:0;width:60%;border-radius:6px;background:linear-gradient(90deg,#8a2f26,#c4453a);"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">hp-lag</span><button onClick="{{ rHp }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <!-- shake -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div key="{{ kShake }}" style="border:1px solid rgba(196,69,58,.6);border-radius:11px;background:rgba(196,69,58,.14);padding:11px 16px;font-size:12px;color:#e6cdc6;animation:shakeX .5s var(--ease-out) both;">Critical hit!</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">shake</span><button onClick="{{ rShake }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+  </div>
+
+  <!-- ============ RECIPES · TRANSITION ============ -->
+  <div style="margin:30px 0 14px;">
+    <div style="font-family:'Kalam';font-weight:700;font-size:18px;color:#f0d6b2;">Transition <span style="font-size:12px;color:#7f6f5e;font-weight:400;">— state A becomes state B</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+    <!-- cross-dissolve -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div key="{{ kDissolve }}" style="position:relative;width:120px;height:30px;">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#f0c89a;animation:dissolveOut .45s var(--ease-out) both;">Draven</div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;color:#bcd1a4;animation:dissolveIn .4s var(--ease-out) both;animation-delay:.2s;">Oriyen</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">cross-dissolve</span><button onClick="{{ rDissolve }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <!-- travel -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);overflow:hidden;">
+        <div style="position:relative;width:150px;height:34px;">
+          <span style="position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;border:1px dashed rgba(255,255,255,.18);"></span>
+          <span style="position:absolute;left:116px;top:0;width:34px;height:34px;border-radius:50%;border:1px dashed rgba(255,255,255,.18);"></span>
+          <span key="{{ kTravel }}" style="position:absolute;left:0;top:0;width:34px;height:34px;border-radius:50%;border:2px solid #e0944a;background:radial-gradient(circle,rgba(217,138,61,.3),rgba(0,0,0,.3));box-shadow:0 0 16px rgba(217,138,61,.5);animation:travelX var(--t-slow) var(--ease-out) both;"></span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">travel <span style="font-family:ui-monospace,monospace;font-size:8px;color:#7f6f5e;">FLIP</span></span><button onClick="{{ rTravel }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <!-- roll-num -->
+    <div style="position:relative;border:1px solid rgba(255,235,205,.09);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.16));padding:14px;display:flex;flex-direction:column;gap:10px;min-height:150px;">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(0,0,0,.25);">
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.2em;color:#9c8a76;">ROUND</span><span style="height:34px;overflow:hidden;display:inline-block;"><span key="{{ kRoll }}" style="display:flex;flex-direction:column;animation:rollNum .5s var(--ease-spring) both;"><span style="font-family:'Kalam';font-weight:700;font-size:30px;line-height:34px;color:#f6ead8;height:34px;">III</span><span style="font-family:'Kalam';font-weight:700;font-size:30px;line-height:34px;color:#f6ead8;height:34px;">IV</span></span></span></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:14px;color:#ece2d4;">roll-num</span><button onClick="{{ rRoll }}" style="background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.4);color:#e9b277;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;border-radius:7px;padding:5px 9px;cursor:pointer;">↻ replay</button></div>
+    </div>
+    <!-- apply hint -->
+    <div style="border:1px dashed rgba(217,138,61,.32);border-radius:14px;background:rgba(217,138,61,.05);padding:14px;display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:150px;">
+      <div style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.14em;color:#c79a6a;">APPLY ANY RECIPE</div>
+      <div style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;line-height:1.55;background:rgba(0,0,0,.35);border-radius:8px;padding:10px;">animation:<br>&nbsp;&nbsp;riseIn<br>&nbsp;&nbsp;var(--t-slow)<br>&nbsp;&nbsp;var(--ease-out)<br>&nbsp;&nbsp;both;</div>
+      <div style="font-size:11px;color:#9c8a76;line-height:1.45;">One line. Same vocabulary everywhere.</div>
+    </div>
+  </div>
+
+  <!-- ============ TIMELINE STAGE ============ -->
+  <div style="margin:44px 0 16px;">
+    <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.22em;color:#7f6f5e;">LAYER 03 · STAGING</div>
+    <div style="font-family:'Kalam';font-weight:700;font-size:22px;color:#f6ead8;margin-top:3px;">Timeline Stage — “Next turn” hand-off</div>
+    <div style="font-size:12.5px;color:#9c8a76;margin-top:2px;max-width:780px;line-height:1.5;">Several recipes choreographed together. Scrub the timeline to feel the timing, then retime each track until the eye is led cleanly from one creature to the next.</div>
+  </div>
+
+  <div style="border:1px solid rgba(255,235,205,.09);border-radius:16px;background:linear-gradient(180deg,#16110e,#100b09);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.5);">
+    <!-- scene -->
+    <div style="display:flex;gap:16px;padding:18px;justify-content:center;">
+      <!-- rail -->
+      <div style="width:178px;flex:none;position:relative;border-right:1px solid rgba(255,235,205,.06);padding-right:16px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.16em;color:#7f6f5e;height:26px;display:flex;align-items:center;">INITIATIVE</div>
+        <!-- travelling glow -->
+        <div style="position:absolute;left:0;right:16px;height:52px;border-radius:13px;box-shadow:0 0 0 1px rgba(217,138,61,.9),0 0 28px rgba(217,138,61,.4);background:linear-gradient(180deg,rgba(217,138,61,.18),rgba(184,69,58,.08));pointer-events:none;top: {{ glowTop }};"></div>
+        <div style="position:relative;display:flex;flex-direction:column;gap:8px;">
+          <div style="height:52px;border-radius:13px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);padding:9px 12px;display:flex;flex-direction:column;justify-content:center;"><div style="display:flex;justify-content:space-between;"><span style="font-size:14px;color:#ece2d4;">Skreek</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">22</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f6f5e;margin-top:2px;">ROGUE · PC</div></div>
+          <div style="height:52px;border-radius:13px;padding:9px 12px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;"><div style="display:flex;justify-content:space-between;"><span style="font-size:14px;color:#f9efe0;">Captain Draven</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#f0c89a;">19</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#c79a6a;margin-top:2px;">BOSS</div></div>
+          <div style="height:52px;border-radius:13px;padding:9px 12px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1;"><div style="display:flex;justify-content:space-between;"><span style="font-size:14px;color:#ece2d4;">Oriyen</span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;">17</span></div><div style="font-family:ui-monospace,monospace;font-size:7.5px;color:#7f6f5e;margin-top:2px;">MONK · PC</div></div>
+        </div>
+      </div>
+      <!-- map -->
+      <div style="width:360px;height:260px;flex:none;position:relative;border-radius:12px;overflow:hidden;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 34px),repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,transparent 1px 34px),radial-gradient(360px 280px at 50% 46%, #241712, #100b09);">
+        <div style="position:absolute;top:10px;left:12px;font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;color:#9c8a76;">SACRED AMPHITHEATER</div>
+        <!-- token A (Draven) -->
+        <div style="position:absolute;left:52px;top:157px;width:36px;height:36px;border-radius:50%;border:2px solid #c4453a;background:radial-gradient(circle,rgba(196,69,58,.25),rgba(0,0,0,.3));"></div>
+        <!-- token B (Oriyen) -->
+        <div style="position:absolute;left:232px;top:62px;width:36px;height:36px;border-radius:50%;border:2px solid #7fae5a;background:radial-gradient(circle,rgba(127,174,90,.2),rgba(0,0,0,.3));"></div>
+        <!-- trail -->
+        <div style="position:absolute;height:2px;background:repeating-linear-gradient(90deg,rgba(217,138,61,.6) 0 5px,transparent 5px 10px);transform-origin:left center;left: {{ trailLeft }};top: {{ trailTop }};width: {{ trailWidth }};transform: {{ trailTransform }};"></div>
+        <!-- flying current-turn ring -->
+        <div style="position:absolute;width:48px;height:48px;border-radius:50%;pointer-events:none;left: {{ ringLeft }};top: {{ ringTop }};"><span style="position:absolute;inset:-4px;border-radius:50%;border:2px dashed rgba(217,138,61,.85);animation:ringSpin 6s linear infinite;"></span><span style="position:absolute;inset:0;border-radius:50%;border:2px solid #e0944a;box-shadow:0 0 18px rgba(217,138,61,.55);"></span></div>
+      </div>
+      <!-- turn panel -->
+      <div style="width:230px;flex:none;position:relative;border-left:1px solid rgba(255,235,205,.06);padding-left:16px;">
+        <div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#c79a6a;height:26px;display:flex;align-items:center;">▸ CURRENT TURN</div>
+        <div style="position:relative;height:172px;">
+          <!-- old: Draven -->
+          <div style="position:absolute;inset:0;border-radius:14px;border:1px solid rgba(217,138,61,.25);background:linear-gradient(180deg,rgba(217,138,61,.12),rgba(0,0,0,.12));padding:14px;opacity: {{ oldOpacity }};filter: {{ oldFilter }};transform: {{ oldTransform }};">
+            <div style="font-size:18px;color:#f9efe0;">Captain Draven</div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#c79a6a;margin-top:3px;">BOSS · LEGENDARY</div>
+            <div style="display:flex;align-items:flex-end;gap:5px;margin-top:14px;"><span style="font-family:'Kalam';font-weight:700;font-size:24px;color:#f6ead8;line-height:.9;">72</span><span style="font-size:13px;color:#9c8a76;">/ 95</span></div>
+            <div style="height:8px;border-radius:5px;background:rgba(0,0,0,.5);margin-top:8px;overflow:hidden;"><div style="height:100%;width:76%;background:linear-gradient(90deg,#b8453a,#e0944a);"></div></div>
+          </div>
+          <!-- new: Oriyen -->
+          <div style="position:absolute;inset:0;border-radius:14px;border:1px solid rgba(127,174,90,.3);background:linear-gradient(180deg,rgba(95,143,69,.14),rgba(0,0,0,.12));padding:14px;opacity: {{ newOpacity }};transform: {{ newTransform }};">
+            <div style="font-size:18px;color:#eef4e6;">Oriyen</div>
+            <div style="font-family:ui-monospace,monospace;font-size:8px;color:#8bb06a;margin-top:3px;">MONK · PC</div>
+            <div style="display:flex;align-items:flex-end;gap:5px;margin-top:14px;"><span style="font-family:'Kalam';font-weight:700;font-size:24px;color:#f6ead8;line-height:.9;">38</span><span style="font-size:13px;color:#9c8a76;">/ 38</span></div>
+            <div style="height:8px;border-radius:5px;background:rgba(0,0,0,.5);margin-top:8px;overflow:hidden;"><div style="height:100%;width:100%;background:linear-gradient(90deg,#5f8f45,#8fc466);"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- transport -->
+    <div style="border-top:1px solid rgba(255,235,205,.07);background:rgba(0,0,0,.22);padding:16px 18px;display:flex;align-items:center;gap:16px;">
+      <button onClick="{{ onPlay }}" style="background:linear-gradient(180deg,#e0944a,#c97a30);border:none;border-radius:10px;color:#1a0f06;font-family:'Kalam';font-weight:700;font-size:14px;padding:9px 20px;cursor:pointer;flex:none;box-shadow:0 6px 16px rgba(217,138,61,.3);">{{ playLabel }}</button>
+      <button onClick="{{ onReset }}" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:10px;color:#cdbfae;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.06em;padding:9px 14px;cursor:pointer;flex:none;">↺ reset</button>
+      <input type="range" min="0" max="1000" step="1" value="{{ ms }}" onChange="{{ onScrub }}" style="flex:1;" />
+      <span style="font-family:ui-monospace,monospace;font-size:12px;color:#f0d6b2;width:78px;text-align:right;flex:none;">{{ ms }} ms</span>
+    </div>
+
+    <!-- track legend -->
+    <div style="border-top:1px solid rgba(255,235,205,.07);padding:14px 18px 18px;display:flex;flex-direction:column;gap:9px;">
+      <div style="display:flex;align-items:center;gap:12px;opacity: {{ s1op }};"><span style="width:7px;height:7px;border-radius:50%;background:#e0944a;flex:none;"></span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;width:120px;flex:none;">rail glow · travel</span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#7f6f5e;">0 → 420ms · ease-out</span></div>
+      <div style="display:flex;align-items:center;gap:12px;opacity: {{ s2op }};"><span style="width:7px;height:7px;border-radius:50%;background:#e0944a;flex:none;"></span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;width:120px;flex:none;">token ring · FLIP</span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#7f6f5e;">120 → 540ms · ease-out</span></div>
+      <div style="display:flex;align-items:center;gap:12px;opacity: {{ s3op }};"><span style="width:7px;height:7px;border-radius:50%;background:#e0944a;flex:none;"></span><span style="font-family:ui-monospace,monospace;font-size:10px;color:#cdbfae;width:120px;flex:none;">turn panel · dissolve</span><span style="font-family:ui-monospace,monospace;font-size:9px;color:#7f6f5e;">250 → 760ms · ease-out</span></div>
+    </div>
+  </div>
+
+  <div style="margin-top:16px;font-family:ui-monospace,monospace;font-size:10px;color:#5a4f45;line-height:1.6;max-width:980px;">Motion discipline · animate <b style="color:#9c8a76;">transform &amp; opacity only</b> (never layout) · ease-out for UI, ease-spring for pops, slow low-contrast loops for ambient · always honor <b style="color:#9c8a76;">prefers-reduced-motion</b> in the shipped app. Tokens here port straight to CSS custom properties + utility classes, or a Framer Motion <span style="color:#9c8a76;">variants</span> config.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:1640}}">
+class Component extends DCLogic {
+  state = { ms: 0, playing: false, keys: {} };
+
+  componentWillUnmount() { if (this._raf) cancelAnimationFrame(this._raf); }
+
+  tick = (ts) => {
+    const dt = ts - this._last; this._last = ts;
+    this.setState(s => {
+      let ms = s.ms + dt;
+      if (ms >= 1000) ms = 1000;
+      return { ms };
+    }, () => {
+      if (this.state.ms < 1000 && this.state.playing) {
+        this._raf = requestAnimationFrame(this.tick);
+      } else if (this.state.playing) {
+        this.setState({ playing: false });
+      }
+    });
+  };
+
+  play = () => {
+    if (this.state.playing) { this.setState({ playing: false }); if (this._raf) cancelAnimationFrame(this._raf); return; }
+    const start = this.state.ms >= 1000 ? 0 : this.state.ms;
+    this._last = performance.now();
+    this.setState({ ms: start, playing: true }, () => { this._raf = requestAnimationFrame(this.tick); });
+  };
+
+  reset = () => { if (this._raf) cancelAnimationFrame(this._raf); this.setState({ ms: 0, playing: false }); };
+
+  setMs = (e) => { if (this._raf) cancelAnimationFrame(this._raf); this.setState({ ms: Number(e.target.value), playing: false }); };
+
+  bump = (name) => { this.setState(s => ({ keys: { ...s.keys, [name]: (s.keys[name] || 0) + 1 } })); };
+
+  renderVals() {
+    const ms = this.state.ms;
+    const clamp = (x) => Math.max(0, Math.min(1, x));
+    const eo = (x) => 1 - Math.pow(1 - clamp(x), 3);
+    const seg = (a, b) => eo((ms - a) / (b - a));
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    // rail glow: Draven (idx 1) -> Oriyen (idx 2). label row 26px, card 52, gap 8, starts after label
+    const topFor = (i) => 26 + i * (52 + 8);
+    const glowTop = lerp(topFor(1), topFor(2), seg(0, 420));
+
+    // ring fly across map (token centers)
+    const ax = 70, ay = 175, bx = 250, by = 80;
+    const rp = seg(120, 540);
+    const cx = lerp(ax, bx, rp), cy = lerp(ay, by, rp);
+    const dist = Math.hypot(bx - ax, by - ay) * rp;
+    const ang = Math.atan2(by - ay, bx - ax) * 180 / Math.PI;
+
+    // panel cross-dissolve
+    const oOut = clamp((ms - 250) / 200);
+    const nIn = seg(480, 760);
+    const keys = this.state.keys;
+
+    return {
+      ms: Math.round(ms),
+      onPlay: this.play, onReset: this.reset, onScrub: this.setMs,
+      playLabel: this.state.playing ? '❚❚ Pause' : '▶ Play',
+      glowTop: glowTop + 'px',
+      ringLeft: (cx - 24) + 'px', ringTop: (cy - 24) + 'px',
+      trailLeft: ax + 'px', trailTop: ay + 'px', trailWidth: dist + 'px',
+      trailTransform: 'rotate(' + ang + 'deg)',
+      oldOpacity: 1 - oOut, oldFilter: 'blur(' + (oOut * 4) + 'px)', oldTransform: 'translateY(' + (-10 * oOut) + 'px)',
+      newOpacity: nIn, newTransform: 'translateY(' + lerp(12, 0, nIn) + 'px)',
+      s1op: ms < 420 ? 1 : 0.4, s2op: (ms >= 120 && ms < 540) ? 1 : 0.4, s3op: ms >= 250 ? 1 : 0.4,
+      kRise: keys.rise || 0, kPop: keys.pop || 0, kCascade: keys.cascade || 0, kPip: keys.pip || 0,
+      kFloat: keys.float || 0, kHp: keys.hp || 0, kShake: keys.shake || 0,
+      kDissolve: keys.dissolve || 0, kTravel: keys.travel || 0, kRoll: keys.roll || 0,
+      rRise: () => this.bump('rise'), rPop: () => this.bump('pop'), rCascade: () => this.bump('cascade'), rPip: () => this.bump('pip'),
+      rFloat: () => this.bump('float'), rHp: () => this.bump('hp'), rShake: () => this.bump('shake'),
+      rDissolve: () => this.bump('dissolve'), rTravel: () => this.bump('travel'), rRoll: () => this.bump('roll'),
+    };
+  }
+}
+</script>
+</body>
+</html>

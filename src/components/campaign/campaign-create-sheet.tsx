@@ -236,17 +236,8 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     },
   });
 
-  const [startingLocation, setStartingLocation] = useState('');
-  const [antagonistName, setAntagonistName] = useState('');
-  const [openingHook, setOpeningHook] = useState('');
-  const [storyText, setStoryText] = useState('');
-
   const applyAdventureTemplate = (template: AdventureTemplate | null) => {
     setSelectedAdventure(template);
-    setStartingLocation(template?.startingLocation ?? '');
-    setAntagonistName(template?.antagonistName ?? '');
-    setOpeningHook(template?.openingHook ?? '');
-    setStoryText(template?.description ?? '');
   };
 
   const featuredAdventureIds = ['lmop', 'idrotf', 'cos'] as const;
@@ -272,16 +263,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
     },
   });
 
-  const seedFromCreation = trpc.brain.seedFromCreation.useMutation({
-    onError: () => {
-      toast({
-        title: 'World data not saved',
-        description: 'Campaign created but world setup failed. Re-add it from campaign settings.',
-        variant: 'destructive',
-      });
-    },
-  });
-
   function resetState() {
     setTimeout(() => {
       setStep(1);
@@ -292,10 +273,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       setDdbUrl('');
       setSelectedAdventure(null);
       setSelectedDdbSourcebookId(null);
-      setStartingLocation('');
-      setAntagonistName('');
-      setOpeningHook('');
-      setStoryText('');
     }, 300);
   }
 
@@ -363,37 +340,18 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
       }
     }
 
-    const shouldSeed =
-      !!startingLocation.trim() ||
-      !!antagonistName.trim() ||
-      !!openingHook.trim() ||
-      !!storyText.trim() ||
-      selectedAdventure !== null;
-
-    if (shouldSeed) {
-      try {
-        await seedFromCreation.mutateAsync({
-          campaignId: campaign.id,
-          worldSetup: {
-            startingLocation: startingLocation.trim() || undefined,
-            antagonistName: antagonistName.trim() || undefined,
-            antagonistMotivation: selectedAdventure?.antagonistMotivation,
-            openingHook: openingHook.trim() || undefined,
-            factions: selectedAdventure?.factions.slice(0, 3),
-          },
-          storyText: storyText.trim() || undefined,
-        });
-      } catch {
-        // Mutation-level toast already communicates the failure.
-      }
-    }
+    // Resolve the seed signal for the dashboard reveal:
+    //   a linked DDB sourcebook → its slug (e.g. 'cos'); a featured adventure → its id; else 'blank'.
+    const seedSlug =
+      ddbSourcebooks.find((sb) => sb.id === selectedDdbSourcebookId)?.slug ??
+      selectedAdventure?.id ??
+      'blank';
 
     await utils.campaigns.getAll.invalidate();
-    onOpenChange(false);
     resetState();
     const dest = ddbUrl.trim()
       ? `/campaigns/${campaign.slug || campaign.id}/players?ddb-importing=true`
-      : `/campaigns/${campaign.slug || campaign.id}/sessions`;
+      : `/campaigns/${campaign.slug || campaign.id}/sessions?forged=${encodeURIComponent(seedSlug)}`;
     router.push(dest);
   }
 
@@ -401,7 +359,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
   const isCreating =
     createCampaign.isPending ||
     setActiveCampaign.isPending ||
-    seedFromCreation.isPending ||
     linkDdbSourcebook.isPending;
 
   const selectedSeedLabel = selectedAdventure?.title ?? 'Blank slate';
@@ -565,14 +522,28 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                   >
                     Cancel
                   </Button>
-                  <Button
-                    size="sm"
-                    disabled={!name.trim()}
-                    onClick={() => { if (validateStep1()) setStep(2); }}
-                    className="h-11 px-5"
-                  >
-                    Continue &rarr;
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { if (validateStep1()) setStep(2); }}
+                      className="h-11 px-4 border-[var(--q-border-subtle)] text-[var(--q-text-dim)] hover:text-[var(--q-text)]"
+                    >
+                      Continue &rarr;
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={isCreating}
+                      onClick={handleCreate}
+                      className="h-11 px-5"
+                    >
+                      {isCreating ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        'Create Campaign'
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -660,67 +631,6 @@ export function CampaignCreateSheet({ open, onOpenChange }: Props) {
                     <p className="mt-3 text-xs text-[var(--q-text-faint)]">
                       Choosing one pre-fills the world anchors below so your campaign starts with a pulse.
                     </p>
-                  </ShellPanel>
-
-                  <ShellPanel
-                    eyebrow="Story anchors"
-                    title="Seed the campaign brain"
-                    description="These fields are optional, but they make the first session and the DM Brain more useful."
-                  >
-                    <div className="grid gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="startingLocation">Starting Location</Label>
-                        <Input
-                          id="startingLocation"
-                          value={startingLocation}
-                          onChange={(e) => setStartingLocation(e.target.value)}
-                          maxLength={200}
-                          placeholder="e.g. Waterdeep, the City of Splendors"
-                          className="h-11 border-[var(--q-border-subtle)] bg-black/10"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="antagonistName">Main Antagonist</Label>
-                        <Input
-                          id="antagonistName"
-                          value={antagonistName}
-                          onChange={(e) => setAntagonistName(e.target.value)}
-                          maxLength={200}
-                          placeholder="e.g. Xanathar"
-                          className="h-11 border-[var(--q-border-subtle)] bg-black/10"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="openingHook">Opening Hook</Label>
-                        <Textarea
-                          id="openingHook"
-                          value={openingHook}
-                          onChange={(e) => setOpeningHook(e.target.value)}
-                          maxLength={200}
-                          rows={3}
-                          placeholder="What pulls the party into the first problem?"
-                          className="border-[var(--q-border-subtle)] bg-black/10"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="storyText">Story So Far</Label>
-                        <Textarea
-                          id="storyText"
-                          value={storyText}
-                          onChange={(e) => setStoryText(e.target.value)}
-                          maxLength={20000}
-                          rows={5}
-                          placeholder="Optional notes to queue for DM Brain ingestion."
-                          className="border-[var(--q-border-subtle)] bg-black/10"
-                        />
-                        <p className="text-right text-xs text-[var(--q-text-faint)]">
-                          {storyText.length}/20000
-                        </p>
-                      </div>
-                    </div>
                   </ShellPanel>
                 </div>
 

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DiscordSignInButton } from '@/components/auth/discord-sign-in-button';
 
 export function SignInForm() {
   const router = useRouter();
@@ -106,6 +107,14 @@ export function SignInForm() {
           {loading ? 'Signing in...' : 'Enter the Realm'}
         </Button>
       </form>
+
+      <div className="my-5 flex items-center gap-3 text-[10px] uppercase tracking-[0.16em] text-[var(--q-text-dim)]/40">
+        <span className="h-px flex-1" style={{ background: 'hsl(35 35% 13%)' }} />
+        or
+        <span className="h-px flex-1" style={{ background: 'hsl(35 35% 13%)' }} />
+      </div>
+
+      <DiscordSignInButton />
 
       <div
         className="mt-8 pt-5 text-center text-xs border-t"

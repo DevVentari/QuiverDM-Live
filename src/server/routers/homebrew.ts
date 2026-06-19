@@ -7,6 +7,7 @@ import { serverTrack } from '@/lib/analytics.server';
 import { EVENTS } from '@/lib/analytics-events';
 import { WorldEntityType } from '@prisma/client';
 import { brainRepository } from '../repositories/brain.repository';
+import { generateStatblock } from '@/lib/ai/generate-statblock';
 
 // Homebrew content types
 export const HomebrewType = z.enum([
@@ -31,6 +32,22 @@ export const SourceType = z.enum([
 
 export const homebrewRouter = router({
   // ========== Content Management ==========
+
+  /**
+   * Generate a draft statblock from a concept prompt via the multi-provider AI.
+   * Returns a structured statblock for the creator form to review — it does NOT
+   * persist anything; the DM saves via createContent after editing.
+   */
+  generateStatblock: protectedProcedure
+    .input(
+      z.object({
+        prompt: z.string().trim().min(3).max(500),
+        type: z.enum(['creature', 'item', 'spell']),
+      })
+    )
+    .mutation(({ input, ctx }) =>
+      generateStatblock({ prompt: input.prompt, type: input.type }, { userId: ctx.session.user.id })
+    ),
 
   /**
    * Create homebrew content manually

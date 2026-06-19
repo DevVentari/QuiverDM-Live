@@ -50,6 +50,7 @@ module.exports = {
     worker('worker-ddb-chapter',      'src/lib/queue/ddb-chapter-extract-worker.ts'),
     worker('worker-ddb-review',       'src/lib/queue/ddb-sync-review-worker.ts'),
     worker('worker-sourcebook',       'src/lib/queue/sourcebook-scene-extraction-worker.ts'),
+    worker('worker-session0-prep',    'src/lib/queue/session0-prep-worker.ts'),
 
     // --- Infra ---
     worker('worker-session-events',   'src/lib/queue/session-events-worker.ts'),
@@ -57,6 +58,9 @@ module.exports = {
     worker('worker-feedback',         'src/lib/queue/feedback-triage-worker.ts'),
     worker('worker-obsidian',         'src/lib/queue/obsidian-import-worker.ts'),
     worker('worker-meili-sync',       'src/lib/queue/meili-sync-worker.ts'),
+
+    // --- Discord voice bot (records the table per-speaker → multi-track merge) ---
+    worker('discord-voice-bot',       'src/server/discord-voice-bot.ts'),
 
     // --- WebSocket server ---
     {

@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-Guidance for coding agents working in `E:\Projects\QuiverDM`.
+Guidance for coding agents working in `D:\Projects\QuiverDM`.
 
 ## Project Overview
 AI-powered D&D session management app. Live at https://quiverdm.com (also https://app.nerdt.au).
-29 tRPC routers, 12+ services, 9 repositories. App Router (pages + API routes).
+57 tRPC routers, 12+ services, 9 repositories. App Router (pages + API routes).
 
 ## Tech Stack
 
@@ -25,7 +25,7 @@ npm install
 npm run dev     # all services run on homelab (192.168.1.21) — no local docker needed
 ```
 
-All 25 BullMQ workers + WebSocket server run always-on via PM2 on homelab LXC 206. The dev machine only runs `npm run dev`.
+All BullMQ workers (~28) + the WebSocket server + the Discord voice bot run always-on via PM2 on homelab LXC 206 (see `deploy/homelab/ecosystem.config.js`). The dev machine only runs `npm run dev`.
 
 ## Services (homelab LXC 206 — 192.168.1.21)
 
@@ -36,7 +36,8 @@ All 25 BullMQ workers + WebSocket server run always-on via PM2 on homelab LXC 20
 | MeiliSearch | 7700 | Full-text search |
 | Ollama | 11434 | Local LLM for AI features |
 | crawl4ai | 5002 | Browser automation (Playwright) |
-| WebSocket server | 3004 | Live session sync |
+| WebSocket server | 3004 | Live session sync + live transcription intake |
+| Kokoro TTS | 8880 | Local Heartflame voice (kokoro-onnx, CPU). Installed at `/opt/kokoro`, PM2 `kokoro`. **Currently stopped** (started on demand for voice features). |
 
 ## Dev Commands
 
@@ -58,6 +59,9 @@ npm run ddb:refresh        # Headless refresh (uses saved .ddb-auth-state.json)
 # Sourcebook import CLI (one-shot, not BullMQ)
 npx tsx scripts/create-master-sourcebook.ts --slug <slug> --url <ddb-url>
 npx tsx scripts/create-master-sourcebook.ts --slug cos --skip-crawl   # re-extract only
+
+# Discord voice bot (records the table per-speaker; PM2 service on homelab)
+npm run worker:discord-voice
 ```
 
 ## Architecture
@@ -77,24 +81,27 @@ src/app/
 
 ```text
 src/server/
-  routers/                       # 29 routers
+  routers/                       # 57 routers
   services/                      # 12+ services
   repositories/                  # 9 repositories
   errors/                        # Typed app errors
   trpc.ts                        # tRPC init + procedures
 ```
 
-### Router List (29)
+### Router List (57)
 
-- campaigns, sessions, npcs, players
-- characters, charactersDndBeyond
-- sessionTranscription, sessionRecordings, transcript
+The registry is `src/server/routers/_app.ts` (source of truth):
+
+- campaigns, sessions, npcs, players, characters, charactersDndBeyond
+- sessionTranscription, sessionRecordings, multiTrackUpload, speakerMapping, recap, transcript
 - homebrew, homebrewDndBeyond, homebrewPdf, homebrewExtraction, homebrewImage
-- userSettings, members, invites, onboarding, feedback
-- usage, billing, passwordReset
-- encounters, encounterPlans
-- rules, webhooks, search, whisper
-- foundry
+- userSettings, members, invites, onboarding, feedback, usage, billing, passwordReset
+- encounters, encounterPlans, rules, webhooks, search, whisper, foundry, obsidian
+- extensionAuth, apiUsage, adminOverview, adminUsers, adminApiUsage, adminHealth
+- brain, voice, play, ddbSync, sourcebookScenes, sourcebookReader, campaignContext
+- worldMap, world, randomizer, mechanics
+- sessionPhases, sessionRoutes, prepSecrets, npcBehaviorProfiles, heartflame, scenes
+- **discordVoice** (Discord voice bot config + start/stop recording)
 
 ## Core Patterns
 
@@ -143,6 +150,34 @@ await chatWithAI(messages, { forceProvider: 'openai' });   // GPT-4o only
 
 Valid provider keys: `claude`, `openai`, `gemini`, `gemini-user`, `groq`, `ollama`.
 
+### Live Transcription & Voice (provider-swappable)
+
+Both transcription paths select an engine by env, mirroring `AI_PROVIDER_ORDER`:
+
+- **Realtime STT** — `STT_REALTIME_PROVIDER` (`local` WhisperLive | `assemblyai`),
+  selected in `src/lib/transcription/realtime-provider.ts`. Local adapter:
+  `local-realtime.ts` (WhisperLive WS). Both satisfy `RealtimeTranscriberHandle`,
+  so `live-session-manager.ts`, the WS server, and the browser/bot capture are
+  engine-agnostic. Runbook: `docs/runbooks/whisperlive-local-stt.md`.
+- **Batch multi-track STT** — `MULTITRACK_STT` (`whisperx` local | `assemblyai`)
+  in `multi-track-worker.ts`. Each track is one speaker → diarized merge
+  (`transcript-merger.ts`).
+
+**Discord voice bot** (`src/lib/discord/voice-bot.ts`, entry
+`src/server/discord-voice-bot.ts`, PM2 `discord-voice-bot`, `npm run worker:discord-voice`):
+joins a campaign voice channel, records each speaker to their own track, and
+labels it with that speaker's **character** via `resolveDiscordVoiceToCharacter`
+(Discord OAuth `Account` → active `CampaignCharacter`). On stop → `multi-track`
+merge (diarized transcript, real names). Also feeds live captions during play
+(A3 hybrid: mixed feed for ephemeral captions started with `deferSave: true`, so
+the per-track merge stays authoritative — no double-write). Control plane is a
+Redis channel (`discordVoice` router publishes; the bot subscribes). Runbook:
+`docs/runbooks/discord-voice-bot.md`. **Discord is a primary sign-in** (NextAuth
+provider already wired in `src/lib/auth.ts`).
+
+**TTS (Heartflame voice)** — Kokoro on homelab CT 206:8880 (OpenAI-compatible,
+CPU, currently stopped). Design: `docs/superpowers/specs/2026-06-17-heartflame-tts-design.md`.
+
 ### SourcebookEntity Type Enum
 
 `WorldEntityType` values: `NPC`, `PC`, `FACTION`, `LOCATION`, `ITEM`, `EVENT`, `ARC`, `THREAT`, `SECRET`, `CUSTOM`, `NOTE`.
@@ -186,6 +221,24 @@ OPENAI_API_KEY=
 GEMINI_API_KEY=
 GROQ_API_KEY=
 AI_PROVIDER_ORDER=claude,groq,openai,ollama
+
+# Transcription engines (provider-swappable)
+STT_REALTIME_PROVIDER=local        # local (WhisperLive) | assemblyai
+WHISPERLIVE_URL=ws://192.168.1.21:9090
+WHISPERLIVE_MODEL=large-v3
+MULTITRACK_STT=whisperx             # whisperx (local) | assemblyai
+WHISPERX_MODEL=medium
+WHISPERX_DEVICE=cuda
+ASSEMBLYAI_API_KEY=                 # only if a provider above is assemblyai
+WS_INTERNAL_URL=ws://localhost:3004 # WS the Discord bot dials for live captions
+
+# Discord (OAuth sign-in + voice bot)
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+DISCORD_BOT_TOKEN=
+
+# Heartflame TTS (Kokoro on CT 206)
+KOKORO_URL=http://192.168.1.21:8880
 
 # D&D Beyond
 DDB_COBALT_SESSION=   # JWE cookie — refresh with npm run ddb:refresh

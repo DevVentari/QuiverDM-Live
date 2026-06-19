@@ -7,13 +7,14 @@
  */
 
 import { WebSocket } from 'ws';
-import {
-  createRealtimeTranscriber,
-  type RealtimeTranscriberHandle,
-  type RealtimeTranscriptTurn,
-} from './assemblyai';
+import { createRealtimeTranscriber } from './realtime-provider';
 import { saveTranscript } from './db';
-import type { TranscriptionResult, TranscriptionSegment } from './types';
+import type {
+  TranscriptionResult,
+  TranscriptionSegment,
+  RealtimeTranscriberHandle,
+  RealtimeTranscriptTurn,
+} from './types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -23,13 +24,15 @@ interface LiveSession {
   sessionId: string;
   campaignId: string;
   dmUserId: string;
-  assemblyaiHandle: RealtimeTranscriberHandle;
+  transcriberHandle: RealtimeTranscriberHandle;
   accumulatedSegments: TranscriptionSegment[];
   accumulatedText: string;
   subscribers: Set<WebSocket>;
   startedAt: Date;
   sampleRate: number;
   lastPromptGeneratedAt: number;
+  /** A3 hybrid: skip the transcript save on stop (the per-track merge is authoritative). */
+  deferSave: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -48,6 +51,7 @@ class LiveSessionManager {
     dmUserId: string;
     sampleRate?: number;
     wordBoost?: string[];
+    deferSave?: boolean;
   }): Promise<void> {
     if (this.sessions.has(params.sessionId)) {
       throw new Error(`Live session already active for ${params.sessionId}`);
@@ -59,16 +63,17 @@ class LiveSessionManager {
       sessionId: params.sessionId,
       campaignId: params.campaignId,
       dmUserId: params.dmUserId,
-      assemblyaiHandle: null as any, // Set below
+      transcriberHandle: null as any, // Set below
       accumulatedSegments: [],
       accumulatedText: '',
       subscribers: new Set(),
       startedAt: new Date(),
       sampleRate,
       lastPromptGeneratedAt: 0,
+      deferSave: params.deferSave ?? false,
     };
 
-    // Create AssemblyAI real-time transcriber
+    // Create the real-time transcriber (local WhisperLive or AssemblyAI per env)
     const handle = createRealtimeTranscriber({
       sampleRate,
       wordBoost: params.wordBoost,
@@ -148,7 +153,7 @@ class LiveSessionManager {
       },
 
       onOpen: () => {
-        console.log(`[LiveSession ${params.sessionId}] Connected to AssemblyAI`);
+        console.log(`[LiveSession ${params.sessionId}] Transcriber connected`);
       },
 
       onClose: (code: number, reason: string) => {
@@ -156,10 +161,10 @@ class LiveSessionManager {
       },
     });
 
-    session.assemblyaiHandle = handle;
+    session.transcriberHandle = handle;
     this.sessions.set(params.sessionId, session);
 
-    // Connect to AssemblyAI
+    // Connect to the transcription engine
     await handle.connect();
 
     // Notify subscribers that session started
@@ -182,7 +187,7 @@ class LiveSessionManager {
   sendAudio(sessionId: string, chunk: Buffer): void {
     const session = this.sessions.get(sessionId);
     if (!session) return;
-    session.assemblyaiHandle.sendAudio(chunk);
+    session.transcriberHandle.sendAudio(chunk);
   }
 
   /**
@@ -193,17 +198,21 @@ class LiveSessionManager {
     const session = this.sessions.get(sessionId);
     if (!session) return null;
 
-    // Close AssemblyAI connection (wait for any final transcripts)
+    // Close the transcriber connection (wait for any final transcripts)
     try {
-      await session.assemblyaiHandle.close(true);
+      await session.transcriberHandle.close(true);
     } catch (err) {
-      console.warn(`[LiveSession ${sessionId}] Error closing AssemblyAI:`, err);
+      console.warn(`[LiveSession ${sessionId}] Error closing transcriber:`, err);
     }
 
     let transcriptId: string | null = null;
 
-    // Save accumulated transcript if we have content
-    if (session.accumulatedText.trim()) {
+    // A3 hybrid: when the Discord bot drives this session, the captions are
+    // ephemeral — the authoritative transcript comes from the per-track merge.
+    // Skip the single-stream save so we don't write a second (worse) transcript.
+    if (session.deferSave) {
+      console.log(`[LiveSession ${sessionId}] Save deferred to multi-track merge`);
+    } else if (session.accumulatedText.trim()) {
       const duration = (Date.now() - session.startedAt.getTime()) / 1000;
 
       const result: TranscriptionResult = {

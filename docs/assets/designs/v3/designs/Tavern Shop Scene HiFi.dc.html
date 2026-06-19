@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+  @keyframes dotPulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
+  @keyframes ambient{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}
+  image-slot{display:block;}
+  ::-webkit-scrollbar{height:9px;width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+</style>
+</helmet>
+<div style="--ink-accent: {{ accent }}; min-height:100vh;padding:26px 28px 50px;font-family:'Kalam',cursive;color:#ece2d4;background:radial-gradient(1100px 620px at 72% -12%, rgba(217,138,61,.10), transparent 60%), #0a0707;">
+<div style="width:1440px;margin:0 auto;border:1px solid rgba(255,235,205,.09);border-radius:18px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6);background:linear-gradient(180deg,#16110e,#100b09);">
+
+  <!-- HEADER -->
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(255,235,205,.07);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+    <button style="background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);border-radius:9px;color:#cdbfae;font-family:'Kalam';font-size:13px;padding:7px 12px;cursor:pointer;flex:none;">‹ District</button>
+    <div>
+      <div style="font-size:18px;color:#f6ead8;line-height:1;white-space:nowrap;">The Gilded Quill</div>
+      <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;color:#9c8a76;margin-top:3px;">TAVERN · SCENE · no battle map</div>
+    </div>
+    <div style="flex:1;"></div>
+    <div style="display:flex;align-items:center;gap:7px;">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:#9c8a76;border:1px solid rgba(255,235,205,.1);border-radius:7px;padding:6px 10px;">WORLD</span>
+      <span style="color:#5a4f45;font-size:11px;">▸</span>
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:#9c8a76;border:1px solid rgba(255,235,205,.1);border-radius:7px;padding:6px 10px;">LOCATION</span>
+      <span style="color:#5a4f45;font-size:11px;">▸</span>
+      <span style="display:flex;align-items:center;gap:6px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;color:#f0d6b2;background:rgba(217,138,61,.16);border:1px solid rgba(217,138,61,.45);border-radius:7px;padding:6px 10px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--ink-accent,#d98a3d);box-shadow:0 0 8px var(--ink-accent,#d98a3d);"></span>SCENE</span>
+    </div>
+  </div>
+
+  <div style="display:flex;height:752px;">
+
+    <!-- ===== SCENE · LEFT ===== -->
+    <div style="width:520px;flex:none;position:relative;border-right:1px solid rgba(255,235,205,.06);overflow:hidden;background:radial-gradient(560px 460px at 50% 26%, #2a1c14, #0c0908 82%);">
+      <image-slot id="tavern-backdrop" style="position:absolute;inset:0;width:100%;height:100%;" shape="rect" placeholder="drop tavern art — firelight, low beams, a crowded bar"></image-slot>
+      <div style="position:absolute;left:50%;top:24%;width:480px;height:480px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle, rgba(217,138,61,.24), transparent 66%);animation:ambient 6s ease-in-out infinite;filter:blur(8px);pointer-events:none;"></div>
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(125deg,rgba(255,255,255,.016) 0 12px,transparent 12px 26px);pointer-events:none;"></div>
+      <div style="position:absolute;inset:0;box-shadow:inset 0 -120px 120px rgba(8,6,5,.9), inset 0 50px 70px rgba(8,6,5,.5);pointer-events:none;"></div>
+
+      <div style="position:absolute;top:20px;left:22px;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.22em;color:#b08a5f;">◆ THE GILDED QUILL</div>
+
+      <!-- merchant -->
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:0 26px 24px;">
+        <div style="display:flex;align-items:flex-end;gap:14px;">
+          <image-slot id="faeren-portrait" style="width:88px;height:88px;flex:none;" shape="circle" placeholder="art"></image-slot>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Kalam';font-weight:700;font-size:24px;color:#f6ead8;line-height:1;text-shadow:0 2px 18px rgba(0,0,0,.6);">Faeren</div>
+            <div style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;color:#b09a82;margin-top:5px;">THE STORY-BEARER · barkeep tonight</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;border:1px solid rgba(217,138,61,.3);border-radius:12px;background:rgba(20,12,10,.66);backdrop-filter:blur(2px);padding:13px 15px;">
+          <div style="font-size:15px;color:#e7d8c4;font-style:italic;line-height:1.5;">"You've the look of coin and trouble both. Sit — I keep more than ale behind this bar."</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;margin-top:13px;">
+          <span style="display:flex;align-items:center;gap:7px;background:rgba(95,143,69,.16);border:1px solid rgba(95,143,69,.5);border-radius:20px;padding:5px 11px;"><span style="width:7px;height:7px;border-radius:50%;background:#8fc466;box-shadow:0 0 8px rgba(127,174,90,.8);"></span><span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.06em;color:#bcd1a4;">MERCHANT KNOWN · shop unlocked</span></span>
+          <span style="flex:1;"></span>
+          <span style="font-family:ui-monospace,monospace;font-size:9px;color:#9c8a76;">Party purse</span>
+          <span style="font-family:'Kalam';font-weight:700;font-size:18px;color:#f0d6b2;">{{ gold }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SHOP · RIGHT ===== -->
+    <div style="flex:1;display:flex;flex-direction:column;background:rgba(0,0,0,.16);">
+      <!-- shop header -->
+      <div style="padding:15px 18px 12px;border-bottom:1px solid rgba(255,235,205,.06);">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:17px;color:#f6ead8;">Faeren's Wares</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.08em;color:#8fb06a;margin-top:3px;">AUTOMATED · prices &amp; stock from her inventory</div></div>
+          <div style="display:flex;gap:6px;">
+            <span style="font-family:ui-monospace,monospace;font-size:9px;color:#1a0f06;background:linear-gradient(180deg,#e0944a,#c97a30);border-radius:7px;padding:6px 10px;">All</span>
+            <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:7px;padding:6px 10px;">Potions</span>
+            <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:7px;padding:6px 10px;">Gear</span>
+            <span style="font-family:ui-monospace,monospace;font-size:9px;color:#cdbfae;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.14);border-radius:7px;padding:6px 10px;">Scrolls</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- item list -->
+      <div style="flex:1;overflow:auto;padding:13px 16px;display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+          <div style="display:flex;align-items:center;gap:12px;border:1px solid rgba(255,235,205,.09);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15));padding:11px 13px;">
+            <span style="width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,235,205,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;">{{ r.icon }}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:15px;color:#ece2d4;">{{ r.name }}</div>
+              <div style="font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.04em;color: {{ r.rarityColor }};margin-top:2px;">{{ r.rarity }} · stock {{ r.stock }}</div>
+            </div>
+            <div style="text-align:right;flex:none;margin-right:4px;"><div style="font-family:'Kalam';font-weight:700;font-size:16px;color:#f0d6b2;">{{ r.price }}</div></div>
+            <div style="display:flex;align-items:center;gap:7px;flex:none;">
+              <button onClick="{{ r.onRem }}" style="width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,235,205,.16);color:#cdbfae;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+              <span style="width:22px;text-align:center;font-family:'Kalam';font-weight:700;font-size:16px;color: {{ r.qtyColor }};">{{ r.qty }}</span>
+              <button onClick="{{ r.onAdd }}" style="width:28px;height:28px;border-radius:8px;background:rgba(217,138,61,.16);border:1px solid rgba(217,138,61,.45);color:#e9b277;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+            </div>
+          </div>
+        </sc-for>
+
+        <!-- gated item -->
+        <div style="display:flex;align-items:center;gap:12px;border:1px dashed rgba(176,143,208,.4);border-radius:12px;background:rgba(176,143,208,.05);padding:11px 13px;opacity:.85;">
+          <span style="width:38px;height:38px;border-radius:9px;background:rgba(176,143,208,.1);border:1px solid rgba(176,143,208,.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;">🔮</span>
+          <div style="flex:1;min-width:0;"><div style="font-size:15px;color:#cbb8e0;">Duskfall Shard</div><div style="font-family:ui-monospace,monospace;font-size:8.5px;color:#9c89b0;margin-top:2px;">RARE · RELIC · locked</div></div>
+          <span style="display:flex;align-items:center;gap:6px;font-family:ui-monospace,monospace;font-size:9px;color:#9c89b0;flex:none;">🔒 Reveal its name to trade</span>
+        </div>
+      </div>
+
+      <!-- checkout bar -->
+      <div style="border-top:1px solid rgba(255,235,205,.07);background:rgba(0,0,0,.28);padding:14px 18px;display:flex;align-items:center;gap:18px;">
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;">CART</div><div style="font-size:14px;color:#ece2d4;margin-top:2px;">{{ cartCount }} items · <span style="color:#f0d6b2;">{{ total }}</span></div></div>
+        <span style="width:1px;height:34px;background:rgba(255,235,205,.12);"></span>
+        <div><div style="font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.12em;color:#9c8a76;">REMAINING</div><div style="font-size:14px;color: {{ remainingColor }};margin-top:2px;">{{ remaining }}</div></div>
+        <span style="flex:1;"></span>
+        <button onClick="{{ onCheckout }}" style="border:none;border-radius:10px;font-family:'Kalam';font-weight:700;font-size:14px;padding:11px 22px;cursor:pointer; {{ checkoutStyle }}">Complete purchase ▸</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:1440px;margin:14px auto 0;font-family:ui-monospace,monospace;font-size:10px;color:#5a4f45;line-height:1.6;">Layer 3 · a <b style="color:#9c8a76;">Scene</b> with no battle map. Because the merchant is a <b style="color:#9c8a76;">known NPC</b>, the scene becomes an interactive <b style="color:#9c8a76;">automated shop</b> — live stock, party gold, working cart &amp; checkout. Gated wares stay locked until the story unlocks them. Tavern art &amp; portrait are drop-in image slots.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1500,&quot;height&quot;:840},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98a3d&quot;,&quot;options&quot;:[&quot;#d98a3d&quot;,&quot;#c8783c&quot;,&quot;#b24a3f&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { gold: 340, cart: {} };
+  items = [
+    { id: 'heal', name: 'Potion of Healing', rarity: 'Common · Potion', price: 50, stock: 6, icon: '🧪' },
+    { id: 'dagger', name: 'Star-Metal Dagger', rarity: 'Uncommon · Gear', price: 120, stock: 1, icon: '🗡' },
+    { id: 'mend', name: 'Scroll of Mending', rarity: 'Common · Scroll', price: 30, stock: 4, icon: '📜' },
+    { id: 'lantern', name: 'Moonlit Lantern', rarity: 'Uncommon · Gear', price: 90, stock: 2, icon: '🏮' },
+    { id: 'rations', name: 'Trail Rations ×5', rarity: 'Common · Goods', price: 5, stock: 20, icon: '🍖' },
+    { id: 'antitox', name: 'Antitoxin', rarity: 'Common · Potion', price: 40, stock: 3, icon: '🧴' },
+  ];
+  rarityColor(r) { return r.indexOf('Uncommon') >= 0 ? '#7fae5a' : (r.indexOf('Rare') >= 0 ? '#b08fd0' : '#9c8a76'); }
+  cartTotal(cart) { return this.items.reduce((t, i) => t + (cart[i.id] || 0) * i.price, 0); }
+  add = (id) => this.setState(s => { const it = this.items.find(i => i.id === id); const q = s.cart[id] || 0; if (q >= it.stock) return {}; return { cart: { ...s.cart, [id]: q + 1 } }; });
+  remove = (id) => this.setState(s => { const q = s.cart[id] || 0; if (q <= 0) return {}; const c = { ...s.cart }; if (q - 1 <= 0) delete c[id]; else c[id] = q - 1; return { cart: c }; });
+  checkout = () => this.setState(s => { const t = this.cartTotal(s.cart); if (t <= 0 || t > s.gold) return {}; return { gold: s.gold - t, cart: {} }; });
+
+  renderVals() {
+    const cart = this.state.cart;
+    const rows = this.items.map(i => {
+      const q = cart[i.id] || 0;
+      return {
+        key: i.id, name: i.name, rarity: i.rarity, icon: i.icon, price: i.price + ' gp', stock: String(i.stock),
+        qty: String(q), qtyColor: q > 0 ? '#f0d6b2' : '#5a4f45', rarityColor: this.rarityColor(i.rarity),
+        onAdd: () => this.add(i.id), onRem: () => this.remove(i.id),
+      };
+    });
+    const total = this.cartTotal(cart);
+    const remaining = this.state.gold - total;
+    const count = Object.values(cart).reduce((a, b) => a + b, 0);
+    const ok = total > 0 && remaining >= 0;
+    return {
+      accent: this.props.accent ?? '#d98a3d',
+      rows, gold: this.state.gold + ' gp', total: total + ' gp', remaining: remaining + ' gp',
+      remainingColor: remaining < 0 ? '#e0584a' : '#bcd1a4', cartCount: String(count),
+      onCheckout: this.checkout,
+      checkoutStyle: ok ? 'background:linear-gradient(180deg,#5f8f45,#47702f);color:#eef4e6;box-shadow:0 8px 20px rgba(95,143,69,.3);' : 'background:rgba(255,255,255,.05);color:#7f6f5e;',
+    };
+  }
+}
+</script>
+</body>
+</html>

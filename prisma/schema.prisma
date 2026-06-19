@@ -326,6 +326,19 @@ enum WorldEntityStatus {
   resolved
 }
 
+enum VoiceClipKind {
+  signature
+  dialogue
+  narration
+}
+
+enum VoiceClipStatus {
+  pending
+  processing
+  ready
+  failed
+}
+
 enum WorldEntryType {
   LOCATION
   NPC
@@ -407,6 +420,7 @@ model Campaign {
   // Content relations
   gameSessions      GameSession[]
   npcs              NPC[]
+  scenes            Scene[]
   glossary          Json? // Campaign-specific glossary for transcription
   homebrewContent   CampaignHomebrewContent[] // Many-to-many with homebrew
   homebrewPDFs      HomebrewPDF[] // Campaign-specific PDFs
@@ -432,6 +446,7 @@ model Campaign {
   entityMergeRules         EntityMergeRule[]
   pressureHistory          WorldPressureHistory[]
   maps                     CampaignMap[]
+  voiceClips               VoiceClip[]
 
   // RecapForge
   campaignContexts  CampaignContext[]
@@ -933,7 +948,11 @@ model Encounter {
   round        Int                    @default(1)
   status       String                 @default("active") // active|complete
   log          Json? // [{round, events: [{participantId, action, value}]}]
+  /// Battle-map background image (uploaded or Higgsfield-generated). Null = blank
+  /// tactical field. The VttCanvas renders this under the grid/tokens/fog.
+  mapImageUrl  String?
   participants EncounterParticipant[]
+  fogRegions   FogRegion[]
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
 
@@ -952,9 +971,87 @@ model EncounterParticipant {
   maxHp       Int
   conditions  Json      @default("[]") // D&D 5e condition strings
   isAlive     Boolean   @default(true)
+
+  // Live board state — action economy + concentration. Feeds the Heartflame
+  // predicate engine (see src/lib/heartflame). Additive, all defaulted.
+  tempHp          Int     @default(0)
+  actionUsed      Boolean @default(false)
+  bonusActionUsed Boolean @default(false)
+  reactionUsed    Boolean @default(false)
+  concentration   Boolean @default(false)
+
+  // Battle-map token position as a percentage of the canvas (0–100). Null until
+  // the DM first places/drags the token; the UI falls back to a deterministic
+  // grid layout while null.
+  mapX Float?
+  mapY Float?
+
   updatedAt   DateTime  @updatedAt
 
   @@index([encounterId])
+}
+
+/// A hidden rectangle on a battle map — the persisted fog-of-war state for an
+/// encounter. Coordinates are percentages of the canvas (0–100). Presence means
+/// "covered"; revealing a region deletes it.
+model FogRegion {
+  id          String    @id @default(cuid())
+  encounterId String
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  x           Float
+  y           Float
+  width       Float
+  height      Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([encounterId])
+}
+
+// Scenes — RP moments / description cards / shop / theatre presented to players.
+model Scene {
+  id              String   @id @default(cuid())
+  campaignId      String
+  campaign        Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  title           String
+  type            String   @default("rp") // rp | description | tavern | battle | theatre
+  description     String?  @db.Text // player-facing read-aloud / narration
+  dmNotes         String?  @db.Text // DM-only secret notes
+  imageUrl        String?
+  musicCue        String?
+  orderIndex      Int      @default(0)
+  isPresented     Boolean  @default(false) // currently shown on the player-facing view
+  linkedEntityIds Json     @default("[]") // string[] of WorldEntity ids
+  partyPresentIds Json     @default("[]") // string[] of Character ids present
+  suggestedChecks Json     @default("[]") // [{ skill, dc, note }]
+  entityBeats     Json     @default("{}") // { [entityId]: { wantsInScene, secret } }
+  imageJobId      String?               // async scene-art ImageGenerationJob id
+  act             String?               // optional grouping label, e.g. "Redbrand Hideout"
+  notes           SceneNote[]
+  generatedAt     DateTime?             // null = hand-authored / not AI-generated
+  promptInput     Json?                 // raw form input, replayed by regenerate
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([campaignId])
+}
+
+model SceneNote {
+  id         String   @id @default(cuid())
+  sceneId    String
+  scene      Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  type       String   // read_aloud | tactic | secret | check | lore | trigger
+  title      String?
+  body       String   @db.Text
+  data       Json?    // check {skill,dc}; trigger {condition, dc?:{skill,dc}, reveal?}
+  orderIndex Int      @default(0)
+  source     String   @default("manual") // manual | ai | ai_suggested
+  mapPinId   String?  // Layer 3 boundary (unused now)
+  stateRule  Json?    // Layer 3 boundary (unused now)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sceneId])
 }
 
 model NPC {
@@ -1494,6 +1591,7 @@ model ImageGenerationJob {
   id           String    @id @default(cuid())
   homebrewId   String?
   npcId        String?
+  sceneId      String?
   userId       String
   prompt       String    @db.Text
   provider     String    @default("auto") // 'comfyui', 'replicate', 'dalle', 'auto'
@@ -1509,6 +1607,7 @@ model ImageGenerationJob {
 
   @@index([homebrewId, userId, status])
   @@index([npcId, userId, status])
+  @@index([sceneId, userId, status])
   @@index([status, createdAt])
   @@index([userId])
 }
@@ -1680,11 +1779,36 @@ model WorldEntity {
   prepKnowledge   PrepKnowledge[]
   behaviorProfile NpcBehaviorProfile?
 
+  // Voice & Audio
+  voiceClips VoiceClip[] @relation("WorldEntityVoiceClips")
+
   @@unique([campaignId, name, type])
   @@index([campaignId, type])
   @@index([campaignId, status])
   @@index([sourceType, sourceId])
   @@index([statBlockId])
+}
+
+model VoiceClip {
+  id           String          @id @default(cuid())
+  campaignId   String
+  entityId     String?
+  kind         VoiceClipKind
+  text         String          @db.Text
+  voiceId      String
+  provider     String          @default("elevenlabs")
+  audioUrl     String?
+  durationMs   Int?
+  status       VoiceClipStatus @default(pending)
+  errorMessage String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  campaign Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  entity   WorldEntity? @relation("WorldEntityVoiceClips", fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([entityId, kind, status])
 }
 
 model WorldRelationship {

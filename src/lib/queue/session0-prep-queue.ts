@@ -6,7 +6,9 @@ import { getRedisConnection } from './queue';
 
 export interface Session0PrepJobData {
   sessionId: string;
+  campaignId: string;
   sourcebookId: string;
+  sourcebookSlug: string;
   sourcebookTitle: string;
   campaignName: string;
 }

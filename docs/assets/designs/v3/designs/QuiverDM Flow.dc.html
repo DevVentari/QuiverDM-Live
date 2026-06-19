@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&amp;display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#0a0707;}
+</style>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1440" height="900" hint-size="100%,100%" data-uneditable="">
+
+  <!-- ===== COVER ===== -->
+  <section data-label="Cover" data-speaker-notes="QuiverDM end-to-end flow. 17 scenes in DM-journey order. Arrow keys to flip; click a thumbnail to jump; drag thumbnails to reorder." style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:radial-gradient(1100px 620px at 50% -8%, rgba(217,138,61,.13), transparent 60%), #0a0707;font-family:'Kalam',cursive;color:#ece2d4;">
+    <span style="width:54px;height:54px;border-radius:14px;background:linear-gradient(150deg,#e0944a,#b8662a);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 12px 30px rgba(217,138,61,.3);display:flex;align-items:center;justify-content:center;"><span style="width:13px;height:13px;border-radius:50%;background:#1a0f06;"></span></span>
+    <div style="font-size:56px;line-height:.9;color:#f6ead8;">QuiverDM</div>
+    <div style="font-family:ui-monospace,monospace;font-size:12px;letter-spacing:.22em;color:#c79a6a;">END-TO-END FLOW · 17 SCENES</div>
+    <div style="display:flex;gap:9px;margin-top:8px;flex-wrap:wrap;justify-content:center;max-width:760px;">
+      <span style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#9c8a76;border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:6px 13px;">ONBOARD</span>
+      <span style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#9c8a76;border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:6px 13px;">HOME</span>
+      <span style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#9c8a76;border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:6px 13px;">CAMPAIGN</span>
+      <span style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#9c8a76;border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:6px 13px;">PREP</span>
+      <span style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#9c8a76;border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:6px 13px;">SESSION</span>
+      <span style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;color:#9c8a76;border:1px solid rgba(255,235,205,.12);border-radius:20px;padding:6px 13px;">COMBAT</span>
+    </div>
+    <div style="font-family:ui-monospace,monospace;font-size:11px;color:#5a4f45;margin-top:14px;">← / → to flip · click a thumbnail to jump · drag thumbnails to reorder</div>
+  </section>
+
+  <!-- ===== 01 ONBOARD ===== -->
+  <section data-label="Onboard" data-speaker-notes="First run. Name your table, pick a system, set the tone." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">ONBOARD</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Settings &amp; Onboarding</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">First run — name your table, pick a system, set the tone.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">01 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Settings and Onboarding Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 02 HOME ===== -->
+  <section data-label="Home" data-speaker-notes="The DM's launchpad. Jump back into any campaign." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">HOME</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Home Dashboard</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">The DM's launchpad — jump back into any campaign.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">02 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Home Dashboard Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 03 CAMPAIGN OVERVIEW ===== -->
+  <section data-label="Overview" data-speaker-notes="The whole campaign at a glance — arcs, threads, status." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">CAMPAIGN</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Campaign Overview</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">The whole campaign at a glance — arcs, threads, status.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">03 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Campaign Overview Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 04 CAMPAIGN NAV ===== -->
+  
+
+  <!-- ===== 05 CHARACTER SHEET ===== -->
+  <section data-label="Character" data-speaker-notes="Inspect a hero — stats, kit, story hooks." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">PREP</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Character Sheet</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Inspect a hero — stats, kit, story hooks.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">04 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Character Sheet Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 06 NPC MANAGEMENT ===== -->
+  <section data-label="NPCs" data-speaker-notes="Cast of characters — who's who and who wants what." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">PREP</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">NPC Management</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Cast of characters — who's who and who wants what.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">05 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="NPC Management Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 07 LOCATIONS ===== -->
+  <section data-label="Locations" data-speaker-notes="Places the party can go, and what waits there." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">PREP</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Locations</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Places the party can go, and what waits there.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">06 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Locations Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 08 MAPS & SCENES ===== -->
+  <section data-label="Maps" data-speaker-notes="Stage the next encounter before the table sees it." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">PREP</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Maps &amp; Scenes</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Stage the next encounter before the table sees it.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">07 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Maps and Scenes Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 09 COMPENDIUM ===== -->
+  <section data-label="Compendium" data-speaker-notes="Rules, monsters, spells — searchable at the table." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">PREP</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Compendium</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Rules, monsters, spells — searchable at the table.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">08 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Compendium Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 10 HOMEBREW ===== -->
+  <section data-label="Homebrew" data-speaker-notes="Make your own monsters, items, and rules." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">PREP</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Homebrew Creator</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Make your own monsters, items, and rules.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">09 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Homebrew Creator Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 11 RECORDINGS ===== -->
+  <section data-label="Recordings" data-speaker-notes="Capture the session — recap and remember." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">SESSION</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Recordings</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Capture the session — recap and remember.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">10 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Recordings Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 12 SESSION FLOW ===== -->
+  <section data-label="Session" data-speaker-notes="Run the night beat by beat." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(217,138,61,.05),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#d9a35e;background:rgba(217,138,61,.12);border:1px solid rgba(217,138,61,.28);border-radius:6px;padding:4px 8px;flex:none;">SESSION</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Session Flow</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Run the night beat by beat.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">11 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1460px;height:1180px;overflow:hidden;transform:scale(.702);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Session Flow Wireframes" hint-size="1460px,1180px" style="display:block;width:1460px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 13 COMBAT HUB ===== -->
+  
+
+  <!-- ===== 14 HIFI HOME ===== -->
+  <section data-label="HiFi Home" data-speaker-notes="Hi-fi: the returning DM lands here." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(184,69,58,.06),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#e6a99f;background:rgba(184,69,58,.14);border:1px solid rgba(184,69,58,.32);border-radius:6px;padding:4px 8px;flex:none;">HI-FI · HOME</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Returning DM Home</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Hi-fi: the returning DM lands here.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">12 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1500px;height:760px;overflow:hidden;transform:scale(.96);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Returning DM Home HiFi" hint-size="1500px,760px" style="display:block;width:1500px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 15 THEATRE ===== -->
+  <section data-label="Theatre" data-speaker-notes="Hi-fi: narrate a scene with no map needed." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(184,69,58,.06),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#e6a99f;background:rgba(184,69,58,.14);border:1px solid rgba(184,69,58,.32);border-radius:6px;padding:4px 8px;flex:none;">HI-FI · SESSION</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Theatre of the Mind</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Hi-fi: narrate a scene with no map needed.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">13 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1500px;height:960px;overflow:hidden;transform:scale(.8625);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Theatre of the Mind" hint-size="1500px,960px" style="display:block;width:1500px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 14 THEATRE SCENE · ASSASSINATION ===== -->
+  <section data-label="Assassination" data-speaker-notes="Hi-fi: the betrayal beat — push the scene to the player display, then start combat." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(184,69,58,.06),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#e6a99f;background:rgba(184,69,58,.14);border:1px solid rgba(184,69,58,.32);border-radius:6px;padding:4px 8px;flex:none;">HI-FI · SESSION</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Theatre Scene — The Festival Assassination</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Hi-fi: full-bleed player display + DM control strip → Start combat.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">14 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1500px;height:820px;overflow:hidden;transform:scale(.96);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Theatre Scene HiFi" hint-size="1500px,820px" style="display:block;width:1500px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 15 COMBAT MAP ===== -->
+  <section data-label="Combat Map" data-speaker-notes="Hi-fi: the tactical battle map — grid, tokens, fog, ruler, AoE + token inspector." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(184,69,58,.06),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#e6a99f;background:rgba(184,69,58,.14);border:1px solid rgba(184,69,58,.32);border-radius:6px;padding:4px 8px;flex:none;">HI-FI · COMBAT</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Combat Map</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Hi-fi: grid · tokens · fog · ruler · AoE, with a token inspector.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">15 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1500px;height:900px;overflow:hidden;transform:scale(.92);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Combat Map HiFi" hint-size="1500px,900px" style="display:block;width:1500px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 16 COMBAT TRACKER HIFI ===== -->
+  <section data-label="Combat" data-speaker-notes="Hi-fi: run initiative, HP, and turns live." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(184,69,58,.06),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#e6a99f;background:rgba(184,69,58,.14);border:1px solid rgba(184,69,58,.32);border-radius:6px;padding:4px 8px;flex:none;">HI-FI · COMBAT</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">DM Combat Tracker</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Hi-fi: run initiative, HP, and turns live.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">16 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:1500px;height:960px;overflow:hidden;transform:scale(.8625);transform-origin:center;flex:none;border-radius:10px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="DM Combat Tracker HiFi" hint-size="1500px,960px" style="display:block;width:1500px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 17 PLAYER HUD ===== -->
+  <section data-label="Player HUD" data-speaker-notes="Hi-fi: what the player sees on their turn." style="display:flex;flex-direction:column;background:#0e0b0a;font-family:'Kalam',cursive;">
+    <div style="height:72px;flex:none;display:flex;align-items:center;gap:14px;padding:0 28px;border-bottom:1px solid rgba(255,235,205,.08);background:linear-gradient(180deg,rgba(184,69,58,.06),transparent);">
+      <span style="font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.18em;color:#e6a99f;background:rgba(184,69,58,.14);border:1px solid rgba(184,69,58,.32);border-radius:6px;padding:4px 8px;flex:none;">HI-FI · PLAYER</span>
+      <div style="min-width:0;"><div style="font-size:19px;color:#f6ead8;line-height:1.05;">Player Combat HUD</div><div style="font-family:ui-monospace,monospace;font-size:10px;color:#9c8a76;margin-top:3px;">Hi-fi: what the player sees on their turn.</div></div>
+      <div style="flex:1;"></div><div style="font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em;color:#7f6f5e;">17 / 17</div>
+    </div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0908;">
+      <div style="width:440px;height:960px;overflow:hidden;transform:scale(.8625);transform-origin:center;flex:none;border-radius:18px;border:1px solid rgba(255,235,205,.07);box-shadow:0 30px 80px rgba(0,0,0,.5);">
+        <dc-import name="Player Combat HUD" hint-size="440px,960px" style="display:block;width:440px;"></dc-import>
+      </div>
+    </div>
+  </section>
+
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900}}"></script>
+</body>
+</html>

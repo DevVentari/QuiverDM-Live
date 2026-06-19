@@ -39,7 +39,7 @@ export const worldMapRouter = router({
         include: {
           pins: {
             include: {
-              entity: { select: { id: true, name: true, type: true, imageUrl: true, properties: true, ddbChapterId: true } },
+              entity: { select: { id: true, name: true, type: true, imageUrl: true, properties: true, ddbChapterId: true, status: true, description: true } },
             },
           },
         },
@@ -444,7 +444,11 @@ export const worldMapRouter = router({
       const settingContext = map.campaign.description ?? map.campaign.name;
       const prompt = input.customPrompt ??
         `Fantasy world map, ${settingContext}, top-down cartographic style, parchment, ink lines, no labels, no text`;
-      await addMapGenerationJob({ mapId: input.mapId, campaignId: input.campaignId, prompt });
+      await addMapGenerationJob({
+        target: { kind: 'campaignMap', id: input.mapId },
+        campaignId: input.campaignId,
+        prompt,
+      });
       return { queued: true };
     }),
 

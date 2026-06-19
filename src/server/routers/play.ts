@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { router, protectedProcedure } from '@/server/trpc';
 import { playService } from '@/server/services/play.service';
 import { prisma } from '@/lib/prisma';
-import Redis from 'ioredis';
+import { mintLiveSessionToken } from '@/lib/live/ws-token';
 import { ForbiddenError } from '@/server/errors';
 
 export const playRouter = router({
@@ -63,15 +63,11 @@ export const playRouter = router({
       });
       if (!member) throw ForbiddenError.forPermission('join', 'session');
 
-      const token = crypto.randomUUID();
-      const redis = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6380');
-      await redis.set(
-        `live-session-token:${token}`,
-        JSON.stringify({ userId: ctx.session.user.id, sessionId: input.sessionId, campaignId: input.campaignId }),
-        'EX',
-        60
-      );
-      await redis.quit();
+      const token = await mintLiveSessionToken({
+        userId: ctx.session.user.id,
+        sessionId: input.sessionId,
+        campaignId: input.campaignId,
+      });
       return { token };
     }),
 });

@@ -1,5 +1,6 @@
 import { auth } from '@/lib/auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { QDM_V3_COOKIE, shouldRewriteToV3 } from '@/lib/flags';
 
 function isCorsOrigin(origin: string | null): boolean {
   if (!origin) return false;
@@ -57,6 +58,14 @@ export default auth((req) => {
     return NextResponse.redirect(signInUrl);
   }
 
+  // v3 opt-in: for migrated canonical paths, rewrite cookie-opted users into the
+  // /v3 tree while keeping the canonical URL. Inert until MIGRATED_ROUTES is
+  // populated (see src/lib/flags.ts), so today this never fires.
+  const hasV3Cookie = req.cookies.get(QDM_V3_COOKIE)?.value === '1';
+  if (shouldRewriteToV3(pathname, hasV3Cookie)) {
+    return NextResponse.rewrite(new URL(`/v3${pathname}`, nextUrl));
+  }
+
   return NextResponse.next();
 });
 
@@ -73,6 +82,8 @@ export const config = {
     '/join/:path*',
     '/admin/:path*',
     '/onboarding/:path*',
+    // v3 parallel tree (auth-guarded, opt-in)
+    '/v3/:path*',
     // Auth routes (redirect if already logged in)
     '/auth/:path*',
   ],

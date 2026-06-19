@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
+import { VoiceRow } from './voice-row';
 
 type EntityDetailSheetProps = {
   entityId: string | null;
@@ -234,6 +235,10 @@ export function EntityDetailSheet({ entityId, open, onOpenChange }: EntityDetail
                 {entity.description ?? <span className="italic">No description.</span>}
               </p>
             </section>
+
+            {entity.type === 'NPC' && (
+              <VoiceRow campaignId={campaignId} entityId={entity.id} />
+            )}
 
             <Accordion type="single" collapsible defaultValue={hasProperties ? 'properties' : undefined}>
               <AccordionItem value="properties" className="glass-panel glass-grain rounded-lg border border-border/50 px-4">
