@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { trpc } from '@/lib/trpc';
+import { GapsList } from '@/components/brain/gaps-list';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,7 +17,7 @@ import { EntityCard } from '@/components/brain/entity-card';
 import { EntityGraph } from '@/components/brain/entity-graph';
 import { SessionTimeline } from '@/components/brain/session-timeline';
 import { ContinuityWarnings } from '@/components/brain/continuity-warnings';
-import { Brain, ChevronRight, Sprout, Upload, CheckCircle, XCircle, GitMerge, LayoutDashboard, Network, Clock, AlertTriangle, Zap } from 'lucide-react';
+import { Brain, ChevronRight, Sprout, Upload, CheckCircle, XCircle, GitMerge, LayoutDashboard, Network, Clock, AlertTriangle, Zap, FileQuestion } from 'lucide-react';
 import { SessionSeedCard } from '@/components/brain/session-seed';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -95,6 +96,11 @@ export default function BrainPage() {
     { campaignId },
     { enabled: isDM, staleTime: 120_000 }
   );
+  const gapsQuery = trpc.brain.gaps.list.useQuery(
+    { campaignId },
+    { enabled: isDM, staleTime: 60_000 }
+  );
+  const gaps = gapsQuery.data ?? [];
   const sessionsQuery = trpc.sessions.getAll.useQuery(
     { campaignId },
     { enabled: isDM, staleTime: 60_000 }
@@ -288,6 +294,14 @@ export default function BrainPage() {
             {warnings.length > 0 && (
               <span className="ml-1.5 rounded-full bg-destructive/80 px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
                 {warnings.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="gaps">
+            <FileQuestion className="h-3.5 w-3.5 mr-1.5" />Gaps
+            {gaps.length > 0 && (
+              <span className="ml-1.5 rounded-full bg-[var(--q-amber)] px-1.5 py-0.5 text-[10px] font-bold text-white leading-none">
+                {gaps.length}
               </span>
             )}
           </TabsTrigger>
@@ -555,6 +569,26 @@ export default function BrainPage() {
                 </div>
               ) : (
                 <ContinuityWarnings warnings={warnings} campaignSlug={slug} />
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Gaps Tab */}
+        <TabsContent value="gaps">
+          <div className="stone-card">
+            <div className="stone-card-header">
+              <span className="stone-card-title">Entity Gaps</span>
+            </div>
+            <div className="stone-card-body">
+              {gapsQuery.isLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full rounded" />
+                  ))}
+                </div>
+              ) : (
+                <GapsList gaps={gaps} slug={slug} />
               )}
             </div>
           </div>
