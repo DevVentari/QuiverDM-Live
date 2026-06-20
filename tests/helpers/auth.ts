@@ -86,6 +86,80 @@ export async function ensureTestCampaignExists(
   }
 }
 
+/**
+ * Seeds an in-progress GameSession with prepared scenes so the live cockpit
+ * (`/sessions/[id]/live`) renders a real scene runner. Returns the session id
+ * and slug so tests navigate straight to the cockpit instead of hunting for a
+ * `/live` link the sessions list never renders.
+ *
+ * Seeds >= 2 scenes so scene-navigation assertions have somewhere to advance to.
+ */
+export async function seedLiveSession(
+  email: string,
+  slug: string,
+  opts: { sessionNumber?: number; title?: string } = {},
+): Promise<{ sessionId: string; slug: string; campaignId: string; sceneCount: number }> {
+  await ensureTestCampaignExists(email, slug, opts.title ?? 'Live Session Campaign');
+  const campaign = await prisma.campaign.findUnique({ where: { slug } });
+  if (!campaign) throw new Error(`seedLiveSession: campaign ${slug} not found after ensure`);
+
+  const sessionNumber = opts.sessionNumber ?? 900;
+  const scenes = [
+    {
+      id: nanoid(10),
+      title: 'The Sleeping Giant Tap House',
+      description: 'The party arrives at the rundown tavern on the edge of Phandalin.',
+      location: 'Phandalin',
+      readAloud:
+        'The door groans open. A handful of rough-looking patrons turn to glare, hands drifting toward their belts.',
+      order: 0,
+      linkedNpcIds: [],
+      linkedSecretIds: [],
+      linkedMonsterNames: [],
+    },
+    {
+      id: nanoid(10),
+      title: 'The Redbrand Hideout',
+      description: 'Beneath Tresendar Manor, the Redbrands have made their lair.',
+      location: 'Tresendar Manor cellars',
+      readAloud:
+        'Cold air rises from the stone stairwell. Somewhere below, water drips in the dark.',
+      order: 1,
+      linkedNpcIds: [],
+      linkedSecretIds: [],
+      linkedMonsterNames: [],
+    },
+  ];
+
+  const prepData = {
+    scenes,
+  } as unknown as Prisma.InputJsonValue;
+
+  const session = await prisma.gameSession.upsert({
+    where: { campaignId_sessionNumber: { campaignId: campaign.id, sessionNumber } },
+    update: {
+      title: opts.title ?? 'Live Session — Scene Runner',
+      status: 'in_progress',
+      startedAt: new Date(),
+      prepStatus: 'complete',
+      activeSceneIndex: 0,
+      prepData,
+    },
+    create: {
+      campaignId: campaign.id,
+      sessionNumber,
+      title: opts.title ?? 'Live Session — Scene Runner',
+      status: 'in_progress',
+      startedAt: new Date(),
+      prepStatus: 'complete',
+      activeSceneIndex: 0,
+      prepData,
+    },
+  });
+
+  return { sessionId: session.id, slug, campaignId: campaign.id, sceneCount: scenes.length };
+}
+
 export async function seedCampaignWithSourcebook(
   opts: { withEntity?: boolean; withEmptyChapter?: boolean } = {},
 ) {
