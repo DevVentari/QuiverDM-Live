@@ -113,6 +113,7 @@ export class SessionService {
       sessionNumber,
       quickNotes: input.quickNotes,
       status,
+      startedAt: status === 'in_progress' ? new Date() : undefined,
     });
 
     if (status === 'in_progress') {
@@ -512,7 +513,7 @@ export class SessionService {
 
   async startSession(sessionId: string, userId: string) {
     await authz.session(sessionId, userId).requireManage();
-    const session = await sessionRepository.update(sessionId, { status: 'in_progress' });
+    const session = await sessionRepository.update(sessionId, { status: 'in_progress', startedAt: new Date() });
     void webhookService.dispatch(session.campaignId, 'session.started', {
       sessionId: session.id,
       sessionNumber: session.sessionNumber,

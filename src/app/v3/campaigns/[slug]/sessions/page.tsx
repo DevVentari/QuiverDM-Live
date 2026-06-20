@@ -15,8 +15,9 @@
  *   - If / then branches     → sessionRoutes.list
  *   - Read-aloud + secrets   → session prepData.scenes[].readAloud + prepSecrets.list (DM)
  *
+ *   - REC timer              → live elapsed from GameSession.startedAt (set on in_progress)
+ *
  * Static / TODO (no clean DB source — see inline notes):
- *   - REC + Session timer    → UI-only, no elapsed-time field on the session
  *   - Beat tools             → presentational action buttons (push scene, reveal, cue, combat)
  *   - Party HP               → no per-session HP aggregation wired; defaults to '—'
  */
@@ -35,6 +36,29 @@ import { useCampaignForging } from '@/components/campaign/useCampaignForging';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
 const display = 'font-[family-name:var(--qd-font-display)]';
+
+/**
+ * Live elapsed counter for the REC pill, driven by GameSession.startedAt.
+ * SSR-safe: state starts null (renders "LIVE") and the real value is computed
+ * client-side in an effect, so there is no hydration mismatch.
+ */
+function RecTimer({ startedAt }: { startedAt: Date | string | null | undefined }) {
+  const [elapsed, setElapsed] = useState<number | null>(null);
+  useEffect(() => {
+    if (!startedAt) return;
+    const origin = new Date(startedAt).getTime();
+    const tick = () => setElapsed(Math.max(0, Math.floor((Date.now() - origin) / 1000)));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [startedAt]);
+  if (elapsed === null) return <>LIVE</>;
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const h = Math.floor(elapsed / 3600);
+  const m = Math.floor((elapsed % 3600) / 60);
+  const s = elapsed % 60;
+  return <>{h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`}</>;
+}
 
 type BeatState = 'done' | 'now' | 'combat' | 'planned';
 
@@ -212,6 +236,7 @@ export default function SessionsPage() {
       sessionNumber: number;
       status?: string | null;
       prepData?: unknown;
+      startedAt?: Date | string | null;
     }>;
     if (!list.length) return null;
     return (
@@ -352,14 +377,14 @@ export default function SessionsPage() {
           </div>
         </div>
         <div className="flex-1" />
-        {/* REC pill is UI-only — there is no live elapsed-time field. TODO: drive from a real timer. */}
+        {/* REC pill — live elapsed from startedAt (set when the session goes in_progress). */}
         {isLive && (
           <span
             className={`${mono} flex items-center gap-[7px] rounded-[20px] border px-3 py-1.5 text-[9px]`}
             style={{ color: 'var(--qd-danger-hi)', background: 'rgba(196,69,58,.12)', borderColor: 'rgba(196,69,58,.4)' }}
           >
             <span className="v3-rec-blink h-[7px] w-[7px] rounded-full" style={{ background: 'var(--qd-danger)', boxShadow: '0 0 8px var(--qd-danger)' }} />
-            REC · LIVE
+            REC · {current.startedAt ? <RecTimer startedAt={current.startedAt} /> : 'LIVE'}
           </span>
         )}
       </div>

@@ -717,6 +717,7 @@ model GameSession {
   derailmentData    Json? // {isDerailed,driftScore,driftDescription,recoveryOptions:[]}
   worldStateChanges WorldStateChange[]
   entityAppearances SessionEntityAppearance[]
+  startedAt         DateTime? // set when status -> in_progress; drives the live REC timer
   createdAt         DateTime                  @default(now())
   updatedAt         DateTime                  @updatedAt
 
