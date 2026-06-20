@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
+import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 
 // Real NPC row shape (subset of the Prisma NPC model returned by npcs.getAll).
 interface NpcRow {
@@ -43,6 +44,20 @@ interface RelationView {
   type: string;
 }
 
+// Filter pill facet for the NPC list.
+type NpcFacet = 'all' | 'ally' | 'threat';
+
+/** Classify an NPC into the ally/threat/neutral bucket based on tags + status. */
+function classifyNpc(n: NpcRow): NpcFacet {
+  const tagLower = (n.tags ?? []).map((t) => t.toLowerCase());
+  const allyKeywords = ['ally', 'friend', 'friendly', 'companion', 'contact'];
+  const threatKeywords = ['threat', 'villain', 'enemy', 'antagonist', 'boss', 'traitor'];
+  if (allyKeywords.some((k) => tagLower.some((t) => t.includes(k)))) return 'ally';
+  if (threatKeywords.some((k) => tagLower.some((t) => t.includes(k)))) return 'threat';
+  // Fallback: dead/fled/captured NPCs lean threat; alive is neutral (neither pill)
+  return 'all';
+}
+
 const STATUS_COLOR: Record<string, string> = {
   alive: 'var(--qd-success)',
   dead: 'var(--qd-danger)',
@@ -73,12 +88,17 @@ export default function NpcsPage() {
   const npcs = trpc.npcs.getAll.useQuery({ campaignId }, { staleTime: 60_000 });
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [facet, setFacet] = useState<NpcFacet>('all');
 
   const rows = (npcs.data as NpcRow[] | undefined) ?? [];
-  const filtered = useMemo(
-    () => rows.filter((n) => n.name.toLowerCase().includes(search.trim().toLowerCase())),
-    [rows, search],
-  );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((n) => {
+      if (q && !n.name.toLowerCase().includes(q)) return false;
+      if (facet !== 'all' && classifyNpc(n) !== facet) return false;
+      return true;
+    });
+  }, [rows, search, facet]);
   const selected = filtered.find((n) => n.id === selectedId) ?? filtered[0] ?? null;
 
   // Relationships live in the brain WorldRelationship graph (keyed by WorldEntity),
@@ -128,6 +148,7 @@ export default function NpcsPage() {
     <div className="flex h-full flex-col">
       {/* header */}
       <div className="flex items-center gap-3 border-b border-qd-faint px-6 py-3.5">
+        <MaskedDndIcon name="entity/person" size={22} className="text-qd-accent-text flex-none" />
         <div>
           <div className="font-qd-display text-lg text-qd-ink-strong">Cast of Characters</div>
           <div className="font-qd-mono text-[9px] uppercase tracking-[0.08em] text-qd-ink-muted">{rows.length} NPCs</div>
@@ -145,6 +166,27 @@ export default function NpcsPage() {
             placeholder="⌕ Search NPCs…"
             className="rounded-qd-md border border-qd-strong bg-[rgba(255,255,255,0.03)] px-3 py-2 font-qd-mono text-[11px] text-qd-ink placeholder:text-qd-ink-faint focus:border-qd-accent focus:outline-none"
           />
+          {/* Filter pills */}
+          <div className="flex gap-1.5 px-0.5" role="group" aria-label="Filter NPCs">
+            {(['all', 'ally', 'threat'] as NpcFacet[]).map((f) => {
+              const label = f === 'all' ? 'All' : f === 'ally' ? 'Allies' : 'Threats';
+              const active = facet === f;
+              return (
+                <button
+                  key={f}
+                  onClick={() => setFacet(f)}
+                  className={`min-h-[44px] min-w-0 flex-1 rounded-qd-md border font-qd-mono text-[8.5px] uppercase tracking-[0.06em] transition-colors ${
+                    active
+                      ? 'bg-[rgba(217,138,61,.12)] border-qd-accent text-qd-accent-text'
+                      : 'border-qd-faint text-qd-ink-2 hover:border-qd-strong hover:text-qd-ink'
+                  }`}
+                  aria-pressed={active}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           {filtered.length === 0 && (
             <p className="px-1 py-6 text-center text-qd-body-sm text-qd-ink-muted">No souls walk this world yet.</p>
           )}
@@ -164,7 +206,7 @@ export default function NpcsPage() {
                   {n.name.charAt(0).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-qd-ink-strong">{n.name}</span>
+                  <span className="block truncate font-qd-display text-[14px] text-qd-ink-strong">{n.name}</span>
                   <span className="block truncate font-qd-mono text-[7.5px] text-qd-ink-muted">{subtitleOf(n)}</span>
                 </span>
               </button>
@@ -208,6 +250,34 @@ export default function NpcsPage() {
               <div className="mt-6 grid grid-cols-2 gap-3.5">
                 <InfoCard label="Role & Manner">
                   {selected.personality?.traits?.length ? selected.personality.traits.join(' · ') : (selected.role || '—')}
+                </InfoCard>
+                {/* Appears In — surfaces location + faction as known haunts. No session
+                    join exists on NPC; graceful empty state when both are absent. */}
+                <InfoCard label="Appears In">
+                  {(() => {
+                    const tokens: string[] = [];
+                    if (selected.location) tokens.push(selected.location);
+                    if (selected.faction) tokens.push(selected.faction);
+                    if (tokens.length === 0) {
+                      return (
+                        <span className="italic text-qd-ink-muted">
+                          No known haunts yet — the world is still taking shape.
+                        </span>
+                      );
+                    }
+                    return (
+                      <div className="flex flex-wrap gap-1.5">
+                        {tokens.map((tok) => (
+                          <span
+                            key={tok}
+                            className="rounded-qd-sm border border-qd-faint bg-[rgba(255,255,255,0.04)] px-2 py-1 font-qd-mono text-[9px] text-qd-ink-2"
+                          >
+                            {tok}
+                          </span>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </InfoCard>
                 <InfoCard label="Location">
                   {selected.location || '—'}
