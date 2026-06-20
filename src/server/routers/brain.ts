@@ -117,6 +117,12 @@ export const brainRouter = router({
       ),
   }),
 
+  gaps: router({
+    list: protectedProcedure
+      .input(z.object({ campaignId: z.string().min(1) }))
+      .query(({ input, ctx }) => brainService.listGaps(input.campaignId, ctx.session.user.id)),
+  }),
+
   state: router({
     get: protectedProcedure
       .input(z.object({ campaignId: z.string().min(1) }))
