@@ -48,6 +48,31 @@ const ICON_FOR_TYPE: Record<string, string> = {
 };
 const iconForType = (type: string) => ICON_FOR_TYPE[type] ?? 'monster/aberration';
 
+// Creature-type → statblock header glyph. Covers all 14 available monster/* assets.
+// Keys are lowercase to match typical data blob values (e.g. d.type = "Dragon" → normalised).
+const CREATURE_TYPE_GLYPH: Record<string, string> = {
+  aberration: 'monster/aberration',
+  beast: 'monster/beast',
+  celestial: 'monster/celestial',
+  construct: 'monster/construct',
+  dragon: 'monster/dragon',
+  elemental: 'monster/elemental',
+  fey: 'monster/fae',
+  fiend: 'monster/fiend',
+  giant: 'monster/giant',
+  humanoid: 'monster/humanoid',
+  monstrosity: 'monster/monstrosity',
+  ooze: 'monster/ooze',
+  plant: 'monster/plant',
+  undead: 'monster/undead',
+};
+
+/** Returns the monster/* glyph path for a creature type string, or null if unknown. */
+function creatureTypeGlyph(type: string | undefined): string | null {
+  if (!type) return null;
+  return CREATURE_TYPE_GLYPH[type.toLowerCase()] ?? null;
+}
+
 // ---- Defensive statblock adapter ------------------------------------------------
 type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -278,7 +303,16 @@ export default function CompendiumPage() {
               {/* header */}
               <div className="flex items-start justify-between border-b border-[var(--qd-border-accent)] pb-3">
                 <div>
-                  <div className={`${display} text-[26px] leading-none text-[var(--qd-ink-strong)]`}>{selected.name}</div>
+                  <div className={`${display} flex items-center gap-2.5 text-[26px] leading-none text-[var(--qd-ink-strong)]`}>
+                    {creatureTypeGlyph(stat.type) && (
+                      <MaskedDndIcon
+                        name={creatureTypeGlyph(stat.type)!}
+                        size={22}
+                        className="text-[var(--qd-accent-text)] shrink-0"
+                      />
+                    )}
+                    {selected.name}
+                  </div>
                   <div className={`${mono} mt-1.5 text-[9px] italic text-[var(--qd-accent-bright)]`}>
                     {[stat.size, stat.type, stat.alignment].filter(Boolean).join(' ') || '—'}
                     {` · CR ${stat.cr}`}
