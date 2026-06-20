@@ -61,4 +61,26 @@ describe('selectRelevantEntities', () => {
     expect(selected.length).toBe(2);
     expect(droppedCount).toBe(3);
   });
+
+  it('accumulates neighbor score across multiple seeds', () => {
+    const entities = [
+      ent({ id: 'zara', name: 'Zara', description: 'spy' }),
+      ent({ id: 'borin', name: 'Borin', description: 'spy' }),
+      ent({ id: 'cult', name: 'The Ashen Cult' }),
+      ent({ id: 'lone', name: 'Lonely Hermit' }),
+    ];
+    const rels: SelectableRelationship[] = [
+      { fromEntityId: 'zara', toEntityId: 'cult', strength: 0.4 },
+      { fromEntityId: 'borin', toEntityId: 'cult', strength: 0.4 },
+      { fromEntityId: 'borin', toEntityId: 'lone', strength: 0.4 },
+    ];
+    // Query matches both zara and borin (seeds). 'cult' is a neighbor of BOTH,
+    // 'lone' a neighbor of one — so 'cult' must rank above 'lone'.
+    const { selected } = selectRelevantEntities('spy', entities, rels);
+    const cultIdx = selected.findIndex((e) => e.id === 'cult');
+    const loneIdx = selected.findIndex((e) => e.id === 'lone');
+    expect(cultIdx).toBeGreaterThanOrEqual(0);
+    expect(loneIdx).toBeGreaterThanOrEqual(0);
+    expect(cultIdx).toBeLessThan(loneIdx);
+  });
 });

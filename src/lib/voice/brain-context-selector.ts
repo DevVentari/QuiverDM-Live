@@ -53,7 +53,7 @@ export function selectRelevantEntities<E extends SelectableEntity>(
   for (const e of entities) {
     let score = 0;
     score += NAME_WEIGHT * countMatches(e.name, tokens);
-    score += ALIAS_WEIGHT * countMatches(e.aliases.join(' '), tokens);
+    for (const alias of e.aliases) score += ALIAS_WEIGHT * countMatches(alias, tokens);
     if (e.description) score += DESCRIPTION_WEIGHT * countMatches(e.description, tokens);
     if (score > 0) scores.set(e.id, score);
   }
@@ -94,6 +94,9 @@ export function selectRelevantEntities<E extends SelectableEntity>(
   }
 
   const selected = ranked.slice(0, limit);
+  // droppedCount counts only ranked candidates beyond the limit; zero-score
+  // entities (no match, no graph proximity) are never candidates, so
+  // selected.length + droppedCount need not equal entities.length.
   const droppedCount = Math.max(0, ranked.length - selected.length);
   return { selected, droppedCount };
 }
