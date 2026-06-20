@@ -303,7 +303,9 @@ export class BrainService {
     await this.requireDM(campaignId, userId);
 
     const [entities, relationships, sessions] = await Promise.all([
-      brainRepository.findEntities(campaignId),
+      // Gap detection does no LLM call, so scan the whole world rather than
+      // inheriting the default 100-row cap (which exists to bound token budgets).
+      brainRepository.findEntities(campaignId, { limit: 10_000 }),
       brainRepository.findRelationships(campaignId),
       prisma.gameSession.findMany({ where: { campaignId }, select: { id: true, sessionNumber: true } }),
     ]);
