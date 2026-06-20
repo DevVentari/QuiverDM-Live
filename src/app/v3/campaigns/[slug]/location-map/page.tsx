@@ -19,10 +19,13 @@
  * Renders ONLY inner content (the v3 shell provides chrome). h-full flex.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
+import { QdInput } from '@/components/ui-v3/QdInput';
+import { QdButton } from '@/components/ui-v3/QdButton';
 
 type Status = 'ally' | 'unstable' | 'hostile' | 'neutral' | 'town';
 
@@ -138,8 +141,18 @@ function Crumb({ label, active }: { label: string; active?: boolean }) {
 }
 
 export default function LocationMapPage() {
-  const { campaignId, slug } = useCampaign();
+  const { campaignId, slug, isDM } = useCampaign();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newPlaceName, setNewPlaceName] = useState('');
+  const addInputRef = useRef<HTMLInputElement>(null);
+
+  const ZOOM_STEP = 0.2;
+  const ZOOM_MIN = 0.5;
+  const ZOOM_MAX = 2.5;
+  const handleZoomIn = () => setZoom((z) => Math.min(ZOOM_MAX, parseFloat((z + ZOOM_STEP).toFixed(2))));
+  const handleZoomOut = () => setZoom((z) => Math.max(ZOOM_MIN, parseFloat((z - ZOOM_STEP).toFixed(2))));
 
   // Map + its pins (real x/y). getOrCreateRoot returns the root CampaignMap.
   const rootQuery = trpc.worldMap.getOrCreateRoot.useQuery({ campaignId }, { staleTime: 60_000 });
@@ -152,6 +165,30 @@ export default function LocationMapPage() {
   const map = rootQuery.data ?? null;
   const pins = (map?.pins as MapPinRow[] | undefined) ?? [];
   const entityRows = (locationsQuery.data as EntityRow[] | undefined) ?? [];
+
+  const utils = trpc.useUtils();
+  const invalidate = () => {
+    void utils.worldMap.getOrCreateRoot.invalidate({ campaignId });
+    void utils.brain.entities.invalidate();
+  };
+  const createLocationPin = trpc.worldMap.createLocationPin.useMutation({ onSuccess: invalidate });
+
+  const handleAddPlace = () => {
+    if (!isDM) return;
+    setShowAddForm(true);
+    setNewPlaceName('');
+    setTimeout(() => addInputRef.current?.focus(), 0);
+  };
+  const handleAddSubmit = () => {
+    if (!map || !newPlaceName.trim()) return;
+    createLocationPin.mutate({ mapId: map.id, campaignId, name: newPlaceName.trim(), x: 50, y: 50 });
+    setShowAddForm(false);
+    setNewPlaceName('');
+  };
+  const handleAddCancel = () => {
+    setShowAddForm(false);
+    setNewPlaceName('');
+  };
 
   // Index pins by entityId so we can read real coords when a location is pinned.
   const pinByEntity = useMemo(() => {
@@ -248,7 +285,9 @@ export default function LocationMapPage() {
           {slug} · {map?.name ?? 'Location Map'}
         </span>
         <span className="flex-1" />
-        <Crumb label="WORLD" />
+        <Link href={`/v3/campaigns/${slug}/world-map`} className="rounded-[7px]">
+          <Crumb label="WORLD" />
+        </Link>
         <span className="text-[11px] text-[var(--qd-ink-faintest)]">▸</span>
         <Crumb label="LOCATION MAP" active />
         <span className="text-[11px] text-[var(--qd-ink-faintest)]">▸</span>
@@ -260,8 +299,41 @@ export default function LocationMapPage() {
         <aside className="flex w-[218px] flex-none flex-col gap-2 overflow-auto border-r border-[var(--qd-border-faint)] bg-[rgba(0,0,0,0.2)] p-3">
           <div className="flex items-center justify-between px-0.5">
             <span className={`${mono} text-[8px] tracking-[0.16em] text-[var(--qd-ink-faint)]`}>PLACES · {places.length}</span>
-            <span className={`${mono} text-[9px] text-[var(--qd-accent)]`}>+ Add</span>
+            {isDM && !showAddForm && (
+              <button
+                type="button"
+                onClick={handleAddPlace}
+                className={`${mono} text-[9px] text-[var(--qd-accent)]`}
+              >
+                + Add
+              </button>
+            )}
           </div>
+
+          {showAddForm && (
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleAddSubmit(); }}
+              className="flex flex-col gap-1.5 rounded-[10px] border border-[var(--qd-border-accent)] p-2"
+              style={{ background: 'color-mix(in oklab, var(--qd-accent) 6%, transparent)' }}
+            >
+              <QdInput
+                ref={addInputRef}
+                value={newPlaceName}
+                onChange={(e) => setNewPlaceName(e.target.value)}
+                placeholder="Place name…"
+                className="text-[12px]"
+                onKeyDown={(e) => { if (e.key === 'Escape') handleAddCancel(); }}
+              />
+              <div className="flex gap-1.5">
+                <QdButton type="submit" variant="primary" className="flex-1 min-h-[32px] text-[11px] px-2">
+                  Add
+                </QdButton>
+                <QdButton type="button" variant="ghost" onClick={handleAddCancel} className="min-h-[32px] text-[11px] px-2">
+                  Cancel
+                </QdButton>
+              </div>
+            </form>
+          )}
 
           {places.length === 0 && (
             <p className={`${mono} px-1 py-6 text-center text-[10px] text-[var(--qd-ink-muted)]`}>This place is uncharted.</p>
@@ -314,38 +386,42 @@ export default function LocationMapPage() {
           className="relative flex-1 overflow-hidden"
           style={{ background: 'radial-gradient(560px 420px at 48% 46%, #241a12, #100c0a 82%)' }}
         >
-          {/* art placeholder / uploaded background */}
-          {map?.backgroundUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={map.backgroundUrl} alt={map.name ?? 'Location map'} className="absolute inset-0 h-full w-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 grid place-items-center">
-              <span className={`${mono} text-[10px] tracking-wide text-[var(--qd-ink-faintest)]`}>
-                drop district-map art — streets, pins &amp; fog overlay on top
-              </span>
-            </div>
-          )}
-
-          {/* street grid */}
+          {/* Zoomable layer — all map content scales together */}
           <div
-            className="pointer-events-none absolute inset-0"
-            style={{ background: 'repeating-linear-gradient(58deg,rgba(255,225,190,.025) 0 2px,transparent 2px 30px),repeating-linear-gradient(122deg,rgba(255,225,190,.02) 0 2px,transparent 2px 38px)' }}
-          />
-          {/* main road */}
-          <div
-            className="pointer-events-none absolute left-[8%] top-[62%] h-3.5 w-[78%] rotate-[-7deg]"
-            style={{ background: 'linear-gradient(90deg,rgba(217,138,61,.12),rgba(217,138,61,.05))', borderTop: '1px solid rgba(255,235,205,.06)', borderBottom: '1px solid rgba(255,235,205,.06)' }}
-          />
+            className="absolute inset-0"
+            style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.15s ease' }}
+          >
+            {/* art placeholder / uploaded background */}
+            {map?.backgroundUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={map.backgroundUrl} alt={map.name ?? 'Location map'} className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 grid place-items-center">
+                <span className={`${mono} text-[10px] tracking-wide text-[var(--qd-ink-faintest)]`}>
+                  drop district-map art — streets, pins &amp; fog overlay on top
+                </span>
+              </div>
+            )}
 
-          {/* fog region — // TODO: real fog state per place/region */}
-          <div
-            className="pointer-events-none absolute bottom-0 right-0 top-0 w-[24%]"
-            style={{ background: 'linear-gradient(90deg, transparent, rgba(8,6,5,.9) 52%)' }}
-          />
-          <div className={`${mono} absolute right-4 top-12 z-[4] text-[8px] tracking-[0.1em] text-[var(--qd-ink-faintest)]`}>▒ UNEXPLORED · player-hidden</div>
+            {/* street grid */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ background: 'repeating-linear-gradient(58deg,rgba(255,225,190,.025) 0 2px,transparent 2px 30px),repeating-linear-gradient(122deg,rgba(255,225,190,.02) 0 2px,transparent 2px 38px)' }}
+            />
+            {/* main road */}
+            <div
+              className="pointer-events-none absolute left-[8%] top-[62%] h-3.5 w-[78%] rotate-[-7deg]"
+              style={{ background: 'linear-gradient(90deg,rgba(217,138,61,.12),rgba(217,138,61,.05))', borderTop: '1px solid rgba(255,235,205,.06)', borderBottom: '1px solid rgba(255,235,205,.06)' }}
+            />
 
-          {/* pins */}
-          {places.map((p) => {
+            {/* fog region — decorative (no real fog field on this map). // TODO: real fog state per CampaignMap */}
+            <div
+              className="pointer-events-none absolute bottom-0 right-0 top-0 w-[24%]"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(8,6,5,.9) 52%)' }}
+            />
+
+            {/* pins */}
+            {places.map((p) => {
             const isSelected = selected?.id === p.id;
             const icon = iconFor(p.kind);
             return isSelected ? (
@@ -394,17 +470,32 @@ export default function LocationMapPage() {
               </div>
             );
           })}
+          </div>{/* end zoomable layer */}
 
-          {/* zoom controls — // TODO: real zoom/drag */}
+          {/* zoom controls — wired: ±0.2 step, clamped 0.5–2.5 */}
           <div className="absolute left-3.5 top-3.5 z-[5] flex flex-col gap-1.5">
-            {['+', '−'].map((c) => (
-              <span key={c} className="grid h-8 w-8 cursor-pointer place-items-center rounded-[8px] border border-[var(--qd-border-strong)] text-[15px] text-[var(--qd-ink-2)]" style={{ background: 'rgba(0,0,0,.5)' }}>{c}</span>
-            ))}
+            <button
+              type="button"
+              aria-label="Zoom in"
+              onClick={handleZoomIn}
+              disabled={zoom >= ZOOM_MAX}
+              className="grid h-8 w-8 cursor-pointer place-items-center rounded-[8px] border border-[var(--qd-border-strong)] text-[15px] text-[var(--qd-ink-2)] disabled:opacity-40"
+              style={{ background: 'rgba(0,0,0,.5)' }}
+            >+</button>
+            <button
+              type="button"
+              aria-label="Zoom out"
+              onClick={handleZoomOut}
+              disabled={zoom <= ZOOM_MIN}
+              className="grid h-8 w-8 cursor-pointer place-items-center rounded-[8px] border border-[var(--qd-border-strong)] text-[15px] text-[var(--qd-ink-2)] disabled:opacity-40"
+              style={{ background: 'rgba(0,0,0,.5)' }}
+            >−</button>
+            <span className={`${mono} text-center text-[7px] text-[var(--qd-ink-faintest)]`}>{Math.round(zoom * 100)}%</span>
           </div>
-          {/* toggle controls */}
+          {/* toggle controls — Fog is decorative (no fog field on CampaignMap) */}
           <div className={`${mono} absolute right-3.5 top-3.5 z-[5] flex gap-1.5 text-[8.5px]`}>
             <span className="cursor-pointer rounded-[7px] border border-[var(--qd-border-strong)] px-2 py-1.5 text-[var(--qd-ink-2)]" style={{ background: 'rgba(0,0,0,.5)' }}>Labels ✓</span>
-            <span className="cursor-pointer rounded-[7px] border px-2 py-1.5 text-[var(--qd-accent-text)]" style={{ background: 'rgba(0,0,0,.5)', borderColor: 'var(--qd-border-accent)' }}>Fog · DM</span>
+            <span className="rounded-[7px] border px-2 py-1.5 text-[var(--qd-ink-faint)]" style={{ background: 'rgba(0,0,0,.5)', borderColor: 'var(--qd-border-faint)' }}>Fog · decorative</span>
           </div>
           <div className={`${mono} absolute bottom-3 left-3.5 z-[5] text-[8px] text-[var(--qd-ink-faintest)]`}>
             district of {slug} · drag pins · click to drill in
