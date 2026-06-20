@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
+import { CONDITION_NAMES } from '@/lib/srd/conditions';
 
 /**
  * Player Combat HUD — /v3/play/[slug]/combat
@@ -22,13 +23,6 @@ interface SessionState {
   spellSlots: unknown;
   hitDice: unknown;
 }
-
-// The 5e conditions a player toggles on themselves at the table.
-const CONDITIONS = [
-  'Blinded', 'Charmed', 'Deafened', 'Frightened', 'Grappled', 'Incapacitated',
-  'Invisible', 'Paralyzed', 'Petrified', 'Poisoned', 'Prone', 'Restrained',
-  'Stunned', 'Unconscious', 'Exhaustion',
-] as const;
 
 function asConditions(c: unknown): string[] {
   return Array.isArray(c) ? c.filter((x): x is string => typeof x === 'string') : [];
@@ -252,7 +246,7 @@ export default function PlayerCombatPage() {
       <section>
         <div className="mb-2.5 font-qd-mono text-[10px] uppercase tracking-[0.14em] text-qd-ink-muted">Conditions</div>
         <div className="flex flex-wrap gap-2">
-          {CONDITIONS.map((c) => {
+          {CONDITION_NAMES.map((c) => {
             const on = conditions.includes(c);
             return (
               <button

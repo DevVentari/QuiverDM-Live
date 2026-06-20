@@ -7,18 +7,12 @@ import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 import { useHeartflame } from '@/components/shell/v3/heartflame-context';
 import { primaryNudge, type SurfacedNudge } from '@/lib/heartflame';
 import type { BoardParticipant } from '@/server/services/heartflame.service';
+import { CONDITION_NAMES } from '@/lib/srd/conditions';
 
 const ECONOMY: Array<{ field: 'actionUsed' | 'bonusActionUsed' | 'reactionUsed'; icon: string; label: string }> = [
   { field: 'actionUsed', icon: 'combat/action', label: 'Action' },
   { field: 'bonusActionUsed', icon: 'combat/bonus-action', label: 'Bonus' },
   { field: 'reactionUsed', icon: 'combat/reaction', label: 'Reaction' },
-];
-
-/** Standard D&D 5e conditions (matches encounter.service.ts DND5E_CONDITIONS). */
-const DND5E_CONDITIONS = [
-  'Blinded', 'Charmed', 'Deafened', 'Exhaustion', 'Frightened', 'Grappled',
-  'Incapacitated', 'Invisible', 'Paralyzed', 'Petrified', 'Poisoned',
-  'Prone', 'Restrained', 'Stunned', 'Unconscious',
 ];
 
 function asConditions(c: unknown): string[] {
@@ -136,7 +130,7 @@ function ConditionPicker({ active, onToggle, onClose }: ConditionPickerProps) {
         </button>
       </div>
       <div className="flex flex-wrap gap-1.5">
-        {DND5E_CONDITIONS.map((c) => {
+        {CONDITION_NAMES.map((c) => {
           const on = set.has(c.toLowerCase());
           return (
             <button

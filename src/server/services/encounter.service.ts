@@ -2,24 +2,9 @@ import { authz } from './authorization.service';
 import { encounterRepository } from '../repositories/encounter.repository';
 import { prisma } from '../db';
 import { ForbiddenError, NotFoundError } from '../errors';
-
-const DND5E_CONDITIONS = [
-  'Blinded',
-  'Charmed',
-  'Deafened',
-  'Exhaustion',
-  'Frightened',
-  'Grappled',
-  'Incapacitated',
-  'Invisible',
-  'Paralyzed',
-  'Petrified',
-  'Poisoned',
-  'Prone',
-  'Restrained',
-  'Stunned',
-  'Unconscious',
-] as const;
+// Single source of truth for the 5e condition set (shared with the combat UIs
+// and the Compendium). See src/lib/srd/conditions.ts.
+import { CONDITION_NAMES } from '../../lib/srd/conditions';
 
 export class EncounterService {
   async getBySession(sessionId: string, userId: string) {
@@ -179,7 +164,7 @@ export class EncounterService {
   }
 
   getDnd5eConditions(): string[] {
-    return [...DND5E_CONDITIONS];
+    return [...CONDITION_NAMES];
   }
 }
 
