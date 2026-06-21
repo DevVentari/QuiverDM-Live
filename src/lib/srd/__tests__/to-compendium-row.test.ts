@@ -73,6 +73,18 @@ describe('srdMonsterToRow', () => {
     });
   });
 
+  it('also carries traits, reactions, and legendary actions (not just actions)', () => {
+    const dragon: SrdMonster = {
+      ...GHOST,
+      reactions: [{ name: 'Parry', desc: 'Adds 3 to AC against one melee attack.' }],
+      legendaryActions: [{ name: 'Tail Attack', desc: 'The dragon makes a tail attack.' }],
+    };
+    const d = srdMonsterToRow(dragon).data as Record<string, any>;
+    expect(d.traits[0]).toEqual({ name: 'Ethereal Sight', description: 'The ghost can see 60 feet into the Ethereal Plane.' });
+    expect(d.reactions[0]).toEqual({ name: 'Parry', description: 'Adds 3 to AC against one melee attack.' });
+    expect(d.legendaryActions[0]).toEqual({ name: 'Tail Attack', description: 'The dragon makes a tail attack.' });
+  });
+
   it('omits empty optional notes rather than emitting blanks', () => {
     const noArmorDesc = { ...GHOST, armorDesc: '', hitDice: '' };
     const d = srdMonsterToRow(noArmorDesc).data as Record<string, any>;

@@ -119,7 +119,10 @@ interface StatBlock {
   conditionImmunities?: string[];
   senses?: string;
   languages?: string;
+  traits: Array<{ name: string; description: string }>;
   actions: Array<{ name: string; description: string }>;
+  reactions: Array<{ name: string; description: string }>;
+  legendaryActions: Array<{ name: string; description: string }>;
 }
 
 /**
@@ -142,11 +145,11 @@ function adaptStatBlock(row: CompendiumRow | null): StatBlock | null {
   const acNote = typeof d.acNote === 'string' ? ` (${d.acNote})` : '';
   const hpDice = typeof d.hpDice === 'string' ? ` (${d.hpDice})` : '';
 
-  const actionsRaw = Array.isArray(d.actions) ? (d.actions as Array<Record<string, unknown>>) : [];
-  const actions = actionsRaw.map((a) => ({
-    name: typeof a.name === 'string' ? a.name : 'Action',
-    description: typeof a.description === 'string' ? a.description : '',
-  }));
+  const namedList = (v: unknown) =>
+    (Array.isArray(v) ? (v as Array<Record<string, unknown>>) : []).map((a) => ({
+      name: typeof a.name === 'string' ? a.name : '—',
+      description: typeof a.description === 'string' ? a.description : '',
+    }));
 
   const strArr = (v: unknown): string[] | undefined =>
     Array.isArray(v) && v.length ? v.map(String) : undefined;
@@ -166,7 +169,10 @@ function adaptStatBlock(row: CompendiumRow | null): StatBlock | null {
     conditionImmunities: strArr(d.conditionImmunities),
     senses: typeof d.senses === 'string' ? d.senses : undefined,
     languages: typeof d.languages === 'string' ? d.languages : undefined,
-    actions,
+    traits: namedList(d.traits),
+    actions: namedList(d.actions),
+    reactions: namedList(d.reactions),
+    legendaryActions: namedList(d.legendaryActions),
   };
 }
 
@@ -268,6 +274,20 @@ export default function CompendiumPage() {
   const spell = useMemo(
     () => (category.kind === 'spell' ? adaptSpell(selected) : null),
     [category.kind, selected],
+  );
+  // Stat-block sections in 5e reading order; empty ones dropped. Traits render
+  // headerless (they sit right under the stats), the rest get a header.
+  const statSections = useMemo(
+    () =>
+      stat
+        ? [
+            { title: null as string | null, items: stat.traits },
+            { title: 'Actions', items: stat.actions },
+            { title: 'Reactions', items: stat.reactions },
+            { title: 'Legendary Actions', items: stat.legendaryActions },
+          ].filter((s) => s.items.length > 0)
+        : [],
+    [stat],
   );
 
   const listLabel = PLURAL_LABEL[category.type] ?? category.label.toUpperCase();
@@ -493,14 +513,21 @@ export default function CompendiumPage() {
                 </div>
               )}
 
-              {/* actions */}
+              {/* traits · actions · reactions · legendary actions */}
               <div className="mt-3.5 border-t border-[var(--qd-border-accent)] pt-3" style={{ borderTopColor: 'rgba(217,138,61,.2)' }}>
-                {stat.actions.length === 0 ? (
-                  <div className="text-[13px] text-[var(--qd-ink-muted)]">No actions recorded.</div>
+                {statSections.length === 0 ? (
+                  <div className="text-[13px] text-[var(--qd-ink-muted)]">No traits or actions recorded.</div>
                 ) : (
-                  stat.actions.map((a, i) => (
-                    <div key={`${a.name}-${i}`} className={`text-[14px] text-[var(--qd-accent-hi)] ${i > 0 ? 'mt-2' : ''}`}>
-                      <b>{a.name}.</b> <span className="text-[var(--qd-ink-2)]">{a.description}</span>
+                  statSections.map((section) => (
+                    <div key={section.title ?? 'traits'} className="mt-3 first:mt-0">
+                      {section.title && (
+                        <div className={`${display} mb-1.5 text-[15px] text-[var(--qd-accent-text)]`}>{section.title}</div>
+                      )}
+                      {section.items.map((a, i) => (
+                        <div key={`${a.name}-${i}`} className={`text-[14px] text-[var(--qd-accent-hi)] ${i > 0 ? 'mt-2' : ''}`}>
+                          <b>{a.name}.</b> <span className="text-[var(--qd-ink-2)]">{a.description}</span>
+                        </div>
+                      ))}
                     </div>
                   ))
                 )}

@@ -64,7 +64,10 @@ export function srdMonsterToRow(m: SrdMonster): CompendiumRow {
       conditionImmunities: defence(m.conditionImmunities),
       senses: m.senses || undefined,
       languages: m.languages || undefined,
+      traits: m.traits.map((t) => ({ name: t.name, description: t.desc })),
       actions: m.actions.map((a) => ({ name: a.name, description: a.desc })),
+      reactions: m.reactions.map((r) => ({ name: r.name, description: r.desc })),
+      legendaryActions: m.legendaryActions.map((l) => ({ name: l.name, description: l.desc })),
     },
   };
 }
