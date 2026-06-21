@@ -65,6 +65,28 @@ test.describe('Session Scene Runner', () => {
     });
   });
 
+  test('session hub surfaces an Enter Live Session entry point', async ({ page }, testInfo) => {
+    test.slow();
+    await checkpoint(testInfo, 'sign-in', async () => {
+      await signInAsTestUser(page, VIC_EMAIL, PASSWORD);
+    }, 15_000);
+
+    await checkpoint(testInfo, 'open-session-hub', async () => {
+      // The seeded session is in_progress -> the hub's "ran" phase must offer a
+      // way into the live cockpit (previously a "coming in a future slice" stub).
+      // Don't wait for networkidle: a live session keeps connections open, so the
+      // page never goes idle — auto-wait on the link below instead.
+      await page.goto(`/session/${liveSessionId}`, { waitUntil: 'domcontentloaded' });
+    }, 25_000);
+
+    await checkpoint(testInfo, 'verify-enter-live-link', async () => {
+      const enterLive = page.getByRole('link', { name: /Enter Live Session/i });
+      await expect(enterLive).toBeVisible({ timeout: 15_000 });
+      await expect(enterLive).toHaveAttribute('href', new RegExp(`/sessions/${liveSessionId}/live$`));
+      await expect(page.locator('body')).not.toContainText(/something went wrong|404|internal server error|session not found/i);
+    }, 20_000);
+  });
+
   test('cockpit shows scene runner above live notes', async ({ page }, testInfo) => {
     test.slow();
     await checkpoint(testInfo, 'sign-in', async () => {

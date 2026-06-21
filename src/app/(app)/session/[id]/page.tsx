@@ -9,6 +9,8 @@ import { PrepWorkspace } from './_components/PrepWorkspace'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Canvas } from '@/components/primitives'
+import Link from 'next/link'
+import { Radio } from 'lucide-react'
 
 // getById returns a union (DM full view | player restricted view).
 // Hub page is DM-facing — cast to a loose shared shape.
@@ -103,10 +105,36 @@ export default function SessionPage({
             onStatusChange={invalidate}
           />
         )}
-        {phase !== 'prep' && (
+        {phase === 'ran' && (
+          <div className="flex flex-col items-center justify-center h-64 gap-4">
+            <p className="font-[var(--q-font-display)] text-xs tracking-[2px] text-[var(--q-amber)] uppercase">
+              Live session in progress
+            </p>
+            <p className="text-sm text-[var(--q-text-faint)] max-w-sm text-center">
+              The table is live. Open the cockpit to run scenes, capture the transcript, and keep the world in front of you.
+            </p>
+            {campaign && (
+              <Button asChild size="lg" className="gap-2">
+                <Link href={`/campaigns/${campaign.slug}/sessions/${id}/live`}>
+                  <Radio className="h-4 w-4" />
+                  Enter Live Session
+                </Link>
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => backToPrep.mutate({ id, status: 'planning' })}
+              disabled={backToPrep.isPending}
+              className="text-[var(--q-text-faint)] hover:text-[var(--q-text)]"
+            >
+              ← Back to prep
+            </Button>
+          </div>
+        )}
+        {phase !== 'prep' && phase !== 'ran' && (
           <div className="flex flex-col items-center justify-center h-64 gap-3">
             <p className="font-[var(--q-font-display)] text-xs tracking-[2px] text-[var(--q-amber)] uppercase">
-              {phase === 'ran' && 'Run phase'}
               {phase === 'processing' && 'Processing'}
               {phase === 'summary' && 'Summary'}
               {phase === 'recap' && 'Recap'}
@@ -115,17 +143,6 @@ export default function SessionPage({
             <p className="text-sm text-[var(--q-text-faint)]">
               Coming in a future slice
             </p>
-            {phase === 'ran' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => backToPrep.mutate({ id, status: 'planning' })}
-                disabled={backToPrep.isPending}
-                className="text-[var(--q-text-faint)] hover:text-[var(--q-text)]"
-              >
-                ← Back to prep
-              </Button>
-            )}
           </div>
         )}
       </div>
