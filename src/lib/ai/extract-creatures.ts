@@ -79,7 +79,14 @@ const SRD_NAME_SET: Set<string> = new Set(getAllMonsters().map((m) => normalizeN
 
 /** True if this creature is in the SRD bestiary (already surfaced globally — skip it). */
 export function isSrdCreatureName(name: string): boolean {
-  return SRD_NAME_SET.has(normalizeName(name));
+  const n = normalizeName(name);
+  if (SRD_NAME_SET.has(n)) return true;
+  // Crude singularization so pluralized references map to their SRD entry:
+  // "wolves"→"wolf", "bandits"→"bandit", "torches"→"torch".
+  if (n.endsWith('ves') && SRD_NAME_SET.has(`${n.slice(0, -3)}f`)) return true;
+  if (n.endsWith('es') && SRD_NAME_SET.has(n.slice(0, -2))) return true;
+  if (n.endsWith('s') && SRD_NAME_SET.has(n.slice(0, -1))) return true;
+  return false;
 }
 
 function defence(value: string | undefined): string[] | undefined {

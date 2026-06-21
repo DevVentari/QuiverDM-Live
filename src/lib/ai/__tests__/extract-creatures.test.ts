@@ -66,6 +66,11 @@ describe('isSrdCreatureName', () => {
     expect(isSrdCreatureName('Strahd von Zarovich')).toBe(false);
     expect(isSrdCreatureName('Rahadin')).toBe(false);
   });
+  it('flags pluralized references to SRD creatures', () => {
+    expect(isSrdCreatureName('Wolves')).toBe(true); // SRD has "Wolf"
+    expect(isSrdCreatureName('Bandits')).toBe(true); // SRD has "Bandit"
+    expect(isSrdCreatureName('Scouts')).toBe(true); // SRD has "Scout"
+  });
 });
 
 describe('chunkHasStatBlock', () => {
