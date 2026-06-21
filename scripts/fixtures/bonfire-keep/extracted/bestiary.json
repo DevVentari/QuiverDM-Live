@@ -1,0 +1,125 @@
+[
+  {
+    "chapterSlug": "bestiary",
+    "npcs": [
+      {
+        "name": "Silver-Rot Shambler",
+        "role": "Monster — CR 6, Large Plant/Construct",
+        "description": "A grove-tree fully taken by the Silver Rot, crystallized to glass-bark and still moving. It carries the Silver Static at its most concentrated, projecting a Beautiful Whisper that charms and restrains nearby creatures into wanting to simply stop, and bursts into silver-glass shards on death."
+      },
+      {
+        "name": "Root-Bound Deserter",
+        "role": "Monster — CR 2, Medium Undead/Plant",
+        "description": "A druid who succumbed to the Silver Static's call to stop, caught between its former self and a Shambler. Its signature threat is Empathic Death: when it dies, the concentrated grief releases and incapacitates nearby creatures who fail a Wisdom save."
+      },
+      {
+        "name": "Salt-Statue Echo",
+        "role": "Monster — CR 5, Medium Undead/Aberration",
+        "description": "A person held at the moment of contact with the Stagnation until their awareness curdled. It cannot walk, only teleport (Temporal Flicker), and its Ageing Touch can 'Salt' a target, permanently slowing them and turning them into a salt-statue if their speed reaches zero."
+      },
+      {
+        "name": "Time-Drift Predator",
+        "role": "Monster — CR 7, Large Monstrosity",
+        "description": "A deep-water ambush hunter of the Great Bay adapted to live a few seconds ahead in time. Its Blurred Time gives attackers disadvantage and itself advantage on Dexterity saves, and it strikes where prey is going rather than where it is."
+      },
+      {
+        "name": "Ash-Owl",
+        "role": "Monster — CR 1, Small Beast",
+        "description": "The ghost of the Sunward Wastes, with porous charcoal feathers that catch drifting stasis ash, letting it vanish into the grey haze. It hunts silently and its ash-coated talons deal poison damage."
+      },
+      {
+        "name": "Glow-Silt Crab",
+        "role": "Monster — CR 1/4, Small Beast",
+        "description": "A tiny bioluminescent scavenger of the Stagnation's thick water, considered a sign of luck by Covenant sailors. Its luminescent shell sheds light and its claw can grapple."
+      },
+      {
+        "name": "Thornspine Goat",
+        "role": "Monster — CR 1/2, Medium Beast",
+        "description": "A mountain goat from around the Bonfire Keep with granite-hard horns and locking hooves. It is sure-footed and can deliver a devastating charging ram that knocks targets prone."
+      },
+      {
+        "name": "Moss-Back Shambler",
+        "role": "Monster — CR 2, Large Beast",
+        "description": "A large, peaceful quadruped of the Emerald Reach that carries gardens of moss and fungi as a mobile seed-carrier for the druids. When damaged it releases a spore cloud that poisons and confuses creatures nearby."
+      },
+      {
+        "name": "Salt-Crust Rat",
+        "role": "Monster — CR 1/8, Small Beast",
+        "description": "A vermin of the Great Confluence's lower decks with a hard crystalline coating and mineral-reinforced teeth. It chews through rope, lead piping, and soft metal, dealing double damage to wood and soft-metal objects."
+      },
+      {
+        "name": "Stasis-Glass Lizard",
+        "role": "Monster — CR 0, Tiny Beast",
+        "description": "A small reptile with translucent scales that absorb ambient stasis energy near Imperial relay towers. When threatened it triggers a Stasis-Flash, a blinding golden burst that can blind nearby creatures."
+      },
+      {
+        "name": "Silver-Winged Moth",
+        "role": "Monster — CR 0, Tiny Beast",
+        "description": "A moth that feeds on the silvered leaves of the Emerald Reach, with stiff metallic chiming wings that warn of nearby Rot. Its proximity disrupts perception (Silver Static) and its Silver Dust can numb and slow a target."
+      },
+      {
+        "name": "Cinder-Hound",
+        "role": "Monster — CR 1, Medium Beast",
+        "description": "A hound of the volcanic Thornspine foothills with skin like cooled lava and ember eyes, often drawn to the Heartflame's warmth. Its Heated Body burns attackers and its bite deals fire damage."
+      },
+      {
+        "name": "Drift-Kelper",
+        "role": "Monster — CR 1/2, Medium Monstrosity",
+        "description": "A slow, semi-sentient mass of kelp and barnacles drifting through the Stagnation. Not a true predator, it is extremely adhesive and grapples anything that touches it, collecting boats and swimmers."
+      },
+      {
+        "name": "Imperial Solar Sentinel",
+        "role": "Monster — CR 3, Medium Humanoid (Dragonborn)",
+        "description": "The backbone of the Sunward military, fighting with clockwork precision in gold-plated, sun-catching armor. Its shield grants Shield of Order to nearby allies and can unleash a Solar Flare cone that blinds enemies."
+      },
+      {
+        "name": "Covenant Tide-Guardian",
+        "role": "Monster — CR 3, Medium Humanoid (Triton)",
+        "description": "A master of the Flow who moves like the tide in adaptive coral armor, controlling battlefield momentum. Its Fluid Form lets it slip through narrow spaces and its Tidal Strike pushes or pulls struck targets."
+      },
+      {
+        "name": "Verdant Grove-Warden",
+        "role": "Monster — CR 3, Medium Humanoid (Elf)",
+        "description": "The immune system of the Emerald Reach, clad in self-knitting living vine armor and expert at ambush. Its Living Armor regenerates hit points in forests and it can hide as a bonus action in any foliage."
+      },
+      {
+        "name": "Clan Mors Shadow-Stalker",
+        "role": "Monster — CR 4, Small Humanoid (Skaven)",
+        "description": "An elite Clan Mors hunter sent to recover lost property or eliminate threats, wielding a living plague blade that deals necrotic damage and poisons. It has Evasion and can track any creature its blade has wounded."
+      },
+      {
+        "name": "Redclaw Vengeance-Seeker",
+        "role": "Monster — CR 2, Small Humanoid (Goblin)",
+        "description": "A Redclaw goblin who has embraced the 'Beautiful Ending,' fanatical and reckless with magically enhanced hatred. Hatred's Resilience can keep it standing at 1 HP, and its Aura of Resentment disadvantages humans attacking it."
+      },
+      {
+        "name": "Archive Echo-Guardian",
+        "role": "Monster — CR 5, Medium Humanoid (Shadar-kai)",
+        "description": "A guardian of the Archive of Withered Echoes who keeps forbidden knowledge in the Shadowfell, fighting with cold efficiency. It can Phase Step to teleport and gain advantage, and its Recall Failure forces a target to relive its greatest failure, taking psychic damage and being stunned."
+      },
+      {
+        "name": "Golden Siphon-Warden",
+        "role": "Monster — CR 9, Large Construct",
+        "description": "An ancient Imperial construct built to guard a relay point on the Golden Magic distribution network, radiating zone-of-truth light from a hidden source (Serenitas). When reduced below 75 HP its Stasis Filters fail (Siphon Leak), turning its golden radiance to necrotic energy that damages everything nearby."
+      },
+      {
+        "name": "Stasis-Glass Sentinel",
+        "role": "Monster — CR 8, Large Construct",
+        "description": "A crystalline guardian built from stasis-ash byproduct to stand indefinitely at Imperial posts, many now defending abandoned sites with pointless total commitment. Its Reflective Surface has a 50% chance to bounce ranged spell attacks back at the caster, and a critical Glass Blade hit can petrify a target into glass."
+      },
+      {
+        "name": "Ink-Wraith Chronicler",
+        "role": "Monster — CR 4, Medium Undead",
+        "description": "A freed fragment of dangerous history that escaped the Shadowed Archive, moving as an ink-black form that writes itself onto other minds. Its Memory Stain disadvantages a target's mental checks, and Redact can make a creature forget a recently used spell or feature."
+      },
+      {
+        "name": "Grand Harvest Herald",
+        "role": "Monster — CR 16, Huge Aberration",
+        "description": "The denied Grand Harvest given flesh after fourteen hundred years of built-up pressure, a corruption of the Binding rather than of Serenitas. Its Unraveling Aura dissolves non-magical weapons, its Entropy Strike permanently reduces a target's max HP, and its Shepherd's Call banishes creatures into a Void Pocket to face visions of their own death."
+      }
+    ],
+    "locations": [],
+    "items": [],
+    "encounters": []
+  }
+]

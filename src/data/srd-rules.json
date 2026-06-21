@@ -1,0 +1,200 @@
+[
+  {
+    "slug": "cover",
+    "name": "Cover",
+    "category": "Combat",
+    "description": "Half cover (+2 AC and Dexterity saves) comes from a low wall, furniture, or another creature. Three-quarters cover (+5 AC and Dexterity saves) comes from a portcullis, arrow slit, or tree trunk. Total cover can't be targeted directly by an attack or spell. A target benefits only from the most protective degree of cover."
+  },
+  {
+    "slug": "advantage-and-disadvantage",
+    "name": "Advantage and Disadvantage",
+    "category": "Combat",
+    "description": "When you have advantage or disadvantage, roll a second d20 and use the higher (advantage) or lower (disadvantage) roll. They don't stack — you have it or you don't — and if you have both, they cancel out and you roll one d20."
+  },
+  {
+    "slug": "opportunity-attacks",
+    "name": "Opportunity Attacks",
+    "category": "Combat",
+    "description": "You can make an opportunity attack when a hostile creature you can see moves out of your reach. It uses your reaction to make one melee attack against the provoking creature, occurring right before it leaves your reach. Taking the Disengage action avoids provoking opportunity attacks."
+  },
+  {
+    "slug": "grappling",
+    "name": "Grappling",
+    "category": "Combat",
+    "description": "Using the Attack action, you can make a special melee attack to grapple a creature no more than one size larger than you. Make a Strength (Athletics) check contested by the target's Strength (Athletics) or Dexterity (Acrobatics). On success the target is grappled (speed 0). The target can escape by winning the same contest as an action."
+  },
+  {
+    "slug": "shoving",
+    "name": "Shoving a Creature",
+    "category": "Combat",
+    "description": "Using the Attack action, you can make a special melee attack to shove a creature, either to knock it prone or push it 5 feet away. Make a Strength (Athletics) check contested by the target's Strength (Athletics) or Dexterity (Acrobatics). The target must be no more than one size larger than you."
+  },
+  {
+    "slug": "two-weapon-fighting",
+    "name": "Two-Weapon Fighting",
+    "category": "Combat",
+    "description": "When you take the Attack action with a light melee weapon in one hand, you can use a bonus action to attack with a different light melee weapon in the other hand. You don't add your ability modifier to the bonus attack's damage unless that modifier is negative."
+  },
+  {
+    "slug": "critical-hits",
+    "name": "Critical Hits",
+    "category": "Combat",
+    "description": "When you roll a 20 on an attack roll, you hit regardless of modifiers or the target's AC, and it's a critical hit. Roll all of the attack's damage dice twice and add them together, then add any relevant modifiers as normal."
+  },
+  {
+    "slug": "resistance-and-vulnerability",
+    "name": "Resistance and Vulnerability",
+    "category": "Combat",
+    "description": "Resistance halves damage of that type; vulnerability doubles it. Apply them after all other modifiers. Multiple instances of resistance (or vulnerability) to the same type count only once."
+  },
+  {
+    "slug": "ranged-attacks-in-close-combat",
+    "name": "Ranged Attacks in Close Combat",
+    "category": "Combat",
+    "description": "When you make a ranged attack with a weapon, spell, or other means while a hostile creature you can see is within 5 feet of you, you have disadvantage on the attack roll."
+  },
+  {
+    "slug": "actions-in-combat",
+    "name": "Actions in Combat",
+    "category": "Action Economy",
+    "description": "On your turn you can take one action: Attack, Cast a Spell, Dash, Disengage, Dodge, Help, Hide, Ready, Search, Use an Object, or another action granted by a feature. You can also move and, if a feature allows, take a bonus action."
+  },
+  {
+    "slug": "bonus-actions",
+    "name": "Bonus Actions",
+    "category": "Action Economy",
+    "description": "Some features, spells, and abilities let you take an additional action — a bonus action — on your turn. You can take only one bonus action per turn, and only when a special ability, spell, or feature states you can do something as a bonus action."
+  },
+  {
+    "slug": "reactions",
+    "name": "Reactions",
+    "category": "Action Economy",
+    "description": "A reaction is an instant response to a trigger, which can occur on your turn or someone else's. The opportunity attack is the most common. You can take only one reaction per round; you regain your reaction at the start of your turn."
+  },
+  {
+    "slug": "ready",
+    "name": "Ready Action",
+    "category": "Action Economy",
+    "description": "On your turn you can hold an action, choosing a perceivable trigger and the action (or movement) you'll take in response. When the trigger occurs, you can use your reaction to act. Readying a spell requires concentration and expends the slot when readied."
+  },
+  {
+    "slug": "dodge",
+    "name": "Dodge Action",
+    "category": "Action Economy",
+    "description": "When you take the Dodge action, until the start of your next turn any attack roll against you has disadvantage if you can see the attacker, and you make Dexterity saving throws with advantage. You lose this benefit if you are incapacitated or your speed drops to 0."
+  },
+  {
+    "slug": "help",
+    "name": "Help Action",
+    "category": "Action Economy",
+    "description": "You can lend aid so an ally gains advantage on their next ability check before your next turn, or you can aid an ally's attack against a creature within 5 feet of you, giving that attack advantage before the start of your next turn."
+  },
+  {
+    "slug": "hide",
+    "name": "Hide Action",
+    "category": "Action Economy",
+    "description": "When you take the Hide action, make a Dexterity (Stealth) check contested by the passive Wisdom (Perception) of creatures that might notice you. You can't hide from a creature that can see you clearly, and you give away your position if you make noise."
+  },
+  {
+    "slug": "difficult-terrain",
+    "name": "Difficult Terrain",
+    "category": "Movement",
+    "description": "Every foot of movement in difficult terrain costs 1 extra foot — so moving 1 foot uses 2 feet of your speed. Low furniture, rubble, undergrowth, steep stairs, snow, and a creature's space all count as difficult terrain, but it isn't cumulative."
+  },
+  {
+    "slug": "jumping",
+    "name": "Jumping",
+    "category": "Movement",
+    "description": "With at least 10 feet of running start, a long jump covers a number of feet up to your Strength score; a high jump reaches 3 + your Strength modifier feet. Each jump costs movement equal to its distance. Without a running start, those distances are halved."
+  },
+  {
+    "slug": "climbing-swimming-crawling",
+    "name": "Climbing, Swimming, and Crawling",
+    "category": "Movement",
+    "description": "While climbing or swimming, each foot of movement costs 1 extra foot (2 in difficult terrain), unless you have a climb or swim speed. The GM may require a Strength (Athletics) check for tricky surfaces or rough water. Crawling also costs 1 extra foot per foot moved."
+  },
+  {
+    "slug": "short-rest",
+    "name": "Short Rest",
+    "category": "Resting",
+    "description": "A short rest is at least 1 hour of light activity. You can spend one or more Hit Dice at the end of it, rolling each and adding your Constitution modifier to regain hit points. Some features recharge on a short rest."
+  },
+  {
+    "slug": "long-rest",
+    "name": "Long Rest",
+    "category": "Resting",
+    "description": "A long rest is at least 8 hours, mostly sleeping or light activity. You regain all lost hit points and up to half your total Hit Dice (minimum 1). A creature can benefit from only one long rest in a 24-hour period and must have at least 1 hit point to take one."
+  },
+  {
+    "slug": "concentration",
+    "name": "Concentration",
+    "category": "Spellcasting",
+    "description": "Some spells require concentration to keep them active. It ends if you cast another concentration spell, are incapacitated or killed, or fail a Constitution save when you take damage. The save DC equals 10 or half the damage taken, whichever is higher."
+  },
+  {
+    "slug": "spell-slots",
+    "name": "Spell Slots",
+    "category": "Spellcasting",
+    "description": "Casting a spell of 1st level or higher expends a slot of that spell's level or higher; casting at a higher level can strengthen the spell. Cantrips don't use slots. You regain expended slots on a long rest (some classes on a short rest)."
+  },
+  {
+    "slug": "spell-components",
+    "name": "Spell Components",
+    "category": "Spellcasting",
+    "description": "Spells can require verbal (V), somatic (S), and material (M) components. You need a free hand for somatic components and a material component (or a component pouch / focus) unless a cost is listed, in which case that specific item is required."
+  },
+  {
+    "slug": "ritual-casting",
+    "name": "Ritual Casting",
+    "category": "Spellcasting",
+    "description": "A spell with the ritual tag can be cast as a ritual if the caster has the Ritual Casting feature. A ritual takes 10 minutes longer than normal to cast and doesn't expend a spell slot, but it can't be cast at a higher level that way."
+  },
+  {
+    "slug": "areas-of-effect",
+    "name": "Areas of Effect",
+    "category": "Spellcasting",
+    "description": "Spells shape space as a cone, cube, cylinder, line, or sphere, measured from a point of origin. A creature is affected only if its space is within the area. The most common shapes are the sphere (radius), the cone (length = width at its end), and the line."
+  },
+  {
+    "slug": "death-saving-throws",
+    "name": "Death Saving Throws",
+    "category": "Death & Dying",
+    "description": "At 0 hit points and unconscious, roll a d20 at the start of each of your turns. 10 or higher is a success, lower is a failure. Three successes stabilize you; three failures mean death. A 1 counts as two failures; a 20 means you regain 1 hit point. Taking damage at 0 HP is an automatic failure (two on a crit)."
+  },
+  {
+    "slug": "dropping-to-0-hit-points",
+    "name": "Dropping to 0 Hit Points",
+    "category": "Death & Dying",
+    "description": "When you drop to 0 hit points you either die outright (if damage equals or exceeds your hit point maximum) or fall unconscious and begin making death saving throws. Monsters typically die at 0 hit points at the GM's discretion."
+  },
+  {
+    "slug": "temporary-hit-points",
+    "name": "Temporary Hit Points",
+    "category": "Death & Dying",
+    "description": "Temporary hit points are a buffer lost before real hit points and don't stack — gaining more lets you choose which set to keep. They aren't healing, can't exceed your normal maximum's rules, and are lost when you finish a long rest unless a feature says otherwise."
+  },
+  {
+    "slug": "vision-and-light",
+    "name": "Vision and Light",
+    "category": "Environment",
+    "description": "A lightly obscured area (dim light, patchy fog, moderate foliage) imposes disadvantage on Wisdom (Perception) checks relying on sight. A heavily obscured area (darkness, opaque fog, dense foliage) blocks vision entirely — a creature there is effectively blinded toward what it can't see."
+  },
+  {
+    "slug": "falling",
+    "name": "Falling",
+    "category": "Environment",
+    "description": "A fall deals 1d6 bludgeoning damage per 10 feet fallen, to a maximum of 20d6, and the creature lands prone unless it avoids the damage. Reducing the fall (such as with feather fall) reduces or negates the damage."
+  },
+  {
+    "slug": "suffocating",
+    "name": "Suffocating",
+    "category": "Environment",
+    "description": "A creature can hold its breath for a number of minutes equal to 1 + its Constitution modifier (minimum 30 seconds). When it runs out of breath or is choking, it survives a number of rounds equal to its Constitution modifier (minimum 1), then drops to 0 hit points and can't regain them until it can breathe."
+  },
+  {
+    "slug": "passive-checks",
+    "name": "Passive Checks",
+    "category": "Exploration",
+    "description": "A passive check is a flat result for a task done repeatedly or without the players rolling: 10 + all modifiers that would apply. Advantage adds 5 and disadvantage subtracts 5. Passive Wisdom (Perception) is the common benchmark for noticing hidden threats."
+  }
+]

@@ -83,6 +83,8 @@ interface Loc {
   description: string;
   imageUrl?: string | null;
   properties?: Record<string, unknown> | null;
+  /** Resolved region label for list-rail grouping. Falls back to 'ALL LOCATIONS'. */
+  region: string;
 }
 
 function InfoCard({ label, children, secret }: { label: string; children: React.ReactNode; secret?: boolean }) {
@@ -120,6 +122,14 @@ export default function LocationsPage() {
       rows.map((r) => {
         const kind =
           propString(r.properties, 'kind') ?? propString(r.properties, 'category') ?? 'LOCATION';
+        // Region resolution priority:
+        //   1. properties.region (string)
+        //   2. properties.parentRegion (string)
+        //   3. Fall back to 'ALL LOCATIONS'
+        const region =
+          propString(r.properties, 'region') ??
+          propString(r.properties, 'parentRegion') ??
+          'ALL LOCATIONS';
         return {
           id: r.id,
           name: r.name,
@@ -128,10 +138,25 @@ export default function LocationsPage() {
           description: r.description ?? '',
           imageUrl: r.imageUrl,
           properties: r.properties,
+          region,
         };
       }),
     [rows],
   );
+
+  // Group locations by region, preserving first-seen insertion order of region labels.
+  const locationsByRegion = useMemo(() => {
+    const map = new Map<string, Loc[]>();
+    for (const loc of locations) {
+      const group = map.get(loc.region);
+      if (group) {
+        group.push(loc);
+      } else {
+        map.set(loc.region, [loc]);
+      }
+    }
+    return map;
+  }, [locations]);
 
   const selected = locations.find((l) => l.id === selectedId) ?? locations[0] ?? null;
 
@@ -213,36 +238,49 @@ export default function LocationsPage() {
           {locations.length === 0 && (
             <p className="px-1 py-6 text-center text-qd-body-sm text-qd-ink-muted">No places charted yet.</p>
           )}
-          {locations.map((l) => {
-            const active = selected?.id === l.id;
-            const col = statusColor(l.status);
-            const icon = iconForKind(l.kind);
-            return (
-              <button
-                key={l.id}
-                onClick={() => setSelectedId(l.id)}
-                className="flex items-center gap-2.5 rounded-qd-lg border p-2 text-left transition-colors"
-                style={
-                  active
-                    ? { background: 'linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.06))', borderColor: 'var(--qd-border-accent)' }
-                    : { background: 'rgba(255,255,255,.02)', borderColor: 'var(--qd-border-faint)' }
-                }
+          {Array.from(locationsByRegion.entries()).map(([regionLabel, regionLocs]) => (
+            <div key={regionLabel}>
+              {/* Region group header — styled: REGION · <NAME> (or just ALL LOCATIONS) */}
+              <div
+                className={`${mono} mb-1.5 mt-1 pl-0.5 text-[8px] uppercase tracking-[0.16em]`}
+                style={{ color: 'var(--qd-ink-faint)' }}
               >
-                <span
-                  className="grid h-[30px] w-[30px] flex-none place-items-center rounded-qd-md text-[13px]"
-                  style={{ background: `radial-gradient(circle, color-mix(in oklab, ${col} 22%, transparent), #14100d)`, color: col }}
-                >
-                  {icon ? <MaskedDndIcon name={icon} size={15} /> : '◆'}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-qd-ink-strong">{l.name}</span>
-                  <span className={`${mono} block truncate text-[7.5px]`} style={{ color: col }}>
-                    {l.kind.toUpperCase()} · {statusLabel(l.status)}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
+                {regionLabel === 'ALL LOCATIONS' ? 'ALL LOCATIONS' : `REGION · ${regionLabel}`}
+              </div>
+              <div className="flex flex-col gap-2">
+                {regionLocs.map((l) => {
+                  const active = selected?.id === l.id;
+                  const col = statusColor(l.status);
+                  const icon = iconForKind(l.kind);
+                  return (
+                    <button
+                      key={l.id}
+                      onClick={() => setSelectedId(l.id)}
+                      className="flex items-center gap-2.5 rounded-qd-lg border p-2 text-left transition-colors"
+                      style={
+                        active
+                          ? { background: 'linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.06))', borderColor: 'var(--qd-border-accent)' }
+                          : { background: 'rgba(255,255,255,.02)', borderColor: 'var(--qd-border-faint)' }
+                      }
+                    >
+                      <span
+                        className="grid h-[30px] w-[30px] flex-none place-items-center rounded-qd-md text-[13px]"
+                        style={{ background: `radial-gradient(circle, color-mix(in oklab, ${col} 22%, transparent), #14100d)`, color: col }}
+                      >
+                        {icon ? <MaskedDndIcon name={icon} size={15} /> : '◆'}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm text-qd-ink-strong">{l.name}</span>
+                        <span className={`${mono} block truncate text-[7.5px]`} style={{ color: col }}>
+                          {l.kind.toUpperCase()} · {statusLabel(l.status)}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </aside>
 
         {/* ===== DETAIL ===== */}
@@ -292,8 +330,12 @@ export default function LocationsPage() {
                   </p>
                 )}
 
+                {/*
+                  Info-grid order (HiFi): Who's Here · Places Within · DM Secret · Hooks
+                  Appears In is placed last as supplementary session data.
+                */}
                 <div className="mt-5 grid grid-cols-2 gap-3.5">
-                  {/* Who's here */}
+                  {/* 1. Who's here */}
                   <InfoCard label={`Who's here · ${relatedNpcs.length}`}>
                     {relatedNpcs.length === 0 ? (
                       'No souls tied here yet.'
@@ -311,7 +353,30 @@ export default function LocationsPage() {
                     )}
                   </InfoCard>
 
-                  {/* Appears in (sessions) */}
+                  {/* 2. Places within (JSON-backed) */}
+                  <InfoCard label="Places within">
+                    {placesWithin.length === 0 ? (
+                      'No sub-locations recorded.'
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {placesWithin.map((p) => (
+                          <span key={p} className={`${mono} rounded-qd-md border border-qd-faint bg-[rgba(255,255,255,0.04)] px-2 py-1 text-[9px] text-qd-ink-2`}>{p}</span>
+                        ))}
+                      </div>
+                    )}
+                  </InfoCard>
+
+                  {/* 3. DM secret — DM only */}
+                  {isDM && (
+                    <InfoCard label="DM Secret" secret>
+                      {secret || 'No secret recorded.'}
+                    </InfoCard>
+                  )}
+
+                  {/* 4. Hooks (JSON-backed) */}
+                  {hooks && <InfoCard label="Hooks">{hooks}</InfoCard>}
+
+                  {/* 5. Appears in (sessions) — supplementary, placed last */}
                   <InfoCard label={`Appears in · ${appearances.length}`}>
                     {appearances.length === 0 ? (
                       'No scenes recorded yet.'
@@ -326,27 +391,6 @@ export default function LocationsPage() {
                       </div>
                     )}
                   </InfoCard>
-
-                  {/* Places within (JSON-backed) */}
-                  {placesWithin.length > 0 && (
-                    <InfoCard label="Places within">
-                      <div className="flex flex-wrap gap-1.5">
-                        {placesWithin.map((p) => (
-                          <span key={p} className={`${mono} rounded-qd-md border border-qd-faint bg-[rgba(255,255,255,0.04)] px-2 py-1 text-[9px] text-qd-ink-2`}>{p}</span>
-                        ))}
-                      </div>
-                    </InfoCard>
-                  )}
-
-                  {/* Hooks (JSON-backed) */}
-                  {hooks && <InfoCard label="Hooks">{hooks}</InfoCard>}
-
-                  {/* DM secret — DM only */}
-                  {isDM && (
-                    <InfoCard label="DM Secret" secret>
-                      {secret || 'No secret recorded.'}
-                    </InfoCard>
-                  )}
                 </div>
               </div>
             </>

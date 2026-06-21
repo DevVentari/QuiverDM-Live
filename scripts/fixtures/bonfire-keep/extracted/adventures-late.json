@@ -1,0 +1,187 @@
+[
+  {
+    "chapterSlug": "04-desperate-alliance",
+    "npcs": [
+      { "name": "High Sage Lyria", "role": "Imperial Court Ritualist", "description": "An Imperial court ritualist who has spent twenty-two years making herself indispensable; she carries a confession and knows the corruption numbers and what they mean. She responds to procedural clarity and helps organize the alliance's resources.", "location": "Alliance War Council, festival grounds" },
+      { "name": "Grove-Speaker Theron", "role": "Verdant Circle Elder", "description": "A Verdant Circle elder with four millennia of perspective. He will not be rushed or argued with directly, but revises conclusions when respect for the process is shown. He summons the party and insists they be present when the alliance decides.", "location": "Alliance War Council, festival grounds" },
+      { "name": "Current-Caller Nerida", "role": "Ocean Covenant Ambassador", "description": "An Ocean Covenant ambassador who builds coalitions and runs probability assessments on likely Pregenitor compositions. Warm, precise, and always several moves ahead, she had the alliance half-built before Lyria finished speaking.", "location": "Alliance War Council, festival grounds" },
+      { "name": "Captain Helena Torres", "role": "Alliance Military Coordinator", "description": "The alliance's military coordinator, running on chain-of-command instinct in a situation with three parallel command structures and no clear superior authority. She creates clarity locally and is better at adapting than she thinks.", "location": "War camp, festival grounds" }
+    ],
+    "locations": [
+      { "name": "Concordia Stellaris", "type": "settlement", "description": "Festival grounds repurposed into an alliance war camp three weeks after the Heartflame ceremony fractured the sky. War-camp tents sit uneasily over altar stones, with corruption visible on the horizon.", "notable": "Site of the Alliance War Council and the Entropy Assault" },
+      { "name": "The Alliance War Council", "type": "building", "description": "A manor-sized central tent where three faction tables have been pushed into a triangle. Imperial logistics, Verdant living matter, and Covenant water-readings share the space as the factions argue over which fragment site to target.", "notable": "Where the three-way mediation determines the expedition's resource tier" },
+      { "name": "The Corruption Monitoring Station", "type": "building", "description": "An Imperial-built eastern observation platform forty feet up, using hybrid Imperial, Verdant, and Covenant instruments. Junior ritualists track the corruption spread, now 15% per week and accelerating toward critical mass in four to six weeks.", "notable": "Imperial territory 60% corrupted, Verdant 50%, Covenant 45%" },
+      { "name": "The Equipment and Preparation Complex", "type": "building", "description": "A supply depot of three warehouses built against each other, where each faction contributes specialized gear under a hybrid notation system devised by an Imperial quartermaster.", "location": "Southern festival grounds" }
+    ],
+    "items": [
+      { "name": "Entropy-Resistant Armour Plating", "type": "armor", "rarity": "Uncommon", "description": "Adds resistance to necrotic damage for 24 hours per application; three charges." },
+      { "name": "Faction Communication Crystal", "type": "wondrous item", "rarity": "Uncommon", "description": "A set of three paired crystals enabling short-range telepathic communication across faction lines; one attuned creature per crystal." },
+      { "name": "Covenant Void-Resistant Amulet", "type": "wondrous item", "rarity": "Uncommon", "description": "Grants advantage on saves against the Frightened condition while in corrupted territory." },
+      { "name": "Verdant Deep-Root Spike", "type": "wondrous item", "rarity": "Uncommon", "description": "A set of four single-use spikes; each creates a 30-foot radius of temporal stabilization for 8 hours when hammered into the ground." },
+      { "name": "Alliance Charter", "type": "quest item", "description": "A charter signed by all three faction leaders, granting advantage on Charisma checks with faction representatives throughout the campaign." }
+    ],
+    "encounters": [
+      { "name": "Alliance Integration Challenge", "description": "A three-way social mediation between the Empire, Verdant Circle, and Ocean Covenant over which fragment site to target; the outcome determines the expedition's resource tier.", "difficulty": "medium" },
+      { "name": "Phase One: The Personal Unraveling", "description": "The Entropy Aspect reaches into the camp and gives each person a tailored despair vision before any combat. Characters make DC 14 Wisdom saves or are Frightened until the end of their next turn; freed allies may help others repeat the save.", "monsters": ["Entropy Aspect"], "difficulty": "medium" },
+      { "name": "Phase Two: Void Spawn Incursion", "description": "Two dozen void spawns materialize in a search pattern toward the equipment stores and leaders' quarters. A 200-foot Entropy Field suppresses restorative magic while the party defends simultaneous objectives.", "monsters": ["Void Spawn", "Entropy Aspect"], "difficulty": "hard" },
+      { "name": "Phase Three: The Cost and the Proof", "description": "After the void spawns are driven back and the Entropy Field collapses, the factions witness their soldiers having spontaneously protected one another during the fight, proving the alliance can cohere under pressure.", "difficulty": "easy" }
+    ]
+  },
+  {
+    "chapterSlug": "05-the-hunt-begins",
+    "npcs": [
+      { "name": "The Echo of the Last Emperor", "role": "Fragment Guardian", "description": "The preserved echo of an emperor who destroyed his civilization pursuing perfect order, crown fused to his skull by temporal crystal. He has waited ten thousand years inside full knowledge of his failure, wanting not defeat but for someone to take his mistake seriously enough to learn from it.", "location": "Throne room, Crystal Palace" },
+      { "name": "Temporal Wraith", "role": "Bureaucratic Guardian", "description": "The crystallized remnants of Imperial administrators, endlessly processing paperwork for an empire that ended ten thousand years ago. Not malicious, only heartbreakingly committed to a function whose administrators are gone.", "location": "Hall of Eternal Orders, Crystal Palace" },
+      { "name": "Crystal Golem", "role": "Order Construct", "description": "Twelve-foot constructs built to embody order as protection of people, now outlasting the people they protected by ten millennia. They test approaching creatures for discipline and cannot attack the demonstrably coordinated.", "location": "Throne Room Gauntlet, Crystal Palace" }
+    ],
+    "locations": [
+      { "name": "The Sunward Wastes", "type": "region", "description": "A desert of crystallized time where a previous empire pursued perfect order and was ended by the accumulated weight of everything it optimized away. Temporal storms move like weather but respond to decision-making.", "notable": "A three-day crossing of crystallized glass and frozen moments" },
+      { "name": "The Crystal Palace", "type": "dungeon", "description": "The Last Emperor's marble-and-gold palace, translated by temporal crystallization into twisted spires whose surfaces reflect echoes of everyone who ever approached. Visible from a full day's travel.", "notable": "Houses the Fragment of Command above the throne" },
+      { "name": "The Hall of Eternal Orders", "type": "building", "description": "The first major palace chamber, full of translucent Imperial clerks endlessly processing real records for dead cities. Lingering creatures risk being compelled to join the bureaucratic loop.", "location": "Crystal Palace" },
+      { "name": "The Throne Room Gauntlet", "type": "building", "description": "An antechamber to the throne room guarded by two Crystal Golems that test worthiness through discipline, rewarding cooperative trust over pure force.", "location": "Crystal Palace" },
+      { "name": "Crystallized Imperial Waystation", "type": "building", "description": "A roadside building suspended in temporal stasis with a meal still mid-preparation and the cook's unfinished expression, offering recoverable provisions and insight into ordinary Imperial life.", "location": "Sunward Wastes, Day One" }
+    ],
+    "items": [
+      { "name": "Fragment of Command", "type": "artifact", "rarity": "Legendary", "description": "The first Pregenitor Orb shard. Grants Unity of Purpose, Diplomatic Authority, Chain of Command, and Inspiring Presence, and confers cosmic awareness of remaining fragment locations, the corruption timeline, and the Pregenitor charge." },
+      { "name": "Imperial Administrative Seal", "type": "wondrous item", "rarity": "Uncommon", "description": "Grants advantage on Persuasion checks against bureaucratic entities, official processes, or formal authority structures." },
+      { "name": "Temporal Crystal Shard", "type": "wondrous item", "rarity": "Rare", "description": "Can be expended to grant immunity to one temporal storm effect; three charges." },
+      { "name": "Waystation Rations", "type": "consumable", "rarity": "Common", "description": "Provisions recovered from the crystallized waystation; sustains four people for three days." }
+    ],
+    "encounters": [
+      { "name": "Temporal Wraith Patrol", "description": "Bureaucratic spirits drifting along roads that no longer exist; primarily a social and navigational challenge encountered on Day One.", "monsters": ["Temporal Wraith"], "difficulty": "easy" },
+      { "name": "Crystal Golem Guardians", "description": "Pairs of order constructs that challenge rather than attack outright, executing ancient boundary-maintenance commands. Their Order Mandate prevents attacking demonstrably disciplined creatures.", "monsters": ["Crystal Golem"], "difficulty": "medium" },
+      { "name": "Echo Vision Crisis", "description": "On Day Three the boundary between past and present thins and Imperial citizen echoes manifest; sustained conversation risks DC 16 Wisdom save or becoming temporally anchored (Restrained) for 1d4 rounds.", "difficulty": "medium" },
+      { "name": "Hall of Eternal Orders", "description": "Four to six Temporal Wraiths perform eternal bureaucratic functions and reform unless the loop is broken via bureaucratic mastery, temporal disruption, or imperial authority.", "monsters": ["Temporal Wraith"], "difficulty": "medium" },
+      { "name": "Throne Room Gauntlet", "description": "Two Crystal Golems regenerating 10 HP per turn in an exit-less antechamber; cooperative tactics cause them to step aside before being fully defeated.", "monsters": ["Crystal Golem"], "difficulty": "hard" },
+      { "name": "The Echo of the Last Emperor", "description": "A CR 13 guardian with legendary resistance who poses a three-round philosophical debate interspersed with combat; full success requires winning two of three rounds and showing genuine remorse to redeem rather than defeat him.", "monsters": ["The Echo of the Last Emperor"], "difficulty": "deadly" }
+    ]
+  },
+  {
+    "chapterSlug": "06-the-dreaming-deep",
+    "npcs": [
+      { "name": "Grove-Mother Melora", "role": "Guardian / Tragic Figure", "description": "A former hero who used the Fragment of Growth to make a place where loss was impossible, becoming a twenty-foot Mother-Tree of moss, vine, and starlight. After three centuries she understands the cost of endless life and wants to be convinced that death is not failure.", "location": "A ceilingless clearing at the forest's heart" },
+      { "name": "Ancestor Elowen", "role": "Willow-Speaker", "description": "One of the preserved ancestors lucid enough to communicate, woven into a willow of the Orchard. She counts the years as her only agency and recounts Melora's original intent without bitterness.", "location": "Orchard of Ancestors" },
+      { "name": "The Remnant", "role": "Lingering Mystery", "description": "The human component of the Hive-Union, a root-scarred woman of about forty who survives its separation. She can speak but does not know her name, only that she once had one.", "location": "Labyrinth of Symbiosis" }
+    ],
+    "locations": [
+      { "name": "The Dreaming Deep", "type": "region", "description": "A subterranean rainforest where the boundary between the Material Plane and Feywild dissolved, growing and consuming itself for three centuries. Overwhelmingly beautiful and saturated with Life-Pollen, nothing has died here in three hundred years.", "notable": "A wound in the world that cannot end; its beauty is the horror" },
+      { "name": "The Orchard of Ancestors", "type": "natural", "description": "Three hundred weeping willows in a spiral at the forest's heart, each the preserved, conscious soul of someone from Melora's civilization, trying and unable to cry themselves into rest.", "notable": "Released only via the Sacred Pruning, in which the party argues for sections of forest to be allowed to die" },
+      { "name": "Labyrinth of Symbiosis", "type": "natural", "description": "A spatial maze of living matter that shifts to keep the Hive-Union between the party and the deeper grove, encoding a lesson about individual identity." }
+    ],
+    "items": [
+      { "name": "Fragment of Growth", "type": "artifact", "rarity": "Legendary", "description": "The second Pregenitor shard, a fist-sized crystallized amber seed containing an endless recursive pattern. Grants Verdant Surge mass healing and bark-skin, Cycle Mastery (Blight or Regenerate once per day), and Nature's Voice to speak with all plants and animals." }
+    ],
+    "encounters": [
+      { "name": "Tendril Swarms", "description": "Biological drifters that attempt to merge with rather than harm intruders; an ambient hazard, not aggressive.", "monsters": ["Tendril Swarm"], "difficulty": "easy" },
+      { "name": "Willow-Guardian", "description": "A mirror-bound ancestor that defends the Orchard and can be bypassed entirely if the Sacred Pruning is completed.", "monsters": ["Willow-Guardian"], "difficulty": "medium" },
+      { "name": "Hive-Union", "description": "A Gargantuan organism of fused creatures that wishes to incorporate the party; at 80 HP it splinters into three Large Fused-Beasts and one Medium Remnant that heal near each other, so they must be forced apart.", "monsters": ["Hive-Union", "Fused-Beast", "Remnant"], "difficulty": "hard" },
+      { "name": "Echo of Grove-Mother Melora", "description": "A CR 16 confrontation resolved through three rounds of debate (DC 20) about life, the necessity of endings, and willingness to let something go; combat occurs only on a failed Round 3 or party aggression.", "monsters": ["Grove-Mother Melora"], "difficulty": "deadly" }
+    ]
+  },
+  {
+    "chapterSlug": "07-the-glass-sea",
+    "npcs": [
+      { "name": "The First Mariner, Orym", "role": "Guardian / Tragic Figure", "description": "A hero who saved his people by teaching them to adapt to the water, then surrendered his form, memory, and self entirely to become the Glass Sea. Now a translucent man-shaped absence at the Eye of the Sea, perfectly adapted and perfectly nothing.", "location": "The Eye of the Sea" },
+      { "name": "Navigator Thessaly", "role": "Tidal Covenant Survivor", "description": "A Covenant sailor who returned dreaming from a previous expedition and spent three months inside Orym's consciousness. Possessed of an unnerving calm, she can navigate to the Eye without Anchoring.", "location": "Glass Sea boundary" }
+    ],
+    "locations": [
+      { "name": "The Glass Sea", "type": "natural", "description": "A perfectly transparent ocean that conducts thought like salt water conducts electricity, so ships appear to float in open air over fathoms of visible depth. The sea listens to and reflects those who cross it.", "notable": "Reacts to intense thought; the Mirror Current reflects the party's fears as Mirror Echoes" },
+      { "name": "The Eye of the Sea", "type": "natural", "description": "A fifty-foot sphere of perfect silence at the deepest navigable point, reached by a submersible the sea constructs from crystallized water. Where Orym's original form floats without movement or time.", "notable": "Holds the Fragment of Adaptation in Orym's chest" }
+    ],
+    "items": [
+      { "name": "Fragment of Adaptation", "type": "artifact", "rarity": "Legendary", "description": "The fourth Pregenitor shard, a stable sphere of liquid glass that shifts color with the light. Grants Fluid Form (resistance to non-magical damage and squeezing through 1-inch gaps), Reactive Evolution (resistance to the last damage type taken), and Thought-Link telepathy within 120 feet." },
+      { "name": "The Compass", "type": "wondrous item", "rarity": "Rare", "description": "A cartographer's glass-faced compass that bleeds a memory-tasting red liquid within fifty miles of the Glass Sea, pointing toward the Eye. Brought into Orym's presence it shatters into clean water that runs to him." }
+    ],
+    "encounters": [
+      { "name": "Mirror Echo", "description": "Each character faces a copy of themselves using their own abilities, voice, and memories to demonstrate they are replaceable; dissolved by reducing it to 0 HP or a DC 20 Persuasion check to reclaim something it cannot copy.", "monsters": ["Mirror Echo"], "difficulty": "medium" },
+      { "name": "Ship-Shifters (Formless Fleet)", "description": "A fleet of liquid-glass ships (CR 11 each) that gain immunity to the last damage type taken; forcing conflicting damage types in the same round shatters them briefly before they reconstitute.", "monsters": ["Ship-Shifter"], "difficulty": "hard" },
+      { "name": "Trial of the Compass", "description": "A navigation skill challenge where one character becomes an Anchor, holding a single memory against the sea's offered alternatives; three DC 20 successes before three failures finds the Eye.", "difficulty": "medium" },
+      { "name": "Echo of The First Mariner", "description": "A CR 17 confrontation with Orym resolved through three rounds of debate about change, the core of being, and what one will not surrender; he does not flee and his combat capability is full.", "monsters": ["The First Mariner, Orym"], "difficulty": "deadly" }
+    ]
+  },
+  {
+    "chapterSlug": "08-the-shadowed-archive",
+    "npcs": [
+      { "name": "Xylo, The First Chronicler", "role": "Guardian of the Archive; holder of the Fragment of Memory", "description": "An ancient being made of paper and ink who could not let any moment go and emptied his world into pages. He believes that if the Fragment leaves, the Archive and everything it records will be lost, and argues from genuine grief and love of preservation.", "location": "Deepest room of the Inaction Wing" },
+      { "name": "The Knowledge Serpent", "role": "Primary antagonist (CR 16)", "description": "An enormous, calm serpent with parchment scales covered in text, older than the Archive itself. It speaks in the layered voices of dead archivists and weaponizes the party's history; it has pursued Oriyen Vale since the Starfall Conspiracy out of genuine, sustained interest.", "location": "Disputed Accounts section of the Archive" }
+    ],
+    "locations": [
+      { "name": "The Shadowed Archive", "type": "dungeon", "description": "The Archive of Withered Echoes, relocated to the Shadowfell, where stories go to be kept and to die. Recording a thing here drains the life from the original it copies.", "notable": "Holds the Fragment of Memory and the True Name of Serenitas in its indexes" },
+      { "name": "The Infinite Stacks", "type": "dungeon", "description": "The Archive's endlessly reconfiguring shelves, organized by Xylo's incomprehensible internal logic, where time is replaced by sequence and glimpses of the party's own past play out in the shadows.", "notable": "Hazards include the Weight of Words and the interested Inky Shadows that inflict Memory Scars" },
+      { "name": "The Inaction Wing", "type": "dungeon", "description": "A section of the Archive that no record acknowledges; every index entry trails off and every map shows blank space, yet it holds Xylo and the Fragment.", "notable": "Believed not to exist even by Archive staff" },
+      { "name": "Trial of the Blank Page", "type": "building", "description": "A perfectly white vellum-textured room with an inkwell and quill, the one blank page in the Archive. The party must create something entirely specific to themselves rather than retell a known story.", "notable": "Whatever Oriyen Vale writes becomes permanently part of the Archive" }
+    ],
+    "items": [
+      { "name": "Fragment of Memory", "type": "artifact", "rarity": "Legendary", "description": "The third Pregenitor shard, a warm shard of crystallized amber light holding the shape of memory itself. Grants Perfect Recall (legend lore, auto-success on History checks), Echo Strike (4d10 psychic and possible Stun), and Rewrite (re-roll any event from the last minute once per day)." },
+      { "name": "Xylo's Final Index", "type": "wondrous item", "description": "A slim hand-bound journal Xylo presses on the party if Full Success is achieved, containing one precise, kind, second-person entry for each party member." },
+      { "name": "The Serpent's Scroll", "type": "wondrous item", "description": "A scroll of the Serpent's shed scales recording everything Oriyen Vale omitted from their early chronicles. For Oriyen it functions as a manual of quickness of action (+2 Dexterity, one-time use)." }
+    ],
+    "encounters": [
+      { "name": "Inky Shadows", "description": "Ink-formed shadows that touch the party at the start of each new Archive section; failing a DC 18 Charisma save inflicts a Memory Scar (disadvantage on Intelligence checks).", "monsters": ["Inky Shadows"], "difficulty": "easy" },
+      { "name": "The Knowledge Serpent's Nest", "description": "A CR 16 serpent with 230 HP, legendary resistance, Historical Analysis, and Spectral Manifestation of past NPCs and defeated foes, supported by four Ink-Wraith minions. It offers to simply talk if the party is losing badly.", "monsters": ["The Knowledge Serpent", "Spectral Echo", "Ink-Wraith"], "difficulty": "deadly" },
+      { "name": "Echo of the First Chronicler", "description": "A three-round debate with Xylo about preservation, the burden of the past, and the living word; the final round requires the party to tell him a true story from the campaign aloud rather than from a record.", "monsters": ["Xylo, The First Chronicler"], "difficulty": "hard" }
+    ]
+  },
+  {
+    "chapterSlug": "09-the-eternal-hearth",
+    "npcs": [
+      { "name": "Temmel", "role": "Anchor of the Keep; holder of the Fifth Fragment", "description": "The Anchor who has tended the Heartflame for fourteen hundred years since killing his Emperor on a winter morning, unable to resolve whether he was right. The Fragment of Hope is the part of him that still believes the world is worth saving.", "location": "Bonfire Keep" },
+      { "name": "Faeren", "role": "Anchor of the Keep; keeper of the east flame", "description": "An Anchor who came as a scholar and has written in the same notebook for nine hundred years. She tends the east side of the fire and asks the party to describe the future they want to build.", "location": "Bonfire Keep" },
+      { "name": "Ambric", "role": "Anchor of the Keep; the one who kept surviving", "description": "A former soldier who came to the Keep because there was nowhere else to go, with the armor he arrived in now in a display case. His Trial of Justice asks the party to honestly judge their own failures.", "location": "Bonfire Keep" },
+      { "name": "Serenitas", "role": "The First Mother; corrupted Aspect of Entropy", "description": "The ancient, tired First Mother who birthed the cosmic cycle out of love, becoming uncontained when the Binding weakened. Not the enemy but the mechanism of renewal, waiting in the void for the party to make a choice.", "location": "The Center of the Void" }
+    ],
+    "locations": [
+      { "name": "The Bonfire Keep", "type": "building", "description": "The last warm place in a world at 85% entropy corruption, tended by the three Anchors for fourteen centuries. The void presses against its windows where the Thornspine Mountains once stood, and the Heartflame burns within.", "notable": "The Fragment of Hope is buried in the Heartflame itself" },
+      { "name": "The Center of the Void", "type": "other", "description": "Where the entropy corruption originates, where the Thornspine Mountains stood before the void ate them, and where Serenitas waits for the party to decide the fate of the cosmic cycle." }
+    ],
+    "items": [
+      { "name": "Fragment of Hope", "type": "artifact", "rarity": "Legendary", "description": "The fifth and final Pregenitor shard, glowing the deep amber of the Heartflame and the size of a hearthstone. It is the part of Temmel that never stopped believing the world deserved saving, buried in the Heartflame since the beginning." },
+      { "name": "The Pregenitor Orb", "type": "artifact", "rarity": "Legendary", "description": "The reassembled artifact formed when the five fragments join, warm and the exact amber of the Heartflame. It is the decision itself, offering the Great Reset, the Beautiful Ending, or the New Dawn." }
+    ],
+    "encounters": [
+      { "name": "Trial of Justice — Ambric", "description": "Ambric asks each character to honestly name their greatest campaign failure and what doing better would have required, accepting neither denial nor self-flagellation.", "difficulty": "trivial" },
+      { "name": "Trial of Memory — Faeren", "description": "Faeren asks the party to collaboratively narrate a specific, human-scale vision of the future they are fighting for, with each contribution connecting to the others.", "difficulty": "trivial" },
+      { "name": "Trial of Redemption — Temmel", "description": "Temmel reveals the Fifth Fragment is his own belief and asks the party to tell him honestly what they will do with the world his regicide made room for before he releases the Fragment of Hope.", "difficulty": "trivial" }
+    ]
+  },
+  {
+    "chapterSlug": "mid-game-hook",
+    "npcs": [
+      { "name": "Ambric", "role": "Anchor of the Keep", "description": "Wielder of the Blade of the Chronicle, on which three new names — the party's own — have been etched for a Crossroads. He recognizes the weight of the marking and dispatches the party while telling them the blade's names will wait.", "location": "Bonfire Keep" },
+      { "name": "Temmel", "role": "Anchor of the Keep", "description": "Kneels at the Heartflame when it flickers silver and cold, declaring the filter saturated and that 'Vaelora is screaming' as the Stillness corruption spreads.", "location": "Bonfire Keep" },
+      { "name": "Faeren", "role": "Anchor of the Keep", "description": "Drops a tray when the Heartflame turns silver; the shattered glass hovers and turns to ash before falling, marking the wrongness of the moment.", "location": "Bonfire Keep" },
+      { "name": "Kaelen", "role": "Verdant Scout", "description": "A young Verdant scout who arrives covered in Silver Rot ash with his right arm crystallizing past the elbow, carrying Grove-Speaker Theron's message that the Emerald Reach is freezing from Stillness and the party must find the source.", "location": "Bonfire Keep" }
+    ],
+    "locations": [
+      { "name": "The Emerald Reach", "type": "region", "description": "Verdant territory built on Vaelora's root system, now freezing from Stillness rather than cold as the Empire bleeds her. The party is sent to find the source of the active acceleration within the roots.", "notable": "The Silver Rot / Stillness corruption is spreading aggressively here" },
+      { "name": "The Aetheric Well", "type": "other", "description": "A site whose siphon has increased its draw beyond the parameters that held it stable for a century; the party's secondary investigative objective is to find out why." }
+    ],
+    "items": [
+      { "name": "Blade of the Chronicle", "type": "weapon", "description": "Ambric's blade that records names; the Fates have etched three new names — the party's — upon it for a Crossroads, using the urgent ink reserved for fated events." },
+      { "name": "Keystone of the Keep", "type": "wondrous item", "description": "A small solid ember carried from the Heartflame that burns warmer where the Stillness is concentrated, guiding the party to follow the heat toward the cold." }
+    ],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "mid-game-encounters",
+    "npcs": [
+      { "name": "Golden Siphon-Warden", "role": "Imperial Officer", "description": "An Imperial officer with a calibration device scanning refugees for 'unregistered essence signatures,' part of a three-week protocol to locate Pregenitor artifacts. He has not been told what to do once he finds them and is visibly uncomfortable with his orders.", "location": "The lower road junction" },
+      { "name": "Salt-Statue Echo", "role": "Temporal Remnant", "description": "The preserved impression of someone caught in a Stagnation event, sustained by temporal density at the frozen pond. It does not threaten and, if engaged peacefully, provides one piece of intelligence about the Imperial Twelve before dispersing.", "location": "The forest's edge, a frozen pond" },
+      { "name": "Thorn Leader", "role": "Thorn Faction Leader", "description": "A masked elf with silver veins to her collarbone, displayed as proof of investment in Thorn symbology. She ambushes travelers on the road and, if convinced the party was drawn by the Heartflame, hands over a map bypassing an Imperial blockade.", "location": "A narrow canyon" },
+      { "name": "Village Druid", "role": "Survivor", "description": "A druid turning to glass from the feet up, kneeling in the last intact house and using herself as a buffer between the Stillness and five children. She does not ask for rescue, only for supplementation to extend how long she can hold.", "location": "The Glass-Blighted Village" }
+    ],
+    "locations": [
+      { "name": "The Silver Drift", "type": "natural", "description": "A quarter-mile corridor of ground-glass-colored snow where the Stillness has concentrated, holding a family of mountain goats frozen mid-leap but still tracking with their eyes. Touching them produces a sustained harmonic.", "location": "Two hours below the mountain pass", "notable": "DC 14 Constitution save per hour or gain Exhaustion" },
+      { "name": "The Mirror of the Past", "type": "natural", "description": "A frozen pond of Salt-Glass that reveals the landscape as it was fourteen hundred years ago, with taller trees and something vast and warm moving at the treeline.", "location": "The forest's edge" },
+      { "name": "The Glass-Blighted Village", "type": "settlement", "description": "A small Verdant settlement ninety percent crystallized, each structure preserving the exact moment it arrested. One intact central house is held by the buffering druid.", "location": "An hour from the Emerald Reach" }
+    ],
+    "items": [],
+    "encounters": [
+      { "name": "The Silver Drift", "description": "Passing through a concentrated Stillness corridor of glass-snow with frozen-but-living mountain goats; characters make DC 14 Constitution saves each hour or gain a level of Exhaustion, reduced to DC 10 with Verdant expertise or the Keystone of the Keep.", "difficulty": "easy" },
+      { "name": "The Imperial Patrol", "description": "An Imperial patrol detaining Verdant refugees; using an Awakened Pregenitor Artifact triggers the Warden's device to demand the party be secured. Can be fought or talked past by appealing to the Warden's discomfort.", "monsters": ["Golden Siphon-Warden", "Imperial Solar-Guard"], "difficulty": "medium" },
+      { "name": "The Mirror of the Past", "description": "A Salt-Statue Echo rises and tells the party they are 'recording the wrong ending'; engaging it peacefully yields intelligence about the Imperial Twelve, while attacking it disperses it and loses the intelligence.", "monsters": ["Salt-Statue Echo"], "difficulty": "easy" },
+      { "name": "The Thorn Ambush", "description": "The Thorn faction ambushes the party in a canyon with restraining roots; a DC 16 Persuasion that the party was drawn by the Heartflame earns a bypass map, otherwise combat ensues.", "monsters": ["Root-Bound Deserter", "Thorn Stalker"], "difficulty": "medium" },
+      { "name": "The Glass-Blighted Village", "description": "A moral set-piece where the party may charge the buffering druid's working with their Pregenitor Artifacts to save five children, at the cost of a −1 penalty to attack rolls and spell save DCs until they reach the Heart of Vaelora.", "difficulty": "trivial" }
+    ]
+  }
+]

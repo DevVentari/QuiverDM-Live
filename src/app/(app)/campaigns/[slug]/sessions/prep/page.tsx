@@ -57,8 +57,13 @@ function PrepPageInner() {
     };
   }, [sessionQuery.data, contextQuery.data]);
 
+  // NOTE: do NOT gate on createPrepSession.isPending. Under React Strict Mode
+  // (dev) the create-session mutation observer can be orphaned on remount, so
+  // its isPending never resets to false even after the session is created —
+  // which pins the page on the loading skeleton forever. The `!sessionId` guard
+  // already covers the pre-creation window; once a sessionId exists we rely on
+  // the session/context queries for readiness.
   const isLoading =
-    createPrepSession.isPending ||
     !sessionId ||
     contextQuery.isLoading ||
     sessionQuery.isLoading;

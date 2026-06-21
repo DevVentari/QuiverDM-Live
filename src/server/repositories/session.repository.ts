@@ -98,6 +98,7 @@ export async function create(data: {
   summary?: string;
   status?: string;
   quickNotes?: string;
+  startedAt?: Date;
   prepData?: Prisma.InputJsonValue;
   prepStatus?: string;
 }) {
@@ -114,6 +115,7 @@ export async function update(
     date?: Date;
     status?: string;
     quickNotes?: string;
+    startedAt?: Date;
     recap?: string;
     prepData?: Prisma.InputJsonValue;
     prepStatus?: string;

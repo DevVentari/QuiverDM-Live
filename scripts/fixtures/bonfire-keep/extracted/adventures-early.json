@@ -1,0 +1,494 @@
+[
+  {
+    "chapterSlug": "01-whispered-names",
+    "npcs": [
+      {
+        "name": "Temmel",
+        "role": "Keeper near the Bonfire Keep's door",
+        "description": "Stands near the door of the Bonfire Keep, where he has waited for fourteen centuries to meet those who have run out of options. Greets the party when the storm collapses and the door opens.",
+        "location": "The Bonfire Keep"
+      }
+    ],
+    "locations": [
+      {
+        "name": "Thornspine Mountains",
+        "type": "region",
+        "description": "A high mountain range whose passes the party crosses in winter. A supernatural storm rises from its valleys to herd chosen travelers toward the Bonfire Keep as a trial.",
+        "notable": "The trial storm rises here without warning on clear days."
+      },
+      {
+        "name": "The Bonfire Keep",
+        "type": "building",
+        "description": "Sits at the end of the storm-trial through the Thornspine Mountains, its amber light bleeding through the white. Home of the Three Anchors and the burning Heartflame.",
+        "notable": "Reaching it requires passing through the storm's three-stage trial."
+      },
+      {
+        "name": "The Three Cairns of Regret",
+        "type": "natural",
+        "description": "Three ancient cairns deep within the storm, each marked by a sphere of warm golden light the blizzard curves around. Each contains a relic that belongs to a specific party member and triggers a confrontation with their Spectral Regret.",
+        "notable": "Comprises the Scholar's Cairn, the Healer's Cairn, and the Survivor's Cairn."
+      },
+      {
+        "name": "The Scholar's Cairn",
+        "type": "natural",
+        "description": "A cairn of precise geometric stone with mathematical angles, designed as if to hold information. At its base rests a shard of obsidian mirror that shows moments where observation was chosen over action.",
+        "notable": "Holds the Fragment of Obsidian Mirror relic."
+      },
+      {
+        "name": "The Healer's Cairn",
+        "type": "natural",
+        "description": "Stacked in formations between architecture and warning, marked with dark runes in no legible script. At its base rests a shard of warp-stone that pulses with question rather than threat for one carrying an affliction given to them as a weapon.",
+        "notable": "Holds the Warpstone Shard relic."
+      },
+      {
+        "name": "The Survivor's Cairn",
+        "type": "natural",
+        "description": "Forms a rough circle with one stone placed deliberately outside the perimeter in exclusion. At its center rests a vest woven from fibres of unmade possibility that fits precisely the person who has known being outside a circle.",
+        "notable": "Holds the Scavenger's Practical Vest relic."
+      },
+      {
+        "name": "The Three Stones of Choice",
+        "type": "natural",
+        "description": "Three seven-foot dark obsidian standing stones arranged in a perfect equilateral triangle deeper in the storm. They light from within—red, blue, and gold—and each offers a different lasting power to those who carve their names into a chosen stone.",
+        "notable": "Comprises the Power Stone (Crimson), Wisdom Stone (Azure), and Unity Stone (Golden)."
+      }
+    ],
+    "items": [
+      {
+        "name": "Fragment of Obsidian Mirror",
+        "type": "relic",
+        "rarity": "Artifact",
+        "description": "A shard of obsidian mirror that shows past moments and alternate possibilities rather than the holder's reflection."
+      },
+      {
+        "name": "Warpstone Shard",
+        "type": "relic",
+        "rarity": "Artifact",
+        "description": "A green-black shard pulsing with a rhythm like a heartbeat; provides relief from chronic afflictions and represents potential for healing through corruption."
+      },
+      {
+        "name": "The Scavenger's Practical Vest",
+        "type": "relic",
+        "rarity": "Artifact",
+        "description": "A vest woven from discarded things and fibres of unmade possibility. It fits its bearer precisely."
+      },
+      {
+        "name": "Stone Blessings",
+        "type": "blessing",
+        "rarity": "Permanent",
+        "description": "Lasting enhancements gained by carving one's name into a chosen Stone of Choice, based on the path taken (Power, Wisdom, or Unity)."
+      },
+      {
+        "name": "Heartflame Honey",
+        "type": "potion",
+        "rarity": "Rare",
+        "description": "A healing potion granted by the Bonfire Keep's keeper."
+      },
+      {
+        "name": "Sealed Letter",
+        "type": "document",
+        "rarity": "Unique",
+        "description": "A letter containing future knowledge, to be opened when the time is right."
+      },
+      {
+        "name": "Dignity's Secret",
+        "type": "knowledge",
+        "rarity": "Unique",
+        "description": "Knowledge of a trigger word that can call upon the Keep's power."
+      }
+    ],
+    "encounters": [
+      {
+        "name": "Spectral Regret",
+        "description": "When a character touches their corresponding cairn relic, they confront a spectral manifestation of the moment they most wish had gone differently. Only the triggering character can see their Spectre; allies fight blind, providing Help actions. The Spectre seeks acknowledgement, not death.",
+        "monsters": ["Spectre"],
+        "difficulty": "easy"
+      },
+      {
+        "name": "Dire Wolves",
+        "description": "Characters lured away from the stone circle by storm whispers are ambushed by three dire wolves that hunt by separation, using knockdown rather than kill tactics to demonstrate what happens to things that do not hold together.",
+        "monsters": ["Dire Wolf"],
+        "difficulty": "medium"
+      },
+      {
+        "name": "Ice Elemental Guardian",
+        "description": "The final trial: a Large elemental of ice, snow, and compressed air assembled by the storm, guarding the last hundred yards to the Bonfire Keep. It loses 5 HP each round as the storm weakens, speaks to each character about their cairn truths, and rewards coordinated unity strikes.",
+        "monsters": ["Large Elemental"],
+        "difficulty": "hard"
+      }
+    ]
+  },
+  {
+    "chapterSlug": "01b-the-withered-root",
+    "npcs": [
+      {
+        "name": "Vaelora",
+        "role": "Mother-Tree of the Emerald Reach",
+        "description": "The ancient Mother-Tree at the Emerald Reach's center whose grove-network has tried for over a millennium to integrate the Empire's stasis ash. Her leaves are turning cold silver as her heart crystallizes into Stasis Glass.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "Grove-Speaker Theron",
+        "role": "Verdant Clans leader",
+        "description": "Leader of the Verdant Clans whose hands have gone silver past the wrist. He suspects deliberate local acceleration of the Silver Rot and tasks the party with investigating Vaelora's root system.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "Rootwarden Celia",
+        "role": "Triage specialist",
+        "description": "A Verdant triage specialist, silver from elbow to shoulder after holding an infected grove-section long enough for others to evacuate. She focuses on what can still be cut rather than whether the network will survive.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "Kaelen",
+        "role": "Young Verdant runner/scout",
+        "description": "A young, frightened Verdant runner who arrives at the Bonfire Keep with his left arm turned silver from elbow to wrist. Sent by Theron to find the people the Heartflame called.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Faeren",
+        "role": "Anchor",
+        "description": "An Anchor who listens to the grove-network's distress through channels the Empire cannot access and brings the crisis to the party without drama.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "The Silver Echo",
+        "role": "Manifestation of Vaelora's pain",
+        "description": "An entity of silver-glass and hardened sap manifesting Vaelora's accumulated weight. Speaking in the grove-network's frequencies, it genuinely offers rest and an end to the duty of breathing.",
+        "location": "The Heart of Vaelora"
+      },
+      {
+        "name": "The Imperial Saboteur",
+        "role": "Deceased Imperial Ritualist-grade mage",
+        "description": "A mage in Imperial court robes, dead about two weeks, found at the deepest root-junction beside a still-running Imperial siphoning apparatus brought to add to the rot and feed Aurelios's ward network.",
+        "location": "The Heart of Vaelora"
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Emerald Reach",
+        "type": "region",
+        "description": "A forested region of multi-layered Verdant grove-cities in the high branches, connected by rope bridges and living-wood platforms. The forest has gone unnaturally quiet as the Silver Static reaches an unbearable pitch and silver creeps into the druids' flesh.",
+        "notable": "Home of the Mother-Tree Vaelora and the Verdant Clans' grove-network."
+      },
+      {
+        "name": "The Heart of Vaelora",
+        "type": "dungeon",
+        "description": "The descent into the Mother-Tree's deep root system, where breathing walls and inward-curving bark spiral toward the tree's oldest processes. Silver threads move through the amber sap in the wrong direction as the heart crystallizes.",
+        "notable": "Site of the Pollen Guardians, the Silver Echo, and the Imperial saboteur's body."
+      },
+      {
+        "name": "Aurelios",
+        "type": "settlement",
+        "description": "The Empire's golden-towered city from which stasis ash drifts southwest into the Emerald Reach. Its ward network has been running short since the Binding began showing strain.",
+        "notable": "Source of the stasis ash and the ward network the saboteur's apparatus fed."
+      }
+    ],
+    "items": [
+      {
+        "name": "Seed of Vaelora",
+        "type": "grove-seed",
+        "rarity": "Rare",
+        "description": "A dormant grove-seed carrying the Mother-Tree's specific harmonic, granted by Theron on success. Provides protection against stasis effects and lets the bearer hear the grove-network's signals."
+      },
+      {
+        "name": "Imperial Siphoning Apparatus",
+        "type": "evidence",
+        "rarity": "Unique",
+        "description": "A still-running, court-marked Imperial device found beside the saboteur, built to draw Vaelora's life force toward a relay feeding Aurelios's ward network. Stands as physical evidence of a deliberate Imperial act."
+      }
+    ],
+    "encounters": [
+      {
+        "name": "The Pollen Guardians",
+        "description": "Grove elementals displaced from their connections by the Silver Static's interference, driven into aggression by pain they cannot source. They are not enemies by nature and attack only because the Static has left them unable to do anything else.",
+        "monsters": ["Pollen Guardian (elemental)"],
+        "difficulty": "medium"
+      },
+      {
+        "name": "The Silver Echo",
+        "description": "A confrontation with the silver-glass manifestation of Vaelora's pain, which speaks in the grove-network's frequencies and offers genuine rest and an end to breathing. The challenge is as much resisting its offer as fighting it.",
+        "monsters": ["The Silver Echo"],
+        "difficulty": "hard"
+      }
+    ]
+  },
+  {
+    "chapterSlug": "01c-the-salted-current",
+    "npcs": [
+      {
+        "name": "Current-Caller Nerida",
+        "role": "Tidal Covenant leader (Drifters)",
+        "description": "Sharp, analytical Drifter leader who believes the Abyssal Shelf is the accelerant's source and that the Stagnation is the world changing rather than ending. She recruits the party to navigate the temporal hazards.",
+        "location": "The Great Confluence"
+      },
+      {
+        "name": "Kaine Stormvoice",
+        "role": "Depth-Singers leader",
+        "description": "Partially translucent leader of the Depth-Singers, his skin carrying the quality of deep-water creatures after twenty years listening to the Stagnation. He considers the translucence data, not a cost.",
+        "location": "The Great Confluence"
+      },
+      {
+        "name": "Mira Saltborn",
+        "role": "Wandering Markets contact; Triton freight coordinator",
+        "description": "A pragmatic, deadline-oriented Triton freight coordinator losing cargo to the Stagnation zones. She makes the practical case for the hire on behalf of the Wandering Markets.",
+        "location": "The Great Confluence"
+      },
+      {
+        "name": "Faeren",
+        "role": "Anchor (shapeshifter)",
+        "description": "An Anchor who arrives at the Keep wearing the face of a Covenant dockworker to tell the party that 'a story is being paused in the Great Bay' and to ask that someone make it resume.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Commodore Vax",
+        "role": "Leader of the Anchor faction",
+        "description": "Commander of the Anchor faction whose chained cities sit motionless, iron cables descending into the bay floor. The Depth-Singers warn the Stagnation concentrates fastest around things that have stopped, but his chains remain.",
+        "location": "The Great Confluence"
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Great Confluence",
+        "type": "settlement",
+        "description": "The Tidal Covenant's floating trade city, normally organized chaos but now strained as Drifter ships crowd the cleaner docks and Current-Singers chant harmonics that fail to move the dense water.",
+        "notable": "Site of Commodore Vax's motionless chained Anchor cities."
+      },
+      {
+        "name": "The Abyssal Shelf",
+        "type": "natural",
+        "description": "A deep canyon where the currents pile up and stop moving entirely, the water developing a higher viscosity as time runs at a different rate. Reaching its depth requires Covenant equipment and magical breathing.",
+        "notable": "Holds the Calcified Leviathan, the Flow-Thieves' harvest operation, and the Rift of Stillness."
+      },
+      {
+        "name": "The Rift of Stillness",
+        "type": "other",
+        "description": "A micro-tear in the barrier between temporal flow and temporal arrest at the deepest accessible point of the Shelf, carved by the Binding's debt-collection. A contained precursor to what the Binding's eventual failure will look like at scale.",
+        "notable": "Predates the Flow-Thieves; visible evidence of the temporal debt."
+      }
+    ],
+    "items": [],
+    "encounters": [
+      {
+        "name": "The Calcified Leviathan",
+        "description": "An enormous deep-bay creature half-turned to salt-crystal, arrested mid-motion in a Stagnation event years ago. It is not dead; its active pain generates localized pressure waves the narrow canyon amplifies into tidal bores and quakes.",
+        "monsters": ["Calcified Leviathan"],
+        "difficulty": "hard"
+      },
+      {
+        "name": "The Flow-Thieves",
+        "description": "A faction of rogue Covenant mages harvesting bottled Stagnant-Time water as a preservative, intentionally damming a secondary current channel to maintain a concentrated harvest zone that worsens the Stagnation.",
+        "monsters": ["Flow-Thief (rogue Covenant mage)"],
+        "difficulty": "medium"
+      }
+    ]
+  },
+  {
+    "chapterSlug": "02-the-starfall-conspiracy",
+    "npcs": [
+      {
+        "name": "Captain Marcus Draven",
+        "role": "Emperor's Hand; corrupted assassin",
+        "description": "The Emperor's most trusted Hand, hearing for six months an exhausted-seeming voice that has fed him true grievances to justify killing the Emperor. He strikes during the ceremony's peak but can be reached and redeemed.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Emperor Aurelios",
+        "role": "Emperor of the Sunward Empire",
+        "description": "The strained Emperor who performs the secret binding-renewal ceremony for the seventh time. He has read the Shadowed Archive chronicles and is weighing whether the party is a resource or a liability.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "High Sage Lyria",
+        "role": "Imperial court ritualist",
+        "description": "An Imperial ritualist positioned at the ceremony's outer anchor point who knows the Binding's true cost and has been trying for days to confess what she knows about the containment protocols.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Current-Caller Nerida",
+        "role": "Tidal Covenant leader",
+        "description": "Attends the festival watching the sky and the Imperial guard's behavior, positioning herself near the exits. She privately asks the party to confirm the wrongness she has been tracking.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Grove-Speaker Theron",
+        "role": "Verdant Clans leader",
+        "description": "Attends with hands pressed to the ground, sensing death-adjacent wrongness from twenty feet away since the flowers began blooming too hard.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Ambric",
+        "role": "Anchor of Justice",
+        "description": "An Anchor attending the festival for the first time in living memory, carrying a blade with a name he has not been able to read clearly for three days. He watches the amphitheater knowing the bill is about to come due.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Faeren",
+        "role": "Anchor (shapeshifter)",
+        "description": "An Anchor present in several faces simultaneously, who arrives wearing a grandmother's face to warn that a story about a soldier corrupted by a true voice is ending before it has finished.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Mira Saltborn",
+        "role": "Wandering Markets coordinator",
+        "description": "The practical, deadline-oriented Markets coordinator from the bay, present at the festival. She has already noticed Draven and made professional assessments she will share if asked the right way.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "The Knowledge Serpent",
+        "role": "Cosmic entity / antagonist",
+        "description": "A vast serpentine entity of shadow and stolen text that emerges from the Reality Tear, having watched through every mirror touched by the Chronicle's Fragment. It corrupted Draven with accuracy and seeks to consume the imperial bloodline's resonance.",
+        "location": "The Sacred Amphitheater"
+      }
+    ],
+    "locations": [
+      {
+        "name": "Concordia Stellaris",
+        "type": "settlement",
+        "description": "The neutral festival city hosting the seven-year Harvest Festival and the moons' alignment. Small wrongnesses appear—the flickering Sacred Flame, desperately bright flowers, and tarnished star-metal—as the crisis approaches.",
+        "notable": "Host of the Harvest Festival and the secret Binding-renewal ceremony."
+      },
+      {
+        "name": "Thymal's Garden",
+        "type": "natural",
+        "description": "The garden where the formal diplomatic dinner is held, its flowers in their brightest, most desperate bloom. Personal stakes crystallize beneath the social performance over an impeccable meal.",
+        "notable": "Setting of the Garden Dinner with the Emperor, Draven, and Lyria."
+      },
+      {
+        "name": "The Sacred Amphitheater",
+        "type": "building",
+        "description": "A star-metal bowl built to channel the moons' light and ritual harmonics, secretly constructed for the Binding-renewal ceremony. At peak alignment it transforms magic and thins the boundaries between moments.",
+        "notable": "Site of the assassination, the Reality Tear, and the Knowledge Serpent's emergence."
+      },
+      {
+        "name": "The Sacred Flame",
+        "type": "other",
+        "description": "The eternal torch at Concordia Stellaris's center, burning since the first Harvest Festival and never extinguished, now flickering in a windless space toward extinction.",
+        "notable": "Stabilizing it requires words of worth and dignity (DC 18 Arcana or Religion)."
+      }
+    ],
+    "items": [
+      {
+        "name": "Void-Touched Blade",
+        "type": "weapon",
+        "rarity": "Artifact",
+        "description": "Draven's corrupted blade dealing slashing plus necrotic damage and aging targets 2d4 years. It can be purified if Draven is redeemed rather than killed."
+      },
+      {
+        "name": "Fragments of Unity Goblet",
+        "type": "treasure",
+        "rarity": "Rare",
+        "description": "Crystalline shards from the shattered ceremonial vessel, carrying binding properties."
+      },
+      {
+        "name": "Corrupted Festival Regalia",
+        "type": "treasure",
+        "rarity": "Varies",
+        "description": "Ceremonial items tainted by the discharge of the failed ceremony; they could be restored."
+      }
+    ],
+    "encounters": [
+      {
+        "name": "Void Infiltration (pre-ceremony)",
+        "description": "Detection and elimination of Void infiltrators before the ceremony, relying on Plague-Touched Network intelligence. Withering Remnants circle the edges of perception near the Imperial pavilions, waiting for a signal.",
+        "monsters": ["Withering Remnant", "Plague-Touched infiltrators"],
+        "difficulty": "hard"
+      },
+      {
+        "name": "Assassination Climax",
+        "description": "At perfect lunar alignment, an enhanced Captain Marcus Draven strikes the Emperor, and a feedback pulse tears a growing Reality Tear above the dais. A multi-objective crisis of subduing Draven, closing the Tear, and evacuating civilians amid cosmic amplification.",
+        "monsters": ["Captain Marcus Draven (enhanced)"],
+        "difficulty": "deadly"
+      },
+      {
+        "name": "The Knowledge Serpent",
+        "description": "A CR 12 serpentine entity that emerges through the Reality Tear, targets the mirror's bearer first, and uses the party's documented vulnerabilities against them. Its true target is the Emperor and the imperial bloodline's magical resonance.",
+        "monsters": ["Knowledge Serpent"],
+        "difficulty": "hard"
+      }
+    ]
+  },
+  {
+    "chapterSlug": "03-the-withering-world",
+    "npcs": [
+      {
+        "name": "High Sage Lyria",
+        "role": "Imperial court ritualist",
+        "description": "After thirty-one years serving the Empire and twenty-two keeping the secret, she confesses the full truth of the Binding to the party and faction leaders. She seeks not forgiveness but for the information to reach those who need it.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Grove-Speaker Theron",
+        "role": "Verdant Clans leader",
+        "description": "Pressed to the soil in the grief the Verdant call root-sorrow as the Silver Static doubles overnight. Upon learning the Silver Rot was deliberately inflicted, his stillness lasts hours and resolves into four millennia of calm perspective.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Current-Caller Nerida",
+        "role": "Tidal Covenant leader",
+        "description": "Begins building the cross-faction alliance before Lyria has finished confessing, understanding that full emotional response is a luxury the timeline does not offer. She maps the corruption's spread vectors.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Captain Helena Torres",
+        "role": "Imperial military commander",
+        "description": "Practical, direct successor authority in the absence of a living Emperor, running on military chain-of-command instinct. She grants the party access to the Imperial archives and follows Lyria's lead on political matters.",
+        "location": "Concordia Stellaris"
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Ruins of the Sacred Amphitheater",
+        "type": "building",
+        "description": "The damaged star-metal bowl now channeling uncontrolled energy through cracks glowing with cold amber light. Time runs inconsistently near the central dais, where the secondary siphon channels cycle without control.",
+        "notable": "The best place on the continent to physically understand what the Binding actually is."
+      },
+      {
+        "name": "The Imperial Archives",
+        "type": "building",
+        "description": "Imperial records to which Captain Torres grants access, holding references to 'the Eternal Cycle' in cosmological texts predating the Binding and a classification untouched for four centuries.",
+        "notable": "Source of the Pregenitor framework and Eternal Cycle texts."
+      }
+    ],
+    "items": [
+      {
+        "name": "Imperial Archive Authorization",
+        "type": "access",
+        "rarity": "Unique",
+        "description": "Authorization granted by Lyria and Captain Torres giving the party access to classified cosmological records and full Binding documentation."
+      },
+      {
+        "name": "Grove-Network Permissions",
+        "type": "access",
+        "rarity": "Unique",
+        "description": "Permissions from Theron allowing travel through surviving Verdant paths and access to pre-Imperial cultural memory."
+      },
+      {
+        "name": "Covenant Maritime Support",
+        "type": "access",
+        "rarity": "Unique",
+        "description": "Ships, navigation, Stagnation mapping, and evacuation coordination provided by Nerida and the Tidal Covenant."
+      },
+      {
+        "name": "Pregenitor Fragment-Site Maps",
+        "type": "document",
+        "rarity": "Unique",
+        "description": "Maps assembled from combined research giving locations and preliminary intelligence on the five Pregenitor trial-sites."
+      },
+      {
+        "name": "Entropy-Resistant Gear",
+        "type": "gear",
+        "rarity": "Rare",
+        "description": "Equipment produced through faction collaboration that provides resistance against the accelerating corruption."
+      }
+    ],
+    "encounters": [
+      {
+        "name": "The Faction Reckoning",
+        "description": "A social encounter in which the three faction leaders share the same information for the first time in fourteen hundred years. The party builds an alliance through Persuasion, Insight, and Charisma checks while preventing faction breakdown during the hardest conversations.",
+        "monsters": [],
+        "difficulty": "medium"
+      }
+    ]
+  }
+]

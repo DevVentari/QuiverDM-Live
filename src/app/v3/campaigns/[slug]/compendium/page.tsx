@@ -1,43 +1,55 @@
 'use client';
 
 /**
- * v3 Compendium — wired to real homebrew data via trpc.homebrew.getContent.
- * Three columns: category rail · entry list (typed, homebrew-flagged) · statblock
- * detail. The category rail filters the loaded list client-side by homebrew `type`.
- * The statblock reads the selected entry's `data` JSON defensively (the shape is a
- * free-form blob — every field guarded with optional chaining + '—' fallbacks).
- * The design's own logo/brand header is dropped — the app shell provides that chrome.
+ * v3 Compendium — campaign homebrew (trpc.homebrew.getContent) merged with the
+ * bundled SRD reference (monsters, conditions, rules). Three columns:
+ * category rail · entry list (typed, homebrew-flagged ✦) · detail pane.
+ *
+ * Monsters/Spells/Items render a defensive statblock from the entry's `data` JSON
+ * blob. Conditions/Rules are text entries (SRD-sourced) and render a prose card.
+ * SRD entries are flagged isSrd and never show the ✦ (which marks user homebrew).
  */
 
 import { useMemo, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
+import { getAllMonsters } from '@/lib/srd/monsters';
+import { ALL_CONDITIONS } from '@/lib/srd/conditions';
+import { ALL_RULES } from '@/lib/srd/rules';
+import { ALL_SPELLS, spellLevelLabel } from '@/lib/srd/spells';
+import {
+  srdMonsterToRow,
+  srdConditionToRow,
+  srdRuleToRow,
+  srdSpellToRow,
+  type CompendiumRow,
+} from '@/lib/srd/to-compendium-row';
 
 const mono = 'font-[family-name:var(--qd-font-mono)]';
 const display = 'font-[family-name:var(--qd-font-display)]';
 
-// Category rail → homebrew `type` filter. Conditions/Rules have no clean homebrew
-// source, so they resolve to empty tabs (graceful "Nothing stirs in the archive").
-const CATEGORIES = [
-  { label: 'Monsters', type: 'creature' as const },
-  { label: 'Spells', type: 'spell' as const },
-  { label: 'Items', type: 'item' as const },
-  { label: 'Conditions', type: null }, // TODO: no homebrew source for conditions
-  { label: 'Rules', type: 'rule' as const },
+// Category rail. `type` filters campaign homebrew (and keys the list icon); `srd`
+// supplies bundled reference rows merged in; `kind` selects the detail renderer.
+type CategoryKind = 'statblock' | 'text' | 'spell';
+interface Category {
+  label: string;
+  type: string;
+  kind: CategoryKind;
+  srd?: () => CompendiumRow[];
+}
+const CATEGORIES: Category[] = [
+  { label: 'Monsters', type: 'creature', kind: 'statblock', srd: () => getAllMonsters().map(srdMonsterToRow) },
+  { label: 'Spells', type: 'spell', kind: 'spell', srd: () => ALL_SPELLS.map(srdSpellToRow) },
+  { label: 'Items', type: 'item', kind: 'statblock' },
+  { label: 'Conditions', type: 'condition', kind: 'text', srd: () => ALL_CONDITIONS.map(srdConditionToRow) },
+  { label: 'Rules', type: 'rule', kind: 'text', srd: () => ALL_RULES.map(srdRuleToRow) },
 ];
 
-// ---- Homebrew row (subset of HomebrewContent returned by homebrew.getContent) ----
-interface HomebrewRow {
-  id: string;
-  name: string;
-  type: string;
-  tags?: string[] | null;
-  sourceType?: string | null;
-  data?: unknown;
-}
-
-const isHomebrew = (r: HomebrewRow) => (r.sourceType ?? 'manual') !== 'dndbeyond_import';
+// SRD reference is not user homebrew; DDB imports aren't either. Everything else
+// (manual + sourcebook_seed) earns the ✦.
+const isHomebrew = (r: CompendiumRow) =>
+  !r.isSrd && (r.sourceType ?? 'manual') !== 'dndbeyond_import';
 
 // Per-type icon for the entry list.
 const ICON_FOR_TYPE: Record<string, string> = {
@@ -45,8 +57,34 @@ const ICON_FOR_TYPE: Record<string, string> = {
   spell: 'spell/abjuration',
   item: 'weapon/sword',
   rule: 'class/wizard',
+  condition: 'spell/abjuration',
 };
 const iconForType = (type: string) => ICON_FOR_TYPE[type] ?? 'monster/aberration';
+
+// Creature-type → statblock header glyph. Covers all 14 available monster/* assets.
+// Keys are lowercase to match typical data blob values (e.g. d.type = "Dragon" → normalised).
+const CREATURE_TYPE_GLYPH: Record<string, string> = {
+  aberration: 'monster/aberration',
+  beast: 'monster/beast',
+  celestial: 'monster/celestial',
+  construct: 'monster/construct',
+  dragon: 'monster/dragon',
+  elemental: 'monster/elemental',
+  fey: 'monster/fae',
+  fiend: 'monster/fiend',
+  giant: 'monster/giant',
+  humanoid: 'monster/humanoid',
+  monstrosity: 'monster/monstrosity',
+  ooze: 'monster/ooze',
+  plant: 'monster/plant',
+  undead: 'monster/undead',
+};
+
+/** Returns the monster/* glyph path for a creature type string, or null if unknown. */
+function creatureTypeGlyph(type: string | undefined): string | null {
+  if (!type) return null;
+  return CREATURE_TYPE_GLYPH[type.toLowerCase()] ?? null;
+}
 
 // ---- Defensive statblock adapter ------------------------------------------------
 type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha';
@@ -81,14 +119,17 @@ interface StatBlock {
   conditionImmunities?: string[];
   senses?: string;
   languages?: string;
+  traits: Array<{ name: string; description: string }>;
   actions: Array<{ name: string; description: string }>;
+  reactions: Array<{ name: string; description: string }>;
+  legendaryActions: Array<{ name: string; description: string }>;
 }
 
 /**
- * Reads a HomebrewContent.data JSON blob into a statblock. Every field is guarded —
+ * Reads a CompendiumRow.data JSON blob into a statblock. Every field is guarded —
  * the blob may have any subset of keys. AC/HP/abilities default to '—'.
  */
-function adaptStatBlock(row: HomebrewRow | null): StatBlock | null {
+function adaptStatBlock(row: CompendiumRow | null): StatBlock | null {
   if (!row) return null;
   const d = (row.data ?? {}) as Record<string, unknown>;
 
@@ -104,11 +145,11 @@ function adaptStatBlock(row: HomebrewRow | null): StatBlock | null {
   const acNote = typeof d.acNote === 'string' ? ` (${d.acNote})` : '';
   const hpDice = typeof d.hpDice === 'string' ? ` (${d.hpDice})` : '';
 
-  const actionsRaw = Array.isArray(d.actions) ? (d.actions as Array<Record<string, unknown>>) : [];
-  const actions = actionsRaw.map((a) => ({
-    name: typeof a.name === 'string' ? a.name : 'Action',
-    description: typeof a.description === 'string' ? a.description : '',
-  }));
+  const namedList = (v: unknown) =>
+    (Array.isArray(v) ? (v as Array<Record<string, unknown>>) : []).map((a) => ({
+      name: typeof a.name === 'string' ? a.name : '—',
+      description: typeof a.description === 'string' ? a.description : '',
+    }));
 
   const strArr = (v: unknown): string[] | undefined =>
     Array.isArray(v) && v.length ? v.map(String) : undefined;
@@ -128,7 +169,61 @@ function adaptStatBlock(row: HomebrewRow | null): StatBlock | null {
     conditionImmunities: strArr(d.conditionImmunities),
     senses: typeof d.senses === 'string' ? d.senses : undefined,
     languages: typeof d.languages === 'string' ? d.languages : undefined,
-    actions,
+    traits: namedList(d.traits),
+    actions: namedList(d.actions),
+    reactions: namedList(d.reactions),
+    legendaryActions: namedList(d.legendaryActions),
+  };
+}
+
+/** Reads a text entry (condition/rule) blob defensively. */
+function adaptText(row: CompendiumRow | null): { description: string; category?: string } | null {
+  if (!row) return null;
+  const d = (row.data ?? {}) as Record<string, unknown>;
+  return {
+    description: typeof d.description === 'string' ? d.description : '',
+    category: typeof d.category === 'string' ? d.category : undefined,
+  };
+}
+
+interface SpellDetail {
+  levelLine: string;
+  meta: Array<{ label: string; value: string }>;
+  description: string;
+  higherLevel?: string;
+}
+
+/** Reads a spell blob (SRD or homebrew) defensively into a spell detail. */
+function adaptSpell(row: CompendiumRow | null): SpellDetail | null {
+  if (!row) return null;
+  const d = (row.data ?? {}) as Record<string, unknown>;
+  const str = (v: unknown): string | undefined => (typeof v === 'string' && v ? v : undefined);
+  const level = typeof d.level === 'number' ? d.level : undefined;
+  const school = str(d.school);
+  const levelLine =
+    level === 0
+      ? `Cantrip${school ? ` · ${school}` : ''}`
+      : level !== undefined
+        ? `${spellLevelLabel(level)}-level${school ? ` ${school.toLowerCase()}` : ''}`
+        : school ?? '—';
+
+  const tagBits: string[] = [];
+  if (d.concentration === true) tagBits.push('Concentration');
+  if (d.ritual === true) tagBits.push('Ritual');
+
+  const meta = [
+    { label: 'Casting Time', value: str(d.castingTime) ?? '—' },
+    { label: 'Range', value: str(d.range) ?? '—' },
+    { label: 'Components', value: [str(d.components), str(d.material) ? `(${str(d.material)})` : null].filter(Boolean).join(' ') || '—' },
+    { label: 'Duration', value: [str(d.duration), tagBits.length ? `· ${tagBits.join(', ')}` : null].filter(Boolean).join(' ') || '—' },
+    ...(str(d.classes) ? [{ label: 'Classes', value: str(d.classes)! }] : []),
+  ];
+
+  return {
+    levelLine,
+    meta,
+    description: str(d.description) ?? '',
+    higherLevel: str(d.higherLevel),
   };
 }
 
@@ -137,6 +232,7 @@ const PLURAL_LABEL: Record<string, string> = {
   spell: 'SPELLS',
   item: 'ITEMS',
   rule: 'RULES',
+  condition: 'CONDITIONS',
 };
 
 export default function CompendiumPage() {
@@ -145,31 +241,56 @@ export default function CompendiumPage() {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // Load everything for the campaign once; filter by type/search client-side
-  // (same approach as the NPC page).
+  // Load campaign homebrew once; SRD reference is bundled. Filter/merge client-side.
   const query = trpc.homebrew.getContent.useQuery(
     { campaignId, limit: 100 },
     { staleTime: 60_000 },
   );
 
-  const allRows = (query.data?.items as HomebrewRow[] | undefined) ?? [];
+  const allRows = useMemo(
+    () => (query.data?.items as CompendiumRow[] | undefined) ?? [],
+    [query.data],
+  );
 
-  const activeType = CATEGORIES[activeCat].type;
+  const category = CATEGORIES[activeCat];
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return allRows.filter((r) => {
-      if (activeType === null) return false; // Conditions tab → no source
-      if (r.type !== activeType) return false;
-      if (term && !r.name.toLowerCase().includes(term)) return false;
-      return true;
-    });
-  }, [allRows, activeType, search]);
+    const homebrew = allRows.filter((r) => r.type === category.type);
+    const srd = category.srd ? category.srd() : [];
+    const merged = [...homebrew, ...srd];
+    return merged.filter((r) => !term || r.name.toLowerCase().includes(term));
+  }, [allRows, category, search]);
 
   const selected = filtered.find((r) => r.id === selectedId) ?? filtered[0] ?? null;
-  const stat = useMemo(() => adaptStatBlock(selected), [selected]);
+  const stat = useMemo(
+    () => (category.kind === 'statblock' ? adaptStatBlock(selected) : null),
+    [category.kind, selected],
+  );
+  const text = useMemo(
+    () => (category.kind === 'text' ? adaptText(selected) : null),
+    [category.kind, selected],
+  );
+  const spell = useMemo(
+    () => (category.kind === 'spell' ? adaptSpell(selected) : null),
+    [category.kind, selected],
+  );
+  // Stat-block sections in 5e reading order; empty ones dropped. Traits render
+  // headerless (they sit right under the stats), the rest get a header.
+  const statSections = useMemo(
+    () =>
+      stat
+        ? [
+            { title: null as string | null, items: stat.traits },
+            { title: 'Actions', items: stat.actions },
+            { title: 'Reactions', items: stat.reactions },
+            { title: 'Legendary Actions', items: stat.legendaryActions },
+          ].filter((s) => s.items.length > 0)
+        : [],
+    [stat],
+  );
 
-  const listLabel = activeType ? PLURAL_LABEL[activeType] ?? activeType.toUpperCase() : '—';
+  const listLabel = PLURAL_LABEL[category.type] ?? category.label.toUpperCase();
 
   return (
     <div className="flex h-full flex-col">
@@ -196,6 +317,7 @@ export default function CompendiumPage() {
                 onClick={() => {
                   setActiveCat(i);
                   setSelectedId(null);
+                  setSearch(''); // a search term shouldn't carry across category tabs
                 }}
                 className={`rounded-[9px] px-3 py-2.5 text-left text-[14px] ${display}`}
                 style={
@@ -258,14 +380,66 @@ export default function CompendiumPage() {
           })}
         </div>
 
-        {/* ===== STATBLOCK ===== */}
+        {/* ===== DETAIL ===== */}
         <div className="flex-1 overflow-auto p-6">
-          {!selected || !stat ? (
-            <p className="text-[var(--qd-ink-muted)]">
-              {activeType === null
-                ? 'No homebrew lives in this archive yet.' /* TODO: conditions source */
-                : 'Choose an entry to read its lore.'}
-            </p>
+          {category.kind === 'text' ? (
+            !selected || !text ? (
+              <p className="text-[var(--qd-ink-muted)]">Choose an entry to read its lore.</p>
+            ) : (
+              <div
+                className="rounded-[16px] border p-5"
+                style={{
+                  borderColor: 'var(--qd-border-accent)',
+                  background: 'linear-gradient(180deg,rgba(36,23,18,.9),rgba(16,12,10,.9))',
+                  boxShadow: '0 20px 50px rgba(0,0,0,.4)',
+                }}
+              >
+                <div className="border-b border-[var(--qd-border-accent)] pb-3">
+                  <div className={`${display} text-[26px] leading-none text-[var(--qd-ink-strong)]`}>{selected.name}</div>
+                  {text.category && (
+                    <div className={`${mono} mt-1.5 text-[9px] uppercase tracking-[0.12em] text-[var(--qd-accent-bright)]`}>{text.category}</div>
+                  )}
+                </div>
+                <p className="mt-3.5 whitespace-pre-line text-[14.5px] leading-[1.7] text-[var(--qd-ink-2)]">{text.description}</p>
+              </div>
+            )
+          ) : category.kind === 'spell' ? (
+            !selected || !spell ? (
+              <p className="text-[var(--qd-ink-muted)]">Choose a spell to read its incantation.</p>
+            ) : (
+              <div
+                className="rounded-[16px] border p-5"
+                style={{
+                  borderColor: 'var(--qd-border-accent)',
+                  background: 'linear-gradient(180deg,rgba(36,23,18,.9),rgba(16,12,10,.9))',
+                  boxShadow: '0 20px 50px rgba(0,0,0,.4)',
+                }}
+              >
+                <div className="border-b border-[var(--qd-border-accent)] pb-3">
+                  <div className={`${display} text-[26px] leading-none text-[var(--qd-ink-strong)]`}>
+                    {selected.name}
+                    {isHomebrew(selected) && <span className={`${mono} ml-2 align-middle text-[8px] text-[var(--qd-accent-text)]`}>✦ homebrew</span>}
+                  </div>
+                  <div className={`${mono} mt-1.5 text-[9px] italic text-[var(--qd-accent-bright)]`}>{spell.levelLine}</div>
+                </div>
+                <dl className="mt-3.5 grid grid-cols-2 gap-x-6 gap-y-1.5 text-[13.5px] text-[var(--qd-ink-2)]">
+                  {spell.meta.map((m) => (
+                    <div key={m.label} className={spell.meta.length % 2 !== 0 && m === spell.meta[spell.meta.length - 1] ? 'col-span-2' : ''}>
+                      <dt className={`${mono} text-[8px] uppercase tracking-[0.1em] text-[var(--qd-accent-bright)]`}>{m.label}</dt>
+                      <dd>{m.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="mt-3.5 whitespace-pre-line border-t border-[var(--qd-border-accent)] pt-3 text-[14.5px] leading-[1.7] text-[var(--qd-ink-2)]" style={{ borderTopColor: 'rgba(217,138,61,.2)' }}>{spell.description}</p>
+                {spell.higherLevel && (
+                  <p className="mt-2.5 whitespace-pre-line text-[14px] leading-[1.6] text-[var(--qd-ink-2)]">
+                    <b className="text-[var(--qd-accent-hi)]">At Higher Levels.</b> {spell.higherLevel}
+                  </p>
+                )}
+              </div>
+            )
+          ) : !selected || !stat ? (
+            <p className="text-[var(--qd-ink-muted)]">Choose an entry to read its lore.</p>
           ) : (
             <div
               className="rounded-[16px] border p-5"
@@ -278,7 +452,16 @@ export default function CompendiumPage() {
               {/* header */}
               <div className="flex items-start justify-between border-b border-[var(--qd-border-accent)] pb-3">
                 <div>
-                  <div className={`${display} text-[26px] leading-none text-[var(--qd-ink-strong)]`}>{selected.name}</div>
+                  <div className={`${display} flex items-center gap-2.5 text-[26px] leading-none text-[var(--qd-ink-strong)]`}>
+                    {creatureTypeGlyph(stat.type) && (
+                      <MaskedDndIcon
+                        name={creatureTypeGlyph(stat.type)!}
+                        size={22}
+                        className="text-[var(--qd-accent-text)] shrink-0"
+                      />
+                    )}
+                    {selected.name}
+                  </div>
                   <div className={`${mono} mt-1.5 text-[9px] italic text-[var(--qd-accent-bright)]`}>
                     {[stat.size, stat.type, stat.alignment].filter(Boolean).join(' ') || '—'}
                     {` · CR ${stat.cr}`}
@@ -330,14 +513,21 @@ export default function CompendiumPage() {
                 </div>
               )}
 
-              {/* actions */}
+              {/* traits · actions · reactions · legendary actions */}
               <div className="mt-3.5 border-t border-[var(--qd-border-accent)] pt-3" style={{ borderTopColor: 'rgba(217,138,61,.2)' }}>
-                {stat.actions.length === 0 ? (
-                  <div className="text-[13px] text-[var(--qd-ink-muted)]">No actions recorded.</div>
+                {statSections.length === 0 ? (
+                  <div className="text-[13px] text-[var(--qd-ink-muted)]">No traits or actions recorded.</div>
                 ) : (
-                  stat.actions.map((a, i) => (
-                    <div key={`${a.name}-${i}`} className={`text-[14px] text-[var(--qd-accent-hi)] ${i > 0 ? 'mt-2' : ''}`}>
-                      <b>{a.name}.</b> <span className="text-[var(--qd-ink-2)]">{a.description}</span>
+                  statSections.map((section) => (
+                    <div key={section.title ?? 'traits'} className="mt-3 first:mt-0">
+                      {section.title && (
+                        <div className={`${display} mb-1.5 text-[15px] text-[var(--qd-accent-text)]`}>{section.title}</div>
+                      )}
+                      {section.items.map((a, i) => (
+                        <div key={`${a.name}-${i}`} className={`text-[14px] text-[var(--qd-accent-hi)] ${i > 0 ? 'mt-2' : ''}`}>
+                          <b>{a.name}.</b> <span className="text-[var(--qd-ink-2)]">{a.description}</span>
+                        </div>
+                      ))}
                     </div>
                   ))
                 )}

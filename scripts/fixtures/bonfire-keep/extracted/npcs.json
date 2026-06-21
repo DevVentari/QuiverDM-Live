@@ -1,0 +1,114 @@
+[
+  {
+    "chapterSlug": "major-npcs",
+    "npcs": [
+      {
+        "name": "Ambric",
+        "role": "Anchor of Justice (Descendant-Anchor, son of the Arbiter)",
+        "description": "The Witness who stepped down from absolute divine perspective into mortal life, carrying the blood of the Aspect of Justice and perfect moral sight. His katana, the Blade of the Chronicle, is always in hand; when a name appears on it in black ink, that person is marked for a reckoning he must follow.",
+        "location": "Bonfire Keep"
+      },
+      {
+        "name": "Temmel",
+        "role": "Anchor of Redemption (formerly the Aspect of Redemption incarnate, the Emperor's Hand)",
+        "description": "The being who killed his Emperor fourteen centuries ago and has spent the time since deciding whether 'necessary' is enough. He tends the Heartflame, maintains the Bonfire Keep as absolute sanctuary, and is usually the first to meet heroes who arrive at the Keep's door, absorbing the spiritual burdens of others.",
+        "location": "Bonfire Keep"
+      },
+      {
+        "name": "Faeren",
+        "role": "Anchor of Memory (the Aspect of Memory incarnate, the Story-Bearer)",
+        "description": "A shapeshifting archive with no fixed form of their own, holding the memories of every culture the Empire erased. They collect the true version of people's stories and cannot be permanently destroyed as long as one person remembers their tales.",
+        "location": "Bonfire Keep"
+      },
+      {
+        "name": "Serenitas",
+        "role": "The First Mother / The Shepherd (now the Corrupted Entropy)",
+        "description": "Once the most beloved being in Hameria Ire, who made endings feel like rest, she was broken by the Salting and then imprisoned beneath the imperial capital by Aurelias the Founder, bled across fourteen centuries to fuel the Empire's golden magic. She does not appear as a character the party meets, but watches the Bonfire Keep's fire from the dark to see if anyone can pass the test she built into the First Covenant.",
+        "location": "Beneath Aurelios the Golden (imperial capital)"
+      },
+      {
+        "name": "Emperor Aurelias Draconius",
+        "role": "Dragonborn Emperor, Sovereign of the Sunward Empire",
+        "description": "The man in the impossible chair, who inherited the crime of Serenitas's imprisonment fifteen years ago and chooses each morning to sit back down in it. He speaks with measured, weary authority and quietly hopes the party might help him find a third option to a problem whose straightforward solution runs through destroying everyone he protects.",
+        "location": "Sunward Empire (imperial capital)"
+      },
+      {
+        "name": "High Sage Lyria Sunweaver",
+        "role": "Human Imperial High Sage, Architect of the Stasis Filters",
+        "description": "The architect of the machine that bleeds Serenitas, who built the Stasis Filters and has been trying to make them hurt less ever since. The only person who understands the Filters well enough to maintain them, she is brilliant, increasingly haunted, and searching for a way out that does not collapse the civilization.",
+        "location": "Sunward Empire (imperial capital)"
+      },
+      {
+        "name": "Captain Helena Torres",
+        "role": "Human Captain, Alliance Military Coordinator",
+        "description": "Disciplined and genuinely compassionate, she was promoted into Draven's position when his corruption became impossible to overlook. She coordinates multi-faction operations in a crisis she was not briefed on, surrounded by people she cannot fully trust, and is carrying the weight of a job too large for one person alone.",
+        "location": "Sunward Empire"
+      },
+      {
+        "name": "Captain Marcus Draven",
+        "role": "Human warrior, corrupted soldier (former military mentor)",
+        "description": "A once-good officer who spent twenty years serving in close proximity to the Aetheric Well without being told what it was. The void-touched blade he was given for exceptional service has channeled the Binding's seepage for a decade, slowly corrupting him; the man beneath the corruption is still reachable, for now.",
+        "location": "Sunward Empire"
+      },
+      {
+        "name": "Current-Caller Nerida Tidereader",
+        "role": "Triton Current-Caller, leader of the Drifters (Tidal Covenant)",
+        "description": "The first faction leader to systematically analyze the corruption patterns and recognize their artificial origin and Imperial epicenter. She reads social, economic, and magical currents with the same patience she reads the ocean, and is still deciding what to do with her analysis rather than sharing it immediately with the Emperor.",
+        "location": "Tidal Covenant (the Drifters)"
+      },
+      {
+        "name": "Oriyen Vale",
+        "role": "Scholar and Archive chronicler of the Bloodline Records of House Aurelius",
+        "description": "A scholar who spent years working in the Archive of Withered Echoes documenting imperial bloodline history, unaware that the Knowledge Serpent was learning imperial vulnerabilities through his careful records. When the Serpent emerges his obsidian mirror reveals its true nature, and he must reckon with the fact that his chronicles enabled it.",
+        "location": "Archive of Withered Echoes"
+      }
+    ],
+    "locations": [
+      {
+        "name": "Bonfire Keep",
+        "type": "building",
+        "description": "The absolute sanctuary tended by the Three Anchors, where the Heartflame burns and no violence can occur within its walls while Temmel tends the fire. It cannot be the site of Temmel's destruction while it exists, and is the place heroes who have run out of options arrive.",
+        "notable": "Home of the Three Anchors and the Heartflame; site of the test Serenitas built into the First Covenant"
+      },
+      {
+        "name": "Archive of Withered Echoes",
+        "type": "building",
+        "description": "An archive containing a restricted section where Oriyen Vale chronicled the Bloodline Records of House Aurelius for years. The Knowledge Serpent came through this archive and has been watching his documentation, learning imperial vulnerabilities.",
+        "notable": "Entry point of the Knowledge Serpent; holds the Bloodline Records of House Aurelius"
+      },
+      {
+        "name": "Aetheric Well",
+        "type": "other",
+        "description": "The source from which every golden spell cast in the imperial capital draws its power, which in turn draws on the imprisoned Serenitas beneath the city. Captain Draven served in close proximity to it for twenty years without being told what it was.",
+        "notable": "Conduit of the Binding's seepage that corrupted Marcus Draven's void-touched blade"
+      }
+    ],
+    "items": [
+      {
+        "name": "Blade of the Chronicle",
+        "type": "weapon",
+        "rarity": "legendary",
+        "description": "Ambric's katana, folded from a thousand pages of living history — as strong and sharp as dragon-forged steel, as light as parchment. When the Iremael pulses or fate demands it, a name appears on the blade in black ink marking that person for a reckoning; the Chronicler's Strike deals extra damage against a named target."
+      },
+      {
+        "name": "Sunblade",
+        "type": "weapon",
+        "rarity": "rare",
+        "description": "The radiant blade wielded by Emperor Aurelias Draconius, dealing slashing plus radiant damage on a hit."
+      },
+      {
+        "name": "Trident of Currents",
+        "type": "weapon",
+        "rarity": "rare",
+        "description": "Nerida Tidereader's trident, usable as a melee or thrown weapon, dealing piercing plus force damage."
+      },
+      {
+        "name": "Void-Touched Blade",
+        "type": "weapon",
+        "rarity": "very rare",
+        "description": "The blade given to Marcus Draven as a gift for exceptional service, which has been a conduit for the Binding's seepage for a decade. It deals slashing plus necrotic damage and can age its target, slowly corrupting its wielder."
+      }
+    ],
+    "encounters": []
+  }
+]

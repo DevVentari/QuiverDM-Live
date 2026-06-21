@@ -51,6 +51,7 @@ const UI_V3_DIR = resolve(ROOT, 'src/components/ui-v3');
 const V3_APP_DIR = resolve(ROOT, 'src/app/v3');
 
 // The embedded v2 components ported onto --qd-* in tasks 2-6.
+// TASK 7: added V3CharacterSheet (3-column DM character detail pane).
 const PORTED_COMPONENTS: string[] = [
   'src/components/campaign/ForgeTransition.tsx',
   'src/components/campaign/CampaignForgeReveal.tsx',
@@ -58,6 +59,7 @@ const PORTED_COMPONENTS: string[] = [
   'src/components/vtt/map-background-control.tsx',
   'src/components/vtt/vtt-canvas.tsx',
   'src/components/session/audio-recorder.tsx',
+  'src/components/character/v3/V3CharacterSheet.tsx',
 ];
 
 // The full v3 surface must stay token-clean: the ui-v3 primitives, every page

@@ -7,6 +7,7 @@ import { addBrainIngestionJob } from '@/lib/queue/brain-ingestion-queue';
 import { enqueueMeiliSyncSafe } from '@/lib/queue/meili-sync-queue';
 import { callGeminiVision } from '@/lib/ai/gemini';
 import { ensureSignatureForEntity } from './voice.service';
+import { detectGaps, type GapCandidate } from '@/lib/brain/gap-detector';
 
 export class BrainService {
   private async requireDM(campaignId: string, userId: string) {
@@ -296,6 +297,44 @@ export class BrainService {
     }
 
     return warnings;
+  }
+
+  async listGaps(campaignId: string, userId: string) {
+    await this.requireDM(campaignId, userId);
+
+    const [entities, relationships, sessions] = await Promise.all([
+      // Gap detection does no LLM call, so scan the whole world rather than
+      // inheriting the default 100-row cap (which exists to bound token budgets).
+      brainRepository.findEntities(campaignId, { limit: 10_000 }),
+      brainRepository.findRelationships(campaignId),
+      prisma.gameSession.findMany({ where: { campaignId }, select: { id: true, sessionNumber: true } }),
+    ]);
+
+    const relationshipCount = new Map<string, number>();
+    for (const r of relationships) {
+      relationshipCount.set(r.fromEntityId, (relationshipCount.get(r.fromEntityId) ?? 0) + 1);
+      relationshipCount.set(r.toEntityId, (relationshipCount.get(r.toEntityId) ?? 0) + 1);
+    }
+
+    const sessionNumberById = new Map(sessions.map((s) => [s.id, s.sessionNumber]));
+    const maxSessionNumber = sessions.reduce((m, s) => Math.max(m, s.sessionNumber), 0);
+
+    const candidates: GapCandidate[] = entities.map((e) => {
+      const lastNum = e.lastSeenSessionId ? sessionNumberById.get(e.lastSeenSessionId) ?? null : null;
+      return {
+        id: e.id,
+        name: e.name,
+        type: e.type,
+        status: e.status,
+        description: e.description,
+        confidence: e.confidence,
+        statBlockId: e.statBlockId,
+        relationshipCount: relationshipCount.get(e.id) ?? 0,
+        sessionsSinceLastSeen: lastNum === null ? null : maxSessionNumber - lastNum,
+      };
+    });
+
+    return detectGaps(candidates);
   }
 
   async ingestDocument(
