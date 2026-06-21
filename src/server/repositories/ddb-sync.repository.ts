@@ -180,6 +180,10 @@ async function synthesizeSourcebookCompendiumToCampaign(
     where: {
       sourcebookId,
       type: { in: ['ITEM', 'LOCATION', 'THREAT'] },
+      // THREATs with a linked stat block are already cloned as rich `creature`
+      // homebrew by cloneSourcebookHomebrewToCampaign — synthesizing them here too
+      // would create a second, statless duplicate. Skip them.
+      statBlockId: null,
     },
     select: {
       id: true,
