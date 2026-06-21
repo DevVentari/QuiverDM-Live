@@ -1,0 +1,132 @@
+[
+  {
+    "chapterSlug": "items",
+    "npcs": [],
+    "locations": [],
+    "items": [
+      {
+        "name": "The Warpstone Shard",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A jagged piece of the original cosmic forge that resonates with Skreek's corrupted Plague Arm, turning his sickness into a tool. It grants resistance to poison and necrotic damage and evolves to overgrow his blade with poison damage and eventually let him phase through reality."
+      },
+      {
+        "name": "The Scavenger's Practical Vest",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A vest woven from the universe's discarded possibilities, embodying utility found in what others throw away. It provides weightless storage and advantage on Investigation, later letting the bearer pull remembered items from empty pockets and cast Fabricate at will."
+      },
+      {
+        "name": "The Fragment of Obsidian Mirror",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A shard of the mirror the First Chronicler used to watch the world, reflecting the weight of choice. It can reveal the consequence of a recent decision, paralyze a target with guilt, and ultimately become the Blade of the Chronicle."
+      },
+      {
+        "name": "Duskfall Blade",
+        "type": "weapon",
+        "rarity": "rare",
+        "description": "A once-ceremonial longsword blessed by Serenitas, now weeping purple-red energy from hairline cracks with withered roses on its crossguard. It deals bonus necrotic damage and can inflict the Withered condition, but curses its wielder with creeping despair."
+      },
+      {
+        "name": "Lantern of the Gilded Truth",
+        "type": "wondrous",
+        "rarity": "uncommon",
+        "description": "A fuelless brass lantern burning with constant golden light that reveals invisible creatures and hidden objects within 30 feet. Its Solar Lie makes Withered creatures appear healthy unless seen through with a careful Investigation check."
+      },
+      {
+        "name": "Current-Singer's Conshell",
+        "type": "wondrous",
+        "rarity": "rare",
+        "description": "A large conch shell that hums with the rhythm of distant tides. Blowing it casts Control Water, and once per long rest it casts Slow, coating failed targets in crystalline salt."
+      },
+      {
+        "name": "Thistle-Bound Compass",
+        "type": "wondrous",
+        "rarity": "uncommon",
+        "description": "A compass encased in living brambles with an obsidian-thorn needle that points toward the nearest untainted grove or fresh water within 5 miles. It grants advantage on Survival checks in the Emerald Reach and similar forests."
+      },
+      {
+        "name": "Siphon-Needle",
+        "type": "weapon",
+        "rarity": "rare",
+        "description": "A long, needle-like star-metal dagger used by Imperial inquisitors. On hitting a spellcaster, the wielder can drain a spell slot from the target and regain an expended 1st-level slot."
+      },
+      {
+        "name": "Anchor's Hearth-Bread",
+        "type": "potion",
+        "rarity": "common",
+        "description": "Warm, dense bread provided by Temmel at the Bonfire Keep. Eaten during a short rest, it removes one level of exhaustion and suppresses the Withered condition for 1 hour."
+      },
+      {
+        "name": "Vial of Silver Static",
+        "type": "potion",
+        "rarity": "uncommon",
+        "description": "A vial containing the swirling silver psychic noise of the Emerald Reach. Thrown as a splash weapon, it forces a Wisdom save or leaves creatures Confused for 1 round from the forest's whispers."
+      }
+    ],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "pregenitor-artifacts",
+    "npcs": [],
+    "locations": [],
+    "items": [
+      {
+        "name": "The Pregenitor Orb",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "Serenitas's final creation, a small dark vessel of comprehension scattered across Hameria Ire as five Fragments. It can only be made whole when mortals genuinely understand each of her five Aspects, granting the bearer standing to speak with the First Mother herself."
+      },
+      {
+        "name": "The Fragment of Command",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "The Aspect of Justice fragment of the Pregenitor Orb, carried by Ambric. It tests whether one can hold authority without becoming a tyrant, warming only when the bearer wields power justly at cost to themselves."
+      },
+      {
+        "name": "The Fragment of Growth",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "The Aspect of Thymal fragment of the Pregenitor Orb. It seeks those who invest in outcomes they will not live to see, quickening when one tends something not theirs to own."
+      },
+      {
+        "name": "The Fragment of Adaptation",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "The Aspect of Orym fragment of the Pregenitor Orb. It searches for those who can be reshaped by the world yet still know their own name, shifting when one changes without losing what they were."
+      },
+      {
+        "name": "The Fragment of Memory",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "The Aspect of Memory fragment of the Pregenitor Orb, witnessed by Faeren. It rewards those who remember honestly, holding uncomfortable truths, and speaks when one carries a truth that costs something to hold."
+      },
+      {
+        "name": "The Fragment of Hope",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "The Aspect of Serenitas herself and the final proof, left in the Bonfire Keep. It tests whether one can accept an ending without being broken by it, completing the Orb when the debt is paid."
+      },
+      {
+        "name": "The Warpstone Shard",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A jagged piece of cosmic forge-stone bonded to Skreek Swicschnout and his corrupted arm, treating his plague as a language being learned. It grants poison and necrotic resistance, later overgrowing his blade and letting him phase through reality."
+      },
+      {
+        "name": "The Scavenger's Practical Vest",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A vest woven from discarded possibilities, bonded to Norm Alfella and the Aspect of Creation. It grants weightless storage, later remembers previously seen items to pull from empty pockets, and becomes a beacon granting Fabricate at will."
+      },
+      {
+        "name": "The Fragment of Obsidian Mirror",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A shard of Ambric's mirror bonded to Oriyen Vale and the Aspect of Justice, reflecting the accumulated weight of choices. It reveals consequences, can paralyze a target with recognition, and ultimately becomes the Blade of the Chronicle."
+      }
+    ],
+    "encounters": []
+  }
+]

@@ -1,0 +1,358 @@
+[
+  {
+    "chapterSlug": "factions-overview",
+    "npcs": [
+      {
+        "name": "Caravelle Stormwind",
+        "role": "Airship Guild Coordinator, Circle of Roads",
+        "description": "A half-elf entrepreneur with 120 years in the trade who believes aerial perspective reveals patterns no ground-level observer can see, and who thinks in decades.",
+        "location": "Wandering Markets"
+      },
+      {
+        "name": "Jin \"Three-Rivers\" Nakamura",
+        "role": "River Trading Consortium coordinator, Circle of Roads",
+        "description": "A human diplomat of 45 years who sees trade as the architecture of peace and is more afraid of economic collapse than of any military threat.",
+        "location": "Wandering Markets"
+      },
+      {
+        "name": "Marcus \"Iron-Wheels\" Thorne",
+        "role": "Overland Caravan Guild coordinator, Circle of Roads",
+        "description": "A dwarf logistics master of 180 years, a conservative strategist who values proven routes over innovation and has outlasted four Emperors.",
+        "location": "Wandering Markets"
+      },
+      {
+        "name": "Kaia Saltborn",
+        "role": "Floating Market Coordinator, Circle of Roads",
+        "description": "A Triton cultural bridge of 85 years who adapts Market operations to changing conditions and integrates refugees into Market infrastructure as a matter of policy.",
+        "location": "Wandering Markets"
+      },
+      {
+        "name": "Skreek Swicschnout",
+        "role": "Network Coordinator and Community Liaison for the Harvest Festival; escaped Clan Mors graduate",
+        "description": "A graduate who escaped Clan Mors carrying a plague arm that was meant to be a leash, and who ended up leading the Plague-Touched Network. His survival represents a failure the clan cannot afford to leave unaddressed.",
+        "location": "Plague-Touched Network"
+      },
+      {
+        "name": "Warlord Snikch the Unseen",
+        "role": "Leader of Clan Mors",
+        "description": "A Skaven warlord who leads Clan Mors from a position no surviving target has ever seen from.",
+        "location": "Clan Mors"
+      },
+      {
+        "name": "Hunter-Captain Snakt",
+        "role": "Clan Mors recovery operations leader",
+        "description": "Runs Clan Mors's recovery operations in Hameria Ire, establishing underground infrastructure in neutral territories to hunt the escaped graduate.",
+        "location": "Clan Mors"
+      },
+      {
+        "name": "High Chronicler Vespara the Eternal",
+        "role": "Overseer of the Archive of Withered Echoes",
+        "description": "A Shadar-kai chronicler who has overseen the Archive of Withered Echoes for more than two thousand years; her title derives from the depth of her engagement with the Archive's collections rather than her longevity.",
+        "location": "Archive of Withered Echoes"
+      },
+      {
+        "name": "Oriyen Vale",
+        "role": "Former youngest chronicler of the Archive of Withered Echoes",
+        "description": "Served as the Archive's youngest chronicler in centuries before his departure; his access has not been formally revoked and his relationship with the institution is complicated.",
+        "location": "Archive of Withered Echoes"
+      },
+      {
+        "name": "Pip",
+        "role": "Plague-Touched Network member",
+        "description": "An escapee of Clan Mors experiments who can distinguish artificial corruption from natural affliction.",
+        "location": "Plague-Touched Network"
+      },
+      {
+        "name": "Old Martha",
+        "role": "Plague-Touched Network member",
+        "description": "A member whose herbal knowledge addresses conditions that official medicine refuses to categorize.",
+        "location": "Plague-Touched Network"
+      },
+      {
+        "name": "Twist",
+        "role": "Plague-Touched Network member",
+        "description": "A member who specializes in exactly the kind of assessments the current situation keeps requiring.",
+        "location": "Plague-Touched Network"
+      },
+      {
+        "name": "Norm Alfella",
+        "role": "Exiled human, former refugee among the Redclaw Clan",
+        "description": "An exiled human who sought refuge with the Redclaw Clan carrying a history of trauma they absorbed as their own, then left upon recognizing the harm his presence caused; the clan experienced his departure as abandonment.",
+        "location": "Redclaw Clan"
+      },
+      {
+        "name": "Shaman Skarfang the Bitter",
+        "role": "Leader of the Redclaw Clan",
+        "description": "Seized leadership of the Redclaw Clan after Norm's departure and transformed accumulated resentment into systematic revenge against human settlements, building a new identity on hatred instead of survival.",
+        "location": "Redclaw Clan"
+      },
+      {
+        "name": "Snik the Listener",
+        "role": "Redclaw Clan member",
+        "description": "A clan member who has been hearing beautiful corrupting voices in the quiet hours for months — voices that promise rest through ending and validate hatred as sacred purpose.",
+        "location": "Redclaw Clan"
+      }
+    ],
+    "locations": [],
+    "items": [
+      {
+        "name": "The Vault of Necessities",
+        "type": "other",
+        "rarity": "artifact",
+        "description": "A hidden facility maintained by the Continuity Compact since shortly after the Binding, its rotating location known only to the Circle of Roads. It holds pre-Compact historical records, cosmic cycle documentation, preserved Bonfire Keep communications, emergency protocols, and the only complete copy of the original Founding Compact."
+      }
+    ],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "solar-lie",
+    "npcs": [
+      {
+        "name": "Solara, the Eternal Light",
+        "role": "Imperial deity (the Empire's stripped-down face of The Dawn)",
+        "description": "The golden-scaled dragon of immense size the Empire worships as the Aspect of Creation, the face of victory over the void — a deliberately incomplete version of The Dawn shorn of her grief and her connection to the cycle's ending.",
+        "location": "Sunward Empire"
+      },
+      {
+        "name": "Serenitas",
+        "role": "The First Mother; the imprisoned being the Empire calls The Shadow",
+        "description": "The First Mother who dreamed the universe into existence and broke herself apart across the Aspects, who walked as the Shepherd for eight thousand years. The Salting broke her capacity to let go, curdling her mercy into Corrupted Entropy; she is now imprisoned beneath Aurelios and siphoned for Golden Magic.",
+        "location": "Aetheric Well, beneath Aurelios the Golden"
+      },
+      {
+        "name": "Emperor Aurelias Draconius",
+        "role": "Current Emperor of the Sunward Empire",
+        "description": "The current heir of the Founder's line who carries the full weight of the Great Crime — what the Binding costs, who lies beneath the city, and what will happen when it fails — and tends the civilization despite withdrawal sickness.",
+        "location": "Aurelios the Golden"
+      },
+      {
+        "name": "Aurelias the Founder",
+        "role": "Founder of the Sunward Empire and architect of the Binding",
+        "description": "The leader who, standing in the ruins of the Salting, devised the Binding to seal the corrupted Shepherd and end six centuries of dying, believing it would buy a hundred years for civilization to find a better answer. He died before the bill came due.",
+        "location": "Sunward Empire"
+      }
+    ],
+    "locations": [
+      {
+        "name": "Aurelios the Golden",
+        "type": "settlement",
+        "description": "The Imperial capital, the most magnificent construction in the history of Hameria Ire, built atop the Aetheric Well — a prison. Its golden towers stand unchanged while other civilizations crumble to Stasis Glass."
+      },
+      {
+        "name": "Cathedral of First Light",
+        "type": "building",
+        "description": "The great cathedral of the Solar Faith in Aurelios, where dawn light pours through amber glass and the morning bells call the faithful to worship Solara.",
+        "notable": true
+      },
+      {
+        "name": "The Aetheric Well",
+        "type": "dungeon",
+        "description": "A chamber beneath the capital's deepest foundations that has not seen natural light since the first day of the Binding. It is the drain of Serenitas's cell, generating energy from the pressure of her imprisonment and feeding all Golden Magic.",
+        "notable": true
+      }
+    ],
+    "items": [
+      {
+        "name": "Stasis Filters",
+        "type": "other",
+        "rarity": "legendary",
+        "description": "Imperial magical apparatus that passes raw purple-red entropy drawn from the Aetheric Well through filtration, stripping its entropic signature so it emerges golden, warm, and clean-feeling — the mechanism that hides what Golden Magic comes from."
+      }
+    ],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "verdant-burden",
+    "npcs": [
+      {
+        "name": "Thymal, the Aspect of Growth",
+        "role": "Deity of the Verdant Clans; the Great Root",
+        "description": "The Aspect of Growth whose living presence moves through the grove-networks of the Emerald Reach as the Great Root. Thymal teaches that growth requires change and loss, and that the Grand Harvest is mercy rather than punishment.",
+        "location": "Emerald Reach"
+      },
+      {
+        "name": "Theron",
+        "role": "Leader of the Grove-Speakers",
+        "description": "A Grove-Speaker whose hands have been silver past the wrist for a decade; each morning he puts them to the Mother-Tree and listens for the Root's voice beneath the Static. He counsels patience, believing the network can survive until the Binding ends.",
+        "location": "Central Emerald Reach"
+      },
+      {
+        "name": "Celia",
+        "role": "Leader of the Rootwardens",
+        "description": "A Rootwarden who has fought the infected edge of the Reach for thirty years and carries silver in her left arm from elbow to shoulder. Her philosophy is triage: keep what can be kept, sacrifice what cannot.",
+        "location": "Emerald Reach"
+      },
+      {
+        "name": "The Bramble-King",
+        "role": "Leader of the Thorns",
+        "description": "The anonymous leader of the Thorns, taking a title chosen because brambles are the first thing to grow back after a burn. He directs the destruction of Imperial Siphon-Stations and the weaponization of Silver Rot against Imperial agricultural lands.",
+        "location": "Emerald Reach"
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Emerald Reach",
+        "type": "region",
+        "description": "The territory of the Verdant Clans, a land of grove-cities grown from living wood connected by the Grove-Network. Its eastern edge bears the advancing Silver Rot, where trees have frozen into perfect silver glass."
+      },
+      {
+        "name": "The Mother-Tree",
+        "type": "natural",
+        "description": "The great tree at the heart of the central Reach, tended by the Grove-Speakers, believed capable of digesting the Empire's stasis waste given enough time.",
+        "notable": true
+      }
+    ],
+    "items": [],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "tidal-adaptation",
+    "npcs": [
+      {
+        "name": "Orym, the Aspect of Adaptation",
+        "role": "Deity of the Tidal Covenant",
+        "description": "The Aspect of Adaptation, an active presence the Covenant's Current-Callers have conversed with since the first floating city learned to read the tides. Orym is the water that takes the shape of whatever holds it, teaching that identity is a river, not a stone.",
+        "location": "Tidal Covenant waters"
+      },
+      {
+        "name": "Current-Caller Nerida",
+        "role": "Leader of the Drifters",
+        "description": "Leader of the traditionalist Drifters who charts Stagnation zones and keeps the Covenant moving, believing the Stagnation is the world changing rather than its end, and that the Covenant must be moving when the Grand Harvest arrives.",
+        "location": "Great Bay"
+      },
+      {
+        "name": "Kaine Stormvoice",
+        "role": "Leader of the Depth-Singers",
+        "description": "A scholar who has listened to the Stagnation for twenty years and gone partially translucent, his skin and eyes adapted to deep-water frequencies. He believes the dense water is a record of every prevented Grand Harvest and works to extract its preserved memories.",
+        "location": "Great Bay"
+      },
+      {
+        "name": "Commodore Vax",
+        "role": "Leader of the Anchors",
+        "description": "The reactionary commodore who has chained his floating cities to the seabed with iron, calling stillness protection — unaware (or in denial) that the Stagnation concentrates fastest around things that have stopped.",
+        "location": "Great Bay"
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Great Bay",
+        "type": "natural",
+        "description": "The waters of the Tidal Covenant, whose northern currents have been slowing and thickening for three centuries into the Salted Stagnation — zones of hyper-dense water where time runs at a different rate."
+      }
+    ],
+    "items": [],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "twelve-witnesses",
+    "npcs": [
+      {
+        "name": "Emperor Aurelias Draconius",
+        "role": "The Triumvirate; Emperor of the Sunward Empire",
+        "description": "The Emperor who received the full truth of the Binding through withdrawal sickness and maintains it because closing the Well would collapse the entire civilization built on it. He considers stopping regularly but returns to the chair every morning.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "High Sage Lyria Sunweaver",
+        "role": "The Triumvirate; builder of the Stasis Filters",
+        "description": "The high sage who invented the Stasis Filters that render purple-red entropy golden, and who genuinely believes the siphoning can be perfected to hurt Serenitas less. She is the only one who can maintain the apparatus, and she cannot stop.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "High Marshal Korth",
+        "role": "The Triumvirate; military commander",
+        "description": "The high marshal entirely at peace with what he knows. He sees Golden Magic as the Empire's military edge, wants it sharper, and declines to treat the truth of its source as a problem because ethics fall outside his responsibilities.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Archmage Vane",
+        "role": "Sage of the Siphon; manager of the Stasis Filtration Plant",
+        "description": "The one who turns purple to gold, managing the facility through which Serenitas's essence passes. He has seen the raw material and touched the filtration interface, and is the most reluctant of the Twelve to discuss his work.",
+        "location": "Stasis Filtration Plant, Aurelios"
+      },
+      {
+        "name": "Chronosian Elara",
+        "role": "Sage of the Siphon; monitor of the Temporal Debt",
+        "description": "The chronosian who calculates how much time is being stolen from the Covenant's oceans to supplement the siphoning. She filed findings recommending an emergency sustainability assessment; the Emperor read it and left the recommendation unanswered.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Life-Binder Valerius",
+        "role": "Sage of the Siphon; monitor of the Silver Rot",
+        "description": "The life-binder with biological sampling data and a growth model for the Silver Rot, who knows the date the Mother-Tree's capacity will be exhausted. Bound by the Geas, he has never shared this threshold with the Verdant Clans.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Duchess Solaris",
+        "role": "Noble Sentinel; keeper of the Solar Faith's consistency",
+        "description": "Responsible for keeping cathedral doctrine aligned with what the Twelve need believed. Her network detects priests asking dangerous questions and manages converts with inconvenient knowledge; she presides over rites for priests who died in genuine faith.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Lord Aurelian",
+        "role": "Noble Sentinel; builder of the Great Roads and mana distribution network",
+        "description": "The engineer who built the Great Roads and the underground mana distribution network that routes siphoned essence from the Filtration Plant to every Imperial city. A practical man who has made peace with what he distributes but would prefer not to know what powers it.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Lady Celestis",
+        "role": "Noble Sentinel; keeper of the sanitized archive",
+        "description": "The keeper who carefully loses records of the Old Gods, the true Aspects, and pre-Binding testimony — one by one — to keep history clean while appearing accessible. She does not know that Faeren still whispers the true version.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Faeren",
+        "role": "Hidden keeper of the true history",
+        "description": "A presence that has watched Lady Celestis and her predecessors for fourteen centuries, whispering the true, unredacted version of history in some forgotten dialect the censors have not reached. Celestis does not know Faeren exists.",
+        "location": "Sunward Empire"
+      },
+      {
+        "name": "Commander Jax",
+        "role": "Silent Blade; head of internal containment",
+        "description": "Runs the Empire's internal containment for citizens approaching the truth — scholars, priests, and mages who have assembled too many fragments. He manages threats through reassignment or discrediting and escalates when management fails.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "The Inquisitor",
+        "role": "Silent Blade; hunter of the Twilight Shepherd cults",
+        "description": "A nameless title-holder who abandoned their prior name on taking the seat. They hunt the Twilight Shepherd faith — those who remember Serenitas as the beloved Shepherd — knowing the faith points at something real, because the Empire cannot survive it.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Shadow-Hand Kael",
+        "role": "Silent Blade; Temmel's replacement",
+        "description": "Selected for his willingness to do what Temmel refused, Kael fills the operational role left by the abolished thirteenth seat. He has read the complete records of Temmel's history through the Geas and continues the work, seeing himself as the one willing to do what must be done.",
+        "location": "Aurelios"
+      },
+      {
+        "name": "Temmel",
+        "role": "Former Emperor's Personal Hand; the abolished thirteenth seat",
+        "description": "The Emperor's Personal Hand who assassinated the Emperor he served fourteen centuries ago and fled to the Bonfire Keep, choosing the fire at the world's edge over his work. His act caused the thirteenth seat to be abolished and its role split between Jax and Kael.",
+        "location": "Bonfire Keep"
+      }
+    ],
+    "locations": [
+      {
+        "name": "Stasis Filtration Plant",
+        "type": "building",
+        "description": "The facility managed by Archmage Vane through which Serenitas's essence passes on its way from the Aetheric Well to every Imperial mage's casting hand.",
+        "notable": true
+      },
+      {
+        "name": "The Bonfire Keep",
+        "type": "dungeon",
+        "description": "The place at the edge of the world where Temmel fled after his assassination of the Emperor, and where the Anchor of Redemption tends a fire that burns warmest on unfinished reckonings.",
+        "notable": true
+      }
+    ],
+    "items": [
+      {
+        "name": "The Geas of Silence",
+        "type": "other",
+        "rarity": "artifact",
+        "description": "Golden runes etched through flesh to bone, woven into the Binding's architecture by the Founder's original scholars. It instantly ends the life of any of the Twelve who speak the full truth to an outsider, watching intent rather than content, and transfers involuntarily to a successor when a Witness dies."
+      }
+    ],
+    "encounters": []
+  }
+]

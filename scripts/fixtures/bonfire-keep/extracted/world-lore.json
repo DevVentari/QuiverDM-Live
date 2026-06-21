@@ -1,0 +1,457 @@
+[
+  {
+    "chapterSlug": "locations",
+    "npcs": [
+      {
+        "name": "Temmel",
+        "role": "Anchor of Redemption",
+        "description": "An Anchor of the Bonfire Keep who stands near the door to meet those drawn by the Calling, recognizing the look of someone who has run out of options.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Faeren",
+        "role": "Anchor of Memory",
+        "description": "An Anchor of the Bonfire Keep who keeps a shifting library that preserves the histories the Empire has erased; describes the Keep as existing 'between the world's breaths'.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Ambric",
+        "role": "Anchor of Justice",
+        "description": "An Anchor of the Bonfire Keep whose blade bears names that fade when a destiny is completed, flaring the Heartflame each time.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Lady Celestis",
+        "role": "Imperial archivist",
+        "description": "The official whose office maintains the Imperial Archives and who has been carefully losing inconvenient history for fourteen centuries.",
+        "location": "Aurelios the Golden"
+      },
+      {
+        "name": "Archmage Vane",
+        "role": "Manager of the Stasis Filtration Plant",
+        "description": "The archmage who oversees operations at the Stasis Filtration Plant on the western edge of Aurelios, processing the Aetheric Well's output into golden mana.",
+        "location": "Aurelios the Golden"
+      },
+      {
+        "name": "Kaine Stormvoice",
+        "role": "Depth-Singer",
+        "description": "A Depth-Singer who has listened at the Abyssal Shelf for twenty years and gone partially translucent in the process; he considers this data.",
+        "location": "The Great Confluence"
+      },
+      {
+        "name": "Commodore Vax",
+        "role": "Covenant commodore",
+        "description": "A Covenant leader who has chained his floating cities to the seabed believing it prevents the Stagnation, though every Depth-Singer says it accelerates it.",
+        "location": "The Great Confluence"
+      },
+      {
+        "name": "Vaelora",
+        "role": "The Mother-Tree",
+        "description": "The ancient Mother-Tree at the center of the Emerald Reach whose root system connects every grove; she has been absorbing the Silver Rot for fourteen centuries.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "Theron",
+        "role": "Leader of the Grove-Speakers",
+        "description": "Leads the patient Grove-Speakers who believe the Mother-Tree can find a process for the Empire's waste given time, and who maintain the alliance between the Clans.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "Celia",
+        "role": "Leader of the Rootwardens",
+        "description": "Has fought the infected edge for thirty years and carries silver from elbow to shoulder; her Rootwardens practice triage, cutting away what cannot be saved.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "The Bramble-King",
+        "role": "Leader of the Thorns",
+        "description": "The unnamed leader of the Thorns, who destroy Imperial Siphon-Stations and weaponize the Silver Rot against Imperial territory, calling it 'pruning at the source'.",
+        "location": "The Emerald Reach"
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Bonfire Keep",
+        "type": "building",
+        "description": "A small, deep stone structure at the edge of the world in the Thornspine Mountains that resists being found by those not meant to. Its center holds the Heartflame, a fire that has burned for fourteen hundred years and holds the world's stasis at bay.",
+        "notable": "Sits 'between the world's breaths'; halts the Stasis Glass and Silver Rot at the valley's edge; guest quarters adapt to each visitor's needs."
+      },
+      {
+        "name": "The Thornspine Mountains",
+        "type": "natural",
+        "description": "A severe and permanent mountain range that rises on all sides of the fold of terrain sheltering the Bonfire Keep.",
+        "notable": "Imperial cartographers have repeatedly failed to map the Keep hidden within them."
+      },
+      {
+        "name": "Aurelios the Golden",
+        "type": "settlement",
+        "description": "The Sunward Empire's gleaming capital and oldest city, seat of every Emperor since the Founder, built in concentric rings on the Golden Plains. It is always lit by golden light drawn from a prison beneath it.",
+        "notable": "Built directly over the Aetheric Well and the binding chambers where Serenitas is imprisoned."
+      },
+      {
+        "name": "The Aetheric Well",
+        "type": "other",
+        "description": "The mechanism beneath Aurelios through which Serenitas's siphoned essence rises from the depths to be processed into golden mana.",
+        "notable": "Source of all Imperial magic; its existence is concealed by the Geas."
+      },
+      {
+        "name": "The Stasis Filtration Plant",
+        "type": "building",
+        "description": "A deliberately functional, unbeautiful facility on the western edge of Aurelios that processes the raw entropy from the Aetheric Well into distributable golden mana.",
+        "notable": "Managed by Archmage Vane; workers do not discuss the raw material before the Filters change it."
+      },
+      {
+        "name": "The Imperial Palace",
+        "type": "building",
+        "description": "The enormous palace at the highest point of Aurelios, the accumulated work of twenty-six Emperors, beneath whose deepest foundations the siphoning apparatus and Serenitas's binding chambers are housed.",
+        "notable": "Only the Emperor and certain Twelve Witnesses have seen the siphoning chamber."
+      },
+      {
+        "name": "The Imperial Archives",
+        "type": "building",
+        "description": "A district near the palace holding ten thousand years of civilizational record, meticulously maintained but with exquisite, deliberate gaps that hide the central truth.",
+        "notable": "Maintained by Lady Celestis's office."
+      },
+      {
+        "name": "The Great Confluence",
+        "type": "settlement",
+        "description": "A mobile network of floating platforms, drydock-cities, and deep-water settlements that move with the northern currents of the Great Bay, home to the Tidal Covenant's three hundred thousand people.",
+        "notable": "The northern currents it depends on are slowing due to the Salted Stagnation."
+      },
+      {
+        "name": "The Glass Docks",
+        "type": "other",
+        "description": "Moorings on the Confluence's outer edge where ships first enter zones of crystallizing, amber-like dense water; hulls there acquire a translucent film that can be read like growth rings.",
+        "location": "The Great Confluence"
+      },
+      {
+        "name": "The Abyssal Shelf",
+        "type": "natural",
+        "description": "A deep canyon at the heart of the Great Bay where the slowing currents pile up and accumulate, said to carry actual moments preserved from decades past.",
+        "notable": "Kaine Stormvoice has listened there for twenty years."
+      },
+      {
+        "name": "The Emerald Reach",
+        "type": "region",
+        "description": "The oldest continuous civilization in Hameria Ire, a vast forest home to the Verdant Clans, threaded with a mycelial grove-network. Its eastern edge is silvering and stopping under the Silver Rot.",
+        "notable": "Receives Stasis Ash carried southwest on the wind from Aurelios's towers."
+      },
+      {
+        "name": "Concordia Stellaris",
+        "type": "settlement",
+        "description": "A neutral city built three centuries ago on a plain where the twin moons rise together, swelling from two thousand to fifty thousand people every seven years for the Harvest Festival.",
+        "notable": "Has no standing army; protected by being too useful to any faction to destroy. Site of the seven-year moon alignment of Thaelis and Morwyn."
+      }
+    ],
+    "items": [
+      {
+        "name": "The Blade of the Chronicle",
+        "type": "weapon",
+        "rarity": "artifact",
+        "description": "Ambric's katana, on which names appear in black ink marking souls for a reckoning. Each name fades only when its debt of fate is paid, flaring the Heartflame."
+      }
+    ],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "anchors-and-heartflame",
+    "npcs": [
+      {
+        "name": "Temmel",
+        "role": "The Anchor of Redemption",
+        "description": "Formerly the Aspect of Redemption, he descended into mortality as the Emperor's Hand and killed his corrupted Emperor. He tends the Heartflame with his unresolved guilt and meets newcomers at the Keep's door.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Faeren",
+        "role": "The Anchor of Memory",
+        "description": "Formerly the Aspect of Memory, they shattered their singular form to become anyone and preserve erased cultures and stories. They can hold a form only as long as a story sustains it.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Ambric",
+        "role": "The Anchor of Justice",
+        "description": "Son of the original Aspect of Justice (the Arbiter), he descended into mortality to understand justice from within suffering. He carries the Blade of the Chronicle and follows the names it bears until their fates resolve.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Serenitas",
+        "role": "The First Mother / The Shepherd",
+        "description": "The First Mother who breathed the world into being and made the First Covenant, imprisoned for fourteen hundred years. The Anchors are uncertain whether she can still fulfill her half of the covenant.",
+        "location": "Aurelios the Golden (imprisoned)"
+      },
+      {
+        "name": "The Arbiter",
+        "role": "Original Aspect of Justice",
+        "description": "The cosmic Aspect of Justice named in the oldest records, whose offspring is the Anchor Ambric; Ambric carries the name as an inheritance.",
+        "location": ""
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Bonfire Keep",
+        "type": "building",
+        "description": "A structure at the boundary where Imperial maps run out, sheltering the Heartflame. It exists 'between the world's breaths' in the pause of the Iremael's cycle, which is why the Stasis Glass and silver rot do not reach it.",
+        "notable": "Tended by the Three Anchors; reaches out to worthy souls through the Calling."
+      }
+    ],
+    "items": [
+      {
+        "name": "The Blade of the Chronicle",
+        "type": "weapon",
+        "rarity": "artifact",
+        "description": "A katana folded from a thousand pages of living history, white as clean paper. Names of souls marked for a reckoning appear on it in shifting black script and fade only when the debt of fate is paid."
+      },
+      {
+        "name": "The Pregenitor Orb",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A vessel Serenitas built before she fragmented, holding the demonstrated understanding of every force she embodied. It was scattered into Fragments hidden in trials the Aspects designed, to be earned rather than seized."
+      }
+    ],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "world-timeline",
+    "npcs": [
+      {
+        "name": "Serenitas",
+        "role": "The First Mother / The Shepherd of Endings / The Unlit Flame",
+        "description": "The primordial being who chose to end the silence and breathed the world into being, designing the Iremael cycle and the First Covenant. After the Salting curdled her mercy into Corrupted Entropy, she was imprisoned beneath Aurelios and bled for fourteen centuries.",
+        "location": "Aurelios the Golden (imprisoned)"
+      },
+      {
+        "name": "Aurelias the Founder",
+        "role": "First Dragonborn Emperor of the Sunward Empire",
+        "description": "The brilliant and ruthless founder of the Sunward Empire whose court devised the Binding, imprisoning Serenitas beneath Aurelios and building a religion around the act.",
+        "location": "Aurelios the Golden"
+      },
+      {
+        "name": "The Dawn",
+        "role": "Aspect of Creation",
+        "description": "One of the five great Aspects of Serenitas, the voice that speaks things into being and the first warmth after cold.",
+        "location": ""
+      },
+      {
+        "name": "Thymal",
+        "role": "Aspect of Growth / The Great Root",
+        "description": "One of the five great Aspects, the slow inevitable reach of root and branch, barely changed by the centuries and still present in the mycelial network beneath the groves. Tended by the Verdant Clans.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "The Arbiter",
+        "role": "Aspect of Justice",
+        "description": "One of the five great Aspects, the still point between action and consequence, the one who weighs. The Anchor Ambric carries this name as an inheritance.",
+        "location": ""
+      },
+      {
+        "name": "Orym",
+        "role": "Aspect of Adaptation / The Tide-Caller",
+        "description": "One of the five great Aspects, the water that becomes whatever shape holds it, the survivor, present in the currents the Tidal Covenant reads.",
+        "location": ""
+      },
+      {
+        "name": "The Shepherd",
+        "role": "Aspect of Entropy, the Dimming Made Flesh",
+        "description": "The Aspect that was never death but only rest, the gentlest hand in creation, beloved rather than feared. The Salting corrupted her gentle purpose into Corrupted Entropy.",
+        "location": ""
+      },
+      {
+        "name": "Temmel",
+        "role": "The Anchor of Redemption",
+        "description": "Formerly the Aspect of Redemption, he descended as the Emperor's Hand and killed his corrupted Emperor on a winter morning, then came to tend the Heartflame.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Faeren",
+        "role": "The Anchor of Memory",
+        "description": "Formerly the Aspect of Memory, they destroyed their own constancy to become anyone and carry the erased stories of Hameria Ire past Imperial censors.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Ambric",
+        "role": "The Anchor of Justice",
+        "description": "Son of the original Aspect of Justice (the Arbiter), he descended into mortality carrying the Blade of the Chronicle and the inheritance of justice without its totality.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Solara",
+        "role": "The Golden Order",
+        "description": "The deity the Sunward Empire prays to, a polished fragment of the Aspect of Creation stripped of her grief and given a doctrine the Empire found useful.",
+        "location": "Aurelios the Golden"
+      },
+      {
+        "name": "The Twilight Shepherd",
+        "role": "Hunted memory-faith figure",
+        "description": "Not an Aspect in her current form but a memory of what Serenitas was before the Salting, worshipped quietly by the hunted and careful who accept endings; her faithful are pursued by Imperial inquisitors.",
+        "location": ""
+      }
+    ],
+    "locations": [
+      {
+        "name": "Aurelios the Golden",
+        "type": "settlement",
+        "description": "The capital of the Sunward Empire, built beneath which the ritual of the Binding imprisoned Serenitas. The civilization draws its power directly from her bled essence.",
+        "notable": "Site of Serenitas's imprisonment for fourteen centuries."
+      },
+      {
+        "name": "The Bonfire Keep",
+        "type": "building",
+        "description": "Built by three descended Aspects at the edge of the known world, in a place between allegiances kept open like a wound in Imperial certainty. The Anchors tend the Heartflame here.",
+        "notable": "Named for the Anchors, who refuse to be moved by the sea of the world's certainty."
+      }
+    ],
+    "items": [
+      {
+        "name": "The Pregenitor Orb",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A vessel Serenitas constructed before she shattered into the five Aspects, designed to hold the demonstrated understanding of every force she embodied. Scattered into five Fragments, one per Aspect, to be earned as proofs rather than seized."
+      },
+      {
+        "name": "The Blade of the Chronicle",
+        "type": "weapon",
+        "rarity": "artifact",
+        "description": "Ambric's katana, folded from a thousand pages of living history, on which names of souls marked for reckoning appear in black ink and fade only when the debt of fate is paid."
+      }
+    ],
+    "encounters": []
+  },
+  {
+    "chapterSlug": "campaign-timeline",
+    "npcs": [
+      {
+        "name": "Temmel",
+        "role": "The Anchor of Redemption",
+        "description": "Opens the door of the Bonfire Keep to storm-driven heroes in Phase One, meeting each new face with the recognition of a man who knows what running out of options looks like.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Faeren",
+        "role": "The Anchor of Memory",
+        "description": "Has watched long enough to see the shape of the coming reckoning; in Phase One listens for the story underneath the story people tell about themselves, and witnesses the trial for the Fragment of Memory.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Ambric",
+        "role": "The Anchor of Justice",
+        "description": "Watches newcomers with the attention of someone taking inventory of weight carried; names appear on his blade when the Heartflame confirms the Calling was right.",
+        "location": "The Bonfire Keep"
+      },
+      {
+        "name": "Commodore Vax",
+        "role": "Covenant commodore",
+        "description": "Holds chained Covenant cities that draw the Salted Stagnation toward them like lightning rods, encountered when the party travels north to the Covenant's waters.",
+        "location": "The Great Confluence"
+      },
+      {
+        "name": "Serenitas",
+        "role": "The First Mother",
+        "description": "Freed when the Binding destabilizes at the Harvest Festival, no longer the gentle Shepherd but uncertain of the mercy she was designed to embody. The party ultimately stands before her with the completed Orb to earn the right to a conversation.",
+        "location": "Aurelios the Golden / The Bonfire Keep"
+      },
+      {
+        "name": "Thaelis",
+        "role": "Twin moon",
+        "description": "One of the twin moons that align over Concordia Stellaris every seven years, the alignment that frames the Harvest Festival and the Shattered Compact.",
+        "location": "Concordia Stellaris"
+      },
+      {
+        "name": "Morwyn",
+        "role": "Twin moon",
+        "description": "One of the twin moons that align over Concordia Stellaris every seven years during the alignment that frames the Harvest Festival.",
+        "location": "Concordia Stellaris"
+      }
+    ],
+    "locations": [
+      {
+        "name": "The Bonfire Keep",
+        "type": "building",
+        "description": "The fold in the Thornspine Mountains where heroes are herded by a directional storm in Phase One, and where the Fragment of Hope and the final trial, the Eternal Hearth, await in Phase Five.",
+        "notable": "Holds the Fragment of Hope, which Serenitas kept apart from the others."
+      },
+      {
+        "name": "The Emerald Reach",
+        "type": "region",
+        "description": "Visited in 'The Withered Root' (Phase Two) amid silver-leafed groves that stopped mid-turn; its deepest ancient root-systems form 'The Dreaming Deep' (Phase Four), holding the Fragment of Growth.",
+        "notable": "Trial of Thymal's patience."
+      },
+      {
+        "name": "Concordia Stellaris",
+        "type": "settlement",
+        "description": "The neutral city where the three great factions gather under the seven-year moon alignment; site of the assassination and Binding destabilization in 'The Starfall Conspiracy' (Phase Three).",
+        "notable": "Convenes the emergency session of 'Desperate Alliance'."
+      },
+      {
+        "name": "The Sunward Wastes",
+        "type": "region",
+        "description": "The territory the Empire relied on most, reeling in the Binding's wake, holding the Fragment of Command in Phase Four. Trial of the Arbiter's inheritance.",
+        "notable": "Tests whether one who holds power becomes what they feared."
+      },
+      {
+        "name": "The Dreaming Deep",
+        "type": "dungeon",
+        "description": "The Emerald Reach at its most ancient, with root-systems going deeper than charted, holding the Fragment of Growth. The trial of Thymal's patience.",
+        "location": "The Emerald Reach"
+      },
+      {
+        "name": "The Glass Sea",
+        "type": "region",
+        "description": "The Salted Stagnation zones at their densest, where the preserved past is most legible, holding the Fragment of Adaptation. The trial of the First Mariner.",
+        "notable": "The Salt-Statues here answer what happens when identity cannot survive transformation."
+      },
+      {
+        "name": "The Shadowed Archive",
+        "type": "dungeon",
+        "description": "A Shadowfell repository maintained by Shadar-kai chroniclers at the edge of what memory can sustain, holding the Fragment of Memory. The trial of the First Chronicler.",
+        "notable": "Rewards those who carry uncomfortable, honest memory; witnessed by Faeren."
+      }
+    ],
+    "items": [
+      {
+        "name": "The Pregenitor Orb",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "Serenitas's ancient proof of concept, scattered into Fragments before the Salting. Gathered across five trials, it grants standing to speak with Serenitas rather than power over the Iremael."
+      },
+      {
+        "name": "Fragment of Command",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A Fragment of the Pregenitor Orb embodying the Arbiter's inheritance, held in the Sunward Wastes; it watches for someone who holds power and does not become what they feared."
+      },
+      {
+        "name": "Fragment of Growth",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A Fragment of the Pregenitor Orb embodying Thymal's patience, held in the Dreaming Deep of the Emerald Reach; it tests the understanding that tending is not owning."
+      },
+      {
+        "name": "Fragment of Adaptation",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A Fragment of the Pregenitor Orb embodying Orym's nature, held in the Glass Sea; it asks whether identity can survive transformation without calcifying."
+      },
+      {
+        "name": "Fragment of Memory",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "A Fragment of the Pregenitor Orb embodying the First Chronicler's trial, held in the Shadowed Archive; it rewards those who remember honestly and carry uncomfortable truths."
+      },
+      {
+        "name": "Fragment of Hope",
+        "type": "wondrous",
+        "rarity": "artifact",
+        "description": "The Fragment Serenitas kept in the Bonfire Keep rather than scattering, given only by those who passed through everything else; it represents the choice to keep tending after comfort is gone."
+      }
+    ],
+    "encounters": [
+      {
+        "name": "The Eternal Hearth",
+        "description": "The final trial in the Bonfire Keep where the Three Anchors test not capability but what the heroes understand about what they are doing and what it will cost, before they stand with the whole Orb before Serenitas.",
+        "monsters": [],
+        "difficulty": "deadly"
+      }
+    ]
+  }
+]
