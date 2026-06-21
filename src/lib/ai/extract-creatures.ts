@@ -204,7 +204,17 @@ function tryParse(raw: string): ExtractedCreature[] {
   }
 }
 
-function chunkSection(section: ChapterSection): ChapterSection[] {
+/**
+ * Cheap pre-filter: a real 5e stat block always carries both an "Armor Class" and
+ * a "Hit Points" line. Prose chapters don't. Skipping chunks that lack both means
+ * we never spend LLM tokens on text that has no creature to extract — this is what
+ * lets us scan EVERY chapter (catching inline stat blocks) at near-zero extra cost.
+ */
+export function chunkHasStatBlock(text: string): boolean {
+  return /armor class/i.test(text) && /hit points/i.test(text);
+}
+
+export function chunkSection(section: ChapterSection): ChapterSection[] {
   if (section.text.length <= MAX_SECTION_CHARS) return [section];
   const paragraphs = section.text.split(/\n\n+/);
   const chunks: ChapterSection[] = [];
@@ -225,18 +235,24 @@ export interface CreatureExtractionResult {
   creatures: ExtractedCreature[];
   chunksProcessed: number;
   chunksFailed: number;
+  /** Chunks skipped by the stat-block pre-filter (no LLM tokens spent on them). */
+  chunksSkipped: number;
 }
 
 /**
  * Extract book-unique creatures from a chapter's sections. SRD creatures are
  * dropped. Fire-and-forget safe per chunk — a failed chunk doesn't abort the run.
+ * Chunks with no stat-block markers are skipped before any LLM call (token-efficient).
  */
 export async function extractCreaturesFromSections(
   chapterSlug: string,
   sections: ChapterSection[],
   opts: { provider?: string; delayMs?: number } = {},
 ): Promise<CreatureExtractionResult> {
-  const chunks = sections.flatMap(chunkSection).filter((c) => c.text.length >= 200);
+  const allChunks = sections.flatMap(chunkSection).filter((c) => c.text.length >= 200);
+  // Only spend tokens on chunks that actually contain a stat block.
+  const chunks = allChunks.filter((c) => chunkHasStatBlock(c.text));
+  const chunksSkipped = allChunks.length - chunks.length;
   const all: ExtractedCreature[] = [];
   let chunksFailed = 0;
 
@@ -265,5 +281,5 @@ export async function extractCreaturesFromSections(
   }
 
   const unique = dedupeCreaturesByName(all).filter((c) => !isSrdCreatureName(c.name));
-  return { creatures: unique, chunksProcessed: chunks.length, chunksFailed };
+  return { creatures: unique, chunksProcessed: chunks.length, chunksFailed, chunksSkipped };
 }

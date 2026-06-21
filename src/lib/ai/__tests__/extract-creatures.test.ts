@@ -3,6 +3,7 @@ import {
   creatureToHomebrewData,
   isSrdCreatureName,
   dedupeCreaturesByName,
+  chunkHasStatBlock,
   type ExtractedCreature,
 } from '../extract-creatures';
 
@@ -64,6 +65,21 @@ describe('isSrdCreatureName', () => {
   it('does not flag book-unique creatures', () => {
     expect(isSrdCreatureName('Strahd von Zarovich')).toBe(false);
     expect(isSrdCreatureName('Rahadin')).toBe(false);
+  });
+});
+
+describe('chunkHasStatBlock', () => {
+  it('detects a stat block by its required AC + HP headers', () => {
+    expect(chunkHasStatBlock('Merregon\nMedium fiend\nArmor Class 16 (natural armor)\nHit Points 45 (6d8+18)\nChallenge 4')).toBe(true);
+  });
+  it('skips prose with no stat block (token waste avoided)', () => {
+    expect(chunkHasStatBlock('The road to Elturel was long and the air smelled of ash and brimstone.')).toBe(false);
+  });
+  it('requires BOTH markers — a stray "armor class" mention is not a stat block', () => {
+    expect(chunkHasStatBlock('The armor class system in 5e represents how hard a creature is to hit.')).toBe(false);
+  });
+  it('is case-insensitive', () => {
+    expect(chunkHasStatBlock('ARMOR CLASS 12\nHIT POINTS 9')).toBe(true);
   });
 });
 

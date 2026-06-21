@@ -80,11 +80,11 @@ async function main() {
     const totalChars = sections.reduce((n, s) => n + s.text.length, 0);
     process.stdout.write(`\n[${ch.slug}] "${ch.title}" (${totalChars} chars) … `);
 
-    const { creatures, chunksProcessed, chunksFailed } = await extractCreaturesFromSections(ch.slug, sections, {
+    const { creatures, chunksProcessed, chunksFailed, chunksSkipped } = await extractCreaturesFromSections(ch.slug, sections, {
       provider: args.provider,
       delayMs: args.delayMs,
     });
-    console.log(`chunks=${chunksProcessed} failed=${chunksFailed} → ${creatures.length} book-unique creatures`);
+    console.log(`chunks=${chunksProcessed} skipped=${chunksSkipped} (no statblock) failed=${chunksFailed} → ${creatures.length} book-unique creatures`);
     for (const c of creatures) {
       const cr = c.cr !== undefined ? ` CR ${c.cr}` : '';
       const stats = [c.ac !== undefined ? `AC ${c.ac}` : null, c.hp !== undefined ? `${c.hp} hp` : null].filter(Boolean).join(' ');
