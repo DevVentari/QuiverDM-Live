@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { srdMonsterToRow, srdConditionToRow, srdRuleToRow } from '../to-compendium-row';
+import { srdMonsterToRow, srdConditionToRow, srdRuleToRow, srdSpellToRow } from '../to-compendium-row';
 import type { SrdMonster } from '../monsters';
 
 const GHOST: SrdMonster = {
@@ -97,5 +97,44 @@ describe('srdRuleToRow', () => {
     const d = row.data as { description: string; category: string };
     expect(d.description).toBe('Half cover...');
     expect(d.category).toBe('Combat');
+  });
+});
+
+describe('srdSpellToRow', () => {
+  const FIREBALL = {
+    slug: 'fireball',
+    name: 'Fireball',
+    level: 3,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: '150 feet',
+    components: 'V, S, M',
+    material: 'a tiny ball of bat guano and sulfur',
+    duration: 'Instantaneous',
+    concentration: false,
+    ritual: false,
+    classes: 'Sorcerer, Wizard',
+    description: 'A bright streak flashes from your pointing finger...',
+    higherLevel: 'When you cast this spell using a slot of 4th level or higher...',
+  };
+
+  it('produces an SRD spell row carrying the spell fields', () => {
+    const row = srdSpellToRow(FIREBALL);
+    expect(row).toMatchObject({ id: 'srd-spell:fireball', name: 'Fireball', type: 'spell', isSrd: true });
+    const d = row.data as Record<string, any>;
+    expect(d.level).toBe(3);
+    expect(d.school).toBe('Evocation');
+    expect(d.castingTime).toBe('1 action');
+    expect(d.range).toBe('150 feet');
+    expect(d.components).toBe('V, S, M');
+    expect(d.duration).toBe('Instantaneous');
+    expect(d.description).toContain('bright streak');
+    expect(d.higherLevel).toContain('When you cast');
+  });
+
+  it('tags the spell with a level + school label for the list meta', () => {
+    const row = srdSpellToRow(FIREBALL);
+    expect(row.tags?.join(' ')).toMatch(/3rd/i);
+    expect(row.tags?.join(' ')).toMatch(/Evocation/i);
   });
 });

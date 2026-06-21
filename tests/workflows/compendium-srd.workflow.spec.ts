@@ -43,7 +43,7 @@ test.describe('v3 — compendium SRD surface', () => {
       await expect(page.getByText('+ Add to combat').first()).toBeVisible({ timeout: 8_000 });
       await expect(page.getByText(/\bAC\b/).first()).toBeVisible({ timeout: 8_000 });
       await expect(page.locator('body')).not.toContainText(NO_CRASH);
-    }, 30_000);
+    }, 45_000); // generous: first hit cold-compiles the route + bundles the SRD JSON
 
     await checkpoint(testInfo, 'conditions-tab-populates', async () => {
       await page.getByRole('button', { name: 'Conditions' }).click();
@@ -51,6 +51,15 @@ test.describe('v3 — compendium SRD surface', () => {
       // Open a condition → prose detail with its rules text.
       await page.getByRole('button', { name: /Blinded/i }).first().click();
       await expect(page.getByText(/can't see/i).first()).toBeVisible({ timeout: 8_000 });
+      await expect(page.locator('body')).not.toContainText(NO_CRASH);
+    }, 20_000);
+
+    await checkpoint(testInfo, 'spells-tab-populates', async () => {
+      await page.getByRole('button', { name: 'Spells' }).click();
+      await expect(page.getByText(/SPELLS · \d+/).first()).toBeVisible({ timeout: 8_000 });
+      await page.getByPlaceholder(/Search the compendium/i).fill('fireball');
+      await page.getByRole('button', { name: /Fireball/i }).first().click();
+      await expect(page.getByText(/Casting Time/i).first()).toBeVisible({ timeout: 8_000 });
       await expect(page.locator('body')).not.toContainText(NO_CRASH);
     }, 20_000);
 

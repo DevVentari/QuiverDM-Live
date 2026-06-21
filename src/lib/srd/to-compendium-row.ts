@@ -10,6 +10,7 @@
 import type { SrdMonster } from './monsters';
 import type { SrdCondition } from './conditions';
 import type { SrdRule } from './rules';
+import { spellLevelLabel, type SrdSpell } from './spells';
 
 /** A Compendium list row — superset of the homebrew row, with an SRD flag. */
 export interface CompendiumRow {
@@ -90,5 +91,32 @@ export function srdRuleToRow(r: SrdRule): CompendiumRow {
     sourceType: 'srd',
     tags: [r.category],
     data: { description: r.description, category: r.category },
+  };
+}
+
+/** Map an SRD spell into a spell-detail Compendium row. */
+export function srdSpellToRow(s: SrdSpell): CompendiumRow {
+  const levelLabel = s.level === 0 ? 'Cantrip' : `${spellLevelLabel(s.level)}-level`;
+  return {
+    id: `srd-spell:${s.slug}`,
+    name: s.name,
+    type: 'spell',
+    isSrd: true,
+    sourceType: 'srd',
+    tags: [levelLabel, s.school],
+    data: {
+      level: s.level,
+      school: s.school,
+      castingTime: s.castingTime,
+      range: s.range,
+      components: s.components,
+      material: s.material,
+      duration: s.duration,
+      concentration: s.concentration,
+      ritual: s.ritual,
+      classes: s.classes,
+      description: s.description,
+      higherLevel: s.higherLevel,
+    },
   };
 }

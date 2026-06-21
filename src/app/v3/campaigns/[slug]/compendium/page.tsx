@@ -17,10 +17,12 @@ import { MaskedDndIcon } from '@/components/icons/masked-dnd-icon';
 import { getAllMonsters } from '@/lib/srd/monsters';
 import { ALL_CONDITIONS } from '@/lib/srd/conditions';
 import { ALL_RULES } from '@/lib/srd/rules';
+import { ALL_SPELLS, spellLevelLabel } from '@/lib/srd/spells';
 import {
   srdMonsterToRow,
   srdConditionToRow,
   srdRuleToRow,
+  srdSpellToRow,
   type CompendiumRow,
 } from '@/lib/srd/to-compendium-row';
 
@@ -29,7 +31,7 @@ const display = 'font-[family-name:var(--qd-font-display)]';
 
 // Category rail. `type` filters campaign homebrew (and keys the list icon); `srd`
 // supplies bundled reference rows merged in; `kind` selects the detail renderer.
-type CategoryKind = 'statblock' | 'text';
+type CategoryKind = 'statblock' | 'text' | 'spell';
 interface Category {
   label: string;
   type: string;
@@ -38,7 +40,7 @@ interface Category {
 }
 const CATEGORIES: Category[] = [
   { label: 'Monsters', type: 'creature', kind: 'statblock', srd: () => getAllMonsters().map(srdMonsterToRow) },
-  { label: 'Spells', type: 'spell', kind: 'statblock' },
+  { label: 'Spells', type: 'spell', kind: 'spell', srd: () => ALL_SPELLS.map(srdSpellToRow) },
   { label: 'Items', type: 'item', kind: 'statblock' },
   { label: 'Conditions', type: 'condition', kind: 'text', srd: () => ALL_CONDITIONS.map(srdConditionToRow) },
   { label: 'Rules', type: 'rule', kind: 'text', srd: () => ALL_RULES.map(srdRuleToRow) },
@@ -178,6 +180,47 @@ function adaptText(row: CompendiumRow | null): { description: string; category?:
   };
 }
 
+interface SpellDetail {
+  levelLine: string;
+  meta: Array<{ label: string; value: string }>;
+  description: string;
+  higherLevel?: string;
+}
+
+/** Reads a spell blob (SRD or homebrew) defensively into a spell detail. */
+function adaptSpell(row: CompendiumRow | null): SpellDetail | null {
+  if (!row) return null;
+  const d = (row.data ?? {}) as Record<string, unknown>;
+  const str = (v: unknown): string | undefined => (typeof v === 'string' && v ? v : undefined);
+  const level = typeof d.level === 'number' ? d.level : undefined;
+  const school = str(d.school);
+  const levelLine =
+    level === 0
+      ? `Cantrip${school ? ` · ${school}` : ''}`
+      : level !== undefined
+        ? `${spellLevelLabel(level)}-level${school ? ` ${school.toLowerCase()}` : ''}`
+        : school ?? '—';
+
+  const tagBits: string[] = [];
+  if (d.concentration === true) tagBits.push('Concentration');
+  if (d.ritual === true) tagBits.push('Ritual');
+
+  const meta = [
+    { label: 'Casting Time', value: str(d.castingTime) ?? '—' },
+    { label: 'Range', value: str(d.range) ?? '—' },
+    { label: 'Components', value: [str(d.components), str(d.material) ? `(${str(d.material)})` : null].filter(Boolean).join(' ') || '—' },
+    { label: 'Duration', value: [str(d.duration), tagBits.length ? `· ${tagBits.join(', ')}` : null].filter(Boolean).join(' ') || '—' },
+    ...(str(d.classes) ? [{ label: 'Classes', value: str(d.classes)! }] : []),
+  ];
+
+  return {
+    levelLine,
+    meta,
+    description: str(d.description) ?? '',
+    higherLevel: str(d.higherLevel),
+  };
+}
+
 const PLURAL_LABEL: Record<string, string> = {
   creature: 'MONSTERS',
   spell: 'SPELLS',
@@ -220,6 +263,10 @@ export default function CompendiumPage() {
   );
   const text = useMemo(
     () => (category.kind === 'text' ? adaptText(selected) : null),
+    [category.kind, selected],
+  );
+  const spell = useMemo(
+    () => (category.kind === 'spell' ? adaptSpell(selected) : null),
     [category.kind, selected],
   );
 
@@ -334,6 +381,41 @@ export default function CompendiumPage() {
                   )}
                 </div>
                 <p className="mt-3.5 whitespace-pre-line text-[14.5px] leading-[1.7] text-[var(--qd-ink-2)]">{text.description}</p>
+              </div>
+            )
+          ) : category.kind === 'spell' ? (
+            !selected || !spell ? (
+              <p className="text-[var(--qd-ink-muted)]">Choose a spell to read its incantation.</p>
+            ) : (
+              <div
+                className="rounded-[16px] border p-5"
+                style={{
+                  borderColor: 'var(--qd-border-accent)',
+                  background: 'linear-gradient(180deg,rgba(36,23,18,.9),rgba(16,12,10,.9))',
+                  boxShadow: '0 20px 50px rgba(0,0,0,.4)',
+                }}
+              >
+                <div className="border-b border-[var(--qd-border-accent)] pb-3">
+                  <div className={`${display} text-[26px] leading-none text-[var(--qd-ink-strong)]`}>
+                    {selected.name}
+                    {isHomebrew(selected) && <span className={`${mono} ml-2 align-middle text-[8px] text-[var(--qd-accent-text)]`}>✦ homebrew</span>}
+                  </div>
+                  <div className={`${mono} mt-1.5 text-[9px] italic text-[var(--qd-accent-bright)]`}>{spell.levelLine}</div>
+                </div>
+                <dl className="mt-3.5 grid grid-cols-2 gap-x-6 gap-y-1.5 text-[13.5px] text-[var(--qd-ink-2)]">
+                  {spell.meta.map((m) => (
+                    <div key={m.label} className={spell.meta.length % 2 !== 0 && m === spell.meta[spell.meta.length - 1] ? 'col-span-2' : ''}>
+                      <dt className={`${mono} text-[8px] uppercase tracking-[0.1em] text-[var(--qd-accent-bright)]`}>{m.label}</dt>
+                      <dd>{m.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="mt-3.5 whitespace-pre-line border-t border-[var(--qd-border-accent)] pt-3 text-[14.5px] leading-[1.7] text-[var(--qd-ink-2)]" style={{ borderTopColor: 'rgba(217,138,61,.2)' }}>{spell.description}</p>
+                {spell.higherLevel && (
+                  <p className="mt-2.5 whitespace-pre-line text-[14px] leading-[1.6] text-[var(--qd-ink-2)]">
+                    <b className="text-[var(--qd-accent-hi)]">At Higher Levels.</b> {spell.higherLevel}
+                  </p>
+                )}
               </div>
             )
           ) : !selected || !stat ? (
