@@ -22,7 +22,7 @@ import { prisma } from '../src/lib/prisma';
 import { extractCreaturesFromSections, creatureToHomebrewData } from '../src/lib/ai/extract-creatures';
 import type { ChapterSection } from '../src/lib/ddb-sourcebook';
 
-type Args = { slug: string; chapter?: string; write: boolean; provider?: string; limit?: number };
+type Args = { slug: string; chapter?: string; write: boolean; provider?: string; limit?: number; delayMs?: number };
 
 function parseArgs(): Args {
   const a = process.argv.slice(2);
@@ -38,6 +38,7 @@ function parseArgs(): Args {
     write: a.includes('--write'),
     provider: get('--provider'),
     limit: get('--limit') ? Number(get('--limit')) : undefined,
+    delayMs: get('--delay') ? Number(get('--delay')) : undefined,
   };
 }
 
@@ -81,6 +82,7 @@ async function main() {
 
     const { creatures, chunksProcessed, chunksFailed } = await extractCreaturesFromSections(ch.slug, sections, {
       provider: args.provider,
+      delayMs: args.delayMs,
     });
     console.log(`chunks=${chunksProcessed} failed=${chunksFailed} → ${creatures.length} book-unique creatures`);
     for (const c of creatures) {

@@ -234,13 +234,17 @@ export interface CreatureExtractionResult {
 export async function extractCreaturesFromSections(
   chapterSlug: string,
   sections: ChapterSection[],
-  opts: { provider?: string } = {},
+  opts: { provider?: string; delayMs?: number } = {},
 ): Promise<CreatureExtractionResult> {
   const chunks = sections.flatMap(chunkSection).filter((c) => c.text.length >= 200);
   const all: ExtractedCreature[] = [];
   let chunksFailed = 0;
 
-  for (const section of chunks) {
+  for (let idx = 0; idx < chunks.length; idx++) {
+    const section = chunks[idx];
+    // Pace requests to respect a provider's tokens-per-minute limit (e.g. groq
+    // free tier is 12k TPM — a delay keeps a multi-chunk chapter from 429-ing).
+    if (opts.delayMs && idx > 0) await new Promise((r) => setTimeout(r, opts.delayMs));
     const messages = [
       { role: 'system' as const, content: CREATURE_EXTRACTION_SYSTEM_PROMPT },
       { role: 'user' as const, content: buildUserMessage(chapterSlug, section) },
