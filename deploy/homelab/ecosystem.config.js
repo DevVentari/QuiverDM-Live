@@ -75,5 +75,18 @@ module.exports = {
       restart_delay: 3000,
       env: { NODE_ENV: 'development', WS_PORT: '3004' },
     },
+
+    // --- RecapForge (standalone app, recap.quiverdm.com) ---
+    {
+      name: 'recapforge',
+      script: `${APP_DIR}/node_modules/.bin/next`,
+      args: 'start -p 3005',
+      cwd: `${APP_DIR}/apps/recapforge`,
+      watch: false,
+      autorestart: true,
+      max_restarts: 10,
+      restart_delay: 5000,
+      env: { NODE_ENV: 'production' },
+    },
   ],
 };

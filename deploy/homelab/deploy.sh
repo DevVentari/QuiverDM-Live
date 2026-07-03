@@ -15,6 +15,9 @@ npm ci
 echo "[deploy] Pushing schema changes..."
 npx prisma db push --skip-generate
 
+echo "[deploy] Building recapforge..."
+npm run build -w recapforge
+
 echo "[deploy] Restarting workers (and starting any new ones)..."
 pm2 startOrRestart "$APP_DIR/deploy/homelab/ecosystem.config.js"
 pm2 save
