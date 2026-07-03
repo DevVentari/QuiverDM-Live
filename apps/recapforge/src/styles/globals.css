@@ -1,0 +1,10 @@
+@import './v3-tokens.css';
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--qd-bg);
+  color: var(--qd-ink);
+  font-family: var(--qd-font-body);
+  min-height: 100vh;
+}

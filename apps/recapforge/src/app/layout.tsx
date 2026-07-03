@@ -1,0 +1,15 @@
+import type { Metadata } from 'next';
+import '../styles/globals.css';
+
+export const metadata: Metadata = {
+  title: 'RecapForge',
+  description: 'Forge your table\'s sessions into living chronicles.',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
