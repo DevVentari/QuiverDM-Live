@@ -2,6 +2,10 @@
   "name": "quiverdm",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "node scripts/kill-port.js 3847 && next dev -p 3847",
     "dev:ws": "tsx src/server/ws-server.ts",
