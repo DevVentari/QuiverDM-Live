@@ -31,6 +31,8 @@
     "docs/Test",
     "src/lib/queue/worker.ts",
     "vitest.config.ts",
-    "browser-extension"
+    "browser-extension",
+    "apps",
+    "packages"
   ]
 }
