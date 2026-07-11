@@ -13,6 +13,8 @@ function getKey(): Buffer {
 }
 
 export function encrypt(text: string): string {
+  if (!text) return '';
+
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(ALGORITHM, getKey(), iv);
   const enc = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);

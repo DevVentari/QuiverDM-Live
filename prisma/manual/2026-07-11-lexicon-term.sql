@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS "LexiconTerm" (
     "id" TEXT NOT NULL,
     "campaignId" TEXT NOT NULL,
     "term" TEXT NOT NULL,
-    "aliases" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "aliases" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
     "kind" TEXT NOT NULL,
     "source" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

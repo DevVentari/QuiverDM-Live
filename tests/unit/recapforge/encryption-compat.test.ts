@@ -21,4 +21,10 @@ describe('shared encryption', () => {
     expect(maskKey('abcdef1234')).toBe('…1234');
     expect(maskKey('ab')).toBe('••••••••');
   });
+
+  it('short-circuits empty input identically to the main app', () => {
+    expect(encrypt('')).toBe(mainEncrypt(''));
+    expect(encrypt('')).toBe('');
+    expect(decrypt('')).toBe('');
+  });
 });
