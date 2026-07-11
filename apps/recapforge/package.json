@@ -6,7 +6,8 @@
     "dev": "next dev -p 3005",
     "build": "next build",
     "start": "next start -p 3005",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.2",
@@ -16,7 +17,10 @@
     "@trpc/client": "^11.0.0-rc.628",
     "@trpc/react-query": "^11.0.0-rc.628",
     "@trpc/server": "^11.0.0-rc.628",
+    "@zip.js/zip.js": "^2.7.52",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.63.1",
+    "ioredis": "^5.8.2",
     "next": "^15.2.4",
     "next-auth": "^5.0.0-beta.25",
     "react": "^18.3.1",
@@ -27,6 +31,8 @@
   "devDependencies": {
     "@types/node": "^22.8.6",
     "@types/react": "^18.3.12",
-    "typescript": "^5.6.3"
+    "dotenv": "^16.4.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
   }
 }
