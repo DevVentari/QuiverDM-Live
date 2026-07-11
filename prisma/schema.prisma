@@ -453,6 +453,7 @@ model Campaign {
   recaps            SessionRecap[]
   speakerMappings   SpeakerMapping[]
   transcriptCorrections TranscriptCorrection[]
+  lexiconTerms      LexiconTerm[]
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
 
   mechanics            CampaignMechanic[]
@@ -2241,4 +2242,24 @@ model WorldEntry {
 
   @@unique([campaignId, slug])
   @@index([campaignId, type])
+}
+
+// RecapForge — campaign lexicon (Chronicler's Press §2.3)
+// One table, three consumers: AssemblyAI word_boost (P3), transcript
+// correction pass (P3), wiki entity-linker (P5). Seeded from party import.
+model LexiconTerm {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  term    String
+  aliases String[] @default([])
+  kind    String // 'pc' | 'npc' | 'place' | 'thing' | 'other'
+  source  String // 'ddb-import' | 'extracted' | 'manual'
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campaignId, term])
+  @@index([campaignId])
 }
