@@ -1,3 +1,5 @@
+import { randomBytes } from 'crypto';
+import { TRPCError } from '@trpc/server';
 import type { PrismaClient } from '@prisma/client';
 import { assertCampaignOwner } from '../guards';
 
@@ -59,4 +61,127 @@ export async function listSessions(prisma: PrismaClient, userId: string, campaig
     standing: deriveStanding(s.recordings, s._count.transcripts),
     trackCount: s.recordings.length,
   }));
+}
+
+const ALLOWED_AUDIO_TYPES = new Set([
+  'audio/flac', 'audio/x-flac', 'audio/wav', 'audio/x-wav', 'audio/wave',
+  'audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/opus',
+  'audio/x-m4a', 'audio/webm',
+]);
+
+export async function initiateTrackUpload(
+  prisma: PrismaClient,
+  userId: string,
+  input: {
+    campaignId: string; sessionId: string; fileName: string; fileSize: number;
+    contentType: string; uploadGroupId: string; speakerTag?: string;
+  },
+): Promise<{ uploadUrl: string; r2Key: string; recordingId: string }> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  const session = await prisma.gameSession.findFirst({
+    where: { id: input.sessionId, campaignId: input.campaignId },
+    select: { id: true },
+  });
+  if (!session) throw new TRPCError({ code: 'NOT_FOUND', message: 'Session not found in this campaign.' });
+  if (!ALLOWED_AUDIO_TYPES.has(input.contentType)) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: `Only audio tracks may be delivered (got ${input.contentType}).` });
+  }
+  const sanitized = input.fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+  // Key shape matches the main app's multiTrackUpload.initiate so the homelab
+  // worker resolves tracks identically.
+  const r2Key = `session-recordings/${input.sessionId}/${input.uploadGroupId}/${Date.now()}-${randomBytes(3).toString('hex')}-${sanitized}`;
+  const recording = await prisma.sessionRecording.create({
+    data: {
+      sessionId: input.sessionId,
+      type: 'audio',
+      originalUrl: r2Key,
+      fileSize: input.fileSize,
+      isMultiTrack: true,
+      uploadGroupId: input.uploadGroupId,
+      speakerTag: input.speakerTag ?? null,
+      mergeStatus: 'pending',
+      trackFiles: [{ filename: input.fileName, r2Key, speakerTag: input.speakerTag ?? null }],
+    },
+    select: { id: true },
+  });
+  return {
+    uploadUrl: `/api/uploads/track?key=${encodeURIComponent(r2Key)}`,
+    r2Key,
+    recordingId: recording.id,
+  };
+}
+
+export async function processTracks(
+  prisma: PrismaClient,
+  enqueue: (d: { uploadGroupId: string; sessionId: string; campaignId: string; userId?: string }) => Promise<unknown>,
+  userId: string,
+  input: { campaignId: string; sessionId: string; uploadGroupId: string },
+): Promise<{ queued: true; trackCount: number }> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  const recordings = await prisma.sessionRecording.findMany({
+    where: { sessionId: input.sessionId, uploadGroupId: input.uploadGroupId },
+    select: { mergeStatus: true },
+  });
+  if (recordings.length === 0) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'No tracks have been delivered for this session.' });
+  }
+  if (recordings.some((r) => r.mergeStatus === 'processing' || r.mergeStatus === 'complete')) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'The scribe has already begun on these tracks.' });
+  }
+  await enqueue({ uploadGroupId: input.uploadGroupId, sessionId: input.sessionId, campaignId: input.campaignId, userId });
+  return { queued: true, trackCount: recordings.length };
+}
+
+export async function getIntakeStatus(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string; uploadGroupId: string },
+) {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  const recordings = await prisma.sessionRecording.findMany({
+    where: { sessionId: input.sessionId, uploadGroupId: input.uploadGroupId },
+    select: { mergeStatus: true },
+  });
+  const done = recordings.filter((r) => r.mergeStatus === 'complete').length;
+  const failed = recordings.filter((r) => r.mergeStatus === 'failed').length;
+  const overallStatus: 'pending' | 'processing' | 'complete' | 'failed' =
+    failed > 0 ? 'failed'
+    : recordings.length > 0 && done === recordings.length ? 'complete'
+    : recordings.some((r) => r.mergeStatus === 'processing') ? 'processing'
+    : 'pending';
+  const transcript = overallStatus === 'complete'
+    ? await prisma.transcript.findFirst({
+        where: { sessionId: input.sessionId },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      })
+    : null;
+  return { total: recordings.length, done, failed, overallStatus, transcriptId: transcript?.id ?? null };
+}
+
+export async function assignSpeaker(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; speakerLabel: string; characterName: string; isDM: boolean },
+): Promise<void> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  await prisma.speakerMapping.upsert({
+    where: { campaignId_speakerLabel: { campaignId: input.campaignId, speakerLabel: input.speakerLabel } },
+    update: { characterName: input.characterName, isDM: input.isDM },
+    create: {
+      campaignId: input.campaignId,
+      speakerLabel: input.speakerLabel,
+      characterName: input.characterName,
+      isDM: input.isDM,
+    },
+  });
+}
+
+export async function listSpeakerMappings(prisma: PrismaClient, userId: string, campaignId: string) {
+  await assertCampaignOwner(prisma, campaignId, userId);
+  return prisma.speakerMapping.findMany({
+    where: { campaignId },
+    select: { speakerLabel: true, characterName: true, isDM: true },
+    orderBy: { speakerLabel: 'asc' },
+  });
 }
