@@ -247,11 +247,18 @@ export async function getScribeProgress(
   await assertCampaignOwner(prisma, input.campaignId, userId);
   const owns = await prisma.gameSession.findFirst({ where: { id: input.sessionId, campaignId: input.campaignId }, select: { id: true } });
   if (!owns) return { total: 0, done: 0, failed: 0, overall: 'transcribing' as const, transcriptId: null, voices: [] };
-  const recordings = await prisma.sessionRecording.findMany({
+  const allRecordings = await prisma.sessionRecording.findMany({
     where: { sessionId: input.sessionId, isMultiTrack: true },
-    select: { id: true, speakerTag: true, mergeStatus: true, originalUrl: true, createdAt: true },
+    select: { id: true, speakerTag: true, mergeStatus: true, originalUrl: true, uploadGroupId: true, createdAt: true },
     orderBy: { createdAt: 'asc' },
   });
+  // Scope to the LATEST upload group (the most-recent delivery) — a session
+  // re-delivered several times must show only the current attempt, not every
+  // group's tracks stacked together. Mirrors the ledger's standing derivation.
+  const latestGroup = allRecordings.length
+    ? allRecordings[allRecordings.length - 1].uploadGroupId
+    : null;
+  const recordings = allRecordings.filter((r) => r.uploadGroupId === latestGroup);
   const tracks = await prisma.trackTranscript.findMany({
     where: { sessionId: input.sessionId },
     select: { recordingId: true, characterName: true, text: true, status: true },

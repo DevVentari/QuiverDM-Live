@@ -45,6 +45,21 @@ describe('getScribeProgress', () => {
     expect(beast.key).toBe('k-ven_tari');
   });
 
+  it('shows only the latest upload group when a session was re-delivered', async () => {
+    // A second session with an OLD group (3 recordings) and a NEWER group (2).
+    const s2 = await prisma.gameSession.create({ data: { campaignId, sessionNumber: 2, status: 'planning' } });
+    const mk2 = (group: string, tag: string) => prisma.sessionRecording.create({
+      data: { sessionId: s2.id, type: 'audio', originalUrl: `k2-${group}-${tag}`, fileSize: 1, isMultiTrack: true, uploadGroupId: group, speakerTag: tag, mergeStatus: 'processing' },
+    });
+    await mk2('old', 'a'); await mk2('old', 'b'); await mk2('old', 'c');
+    // ensure the "new" group's rows are created later (createdAt ordering)
+    await new Promise((r) => setTimeout(r, 10));
+    await mk2('new', 'x'); await mk2('new', 'y');
+    const p = await getScribeProgress(prisma, userId, { campaignId, sessionId: s2.id });
+    expect(p.total).toBe(2); // only the latest group's 2 voices, not all 5
+    expect(p.voices.map((v) => v.speakerLabel).sort()).toEqual(['x', 'y']);
+  });
+
   it('refuses a non-owner', async () => {
     const stranger = await prisma.user.create({ data: { email: `s-${EMAIL}`, name: 'S' } });
     await expect(getScribeProgress(prisma, stranger.id, { campaignId, sessionId })).rejects.toThrow();
