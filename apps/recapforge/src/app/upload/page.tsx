@@ -38,6 +38,7 @@ function ComposingRoom() {
   const [uploadGroupId] = useState(() => crypto.randomUUID());
   const [tracks, setTracks] = useState<TrackRow[]>([]);
   const [setting, setSetting] = useState(false);
+  const [processError, setProcessError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const initiate = trpc.forgeSessions.initiate.useMutation();
@@ -217,12 +218,14 @@ function ComposingRoom() {
             )}
 
             <div className="rf-compose__foot">
-              <span className="rf-compose__setnote" style={{ color: ready ? 'var(--rf-ink)' : 'var(--rf-mark)' }}>
-                {tracks.length === 0
-                  ? 'The composing room stands ready.'
-                  : ready
-                    ? 'Every voice bears a name. The scribe may begin.'
-                    : 'Every voice must bear a name before type is set.'}
+              <span className="rf-compose__setnote" style={{ color: processError ? 'var(--rf-mark)' : ready ? 'var(--rf-ink)' : 'var(--rf-mark)' }}>
+                {processError
+                  ? processError
+                  : tracks.length === 0
+                    ? 'The composing room stands ready.'
+                    : ready
+                      ? 'Every voice bears a name. The scribe may begin.'
+                      : 'Every voice must bear a name before type is set.'}
               </span>
               <button
                 className="rf-btn rf-btn--solid"
@@ -230,15 +233,19 @@ function ComposingRoom() {
                 disabled={!ready || setting}
                 onClick={async () => {
                   setSetting(true);
+                  setProcessError(null);
                   try {
                     await processMut.mutateAsync({ campaignId, sessionId, uploadGroupId });
                     router.push('/');
+                  } catch (e) {
+                    // Surface it — a silent failure here cost a real table an evening.
+                    setProcessError(e instanceof Error ? e.message : 'The press jammed — the type was not set. Try again.');
                   } finally {
                     setSetting(false);
                   }
                 }}
               >
-                Set the type →
+                {setting ? 'Setting the type…' : 'Set the type →'}
               </button>
             </div>
           </div>
