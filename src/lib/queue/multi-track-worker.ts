@@ -29,7 +29,7 @@ import {
   broadcastMultiTrackComplete,
   broadcastMultiTrackError,
 } from '../../server/websocket';
-import { applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
+import { applyMappingsToSegments, applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
 import { contextExtractionQueue } from './context-extraction-queue';
 import { addTranscriptCleanupJob } from './transcript-cleanup-queue';
 
@@ -238,28 +238,21 @@ async function processMultiTrack(
     tracks.push(...results);
   }
 
-  // 5. Merge transcripts by timestamp
-  const segments = mergeTranscripts(tracks);
+  // 5. Merge, then remap speaker labels to character names BEFORE building text/JSON,
+  //    so rawText/correctedText/speakers/timestamps all read as characters.
+  const mergedSegments = mergeTranscripts(tracks);
+  const segments = applyMappingsToSegments(mergedSegments, mappingLookup);
   const rawText = segmentsToText(segments);
 
-  const uniqueSpeakers = [...new Set(tracks.map((t) => t.speakerTag))];
-  const rawSpeakers = uniqueSpeakers.map((name, i) => ({
+  const uniqueSpeakers = [...new Set(segments.map((s) => s.speaker))];
+  const speakersJson = uniqueSpeakers.map((name, i) => ({
     id: `S${i}`,
     name,
     segments: segments.filter((s) => s.speaker === name).length,
   }));
-  const rawTimestamps = segments.map((s) => ({
-    start: s.start,
-    end: s.end,
-    text: s.text,
-    speaker: s.speaker,
+  const resolvedTimestamps = segments.map((s) => ({
+    start: s.start, end: s.end, text: s.text, speaker: s.speaker,
   }));
-
-  const { speakers: speakersJson, timestamps: resolvedTimestamps } = applyMappingsToTranscriptData(
-    rawSpeakers,
-    rawTimestamps,
-    mappingLookup
-  );
 
   // 6. Write Transcript record
   const transcript = await prisma.transcript.create({

@@ -1,3 +1,5 @@
+import type { MergedSegment } from './transcript-merger';
+
 export type SpeakerEntry = { id: string; name: string; segments: number };
 export type TimestampEntry = { start: number; end: number; text: string; speaker: string };
 
@@ -16,4 +18,12 @@ export function applyMappingsToTranscriptData(
       speaker: lookup.get(t.speaker) ?? t.speaker,
     })),
   };
+}
+
+/** Remap each segment's speaker label (craig username) to its character name. */
+export function applyMappingsToSegments(
+  segments: MergedSegment[],
+  lookup: Map<string, string>,
+): MergedSegment[] {
+  return segments.map((s) => ({ ...s, speaker: lookup.get(s.speaker) ?? s.speaker }));
 }
