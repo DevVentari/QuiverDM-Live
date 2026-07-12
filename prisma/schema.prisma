@@ -696,6 +696,7 @@ model GameSession {
 
   recordings             SessionRecording[]
   transcripts            Transcript[]
+  trackTranscripts       TrackTranscript[]
   encounters             Encounter[]
   aiSummary              String?                  @db.Text
   aiSummaryStatus        String                   @default("none") // none|pending|processing|done|error
@@ -2262,4 +2263,25 @@ model LexiconTerm {
 
   @@unique([campaignId, term])
   @@index([campaignId])
+}
+
+// RecapForge P3 — per-track transcript, persisted as each voice lands so the
+// scribe-at-work view can reveal text voice-by-voice. The merged Transcript
+// stays authoritative; this is the live-reveal source.
+model TrackTranscript {
+  id            String   @id @default(cuid())
+  sessionId     String
+  session       GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recordingId   String   @unique
+  uploadGroupId String
+  speakerLabel  String
+  characterName String?
+  text          String   @db.Text
+  segments      Json     @default("[]")
+  status        String   // 'transcribing' | 'done' | 'error'
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sessionId])
+  @@index([uploadGroupId])
 }
