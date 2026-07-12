@@ -1,10 +1,13 @@
-@import './v3-tokens.css';
+@import './manuscript.css';
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
-  background: var(--qd-bg);
-  color: var(--qd-ink);
-  font-family: var(--qd-font-body);
+html, body {
+  background: var(--rf-canvas);
+  color: var(--rf-ink);
+  font-family: var(--rf-font-serif);
   min-height: 100vh;
 }
+
+/* Never allow the artboard-derived grids to push horizontal scroll on phones. */
+body { overflow-x: hidden; }

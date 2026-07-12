@@ -1,0 +1,487 @@
+/* ============================================================
+   RecapForge — "The Manuscript" design tokens
+   A printed-page identity: cream paper, oxblood ink marks,
+   Newsreader serif body, IBM Plex Mono labels, Caveat margin notes.
+   Distinct from QuiverDM's dark v3 tome system by design.
+   Font family vars (--rf-font-*) are supplied by next/font in layout.tsx.
+   ============================================================ */
+
+:root {
+  /* ---- SURFACES (paper) ---- */
+  --rf-canvas: #d9d2c4;      /* desk / outermost background */
+  --rf-paper: #f5efe3;       /* working documents (ledger, galley, composing) */
+  --rf-paper-warm: #faf6ec;  /* the bound / published page */
+  --rf-chip: #221d16;        /* ink chip fill (nav pills, wordmark plate) */
+  --rf-chip-ink: #f2ecdf;    /* text on ink chip */
+
+  /* ---- INK / TEXT ---- */
+  --rf-ink: #221d16;         /* primary set text */
+  --rf-ink-2: #6b6152;       /* secondary */
+  --rf-ink-muted: #8a8070;   /* captions, roles, voices */
+  --rf-ink-faint: #b3a88f;   /* line numbers, folios, faintest */
+
+  /* ---- ACCENT · OXBLOOD (brand) ---- */
+  --rf-accent: #7a2e21;      /* links, solid buttons, eyebrows */
+  --rf-accent-deep: #5a1f15; /* hover */
+  --rf-mark: #a33b2a;        /* editorial red — margin notes, strikes, live stages */
+
+  /* ---- RULES / BORDERS ---- */
+  --rf-rule: #221d16;        /* strong hairline (table heads, drop rules) */
+  --rf-rule-soft: #d8cfba;   /* soft dividers */
+  --rf-rule-dot: #c8bfab;    /* dotted row separators, card border */
+
+  /* ---- ELEVATION ---- */
+  --rf-shadow-page: 0 20px 50px rgba(40, 30, 15, .25);
+
+  /* ---- MOTION ---- */
+  --rf-ease: cubic-bezier(.2, .8, .2, 1);
+}
+
+/* ---- BASE ---- */
+.rf {
+  font-family: var(--rf-font-serif);
+  color: var(--rf-ink);
+  -webkit-font-smoothing: antialiased;
+}
+.rf a { color: var(--rf-accent); text-decoration: none; }
+.rf a:hover { color: var(--rf-accent-deep); }
+
+/* Links styled as buttons/chrome must keep their own color, not the link color.
+   These overrides out-specify the broad `.rf a` rule above. */
+.rf a.rf-btn--solid, .rf a.rf-btn--solid:hover { color: var(--rf-paper); }
+.rf a.rf-btn--ghost, .rf a.rf-btn--ghost:hover { color: var(--rf-accent); }
+.rf a.rf-masthead__crumb, .rf a.rf-masthead__crumb:hover { color: var(--rf-ink-muted); }
+.rf a.rf-masthead__crumb:hover { color: var(--rf-ink); }
+
+/* Shared type helpers ---------------------------------------- */
+.rf-mono { font-family: var(--rf-font-mono); }
+.rf-hand { font-family: var(--rf-font-hand); }
+
+/* Mono UPPERCASE eyebrow / label */
+.rf-eyebrow {
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--rf-ink-muted);
+}
+.rf-eyebrow--accent { color: var(--rf-accent); }
+
+/* A short amber... er, oxblood section rule with a mono label */
+.rf-section-rule {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.rf-section-rule > span:first-child {
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--rf-accent);
+  white-space: nowrap;
+}
+.rf-section-rule > .rf-rule-line {
+  flex: 1;
+  height: 1px;
+  background: var(--rf-rule-soft);
+}
+
+/* ---- PAGE SHELL -------------------------------------------- */
+.rf-page {
+  min-height: 100vh;
+  background: var(--rf-canvas);
+  padding: 40px 32px 80px;
+}
+.rf-page__inner {
+  margin: 0 auto;
+  width: 100%;
+}
+.rf-page__caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 auto 14px;
+}
+.rf-page__badge {
+  font-family: var(--rf-font-mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  background: var(--rf-chip);
+  color: var(--rf-chip-ink);
+  padding: 3px 9px;
+  border-radius: 4px;
+}
+.rf-page__captiontext {
+  font-family: var(--rf-font-mono);
+  font-size: 11px;
+  color: var(--rf-ink-2);
+}
+
+/* The paper surface every screen sits on */
+.rf-paper {
+  background: var(--rf-paper);
+  border: 1px solid var(--rf-rule-dot);
+  box-shadow: var(--rf-shadow-page);
+}
+.rf-paper--warm { background: var(--rf-paper-warm); }
+
+/* ---- MASTHEAD (the running chrome) ------------------------- */
+.rf-masthead {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 46px;
+  border-bottom: 1px solid var(--rf-rule-soft);
+  flex-wrap: wrap;
+}
+.rf-masthead__mark {
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--rf-accent);
+}
+.rf-masthead__div {
+  width: 1px;
+  height: 14px;
+  background: var(--rf-rule-soft);
+}
+.rf-masthead__nav {
+  display: flex;
+  gap: 22px;
+}
+.rf-masthead__link {
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--rf-ink-muted);
+  padding-bottom: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.rf-masthead__link:hover { color: var(--rf-ink); }
+.rf-masthead__link.is-active {
+  color: var(--rf-ink);
+  border-bottom: 2px solid var(--rf-accent);
+}
+.rf-masthead__crumb {
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--rf-ink-muted);
+}
+.rf-masthead__spacer { flex: 1; }
+.rf-masthead__meta {
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  color: var(--rf-ink-muted);
+}
+
+/* ---- BUTTONS ----------------------------------------------- */
+.rf-btn {
+  font-family: var(--rf-font-mono);
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background .18s var(--rf-ease), border-color .18s var(--rf-ease), color .18s var(--rf-ease);
+  min-height: 40px;
+}
+.rf-btn--solid {
+  padding: 9px 18px;
+  background: var(--rf-accent);
+  color: var(--rf-paper);
+}
+.rf-btn--solid:hover { background: var(--rf-accent-deep); }
+.rf-btn--solid[disabled] { background: var(--rf-ink-faint); cursor: default; }
+.rf-btn--ghost {
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--rf-accent);
+  border: 1px solid var(--rf-rule-dot);
+}
+.rf-btn--ghost:hover { border-color: var(--rf-accent); }
+.rf-btn--mark {
+  padding: 6px 12px;
+  background: var(--rf-mark);
+  color: var(--rf-paper);
+  font-size: 10px;
+}
+.rf-btn--mark:hover { background: var(--rf-accent); }
+.rf-btn--stet {
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--rf-ink-2);
+  border: 1px solid var(--rf-rule-dot);
+  font-size: 10px;
+}
+.rf-btn--stet:hover { border-color: var(--rf-ink-muted); color: var(--rf-ink); }
+
+/* ============================================================
+   2a · THE PRESS LEDGER (campaign home)
+   ============================================================ */
+.rf-ledger__head {
+  padding: 48px 52px 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.rf-ledger__title {
+  margin: 10px 0 0;
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -.01em;
+}
+.rf-ledger__stats {
+  font-family: var(--rf-font-mono);
+  font-size: 11px;
+  color: var(--rf-ink-muted);
+  text-align: right;
+  line-height: 1.8;
+}
+.rf-ledger__table { padding: 8px 52px 56px; }
+.rf-ledger__grid {
+  display: grid;
+  grid-template-columns: 52px 1fr 240px 110px 90px;
+  gap: 18px;
+}
+.rf-ledger__cols {
+  padding: 10px 0;
+  border-top: 2px solid var(--rf-rule);
+  border-bottom: 1px solid var(--rf-rule);
+  font-family: var(--rf-font-mono);
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--rf-ink-muted);
+}
+.rf-ledger__row {
+  align-items: baseline;
+  padding: 16px 0;
+  border-bottom: 1px dotted var(--rf-rule-dot);
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+}
+.rf-ledger__row:hover { background: rgba(122, 46, 33, .03); }
+.rf-ledger__n { font-family: var(--rf-font-mono); font-size: 13px; color: var(--rf-ink-faint); }
+.rf-ledger__sess-title { font-size: 19px; font-weight: 600; line-height: 1.25; }
+.rf-ledger__voice { margin-top: 2px; font-size: 13.5px; font-style: italic; color: var(--rf-ink-muted); }
+.rf-ledger__dot { width: 8px; height: 8px; border-radius: 50%; }
+.rf-ledger__standing { font-family: var(--rf-font-mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.rf-ledger__stages { margin-top: 6px; display: flex; gap: 4px; }
+.rf-ledger__stage { width: 20px; height: 3px; }
+.rf-ledger__date { font-family: var(--rf-font-mono); font-size: 11px; color: var(--rf-ink-muted); }
+.rf-ledger__action { font-family: var(--rf-font-mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--rf-accent); text-align: right; }
+
+/* ============================================================
+   2b · THE COMPOSING ROOM (upload)
+   ============================================================ */
+.rf-compose__body { padding: 48px 52px 56px; }
+.rf-compose__title { margin: 0; font-size: 32px; font-weight: 600; letter-spacing: -.01em; }
+.rf-compose__sub { margin-top: 8px; font-size: 15px; font-style: italic; color: var(--rf-ink-muted); }
+.rf-dropzone {
+  margin-top: 28px;
+  padding: 40px 24px;
+  border: 1.5px dashed #a89d84;
+  text-align: center;
+  cursor: pointer;
+}
+.rf-dropzone:hover { background: rgba(122, 46, 33, .03); }
+.rf-dropzone__lead { font-size: 19px; font-weight: 600; }
+.rf-dropzone__hint { margin-top: 5px; font-size: 13.5px; font-style: italic; color: var(--rf-ink-muted); }
+.rf-track__cols {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 24px 1fr 200px 76px;
+  gap: 16px;
+  padding: 9px 0;
+  border-top: 2px solid var(--rf-rule);
+  border-bottom: 1px solid var(--rf-rule);
+  font-family: var(--rf-font-mono);
+  font-size: 9px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--rf-ink-muted);
+}
+.rf-track__row {
+  display: grid;
+  grid-template-columns: 24px 1fr 200px 76px;
+  gap: 16px;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px dotted var(--rf-rule-dot);
+}
+.rf-track__mark { font-family: var(--rf-font-mono); font-size: 12px; }
+.rf-track__file { font-family: var(--rf-font-mono); font-size: 12.5px; color: var(--rf-ink); word-break: break-all; }
+.rf-track__note { margin-top: 2px; font-size: 12px; font-style: italic; }
+.rf-track__assign { font-size: 15px; font-weight: 600; }
+.rf-track__choices { display: flex; gap: 6px; flex-wrap: wrap; }
+.rf-track__size { font-family: var(--rf-font-mono); font-size: 11px; color: var(--rf-ink-muted); text-align: right; }
+.rf-compose__foot { margin-top: 26px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.rf-compose__setnote { font-size: 13.5px; font-style: italic; }
+
+/* ============================================================
+   1a · THE GALLEY PROOF (transcript review)
+   ============================================================ */
+.rf-galley__titleblock { padding: 52px 46px 8px; max-width: 640px; margin: 0 auto; text-align: center; }
+.rf-galley__meta { }
+.rf-galley__title { margin: 14px 0 0; font-size: 42px; font-weight: 600; line-height: 1.05; letter-spacing: -.01em; }
+.rf-galley__hr { margin: 16px auto 0; width: 64px; height: 1px; background: var(--rf-rule); }
+.rf-galley__byline { margin-top: 14px; font-size: 15px; font-style: italic; color: var(--rf-ink-2); }
+.rf-galley__body {
+  display: grid;
+  grid-template-columns: 56px 620px 1fr;
+  gap: 0;
+  padding: 36px 46px 60px;
+  max-width: 1088px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.rf-galley__lineno {
+  grid-column: 1;
+  padding: 10px 18px 10px 0;
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  color: var(--rf-ink-faint);
+  text-align: right;
+  border-right: 1px solid var(--rf-rule-soft);
+}
+.rf-galley__line { grid-column: 2; padding: 10px 0 10px 28px; }
+.rf-galley__speaker {
+  font-family: var(--rf-font-mono);
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  flex: none;
+  width: 96px;
+}
+.rf-galley__text { font-size: 16.5px; line-height: 1.6; text-decoration-color: var(--rf-mark); text-decoration-thickness: 2px; }
+.rf-galley__margin { grid-column: 3; padding: 8px 0 8px 26px; position: relative; }
+.rf-galley__note-wrap { border-left: 2px solid var(--rf-mark); padding: 6px 0 6px 14px; }
+.rf-galley__note {
+  font-family: var(--rf-font-hand);
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--rf-mark);
+  transform: rotate(-1deg);
+}
+.rf-galley__note-actions { display: flex; gap: 8px; margin-top: 8px; }
+.rf-galley__verdict-row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
+.rf-galley__verdict { font-family: var(--rf-font-mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--rf-ink-muted); }
+.rf-galley__undo {
+  font-family: var(--rf-font-mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 8px; background: transparent; color: var(--rf-ink-muted); border: 1px solid var(--rf-rule-soft); cursor: pointer;
+}
+.rf-galley__undo:hover { color: var(--rf-ink); }
+.rf-folio {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 46px 26px;
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--rf-ink-faint);
+}
+
+/* ============================================================
+   1b · THE BOUND PAGE (published wiki)
+   ============================================================ */
+.rf-bound__runhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 22px 64px 0;
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--rf-ink-faint);
+}
+.rf-bound__body { padding: 56px 64px 72px; max-width: 640px; margin: 0 auto; }
+.rf-bound__chapter { font-family: var(--rf-font-mono); font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--rf-accent); }
+.rf-bound__title { margin: 16px 0 0; font-size: 46px; font-weight: 600; line-height: 1.02; letter-spacing: -.01em; }
+.rf-bound__dateline { margin: 20px auto 0; display: flex; align-items: center; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.rf-bound__dateline span.rf-tick { width: 44px; height: 1px; background: var(--rf-rule-dot); }
+.rf-bound__dateline span.rf-date { font-size: 14px; font-style: italic; color: var(--rf-ink-muted); }
+.rf-bound__lede { margin-top: 44px; font-size: 18px; line-height: 1.75; }
+.rf-bound__dropcap { float: left; font-size: 74px; line-height: .78; font-weight: 600; padding: 8px 12px 0 0; color: var(--rf-accent); }
+.rf-bound__pull {
+  margin-top: 22px; padding: 26px 34px;
+  border-top: 1px solid var(--rf-rule); border-bottom: 1px solid var(--rf-rule);
+  text-align: center;
+}
+.rf-bound__pull-quote { font-size: 20px; font-style: italic; line-height: 1.6; }
+.rf-bound__pull-attr { margin-top: 10px; font-family: var(--rf-font-mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--rf-ink-muted); }
+.rf-bound__para { margin-top: 22px; font-size: 18px; line-height: 1.75; }
+.rf-bound a.rf-wikilink { border-bottom: 1px solid rgba(122, 46, 33, .4); }
+.rf-bound__section { margin-top: 52px; }
+.rf-bound__record { margin-top: 18px; display: flex; flex-direction: column; }
+.rf-bound__record-row { display: grid; grid-template-columns: 70px 1fr; gap: 20px; padding: 13px 0; border-bottom: 1px dotted var(--rf-rule-dot); }
+.rf-bound__record-t { font-family: var(--rf-font-mono); font-size: 11px; color: var(--rf-ink-muted); padding-top: 3px; }
+.rf-bound__record-text { font-size: 16px; line-height: 1.6; }
+.rf-bound__personae { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 0 44px; }
+.rf-bound__persona { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px dotted var(--rf-rule-dot); }
+.rf-bound__persona-name { font-size: 16px; }
+.rf-bound__persona-role { font-family: var(--rf-font-mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--rf-ink-muted); text-align: right; }
+.rf-bound__nav { margin-top: 60px; display: flex; justify-content: space-between; gap: 16px; font-size: 15px; font-style: italic; flex-wrap: wrap; }
+.rf-bound__pagefol { display: flex; justify-content: center; padding: 0 64px 26px; font-family: var(--rf-font-mono); font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: var(--rf-ink-faint); }
+
+/* ============================================================
+   RESPONSIVE — collapse artboard grids so no horizontal overflow
+   at 320 / 375 / 390.
+   ============================================================ */
+@media (max-width: 900px) {
+  .rf-page { padding: 24px 14px 56px; }
+  .rf-masthead { padding: 16px 22px; gap: 14px; }
+  .rf-ledger__head { padding: 32px 24px 20px; }
+  .rf-ledger__table { padding: 8px 24px 40px; }
+  .rf-compose__body { padding: 32px 24px 40px; }
+  .rf-galley__titleblock { padding: 36px 24px 8px; }
+  .rf-galley__body { padding: 28px 24px 44px; }
+  .rf-bound__runhead { padding: 18px 28px 0; }
+  .rf-bound__body { padding: 40px 28px 56px; }
+  .rf-bound__pagefol, .rf-folio { padding-left: 28px; padding-right: 28px; }
+
+  /* Ledger rows → stacked cards */
+  .rf-ledger__cols { display: none; }
+  .rf-ledger__grid.rf-ledger__row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .rf-ledger__row { display: flex; flex-direction: column; gap: 8px; }
+
+  /* Composing tracks → 2-line stack */
+  .rf-track__cols { display: none; }
+  .rf-track__row { grid-template-columns: 20px 1fr; grid-auto-rows: auto; row-gap: 8px; }
+  .rf-track__row > .rf-track__size { grid-column: 2; text-align: left; }
+  .rf-track__row > .rf-track__assign-cell { grid-column: 2; }
+
+  /* Galley → single column, notes flow beneath the line */
+  .rf-galley__body { display: block; max-width: 640px; }
+  .rf-galley__lineno { display: inline-block; border: none; padding: 0 8px 0 0; }
+  .rf-galley__line { display: block; padding: 4px 0 4px; }
+  .rf-galley__margin { padding: 0 0 14px; }
+  .rf-galley__title { font-size: 32px; }
+
+  /* Bound page → single persona column, smaller display */
+  .rf-bound__personae { grid-template-columns: 1fr; }
+  .rf-bound__title { font-size: 34px; }
+  .rf-bound__record-row { grid-template-columns: 56px 1fr; gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rf-btn { transition: none; }
+}
