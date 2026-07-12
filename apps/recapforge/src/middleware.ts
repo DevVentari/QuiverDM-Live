@@ -19,5 +19,8 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // api/uploads is excluded: middleware buffering caps request bodies at 10MB
+  // (middlewareClientMaxBodySize), which truncated real multi-hundred-MB Craig
+  // tracks. The upload route does its own auth() + campaign-owner check.
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/uploads).*)'],
 };
