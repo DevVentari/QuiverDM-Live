@@ -416,6 +416,7 @@ model Campaign {
   settings             Json? // { allowPlayerNotes, shareRecaps, etc. }
   foundryApiKey        String? @unique // bcrypt hash of campaign-scoped Foundry API key
   foundryModuleVersion String?
+  publishConfig        Json? // RecapForge P5: per-campaign wiki publish target ({ host, user, urlBase })
 
   // Content relations
   gameSessions      GameSession[]
@@ -757,6 +758,9 @@ model ForgeRecap {
   generatedHtml String?     @db.Text
   rawOutput     String?     @db.Text
   error         String?
+  publishedAt   DateTime?
+  publishedUrl  String?
+  publishError  String?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
