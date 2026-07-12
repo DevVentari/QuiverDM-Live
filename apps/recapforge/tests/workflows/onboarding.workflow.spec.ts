@@ -44,6 +44,6 @@ test('fresh account onboards: campaign → skip cobalt → manual party → ledg
   await page.waitForURL('/');
   await page.waitForTimeout(1500);
   await expect(page).toHaveURL('/');
-  // NOTE: Task 11 extends this spec to also assert the campaign name renders —
-  // at this task's point in time '/' still shows the mock ledger.
+  // The ledger is now wired to real data — the campaign name must render.
+  await expect(page.getByText('Spec Test Chronicle')).toBeVisible();
 });
