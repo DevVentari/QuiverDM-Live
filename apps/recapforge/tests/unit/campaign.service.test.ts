@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import {
-  slugify, createForgeCampaign, listForgeCampaigns, addPartyMember, listParty,
+  slugify, createForgeCampaign, listForgeCampaigns, addPartyMember, listParty, removePartyMember,
 } from '@/server/services/campaign.service';
 
 const prisma = new PrismaClient();
@@ -43,6 +43,21 @@ describe('campaign.service', () => {
       where: { campaignId_term: { campaignId, term: "Kah'Roak" } },
     });
     expect(term).toMatchObject({ kind: 'pc', source: 'manual' });
+  });
+
+  it('strikes a member from the party and re-files their lexicon term as npc', async () => {
+    await addPartyMember(prisma, userId, { campaignId, playerName: 'Blake', characterName: 'Listertest' });
+    const party = await listParty(prisma, userId, campaignId);
+    const member = party.find((p) => p.characterName === 'Listertest')!;
+    await removePartyMember(prisma, userId, { campaignId, playerId: member.id });
+    const after = await listParty(prisma, userId, campaignId);
+    expect(after.some((p) => p.characterName === 'Listertest')).toBe(false);
+    const term = await prisma.lexiconTerm.findUnique({
+      where: { campaignId_term: { campaignId, term: 'Listertest' } },
+    });
+    expect(term?.kind).toBe('npc'); // name still boosts transcription
+    // striking again is a no-op, not an error
+    await removePartyMember(prisma, userId, { campaignId, playerId: member.id });
   });
 
   it('refuses a non-owner', async () => {
