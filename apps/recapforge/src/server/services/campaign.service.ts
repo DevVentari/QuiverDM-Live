@@ -71,6 +71,30 @@ export async function listParty(prisma: PrismaClient, userId: string, campaignId
   });
 }
 
+/**
+ * Strike a member from the party. The Player row goes; their lexicon term is
+ * re-filed as an NPC rather than deleted — the name should still boost
+ * transcription and link in the wiki, it just stops being offered as a voice.
+ * Deleting an already-struck member is a no-op.
+ */
+export async function removePartyMember(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; playerId: string },
+): Promise<void> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  const player = await prisma.player.findFirst({
+    where: { id: input.playerId, campaignId: input.campaignId },
+    select: { characterName: true },
+  });
+  if (!player) return; // already struck — no-op
+  await prisma.player.deleteMany({ where: { id: input.playerId, campaignId: input.campaignId } });
+  await prisma.lexiconTerm.updateMany({
+    where: { campaignId: input.campaignId, term: player.characterName },
+    data: { kind: 'npc' },
+  });
+}
+
 export async function importPartyFromDdb(
   prisma: PrismaClient,
   ddb: DdbClient,

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { Masthead } from '@/components/manuscript/Masthead';
 
@@ -19,10 +19,14 @@ const STANDING_META: Record<string, { dot: string; color: string; stageIdx: numb
   'illegible':             { dot: 'var(--rf-mark)', color: 'var(--rf-mark)', stageIdx: 1, action: 'deliver again →' },
 };
 
-export default function LedgerPage() {
+function Ledger() {
   const router = useRouter();
+  const params = useSearchParams();
+  const campaignParam = params.get('campaign');
   const mine = trpc.forgeCampaign.mine.useQuery();
-  const campaign = mine.data?.[0] ?? null;
+  // ?campaign= selects the chronicle; absent → the newest one.
+  const campaign = mine.data?.find((c) => c.id === campaignParam) ?? mine.data?.[0] ?? null;
+  const others = (mine.data ?? []).filter((c) => c.id !== campaign?.id);
   const sessions = trpc.forgeSessions.list.useQuery(
     { campaignId: campaign?.id ?? '' },
     { enabled: !!campaign },
@@ -62,7 +66,7 @@ export default function LedgerPage() {
             <nav className="rf-masthead__nav">
               <span className="rf-masthead__link is-active">Ledger</span>
               <span className="rf-masthead__link">The book</span>
-              <span className="rf-masthead__link">Workings</span>
+              <Link href={`/workings?campaign=${campaign.id}`} className="rf-masthead__link">Workings</Link>
             </nav>
           </Masthead>
 
@@ -73,6 +77,22 @@ export default function LedgerPage() {
             </div>
             <div className="rf-ledger__stats">
               {rows.length} session{rows.length === 1 ? '' : 's'} set down
+              {others.length > 0 && (
+                <>
+                  <br />
+                  <span style={{ letterSpacing: '.14em', textTransform: 'uppercase', fontSize: 9 }}>also in the press:</span>
+                  {others.map((c) => (
+                    <span key={c.id}>
+                      {' '}
+                      <Link href={`/?campaign=${c.id}`} style={{ textDecoration: 'underline dotted' }}>{c.name}</Link>
+                    </span>
+                  ))}
+                </>
+              )}
+              <br />
+              <Link href="/onboarding" style={{ fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                found a new chronicle →
+              </Link>
             </div>
           </div>
 
@@ -125,5 +145,13 @@ export default function LedgerPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LedgerPage() {
+  return (
+    <Suspense fallback={<main className="rf-page" />}>
+      <Ledger />
+    </Suspense>
   );
 }

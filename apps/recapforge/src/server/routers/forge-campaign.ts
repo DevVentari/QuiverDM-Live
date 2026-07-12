@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import {
-  createForgeCampaign, listForgeCampaigns, addPartyMember, listParty, importPartyFromDdb,
+  createForgeCampaign, listForgeCampaigns, addPartyMember, listParty, importPartyFromDdb, removePartyMember,
 } from '../services/campaign.service';
 import { ddbClient } from '@/lib/ddb';
 
@@ -23,4 +23,7 @@ export const forgeCampaignRouter = router({
   importParty: protectedProcedure
     .input(z.object({ campaignId: z.string().min(1), campaignUrl: z.string().url() }))
     .mutation(({ ctx, input }) => importPartyFromDdb(ctx.prisma, ddbClient, ctx.session.user.id, input)),
+  removePartyMember: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), playerId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => removePartyMember(ctx.prisma, ctx.session.user.id, input)),
 });
