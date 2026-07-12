@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import type { PrismaClient } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { decrypt } from '@quiverdm/shared';
-import type { DdbClient } from '@/lib/ddb';
+import { parseCardMeta, type DdbClient } from '@/lib/ddb';
 import { assertCampaignOwner } from '../guards';
 
 export function slugify(name: string): string {
@@ -109,43 +109,80 @@ export async function importPartyFromDdb(
     throw new TRPCError({ code: 'BAD_REQUEST', message: 'No D&D Beyond cobalt cookie on file — add it in Workings.' });
   }
 
-  const refs = await ddb.fetchCampaignCharacterIds(input.campaignUrl, cobalt);
-  if (!refs.ok || !refs.ids?.length) {
-    throw new TRPCError({ code: 'BAD_REQUEST', message: refs.message ?? 'No characters found in that campaign.' });
+  const roster = await ddb.fetchCampaignRoster(input.campaignUrl, cobalt);
+  if (!roster.ok) {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: roster.message ?? 'No characters found in that campaign.' });
+  }
+
+  // Normalized shape, whichever path fills it. Name + class/race/level +
+  // player only — context for the scribe, never a full sheet import.
+  type Row = {
+    id: string | null; name: string; className: string | null;
+    race: string | null; level: number | null; playerUsername: string | null;
+  };
+  const rows: Row[] = [];
+  let failed = 0;
+
+  if (roster.entries?.length) {
+    // Roster cards carry every character — private sheets included.
+    for (const e of roster.entries) {
+      const { level, race, className } = parseCardMeta(e.meta);
+      rows.push({ id: e.id, name: e.name, className, race, level, playerUsername: e.playerUsername });
+    }
+  } else if (roster.ids?.length) {
+    // Card scrape came back empty (markup drift?) — per-sheet fallback.
+    for (const id of roster.ids) {
+      const summary = await ddb.fetchCharacterSummary(id, cobalt);
+      if (!summary) {
+        failed++;
+        continue;
+      }
+      rows.push({ id, name: summary.name, className: summary.className, race: null, level: null, playerUsername: null });
+    }
+  } else {
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'No characters found in that campaign.' });
   }
 
   let imported = 0;
-  let failed = 0;
-  for (const id of refs.ids) {
-    // Name + class line only — context for the scribe, never a full sheet import.
-    const summary = await ddb.fetchCharacterSummary(id, cobalt);
-    if (!summary) {
-      failed++;
-      continue;
-    }
-    const { name, className } = summary;
+  for (const row of rows) {
+    // A lexicon term already re-filed as npc means the DM struck this name
+    // from the party — re-imports must not resurrect it.
+    const struck = await prisma.lexiconTerm.findUnique({
+      where: { campaignId_term: { campaignId: input.campaignId, term: row.name } },
+      select: { kind: true },
+    });
+    if (struck?.kind === 'npc') continue;
+
     const exists = await prisma.player.findFirst({
-      where: { campaignId: input.campaignId, characterName: name },
+      where: { campaignId: input.campaignId, characterName: row.name },
       select: { id: true },
     });
+    const context = {
+      characterClass: row.className ?? undefined,
+      characterRace: row.race ?? undefined,
+      level: row.level ?? undefined,
+      ...(row.playerUsername ? { name: row.playerUsername } : {}),
+    };
     if (!exists) {
       await prisma.player.create({
         data: {
           campaignId: input.campaignId,
-          name,
-          characterName: name,
-          characterClass: className,
-          dndBeyondUrl: `https://www.dndbeyond.com/characters/${id}`,
+          name: row.playerUsername ?? row.name,
+          characterName: row.name,
+          characterClass: row.className,
+          characterRace: row.race,
+          ...(row.level !== null ? { level: row.level } : {}),
+          ...(row.id ? { dndBeyondUrl: `https://www.dndbeyond.com/characters/${row.id}` } : {}),
         },
       });
-    } else if (className) {
-      // Re-import refreshes the class line (level-ups, subclass picks).
-      await prisma.player.update({ where: { id: exists.id }, data: { characterClass: className } });
+    } else {
+      // Re-import refreshes context (level-ups, subclass picks, player renames).
+      await prisma.player.update({ where: { id: exists.id }, data: context });
     }
     await prisma.lexiconTerm.upsert({
-      where: { campaignId_term: { campaignId: input.campaignId, term: name } },
+      where: { campaignId_term: { campaignId: input.campaignId, term: row.name } },
       update: {},
-      create: { campaignId: input.campaignId, term: name, kind: 'pc', source: 'ddb-import' },
+      create: { campaignId: input.campaignId, term: row.name, kind: 'pc', source: 'ddb-import' },
     });
     imported++;
   }

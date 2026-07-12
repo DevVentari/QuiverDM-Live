@@ -136,17 +136,31 @@ class CampaignExtractRequest(BaseModel):
     cobalt_session: str
 
 
+class CampaignCharacterCard(BaseModel):
+    """One character card from the campaign page. The campaign roster shows
+    name/class/player for EVERY character — including ones whose sheet is
+    set to Private (privacy gates the sheet, not the roster)."""
+    id: Optional[str] = None  # absent for private characters (no view link)
+    name: str
+    meta: Optional[str] = None  # e.g. "Lvl 12 | Human | Artificer / Wizard / School of Transmutation"
+    player_username: Optional[str] = None
+
+
 class CampaignExtractResponse(BaseModel):
     success: bool
     character_ids: list[str] = []
+    characters: list[CampaignCharacterCard] = []
     message: Optional[str] = None
 
 
-async def extract_campaign_characters(campaign_id: str, cobalt_session: str) -> list[str]:
+async def extract_campaign_characters(
+    campaign_id: str, cobalt_session: str
+) -> tuple[list[str], list[dict]]:
     """
-    Navigate to the DDB campaign page as the DM and collect character IDs by:
-    1. Intercepting character-service XHR responses
-    2. Scraping /characters/{id} links from the rendered HTML
+    Navigate to the DDB campaign page as the DM and collect:
+    1. Character IDs (XHR interception + /characters/{id} links)
+    2. The rendered character CARDS (name, meta line, player) — the only
+       source of names/classes for fully-private characters
     """
     intercepted_ids: set[str] = set()
 
@@ -198,21 +212,64 @@ async def extract_campaign_characters(campaign_id: str, cobalt_session: str) -> 
         for m in CHARACTER_ID_RE.finditer(html):
             intercepted_ids.add(m.group(1))
 
+        # Scrape the character cards — names/classes/players render for every
+        # character, even ones whose sheet is Private.
+        cards_data: list[dict] = []
+        try:
+            cards = await page.query_selector_all(".ddb-campaigns-character-card")
+            for card in cards:
+                name_el = await card.query_selector(
+                    ".ddb-campaigns-character-card-header-upper-character-info-primary"
+                )
+                if not name_el:
+                    continue
+                name = (await name_el.inner_text()).strip()
+                if not name:
+                    continue
+                meta: Optional[str] = None
+                player: Optional[str] = None
+                for sec in await card.query_selector_all(
+                    ".ddb-campaigns-character-card-header-upper-character-info-secondary"
+                ):
+                    text = " ".join((await sec.inner_text()).split())
+                    if text.lower().startswith("player:"):
+                        player = text.split(":", 1)[1].strip() or None
+                    elif text:
+                        meta = text
+                card_id: Optional[str] = None
+                link = await card.query_selector('a[href*="/characters/"]')
+                if link:
+                    href = await link.get_attribute("href") or ""
+                    m = CHARACTER_ID_RE.search(href)
+                    if m:
+                        card_id = m.group(1)
+                        intercepted_ids.add(card_id)
+                cards_data.append(
+                    {"id": card_id, "name": name, "meta": meta, "player_username": player}
+                )
+        except Exception:
+            # Card markup changed — IDs still flow through the legacy path.
+            pass
+
         await browser.close()
 
-    return list(intercepted_ids)
+    return list(intercepted_ids), cards_data
 
 
 @app.post("/campaign/extract", response_model=CampaignExtractResponse)
 async def extract_campaign_endpoint(req: CampaignExtractRequest):
     try:
-        ids = await extract_campaign_characters(req.campaign_id, req.cobalt_session)
-        if not ids:
+        ids, cards = await extract_campaign_characters(req.campaign_id, req.cobalt_session)
+        if not ids and not cards:
             return CampaignExtractResponse(
                 success=False,
-                message="No character IDs found. Session may be expired or campaign may be private.",
+                message="No characters found. Session may be expired or campaign may be private.",
             )
-        return CampaignExtractResponse(success=True, character_ids=ids)
+        return CampaignExtractResponse(
+            success=True,
+            character_ids=ids,
+            characters=[CampaignCharacterCard(**c) for c in cards],
+        )
     except Exception as e:
         return CampaignExtractResponse(success=False, message=str(e))
 
