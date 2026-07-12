@@ -29,6 +29,7 @@ module.exports = {
     worker('worker-summary',              'src/lib/queue/ai-summary-worker.ts'),
     worker('worker-embeddings',       'src/lib/queue/embeddings-worker.ts'),
     worker('worker-recap',            'src/lib/queue/recap-generation-worker.ts'),
+    worker('worker-forge-recap',      'src/lib/queue/forge-recap-worker.ts'),
     worker('worker-player-recap',     'src/lib/queue/player-recap-worker.ts'),
 
     // --- AI features ---
