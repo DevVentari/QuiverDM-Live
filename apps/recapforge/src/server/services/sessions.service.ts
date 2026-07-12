@@ -48,19 +48,26 @@ export async function listSessions(prisma: PrismaClient, userId: string, campaig
       sessionNumber: true,
       title: true,
       date: true,
-      recordings: { where: { isMultiTrack: true }, select: { mergeStatus: true } },
+      recordings: { where: { isMultiTrack: true }, select: { mergeStatus: true, uploadGroupId: true, createdAt: true } },
       _count: { select: { transcripts: true } },
     },
     orderBy: { sessionNumber: 'desc' },
   });
-  return sessions.map((s) => ({
-    id: s.id,
-    sessionNumber: s.sessionNumber,
-    title: s.title,
-    date: s.date,
-    standing: deriveStanding(s.recordings, s._count.transcripts),
-    trackCount: s.recordings.length,
-  }));
+  return sessions.map((s) => {
+    let latestGroupRecordings = s.recordings;
+    if (s.recordings.length > 0) {
+      const latest = s.recordings.reduce((a, b) => (b.createdAt > a.createdAt ? b : a));
+      latestGroupRecordings = s.recordings.filter((r) => r.uploadGroupId === latest.uploadGroupId);
+    }
+    return {
+      id: s.id,
+      sessionNumber: s.sessionNumber,
+      title: s.title,
+      date: s.date,
+      standing: deriveStanding(latestGroupRecordings, s._count.transcripts),
+      trackCount: latestGroupRecordings.length,
+    };
+  });
 }
 
 const ALLOWED_AUDIO_TYPES = new Set([
@@ -183,5 +190,20 @@ export async function listSpeakerMappings(prisma: PrismaClient, userId: string, 
     where: { campaignId },
     select: { speakerLabel: true, characterName: true, isDM: true },
     orderBy: { speakerLabel: 'asc' },
+  });
+}
+
+export async function discardTrack(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; recordingId: string },
+): Promise<void> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  await prisma.sessionRecording.deleteMany({
+    where: {
+      id: input.recordingId,
+      mergeStatus: 'pending',
+      session: { campaignId: input.campaignId },
+    },
   });
 }

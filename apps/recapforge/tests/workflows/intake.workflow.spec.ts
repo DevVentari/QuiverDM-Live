@@ -95,4 +95,7 @@ test('deliver tracks: upload two voices, name them, gate opens (no enqueue)', as
   });
   expect(recs).toHaveLength(2);
   expect(recs.every((r) => r.mergeStatus === 'pending')).toBe(true);
+  // Speaker label contract: initiate's speakerTag must match the label nameVoice
+  // writes SpeakerMapping under, or the worker never resolves the DM's assignment.
+  expect(recs.map((r) => r.speakerTag).sort()).toEqual(['alexdm', 'jules']);
 });

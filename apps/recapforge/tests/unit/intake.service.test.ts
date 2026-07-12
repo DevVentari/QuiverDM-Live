@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import {
-  initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings, createSession,
+  initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings, createSession, discardTrack,
 } from '@/server/services/sessions.service';
 import { createForgeCampaign } from '@/server/services/campaign.service';
 
@@ -62,5 +62,29 @@ describe('intake', () => {
     await assignSpeaker(prisma, userId, { campaignId, speakerLabel: 'alexdm', characterName: 'Alex', isDM: true });
     const mappings = await listSpeakerMappings(prisma, userId, campaignId);
     expect(mappings).toEqual([{ speakerLabel: 'alexdm', characterName: 'Alex', isDM: true }]);
+  });
+
+  describe('discardTrack', () => {
+    it('removes a pending orphan recording, is a no-op on repeat, and rejects strangers', async () => {
+      const discardGroupId = `discard-group-${Date.now()}`;
+      const init = await initiateTrackUpload(prisma, userId, {
+        campaignId, sessionId, fileName: 'orphan.flac', fileSize: 1,
+        contentType: 'audio/flac', uploadGroupId: discardGroupId, speakerTag: 'orphan',
+      });
+
+      await discardTrack(prisma, userId, { campaignId, recordingId: init.recordingId });
+      const gone = await prisma.sessionRecording.findUnique({ where: { id: init.recordingId } });
+      expect(gone).toBeNull();
+
+      // Repeat discard on the same (now-gone) id is a no-op, not a throw.
+      await expect(discardTrack(prisma, userId, { campaignId, recordingId: init.recordingId })).resolves.toBeUndefined();
+
+      // A stranger user is forbidden from discarding into this campaign at all.
+      const strangerEmail = `discard-stranger-${Date.now()}@recapforge-test.local`;
+      const stranger = await prisma.user.create({ data: { email: strangerEmail, name: 'Stranger' } });
+      await expect(discardTrack(prisma, stranger.id, { campaignId, recordingId: init.recordingId }))
+        .rejects.toMatchObject({ code: 'FORBIDDEN' });
+      await prisma.user.delete({ where: { id: stranger.id } });
+    });
   });
 });

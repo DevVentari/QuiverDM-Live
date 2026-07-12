@@ -43,6 +43,7 @@ function ComposingRoom() {
   const initiate = trpc.forgeSessions.initiate.useMutation();
   const processMut = trpc.forgeSessions.process.useMutation();
   const assign = trpc.forgeSessions.assignSpeaker.useMutation();
+  const discard = trpc.forgeSessions.discard.useMutation();
   const party = trpc.forgeCampaign.party.useQuery({ campaignId }, { enabled: !!campaignId });
   const mappings = trpc.forgeSessions.mappings.useQuery({ campaignId }, { enabled: !!campaignId });
 
@@ -73,14 +74,15 @@ function ComposingRoom() {
         confirmed: !!remembered,
       };
       setTracks((t) => [...t, row]);
+      let init: Awaited<ReturnType<typeof initiate.mutateAsync>> | undefined;
       try {
-        const init = await initiate.mutateAsync({
+        init = await initiate.mutateAsync({
           campaignId, sessionId,
           fileName: file.name,
           fileSize: file.size,
           contentType: file.type || guessAudioMime(file.name),
           uploadGroupId,
-          speakerTag: username ?? undefined,
+          speakerTag: username ?? file.name,
         });
         const form = new FormData();
         form.append('file', file);
@@ -93,6 +95,9 @@ function ComposingRoom() {
             ? { ...r, state: 'error', error: e instanceof Error ? e.message : 'illegible — offer it again' }
             : r,
         ));
+        if (init) {
+          void discard.mutateAsync({ campaignId, recordingId: init.recordingId }).catch(() => {});
+        }
       }
     }
   }

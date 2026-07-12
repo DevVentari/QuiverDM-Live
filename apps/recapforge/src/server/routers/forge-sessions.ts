@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import {
-  createSession, listSessions, initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings,
+  createSession, listSessions, initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings, discardTrack,
 } from '../services/sessions.service';
 import { addMultiTrackJob } from '@/lib/queue';
 
@@ -40,4 +40,7 @@ export const forgeSessionsRouter = router({
   mappings: protectedProcedure
     .input(z.object({ campaignId: z.string().min(1) }))
     .query(({ ctx, input }) => listSpeakerMappings(ctx.prisma, ctx.session.user.id, input.campaignId)),
+  discard: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), recordingId: z.string().min(1) }))
+    .mutation(({ ctx, input }) => discardTrack(ctx.prisma, ctx.session.user.id, input)),
 });

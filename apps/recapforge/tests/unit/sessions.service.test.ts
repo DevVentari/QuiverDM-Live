@@ -40,4 +40,32 @@ describe('createSession / listSessions', () => {
     expect(list[0].title).toBe('The Withering Weeks'); // newest first
     expect(list[0].standing).toBe('awaiting delivery');
   });
+
+  it('scopes standing to the latest upload group, ignoring an older failed attempt', async () => {
+    const s = await createSession(prisma, userId, { campaignId, title: 'Retried Session' });
+    const older = new Date(Date.now() - 60_000);
+    const newer = new Date();
+    const failedRec = await prisma.sessionRecording.create({
+      data: {
+        sessionId: s.id, type: 'audio', originalUrl: 'old-key', fileSize: 1,
+        isMultiTrack: true, uploadGroupId: 'group-old', mergeStatus: 'failed', createdAt: older,
+      },
+    });
+    const completeRec = await prisma.sessionRecording.create({
+      data: {
+        sessionId: s.id, type: 'audio', originalUrl: 'new-key', fileSize: 1,
+        isMultiTrack: true, uploadGroupId: 'group-new', mergeStatus: 'complete', createdAt: newer,
+      },
+    });
+    const transcript = await prisma.transcript.create({
+      data: { sessionId: s.id, rawText: 'test transcript' },
+    });
+    const list = await listSessions(prisma, userId, campaignId);
+    const found = list.find((row) => row.id === s.id);
+    expect(found?.standing).toBe('transcript ready');
+    expect(found?.trackCount).toBe(1);
+
+    await prisma.transcript.delete({ where: { id: transcript.id } });
+    await prisma.sessionRecording.deleteMany({ where: { id: { in: [failedRec.id, completeRec.id] } } });
+  });
 });
