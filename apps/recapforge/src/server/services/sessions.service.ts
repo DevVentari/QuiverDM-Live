@@ -3,6 +3,7 @@ import { TRPCError } from '@trpc/server';
 import type { PrismaClient } from '@prisma/client';
 import { assertCampaignOwner } from '../guards';
 import { getStorageMode } from '@main/lib/storage';
+import { enqueueRecap } from './recap.service';
 
 export type Standing =
   | 'awaiting delivery'
@@ -117,6 +118,7 @@ export async function passForPress(
     where: { id: input.sessionId, campaignId: input.campaignId },
     data: { status: 'completed' },
   });
+  await enqueueRecap(prisma, userId, input);
 }
 
 const ALLOWED_AUDIO_TYPES = new Set([

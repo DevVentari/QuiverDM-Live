@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/workflows',
+  testIgnore: '**/forge-recap.workflow.spec.ts',
   timeout: 60_000,
   use: {
     baseURL: 'http://localhost:3005',

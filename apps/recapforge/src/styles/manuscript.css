@@ -222,6 +222,39 @@
 }
 .rf-btn--stet:hover { border-color: var(--rf-ink-muted); color: var(--rf-ink); }
 
+/* ---- FORM FIELDS (edit panels) ------------------------------ */
+.rf-label {
+  display: block;
+  margin: 16px 0 6px;
+  font-family: var(--rf-font-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--rf-ink-muted);
+}
+.rf-label:first-of-type { margin-top: 12px; }
+.rf-input,
+.rf-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  background: var(--rf-paper-warm);
+  border: 1px solid var(--rf-rule-dot);
+  color: var(--rf-ink);
+  font-family: var(--rf-font-serif);
+  font-size: 14.5px;
+  line-height: 1.5;
+  transition: border-color .18s var(--rf-ease);
+}
+.rf-input:focus,
+.rf-textarea:focus {
+  outline: none;
+  border-color: var(--rf-accent);
+}
+.rf-textarea { resize: vertical; min-height: 64px; }
+.rf-input::placeholder,
+.rf-textarea::placeholder { color: var(--rf-ink-faint); }
+
 /* ============================================================
    2a · THE PRESS LEDGER (campaign home)
    ============================================================ */

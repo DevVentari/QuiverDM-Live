@@ -455,6 +455,7 @@ model Campaign {
   transcriptCorrections TranscriptCorrection[]
   lexiconTerms      LexiconTerm[]
   sourcebookLabel   String?           // e.g. "Curse of Strahd" — informational label only
+  theme             Json? // RecapForge P4 — campaign visual theme (VALDRATH_THEME shape)
 
   mechanics            CampaignMechanic[]
   sourcebooks          CampaignSourcebook[]
@@ -733,6 +734,7 @@ model GameSession {
   // RecapForge
   recaps            SessionRecap[]
   campaignContexts  CampaignContext[]
+  forgeRecap        ForgeRecap?
 
   // Session Intelligence Phase 1
   phases      SessionPhase[]
@@ -743,6 +745,20 @@ model GameSession {
   @@unique([campaignId, sessionNumber])
   @@index([campaignId])
   @@index([date])
+}
+
+model ForgeRecap {
+  id            String      @id @default(cuid())
+  sessionId     String      @unique
+  session       GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  status        String      @default("generating")
+  content       Json?
+  themeSnapshot Json?
+  generatedHtml String?     @db.Text
+  rawOutput     String?     @db.Text
+  error         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 // Session Intelligence Phase 1 models
