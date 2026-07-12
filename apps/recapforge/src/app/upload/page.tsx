@@ -12,6 +12,7 @@ const DM_NAME = 'The DM';
 
 type TrackState = 'uploading' | 'done' | 'error';
 interface TrackRow {
+  id: string;
   filename: string;
   size: number;
   username: string | null;
@@ -62,6 +63,7 @@ function ComposingRoom() {
       const { username } = parseCraigFilename(file.name);
       const remembered = username ? knownVoice.get(username) : undefined;
       const row: TrackRow = {
+        id: crypto.randomUUID(),
         filename: file.name,
         size: file.size,
         username,
@@ -84,10 +86,10 @@ function ComposingRoom() {
         form.append('file', file);
         const res = await fetch(init.uploadUrl, { method: 'POST', body: form });
         if (!res.ok) throw new Error(`Upload failed (${res.status})`);
-        setTracks((t) => t.map((r) => (r.filename === file.name ? { ...r, state: 'done' } : r)));
+        setTracks((t) => t.map((r) => (r.id === row.id ? { ...r, state: 'done' } : r)));
       } catch (e) {
         setTracks((t) => t.map((r) =>
-          r.filename === file.name
+          r.id === row.id
             ? { ...r, state: 'error', error: e instanceof Error ? e.message : 'illegible — offer it again' }
             : r,
         ));
@@ -95,15 +97,15 @@ function ComposingRoom() {
     }
   }
 
-  async function nameVoice(filename: string, characterName: string, isDM: boolean) {
-    const row = tracks.find((t) => t.filename === filename);
+  async function nameVoice(id: string, characterName: string, isDM: boolean) {
+    const row = tracks.find((t) => t.id === id);
     if (!row) return;
     // Optimistic UI update first: the buttons for this row must disappear
     // immediately so a rapid next click (naming the next voice) can't land
     // on the same still-unnamed row while this assignment is in flight.
     // `confirmed` stays false until the write actually persists, so the
     // "Set the type" gate can't open on the optimistic update alone.
-    setTracks((t) => t.map((r) => (r.filename === filename ? { ...r, characterName, isDM, confirmed: false } : r)));
+    setTracks((t) => t.map((r) => (r.id === id ? { ...r, characterName, isDM, confirmed: false } : r)));
     try {
       await assign.mutateAsync({
         campaignId,
@@ -111,10 +113,10 @@ function ComposingRoom() {
         characterName,
         isDM,
       });
-      setTracks((t) => t.map((r) => (r.filename === filename ? { ...r, confirmed: true } : r)));
+      setTracks((t) => t.map((r) => (r.id === id ? { ...r, confirmed: true } : r)));
     } catch {
       // Roll back on failure so the row goes back to offering choices.
-      setTracks((t) => t.map((r) => (r.filename === filename ? { ...r, characterName: null, isDM: false, confirmed: false } : r)));
+      setTracks((t) => t.map((r) => (r.id === id ? { ...r, characterName: null, isDM: false, confirmed: false } : r)));
     }
   }
 
@@ -173,7 +175,7 @@ function ComposingRoom() {
                   const err = t.state === 'error';
                   return (
                     <div
-                      key={t.filename}
+                      key={t.id}
                       className="rf-track__row"
                       style={{ background: err ? 'rgba(163,59,42,.05)' : !t.characterName && t.state === 'done' ? 'rgba(122,46,33,.04)' : 'transparent' }}
                     >
@@ -192,11 +194,11 @@ function ComposingRoom() {
                         ) : t.state === 'done' ? (
                           <div className="rf-track__choices">
                             {(party.data ?? []).map((p) => (
-                              <button key={p.id} className="rf-btn rf-btn--ghost" onClick={() => void nameVoice(t.filename, p.characterName, false)}>
+                              <button key={p.id} className="rf-btn rf-btn--ghost" onClick={() => void nameVoice(t.id, p.characterName, false)}>
                                 {p.characterName}
                               </button>
                             ))}
-                            <button className="rf-btn rf-btn--ghost" onClick={() => void nameVoice(t.filename, DM_NAME, true)}>
+                            <button className="rf-btn rf-btn--ghost" onClick={() => void nameVoice(t.id, DM_NAME, true)}>
                               {DM_NAME}
                             </button>
                           </div>

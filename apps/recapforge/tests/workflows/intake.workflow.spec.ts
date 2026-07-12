@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { test, expect } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 
@@ -21,6 +23,13 @@ function makeWav(): Buffer {
 test.afterAll(async () => {
   const user = await prisma.user.findUnique({ where: { email: EMAIL } });
   if (user) {
+    const campaigns = await prisma.campaign.findMany({ where: { userId: user.id }, select: { id: true } });
+    for (const { id: campaignId } of campaigns) {
+      const sessions = await prisma.gameSession.findMany({ where: { campaignId }, select: { id: true } });
+      for (const { id: sessionId } of sessions) {
+        fs.rmSync(path.join(__dirname, '../../../../storage/session-recordings', sessionId), { recursive: true, force: true });
+      }
+    }
     await prisma.campaign.deleteMany({ where: { userId: user.id } });
     await prisma.user.delete({ where: { id: user.id } });
   }
