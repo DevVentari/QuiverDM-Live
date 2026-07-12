@@ -17,9 +17,38 @@ export interface DdbCharacterSummary {
   className: string | null;
 }
 
+export interface DdbRosterEntry {
+  /** null for private characters — the roster card has no sheet link */
+  id: string | null;
+  name: string;
+  /** raw card meta line, e.g. "Lvl 12 | Human | Artificer / Wizard / School of Transmutation" */
+  meta: string | null;
+  playerUsername: string | null;
+}
+
 export interface DdbClient {
-  fetchCampaignCharacterIds(campaignUrl: string, cobalt: string): Promise<{ ok: boolean; ids?: string[]; message?: string }>;
+  /** The campaign roster: names/classes/players for EVERY character, private or not. */
+  fetchCampaignRoster(campaignUrl: string, cobalt: string): Promise<{ ok: boolean; entries?: DdbRosterEntry[]; ids?: string[]; message?: string }>;
+  /** Per-sheet fallback, used only when the roster cards come back empty. */
   fetchCharacterSummary(characterId: string, cobalt: string): Promise<DdbCharacterSummary | null>;
+}
+
+/** Parse a roster card's meta line: "Lvl 12 | Human | Artificer / Wizard / …". */
+export function parseCardMeta(meta: string | null): { level: number | null; race: string | null; className: string | null } {
+  // Unclaimed character slots render "Unassigned" where the meta line goes.
+  if (!meta || /^unassigned$/i.test(meta.trim())) return { level: null, race: null, className: null };
+  const parts = meta.split('|').map((s) => s.trim()).filter(Boolean);
+  let level: number | null = null;
+  const rest: string[] = [];
+  for (const part of parts) {
+    const lvl = part.match(/^(?:lvl|level)\s*(\d+)$/i);
+    if (lvl && level === null) level = parseInt(lvl[1], 10);
+    else rest.push(part);
+  }
+  // Card order is "Lvl | Race | Classes" — with both present, first is race,
+  // last is the class list; with only one, it's the class list.
+  if (rest.length >= 2) return { level, race: rest[0], className: rest.slice(1).join(' | ') };
+  return { level, race: null, className: rest[0] ?? null };
 }
 
 /**
@@ -78,7 +107,7 @@ async function getBearerToken(cobalt: string): Promise<string | null> {
 }
 
 export const ddbClient: DdbClient = {
-  async fetchCampaignCharacterIds(campaignUrl, cobalt) {
+  async fetchCampaignRoster(campaignUrl, cobalt) {
     const match = campaignUrl.match(/\/campaigns\/(\d+)/);
     if (!match) return { ok: false, message: 'Could not parse a campaign ID from that URL.' };
     const campaignId = match[1];
@@ -111,10 +140,19 @@ export const ddbClient: DdbClient = {
     });
     if (!crawlRes.ok) return { ok: false, message: `Character lookup service error: ${crawlRes.statusText}` };
     const crawl = await crawlRes.json();
-    if (!crawl.success || !crawl.character_ids?.length) {
+    const ids: string[] = (crawl.character_ids ?? []).map(String);
+    const entries: DdbRosterEntry[] = (crawl.characters ?? [])
+      .filter((c: { name?: unknown }) => typeof c?.name === 'string' && (c.name as string).trim())
+      .map((c: { id?: string | null; name: string; meta?: string | null; player_username?: string | null }) => ({
+        id: c.id ? String(c.id) : null,
+        name: c.name.trim(),
+        meta: c.meta ?? null,
+        playerUsername: c.player_username ?? null,
+      }));
+    if (!crawl.success || (ids.length === 0 && entries.length === 0)) {
       return { ok: false, message: crawl.message ?? 'No characters found on the campaign page.' };
     }
-    return { ok: true, ids: crawl.character_ids.map(String) };
+    return { ok: true, ids, entries };
   },
 
   async fetchCharacterSummary(characterId, cobalt) {
