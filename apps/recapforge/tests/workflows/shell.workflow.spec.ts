@@ -16,14 +16,14 @@ test.describe('RecapForge shell', () => {
     expect(await res.json()).toMatchObject({ ok: true, app: 'recapforge' });
   });
 
-  test('signup → lands authenticated on home', async ({ page }) => {
+  test('signup → lands authenticated in onboarding', async ({ page }) => {
     await page.goto('/auth/signup');
     await page.getByTestId('signup-name').fill('Workflow Tester');
     await page.getByTestId('signup-email').fill(email);
     await page.getByTestId('signup-password').fill(password);
     await page.getByTestId('signup-submit').click();
-    await expect(page).toHaveURL('/');
-    await expect(page.getByRole('heading', { name: 'RecapForge' })).toBeVisible();
+    await page.waitForURL(/\/onboarding/);
+    await expect(page.getByRole('heading', { name: 'Name the chronicle' })).toBeVisible();
   });
 
   test('signin with the created account works', async ({ page }) => {
@@ -31,7 +31,8 @@ test.describe('RecapForge shell', () => {
     await page.getByTestId('signin-email').fill(email);
     await page.getByTestId('signin-password').fill(password);
     await page.getByTestId('signin-submit').click();
-    await expect(page).toHaveURL('/');
+    await page.waitForURL(/\/onboarding/);
+    await expect(page.getByRole('heading', { name: 'Name the chronicle' })).toBeVisible();
   });
 
   test('signin with wrong password shows the error', async ({ page }) => {

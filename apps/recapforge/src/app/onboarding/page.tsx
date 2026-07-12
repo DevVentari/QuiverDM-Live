@@ -133,10 +133,15 @@ export default function OnboardingPage() {
                   className="rf-btn rf-btn--ghost"
                   disabled={!playerName.trim() || !characterName.trim() || addMember.isPending}
                   onClick={async () => {
-                    await addMember.mutateAsync({ campaignId, playerName: playerName.trim(), characterName: characterName.trim() });
-                    setPlayerName('');
-                    setCharacterName('');
-                    await party.refetch();
+                    setError(null);
+                    try {
+                      await addMember.mutateAsync({ campaignId, playerName: playerName.trim(), characterName: characterName.trim() });
+                      setPlayerName('');
+                      setCharacterName('');
+                      await party.refetch();
+                    } catch (e) {
+                      setError(e instanceof Error ? e.message : 'That name would not take — try again.');
+                    }
                   }}
                 >
                   Add
