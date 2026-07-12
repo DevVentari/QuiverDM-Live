@@ -703,6 +703,10 @@ model GameSession {
   aiSummaryError         String?
   aiSummaryAt            DateTime?
   aiHighlights           Json? // [{type,text,timestampMs,speakerLabel}]
+  // RecapForge P3 — AI title suggestions (editable, never auto-committed)
+  suggestedTitle         String?
+  suggestedVoice         String?
+  suggestedChapter       Int?
   shareToken             String?                  @unique
   foundryEvents          FoundryEvent[]
   mechanicalEvents       SessionMechanicalEvent[]

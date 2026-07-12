@@ -296,6 +296,22 @@ async function processMultiTrack(
   // 8. Broadcast completion
   broadcastMultiTrackComplete(uploadGroupId, transcript.id);
 
+  // Best-effort AI title suggestion (never blocks completion)
+  try {
+    const { buildTitlerMessages, parseTitlerResponse } = await import('../recap/session-titler');
+    const { chatWithAI } = await import('../ai/chat');
+    const raw = await chatWithAI(buildTitlerMessages(rawText), { forceProvider: 'claude' });
+    const { title, voice, chapter } = parseTitlerResponse(raw);
+    if (title) {
+      await prisma.gameSession.update({
+        where: { id: sessionId },
+        data: { suggestedTitle: title, suggestedVoice: voice || null, suggestedChapter: chapter ?? null },
+      });
+    }
+  } catch (err) {
+    console.warn('[MultiTrackWorker] Titling failed (non-fatal):', err);
+  }
+
   try {
     await contextExtractionQueue.add('extract', {
       transcriptId: transcript.id,

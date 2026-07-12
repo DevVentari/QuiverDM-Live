@@ -47,6 +47,8 @@ export async function listSessions(prisma: PrismaClient, userId: string, campaig
       id: true,
       sessionNumber: true,
       title: true,
+      suggestedTitle: true,
+      suggestedVoice: true,
       date: true,
       recordings: { where: { isMultiTrack: true }, select: { mergeStatus: true, uploadGroupId: true, createdAt: true } },
       _count: { select: { transcripts: true } },
@@ -62,11 +64,28 @@ export async function listSessions(prisma: PrismaClient, userId: string, campaig
     return {
       id: s.id,
       sessionNumber: s.sessionNumber,
-      title: s.title,
+      title: s.title ?? s.suggestedTitle,
+      suggestedVoice: s.title ? null : s.suggestedVoice,
       date: s.date,
       standing: deriveStanding(latestGroupRecordings, s._count.transcripts),
       trackCount: latestGroupRecordings.length,
     };
+  });
+}
+
+export async function applyTitle(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string; title?: string; voice?: string; chapter?: number },
+): Promise<void> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  await prisma.gameSession.update({
+    where: { id: input.sessionId },
+    data: {
+      ...(input.title !== undefined ? { title: input.title, suggestedTitle: input.title } : {}),
+      ...(input.voice !== undefined ? { suggestedVoice: input.voice } : {}),
+      ...(input.chapter !== undefined ? { suggestedChapter: input.chapter } : {}),
+    },
   });
 }
 
