@@ -11,6 +11,7 @@ import { addForgeRecapJob } from '@/lib/queue';
 const prisma = new PrismaClient();
 const EMAIL = `recap-${Date.now()}@recapforge-test.local`;
 let userId: string, campaignId: string, sessionId: string;
+let campaignBId: string, foreignSessionId: string;
 
 const content: RecapContent = {
   header: { eyebrow: 'S1', title: 'Blood at the Gate' }, statline: [], lede: 'They rode.',
@@ -21,10 +22,13 @@ beforeAll(async () => {
   userId = (await prisma.user.create({ data: { email: EMAIL, name: 'Recap Test' } })).id;
   campaignId = (await createForgeCampaign(prisma, userId, 'Recap Test')).id;
   sessionId = (await createSession(prisma, userId, { campaignId })).id;
+  campaignBId = (await createForgeCampaign(prisma, userId, 'Campaign B')).id;
+  foreignSessionId = (await createSession(prisma, userId, { campaignId: campaignBId })).id;
 });
 afterAll(async () => {
   await prisma.forgeRecap.deleteMany({ where: { sessionId } });
-  await prisma.campaign.deleteMany({ where: { id: campaignId } });
+  await prisma.forgeRecap.deleteMany({ where: { sessionId: foreignSessionId } });
+  await prisma.campaign.deleteMany({ where: { id: { in: [campaignId, campaignBId] } } });
   await prisma.user.deleteMany({ where: { email: EMAIL } });
   await prisma.$disconnect();
 });
@@ -60,5 +64,18 @@ describe('recap.service ownership + round-trip', () => {
     await expect(getRecap(prisma, s.id, { campaignId, sessionId })).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await expect(updateRecap(prisma, s.id, { campaignId, sessionId, content })).rejects.toMatchObject({ code: 'FORBIDDEN' });
     await prisma.user.delete({ where: { id: s.id } });
+  });
+
+  it('owner of campaign A cannot enqueue a session from campaign B (cross-campaign IDOR)', async () => {
+    // Clear mock to verify it's not called for the foreign session
+    vi.clearAllMocks();
+
+    // Campaign owner tries to enqueue using their owned campaign A with a session from campaign B
+    await expect(
+      enqueueRecap(prisma, userId, { campaignId, sessionId: foreignSessionId })
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    // Verify the queue job was NOT enqueued
+    expect(addForgeRecapJob).not.toHaveBeenCalled();
   });
 });
