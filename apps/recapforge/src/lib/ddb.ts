@@ -30,7 +30,10 @@ async function fetchCharacterNameViaBrowser(characterId: string, cobalt: string)
     if (!res.ok) return null;
     const result = await res.json();
     if (!result.success) return null;
-    const name = result.data?.name;
+    // crawl4ai returns data = the intercepted character-service envelope,
+    // so the character itself is one level deeper (data.data.name) — same
+    // unwrap the main app's parseCharacterData does on this payload.
+    const name = result.data?.data?.name;
     return typeof name === 'string' && name.trim() ? name.trim() : null;
   } catch {
     return null;
