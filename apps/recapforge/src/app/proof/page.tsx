@@ -28,6 +28,11 @@ function ProofScreen() {
     { enabled: complete },
   );
 
+  const utils = trpc.useUtils();
+  const resolve = trpc.forgeTranscript.resolveOoc.useMutation({
+    onSuccess: () => utils.forgeTranscript.get.invalidate({ campaignId, sessionId }),
+  });
+
   return (
     <main className="rf-page">
       <div className="rf-page__inner" style={{ maxWidth: 1180 }}>
@@ -97,12 +102,33 @@ function ProofScreen() {
                 <div className="rf-galley__byline">set down by the scribe · pass for press when it reads true</div>
               </div>
               <div style={{ padding: '24px 46px 40px', maxWidth: 900, margin: '0 auto' }}>
-                {galley.data.lines.map((ln) => (
-                  <div key={ln.index} style={{ display: 'flex', gap: 14, padding: '8px 0' }}>
-                    <span className="rf-galley__speaker">{ln.speaker}</span>
-                    <span className="rf-galley__text" style={{ flex: 1 }}>{ln.text}</span>
-                  </div>
-                ))}
+                {galley.data.lines.map((ln) => {
+                  const mark = galley.data!.oocMarks.find((m) => m.index === ln.index);
+                  const struck = mark?.verdict === 'strike';
+                  return (
+                    <div key={ln.index} style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, padding: '8px 0' }}>
+                      <div style={{ display: 'flex', gap: 14 }}>
+                        <span className="rf-galley__speaker">{ln.speaker}</span>
+                        <span className="rf-galley__text" style={{ flex: 1, textDecoration: struck ? 'line-through' : 'none', color: struck ? 'var(--rf-ink-faint)' : 'var(--rf-ink)' }}>{ln.text}</span>
+                      </div>
+                      <div>
+                        {mark && (
+                          <div className="rf-galley__note-wrap">
+                            <div className="rf-galley__note">{mark.reason}</div>
+                            {!mark.verdict ? (
+                              <div className="rf-galley__note-actions">
+                                <button className="rf-btn rf-btn--mark" onClick={() => resolve.mutate({ campaignId, transcriptId: galley.data!.transcriptId, index: ln.index, verdict: 'strike' })}>Strike it</button>
+                                <button className="rf-btn rf-btn--stet" onClick={() => resolve.mutate({ campaignId, transcriptId: galley.data!.transcriptId, index: ln.index, verdict: 'stet' })}>Stet</button>
+                              </div>
+                            ) : (
+                              <div className="rf-galley__verdict">{struck ? 'struck from the record' : 'stet — it stands'}</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
               <div className="rf-folio"><span>Galley proof — not for the players’ eyes</span><span>fol. 1</span></div>
             </>
