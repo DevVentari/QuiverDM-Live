@@ -625,6 +625,17 @@ export function broadcastMultiTrackProgress(
   });
 }
 
+export function broadcastMultiTrackTranscribed(
+  uploadGroupId: string,
+  payload: { recordingId: string; characterName: string; textPreview: string },
+) {
+  broadcastToJobSubscribers(uploadGroupId, {
+    type: 'multitrack:track_transcribed',
+    uploadGroupId,
+    ...payload,
+  });
+}
+
 export function broadcastMultiTrackComplete(
   uploadGroupId: string,
   transcriptId: string

@@ -24,10 +24,12 @@ import * as path from 'path';
 import { promises as fsp } from 'fs';
 import * as os from 'os';
 import { mergeTranscripts, segmentsToText, type TrackInput } from '../recap/transcript-merger';
+import { persistTrackTranscript } from '../recap/track-transcript';
 import {
   broadcastMultiTrackProgress,
   broadcastMultiTrackComplete,
   broadcastMultiTrackError,
+  broadcastMultiTrackTranscribed,
 } from '../../server/websocket';
 import { applyMappingsToSegments, applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
 import { contextExtractionQueue } from './context-extraction-queue';
@@ -222,6 +224,16 @@ async function processMultiTrack(
             wordBoost
           );
           completed++;
+          const characterName = mappingLookup.get(speakerLabel) ?? null;
+          await persistTrackTranscript(prisma, {
+            sessionId, uploadGroupId, recordingId: rec.id,
+            speakerLabel, characterName, words, status: 'done',
+          });
+          broadcastMultiTrackTranscribed(uploadGroupId, {
+            recordingId: rec.id,
+            characterName: characterName ?? speakerLabel,
+            textPreview: words.slice(0, 12).map((w) => w.text).join(' '),
+          });
           broadcastMultiTrackProgress(uploadGroupId, {
             recordingId: rec.id,
             completed,
@@ -230,6 +242,11 @@ async function processMultiTrack(
           });
           return { words, speakerTag: speakerLabel };
         } catch (err) {
+          await persistTrackTranscript(prisma, {
+            sessionId, uploadGroupId, recordingId: rec.id,
+            speakerLabel, characterName: mappingLookup.get(speakerLabel) ?? null,
+            words: [], status: 'error',
+          }).catch(() => {});
           broadcastMultiTrackError(uploadGroupId, String(err), rec.id);
           throw err;
         }
