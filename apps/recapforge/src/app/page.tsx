@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { trpc } from '@/lib/trpc';
 import { Masthead } from '@/components/manuscript/Masthead';
 
 // ---- Stage-bar palette --------------------------------------------------
@@ -31,6 +34,16 @@ const LEDGER: LedgerEntry[] = [
 ];
 
 export default function LedgerPage() {
+  const mine = trpc.forgeCampaign.mine.useQuery();
+  const router = useRouter();
+  useEffect(() => {
+    // Gate on !isFetching too: React Query serves a stale cached snapshot
+    // synchronously on mount while a fresh fetch is in flight — redirecting
+    // on that stale (possibly empty) snapshot would bounce a user who just
+    // finished onboarding right back to /onboarding.
+    if (mine.isSuccess && !mine.isFetching && mine.data.length === 0) router.replace('/onboarding');
+  }, [mine.isSuccess, mine.isFetching, mine.data, router]);
+
   return (
     <main className="rf-page">
       <div className="rf-page__inner" style={{ maxWidth: 1080 }}>
