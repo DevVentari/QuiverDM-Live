@@ -33,6 +33,10 @@ function ProofScreen() {
     onSuccess: () => utils.forgeTranscript.get.invalidate({ campaignId, sessionId }),
   });
 
+  const sess = trpc.forgeSessions.getOne.useQuery({ campaignId, sessionId }, { enabled: complete });
+  const applyTitle = trpc.forgeSessions.applyTitle.useMutation({ onSuccess: () => sess.refetch() });
+  const shownTitle = sess.data?.title ?? sess.data?.suggestedTitle ?? 'The galley proof';
+
   const keyByChar = new Map(
     (progress.data?.voices ?? []).map((v) => [v.characterName ?? v.speakerLabel, v.key]),
   );
@@ -100,10 +104,25 @@ function ProofScreen() {
           {complete && galley.data && (
             <>
               <div className="rf-galley__titleblock">
-                <div className="rf-eyebrow">The chronicle, as spoken</div>
-                <h1 className="rf-galley__title">The galley proof</h1>
+                <div className="rf-eyebrow">{sess.data?.suggestedChapter ? `Chapter ${sess.data.suggestedChapter}` : 'The chronicle, as spoken'}</div>
+                <h1 className="rf-galley__title">{shownTitle}</h1>
                 <div className="rf-galley__hr" />
-                <div className="rf-galley__byline">set down by the scribe · pass for press when it reads true</div>
+                <div className="rf-galley__byline">{sess.data?.suggestedVoice ?? 'set down by the scribe · pass for press when it reads true'}</div>
+                {sess.data && !sess.data.title && sess.data.suggestedTitle && (
+                  <button
+                    className="rf-btn rf-btn--ghost"
+                    style={{ marginTop: 12 }}
+                    onClick={() => applyTitle.mutate({
+                      campaignId,
+                      sessionId,
+                      title: sess.data!.suggestedTitle!,
+                      voice: sess.data!.suggestedVoice ?? undefined,
+                      chapter: sess.data!.suggestedChapter ?? undefined,
+                    })}
+                  >
+                    Accept this title
+                  </button>
+                )}
               </div>
               <div style={{ padding: '24px 46px 40px', maxWidth: 900, margin: '0 auto' }}>
                 {galley.data.lines.map((ln) => {

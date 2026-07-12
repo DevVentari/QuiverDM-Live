@@ -38,8 +38,13 @@ test('galley: read the proof, strike a table-talk mark, hear-voice affordance pr
     },
   });
 
+  await prisma.gameSession.update({
+    where: { id: s.id },
+    data: { suggestedTitle: 'The Gate of Gravenhold', suggestedVoice: 'war-weary arrival', suggestedChapter: 8 },
+  });
+
   await page.goto(`/proof?campaign=${campaign!.id}&session=${s.id}`);
-  await expect(page.getByText(/the galley proof/i)).toBeVisible();
+  await expect(page.getByText('The Gate of Gravenhold')).toBeVisible();
   await expect(page.getByText('table talk')).toBeVisible();
   await page.getByRole('button', { name: /strike it/i }).click();
   await expect(page.getByText(/struck from the record/i)).toBeVisible();
@@ -47,4 +52,9 @@ test('galley: read the proof, strike a table-talk mark, hear-voice affordance pr
   const t = await prisma.transcript.findFirst({ where: { sessionId: s.id }, select: { correctedText: true } });
   expect(t?.correctedText).not.toContain('pizza is here');
   await expect(page.getByTitle(/hear this voice/i).first()).toBeVisible();
+
+  await page.getByRole('button', { name: /accept this title/i }).click();
+  await expect(page.getByRole('button', { name: /accept this title/i })).toHaveCount(0);
+  const sess = await prisma.gameSession.findUnique({ where: { id: s.id }, select: { title: true } });
+  expect(sess?.title).toBe('The Gate of Gravenhold');
 });

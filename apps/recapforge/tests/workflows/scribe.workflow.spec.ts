@@ -65,7 +65,7 @@ test('scribe at work reveals voices, then the galley shows the transcript', asyn
   });
 
   // 5. Poll refetch (every 4s) flips it to the galley
-  await expect(page.getByText(/the galley proof/i)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('The Reveal', { exact: true })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText('The Beast of Snarlswood')).toBeVisible();
   await expect(page.getByText(/I draw my blade/i)).toBeVisible();
 });

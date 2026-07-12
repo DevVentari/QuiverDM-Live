@@ -73,6 +73,18 @@ export async function listSessions(prisma: PrismaClient, userId: string, campaig
   });
 }
 
+export async function getSession(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string },
+) {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  return prisma.gameSession.findFirst({
+    where: { id: input.sessionId, campaignId: input.campaignId },
+    select: { id: true, sessionNumber: true, title: true, suggestedTitle: true, suggestedVoice: true, suggestedChapter: true },
+  });
+}
+
 export async function applyTitle(
   prisma: PrismaClient,
   userId: string,
