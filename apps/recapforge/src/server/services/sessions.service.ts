@@ -102,6 +102,23 @@ export async function applyTitle(
   });
 }
 
+/**
+ * Pass the galley for press — the DM's sign-off that the reviewed transcript is
+ * the final chronicle. Marks the session complete. Publishing it to the players'
+ * wiki (the literal "press") is P5; this records the approval P5 will build on.
+ */
+export async function passForPress(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string },
+): Promise<void> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  await prisma.gameSession.updateMany({
+    where: { id: input.sessionId, campaignId: input.campaignId },
+    data: { status: 'completed' },
+  });
+}
+
 const ALLOWED_AUDIO_TYPES = new Set([
   'audio/flac', 'audio/x-flac', 'audio/wav', 'audio/x-wav', 'audio/wave',
   'audio/mpeg', 'audio/mp4', 'audio/aac', 'audio/ogg', 'audio/opus',

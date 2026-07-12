@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import {
-  createSession, listSessions, initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings, discardTrack, getScribeProgress, applyTitle, getSession,
+  createSession, listSessions, initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings, discardTrack, getScribeProgress, applyTitle, getSession, passForPress,
 } from '../services/sessions.service';
 import { addMultiTrackJob } from '@/lib/queue';
 
@@ -55,4 +55,7 @@ export const forgeSessionsRouter = router({
       title: z.string().max(200).optional(), voice: z.string().max(200).optional(), chapter: z.number().int().optional(),
     }))
     .mutation(async ({ ctx, input }) => { await applyTitle(ctx.prisma, ctx.session.user.id, input); return { ok: true as const }; }),
+  passForPress: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), sessionId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => { await passForPress(ctx.prisma, ctx.session.user.id, input); return { ok: true as const }; }),
 });
