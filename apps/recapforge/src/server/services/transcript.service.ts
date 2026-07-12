@@ -11,7 +11,7 @@ export async function getGalleyTranscript(
 ) {
   await assertCampaignOwner(prisma, input.campaignId, userId);
   const t = await prisma.transcript.findFirst({
-    where: { sessionId: input.sessionId },
+    where: { sessionId: input.sessionId, session: { campaignId: input.campaignId } },
     orderBy: { createdAt: 'desc' },
     select: { id: true, timestamps: true, oocReviewItems: true, cleanupStatus: true },
   });

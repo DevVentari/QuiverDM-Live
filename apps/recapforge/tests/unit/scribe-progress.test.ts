@@ -5,11 +5,12 @@ import { createForgeCampaign } from '@/server/services/campaign.service';
 
 const prisma = new PrismaClient();
 const EMAIL = `scribe-${Date.now()}@recapforge-test.local`;
-let userId: string; let campaignId: string; let sessionId: string;
+let userId: string; let campaignId: string; let sessionId: string; let campaign2Id: string;
 
 beforeAll(async () => {
   userId = (await prisma.user.create({ data: { email: EMAIL, name: 'Scribe' } })).id;
   campaignId = (await createForgeCampaign(prisma, userId, 'Scribe Test')).id;
+  campaign2Id = (await createForgeCampaign(prisma, userId, 'Scribe Test 2')).id;
   const s = await prisma.gameSession.create({ data: { campaignId, sessionNumber: 1, status: 'planning' } });
   sessionId = s.id;
   const mk = (tag: string, status: string) => prisma.sessionRecording.create({
@@ -22,7 +23,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await prisma.campaign.deleteMany({ where: { id: campaignId } });
+  await prisma.campaign.deleteMany({ where: { id: { in: [campaignId, campaign2Id] } } });
   await prisma.user.deleteMany({ where: { email: EMAIL } });
   await prisma.$disconnect();
 });
@@ -48,5 +49,15 @@ describe('getScribeProgress', () => {
     const stranger = await prisma.user.create({ data: { email: `s-${EMAIL}`, name: 'S' } });
     await expect(getScribeProgress(prisma, stranger.id, { campaignId, sessionId })).rejects.toThrow();
     await prisma.user.delete({ where: { id: stranger.id } });
+  });
+
+  it('refuses a foreign session under an owned campaign (cross-campaign scope)', async () => {
+    const p = await getScribeProgress(prisma, userId, { campaignId: campaign2Id, sessionId });
+    expect(p.total).toBe(0);
+    expect(p.done).toBe(0);
+    expect(p.failed).toBe(0);
+    expect(p.overall).toBe('transcribing');
+    expect(p.transcriptId).toBeNull();
+    expect(p.voices).toEqual([]);
   });
 });

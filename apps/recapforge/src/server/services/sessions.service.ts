@@ -91,8 +91,8 @@ export async function applyTitle(
   input: { campaignId: string; sessionId: string; title?: string; voice?: string; chapter?: number },
 ): Promise<void> {
   await assertCampaignOwner(prisma, input.campaignId, userId);
-  await prisma.gameSession.update({
-    where: { id: input.sessionId },
+  await prisma.gameSession.updateMany({
+    where: { id: input.sessionId, campaignId: input.campaignId },
     data: {
       ...(input.title !== undefined ? { title: input.title, suggestedTitle: input.title } : {}),
       ...(input.voice !== undefined ? { suggestedVoice: input.voice } : {}),
@@ -245,6 +245,8 @@ export async function getScribeProgress(
   input: { campaignId: string; sessionId: string },
 ) {
   await assertCampaignOwner(prisma, input.campaignId, userId);
+  const owns = await prisma.gameSession.findFirst({ where: { id: input.sessionId, campaignId: input.campaignId }, select: { id: true } });
+  if (!owns) return { total: 0, done: 0, failed: 0, overall: 'transcribing' as const, transcriptId: null, voices: [] };
   const recordings = await prisma.sessionRecording.findMany({
     where: { sessionId: input.sessionId, isMultiTrack: true },
     select: { id: true, speakerTag: true, mergeStatus: true, originalUrl: true, createdAt: true },

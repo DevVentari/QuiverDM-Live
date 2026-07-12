@@ -228,7 +228,7 @@ async function processMultiTrack(
           await persistTrackTranscript(prisma, {
             sessionId, uploadGroupId, recordingId: rec.id,
             speakerLabel, characterName, words, status: 'done',
-          });
+          }).catch(() => {});
           broadcastMultiTrackTranscribed(uploadGroupId, {
             recordingId: rec.id,
             characterName: characterName ?? speakerLabel,
@@ -298,15 +298,20 @@ async function processMultiTrack(
 
   // Best-effort AI title suggestion (never blocks completion)
   try {
-    const { buildTitlerMessages, parseTitlerResponse } = await import('../recap/session-titler');
-    const { chatWithAI } = await import('../ai/chat');
-    const raw = await chatWithAI(buildTitlerMessages(rawText), { forceProvider: 'claude' });
-    const { title, voice, chapter } = parseTitlerResponse(raw);
-    if (title) {
-      await prisma.gameSession.update({
-        where: { id: sessionId },
-        data: { suggestedTitle: title, suggestedVoice: voice || null, suggestedChapter: chapter ?? null },
-      });
+    const forgeCampaign = await prisma.campaign.findUnique({ where: { id: campaignId }, select: { settings: true } });
+    if (!(forgeCampaign?.settings as { recapforge?: boolean } | null)?.recapforge) {
+      // titling is a RecapForge feature — skip for main-app sessions
+    } else {
+      const { buildTitlerMessages, parseTitlerResponse } = await import('../recap/session-titler');
+      const { chatWithAI } = await import('../ai/chat');
+      const raw = await chatWithAI(buildTitlerMessages(rawText), { forceProvider: 'claude' });
+      const { title, voice, chapter } = parseTitlerResponse(raw);
+      if (title) {
+        await prisma.gameSession.update({
+          where: { id: sessionId },
+          data: { suggestedTitle: title, suggestedVoice: voice || null, suggestedChapter: chapter ?? null },
+        });
+      }
     }
   } catch (err) {
     console.warn('[MultiTrackWorker] Titling failed (non-fatal):', err);
