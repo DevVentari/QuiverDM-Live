@@ -66,7 +66,7 @@ export async function listParty(prisma: PrismaClient, userId: string, campaignId
   await assertCampaignOwner(prisma, campaignId, userId);
   return prisma.player.findMany({
     where: { campaignId },
-    select: { id: true, name: true, characterName: true },
+    select: { id: true, name: true, characterName: true, characterClass: true },
     orderBy: { createdAt: 'asc' },
   });
 }
@@ -117,21 +117,30 @@ export async function importPartyFromDdb(
   let imported = 0;
   let failed = 0;
   for (const id of refs.ids) {
-    const name = await ddb.fetchCharacterName(id, cobalt);
-    if (!name) {
+    // Name + class line only — context for the scribe, never a full sheet import.
+    const summary = await ddb.fetchCharacterSummary(id, cobalt);
+    if (!summary) {
       failed++;
       continue;
     }
-    const exists = await prisma.player.findFirst({ where: { campaignId: input.campaignId, characterName: name } });
+    const { name, className } = summary;
+    const exists = await prisma.player.findFirst({
+      where: { campaignId: input.campaignId, characterName: name },
+      select: { id: true },
+    });
     if (!exists) {
       await prisma.player.create({
         data: {
           campaignId: input.campaignId,
           name,
           characterName: name,
+          characterClass: className,
           dndBeyondUrl: `https://www.dndbeyond.com/characters/${id}`,
         },
       });
+    } else if (className) {
+      // Re-import refreshes the class line (level-ups, subclass picks).
+      await prisma.player.update({ where: { id: exists.id }, data: { characterClass: className } });
     }
     await prisma.lexiconTerm.upsert({
       where: { campaignId_term: { campaignId: input.campaignId, term: name } },

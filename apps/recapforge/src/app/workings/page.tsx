@@ -71,7 +71,10 @@ function Workings() {
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, padding: '10px 0', borderBottom: '1px dotted var(--rf-rule-dot)' }}
                   >
                     <span style={{ fontWeight: 600, fontSize: 16 }}>{p.characterName}</span>
-                    <span style={{ flex: 1, fontStyle: 'italic', color: 'var(--rf-ink-muted)', fontSize: 14 }}>{p.name}</span>
+                    <span style={{ flex: 1, fontStyle: 'italic', color: 'var(--rf-ink-muted)', fontSize: 14 }}>
+                      {p.name}
+                      {p.characterClass ? ` · ${p.characterClass}` : ''}
+                    </span>
                     <button
                       className="rf-btn rf-btn--stet"
                       disabled={removeMember.isPending}
