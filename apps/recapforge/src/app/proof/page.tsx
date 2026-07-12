@@ -55,7 +55,8 @@ function ProofScreen() {
                   disabled={passForPress.isPending}
                   onClick={async () => {
                     await passForPress.mutateAsync({ campaignId, sessionId });
-                    router.push(`/?campaign=${campaignId}`);
+                    // Show the bound chronicle — the finished, published-looking record.
+                    router.push(`/chronicle?campaign=${campaignId}&session=${sessionId}`);
                   }}
                 >
                   {passForPress.isPending ? 'Passing…' : 'Pass for press →'}
