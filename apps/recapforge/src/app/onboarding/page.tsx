@@ -170,8 +170,17 @@ export default function OnboardingPage() {
                   onClick={async () => {
                     setError(null);
                     try {
-                      await importParty.mutateAsync({ campaignId, campaignUrl: ddbUrl.trim() });
+                      const res = await importParty.mutateAsync({ campaignId, campaignUrl: ddbUrl.trim() });
                       await party.refetch();
+                      if (res.failed > 0) {
+                        // Fully-private sheets refuse even the DM's browser view —
+                        // only their players can open them up.
+                        setError(
+                          `${res.failed} sheet${res.failed === 1 ? ' is' : 's are'} private on D&D Beyond and could not be read — ` +
+                          'ask the player to set their character to Campaign or Public visibility, then import again. ' +
+                          'Or add them by hand above.',
+                        );
+                      }
                     } catch (e) {
                       setError(e instanceof Error ? e.message : 'The Beyond would not answer.');
                     }
