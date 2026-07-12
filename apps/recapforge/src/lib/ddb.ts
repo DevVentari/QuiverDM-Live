@@ -4,13 +4,38 @@
  * fetchCharacterFromDDB), including its crawl4ai private-character fallback
  * (fetchCharacterViaBrowser) — kept forge-local to avoid cross-root imports.
  * Full extraction into @quiverdm/shared is a later consolidation.
+ *
+ * RecapForge deliberately does NOT import full character sheets — only the
+ * name and class line, as context for the scribe (recaps, wiki, lexicon).
  */
 const CRAWL4AI_URL = process.env.CRAWL4AI_URL ?? 'http://192.168.1.21:5002';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
+export interface DdbCharacterSummary {
+  name: string;
+  /** e.g. "Cleric / War Domain" or "Fighter / Wizard" for multiclass; null when unreadable */
+  className: string | null;
+}
+
 export interface DdbClient {
   fetchCampaignCharacterIds(campaignUrl: string, cobalt: string): Promise<{ ok: boolean; ids?: string[]; message?: string }>;
-  fetchCharacterName(characterId: string, cobalt: string): Promise<string | null>;
+  fetchCharacterSummary(characterId: string, cobalt: string): Promise<DdbCharacterSummary | null>;
+}
+
+/**
+ * Extract the summary from a raw character-service `data` object.
+ * classes[]: definition.name plus subclassDefinition.name when present.
+ */
+function summarize(data: unknown): DdbCharacterSummary | null {
+  const d = data as { name?: unknown; classes?: Array<{ definition?: { name?: string }; subclassDefinition?: { name?: string } | null }> } | null;
+  const name = typeof d?.name === 'string' && d.name.trim() ? d.name.trim() : null;
+  if (!name) return null;
+  const parts: string[] = [];
+  for (const c of d?.classes ?? []) {
+    if (c?.definition?.name) parts.push(c.definition.name);
+    if (c?.subclassDefinition?.name) parts.push(c.subclassDefinition.name);
+  }
+  return { name, className: parts.length ? parts.join(' / ') : null };
 }
 
 /**
@@ -19,7 +44,7 @@ export interface DdbClient {
  * Only called when the direct API returns 403/401. Mirrors
  * fetchCharacterViaBrowser in src/lib/dndbeyond-api.ts.
  */
-async function fetchCharacterNameViaBrowser(characterId: string, cobalt: string): Promise<string | null> {
+async function fetchCharacterSummaryViaBrowser(characterId: string, cobalt: string): Promise<DdbCharacterSummary | null> {
   try {
     const res = await fetch(`${CRAWL4AI_URL}/character/extract`, {
       method: 'POST',
@@ -31,10 +56,9 @@ async function fetchCharacterNameViaBrowser(characterId: string, cobalt: string)
     const result = await res.json();
     if (!result.success) return null;
     // crawl4ai returns data = the intercepted character-service envelope,
-    // so the character itself is one level deeper (data.data.name) — same
+    // so the character itself is one level deeper (data.data) — same
     // unwrap the main app's parseCharacterData does on this payload.
-    const name = result.data?.data?.name;
-    return typeof name === 'string' && name.trim() ? name.trim() : null;
+    return summarize(result.data?.data);
   } catch {
     return null;
   }
@@ -93,7 +117,7 @@ export const ddbClient: DdbClient = {
     return { ok: true, ids: crawl.character_ids.map(String) };
   },
 
-  async fetchCharacterName(characterId, cobalt) {
+  async fetchCharacterSummary(characterId, cobalt) {
     try {
       const res = await fetch(
         `https://character-service.dndbeyond.com/character/v5/character/${characterId}?includeCustomItems=true`,
@@ -110,12 +134,11 @@ export const ddbClient: DdbClient = {
       );
       if (!res.ok) {
         if (res.status === 401 || res.status === 403) {
-          return fetchCharacterNameViaBrowser(characterId, cobalt);
+          return fetchCharacterSummaryViaBrowser(characterId, cobalt);
         }
         return null;
       }
-      const name = (await res.json())?.data?.name;
-      return typeof name === 'string' && name.trim() ? name.trim() : null;
+      return summarize((await res.json())?.data);
     } catch {
       return null;
     }

@@ -11,7 +11,12 @@ let campaignId: string;
 
 const fakeDdb: DdbClient = {
   fetchCampaignCharacterIds: async () => ({ ok: true, ids: ['111', '222', '333'] }),
-  fetchCharacterName: async (id) => (id === '333' ? null : id === '111' ? 'Oriyan Vale' : 'Whisperwick Quickclaw'),
+  fetchCharacterSummary: async (id) =>
+    id === '333'
+      ? null
+      : id === '111'
+        ? { name: 'Oriyan Vale', className: 'Wizard / Chronicler' }
+        : { name: 'Whisperwick Quickclaw', className: null },
 };
 
 beforeAll(async () => {
@@ -40,6 +45,9 @@ describe('importPartyFromDdb', () => {
     expect(res).toEqual({ imported: 2, failed: 1 });
     const party = await prisma.player.findMany({ where: { campaignId } });
     expect(party.map((p) => p.characterName).sort()).toEqual(['Oriyan Vale', 'Whisperwick Quickclaw']);
+    // class rides along as context for the scribe (recaps/wiki), not stats
+    const oriyan = party.find((p) => p.characterName === 'Oriyan Vale');
+    expect(oriyan?.characterClass).toBe('Wizard / Chronicler');
     const term = await prisma.lexiconTerm.findUnique({
       where: { campaignId_term: { campaignId, term: 'Oriyan Vale' } },
     });
