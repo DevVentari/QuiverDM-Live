@@ -2,14 +2,16 @@
 
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { trpc } from '@/lib/trpc';
 import { Masthead } from '@/components/manuscript/Masthead';
 
 function ProofScreen() {
+  const router = useRouter();
   const params = useSearchParams();
   const campaignId = params.get('campaign') ?? '';
   const sessionId = params.get('session') ?? '';
+  const passForPress = trpc.forgeSessions.passForPress.useMutation();
 
   const progress = trpc.forgeSessions.scribeProgress.useQuery(
     { campaignId, sessionId },
@@ -48,7 +50,16 @@ function ProofScreen() {
           <Masthead
             right={
               complete ? (
-                <button className="rf-btn rf-btn--solid">Pass for press →</button>
+                <button
+                  className="rf-btn rf-btn--solid"
+                  disabled={passForPress.isPending}
+                  onClick={async () => {
+                    await passForPress.mutateAsync({ campaignId, sessionId });
+                    router.push(`/?campaign=${campaignId}`);
+                  }}
+                >
+                  {passForPress.isPending ? 'Passing…' : 'Pass for press →'}
+                </button>
               ) : (
                 <span className="rf-masthead__meta">
                   {progress.data ? `${progress.data.done} of ${progress.data.total} voices set down` : 'the scribe stirs…'}
