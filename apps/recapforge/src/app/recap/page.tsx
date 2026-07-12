@@ -28,6 +28,9 @@ function RecapScreen() {
   const update = trpc.forgeRecap.update.useMutation({
     onSuccess: () => { utils.forgeRecap.get.invalidate({ campaignId, sessionId }); utils.forgeRecap.previewHtml.invalidate({ campaignId, sessionId }); },
   });
+  const publish = trpc.forgeRecap.publish.useMutation({
+    onSuccess: () => utils.forgeRecap.get.invalidate({ campaignId, sessionId }),
+  });
 
   // Local editable copy of the content, synced from the server.
   const [draft, setDraft] = useState<RecapContent | null>(null);
@@ -55,7 +58,27 @@ function RecapScreen() {
                   <a className="rf-btn rf-btn--solid" href={`/api/recap/download?campaign=${campaignId}&session=${sessionId}`}>
                     Download session file
                   </a>
-                  <button className="rf-btn rf-btn--ghost" disabled title="Coming in P5">Publish to the wiki</button>
+                  {recap.data?.publishedUrl ? (
+                    <>
+                      <a className="rf-btn rf-btn--solid" href={recap.data.publishedUrl} target="_blank" rel="noreferrer">Published · view →</a>
+                      <button className="rf-btn rf-btn--ghost" disabled={publish.isPending}
+                        onClick={() => { if (confirm('Re-publish overwrites the live page. Continue?')) publish.mutate({ campaignId, sessionId }); }}>
+                        {publish.isPending ? 'Publishing…' : 'Re-publish'}
+                      </button>
+                    </>
+                  ) : (
+                    <button className="rf-btn rf-btn--solid"
+                      disabled={!recap.data?.canPublish || publish.isPending}
+                      title={recap.data?.canPublish ? undefined : 'No wiki configured for this campaign'}
+                      onClick={() => publish.mutate({ campaignId, sessionId })}>
+                      {publish.isPending ? 'Publishing…' : 'Publish to the wiki'}
+                    </button>
+                  )}
+                  {(publish.error || recap.data?.publishError) && !publish.isPending && (
+                    <span className="rf-masthead__meta" style={{ color: 'var(--rf-mark)' }}>
+                      {publish.error?.message ?? recap.data?.publishError} — try again
+                    </span>
+                  )}
                 </div>
               ) : (
                 <span className="rf-masthead__meta">
