@@ -47,6 +47,8 @@ export async function listSessions(prisma: PrismaClient, userId: string, campaig
       id: true,
       sessionNumber: true,
       title: true,
+      suggestedTitle: true,
+      suggestedVoice: true,
       date: true,
       recordings: { where: { isMultiTrack: true }, select: { mergeStatus: true, uploadGroupId: true, createdAt: true } },
       _count: { select: { transcripts: true } },
@@ -62,11 +64,40 @@ export async function listSessions(prisma: PrismaClient, userId: string, campaig
     return {
       id: s.id,
       sessionNumber: s.sessionNumber,
-      title: s.title,
+      title: s.title ?? s.suggestedTitle,
+      suggestedVoice: s.title ? null : s.suggestedVoice,
       date: s.date,
       standing: deriveStanding(latestGroupRecordings, s._count.transcripts),
       trackCount: latestGroupRecordings.length,
     };
+  });
+}
+
+export async function getSession(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string },
+) {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  return prisma.gameSession.findFirst({
+    where: { id: input.sessionId, campaignId: input.campaignId },
+    select: { id: true, sessionNumber: true, title: true, suggestedTitle: true, suggestedVoice: true, suggestedChapter: true },
+  });
+}
+
+export async function applyTitle(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string; title?: string; voice?: string; chapter?: number },
+): Promise<void> {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  await prisma.gameSession.updateMany({
+    where: { id: input.sessionId, campaignId: input.campaignId },
+    data: {
+      ...(input.title !== undefined ? { title: input.title, suggestedTitle: input.title } : {}),
+      ...(input.voice !== undefined ? { suggestedVoice: input.voice } : {}),
+      ...(input.chapter !== undefined ? { suggestedChapter: input.chapter } : {}),
+    },
   });
 }
 
@@ -206,4 +237,52 @@ export async function discardTrack(
       session: { campaignId: input.campaignId },
     },
   });
+}
+
+export async function getScribeProgress(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string },
+) {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  const owns = await prisma.gameSession.findFirst({ where: { id: input.sessionId, campaignId: input.campaignId }, select: { id: true } });
+  if (!owns) return { total: 0, done: 0, failed: 0, overall: 'transcribing' as const, transcriptId: null, voices: [] };
+  const recordings = await prisma.sessionRecording.findMany({
+    where: { sessionId: input.sessionId, isMultiTrack: true },
+    select: { id: true, speakerTag: true, mergeStatus: true, originalUrl: true, createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  const tracks = await prisma.trackTranscript.findMany({
+    where: { sessionId: input.sessionId },
+    select: { recordingId: true, characterName: true, text: true, status: true },
+  });
+  const byRec = new Map(tracks.map((t) => [t.recordingId, t]));
+  const voices = recordings.map((r) => {
+    const t = byRec.get(r.id);
+    const status: 'queued' | 'transcribing' | 'done' | 'error' =
+      t?.status === 'done' ? 'done'
+      : t?.status === 'error' ? 'error'
+      : r.mergeStatus === 'processing' ? 'transcribing'
+      : 'queued';
+    return {
+      recordingId: r.id,
+      speakerLabel: r.speakerTag ?? r.originalUrl,
+      characterName: t?.characterName ?? null,
+      status,
+      text: t?.text ?? '',
+      key: r.originalUrl,
+    };
+  });
+  const done = voices.filter((v) => v.status === 'done').length;
+  const failed = voices.filter((v) => v.status === 'error').length;
+  const transcript = await prisma.transcript.findFirst({
+    where: { sessionId: input.sessionId },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true },
+  });
+  const overall: 'transcribing' | 'complete' | 'illegible' =
+    failed > 0 && done < voices.length ? 'illegible'
+    : transcript && recordings.every((r) => r.mergeStatus === 'complete') ? 'complete'
+    : 'transcribing';
+  return { total: voices.length, done, failed, overall, transcriptId: transcript?.id ?? null, voices };
 }

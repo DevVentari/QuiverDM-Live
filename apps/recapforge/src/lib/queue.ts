@@ -9,6 +9,10 @@ function getQueue(): Queue<MultiTrackJobData> {
   if (!queue) {
     const connection = new IORedis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379', {
       maxRetriesPerRequest: null,
+      // Fail loudly and fast when Redis is unreachable — with the offline
+      // queue enabled, a bad REDIS_URL turns enqueue into an infinite hang.
+      enableOfflineQueue: false,
+      connectTimeout: 5_000,
     });
     queue = new Queue<MultiTrackJobData>(QUEUE_NAMES.multiTrack, {
       connection,

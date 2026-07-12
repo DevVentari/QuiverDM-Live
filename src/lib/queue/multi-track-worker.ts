@@ -24,12 +24,14 @@ import * as path from 'path';
 import { promises as fsp } from 'fs';
 import * as os from 'os';
 import { mergeTranscripts, segmentsToText, type TrackInput } from '../recap/transcript-merger';
+import { persistTrackTranscript } from '../recap/track-transcript';
 import {
   broadcastMultiTrackProgress,
   broadcastMultiTrackComplete,
   broadcastMultiTrackError,
+  broadcastMultiTrackTranscribed,
 } from '../../server/websocket';
-import { applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
+import { applyMappingsToSegments, applyMappingsToTranscriptData } from '../recap/speaker-mapping-utils';
 import { contextExtractionQueue } from './context-extraction-queue';
 import { addTranscriptCleanupJob } from './transcript-cleanup-queue';
 
@@ -222,6 +224,16 @@ async function processMultiTrack(
             wordBoost
           );
           completed++;
+          const characterName = mappingLookup.get(speakerLabel) ?? null;
+          await persistTrackTranscript(prisma, {
+            sessionId, uploadGroupId, recordingId: rec.id,
+            speakerLabel, characterName, words, status: 'done',
+          }).catch(() => {});
+          broadcastMultiTrackTranscribed(uploadGroupId, {
+            recordingId: rec.id,
+            characterName: characterName ?? speakerLabel,
+            textPreview: words.slice(0, 12).map((w) => w.text).join(' '),
+          });
           broadcastMultiTrackProgress(uploadGroupId, {
             recordingId: rec.id,
             completed,
@@ -230,6 +242,11 @@ async function processMultiTrack(
           });
           return { words, speakerTag: speakerLabel };
         } catch (err) {
+          await persistTrackTranscript(prisma, {
+            sessionId, uploadGroupId, recordingId: rec.id,
+            speakerLabel, characterName: mappingLookup.get(speakerLabel) ?? null,
+            words: [], status: 'error',
+          }).catch(() => {});
           broadcastMultiTrackError(uploadGroupId, String(err), rec.id);
           throw err;
         }
@@ -238,28 +255,21 @@ async function processMultiTrack(
     tracks.push(...results);
   }
 
-  // 5. Merge transcripts by timestamp
-  const segments = mergeTranscripts(tracks);
+  // 5. Merge, then remap speaker labels to character names BEFORE building text/JSON,
+  //    so rawText/correctedText/speakers/timestamps all read as characters.
+  const mergedSegments = mergeTranscripts(tracks);
+  const segments = applyMappingsToSegments(mergedSegments, mappingLookup);
   const rawText = segmentsToText(segments);
 
-  const uniqueSpeakers = [...new Set(tracks.map((t) => t.speakerTag))];
-  const rawSpeakers = uniqueSpeakers.map((name, i) => ({
+  const uniqueSpeakers = [...new Set(segments.map((s) => s.speaker))];
+  const speakersJson = uniqueSpeakers.map((name, i) => ({
     id: `S${i}`,
     name,
     segments: segments.filter((s) => s.speaker === name).length,
   }));
-  const rawTimestamps = segments.map((s) => ({
-    start: s.start,
-    end: s.end,
-    text: s.text,
-    speaker: s.speaker,
+  const resolvedTimestamps = segments.map((s) => ({
+    start: s.start, end: s.end, text: s.text, speaker: s.speaker,
   }));
-
-  const { speakers: speakersJson, timestamps: resolvedTimestamps } = applyMappingsToTranscriptData(
-    rawSpeakers,
-    rawTimestamps,
-    mappingLookup
-  );
 
   // 6. Write Transcript record
   const transcript = await prisma.transcript.create({
@@ -285,6 +295,27 @@ async function processMultiTrack(
 
   // 8. Broadcast completion
   broadcastMultiTrackComplete(uploadGroupId, transcript.id);
+
+  // Best-effort AI title suggestion (never blocks completion)
+  try {
+    const forgeCampaign = await prisma.campaign.findUnique({ where: { id: campaignId }, select: { settings: true } });
+    if (!(forgeCampaign?.settings as { recapforge?: boolean } | null)?.recapforge) {
+      // titling is a RecapForge feature — skip for main-app sessions
+    } else {
+      const { buildTitlerMessages, parseTitlerResponse } = await import('../recap/session-titler');
+      const { chatWithAI } = await import('../ai/chat');
+      const raw = await chatWithAI(buildTitlerMessages(rawText), { forceProvider: 'claude' });
+      const { title, voice, chapter } = parseTitlerResponse(raw);
+      if (title) {
+        await prisma.gameSession.update({
+          where: { id: sessionId },
+          data: { suggestedTitle: title, suggestedVoice: voice || null, suggestedChapter: chapter ?? null },
+        });
+      }
+    }
+  } catch (err) {
+    console.warn('[MultiTrackWorker] Titling failed (non-fatal):', err);
+  }
 
   try {
     await contextExtractionQueue.add('extract', {

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { router, protectedProcedure } from '../trpc';
 import {
-  createSession, listSessions, initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings, discardTrack,
+  createSession, listSessions, initiateTrackUpload, processTracks, getIntakeStatus, assignSpeaker, listSpeakerMappings, discardTrack, getScribeProgress, applyTitle, getSession,
 } from '../services/sessions.service';
 import { addMultiTrackJob } from '@/lib/queue';
 
@@ -12,6 +12,9 @@ export const forgeSessionsRouter = router({
   list: protectedProcedure
     .input(z.object({ campaignId: z.string().min(1) }))
     .query(({ ctx, input }) => listSessions(ctx.prisma, ctx.session.user.id, input.campaignId)),
+  getOne: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), sessionId: z.string().min(1) }))
+    .query(({ ctx, input }) => getSession(ctx.prisma, ctx.session.user.id, input)),
   initiate: protectedProcedure
     .input(z.object({
       campaignId: z.string().min(1),
@@ -43,4 +46,13 @@ export const forgeSessionsRouter = router({
   discard: protectedProcedure
     .input(z.object({ campaignId: z.string().min(1), recordingId: z.string().min(1) }))
     .mutation(({ ctx, input }) => discardTrack(ctx.prisma, ctx.session.user.id, input)),
+  scribeProgress: protectedProcedure
+    .input(z.object({ campaignId: z.string().min(1), sessionId: z.string().min(1) }))
+    .query(({ ctx, input }) => getScribeProgress(ctx.prisma, ctx.session.user.id, input)),
+  applyTitle: protectedProcedure
+    .input(z.object({
+      campaignId: z.string().min(1), sessionId: z.string().min(1),
+      title: z.string().max(200).optional(), voice: z.string().max(200).optional(), chapter: z.number().int().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => { await applyTitle(ctx.prisma, ctx.session.user.id, input); return { ok: true as const }; }),
 });

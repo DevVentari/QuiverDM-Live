@@ -284,6 +284,28 @@ export async function getCampaignWordBoost(campaignId: string): Promise<string[]
     }
   }
 
+  // RecapForge: campaigns store party as Player rows and names as LexiconTerm,
+  // not NPC/Character — pull those so fantasy names boost at the source.
+  const campaign = await prisma.campaign.findUnique({
+    where: { id: campaignId },
+    select: { settings: true },
+  });
+  if ((campaign?.settings as { recapforge?: boolean } | null)?.recapforge) {
+    const terms = await prisma.lexiconTerm.findMany({
+      where: { campaignId },
+      select: { term: true, aliases: true },
+    });
+    for (const t of terms) {
+      if (t.term) words.push(t.term);
+      for (const a of t.aliases) if (a) words.push(a);
+    }
+    const players = await prisma.player.findMany({
+      where: { campaignId },
+      select: { characterName: true },
+    });
+    for (const p of players) if (p.characterName) words.push(p.characterName);
+  }
+
   // Common D&D terms for better recognition
   const dndTerms = [
     'Dungeons and Dragons',

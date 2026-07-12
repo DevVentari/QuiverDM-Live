@@ -1,0 +1,3 @@
+ALTER TABLE "GameSession" ADD COLUMN IF NOT EXISTS "suggestedTitle" TEXT;
+ALTER TABLE "GameSession" ADD COLUMN IF NOT EXISTS "suggestedVoice" TEXT;
+ALTER TABLE "GameSession" ADD COLUMN IF NOT EXISTS "suggestedChapter" INTEGER;
