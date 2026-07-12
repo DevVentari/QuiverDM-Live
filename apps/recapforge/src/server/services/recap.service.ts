@@ -53,10 +53,20 @@ export async function getRecap(prisma: PrismaClient, userId: string, input: { ca
   await assertCampaignOwner(prisma, input.campaignId, userId);
   const row = await prisma.forgeRecap.findFirst({
     where: { sessionId: input.sessionId, session: { campaignId: input.campaignId } },
-    select: { status: true, content: true, error: true },
+    select: { status: true, content: true, error: true, publishedAt: true, publishedUrl: true, publishError: true },
   });
+  const campaign = await prisma.campaign.findFirst({ where: { id: input.campaignId }, select: { publishConfig: true } });
+  const canPublish = campaign?.publishConfig != null;
   if (!row) return null;
-  return { status: row.status, content: (row.content as unknown as RecapContent) ?? null, error: row.error };
+  return {
+    status: row.status,
+    content: (row.content as unknown as RecapContent) ?? null,
+    error: row.error,
+    publishedAt: row.publishedAt,
+    publishedUrl: row.publishedUrl,
+    publishError: row.publishError,
+    canPublish,
+  };
 }
 
 export async function updateRecap(prisma: PrismaClient, userId: string, input: { campaignId: string; sessionId: string; content: unknown }): Promise<void> {
