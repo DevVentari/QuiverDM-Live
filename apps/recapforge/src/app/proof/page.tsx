@@ -33,6 +33,10 @@ function ProofScreen() {
     onSuccess: () => utils.forgeTranscript.get.invalidate({ campaignId, sessionId }),
   });
 
+  const keyByChar = new Map(
+    (progress.data?.voices ?? []).map((v) => [v.characterName ?? v.speakerLabel, v.key]),
+  );
+
   return (
     <main className="rf-page">
       <div className="rf-page__inner" style={{ maxWidth: 1180 }}>
@@ -108,6 +112,17 @@ function ProofScreen() {
                   return (
                     <div key={ln.index} style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, padding: '8px 0' }}>
                       <div style={{ display: 'flex', gap: 14 }}>
+                        <button
+                          className="rf-galley__undo"
+                          title="hear this voice"
+                          onClick={() => {
+                            const key = keyByChar.get(ln.speaker);
+                            if (!key) return;
+                            const audio = new Audio(`/api/uploads/track?key=${encodeURIComponent(key)}`);
+                            audio.currentTime = Math.max(0, ln.start / 1000 - 2);
+                            void audio.play();
+                          }}
+                        >▸</button>
                         <span className="rf-galley__speaker">{ln.speaker}</span>
                         <span className="rf-galley__text" style={{ flex: 1, textDecoration: struck ? 'line-through' : 'none', color: struck ? 'var(--rf-ink-faint)' : 'var(--rf-ink)' }}>{ln.text}</span>
                       </div>

@@ -237,6 +237,7 @@ export async function getScribeProgress(
       characterName: t?.characterName ?? null,
       status,
       text: t?.text ?? '',
+      key: r.originalUrl,
     };
   });
   const done = voices.filter((v) => v.status === 'done').length;

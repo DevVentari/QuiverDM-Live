@@ -38,8 +38,10 @@ describe('getScribeProgress', () => {
     expect(dm.status).toBe('done');
     expect(dm.characterName).toBe('The DM');
     expect(dm.text).toContain('We begin');
+    expect(dm.key).toBe('k-thechunk_');
     const beast = p.voices.find((v) => v.speakerLabel === 'ven_tari')!;
     expect(beast.status).toBe('transcribing');
+    expect(beast.key).toBe('k-ven_tari');
   });
 
   it('refuses a non-owner', async () => {
