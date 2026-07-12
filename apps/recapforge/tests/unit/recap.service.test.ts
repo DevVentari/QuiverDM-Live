@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll, afterEach } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { createForgeCampaign } from '@/server/services/campaign.service';
 import { createSession } from '@/server/services/sessions.service';
-import { enqueueRecap, getRecap, updateRecap, resolveTheme, renderPreview } from '@/server/services/recap.service';
+import { enqueueRecap, getRecap, updateRecap, resolveTheme, renderPreview, inlineImage } from '@/server/services/recap.service';
 import { DEFAULT_THEME, VALDRATH_THEME, type RecapContent } from '@quiverdm/shared';
 
 vi.mock('@/lib/queue', () => ({ addForgeRecapJob: vi.fn().mockResolvedValue({ id: 'j' }) }));
@@ -77,5 +77,52 @@ describe('recap.service ownership + round-trip', () => {
 
     // Verify the queue job was NOT enqueued
     expect(addForgeRecapJob).not.toHaveBeenCalled();
+  });
+
+  it('marks the row failed (not stuck generating) when the queue add throws', async () => {
+    vi.mocked(addForgeRecapJob).mockRejectedValueOnce(new Error('redis unreachable'));
+
+    await expect(enqueueRecap(prisma, userId, { campaignId, sessionId })).rejects.toThrow('redis unreachable');
+
+    const row = await getRecap(prisma, userId, { campaignId, sessionId });
+    expect(row?.status).toBe('failed');
+    expect(row?.error).toBe('Could not queue recap generation.');
+  });
+});
+
+describe('inlineImage SSRF guard', () => {
+  const base: RecapContent = {
+    header: { eyebrow: 'S1', title: 'T' }, statline: [], lede: 'x',
+    panels: { party: [], timeline: [], npcs: [], locations: [], adversaries: [], threads: [], whereWeLeftOff: 'x' },
+  };
+  const withImageUrl = (url: string): RecapContent => ({ ...base, header: { ...base.header, image: { url } } });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ['localhost', 'http://localhost:9999/x.png'],
+    ['loopback IP', 'http://127.0.0.1/x.png'],
+    ['private LAN', 'http://192.168.1.21/x.png'],
+    ['private 10/8', 'http://10.0.0.5/x.png'],
+    ['file scheme', 'file:///etc/passwd'],
+  ])('%s is hotlinked unchanged and fetch is never called', async (_label, url) => {
+    const fetchSpy = vi.spyOn(global, 'fetch');
+    const result = await inlineImage(withImageUrl(url));
+    expect(result.header.image?.url).toBe(url);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('a public https host is fetched and inlined as a data URI', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      headers: new Headers({ 'content-type': 'image/png', 'content-length': '4' }),
+      arrayBuffer: async () => new Uint8Array([1, 2, 3, 4]).buffer,
+    } as unknown as Response);
+
+    const result = await inlineImage(withImageUrl('https://example.com/hero.png'));
+    expect(fetchSpy).toHaveBeenCalledWith('https://example.com/hero.png', expect.objectContaining({ signal: expect.anything() }));
+    expect(result.header.image?.url.startsWith('data:image/png;base64,')).toBe(true);
   });
 });

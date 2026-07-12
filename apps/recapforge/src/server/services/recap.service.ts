@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
+import { lookup } from 'node:dns/promises';
 import { assertCampaignOwner } from '../guards';
 import { addForgeRecapJob } from '@/lib/queue';
 import { renderRecapHtml } from '@/lib/render-recap';
@@ -35,7 +36,17 @@ export async function enqueueRecap(prisma: PrismaClient, userId: string, input: 
     create: { sessionId: input.sessionId, status: 'generating' },
     update: { status: 'generating', error: null },
   });
-  await addForgeRecapJob({ campaignId: input.campaignId, sessionId: input.sessionId, userId });
+  try {
+    await addForgeRecapJob({ campaignId: input.campaignId, sessionId: input.sessionId, userId });
+  } catch (e) {
+    // Queue add failed (e.g. Redis down — enableOfflineQueue:false fails fast). Without
+    // this, the row is stuck 'generating' forever and the /recap poller never terminates.
+    await prisma.forgeRecap.updateMany({
+      where: { sessionId: input.sessionId },
+      data: { status: 'failed', error: 'Could not queue recap generation.' },
+    });
+    throw e;
+  }
 }
 
 export async function getRecap(prisma: PrismaClient, userId: string, input: { campaignId: string; sessionId: string }) {
@@ -72,12 +83,61 @@ export async function renderPreview(prisma: PrismaClient, userId: string, input:
   return renderRecapHtml(content, meta.theme, { campaignName: meta.campaignName, sessionNumber: meta.sessionNumber });
 }
 
-async function inlineImage(content: RecapContent): Promise<RecapContent> {
+const MAX_INLINE_IMAGE_BYTES = 5_000_000;
+
+/** IPv4 dotted-quad check (no octal/hex tricks — good enough for this best-effort guard). */
+function isIPv4Literal(host: string): boolean {
+  return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host);
+}
+
+/** Pragmatic private/loopback/link-local block for IPv4 and IPv6 literals. */
+function isBlockedIp(ip: string): boolean {
+  const addr = ip.replace(/^\[|\]$/g, '');
+  if (isIPv4Literal(addr)) {
+    const parts = addr.split('.').map(Number);
+    if (parts.some((p) => Number.isNaN(p) || p < 0 || p > 255)) return true; // malformed → block
+    const [a, b] = parts;
+    if (a === 127) return true; // 127.0.0.0/8
+    if (a === 10) return true; // 10.0.0.0/8
+    if (a === 172 && b >= 16 && b <= 31) return true; // 172.16.0.0/12
+    if (a === 192 && b === 168) return true; // 192.168.0.0/16
+    if (a === 169 && b === 254) return true; // 169.254.0.0/16
+    if (a === 0) return true; // 0.0.0.0/8
+    return false;
+  }
+  // IPv6
+  const lower = addr.toLowerCase();
+  if (lower === '::1') return true; // loopback
+  if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // fc00::/7 ULA
+  if (lower.startsWith('fe8') || lower.startsWith('fe9') || lower.startsWith('fea') || lower.startsWith('feb')) return true; // fe80::/10
+  return false;
+}
+
+/** Blocks localhost, private/loopback/link-local IPs (literal or DNS-resolved). Best-effort SSRF guard. */
+async function isBlockedHost(hostname: string): Promise<boolean> {
+  const host = hostname.toLowerCase();
+  if (host === 'localhost') return true;
+  if (isIPv4Literal(host) || host.includes(':')) return isBlockedIp(host);
+  try {
+    const { address } = await lookup(host);
+    return isBlockedIp(address);
+  } catch {
+    return true; // DNS failed — don't inline, just don't crash
+  }
+}
+
+export async function inlineImage(content: RecapContent): Promise<RecapContent> {
   const url = content.header.image?.url;
   if (!url || url.startsWith('data:')) return content;
   try {
-    const res = await fetch(url);
+    const u = new URL(url);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error(`blocked scheme ${u.protocol}`);
+    if (await isBlockedHost(u.hostname)) throw new Error(`blocked host ${u.hostname}`);
+
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error(`status ${res.status}`);
+    const contentLength = res.headers.get('content-length');
+    if (contentLength && Number(contentLength) > MAX_INLINE_IMAGE_BYTES) throw new Error('image too large');
     const type = res.headers.get('content-type') ?? 'image/png';
     const buf = Buffer.from(await res.arrayBuffer());
     const dataUri = `data:${type};base64,${buf.toString('base64')}`;

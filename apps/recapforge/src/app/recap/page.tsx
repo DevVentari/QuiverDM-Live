@@ -90,7 +90,7 @@ function RecapScreen() {
           {ready && draft && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 0, minHeight: 640 }}>
               {/* PREVIEW — byte-identical to the download */}
-              <iframe title="recap preview" style={{ width: '100%', height: '100%', minHeight: 640, border: 'none', background: '#0d0c0f' }}
+              <iframe title="recap preview" sandbox="allow-same-origin" style={{ width: '100%', height: '100%', minHeight: 640, border: 'none', background: '#0d0c0f' }}
                 srcDoc={preview.data ?? '<p style="color:#aaa;padding:24px">rendering…</p>'} />
               {/* EDIT — the structured content */}
               <div style={{ borderLeft: '1px solid var(--rf-rule-dot)', padding: '20px 22px', overflowY: 'auto' }}>
