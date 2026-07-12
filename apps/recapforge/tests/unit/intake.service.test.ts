@@ -31,7 +31,14 @@ describe('intake', () => {
       contentType: 'audio/flac', uploadGroupId, speakerTag: 'alexdm',
     });
     expect(res.r2Key).toMatch(new RegExp(`^session-recordings/${sessionId}/${uploadGroupId}/`));
-    expect(res.uploadUrl).toContain('/api/uploads/track?key=');
+    // uploadUrl shape is storage-mode dependent: the local route in dev, a
+    // presigned R2 PUT URL in r2 mode (which references the r2Key in its path).
+    if (res.isLocalMode) {
+      expect(res.uploadUrl).toContain('/api/uploads/track?key=');
+    } else {
+      expect(res.uploadUrl).toMatch(/^https?:\/\//);
+      expect(res.uploadUrl).toContain(res.r2Key.split('/').pop()!.split('-').pop()!.replace('.flac', ''));
+    }
     const rec = await prisma.sessionRecording.findUnique({ where: { id: res.recordingId } });
     expect(rec).toMatchObject({ isMultiTrack: true, mergeStatus: 'pending', uploadGroupId, speakerTag: 'alexdm' });
   });
