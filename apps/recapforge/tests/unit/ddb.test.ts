@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { parseCardMeta, type DdbClient } from '@/lib/ddb';
-import { createForgeCampaign, importPartyFromDdb } from '@/server/services/campaign.service';
+import { createForgeCampaign, importPartyFromDdb, removePartyMember, addPartyMember, listParty } from '@/server/services/campaign.service';
 import { setCobalt } from '@/server/services/keys.service';
 
 const prisma = new PrismaClient();
@@ -19,6 +19,8 @@ const rosterDdb: DdbClient = {
       { id: '111', name: 'Oriyan Vale', meta: 'Lvl 12 | Human | Wizard / Chronicler', playerUsername: 'NobleECT088' },
       { id: '222', name: 'Whisperwick Quickclaw', meta: null, playerUsername: null },
       { id: null, name: 'Edrin Valric', meta: 'Lvl 12 | Human | Artificer / Wizard / School of Transmutation', playerUsername: 'Rawrycopter' },
+      // unclaimed slot — must never import
+      { id: '999', name: 'Gwark', meta: 'Unassigned', playerUsername: null },
     ],
   }),
   fetchCharacterSummary: async () => {
@@ -75,7 +77,7 @@ describe('importPartyFromDdb', () => {
     const res = await importPartyFromDdb(prisma, rosterDdb, userId, {
       campaignId, campaignUrl: 'https://www.dndbeyond.com/campaigns/12345',
     });
-    expect(res).toEqual({ imported: 3, failed: 0 });
+    expect(res).toEqual({ imported: 3, failed: 0 }); // Gwark (unclaimed slot) skipped
     const party = await prisma.player.findMany({ where: { campaignId }, orderBy: { characterName: 'asc' } });
     expect(party.map((p) => p.characterName)).toEqual(['Edrin Valric', 'Oriyan Vale', 'Whisperwick Quickclaw']);
     const edrin = party.find((p) => p.characterName === 'Edrin Valric')!;
@@ -100,18 +102,40 @@ describe('importPartyFromDdb', () => {
     expect(await prisma.player.count({ where: { campaignId } })).toBe(3); // no dupes
   });
 
-  it('re-import respects a struck member (lexicon kind npc) — no resurrection', async () => {
-    // Strike Whisperwick: remove the Player row, demote the lexicon term.
-    await prisma.player.deleteMany({ where: { campaignId, characterName: 'Whisperwick Quickclaw' } });
+  it('strike → excluded from re-import; other struck-then-unstruck names DO come back', async () => {
+    // Strike Whisperwick through the real action (records the exclusion).
+    const party = await listParty(prisma, userId, campaignId);
+    const wick = party.find((p) => p.characterName === 'Whisperwick Quickclaw')!;
+    await removePartyMember(prisma, userId, { campaignId, playerId: wick.id });
+
+    // Simulate Blake's scenario: another member demoted to npc WITHOUT a
+    // recorded strike (legacy state) — re-import must bring them back as pc.
+    await prisma.player.deleteMany({ where: { campaignId, characterName: 'Oriyan Vale' } });
     await prisma.lexiconTerm.update({
-      where: { campaignId_term: { campaignId, term: 'Whisperwick Quickclaw' } },
+      where: { campaignId_term: { campaignId, term: 'Oriyan Vale' } },
       data: { kind: 'npc' },
     });
+
     await importPartyFromDdb(prisma, rosterDdb, userId, {
       campaignId, campaignUrl: 'https://www.dndbeyond.com/campaigns/12345',
     });
-    expect(await prisma.player.count({ where: { campaignId, characterName: 'Whisperwick Quickclaw' } })).toBe(0);
-    expect(await prisma.player.count({ where: { campaignId } })).toBe(2);
+    expect(await prisma.player.count({ where: { campaignId, characterName: 'Whisperwick Quickclaw' } })).toBe(0); // stays struck
+    expect(await prisma.player.count({ where: { campaignId, characterName: 'Oriyan Vale' } })).toBe(1); // resurrected
+    const oriyanTerm = await prisma.lexiconTerm.findUnique({
+      where: { campaignId_term: { campaignId, term: 'Oriyan Vale' } },
+    });
+    expect(oriyanTerm?.kind).toBe('pc'); // promoted back on import
+  });
+
+  it('manually re-adding a struck member lifts the exclusion', async () => {
+    await addPartyMember(prisma, userId, { campaignId, playerName: 'Priya', characterName: 'Whisperwick Quickclaw' });
+    const campaign = await prisma.campaign.findUnique({ where: { id: campaignId }, select: { settings: true } });
+    const excluded = (campaign?.settings as { recapforgeExcluded?: string[] })?.recapforgeExcluded ?? [];
+    expect(excluded).not.toContain('Whisperwick Quickclaw');
+    const term = await prisma.lexiconTerm.findUnique({
+      where: { campaignId_term: { campaignId, term: 'Whisperwick Quickclaw' } },
+    });
+    expect(term?.kind).toBe('pc');
   });
 
   it('fallback path: per-sheet fetch when cards are empty; unreadable sheets count as failed', async () => {
