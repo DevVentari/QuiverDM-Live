@@ -14,7 +14,7 @@ const stagesFor = (idx: number) =>
 const STANDING_META: Record<string, { dot: string; color: string; stageIdx: number; action: string }> = {
   'awaiting delivery':     { dot: 'var(--rf-mark)', color: 'var(--rf-mark)', stageIdx: 0, action: 'deliver →' },
   'in the composing room': { dot: 'var(--rf-mark)', color: 'var(--rf-mark)', stageIdx: 1, action: 'compose →' },
-  'transcribing':          { dot: 'var(--rf-mark)', color: 'var(--rf-mark)', stageIdx: 2, action: '' },
+  'transcribing':          { dot: 'var(--rf-mark)', color: 'var(--rf-mark)', stageIdx: 2, action: 'the scribe →' },
   'transcript ready':      { dot: 'var(--rf-ink)',  color: 'var(--rf-ink)',  stageIdx: 3, action: 'proof →' },
   'illegible':             { dot: 'var(--rf-mark)', color: 'var(--rf-mark)', stageIdx: 1, action: 'deliver again →' },
 };
@@ -113,7 +113,11 @@ function Ledger() {
               return (
                 <Link
                   key={s.id}
-                  href={`/upload?campaign=${campaign.id}&session=${s.id}`}
+                  href={
+                    s.standing === 'transcribing' || s.standing === 'transcript ready'
+                      ? `/proof?campaign=${campaign.id}&session=${s.id}`
+                      : `/upload?campaign=${campaign.id}&session=${s.id}`
+                  }
                   className="rf-ledger__grid rf-ledger__row"
                 >
                   <span className="rf-ledger__n">{String(s.sessionNumber).padStart(2, '0')}</span>
