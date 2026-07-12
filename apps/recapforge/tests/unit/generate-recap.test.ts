@@ -65,6 +65,12 @@ describe('generateSessionRecap', () => {
     expect(arg.update.status).toBe('ready');
     expect(arg.update.content.header.title).toBe('Blood at the Gate');
     expect(arg.update.themeSnapshot.palette.pelt).toMatch(/^#/);
+    // Prisma upsert applies EITHER create OR update — never both. On a session's
+    // first generation there is no pre-existing ForgeRecap row, so the CREATE
+    // branch fires. The final fields must be present there too, or the recap
+    // gets stuck at status='generating' forever on first run.
+    expect(arg.create.status).toBe('ready');
+    expect(arg.create.content.header.title).toBe('Blood at the Gate');
   });
 
   it('retries once then writes status=failed on unparseable replies', async () => {
@@ -74,5 +80,8 @@ describe('generateSessionRecap', () => {
     expect(chat).toHaveBeenCalledTimes(2);
     const arg = (prisma as unknown as { _upsert: ReturnType<typeof vi.fn> })._upsert.mock.calls.at(-1)![0];
     expect(arg.update.status).toBe('failed');
+    // Same first-run guard as the success case: the CREATE branch fires when
+    // no row pre-exists, so the failed status must land there too.
+    expect(arg.create.status).toBe('failed');
   });
 });

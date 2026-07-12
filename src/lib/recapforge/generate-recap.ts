@@ -84,10 +84,13 @@ export async function generateSessionRecap(
   });
 
   const theme = (campaign?.theme as unknown as RecapTheme) ?? DEFAULT_THEME;
-  const base = { where: { sessionId: input.sessionId }, create: { sessionId: input.sessionId, status: 'generating' } as const };
 
   if (!transcript) {
-    await prisma.forgeRecap.upsert({ ...base, update: { status: 'failed', error: 'No transcript found for this session.' } });
+    await prisma.forgeRecap.upsert({
+      where: { sessionId: input.sessionId },
+      create: { sessionId: input.sessionId, status: 'failed', error: 'No transcript found for this session.' },
+      update: { status: 'failed', error: 'No transcript found for this session.' },
+    });
     return;
   }
 
@@ -103,15 +106,18 @@ export async function generateSessionRecap(
       lastRaw = await chatWithAI(attempt === 0 ? messages : [...messages, { role: 'user', content: 'Your previous reply was not valid JSON. Reply with ONLY the JSON object.' }], { forceProvider: 'claude' });
       const parsed = RecapContentSchema.parse(extractJson(lastRaw));
       await prisma.forgeRecap.upsert({
-        ...base,
+        where: { sessionId: input.sessionId },
+        create: { sessionId: input.sessionId, status: 'ready', content: parsed as object, themeSnapshot: theme as object },
         update: { status: 'ready', content: parsed as object, themeSnapshot: theme as object, error: null, rawOutput: null },
       });
       return;
     } catch (e) {
       if (attempt === 1) {
+        const msg = e instanceof Error ? e.message : 'Generation failed';
         await prisma.forgeRecap.upsert({
-          ...base,
-          update: { status: 'failed', error: e instanceof Error ? e.message : 'Generation failed', rawOutput: lastRaw.slice(0, 8000) },
+          where: { sessionId: input.sessionId },
+          create: { sessionId: input.sessionId, status: 'failed', error: msg, rawOutput: lastRaw.slice(0, 8000) },
+          update: { status: 'failed', error: msg, rawOutput: lastRaw.slice(0, 8000) },
         });
       }
     }
