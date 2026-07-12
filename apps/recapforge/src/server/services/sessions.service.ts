@@ -207,3 +207,48 @@ export async function discardTrack(
     },
   });
 }
+
+export async function getScribeProgress(
+  prisma: PrismaClient,
+  userId: string,
+  input: { campaignId: string; sessionId: string },
+) {
+  await assertCampaignOwner(prisma, input.campaignId, userId);
+  const recordings = await prisma.sessionRecording.findMany({
+    where: { sessionId: input.sessionId, isMultiTrack: true },
+    select: { id: true, speakerTag: true, mergeStatus: true, originalUrl: true, createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  const tracks = await prisma.trackTranscript.findMany({
+    where: { sessionId: input.sessionId },
+    select: { recordingId: true, characterName: true, text: true, status: true },
+  });
+  const byRec = new Map(tracks.map((t) => [t.recordingId, t]));
+  const voices = recordings.map((r) => {
+    const t = byRec.get(r.id);
+    const status: 'queued' | 'transcribing' | 'done' | 'error' =
+      t?.status === 'done' ? 'done'
+      : t?.status === 'error' ? 'error'
+      : r.mergeStatus === 'processing' ? 'transcribing'
+      : 'queued';
+    return {
+      recordingId: r.id,
+      speakerLabel: r.speakerTag ?? r.originalUrl,
+      characterName: t?.characterName ?? null,
+      status,
+      text: t?.text ?? '',
+    };
+  });
+  const done = voices.filter((v) => v.status === 'done').length;
+  const failed = voices.filter((v) => v.status === 'error').length;
+  const transcript = await prisma.transcript.findFirst({
+    where: { sessionId: input.sessionId },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true },
+  });
+  const overall: 'transcribing' | 'complete' | 'illegible' =
+    failed > 0 && done < voices.length ? 'illegible'
+    : transcript && recordings.every((r) => r.mergeStatus === 'complete') ? 'complete'
+    : 'transcribing';
+  return { total: voices.length, done, failed, overall, transcriptId: transcript?.id ?? null, voices };
+}
