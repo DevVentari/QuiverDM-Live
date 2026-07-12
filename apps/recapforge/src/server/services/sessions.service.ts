@@ -2,6 +2,7 @@ import { randomBytes } from 'crypto';
 import { TRPCError } from '@trpc/server';
 import type { PrismaClient } from '@prisma/client';
 import { assertCampaignOwner } from '../guards';
+import { getStorageMode } from '@main/lib/storage';
 
 export type Standing =
   | 'awaiting delivery'
@@ -114,7 +115,7 @@ export async function initiateTrackUpload(
     campaignId: string; sessionId: string; fileName: string; fileSize: number;
     contentType: string; uploadGroupId: string; speakerTag?: string;
   },
-): Promise<{ uploadUrl: string; r2Key: string; recordingId: string }> {
+): Promise<{ uploadUrl: string; r2Key: string; recordingId: string; isLocalMode: boolean }> {
   await assertCampaignOwner(prisma, input.campaignId, userId);
   const session = await prisma.gameSession.findFirst({
     where: { id: input.sessionId, campaignId: input.campaignId },
@@ -142,11 +143,19 @@ export async function initiateTrackUpload(
     },
     select: { id: true },
   });
-  return {
-    uploadUrl: `/api/uploads/track?key=${encodeURIComponent(r2Key)}`,
-    r2Key,
-    recordingId: recording.id,
-  };
+  // In R2 (prod) the browser PUTs the file DIRECTLY to R2 via a presigned URL —
+  // Craig tracks routinely exceed Cloudflare's 100MB body cap, so routing them
+  // through the app would 413. Local dev keeps the FormData POST to our route.
+  const isLocalMode = getStorageMode() !== 'r2';
+  let uploadUrl: string;
+  if (isLocalMode) {
+    uploadUrl = `/api/uploads/track?key=${encodeURIComponent(r2Key)}`;
+  } else {
+    // Dynamic import keeps the AWS SDK type graph out of the forge tsc project.
+    const { getPresignedUploadUrl } = await import('@main/lib/storage/r2');
+    uploadUrl = await getPresignedUploadUrl(r2Key, input.contentType, 3600);
+  }
+  return { uploadUrl, r2Key, recordingId: recording.id, isLocalMode };
 }
 
 export async function processTracks(

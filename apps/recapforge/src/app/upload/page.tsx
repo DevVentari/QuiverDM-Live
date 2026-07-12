@@ -85,9 +85,20 @@ function ComposingRoom() {
           uploadGroupId,
           speakerTag: username ?? file.name,
         });
-        const form = new FormData();
-        form.append('file', file);
-        const res = await fetch(init.uploadUrl, { method: 'POST', body: form });
+        // Prod (R2): PUT the file straight to R2's presigned URL — bypasses the
+        // app route and Cloudflare's 100MB body cap. Dev (local): FormData POST.
+        let res: Response;
+        if (init.isLocalMode) {
+          const form = new FormData();
+          form.append('file', file);
+          res = await fetch(init.uploadUrl, { method: 'POST', body: form });
+        } else {
+          res = await fetch(init.uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type || guessAudioMime(file.name) },
+          });
+        }
         if (!res.ok) throw new Error(`Upload failed (${res.status})`);
         setTracks((t) => t.map((r) => (r.id === row.id ? { ...r, state: 'done' } : r)));
       } catch (e) {
