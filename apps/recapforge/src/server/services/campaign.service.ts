@@ -44,6 +44,21 @@ export async function listForgeCampaigns(prisma: PrismaClient, userId: string) {
   });
 }
 
+/** Names the DM has struck from the party — re-imports must not bring them back. */
+function getExcluded(settings: unknown): string[] {
+  const s = settings as { recapforgeExcluded?: unknown } | null;
+  return Array.isArray(s?.recapforgeExcluded) ? (s.recapforgeExcluded as string[]) : [];
+}
+
+async function saveExcluded(prisma: PrismaClient, campaignId: string, names: string[]): Promise<void> {
+  const c = await prisma.campaign.findUnique({ where: { id: campaignId }, select: { settings: true } });
+  const settings = (c?.settings && typeof c.settings === 'object' ? c.settings : {}) as Record<string, unknown>;
+  await prisma.campaign.update({
+    where: { id: campaignId },
+    data: { settings: { ...settings, recapforgeExcluded: names } },
+  });
+}
+
 export async function addPartyMember(
   prisma: PrismaClient,
   userId: string,
@@ -54,11 +69,18 @@ export async function addPartyMember(
     data: { campaignId: input.campaignId, name: input.playerName, characterName: input.characterName },
     select: { id: true },
   });
+  // Adding by hand un-strikes: promote the lexicon term back to pc and lift
+  // the exclusion so future re-imports include them again.
   await prisma.lexiconTerm.upsert({
     where: { campaignId_term: { campaignId: input.campaignId, term: input.characterName } },
-    update: {},
+    update: { kind: 'pc' },
     create: { campaignId: input.campaignId, term: input.characterName, kind: 'pc', source: 'manual' },
   });
+  const campaign = await prisma.campaign.findUnique({ where: { id: input.campaignId }, select: { settings: true } });
+  const excluded = getExcluded(campaign?.settings);
+  if (excluded.includes(input.characterName)) {
+    await saveExcluded(prisma, input.campaignId, excluded.filter((n) => n !== input.characterName));
+  }
   return player;
 }
 
@@ -93,6 +115,12 @@ export async function removePartyMember(
     where: { campaignId: input.campaignId, term: player.characterName },
     data: { kind: 'npc' },
   });
+  // Record the strike so re-imports don't resurrect them.
+  const campaign = await prisma.campaign.findUnique({ where: { id: input.campaignId }, select: { settings: true } });
+  const excluded = getExcluded(campaign?.settings);
+  if (!excluded.includes(player.characterName)) {
+    await saveExcluded(prisma, input.campaignId, [...excluded, player.characterName]);
+  }
 }
 
 export async function importPartyFromDdb(
@@ -126,6 +154,8 @@ export async function importPartyFromDdb(
   if (roster.entries?.length) {
     // Roster cards carry every character — private sheets included.
     for (const e of roster.entries) {
+      // Unclaimed slots ("Unassigned", no player) aren't party members.
+      if (!e.playerUsername && /^unassigned$/i.test((e.meta ?? '').trim())) continue;
       const { level, race, className } = parseCardMeta(e.meta);
       rows.push({ id: e.id, name: e.name, className, race, level, playerUsername: e.playerUsername });
     }
@@ -143,15 +173,14 @@ export async function importPartyFromDdb(
     throw new TRPCError({ code: 'BAD_REQUEST', message: 'No characters found in that campaign.' });
   }
 
+  // Only names the DM explicitly struck stay out; everything else on the
+  // roster is fair game — including names previously demoted to npc.
+  const campaignRow = await prisma.campaign.findUnique({ where: { id: input.campaignId }, select: { settings: true } });
+  const excluded = new Set(getExcluded(campaignRow?.settings));
+
   let imported = 0;
   for (const row of rows) {
-    // A lexicon term already re-filed as npc means the DM struck this name
-    // from the party — re-imports must not resurrect it.
-    const struck = await prisma.lexiconTerm.findUnique({
-      where: { campaignId_term: { campaignId: input.campaignId, term: row.name } },
-      select: { kind: true },
-    });
-    if (struck?.kind === 'npc') continue;
+    if (excluded.has(row.name)) continue;
 
     const exists = await prisma.player.findFirst({
       where: { campaignId: input.campaignId, characterName: row.name },
@@ -181,7 +210,8 @@ export async function importPartyFromDdb(
     }
     await prisma.lexiconTerm.upsert({
       where: { campaignId_term: { campaignId: input.campaignId, term: row.name } },
-      update: {},
+      // Importing someone as a party member promotes their term back to pc.
+      update: { kind: 'pc' },
       create: { campaignId: input.campaignId, term: row.name, kind: 'pc', source: 'ddb-import' },
     });
     imported++;
