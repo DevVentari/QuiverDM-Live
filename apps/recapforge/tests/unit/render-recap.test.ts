@@ -53,4 +53,39 @@ describe('renderRecapHtml', () => {
     const xss: RecapContent = { ...full, lede: 'a <script>alert(1)</script> b' };
     expect(renderRecapHtml(xss, VALDRATH_THEME, meta)).not.toContain('<script>alert(1)');
   });
+  it('sanitizes palette values to prevent CSS breakout', () => {
+    // Attempt to break out of CSS context with a malicious palette value
+    const maliciousTheme = {
+      ...VALDRATH_THEME,
+      palette: {
+        ...VALDRATH_THEME.palette,
+        blood: 'red;}</style><script>alert("xss")</script>',
+      },
+    };
+    const html = renderRecapHtml(full, maliciousTheme, meta);
+    // Extract the CSS rule block (everything in :root{...})
+    const rootMatch = html.match(/:root\{([^}]+)\}/);
+    expect(rootMatch).toBeTruthy();
+    const cssContent = rootMatch![1];
+    // Verify dangerous delimiters are not in the CSS variables
+    expect(cssContent).not.toContain('</style>');
+    expect(cssContent).not.toContain('<script>');
+    // Verify a normal palette value still works correctly
+    const normalTheme = { ...VALDRATH_THEME };
+    const normalHtml = renderRecapHtml(full, normalTheme, meta);
+    expect(normalHtml).toContain('--blood:#8a1c1c');
+  });
+  it('handles empty status in statusPill without crashing', () => {
+    const emptyStatusContent: RecapContent = {
+      ...full,
+      panels: {
+        ...full.panels,
+        adversaries: [{ name: 'Test Enemy', status: '' as any }],
+      },
+    };
+    // Should not throw and should return valid HTML
+    expect(() => renderRecapHtml(emptyStatusContent, VALDRATH_THEME, meta)).not.toThrow();
+    const html = renderRecapHtml(emptyStatusContent, VALDRATH_THEME, meta);
+    expect(html).toContain('Test Enemy');
+  });
 });

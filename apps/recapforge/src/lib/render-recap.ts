@@ -9,12 +9,16 @@ function label(theme: RecapTheme, key: PanelKey): string {
 
 const markerClass: Record<string, string> = { reveal: 'reveal', flag: 'flag', win: 'win', normal: '' };
 
+// Palette values are color tokens; strip anything that could break out of the CSS context.
+const cssColor = (v: string) => v.replace(/[^#a-zA-Z0-9(),.%\s-]/g, '');
+
 function paletteVars(theme: RecapTheme): string {
-  return Object.entries(theme.palette).map(([k, v]) => `--${k}:${v};`).join('');
+  return Object.entries(theme.palette).map(([k, v]) => `--${k}:${cssColor(v)};`).join('');
 }
 
 function statusPill(s: string): string {
-  return `<span class="status ${esc(s)}">${esc(s[0].toUpperCase() + s.slice(1))}</span>`;
+  const cap = s ? s[0].toUpperCase() + s.slice(1) : s;
+  return `<span class="status ${esc(s)}">${esc(cap)}</span>`;
 }
 
 function renderPanel(theme: RecapTheme, key: PanelKey, content: RecapContent): string {
@@ -119,6 +123,13 @@ td.role{color:var(--bone-dim);font-size:.9rem;}
 }
 `;
 
+/**
+ * Render a self-contained recap HTML document.
+ *
+ * IMPORTANT: theme (RecapTheme) MUST be a developer-trusted constant, never user-supplied.
+ * theme.fonts.* and theme.fonts.importUrl are interpolated into <style> without escaping
+ * by design (P4 has no theme editor; see spec §7). Palette values are sanitized via cssColor().
+ */
 export function renderRecapHtml(
   content: RecapContent,
   theme: RecapTheme,
