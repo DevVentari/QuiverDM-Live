@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { createForgeCampaign } from '@/server/services/campaign.service';
 import { createSession } from '@/server/services/sessions.service';
 
@@ -41,7 +41,7 @@ afterAll(async () => {
 
 describe('publishRecap', () => {
   it('rejects (PRECONDITION_FAILED) and does NOT ssh when the campaign has no publishConfig', async () => {
-    await prisma.campaign.update({ where: { id: campaignId }, data: { publishConfig: null } });
+    await prisma.campaign.update({ where: { id: campaignId }, data: { publishConfig: Prisma.JsonNull } });
     await expect(publishRecap(prisma, userId, { campaignId, sessionId })).rejects.toMatchObject({ code: 'PRECONDITION_FAILED' });
     expect(sshMock).not.toHaveBeenCalled();
   });
