@@ -10,10 +10,13 @@ echo "[deploy] Pulling latest..."
 git pull origin main
 
 echo "[deploy] Installing dependencies..."
-npm ci
+npm ci   # postinstall runs `prisma generate` — the client is generated here
 
-echo "[deploy] Pushing schema changes..."
-npx prisma db push --skip-generate
+# NOTE: no `prisma db push` here. Schema is managed out-of-band via idempotent
+# prisma/manual/*.sql applied with `prisma db execute` (see CLAUDE.md). Running
+# db push against the shared live DB fights unmerged-branch drift and aborts the
+# deploy (e.g. it tried to drop the unmerged Encounter Studio tables). Apply
+# schema by hand before deploying, not here.
 
 echo "[deploy] Building recapforge..."
 npm run build -w recapforge
