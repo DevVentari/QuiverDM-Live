@@ -4,12 +4,23 @@ One-time setup so RecapForge (CT 206) can publish `session-N.html` to
 valdrath.quiverdm.com. After this, publishing is a button in /recap.
 
 ## 1. Generic dir-serve (nginx on CT 204, docroot /srv/valdrath)
-Replace the per-session `location = /session-N` blocks in
-`/etc/nginx/sites-enabled/valdrath` with:
+**ALREADY DONE (2026-07-13).** Do NOT blindly overwrite `/etc/nginx/sites-available/valdrath` —
+the same server block ALSO serves the campaign **wiki** at `/wiki/` (a separate Astro
+static site in `/srv/valdrath/wiki`). Overwriting with the session-only block below
+would **clobber the wiki**. The live config (source of truth, keep both) is:
 ```nginx
-location / { try_files $uri $uri.html =404; add_header Cache-Control "no-cache, must-revalidate"; }
+server {
+    listen 8092; server_name _; root /srv/valdrath; absolute_redirect off;
+    location = / { add_header Cache-Control "no-cache, must-revalidate"; try_files /index.html =404; }
+    location = /wiki { return 302 /wiki/; }
+    location /wiki/ { add_header Cache-Control "no-cache, must-revalidate"; try_files $uri $uri/index.html $uri.html =404; }
+    location /    { add_header Cache-Control "no-cache, must-revalidate"; try_files $uri $uri.html =404; }
+    gzip on; gzip_types text/plain text/css application/javascript image/svg+xml;
+}
 ```
-Then `nginx -t` and `systemctl reload nginx` (reload, not restart).
+The RecapForge publish path only needs the two generic `location` blocks (`= /` + `/`);
+the `/wiki` blocks belong to the separate valdrath-wiki project — preserve them.
+Validate with `nginx -t`, then `systemctl reload nginx` (reload, not restart).
 
 ## 2. Receiver user + forced command
 ```bash
