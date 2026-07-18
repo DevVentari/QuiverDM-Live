@@ -12,11 +12,13 @@
  *    location (relationships → "NPCs here", sessionAppearances → "Scenes").
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useCampaign } from '@/components/campaign/campaign-context';
 import { VttCanvas } from '@/components/vtt/vtt-canvas';
 import { MapBackgroundControl } from '@/components/vtt/map-background-control';
+import { QdInput } from '@/components/ui-v3/QdInput';
+import { QdButton } from '@/components/ui-v3/QdButton';
 
 type Status = 'ally' | 'unstable' | 'hostile' | 'town' | 'neutral';
 
@@ -62,7 +64,7 @@ function Crumb({ label, active }: { label: string; active?: boolean }) {
       className={`${mono} rounded-[7px] border px-2.5 py-1.5 text-[9px] tracking-[0.1em]`}
       style={
         active
-          ? { color: 'var(--qd-accent-hi)', background: 'rgba(217,138,61,.16)', borderColor: 'var(--qd-border-accent-strong)' }
+          ? { color: 'var(--qd-accent-hi)', background: 'color-mix(in oklab, var(--qd-accent) 16%, transparent)', borderColor: 'var(--qd-border-accent-strong)' }
           : { color: 'var(--qd-ink-faint)', borderColor: 'var(--qd-border)' }
       }
     >
@@ -87,6 +89,9 @@ export default function WorldMapPage() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [bgOpen, setBgOpen] = useState(false);
+  const [showPinForm, setShowPinForm] = useState(false);
+  const [pinName, setPinName] = useState('');
+  const pinInputRef = useRef<HTMLInputElement>(null);
 
   const pins = useMemo(() => mapData?.pins ?? [], [mapData]);
 
@@ -134,9 +139,22 @@ export default function WorldMapPage() {
 
   const handleAddPin = () => {
     if (!isDM || !mapData) return;
-    const name = window.prompt('Name this location');
-    if (!name?.trim()) return;
-    createLocationPin.mutate({ mapId: mapData.id, campaignId, name: name.trim(), x: 0, y: 0 });
+    setShowPinForm(true);
+    setPinName('');
+    // Focus the input on next paint
+    setTimeout(() => pinInputRef.current?.focus(), 0);
+  };
+
+  const handlePinSubmit = () => {
+    if (!mapData || !pinName.trim()) return;
+    createLocationPin.mutate({ mapId: mapData.id, campaignId, name: pinName.trim(), x: 0, y: 0 });
+    setShowPinForm(false);
+    setPinName('');
+  };
+
+  const handlePinCancel = () => {
+    setShowPinForm(false);
+    setPinName('');
   };
 
   // Detail panel: relationships → "NPCs here", sessionAppearances → "Scenes".
@@ -197,10 +215,34 @@ export default function WorldMapPage() {
         <aside className="flex w-[218px] flex-none flex-col gap-2 overflow-auto border-r border-[var(--qd-border-faint)] bg-[rgba(0,0,0,0.2)] p-3">
           <div className="flex items-center justify-between px-0.5">
             <span className={`${mono} text-[8px] tracking-[0.16em] text-[var(--qd-ink-faint)]`}>LOCATIONS</span>
-            {isDM && (
+            {isDM && !showPinForm && (
               <button type="button" onClick={handleAddPin} className={`${mono} text-[9px] text-[var(--qd-accent)]`}>+ Pin</button>
             )}
           </div>
+          {showPinForm && (
+            <form
+              onSubmit={(e) => { e.preventDefault(); handlePinSubmit(); }}
+              className="flex flex-col gap-1.5 rounded-[10px] border border-[var(--qd-border-accent)] p-2"
+              style={{ background: 'color-mix(in oklab, var(--qd-accent) 6%, transparent)' }}
+            >
+              <QdInput
+                ref={pinInputRef}
+                value={pinName}
+                onChange={(e) => setPinName(e.target.value)}
+                placeholder="Location name…"
+                className="text-[12px]"
+                onKeyDown={(e) => { if (e.key === 'Escape') handlePinCancel(); }}
+              />
+              <div className="flex gap-1.5">
+                <QdButton type="submit" variant="primary" className="flex-1 min-h-[32px] text-[11px] px-2">
+                  Add
+                </QdButton>
+                <QdButton type="button" variant="ghost" onClick={handlePinCancel} className="min-h-[32px] text-[11px] px-2">
+                  Cancel
+                </QdButton>
+              </div>
+            </form>
+          )}
           {locations.length === 0 && (
             <p className={`${mono} px-1 py-6 text-center text-[10px] text-[var(--qd-ink-muted)]`}>No places charted yet.</p>
           )}
@@ -213,7 +255,7 @@ export default function WorldMapPage() {
                 className="flex items-center gap-2.5 rounded-[11px] border p-2 text-left"
                 style={
                   active
-                    ? { background: 'linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.06))', borderColor: 'var(--qd-border-accent)' }
+                    ? { background: 'linear-gradient(180deg,color-mix(in oklab, var(--qd-accent) 16%, transparent),color-mix(in oklab, var(--qd-danger) 6%, transparent))', borderColor: 'var(--qd-border-accent)' }
                     : { background: 'rgba(255,255,255,.02)', borderColor: 'var(--qd-border-faint)' }
                 }
               >
@@ -299,8 +341,8 @@ export default function WorldMapPage() {
 
               <div className="border-t border-[var(--qd-border-faint)] pt-3">
                 <div className={`${mono} mb-2 text-[8px] tracking-[0.12em] text-[var(--qd-ink-muted)]`}>INSIDE · DRILL DOWN</div>
-                <button className="mb-1.5 flex w-full items-center gap-2.5 rounded-[10px] border p-2.5 text-left" style={{ background: 'rgba(217,138,61,.1)', borderColor: 'var(--qd-border-accent)' }}>
-                  <span className="h-6 w-6 flex-none rounded-[7px]" style={{ background: 'repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 1px,transparent 1px 6px),repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 1px,transparent 1px 6px),rgba(217,138,61,.12)' }} />
+                <button className="mb-1.5 flex w-full items-center gap-2.5 rounded-[10px] border p-2.5 text-left" style={{ background: 'color-mix(in oklab, var(--qd-accent) 10%, transparent)', borderColor: 'var(--qd-border-accent)' }}>
+                  <span className="h-6 w-6 flex-none rounded-[7px]" style={{ background: 'repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 1px,transparent 1px 6px),repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 1px,transparent 1px 6px),color-mix(in oklab, var(--qd-accent) 12%, transparent)' }} />
                   <span className="min-w-0 flex-1">
                     <span className="block text-[13px] text-[var(--qd-accent-hi)]">{selected.name} · Location Map</span>
                     <span className={`${mono} text-[8px] text-[var(--qd-ink-muted)]`}>LOCATION MAP</span>

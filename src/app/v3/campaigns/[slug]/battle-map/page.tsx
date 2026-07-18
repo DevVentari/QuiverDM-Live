@@ -35,23 +35,23 @@ const TYPE_STYLE: Record<TokenType, { ring: string; text: string; fillFrom: stri
   pc: {
     ring: 'var(--qd-success)',
     text: 'var(--qd-success-hi)',
-    fillFrom: 'rgba(127,174,90,.28)',
-    barFrom: '#5f8f45',
-    barTo: '#8fc466',
+    fillFrom: 'color-mix(in oklab, var(--qd-success) 28%, transparent)',
+    barFrom: 'var(--qd-success-deep)',
+    barTo: 'var(--qd-success-bright)',
   },
   npc: {
     ring: 'var(--qd-accent)',
     text: 'var(--qd-accent-text)',
-    fillFrom: 'rgba(217,138,61,.30)',
-    barFrom: '#b8453a',
-    barTo: '#e0944a',
+    fillFrom: 'color-mix(in oklab, var(--qd-accent) 30%, transparent)',
+    barFrom: 'var(--qd-danger)',
+    barTo: 'var(--qd-accent-bright)',
   },
   monster: {
     ring: 'var(--qd-danger)',
     text: 'var(--qd-danger-hi)',
-    fillFrom: 'rgba(196,69,58,.30)',
-    barFrom: '#8a2f26',
-    barTo: '#c4453a',
+    fillFrom: 'color-mix(in oklab, var(--qd-danger) 30%, transparent)',
+    barFrom: 'var(--qd-danger-deep)',
+    barTo: 'var(--qd-danger)',
   },
 };
 
@@ -196,7 +196,7 @@ export default function BattleMapPage() {
   return (
     <div className="flex h-full flex-col">
       {/* ===== HEADER ===== */}
-      <div className="flex items-center gap-3.5 border-b border-[var(--qd-border-faint)] px-5 py-3" style={{ background: 'linear-gradient(180deg,rgba(217,138,61,.05),transparent)' }}>
+      <div className="flex items-center gap-3.5 border-b border-[var(--qd-border-faint)] px-5 py-3" style={{ background: 'linear-gradient(180deg,color-mix(in oklab, var(--qd-accent) 5%, transparent),transparent)' }}>
         <span className="grid h-8 w-8 flex-none place-items-center rounded-[9px]" style={{ background: 'linear-gradient(150deg,var(--qd-accent-bright),var(--qd-accent))', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.3)' }}>
           <MaskedDndIcon name="combat/target" size={14} style={{ color: 'var(--qd-bg)' }} />
         </span>
@@ -212,7 +212,7 @@ export default function BattleMapPage() {
               className="rounded-[7px] border px-2.5 py-1.5"
               style={
                 i < 2
-                  ? { background: 'rgba(217,138,61,.12)', borderColor: 'var(--qd-border-accent)', color: 'var(--qd-accent-text)' }
+                  ? { background: 'color-mix(in oklab, var(--qd-accent) 12%, transparent)', borderColor: 'var(--qd-border-accent)', color: 'var(--qd-accent-text)' }
                   : { background: 'rgba(0,0,0,.3)', borderColor: 'var(--qd-border-strong)', color: 'var(--qd-ink-2)' }
               }
             >
@@ -243,9 +243,9 @@ export default function BattleMapPage() {
                 className="flex min-h-[52px] items-center gap-2.5 rounded-[11px] border p-2 text-left transition-colors"
                 style={
                   active
-                    ? { background: 'linear-gradient(180deg,rgba(217,138,61,.16),rgba(184,69,58,.08))', borderColor: 'var(--qd-border-accent)' }
+                    ? { background: 'linear-gradient(180deg,color-mix(in oklab, var(--qd-accent) 16%, transparent),color-mix(in oklab, var(--qd-danger) 8%, transparent))', borderColor: 'var(--qd-border-accent)' }
                     : turn
-                      ? { background: 'linear-gradient(180deg,rgba(217,138,61,.1),rgba(0,0,0,.15))', borderColor: 'var(--qd-border-accent)' }
+                      ? { background: 'linear-gradient(180deg,color-mix(in oklab, var(--qd-accent) 10%, transparent),rgba(0,0,0,.15))', borderColor: 'var(--qd-border-accent)' }
                       : { background: 'linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.15))', borderColor: 'var(--qd-border-faint)' }
                 }
               >
@@ -383,7 +383,7 @@ export default function BattleMapPage() {
               <div className="flex items-end gap-1.5">
                 <span
                   className={`${display} text-[30px] font-bold leading-[.85] text-[var(--qd-ink-strong)]`}
-                  style={{ borderBottom: '2px dashed rgba(217,138,61,.5)' }}
+                  style={{ borderBottom: '2px dashed color-mix(in oklab, var(--qd-accent) 50%, transparent)' }}
                 >
                   {selected.hp}
                 </span>
@@ -400,8 +400,8 @@ export default function BattleMapPage() {
                 <button
                   type="button"
                   onClick={() => patch(selected, { hp: Math.max(0, selected.hp - 5) })}
-                  className={`${display} rounded-[10px] border-none p-3 text-[13px] font-bold text-[#fce9da]`}
-                  style={{ background: 'linear-gradient(180deg,#cf5f2a,#a8401f)' }}
+                  className={`${display} rounded-[10px] border-none p-3 text-[13px] font-bold text-[var(--qd-ink-strong)]`}
+                  style={{ background: 'linear-gradient(180deg,var(--qd-danger),var(--qd-danger-deep))' }}
                 >
                   ⚔ −5 Damage
                 </button>
@@ -409,7 +409,7 @@ export default function BattleMapPage() {
                   type="button"
                   onClick={() => patch(selected, { hp: Math.min(selected.maxHp, selected.hp + 5) })}
                   className={`${display} rounded-[10px] border p-3 text-[13px] font-bold`}
-                  style={{ background: 'rgba(95,143,69,.16)', borderColor: 'rgba(95,143,69,.5)', color: 'var(--qd-success-hi)' }}
+                  style={{ background: 'color-mix(in oklab, var(--qd-success) 16%, transparent)', borderColor: 'color-mix(in oklab, var(--qd-success) 50%, transparent)', color: 'var(--qd-success-hi)' }}
                 >
                   ✚ +5 Heal
                 </button>
@@ -459,12 +459,12 @@ export default function BattleMapPage() {
                 <div className={`${mono} mb-2 text-[8px] tracking-[0.12em] text-[var(--qd-ink-muted)]`}>CONDITIONS</div>
                 <div className="flex flex-wrap gap-1.5">
                   {isBloodied(selected) && (
-                    <span className={`${mono} rounded-full border px-2.5 py-1.5 text-[9px]`} style={{ background: 'rgba(196,69,58,.14)', borderColor: 'rgba(196,69,58,.5)', color: 'var(--qd-danger-hi)' }}>
+                    <span className={`${mono} rounded-full border px-2.5 py-1.5 text-[9px]`} style={{ background: 'color-mix(in oklab, var(--qd-danger) 14%, transparent)', borderColor: 'color-mix(in oklab, var(--qd-danger) 50%, transparent)', color: 'var(--qd-danger-hi)' }}>
                       Bloodied
                     </span>
                   )}
                   {selected.concentration && (
-                    <span className={`${mono} rounded-full border px-2.5 py-1.5 text-[9px]`} style={{ background: 'rgba(212,98,47,.14)', borderColor: 'rgba(212,98,47,.5)', color: 'var(--qd-accent-bright)' }}>
+                    <span className={`${mono} rounded-full border px-2.5 py-1.5 text-[9px]`} style={{ background: 'color-mix(in oklab, var(--qd-warn) 14%, transparent)', borderColor: 'color-mix(in oklab, var(--qd-warn) 50%, transparent)', color: 'var(--qd-accent-bright)' }}>
                       Concentrating
                     </span>
                   )}

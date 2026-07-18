@@ -283,7 +283,7 @@ export default function RecordingsPage() {
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="min-w-0 truncate text-sm text-qd-ink-strong">{titleOf(s)}</span>
-                  <span className="flex-none font-qd-mono text-[9px]" style={{ color: active ? 'var(--qd-accent-text)' : 'var(--qd-ink-muted)' }}>
+                  <span className={`flex-none font-qd-mono text-[9px] ${active ? 'text-qd-accent-text' : 'text-qd-ink-muted'}`}>
                     {formatDuration(rec?.durationSeconds)}
                   </span>
                 </div>
@@ -342,7 +342,7 @@ export default function RecordingsPage() {
                   )}
 
                   {/* audio/video playback — native element streams from /api/storage */}
-                  <div className="mt-5 rounded-qd-lg border border-qd-faint p-4" style={{ background: 'rgba(255,255,255,.02)' }}>
+                  <div className="mt-5 rounded-qd-lg border border-qd-faint p-4 bg-white/[.02]">
                     {playbackUrl ? (
                       <audio
                         ref={audioRef}
@@ -354,7 +354,7 @@ export default function RecordingsPage() {
                       />
                     ) : (
                       <div className="flex items-center gap-3 font-qd-mono text-[10px] text-qd-ink-muted">
-                        <span className="grid h-9 w-9 flex-none place-items-center rounded-full text-[14px] text-qd-ink-faint" style={{ background: 'rgba(255,255,255,.05)' }}>
+                        <span className="grid h-9 w-9 flex-none place-items-center rounded-full text-[14px] text-qd-ink-faint bg-white/[.05]">
                           ▶
                         </span>
                         No audio file is attached to this recording.
