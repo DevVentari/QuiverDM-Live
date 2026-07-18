@@ -71,9 +71,59 @@
   animation: v3-rec-blink 1.6s infinite;
 }
 
+/* ============================================================
+   v3 shared atmosphere — "the world breathes".
+   A non-interactive backdrop the shell paints behind all chrome.
+   Recipe derived from docs/assets/designs/v3/designs/*.dc.html.
+   ============================================================ */
+
+/* Base: #0a0707 + the arcane lower-left glow. Amber is the ember layer below,
+   so it can breathe without doubling the upper-right glow. */
+.v3-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(760px 480px at 6% 110%, rgba(176, 143, 208, 0.06), transparent 60%),
+    var(--qd-bg);
+}
+
+/* Amber ember (upper-right) on its own layer — opacity-only breathe = GPU-cheap. */
+@keyframes v3-breathe {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+.v3-ember {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(1100px 620px at 72% -12%, rgba(217, 138, 61, 0.10), transparent 60%);
+  animation: v3-breathe 9s var(--qd-ease-inout) infinite;
+}
+
+/* Film grain — inline SVG feTurbulence, no asset file. */
+.v3-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Edge vignette. */
+.v3-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hf-ember,
   .hf-ember--active,
+  .v3-ember,
   .v3-pin-pulse,
   .v3-dot-pulse,
   .v3-rec-blink {

@@ -31,7 +31,7 @@ export const metadata: Metadata = {
  * Layout for the parallel v3 tree (`/v3/*`). Mirrors the auth guard of the live
  * `(app)` layout and wraps everything in the V3AppShell. The `.v3-scope` wrapper
  * binds the Kalam/Hanken fonts to the `--qd-*` token system; the atmospheric
- * background comes from the root layout.
+ * background (ambient glows, grain, vignette) is painted by the V3AppShell backdrop.
  */
 export default async function V3Layout({
   children,

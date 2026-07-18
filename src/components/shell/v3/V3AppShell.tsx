@@ -70,9 +70,15 @@ export function V3AppShell({ children }: { children: ReactNode }) {
 
   return (
     <HeartflameProvider initial={DEMO_SURFACED}>
-      <div className="relative flex h-screen overflow-hidden bg-qd-bg text-qd-ink">
+      <div className="relative flex h-screen overflow-hidden text-qd-ink">
+        {/* Shared atmosphere — aria-hidden, non-interactive; every v3 screen floats over this. */}
+        <div aria-hidden className="v3-atmosphere">
+          <span className="v3-ember" />
+          <span className="v3-grain" />
+          <span className="v3-vignette" />
+        </div>
         {/* Global icon rail */}
-        <nav aria-label="Global navigation" className="flex w-14 flex-none flex-col items-center gap-1 border-r border-qd-faint bg-qd-rail py-4">
+        <nav aria-label="Global navigation" className="relative z-10 flex w-14 flex-none flex-col items-center gap-1 border-r border-qd-faint bg-[rgba(13,9,8,0.55)] backdrop-blur-md py-4">
           <Link href="/v3" className="mb-3 grid h-9 w-9 place-items-center rounded-qd-md bg-qd-accent text-qd-on-accent shadow-qd-accent">
             <MaskedDndIcon name="game/dm" size={18} />
           </Link>
@@ -95,13 +101,20 @@ export function V3AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         {/* Campaign sidebar */}
-        <aside aria-label="Campaign navigation" className="hidden w-56 flex-none flex-col border-r border-qd-faint bg-[rgba(0,0,0,0.18)] p-4 md:flex">
+        <aside aria-label="Campaign navigation" className="relative z-10 hidden w-56 flex-none flex-col border-r border-qd-faint bg-[rgba(0,0,0,0.18)] backdrop-blur-sm p-4 md:flex">
           <span className="font-qd-mono text-[9px] uppercase tracking-[0.18em] text-qd-ink-faint">Campaign</span>
           {slug ? (
             <>
-              <span className="mt-2 font-qd-display text-lg leading-tight text-qd-ink-strong">
-                {campaignName ?? '…'}
-              </span>
+              <div className="relative -mx-1 overflow-hidden">
+                <MaskedDndIcon
+                  name="entity/world"
+                  size={108}
+                  className="pointer-events-none absolute -right-4 -top-6 text-qd-accent-text opacity-[0.10]"
+                />
+                <span className="relative z-10 mt-2 block font-qd-display text-lg leading-tight text-qd-ink-strong">
+                  {campaignName ?? '…'}
+                </span>
+              </div>
               <nav className="mt-4 flex flex-col gap-0.5">
                 {RAIL.filter((i) => i.seg).map((item) => {
                   const href = hrefFor(item.seg);
@@ -128,7 +141,7 @@ export function V3AppShell({ children }: { children: ReactNode }) {
         </aside>
 
         {/* Main content */}
-        <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="relative z-10 flex min-w-0 flex-1 flex-col overflow-hidden">
           <header className="flex h-12 flex-none items-center gap-3 border-b border-qd-faint px-5">
             <span className="font-qd-mono text-[10px] uppercase tracking-[0.2em] text-qd-ink-faint">
               QuiverDM v3{campaignName ? ` · ${campaignName}` : ''}

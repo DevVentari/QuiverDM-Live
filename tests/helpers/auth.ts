@@ -64,6 +64,28 @@ export async function ensureTestUserExists(
   }
 }
 
+export async function ensureTestCampaignExists(
+  email: string,
+  slug: string,
+  name: string,
+): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new Error(`ensureTestCampaignExists: user ${email} not found — call ensureTestUserExists first`);
+  const campaign = await prisma.campaign.upsert({
+    where: { slug },
+    update: { name },
+    create: { userId: user.id, slug, name, status: 'active' },
+  });
+  const existing = await prisma.campaignMember.findFirst({
+    where: { campaignId: campaign.id, userId: user.id },
+  });
+  if (!existing) {
+    await prisma.campaignMember.create({
+      data: { campaignId: campaign.id, userId: user.id, role: 'OWNER' },
+    });
+  }
+}
+
 export async function seedCampaignWithSourcebook(
   opts: { withEntity?: boolean; withEmptyChapter?: boolean } = {},
 ) {
